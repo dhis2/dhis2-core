@@ -32,7 +32,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 
+import com.google.common.base.Strings;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.ProducerConfiguration;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Component;
@@ -43,23 +47,41 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditManager
 {
-    private final MessageManager messageManager;
-    private final RenderService renderService;
-    private final Map<AuditScope, String> auditScopeDestinationMap;
+    private static final Log log = LogFactory.getLog( AuditManager.class );
 
-    public AuditManager( MessageManager messageManager, RenderService renderService,  Map<AuditScope, String> auditScopeDestinationMap)
+    private final AuditProducerSupplier auditProducerSupplier;
+
+    private final RenderService renderService;
+
+    private final ProducerConfiguration config;
+
+    private final AuditScheduler auditScheduler;
+
+    public AuditManager( AuditProducerSupplier auditProducerSupplier, RenderService renderService,
+        AuditScheduler auditScheduler, ProducerConfiguration config )
     {
-        checkNotNull( messageManager );
+        checkNotNull( auditProducerSupplier );
         checkNotNull( renderService );
-        
-        this.messageManager = messageManager;
+        checkNotNull( config );
+
+        this.auditProducerSupplier = auditProducerSupplier;
         this.renderService = renderService;
-        this.auditScopeDestinationMap = auditScopeDestinationMap;
+        this.config = config;
+        this.auditScheduler = auditScheduler;
     }
 
     public void send( Audit audit )
     {
+        if ( config.isUseQueue() )
+        {
+            auditScheduler.addAuditItem( audit );
+        }
+        else
+        {
+            auditProducerSupplier.publish( audit );
+        }
 
-        messageManager.send( auditScopeDestinationMap.get( audit.getAuditScope() ), audit );
     }
+
+
 }

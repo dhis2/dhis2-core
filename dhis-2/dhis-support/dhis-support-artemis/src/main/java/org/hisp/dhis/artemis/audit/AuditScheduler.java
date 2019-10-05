@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.artemis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -30,19 +30,13 @@ package org.hisp.dhis.artemis;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.QueuedAudit;
-import org.hisp.dhis.audit.AuditScope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Strings;
 
 /**
  * @author Luciano Fiandesio
@@ -51,58 +45,35 @@ import com.google.common.base.Strings;
 public class AuditScheduler
 {
     private static final Log log = LogFactory.getLog( AuditScheduler.class );
-    private final long delay = 20000; // 20 seconds
+    
+    private final long delay = 20000; // 20 seconds 
 
-    private final MessageManager messageManager;
+    private final AuditProducerSupplier auditProducerSupplier;
+    
+    private final BlockingQueue<QueuedAudit> delayed = new DelayQueue<QueuedAudit>();
 
-    private final Map<AuditScope, String> auditScopeDestinationMap;
-
-    private final BlockingQueue<QueuedAudit> delayed = new DelayQueue<>();
-
-    public AuditScheduler( MessageManager messageManager, Map<AuditScope, String> auditScopeDestinationMap )
+    public AuditScheduler( AuditProducerSupplier auditProducerSupplier )
     {
-        this.messageManager = messageManager;
-        this.auditScopeDestinationMap = auditScopeDestinationMap;
+        this.auditProducerSupplier = auditProducerSupplier;
     }
 
-    public void addAuditItem(final Audit workItem )
+    public void addAuditItem(final Audit auditItem )
     {
-        System.out.println("adding item.....");
-        final QueuedAudit postponed = new QueuedAudit( workItem, delay );
+        log.debug( String.format( "add Audit object with content %s to delayed queue", auditItem.toString() ) );
+        final QueuedAudit postponed = new QueuedAudit( auditItem, delay );
         if ( !delayed.contains( postponed ) )
         {
-            System.out.println("in the queue!");
             delayed.offer( postponed );
         }
     }
 
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled( fixedDelay = 60000 ) // TODO this value should come from configuration
     public void process()
     {
         final Collection<QueuedAudit> expired = new ArrayList<>();
+        
         delayed.drainTo( expired );
 
-        for ( final QueuedAudit postponed : expired )
-        {
-            String topic = getTopicName( postponed.getAuditItem() );
-            if ( !Strings.isNullOrEmpty( topic ) )
-            {
-                log.debug( "sending auditing message to topic: [" + topic + "] with content: "
-                    + postponed.getAuditItem().toString() );
-
-                this.messageManager.send( topic, postponed.getAuditItem() );
-            }
-            else
-            {
-                log.error( String.format( "Unable to map AuditScope [%s] to a topic name. Sending aborted",
-                    postponed.getAuditItem().getAuditScope() ) );
-            }
-            
-        }
-    }
-    
-    private String getTopicName( Audit audit )
-    {
-        return auditScopeDestinationMap.get( audit.getAuditScope() );
+        expired.stream().map( QueuedAudit::getAuditItem ).forEach( auditProducerSupplier::publish );
     }
 }

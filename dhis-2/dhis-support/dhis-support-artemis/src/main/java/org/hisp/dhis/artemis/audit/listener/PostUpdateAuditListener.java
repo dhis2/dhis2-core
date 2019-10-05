@@ -36,9 +36,9 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.config.UserNameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,9 +52,9 @@ public class PostUpdateAuditListener
     PostUpdateEventListener
 {
     public PostUpdateAuditListener( AuditManager auditManager, AuditLegacyObjectFactory auditLegacyObjectFactory,
-                                    CurrentUserService currentUserService )
+        UserNameSupplier userNameSupplier )
     {
-        super( auditManager, auditLegacyObjectFactory, currentUserService );
+        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
     }
 
     @Override
@@ -69,9 +69,9 @@ public class PostUpdateAuditListener
             auditManager.send(Audit.builder().withAuditType(AuditType.UPDATE)
                 .withAuditScope( scope )
                 .withCreatedAt( new Date() )
-                .withCreatedBy( currentUserService.getCurrentUsername() )
+                .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( scope, AuditType.UPDATE, io, currentUserService.getCurrentUsername()) )
+                .withData( this.legacyObjectFactory.create( scope, AuditType.UPDATE, io, getCreatedBy() ) )
                 .build());
 
         });

@@ -28,8 +28,52 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Map;
+
+import com.google.common.base.Strings;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.audit.AuditScope;
+import org.springframework.stereotype.Component;
+
 /**
  * @author Luciano Fiandesio
  */
-public class AuditProducerSupplier {
+@Component
+public class AuditProducerSupplier
+{
+    private static final Log log = LogFactory.getLog( AuditProducerSupplier.class );
+    private final MessageManager messageManager;
+
+    private final Map<AuditScope, String> auditScopeDestinationMap;
+
+    public AuditProducerSupplier( MessageManager messageManager, Map<AuditScope, String> auditScopeDestinationMap )
+    {
+        this.messageManager = messageManager;
+        this.auditScopeDestinationMap = auditScopeDestinationMap;
+    }
+
+    public void publish(Audit audit) {
+
+        String topic = getTopicName( audit );
+        if ( !Strings.isNullOrEmpty( topic ) )
+        {
+            log.debug( "sending auditing message to topic: [" + topic + "] with content: "
+                    + audit.toString() );
+
+            this.messageManager.send( topic, audit );
+        }
+        else
+        {
+            log.error( String.format( "Unable to map AuditScope [%s] to a topic name. Sending aborted",
+                    audit ) );
+        }
+
+    }
+
+    private String getTopicName( Audit audit )
+    {
+        return auditScopeDestinationMap.get( audit.getAuditScope() );
+    }
 }

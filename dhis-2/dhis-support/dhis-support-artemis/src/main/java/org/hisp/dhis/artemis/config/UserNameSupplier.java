@@ -28,8 +28,34 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.stereotype.Component;
+
 /**
  * @author Luciano Fiandesio
  */
-public class UserNameSupplier {
+@Component
+public class UserNameSupplier
+    implements
+    Supplier<String>
+{
+
+    // TODO this may come from configuration
+    private final static String DEFAULT_USERNAME = "system";
+
+    private final CurrentUserService currentUserService;
+
+    public UserNameSupplier( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
+    @Override
+    public String get()
+    {
+        return Optional.ofNullable( currentUserService.getCurrentUsername() ).orElse( DEFAULT_USERNAME );
+    }
 }

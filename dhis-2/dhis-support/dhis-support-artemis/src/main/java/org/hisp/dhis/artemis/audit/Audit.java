@@ -28,9 +28,9 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.Objects;
+
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.audit.AuditScope;
@@ -39,31 +39,39 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "audit", namespace = DxfNamespaces.DXF_2_0 )
-public class Audit implements Message
+public class Audit
+    implements
+    Message
 {
     private AuditType auditType;
+
     private AuditScope auditScope;
+
     private Date createdAt;
+
     private String createdBy;
+
     private String klass;
+
     private String uid;
+
     private String code;
+
     private Object data;
 
     public Audit()
     {
     }
 
-    public Audit(
-        AuditType auditType,
-        AuditScope auditScope, Date createdAt,
-        String createdBy )
+    public Audit( AuditType auditType, AuditScope auditScope, Date createdAt, String createdBy )
     {
         this.auditType = auditType;
         this.auditScope = auditScope;
@@ -161,12 +169,19 @@ public class Audit implements Message
     public static final class AuditBuilder
     {
         private AuditType auditType;
+
         private AuditScope auditScope;
+
         private Date createdAt = new Date();
+
         private String createdBy;
+
         private Class<?> klass;
+
         private String uid;
+
         private String code;
+
         private Object data;
 
         private AuditBuilder()
@@ -246,12 +261,7 @@ public class Audit implements Message
             Assert.notNull( createdAt, "CreatedAt is required." );
             Assert.notNull( createdBy, "CreatedBy is required." );
 
-            Audit audit = new Audit(
-                auditType,
-                auditScope,
-                createdAt,
-                createdBy
-            );
+            Audit audit = new Audit( auditType, auditScope, createdAt, createdBy );
 
             audit.setKlass( klass.getName() );
             audit.setUid( uid );
@@ -260,5 +270,43 @@ public class Audit implements Message
 
             return audit;
         }
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        Audit audit = (Audit) o;
+        return auditType == audit.auditType && auditScope == audit.auditScope
+            && Objects.equals( createdAt, audit.createdAt ) && Objects.equals( createdBy, audit.createdBy )
+            && Objects.equals( klass, audit.klass ) && Objects.equals( uid, audit.uid )
+            && Objects.equals( code, audit.code ) && Objects.equals( data, audit.data );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( auditType, auditScope, createdAt, createdBy, klass, uid, code, data );
+    }
+
+    @Override
+    public String toString() {
+        return "Audit{" +
+                "auditType=" + auditType +
+                ", auditScope=" + auditScope +
+                ", createdAt=" + createdAt +
+                ", createdBy='" + createdBy + '\'' +
+                ", klass='" + klass + '\'' +
+                ", uid='" + uid + '\'' +
+                ", code='" + code + '\'' +
+                ", data=" + data +
+                '}';
     }
 }

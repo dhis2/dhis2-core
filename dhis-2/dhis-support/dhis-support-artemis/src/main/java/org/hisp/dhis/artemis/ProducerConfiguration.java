@@ -31,5 +31,44 @@ package org.hisp.dhis.artemis;
 /**
  * @author Luciano Fiandesio
  */
-public class ProducerConfiguration {
+public class ProducerConfiguration
+{
+    private boolean useQueue = false;
+
+    private ProducerConfiguration( boolean useQueue )
+    {
+        this.useQueue = useQueue;
+    }
+
+    public boolean isUseQueue()
+    {
+        return useQueue;
+    }
+
+    public static final class ProducerConfigurationBuilder
+    {
+        private boolean useQueue;
+
+        private int queueSize;
+
+        private ProducerConfigurationBuilder()
+        {
+        }
+
+        public static ProducerConfigurationBuilder aProducerConfiguration()
+        {
+            return new ProducerConfigurationBuilder();
+        }
+
+        public ProducerConfigurationBuilder withUseQueue( boolean useQueue )
+        {
+            this.useQueue = useQueue;
+            return this;
+        }
+
+        public ProducerConfiguration build()
+        {
+            return new ProducerConfiguration( useQueue );
+        }
+    }
 }

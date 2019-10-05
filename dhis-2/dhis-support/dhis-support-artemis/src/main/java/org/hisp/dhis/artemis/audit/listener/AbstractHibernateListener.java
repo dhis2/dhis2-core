@@ -32,10 +32,10 @@ import java.util.Optional;
 
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.config.UserNameSupplier;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
-import org.hisp.dhis.user.CurrentUserService;
 
 /**
  * @author Luciano Fiandesio
@@ -47,24 +47,32 @@ public abstract class AbstractHibernateListener
 
     final AuditLegacyObjectFactory legacyObjectFactory;
 
-    protected final CurrentUserService currentUserService;
+    protected final UserNameSupplier userNameSupplier;
 
     public AbstractHibernateListener( AuditManager auditManager, AuditLegacyObjectFactory legacyObjectFactory,
-        CurrentUserService currentUserService )
+        UserNameSupplier userNameSupplier )
     {
         this.auditManager = auditManager;
         this.legacyObjectFactory = legacyObjectFactory;
-        this.currentUserService = currentUserService;
+        this.userNameSupplier = userNameSupplier;
     }
 
     Optional<AuditScope> getAuditingScope( Object object )
     {
         if ( AnnotationUtils.isAnnotationPresent( object.getClass(), Auditable.class ) )
         {
-            return Optional.of( object.getClass().getAnnotation( Auditable.class ).scope() );
+            return Optional.of( AnnotationUtils.getAnnotation( object.getClass(), Auditable.class ).scope() );
         }
 
         return Optional.empty();
     }
+
+    String getCreatedBy()
+    {
+        return userNameSupplier.get();
+
+    }
+
+
 
 }

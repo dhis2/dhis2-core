@@ -28,6 +28,8 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.artemis.ProducerConfiguration.ProducerConfigurationBuilder;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +45,7 @@ import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.qpid.jms.JmsConnectionFactory;
+import org.hisp.dhis.artemis.ProducerConfiguration;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -165,15 +168,18 @@ public class ArtemisConfig
     public ArtemisConfigData getArtemisConfig()
     {
         ArtemisConfigData artemisConfigData = new ArtemisConfigData();
-        artemisConfigData.setMode( ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) );
+        artemisConfigData
+            .setMode( ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) );
         artemisConfigData.setHost( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST ) );
         artemisConfigData.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) ) );
         artemisConfigData.setUsername( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_USERNAME ) );
         artemisConfigData.setPassword( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PASSWORD ) );
 
         ArtemisEmbeddedConfig artemisEmbeddedConfig = new ArtemisEmbeddedConfig();
-        artemisEmbeddedConfig.setSecurity( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) ) );
-        artemisEmbeddedConfig.setPersistence( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) ) );
+        artemisEmbeddedConfig.setSecurity(
+            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) ) );
+        artemisEmbeddedConfig.setPersistence(
+            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) ) );
 
         artemisConfigData.setEmbedded( artemisEmbeddedConfig );
 
@@ -191,5 +197,13 @@ public class ArtemisConfig
 
         scopeDestinationMap.put( AuditScope.METADATA, Topics.METADATA_TOPIC_NAME );
         return scopeDestinationMap;
+    }
+    
+    @Bean
+    public ProducerConfiguration producerConfiguration()
+    {
+        return ProducerConfigurationBuilder.aProducerConfiguration()
+            .withUseQueue( true ) // TODO this should come from configuration
+            .build();
     }
 }

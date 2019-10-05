@@ -34,6 +34,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.config.UserNameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.CurrentUserService;
@@ -53,9 +54,9 @@ public class PostDeleteAuditListener
 {
 
     public PostDeleteAuditListener( AuditManager auditManager, AuditLegacyObjectFactory auditLegacyObjectFactory,
-                                    CurrentUserService currentUserService )
+                                    UserNameSupplier userNameSupplier )
     {
-        super( auditManager, auditLegacyObjectFactory, currentUserService );
+        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
     }
 
     @Override
@@ -76,9 +77,9 @@ public class PostDeleteAuditListener
             auditManager.send(Audit.builder().withAuditType( AuditType.DELETE )
                     .withAuditScope( scope )
                     .withCreatedAt( new Date() )
-                    .withCreatedBy( currentUserService.getCurrentUsername() )
+                    .withCreatedBy( getCreatedBy() )
                     .withObject( entity )
-                    .withData( this.legacyObjectFactory.create( scope, AuditType.DELETE, io, currentUserService.getCurrentUsername()) )
+                    .withData( this.legacyObjectFactory.create( scope, AuditType.DELETE, io, getCreatedBy() ) )
                     .build());
         });
 
