@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.artemis.audit.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -32,11 +32,9 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 
 /**
- * Marker interface marking the class as a proper metadata object (not data, not embedded object, etc).
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
 @Auditable( scope = AuditScope.METADATA )
-public interface MetadataObject
+public interface TestInterface
 {
 }

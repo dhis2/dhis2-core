@@ -28,10 +28,13 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Optional;
+
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 
 /**
@@ -40,9 +43,9 @@ import org.hisp.dhis.user.CurrentUserService;
 public abstract class AbstractHibernateListener
 {
 
-    protected final AuditManager auditManager;
+    final AuditManager auditManager;
 
-    protected final AuditLegacyObjectFactory legacyObjectFactory;
+    final AuditLegacyObjectFactory legacyObjectFactory;
 
     protected final CurrentUserService currentUserService;
 
@@ -54,15 +57,14 @@ public abstract class AbstractHibernateListener
         this.currentUserService = currentUserService;
     }
 
-    boolean isAuditable(Object object)
+    Optional<AuditScope> getAuditingScope( Object object )
     {
-        return object.getClass().isAnnotationPresent( Auditable.class );
-    }
+        if ( AnnotationUtils.isAnnotationPresent( object.getClass(), Auditable.class ) )
+        {
+            return Optional.of( object.getClass().getAnnotation( Auditable.class ).scope() );
+        }
 
-    AuditScope getScope( Object object )
-    {
-        Auditable auditable = object.getClass().getAnnotation( Auditable.class );
-        return auditable.scope();
+        return Optional.empty();
     }
 
 }

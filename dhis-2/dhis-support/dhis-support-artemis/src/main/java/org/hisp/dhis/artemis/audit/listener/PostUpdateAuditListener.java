@@ -62,19 +62,19 @@ public class PostUpdateAuditListener
     {
         Object entity = postUpdateEvent.getEntity();
 
-        if ( isAuditable( entity ) )
-        {
+        getAuditingScope( entity ).ifPresent( scope -> {
+
             IdentifiableObject io = (IdentifiableObject) entity;
 
             auditManager.send(Audit.builder().withAuditType(AuditType.UPDATE)
-                .withAuditScope( getScope( entity) )
+                .withAuditScope( scope )
                 .withCreatedAt( new Date() )
                 .withCreatedBy( currentUserService.getCurrentUsername() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( getScope( entity ), AuditType.UPDATE, io, currentUserService.getCurrentUsername()) )
+                .withData( this.legacyObjectFactory.create( scope, AuditType.UPDATE, io, currentUserService.getCurrentUsername()) )
                 .build());
 
-        }
+        });
     }
 
     @Override

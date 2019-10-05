@@ -62,19 +62,19 @@ public class PostInsertAuditListener
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
         Object entity = postInsertEvent.getEntity();
-        
-        if ( isAuditable( entity ) )
-        {
+
+        getAuditingScope( entity ).ifPresent( scope -> {
+
             IdentifiableObject io = (IdentifiableObject) entity;
-            
+
             auditManager.send(Audit.builder().withAuditType(AuditType.CREATE)
-                .withAuditScope( getScope( entity ) )
+                .withAuditScope( scope )
                 .withCreatedAt( new Date() )
                 .withCreatedBy( currentUserService.getCurrentUsername() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( getScope( entity ), AuditType.CREATE, io, currentUserService.getCurrentUsername()))
+                .withData( this.legacyObjectFactory.create( scope, AuditType.CREATE, io, currentUserService.getCurrentUsername()))
                     .build());
-        }
+        });
     }
 
     @Override

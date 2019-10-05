@@ -67,21 +67,20 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-
         Object entity = postDeleteEvent.getEntity();
 
-        if ( isAuditable( entity ) )
-        {
+        getAuditingScope( entity ).ifPresent( scope -> {
+
             IdentifiableObject io = (IdentifiableObject) entity;
 
             auditManager.send(Audit.builder().withAuditType( AuditType.DELETE )
-                .withAuditScope( getScope( entity ) )
-                .withCreatedAt( new Date() )
-                .withCreatedBy( currentUserService.getCurrentUsername() )
-                .withObject( entity )
-                .withData( this.legacyObjectFactory.create( getScope( entity ), AuditType.DELETE, io, currentUserService.getCurrentUsername()) )
-                .build());
-        }
+                    .withAuditScope( scope )
+                    .withCreatedAt( new Date() )
+                    .withCreatedBy( currentUserService.getCurrentUsername() )
+                    .withObject( entity )
+                    .withData( this.legacyObjectFactory.create( scope, AuditType.DELETE, io, currentUserService.getCurrentUsername()) )
+                    .build());
+        });
 
     }
 }

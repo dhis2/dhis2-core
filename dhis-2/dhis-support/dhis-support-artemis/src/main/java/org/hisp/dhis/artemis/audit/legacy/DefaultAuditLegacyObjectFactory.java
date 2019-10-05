@@ -38,6 +38,10 @@ import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.springframework.stereotype.Component;
 
 /**
+ * A factory for constructing "legacy" Auditing objects. For legacy, it is intended objects that contains foreign keys
+ * to other objects and are eventually going to be replaced by a key-less Audit object.
+ *
+ *
  * @author Luciano Fiandesio
  */
 @Component

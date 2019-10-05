@@ -43,16 +43,16 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 /**
- * This component configures the Hibernate Auditing listeners.
- * The listeners are responsible for "intercepting" Hibernate-managed objects after a save/update operation
- * and pass them to the Auditing sub-system.
+ * This component configures the Hibernate Auditing listeners. The listeners are
+ * responsible for "intercepting" Hibernate-managed objects after a save/update
+ * operation and pass them to the Auditing sub-system.
  *
  * This bean is not active during tests.
  *
  * @author Luciano Fiandesio
  */
 @Component
-@Conditional(value = AuditEnabledCondition.class)
+@Conditional( value = AuditEnabledCondition.class )
 public class HibernateListenerConfigurer
 {
 

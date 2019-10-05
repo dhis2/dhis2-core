@@ -42,6 +42,8 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 /**
+ * A {@see MetadataAudit} object consumer.
+ *
  * @author Luciano Fiandesio
  */
 @Component

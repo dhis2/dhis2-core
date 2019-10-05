@@ -1,4 +1,10 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.artemis.audit.listener;
+
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.system.util.AnnotationUtils;
+import org.junit.Test;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,15 +34,20 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
-
 /**
- * Marker interface marking the class as a proper metadata object (not data, not embedded object, etc).
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Auditable( scope = AuditScope.METADATA )
-public interface MetadataObject
+public class AnnotationUtilsTest
 {
+
+    @Test
+    public void testIsAnnotationPresent()
+    {
+        TestImplementation testImplementation = new TestImplementation();
+        NestedTestImplementation nestedTestImplementation = new NestedTestImplementation();
+
+        assertTrue( AnnotationUtils.isAnnotationPresent( testImplementation.getClass(), Auditable.class ) );
+        assertTrue( AnnotationUtils.isAnnotationPresent( nestedTestImplementation.getClass(), Auditable.class ) );
+    }
+
 }
