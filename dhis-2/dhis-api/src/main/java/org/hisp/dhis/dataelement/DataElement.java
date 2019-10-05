@@ -768,20 +768,21 @@ public class DataElement
         }
 
         DataElement that = (DataElement) o;
-        return uid.equals( that.uid ) && zeroIsSignificant == that.zeroIsSignificant && valueType == that.valueType
-            && Objects.equals( formName, that.formName ) && Objects.equals( displayFormName, that.displayFormName )
-            && domainType == that.domainType && Objects.equals( categoryCombo, that.categoryCombo )
-            && Objects.equals( url, that.url )
-            && Objects.equals( aggregationLevels, that.aggregationLevels )
-            && Objects.equals( optionSet, that.optionSet ) && Objects.equals( commentOptionSet, that.commentOptionSet )
-            && Objects.equals( style, that.style ) && Objects.equals( fieldMask, that.fieldMask );
+        return zeroIsSignificant == that.zeroIsSignificant && valueType == that.valueType
+                && Objects.equals( uid, that.uid )
+                && Objects.equals( formName, that.formName ) && Objects.equals( displayFormName, that.displayFormName )
+                && domainType == that.domainType && Objects.equals( categoryCombo, that.categoryCombo )
+                && Objects.equals( url, that.url )
+                && Objects.equals( aggregationLevels, that.aggregationLevels )
+                && Objects.equals( optionSet, that.optionSet ) && Objects.equals( commentOptionSet, that.commentOptionSet )
+                && Objects.equals( style, that.style ) && Objects.equals( fieldMask, that.fieldMask );
     }
 
     @Override
     public int hashCode()
     {
         return Objects.hash( super.hashCode(), uid, valueType, formName, displayFormName, domainType, categoryCombo, url,
-            aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
-            fieldMask );
+                aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
+                fieldMask );
     }
 }
