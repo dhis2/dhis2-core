@@ -30,14 +30,12 @@ package org.hisp.dhis.artemis.audit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.apache.qpid.jms.JmsTopic;
+import java.util.Map;
+
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.render.RenderService;
-import org.nfunk.jep.function.Str;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,8 +59,7 @@ public class AuditManager
 
     public void send( Audit audit )
     {
-        //audit.setData( renderService.toJsonAsString( audit.getData() ) );
 
-        messageManager.send( auditScopeDestinationMap.get(audit.getAuditScope()), audit );
+        messageManager.send( auditScopeDestinationMap.get( audit.getAuditScope() ), audit );
     }
 }

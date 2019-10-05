@@ -42,7 +42,7 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 /**
- * A {@see MetadataAudit} object consumer.
+ * A MetadataAudit object consumer.
  *
  * @author Luciano Fiandesio
  */
@@ -73,9 +73,7 @@ public class MetadataAuditConsumer
 
                 if ( auditMessage.getData() instanceof MetadataAudit )
                 {
-
                     metadataAuditService.addMetadataAudit( (MetadataAudit) auditMessage.getData() );
-
                 }
                 else
                 {

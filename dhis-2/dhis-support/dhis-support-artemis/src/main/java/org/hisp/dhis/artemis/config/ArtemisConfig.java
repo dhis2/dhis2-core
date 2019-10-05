@@ -180,10 +180,15 @@ public class ArtemisConfig
         return artemisConfigData;
     }
 
+    /**
+     * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve the topic name from the scope
+     *
+     */
     @Bean
     public Map<AuditScope, String> scopeToDestinationMap()
     {
         Map<AuditScope, String> scopeDestinationMap = new HashMap<>();
+
         scopeDestinationMap.put( AuditScope.METADATA, Topics.METADATA_TOPIC_NAME );
         return scopeDestinationMap;
     }
