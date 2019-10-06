@@ -665,8 +665,8 @@ public class ProgramIndicatorServiceTest
             "analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psB.getUid() + "' order " +
             "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_" + programA.getUid() + " " +
             "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' order " +
-            "by executiondate desc limit 1 )as date)))) * 12) +" +
-            "(date_part('month',age(cast((select executiondate from analytics_event_" + programA.getUid() +" where " +
+            "by executiondate desc limit 1 )as date)))) * 12 +" +
+            "date_part('month',age(cast((select executiondate from analytics_event_" + programA.getUid() +" where " +
             "analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psB.getUid() + "' order " +
             "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_" + programA.getUid() + " " +
             "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' order " +
