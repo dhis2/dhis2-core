@@ -43,6 +43,8 @@ public interface CategoryOptionComboStore
     
     void updateNames();
 
+    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+
     /**
      * Fetch all {@see CategoryOptionCombo} from a given {@see CategoryOptionGroup} uid.
      *
