@@ -1366,17 +1366,21 @@ private void populateCache( IdScheme idScheme, List<Collection<DataValue>> dataV
         }
         else
         {
-            String dataElementsUidsSqlString = deUids.stream().collect( Collectors.joining( "', '", "'", "'" ) );
-
-            String deSql = "select de.uid, de.attributevalues #>> '{" + idScheme.getAttribute() + ", value}' as value " +
-                "from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") " +
-                "and de.attributevalues ? '" + idScheme.getAttribute() + "'";
-
-            SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
-
-            while ( deRowSet.next() )
+            if ( !deUids.isEmpty() )
             {
-                dataElementUidToIdentifierCache.put( deRowSet.getString( "uid" ), deRowSet.getString( "value" ) );
+                String dataElementsUidsSqlString = getQuotedCommaDelimitedString( deUids );
+
+                String deSql =
+                    "select de.uid, de.attributevalues #>> '{" + idScheme.getAttribute() + ", value}' as value " +
+                        "from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") " +
+                        "and de.attributevalues ? '" + idScheme.getAttribute() + "'";
+
+                SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
+
+                while ( deRowSet.next() )
+                {
+                    dataElementUidToIdentifierCache.put( deRowSet.getString( "uid" ), deRowSet.getString( "value" ) );
+                }
             }
         }
     }
