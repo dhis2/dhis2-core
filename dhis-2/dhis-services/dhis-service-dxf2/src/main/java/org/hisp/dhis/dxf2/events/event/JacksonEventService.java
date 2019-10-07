@@ -35,24 +35,42 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
@@ -65,7 +83,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
  */
 @Service( "org.hisp.dhis.dxf2.events.event.EventService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
-@Transactional
 public class JacksonEventService extends AbstractEventService
 {
     // -------------------------------------------------------------------------
@@ -75,6 +92,26 @@ public class JacksonEventService extends AbstractEventService
     private final static ObjectMapper XML_MAPPER = new XmlMapper();
 
     private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+    public JacksonEventService( ProgramService programService, ProgramStageService programStageService,
+        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService,
+        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
+        CurrentUserService currentUserService, EventDataValueService eventDataValueService,
+        TrackedEntityInstanceService entityInstanceService, TrackedEntityCommentService commentService,
+        EventStore eventStore, I18nManager i18nManager, Notifier notifier, SessionFactory sessionFactory,
+        DbmsManager dbmsManager, IdentifiableObjectManager manager, CategoryService categoryService,
+        FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
+        TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
+        AclService aclService, ApplicationEventPublisher eventPublisher, RelationshipService relationshipService,
+        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService )
+    {
+        super( programService, programStageService, programInstanceService, programStageInstanceService,
+            organisationUnitService, dataElementService, currentUserService, eventDataValueService,
+            entityInstanceService, commentService, eventStore, i18nManager, notifier, sessionFactory, dbmsManager,
+            manager, categoryService, fileResourceService, schemaService, queryService, trackerAccessManager,
+            trackerOwnershipAccessManager, aclService, eventPublisher, relationshipService, userService,
+            eventSyncService, ruleVariableService );
+    }
 
     @SuppressWarnings( "unchecked" )
     private static <T> T fromXml( String input, Class<?> clazz ) throws IOException

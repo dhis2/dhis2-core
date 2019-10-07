@@ -1,4 +1,5 @@
-package org.hisp.dhis.dxf2.events.eventdatavalue;
+package org.hisp.dhis.cache;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,30 +28,74 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
-
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * @author David Katuscak
+ * @author Luciano Fiandesio
  */
-public interface EventDataValueService
+public class TestCache<V>
+    implements
+    Cache<V>
 {
-    /**
-     * Process the data values: validates and then saves/updates/deletes data values.
-     *
-     * @param programStageInstance The ProgramStageInstance the EventDataValues are related to
-     * @param event Event that holds the data values to process
-     * @param singleValue Specifies whether request updates only a single value or not
-     * @param importOptions ImportOptions
-     * @param importSummary ImportSummary
-     * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
-     */
-    void processDataValues(ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-                           ImportOptions importOptions, ImportSummary importSummary, Cache<DataElement> dataElementsCache);
+
+    private Map<String, V> mapCache = new HashMap<>();
+
+    @Override
+    public Optional<V> getIfPresent( String key )
+    {
+        if ( mapCache.containsKey( key ) )
+        {
+            return get( key );
+        }
+        else
+        {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<V> get( String key )
+    {
+        return Optional.ofNullable( mapCache.get( key ) );
+    }
+
+    @Override
+    public Optional<V> get( String key, Function<String, V> mappingFunction )
+    {
+        return Optional.empty();
+    }
+
+    @Override
+    public Collection<V> getAll()
+    {
+        return mapCache.values();
+    }
+
+    @Override
+    public void put( String key, V value )
+    {
+        mapCache.put( key, value );
+    }
+
+    @Override
+    public void invalidate( String key )
+    {
+        mapCache.remove( key );
+    }
+
+    @Override
+    public void invalidateAll()
+    {
+        mapCache = new HashMap<>();
+    }
+
+    @Override
+    public CacheType getCacheType()
+    {
+        return null;
+    }
 }

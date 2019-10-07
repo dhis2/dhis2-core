@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -164,7 +166,7 @@ public class ProgramStageInstanceServiceTest
     private EventDataValue eventDataValueC;
     private EventDataValue eventDataValueD;
 
-    private Map<String, DataElement> dataElementMap = new HashMap<>();
+    private Cache<DataElement> dataElementMap = new TestCache<>();
 
     private List<DataElement> dataElements;
 
@@ -239,7 +241,7 @@ public class ProgramStageInstanceServiceTest
         programStageDataElementService.addProgramStageDataElement( stageDataElementC );
         programStageDataElementService.addProgramStageDataElement( stageDataElementD );
 
-        /**
+        /*
          * Program B
          */
 
@@ -301,7 +303,7 @@ public class ProgramStageInstanceServiceTest
         programStageInstanceD2.setDueDate( enrollmentDate );
         programStageInstanceD2.setUid( "UID-D2" );
 
-        /**
+        /*
          * Prepare data for EventDataValues manipulation tests
          */
 
@@ -323,7 +325,7 @@ public class ProgramStageInstanceServiceTest
         dataElementMap.put( dataElementC.getUid(), dataElementC );
         dataElementMap.put( dataElementD.getUid(), dataElementD );
 
-        dataElements = new ArrayList<>( dataElementMap.values() );
+        dataElements = new ArrayList<>( dataElementMap.getAll() );
     }
 
     @Test
