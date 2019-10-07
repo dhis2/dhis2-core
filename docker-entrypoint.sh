@@ -18,7 +18,7 @@ if [ "$(id -u)" = "0" ]; then
         $TOMCATDIR/logs
 
     chown -R tomcat:tomcat $DHIS2HOME
-    exec su-exec tomcat "$0" "$@"
+    exec setpriv --reuid=tomcat --regid=tomcat --init-groups "$0" "$@"
 fi
 
 exec "$@"
