@@ -105,6 +105,8 @@ public interface ProgramInstanceStore
      */
     boolean existsIncludingDeleted( String uid );
 
+    List<String> getUidsIncludingDeleted( List<String> uids );
+
     /**
      * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
      *

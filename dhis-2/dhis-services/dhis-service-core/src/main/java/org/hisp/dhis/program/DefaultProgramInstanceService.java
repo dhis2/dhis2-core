@@ -38,7 +38,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
@@ -56,7 +55,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -100,13 +98,13 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-    
+
     @Autowired
     private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
-    
+
     @Autowired
     private AclService aclService;
 
@@ -192,6 +190,12 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    public List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids )
+    {
+        return programInstanceStore.getUidsIncludingDeleted( uids );
+    }
+
+    @Override
     @Transactional
     public void updateProgramInstance( ProgramInstance programInstance )
     {
@@ -207,7 +211,7 @@ public class DefaultProgramInstanceService
         boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-        
+
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
         User user = currentUserService.getCurrentUser();
@@ -227,7 +231,7 @@ public class DefaultProgramInstanceService
                 {
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
                 }
-                
+
                 if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
                 {
                     throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
@@ -522,11 +526,11 @@ public class DefaultProgramInstanceService
         ProgramInstance programInstance = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
             incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
-        
+
         // ---------------------------------------------------------------------
         // Add program owner and overwrite if already exists.
         // ---------------------------------------------------------------------
-        
+
         trackerOwnershipAccessManager.assignOwnership( trackedEntityInstance, program, organisationUnit, true, true );
 
         // -----------------------------------------------------------------
