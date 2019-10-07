@@ -25,27 +25,8 @@
 # BUILD STAGE 1
 # Build the DHIS2 Core server from source (Maven)
 ##########
-FROM maven:3.5.3-jdk-8-slim as build
-LABEL stage=intermediate
-
-ARG IDENTIFIER=unknown
-LABEL identifier=${IDENTIFIER}
-#NB - maven-frontend-plugin breaks on Alpine linux, so we use Debian Slim instead
-#NB - maven-surefire-plugin fails with maven:3.5.4-jdk-8-slim and later.
-#     This is a recent issue possibly traced to an OpenJDK bug - https://github.com/carlossg/docker-maven/issues/90
-
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
-        git=1:2.11.0-3+deb9u4 && \
-    rm -rf /var/lib/apt/lists/*
-
-#NB - web-apps build uses `git rev-parse` to tag the build, so just copy over the whole tree for now
-COPY . /src
-
-# TODO: We should be able to achieve much faster incremental builds and cached dependencies using
-#   a wrapper build script and intelligent Docker layer caching, but for now just naively build everything
-RUN mvn clean install -T1C -f /src/dhis-2/pom.xml -DskipTests
-RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests
+ARG image=dhis2/core:master
+FROM $image as build
 
 ##########
 # BUILD STAGE 2
@@ -56,7 +37,7 @@ FROM tomcat:8.5.46-jdk8-openjdk-slim as serve
 
 ENV DHIS2_HOME=/DHIS2_home
 
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY ./docker/shared/docker-entrypoint.sh /usr/local/bin/
 
 RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
@@ -72,8 +53,8 @@ RUN apt-get update && \
         bash \
         unzip
 
-COPY server.xml /usr/local/tomcat/conf
-COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
+COPY ./docker/shared/server.xml /usr/local/tomcat/conf
+COPY --from=build /dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
