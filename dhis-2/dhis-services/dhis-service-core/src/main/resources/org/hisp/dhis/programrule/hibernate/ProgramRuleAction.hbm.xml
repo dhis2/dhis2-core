@@ -55,6 +55,17 @@
 
     <property name="data" type="text" />
 
+    <property name="programRuleActionEvaluationTime" column="evaluationtime" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="programRuleActionEvaluationEnvironments" column="environments"
+              type="jsbProgramRuleEvaluationEnvironments"/>
+
   </class>
 
 </hibernate-mapping>

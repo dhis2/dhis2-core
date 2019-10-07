@@ -28,53 +28,49 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.common.DxfNamespaces;
+
 import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-
 /**
- * @author markusbekken
+ * @author Enrico Colasante
  */
-public interface ProgramRuleStore
-    extends IdentifiableObjectStore<ProgramRule>
+@JacksonXmlRootElement( localName = "programRuleEvaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
+public enum ProgramRuleActionEvaluationEnvironment
 {
-    /**
-     * Get programRule by program
-     *
-     * @param program {@link Program}
-     * @return ProgramRuleVariable list
-     */
-    List<ProgramRule> get( Program program );
-    
-    /**
-     * Returns a {@link ProgramRule}.
-     *
-     * @param name the name of the ProgramRule to return.
-     * @param program {@link Program}.
-     * @return the ProgramRule with the given name
-     */
-    ProgramRule getByName( String name, Program program );
+    WEB( "web" ),
+    ANDROID( "android" );
+
+    private final String value;
+
+    ProgramRuleActionEvaluationEnvironment( String value )
+    {
+        this.value = value;
+    }
+
+    public static ProgramRuleActionEvaluationEnvironment fromValue( String value )
+    {
+        for ( ProgramRuleActionEvaluationEnvironment type : ProgramRuleActionEvaluationEnvironment.values() )
+        {
+            if ( type.value.equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
+
+        return null;
+    }
 
     /**
-     * Get validation by {@link Program}
+     * By default, actions should be run in all environments, and its up to the client
+     * to decide which actions are unsuited to be run or not.
      *
-     * @param program Program
-     * @param key Search Program Rule by key
-     * @return ProgramRule list
+     * @return Default environments where the actions should be run
      */
-    List<ProgramRule> get( Program program, String key );
-
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
-
-    List<ProgramRule> getProgramRulesWithNoCondition();
-
-    List<ProgramRule> getProgramRulesWithNoPriority();
-
-    List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime );
-
-    List<ProgramRule> getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment environment );
-
-    List<ProgramRule> getProgramRulesWithNoAction();
+    public static Set<ProgramRuleActionEvaluationEnvironment> getDefault()
+    {
+        return Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.values() );
+    }
 }
