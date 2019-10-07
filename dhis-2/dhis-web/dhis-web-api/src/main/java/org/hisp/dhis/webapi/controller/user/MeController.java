@@ -33,6 +33,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -142,8 +143,7 @@ public class MeController
     @Autowired
     private DataSetService dataSetService;
 
-    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
-        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>( Sets.newHashSet( UserSettingKey.values() ) );
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public void getCurrentUser( HttpServletResponse response ) throws Exception
@@ -253,6 +253,37 @@ public class MeController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );
+    }
+
+    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
+            throws WebMessageException, NotAuthenticatedException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        String oldPassword = body.get( "oldPassword" );
+        String newPassword = body.get( "newPassword" );
+
+        if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "currentPassword and newPassword must be provided" ) );
+        }
+
+        boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
+
+        if ( !valid )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "currentPassword is incorrect" ) );
+        }
+
+        updatePassword( currentUser, newPassword );
+        manager.update( currentUser );
     }
 
     @RequestMapping( value = { "/authorization", "/authorities" } )
