@@ -248,6 +248,37 @@ public class MeController
         nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );
     }
 
+    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
+            throws WebMessageException, NotAuthenticatedException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        String oldPassword = body.get( "oldPassword" );
+        String newPassword = body.get( "newPassword" );
+
+        if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "currentPassword and newPassword must be provided" ) );
+        }
+
+        boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
+
+        if ( !valid )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "currentPassword is incorrect" ) );
+        }
+
+        updatePassword( currentUser, newPassword );
+        manager.update( currentUser );
+    }
+
     @RequestMapping( value = { "/authorization", "/authorities" } )
     public void getAuthorities( HttpServletResponse response ) throws IOException, NotAuthenticatedException
     {
