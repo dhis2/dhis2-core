@@ -45,6 +45,7 @@ if [ -z "$WAR_FILE" ]; then
     WAR_FILE="${ARTIFACT_DIR}/dhis.war"
     docker create --name temp_extract "${CORE_IMAGE}:${CORE_TAG}"
     docker cp temp_extract:/dhis.war "$WAR_FILE"
+    docker rm -f temp_extract
 fi
 
 for TOMCAT_TAG in "${latest_tomcat_tags[@]}"; do
