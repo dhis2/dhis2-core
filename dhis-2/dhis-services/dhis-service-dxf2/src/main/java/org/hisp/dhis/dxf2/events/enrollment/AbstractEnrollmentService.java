@@ -96,6 +96,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -882,6 +883,8 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
+            programInstance.getProgramStageInstances().stream()
+                .forEach( psi -> programStageInstanceService.deleteProgramStageInstance( psi ) );
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
