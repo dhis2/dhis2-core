@@ -1,4 +1,4 @@
-FROM maven:3.5.3-jdk-8-slim
+FROM maven:3.5.3-jdk-8-slim as build
 LABEL stage=intermediate
 
 ARG IDENTIFIER=unknown
@@ -23,3 +23,6 @@ RUN mvn clean install -T1C -f pom.xml -DskipTests
 RUN mvn clean install -T1C -U -f dhis-web/pom.xml -DskipTests
 
 RUN cp dhis-web/dhis-web-portal/target/dhis.war /dhis.war
+
+FROM alpine:latest
+COPY --from=build /dhis.war /dhis.war
