@@ -136,7 +136,7 @@ public class OptionSetTests
         object.remove( "options" );
 
         response = actions.optionSetActions.update( optionSetId, object );
-        assertEquals( 200, response.statusCode() );
+        response.validate().statusCode( 200 );
 
         response = actions.optionSetActions.get( optionSetId );
 
