@@ -21,7 +21,7 @@ echo $DIR
 
 TOMCAT_IMAGE="tomcat"
 ARTIFACT_DIR=${ARTIFACT_DIR="${DIR}/docker/artifact"}
-WAR_FILE="${1-""}"
+WAR_FILE="$1"
 
 #
 ## tomcat tags
@@ -52,7 +52,6 @@ for TOMCAT_TAG in "${latest_tomcat_tags[@]}"; do
         --tag "${CORE_IMAGE}:${CORE_TAG}-${TOMCAT_TAG}" \
         --file "${DIR}/docker/tomcat-debian/Dockerfile" \
         --build-arg WAR_FILE="$WAR_FILE" \
-        --build-arg CORE_IMAGE="${CORE_IMAGE}:${CORE_TAG}" \
         --build-arg TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TOMCAT_TAG}" \
         "$DIR"
 done

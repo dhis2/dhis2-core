@@ -1,6 +1,8 @@
 ARG TOMCAT_IMAGE
 FROM $TOMCAT_IMAGE
 
+ARG WAR_FILE
+
 ENV DHIS2_HOME=/DHIS2_home
 
 COPY ./docker/tomcat-debian/docker-entrypoint.sh /usr/local/bin/
