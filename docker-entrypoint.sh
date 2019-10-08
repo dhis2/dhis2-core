@@ -12,7 +12,7 @@ if [ "$(id -u)" = "0" ]; then
     fi
     
     chown -R root:tomcat $TOMCATDIR
-    chmod -R u+rwX,g+rX,o-rwx $TOMCATDIR
+    chmod -R u=rwX,g=rX,o-rwx $TOMCATDIR
     chown -R tomcat:tomcat $TOMCATDIR/temp \
         $TOMCATDIR/work \
         $TOMCATDIR/logs
