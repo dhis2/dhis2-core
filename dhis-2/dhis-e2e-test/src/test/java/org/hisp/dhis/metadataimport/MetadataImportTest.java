@@ -149,9 +149,10 @@ public class MetadataImportTest
         // assert
         response.validate()
             .statusCode( 200 )
+            .body( "stats", notNullValue() )
             .body( "stats.total", greaterThan( 0 ) )
-            .body( "typeReports", Matchers.notNullValue() )
-            .body( "typeReports.stats", Matchers.notNullValue() )
+            .body( "typeReports", notNullValue() )
+            .body( "typeReports.stats", notNullValue() )
             .body( "typeReports.objectReports", Matchers.notNullValue() );
 
         List<HashMap> stats = response.extractList( "typeReports.stats" );
@@ -194,10 +195,10 @@ public class MetadataImportTest
         // assert
         response.validate()
             .statusCode( 200 )
+            .body( "stats", notNullValue() )
             .body( "stats.total", greaterThan( 1 ) )
-            .body( "stats.ignored", equalTo( 1 ) );
-
-        assertEquals( response.extract( "stats.created" ), (Integer) response.extract( "stats.total" ) - 1 );
+            .body( "stats.ignored", equalTo( 1 ) )
+            .body( "stats.created", equalTo( (Integer) response.extract( "stats.total" ) - 1 ) );
 
         int total = (int) response.extract( "stats.total" );
 
@@ -206,7 +207,7 @@ public class MetadataImportTest
         assertNotNull( objectReports );
         validateCreatedEntities( objectReports );
 
-        assertThat( objectReports, Matchers.hasItems( hasProperty( "errorReports", notNullValue() ) ) );
+        assertThat( objectReports, hasItems( hasProperty( "errorReports", notNullValue() ) ) );
         assertEquals( total, objectReports.size(), "Not all imported entities had object reports" );
     }
 
@@ -233,17 +234,21 @@ public class MetadataImportTest
 
         response.validate()
             .statusCode( 200 )
+            .body( "response", notNullValue() )
             .body( "response.name", equalTo( "metadataImport" ) )
             .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
 
-        String taskId = response.extractString( "response.id" );
-
+        String taskId = response.extractString("response.id" );
+        assertNotNull( taskId, "Task id was not returned");
         // Validate that job was successful
 
         response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
 
-        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Start" ) ) );
-        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );
+        response.validate()
+            .statusCode( 200 )
+            .body( "message", notNullValue() )
+            .body( "message", hasItem( containsString( "Import:Start" ) ) )
+            .body( "message", hasItem( containsString( "Import:Done" ) ) );
 
         // validate task summaries were created
         response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
@@ -251,8 +256,10 @@ public class MetadataImportTest
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
             .body( "typeReports", notNullValue() )
-            .body( "typeReports.stats.total", everyItem( greaterThan( 0 ) ) )
-            .body( "typeReports.objectReports", hasSize( greaterThan( 0 ) ) );
+            .rootPath( "typeReports" )
+            .body( "stats", notNullValue() )
+            .body( "stats.total", everyItem( greaterThan( 0 ) ) )
+            .body( "objectReports", hasSize( greaterThan( 0 ) ) );
     }
 
     private List<ObjectReport> getObjectReports( List<TypeReport> typeReports )
