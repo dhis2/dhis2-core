@@ -147,7 +147,7 @@ public class OrgUnitsParentAssignmentTests
         orgUnitActions.get( intOrgUnit )
             .validate()
             .statusCode( 200 )
-            .body( "level", equalTo( "2" ) );
+            .body( "level", equalTo( 2 ) );
 
         orgUnitActions.get( childOrgUnitId )
             .validate()
