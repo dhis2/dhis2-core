@@ -68,7 +68,7 @@ import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -94,7 +94,7 @@ public class MetadataImportTest
 
     private SystemActions systemActions;
 
-    @BeforeEach
+    @BeforeAll
     public void before()
     {
         schemasActions = new SchemasActions();
@@ -120,10 +120,12 @@ public class MetadataImportTest
         // assert
         response.validate()
             .statusCode( 200 )
-            .body( "stats.total", greaterThan( 0 ) )
-            .body( "stats.created", Matchers.equalTo( 0 ) )
-            .body( "stats.deleted", Matchers.equalTo( 0 ) )
-            .body( "stats.total", equalTo( response.extract( "stats." + expected ) ) );
+            .body( "stats", notNullValue() )
+            .rootPath( "stats" )
+            .body( "total", greaterThan( 0 ) )
+            .body( "created", Matchers.equalTo( 0 ) )
+            .body( "deleted", Matchers.equalTo( 0 ) )
+            .body( "total", equalTo( response.extract( "stats." + expected ) ) );
 
         List<HashMap> typeReports = response.extractList( "typeReports.stats" );
 
@@ -249,7 +251,7 @@ public class MetadataImportTest
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
             .body( "typeReports", notNullValue() )
-            .body( "typeReports.stats.total", everyItem( greaterThan( 0 ) ))
+            .body( "typeReports.stats.total", everyItem( greaterThan( 0 ) ) )
             .body( "typeReports.objectReports", hasSize( greaterThan( 0 ) ) );
     }
 
