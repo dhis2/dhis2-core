@@ -1,10 +1,4 @@
-# Build argument used to customize the base DHIS2 core image.
-# Needs to be an image that has the file: `/dhis.war`
-
-ARG CORE_IMAGE
-ARG TOMCAT_IMAGE="tomcat:8.5-jdk8-openjdk-slim"
-
-FROM $CORE_IMAGE as build
+ARG TOMCAT_IMAGE
 FROM $TOMCAT_IMAGE
 
 ENV DHIS2_HOME=/DHIS2_home
@@ -24,7 +18,7 @@ RUN apt-get update && \
         unzip
 
 COPY ./docker/shared/server.xml /usr/local/tomcat/conf
-COPY --from=build /dhis.war /usr/local/tomcat/webapps/ROOT.war
+COPY $WAR_FILE /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
