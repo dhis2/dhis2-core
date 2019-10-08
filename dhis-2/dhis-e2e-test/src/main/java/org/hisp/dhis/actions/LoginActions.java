@@ -28,13 +28,10 @@
 
 package org.hisp.dhis.actions;
 
-import com.google.gson.JsonObject;
 import io.restassured.RestAssured;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ConfigurationHelper;
 
-import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
-import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.preemptive;
 
 /**
@@ -44,9 +41,11 @@ public class LoginActions
 {
     public void loginAsUser( final String username, final String password )
     {
-        ApiResponse loggedInUser =  getLoggedInUserInfo();
+        ApiResponse loggedInUser = getLoggedInUserInfo();
 
-        if ( loggedInUser.getContentType().contains( "json" ) && loggedInUser.extract( "userCredentials.username" ) != null && loggedInUser.extract( "userCredentials.username" ).equals( username ) ) {
+        if ( loggedInUser.getContentType().contains( "json" ) && loggedInUser.extract( "userCredentials.username" ) != null &&
+            loggedInUser.extract( "userCredentials.username" ).equals( username ) )
+        {
             return;
         }
 
@@ -78,5 +77,10 @@ public class LoginActions
         ApiResponse response = new RestApiActions( "/me" ).get();
 
         return response;
+    }
+
+    public String getLoggedInUserId()
+    {
+        return getLoggedInUserInfo().extractString( "id" );
     }
 }

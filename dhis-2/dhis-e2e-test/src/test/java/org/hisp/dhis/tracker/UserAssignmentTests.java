@@ -54,6 +54,8 @@ public class UserAssignmentTests
 {
     private MetadataActions metadataActions;
 
+    private LoginActions loginActions;
+
     private ProgramActions programActions;
 
     private EventActions eventActions;
@@ -66,9 +68,9 @@ public class UserAssignmentTests
         metadataActions = new MetadataActions();
         programActions = new ProgramActions();
         eventActions = new EventActions();
+        loginActions = new LoginActions();
 
-        new LoginActions().loginAsSuperUser();
-
+        loginActions.loginAsSuperUser();
         metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
@@ -106,7 +108,7 @@ public class UserAssignmentTests
     {
         String programStageId = "l8oDIfJJhtg";
         String programId = "BJ42SUrAvHo";
-        String loggedInUser = new LoginActions().getLoggedInUserInfo().extractString( "id" );
+        String loggedInUser = loginActions.getLoggedInUserId();
 
         enableUserAssignmentOnProgramStage( programStageId, Boolean.valueOf( userAssignmentEnabled ) );
 
@@ -132,7 +134,7 @@ public class UserAssignmentTests
         // arrange
         String programStageId = "l8oDIfJJhtg";
         String programId = "BJ42SUrAvHo";
-        String loggedInUser = new LoginActions().getLoggedInUserInfo().extractString( "id" );
+        String loggedInUser = loginActions.getLoggedInUserId();
 
         enableUserAssignmentOnProgramStage( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
