@@ -49,8 +49,12 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -122,6 +126,7 @@ public class RelationshipsTest
 
         createdRelationship = response.extractUid();
 
+        assertNotNull( createdRelationship, "Relationship id was not returned" );
         assertEquals( 1, response.getSuccessfulImportSummaries().size(), "Relationship import was not successful" );
 
         // validate created on both sides
@@ -158,11 +163,11 @@ public class RelationshipsTest
     {
         response.validate()
             .statusCode( 200 )
-            .body( "relationships", Matchers.hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
-            .body( "relationships.relationshipType", Matchers.hasItem( relationshipTypeId ) )
+            .body( "relationships", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "relationships.relationshipType", hasItem( relationshipTypeId ) )
             .body( String.format( "relationships.from.%s.%s", fromInstance, fromInstance ),
                 hasItem( Matchers.equalTo( fromInstanceId ) ) )
-            .body( String.format( "relationships.to.%s.%s", toInstance, toInstance ), hasItem( Matchers.equalTo( toInstanceId ) ) );
+            .body( String.format( "relationships.to.%s.%s", toInstance, toInstance ), hasItem( equalTo( toInstanceId ) ) );
     }
 
     @AfterEach
