@@ -17,11 +17,10 @@ shopt -s nullglob globstar
 #
 
 DIR="$( dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd ) )"
-echo $DIR
 
 TOMCAT_IMAGE="tomcat"
-ARTIFACT_DIR=${ARTIFACT_DIR="${DIR}/docker/artifact"}
-WAR_FILE="$1"
+ARTIFACT_DIR=${ARTIFACT_DIR-"${DIR}/docker/artifact"}
+WAR_FILE=${WAR_FILE-""}
 
 #
 ## tomcat tags
