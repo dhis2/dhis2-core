@@ -38,10 +38,6 @@ latest_tomcat_tags=(
 #
 
 if [ -z "$WAR_FILE" ]; then
-    echo "Clean the source"
-    mvn clean -f "${DIR}/dhis-2/pom.xml"
-    mvn clean -f "${DIR}/dhis-2/pom-full.xml"
-
     echo "No custom WAR-file passed to script, extracting from build"
     docker build --tag "${CORE_IMAGE}:${CORE_TAG}" --file "${DIR}/docker/core/Dockerfile" "$DIR"
 
