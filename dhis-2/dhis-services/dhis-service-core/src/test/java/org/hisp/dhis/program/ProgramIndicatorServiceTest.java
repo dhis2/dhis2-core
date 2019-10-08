@@ -660,12 +660,17 @@ public class ProgramIndicatorServiceTest
     {
         String expected = "(date_part('year',age(cast((select executiondate from analytics_event_" + programA.getUid() + " " + 
             "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' " +
-            "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1 and " + 
-            "(date_part('month',age(cast((select executiondate from analytics_event_" + programA.getUid() +" where " +
-            "analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psB.getUid() + "' order " + 
-            "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_" + programA.getUid() + " " + 
-            "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' order " + 
-            "by executiondate desc limit 1 ) as date)))) > 10";
+            "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1 and " +
+            "((date_part('year',age(cast((select executiondate from analytics_event_" + programA.getUid() +" where " +
+            "analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psB.getUid() + "' order " +
+            "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_" + programA.getUid() + " " +
+            "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' order " +
+            "by executiondate desc limit 1 )as date)))) * 12 +" +
+            "date_part('month',age(cast((select executiondate from analytics_event_" + programA.getUid() +" where " +
+            "analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psB.getUid() + "' order " +
+            "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_" + programA.getUid() + " " +
+            "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' order " +
+            "by executiondate desc limit 1 )as date))))" + " > 10";
         
         String filter = "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:" + psA.getUid() + ") < 1 " + 
             "and d2:monthsBetween(PS_EVENTDATE:" + psA.getUid() + ", PS_EVENTDATE:" + psB.getUid() + ") > 10";

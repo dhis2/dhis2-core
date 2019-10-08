@@ -41,6 +41,7 @@ public class MonthsBetweenProgramIndicatorFunction
     @Override
     protected String compare( String startDate, String endDate )
     {
-        return "(date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
+        return "((date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + "as date)))) * 12 +" +
+               "date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + "as date))))";
     }
 }
