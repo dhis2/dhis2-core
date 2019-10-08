@@ -86,7 +86,7 @@ public class ProgramsTest
 
     @ParameterizedTest( name = "withType[{0}]" )
     @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void programCreate( String programType )
+    public void shouldCreateProgram( String programType )
     {
         ApiResponse response = programActions.createProgram( programType );
 
