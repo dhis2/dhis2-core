@@ -38,7 +38,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.aggregate.DataValueActions;
 import org.hisp.dhis.actions.aggregate.DataValueSetActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.system.SystemActions;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -149,8 +149,8 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "importCount", notNullValue() )
             .body( "conflicts", nullValue() )
+            .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )
             .body( "deleted", not( greaterThan( 0 ) ) );

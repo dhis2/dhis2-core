@@ -34,7 +34,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
-import org.hisp.dhis.actions.system.SystemActions;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
