@@ -133,11 +133,27 @@ public class OrgUnitActions
         return createOrgUnit( generateDummyOrgUnit() );
     }
 
-    public String createOrgUnitWithParent( String parent )
+    public String createOrgUnit(int level)
+    {
+        OrgUnit orgUnit = generateDummyOrgUnit();
+        orgUnit.setLevel( level );
+
+        return createOrgUnit( orgUnit );
+    }
+
+    public String createOrgUnitWithParent( String parentId )
     {
         OrgUnit orgUnit = generateDummyOrgUnit();
 
-        orgUnit.setParent( parent );
+        orgUnit.setParent( parentId );
+
+        return createOrgUnit( orgUnit );
+    }
+
+    public String createOrgUnitWithParent( String parentId, int level) {
+        OrgUnit orgUnit = generateDummyOrgUnit();
+        orgUnit.setLevel( level );
+        orgUnit.setParent( parentId );
 
         return createOrgUnit( orgUnit );
     }
