@@ -1,13 +1,11 @@
 # Build argument used to customize the base DHIS2 core image.
 # Needs to be an image that has the file: `/dhis.war`
 
-ARG core_image
-FROM $core_image as build
+ARG CORE_IMAGE
+ARG TOMCAT_IMAGE="tomcat:8.5-jdk8-openjdk-slim"
 
-# Application server
-
-ARG tomcat_image=tomcat:8.5.34-jre8-alpine
-FROM $tomcat_image
+FROM $CORE_IMAGE as build
+FROM $TOMCAT_IMAGE
 
 ENV DHIS2_HOME=/DHIS2_home
 
