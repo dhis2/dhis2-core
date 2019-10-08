@@ -96,7 +96,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -121,7 +123,7 @@ public class OrgUnitsTest
     }
 
     @Test
-    public void shouldNotAddWithoutPermissions()
+    public void shouldNotCreateWithoutPermissions()
     {
         String userName = DataGenerator.randomString();
         String psw = "!XPTOqwerty1";
@@ -129,42 +131,43 @@ public class OrgUnitsTest
         userActions.addUser( userName, psw );
         loginActions.loginAsUser( userName, psw );
 
-        ApiResponse response = orgUnitActions.sendCreateRequest();
+        ApiResponse response = orgUnitActions.postDummyOrgUnit();
 
         response.validate()
-            .statusCode( 403)
-            .body( "message", equalTo("You don't have the proper permissions to create this object.") );
+            .statusCode( 403 )
+            .body( "message", equalTo( "You don't have the proper permissions to create this object." ) );
     }
 
-    // todo add tests for creation with level.
     @Test
     public void shouldAddWithoutLevel()
     {
-        OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
+        OrgUnit orgUnit = orgUnitActions.generateDummy();
+        orgUnit.setLevel( null );
 
-        ApiResponse response = orgUnitActions.sendCreateRequest( orgUnit );
+        ApiResponse response = orgUnitActions.post( orgUnit );
         ResponseValidationHelper.validateObjectCreation( response );
 
         String uid = response.extractUid();
-        assertNotNull( uid );
+        assertNotNull( uid, "Org unit id was not returned." );
 
         response = orgUnitActions.get( uid );
 
-        // todo validate OPEN API 3 schema when it´s ready
-        assertEquals( 200, response.statusCode() );
-        assertEquals( response.extractString( "shortName" ), orgUnit.getShortName() );
-        assertEquals( response.extractString( "name" ), orgUnit.getName() );
-        assertEquals( response.extractString( "openingDate" ), orgUnit.getOpeningDate() );
+        // todo create validation helper to check the similarity.
+        response.validate().statusCode( 200 )
+            .body( "shortName", equalTo( orgUnit.getShortName() ) )
+            .body( "name", equalTo( orgUnit.getName() ) )
+            .body( "openingDate", equalTo( orgUnit.getOpeningDate() ) );
     }
 
     @Test
     public void shouldUpdate()
     {
-        OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
+        OrgUnit orgUnit = orgUnitActions.generateDummy();
 
         // create
-        ApiResponse response = orgUnitActions.sendCreateRequest( orgUnit );
+        ApiResponse response = orgUnitActions.post( orgUnit );
         String uid = response.extractUid();
+        assertNotNull( uid, "Org unit uid was not returned" );
 
         response = orgUnitActions.get( uid );
         String lastUpdatedDate = response.extractString( "lastUpdated" );
@@ -175,16 +178,17 @@ public class OrgUnitsTest
         orgUnit.setShortName( orgUnit.getShortName() + " updated" );
         orgUnit.setOpeningDate( "2017-09-10T00:00:00.000" );
 
-        response = orgUnitActions.updateOrgUnit( uid, orgUnit );
+        response = orgUnitActions.update( uid, orgUnit );
         assertEquals( 200, response.statusCode(), "Org unit wasn't updated" );
 
         // validate
         response = orgUnitActions.get( uid );
 
-        assertEquals( 200, response.statusCode() );
-        assertEquals( response.extractString( "shortName" ), orgUnit.getShortName() );
-        assertEquals( response.extractString( "name" ), orgUnit.getName() );
-        assertEquals( response.extractString( "openingDate" ), orgUnit.getOpeningDate() );
-        assertNotEquals( response.extractString( "lastUpdated" ), lastUpdatedDate );
+        response.validate().statusCode( 200 )
+            .body( "shortName", equalTo( orgUnit.getShortName() ) )
+            .body( "name", equalTo( orgUnit.getName() ) )
+            .body( "openingDate", equalTo( orgUnit.getOpeningDate() ) )
+            .body( "lastUpdated", not( equalTo( lastUpdatedDate ) ) );
+
     }
 }
