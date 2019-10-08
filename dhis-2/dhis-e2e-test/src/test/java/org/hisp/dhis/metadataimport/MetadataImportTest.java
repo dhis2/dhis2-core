@@ -130,7 +130,7 @@ public class MetadataImportTest
         List<HashMap> typeReports = response.extractList( "typeReports.stats" );
 
         typeReports.forEach( x -> {
-            assertEquals( x.get( expected ), x.get( "total" ) );
+            assertEquals( x.get( expected ), x.get( "total" ), expected + " for " + x + " not equals to total" );
         } );
     }
 
