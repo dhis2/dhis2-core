@@ -128,7 +128,7 @@ public class OrgUnitActions
         return create( generateDummy() );
     }
 
-    public String createOrgUnit(int level)
+    public String createOrgUnit( int level )
     {
         OrgUnit orgUnit = generateDummy();
         orgUnit.setLevel( level );
@@ -145,7 +145,8 @@ public class OrgUnitActions
         return create( orgUnit );
     }
 
-    public String createOrgUnitWithParent( String parentId, int level) {
+    public String createOrgUnitWithParent( String parentId, int level )
+    {
         OrgUnit orgUnit = generateDummy();
         orgUnit.setLevel( level );
         orgUnit.setParent( parentId );

@@ -73,6 +73,7 @@ public class TestCleanUp
     private Logger logger = Logger.getLogger( TestCleanUp.class.getName() );
 
     private int deleteCount = 0;
+
     /**
      * Deletes entities created during test run. Entities deleted one by one starting from last created one.
      */

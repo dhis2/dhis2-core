@@ -62,11 +62,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class RelationshipsTest
     extends ApiTest
 {
-    private RestApiActions trackedEntityInstanceActions;
-
     private static List<String> teis;
 
     private static List<String> events;
+
+    private RestApiActions trackedEntityInstanceActions;
 
     private MetadataActions metadataActions;
 

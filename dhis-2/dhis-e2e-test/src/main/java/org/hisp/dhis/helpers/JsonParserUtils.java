@@ -41,7 +41,8 @@ public class JsonParserUtils
 
     public static JsonObject toJsonObject( Object object )
     {
-        if (object instanceof String) {
+        if ( object instanceof String )
+        {
             return parser.parse( (String) object ).getAsJsonObject();
         }
 

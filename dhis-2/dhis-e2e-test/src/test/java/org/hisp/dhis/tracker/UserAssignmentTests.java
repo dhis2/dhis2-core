@@ -95,7 +95,7 @@ public class UserAssignmentTests
 
         response.validate()
             .statusCode( 200 )
-            .body( userAssignmentProperty, equalTo(true) );
+            .body( userAssignmentProperty, equalTo( true ) );
 
         // act - disabling user assignment
         response = enableUserAssignmentOnProgramStage( programStageId, false );

@@ -40,33 +40,38 @@ public class QueryParamsBuilder
 {
     List<MutablePair<String, String>> queryParams;
 
-    public QueryParamsBuilder() {
-        queryParams = new ArrayList<>(  );
+    public QueryParamsBuilder()
+    {
+        queryParams = new ArrayList<>();
     }
 
     /**
      * Adds or updates the query param.
      * Format: key=value
+     *
      * @param param
      * @return
      */
-    public QueryParamsBuilder add(String param) {
+    public QueryParamsBuilder add( String param )
+    {
         String[] splited = param.split( "=" );
         MutablePair pair = getByKey( splited[0] );
 
-        if (pair != null) {
-            pair.setRight( splited[1]);
+        if ( pair != null )
+        {
+            pair.setRight( splited[1] );
             return this;
         }
 
-        queryParams.add(MutablePair.of( splited[0], splited[1] ));
+        queryParams.add( MutablePair.of( splited[0], splited[1] ) );
 
         return this;
     }
 
-    public QueryParamsBuilder addAll(String... params) {
-        for ( String param: params
-               )
+    public QueryParamsBuilder addAll( String... params )
+    {
+        for ( String param : params
+        )
         {
             this.add( param );
         }
@@ -74,14 +79,16 @@ public class QueryParamsBuilder
         return this;
     }
 
-    private MutablePair getByKey(String key) {
+    private MutablePair getByKey( String key )
+    {
         return queryParams.stream()
             .filter( p -> p.getLeft().equals( key ) )
             .findFirst()
             .orElse( null );
     }
 
-    public String build() {
+    public String build()
+    {
         if ( queryParams.size() == 0 )
         {
             return "";
@@ -92,7 +99,7 @@ public class QueryParamsBuilder
 
         for ( int i = 0; i < queryParams.size(); i++ )
         {
-            builder.append( String.format( "%s=%s", queryParams.get( i).getLeft(), queryParams.get( i ).getRight()));
+            builder.append( String.format( "%s=%s", queryParams.get( i ).getLeft(), queryParams.get( i ).getRight() ) );
 
             if ( i != queryParams.size() - 1 )
             {

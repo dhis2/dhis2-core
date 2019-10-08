@@ -148,7 +148,7 @@ public class RestApiActions
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param resourceId        Id of resource
+     * @param resourceId         Id of resource
      * @param queryParamsBuilder Query params to append to url
      * @return
      */
@@ -188,8 +188,8 @@ public class RestApiActions
     /**
      * Sends PUT request to specified resource.
      *
-     * @param resourceId   Id of resource
-     * @param object Body of request
+     * @param resourceId Id of resource
+     * @param object     Body of request
      * @return
      */
     public ApiResponse update( String resourceId, Object object )

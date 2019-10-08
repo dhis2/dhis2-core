@@ -67,7 +67,8 @@ public class SystemActions
         return getTaskSummariesResponse( taskType, taskId ).getImportSummaries();
     }
 
-    public ApiResponse getTaskSummariesResponse(String taskType, String taskId) {
+    public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
+    {
         return get( "/taskSummaries/" + taskType + "/" + taskId );
     }
 

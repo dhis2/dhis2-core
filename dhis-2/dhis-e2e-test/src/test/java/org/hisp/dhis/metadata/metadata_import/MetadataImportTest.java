@@ -210,8 +210,8 @@ public class MetadataImportTest
             .body( "response.name", equalTo( "metadataImport" ) )
             .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
 
-        String taskId = response.extractString("response.id" );
-        assertNotNull( taskId, "Task id was not returned");
+        String taskId = response.extractString( "response.id" );
+        assertNotNull( taskId, "Task id was not returned" );
         // Validate that job was successful
 
         response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );

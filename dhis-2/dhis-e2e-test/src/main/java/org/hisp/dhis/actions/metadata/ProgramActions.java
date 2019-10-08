@@ -58,13 +58,10 @@ package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
-
-import static org.hamcrest.Matchers.in;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -138,13 +135,14 @@ public class ProgramActions
 
         body.addProperty( "name", name );
 
-        ApiResponse response =  programStageActions.post( body );
-        response.validate().statusCode( Matchers.isOneOf(201, 200) );
+        ApiResponse response = programStageActions.post( body );
+        response.validate().statusCode( Matchers.isOneOf( 201, 200 ) );
 
         return response.extractUid();
     }
 
-    public JsonObject getDummy() {
+    public JsonObject getDummy()
+    {
         String random = DataGenerator.randomString();
 
         JsonObject object = new JsonObject();
@@ -153,6 +151,7 @@ public class ProgramActions
 
         return object;
     }
+
     public JsonObject getDummy( String programType )
     {
 

@@ -53,13 +53,13 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 public class TEIimportTest
     extends ApiTest
 {
+    JsonObject object;
+
     private TEIActions teiActions;
 
     private EventActions eventActions;
 
     private RestApiActions enrollmentActions;
-
-    JsonObject object;
 
     @BeforeAll
     public void before()

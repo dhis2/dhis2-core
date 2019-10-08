@@ -44,23 +44,28 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramStagesTest extends ApiTest
+public class ProgramStagesTest
+    extends ApiTest
 {
     private LoginActions loginActions;
+
     private ProgramActions programActions;
+
     private RestApiActions programStageActions;
 
     private String programId;
+
     private String programStageId;
 
     @BeforeAll
-    public void preconditions() {
+    public void preconditions()
+    {
         loginActions = new LoginActions();
         programActions = new ProgramActions();
         programStageActions = programActions.programStageActions;
 
         loginActions.loginAsSuperUser();
-        programId = programActions.createTrackerProgram(  ).extractUid();
+        programId = programActions.createTrackerProgram().extractUid();
         programStageId = programActions.createProgramStage( "Tracker program stage 1" );
     }
 
@@ -87,7 +92,7 @@ public class ProgramStagesTest extends ApiTest
 
         response = programActions.get( programId );
         response.validate().statusCode( 200 )
-            .body( "programStages", not(emptyArray()) )
+            .body( "programStages", not( emptyArray() ) )
             .body( "programStages.id", not( emptyArray() ) )
             .body( "programStages.id", hasItem( programStageId ) );
 

@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker;
 
 import com.google.gson.JsonObject;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -43,15 +42,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Every.everyItem;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -98,7 +93,7 @@ public class UserAssignmentFilterTests
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, "OPVIvvXzNTw" );
         userActions.addURoleToUser( userId, "yrB6vc5Ip7r" );
-        
+
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }
 
@@ -117,8 +112,8 @@ public class UserAssignmentFilterTests
         ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUser=" + userId );
 
         response.validate().statusCode( 200 )
-            .body( "events", hasSize(4) )
-            .body( "events.assignedUser", everyItem( equalTo(userId) ) );
+            .body( "events", hasSize( 4 ) )
+            .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
     @Test
@@ -128,12 +123,12 @@ public class UserAssignmentFilterTests
         loginActions.loginAsUser( userUsername, userPassword );
 
         // act
-        ApiResponse response = eventActions.get( "?orgUnit=" +orgUnit + "&assignedUserMode=CURRENT" );
+        ApiResponse response = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" );
 
         // assert
         response.validate().statusCode( 200 )
-            .body( "events", hasSize(4) )
-            .body( "events.assignedUser", everyItem( equalTo(userId) ) );
+            .body( "events", hasSize( 4 ) )
+            .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
     @Test
@@ -155,8 +150,7 @@ public class UserAssignmentFilterTests
         // assert
         currentUserEvents.validate().statusCode( 200 )
             .body( "events", notNullValue() )
-            .body( "events.event", not(hasItem( eventId )) );
-
+            .body( "events.event", not( hasItem( eventId ) ) );
 
         unassignedEvents.validate().statusCode( 200 )
             .body( "events", notNullValue() )
@@ -186,7 +180,6 @@ public class UserAssignmentFilterTests
             .body( "events", hasSize( 1 ) )
             .body( "events.assignedUser", everyItem( equalTo( userId ) ) )
             .body( "events.status", everyItem( equalTo( status ) ) );
-
 
         activeEvents.validate().statusCode( 200 )
             .body( "events", hasSize( 3 ) )
