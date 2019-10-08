@@ -11,7 +11,7 @@ FROM $tomcat_image
 
 ENV DHIS2_HOME=/DHIS2_home
 
-COPY ./docker/shared/docker-entrypoint.sh /usr/local/bin/
+COPY ./docker/tomcat-debian/docker-entrypoint.sh /usr/local/bin/
 
 RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
