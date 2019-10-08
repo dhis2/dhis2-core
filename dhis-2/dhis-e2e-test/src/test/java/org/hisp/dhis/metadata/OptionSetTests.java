@@ -89,7 +89,7 @@ public class OptionSetTests
 
         loginActions.loginAsSuperUser();
 
-        createdOptionSet = createOptionSet(  );
+        createdOptionSet = createOptionSet();
     }
 
     @Test
@@ -121,7 +121,7 @@ public class OptionSetTests
         // assert
         response.validate()
             .statusCode( 200 )
-            .body( "options.id[0]", equalTo(optionId) );
+            .body( "options.id[0]", equalTo( optionId ) );
     }
 
     @Test
@@ -133,7 +133,7 @@ public class OptionSetTests
         ApiResponse response = optionActions.optionSetActions.get( createdOptionSet );
 
         response.validate().statusCode( 200 )
-            .body( "options", not(emptyArray() ))
+            .body( "options", not( emptyArray() ) )
             .body( "options.id", not( emptyArray() ) )
             .rootPath( "options" )
             .body( "id[0]", equalTo( option1 ) )
@@ -163,16 +163,24 @@ public class OptionSetTests
     }
 
     @Test
-    public void shouldRemoveOptionFromCollection() {
+    public void shouldRemoveOptionFromCollection()
+    {
+        // arrange
         String optionId = createOption( createdOptionSet );
 
         optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
             .validate()
             .statusCode( 200 );
 
+        // act
         optionActions.optionSetActions.delete( createdOptionSet + "/options/" + optionId )
             .validate()
             .statusCode( 204 );
+
+        // assert
+        optionActions.optionSetActions.get( createdOptionSet )
+            .validate()
+            .statusCode( 200 );
 
         optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
             .validate()
@@ -193,6 +201,8 @@ public class OptionSetTests
      */
     private String createOption( String optionSetId )
     {
-        return optionActions.createOption( "Option name auto" + DataGenerator.randomString(), "Option code auto" + DataGenerator.randomString(), optionSetId );
+        return optionActions
+            .createOption( "Option name auto" + DataGenerator.randomString(), "Option code auto" + DataGenerator.randomString(),
+                optionSetId );
     }
 }
