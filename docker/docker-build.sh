@@ -19,7 +19,7 @@ shopt -s nullglob globstar
 DIR="$( dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd ) )"
 
 TOMCAT_IMAGE="tomcat"
-ARTIFACT_DIR=${ARTIFACT_DIR-"${DIR}/docker/artifact"}
+ARTIFACT_DIR="docker/artifact"
 WAR_FILE=${WAR_FILE-""}
 
 #
@@ -40,10 +40,11 @@ if [ -z "$WAR_FILE" ]; then
     echo "No custom WAR-file passed to script, extracting from build"
     docker build --tag "${CORE_IMAGE}:${CORE_TAG}" --file "${DIR}/docker/core/Dockerfile" "$DIR"
 
-    mkdir -p "$ARTIFACT_DIR"
+    mkdir -p "${DIR}/${ARTIFACT_DIR}"
+
     WAR_FILE="${ARTIFACT_DIR}/dhis.war"
     docker create --name temp_extract "${CORE_IMAGE}:${CORE_TAG}"
-    docker cp temp_extract:/dhis.war "$WAR_FILE"
+    docker cp temp_extract:/dhis.war "${DIR}/${WAR_FILE}"
     docker rm -f temp_extract
 fi
 

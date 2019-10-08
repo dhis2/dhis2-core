@@ -20,7 +20,7 @@ RUN apt-get update && \
         unzip
 
 COPY ./docker/shared/server.xml /usr/local/tomcat/conf
-COPY $WAR_FILE /usr/local/tomcat/webapps/ROOT.war
+COPY ./docker/artifact/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
