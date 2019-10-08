@@ -72,12 +72,11 @@ public class UsersRemovalTests
     public void shouldRemoveWhenUserWasLoggedIn()
     {
         loginActions.loginAsUser( userName, password );
-
         loginActions.loginAsSuperUser();
 
         ApiResponse response = userActions.delete( userId );
 
-        assertEquals( 200, response.statusCode() );
+        response.validate().statusCode( 200 );
         assertEquals( response.extractUid(), userId );
     }
 
@@ -86,11 +85,15 @@ public class UsersRemovalTests
     //jira issue 5573
     public void shouldRemoveWhenUserWasGrantedAccessToMetadata()
     {
+        // arrange
         String id = optionActions.createOptionSet();
 
         optionActions.grantUserAccessToOptionSet( id, userId );
 
+        // act
         ApiResponse response = userActions.delete( userId );
+
+        // assert
         ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
     }
 }
