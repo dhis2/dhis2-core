@@ -125,6 +125,8 @@ public class MetadataTest
     @MethodSource( "getSchemaEndpoints" )
     public void postBasedOnSchema( String endpoint, String schema )
     {
+        RestApiActions apiActions = new RestApiActions( endpoint );
+
         List blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
             "messageConversations",
@@ -139,13 +141,13 @@ public class MetadataTest
 
         // post
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
-        ApiResponse response = new RestApiActions( endpoint ).post( object );
+        ApiResponse response = apiActions.post( object );
 
         // validate response;
         ResponseValidationHelper.validateObjectCreation( response );
 
         // validate removal;
-        response = new RestApiActions( endpoint ).delete( response.extractUid() );
+        response = apiActions.delete( response.extractUid() );
 
         ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted" );
     }
