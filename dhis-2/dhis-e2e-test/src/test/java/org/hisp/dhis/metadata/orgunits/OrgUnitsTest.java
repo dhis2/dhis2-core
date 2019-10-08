@@ -95,6 +95,7 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -130,8 +131,9 @@ public class OrgUnitsTest
 
         ApiResponse response = orgUnitActions.sendCreateRequest();
 
-        assertEquals( 403, response.statusCode(), "Wrong status code when creating org unit without permissions" );
-        assertEquals( response.extract( "message" ), "You don't have the proper permissions to create this object." );
+        response.validate()
+            .statusCode( 403)
+            .body( "message", equalTo("You don't have the proper permissions to create this object.") );
     }
 
     // todo add tests for creation with level.
