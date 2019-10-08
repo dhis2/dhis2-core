@@ -27,6 +27,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -72,6 +73,7 @@ public class EventsImportTests
             .statusCode( 200 );
 
         String taskId = response.extractString( "response.id" );
+        assertNotNull( taskId, "Task id was not returned" );
 
         systemActions.waitUntilTaskCompleted( "EVENT_IMPORT", taskId );
 
@@ -106,6 +108,7 @@ public class EventsImportTests
         response = post( "events.json", true );
 
         String taskId = response.extractString( "response.id" );
+        assertNotNull( taskId, "Task id was not returned" );
 
         systemActions.waitUntilTaskCompleted( "EVENT_IMPORT", taskId );
 
