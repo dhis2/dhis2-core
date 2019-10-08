@@ -47,11 +47,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class UsersRemovalTests
     extends ApiTest
 {
-    private UserActions userActions = new UserActions();
+    private UserActions userActions;
 
-    private OptionActions optionActions = new OptionActions();
+    private OptionActions optionActions;
 
-    private LoginActions loginActions = new LoginActions();
+    private LoginActions loginActions;
 
     private String userId;
 
@@ -62,9 +62,14 @@ public class UsersRemovalTests
     @BeforeEach
     public void beforeEach()
     {
+        userActions = new UserActions();
+        optionActions = new OptionActions();
+        loginActions = new LoginActions();
+
         userName = DataGenerator.randomString();
 
         loginActions.loginAsSuperUser();
+
         userId = userActions.addUser( "johnny", "bravo", userName, password );
     }
 
@@ -76,8 +81,7 @@ public class UsersRemovalTests
 
         ApiResponse response = userActions.delete( userId );
 
-        response.validate().statusCode( 200 );
-        assertEquals( response.extractUid(), userId );
+        ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
     }
 
     @Test
