@@ -26,12 +26,15 @@ CORE_IMAGE="$1"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ARTIFACTS="${DIR}/artifacts"
 
+TOMCAT_IMAGE="tomcat"
 
 
 
 #
 ## tomcat tags
 #
+
+default_tomcat_tag="8.5.46-jdk8-openjdk-slim"
 
 tomcat_debian_tags=(
     "9.0-jdk8-openjdk-slim"
@@ -96,21 +99,27 @@ setup () {
     fi
 }
 
+build () {
+    local TAG=$1
+    local TC_TAG=$2
+    local TYPE=$3
+
+    docker build \
+        --tag "${TAG}" \
+        --file "${DIR}/tomcat-${TYPE}/Dockerfile" \
+        --build-arg TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TC_TAG}" \
+        "$DIR"
+}
+
 main () {
+    build "$CORE_IMAGE" "$default_tomcat_tag" "debian"
+
     for TOMCAT_TAG in "${tomcat_debian_tags[@]}"; do
-        docker build \
-            --tag "${CORE_IMAGE}-${TOMCAT_TAG}" \
-            --file "${DIR}/tomcat-debian/Dockerfile" \
-            --build-arg TOMCAT_IMAGE="tomcat:${TOMCAT_TAG}" \
-            "$DIR"
+        build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "debian"
     done
 
     for TOMCAT_TAG in "${tomcat_alpine_tags[@]}"; do
-        docker build \
-            --tag "${CORE_IMAGE}-${TOMCAT_TAG}" \
-            --file "${DIR}/tomcat-alpine/Dockerfile" \
-            --build-arg TOMCAT_IMAGE="tomcat:${TOMCAT_TAG}" \
-            "$DIR"
+        build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "alpine"
     done
 }
 

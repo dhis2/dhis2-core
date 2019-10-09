@@ -9,8 +9,10 @@ pipeline {
     environment {
         DHIS2_VERSION = ''
         DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core-dev"
+        DOCKER_HUB_BASE_REPOSITORY = "${DOCKER_HUB_OWNER}/base-dev"
         DOCKER_IMAGE_TAG = ''
         DOCKER_IMAGE_FULL_NAME = ''
+        DOCKER_BASE_IMAGE_FULL_NAME = ''
         COMPOSE_PARAMETER = ''
         TESTS_IMAGE_FULL_NAME = ''
     }
@@ -23,6 +25,8 @@ pipeline {
             steps {
                 script {
                     DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core"
+                    DOCKER_HUB_BASE_REPOSITORY = "${DOCKER_HUB_OWNER}/base"
+
                     pom = readMavenPom file: 'dhis-2/pom.xml'
                     DHIS2_VERSION = pom.version.toLowerCase()
 
@@ -46,16 +50,34 @@ pipeline {
                 }
             }
         }
-        stage('Build image') {
+
+        stage('Prepare Docker compose') {
             steps {
                 script {
                     COMPOSE_PARAMETER = "${env.JOB_NAME}"
                     echo "Docker compose parameter: ${COMPOSE_PARAMETER}"
+                }
+            }
+        }
 
+        stage('Build image') {
+            steps {
+                script {
+                    DOCKER_BASE_IMAGE_FULL_NAME = "${DOCKER_HUB_BASE_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+                    echo "Will tag base image as ${DOCKER_BASE_IMAGE_FULL_NAME}"
+
+                    sh "docker build -t ${DOCKER_BASE_IMAGE_FULL_NAME} --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG} ."
+                }
+            }
+        }
+
+        stage('Build containers') {
+            steps {
+                script {
                     DOCKER_IMAGE_FULL_NAME = "${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}"
-                    echo "Will tag image as ${DOCKER_IMAGE_FULL_NAME}"
+                    echo "Will tag container images as ${DOCKER_IMAGE_FULL_NAME}"
 
-                    sh "docker build -t ${DOCKER_IMAGE_FULL_NAME} --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG}  ."
+                    sh "./docker/build-containers.sh ${DOCKER_IMAGE_FULL_NAME}"
                 }
             }
         }
@@ -63,6 +85,7 @@ pipeline {
         stage('Start instance') {
             steps {
                 dir("dhis-2/dhis-e2e-test") {
+                    # start the default tomcat container
                     sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
                 }
             }
@@ -84,7 +107,10 @@ pipeline {
         stage('Publish image') {
             steps {
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                    sh "docker push ${DOCKER_BASE_IMAGE_FULL_NAME}"
                     sh "docker push ${DOCKER_IMAGE_FULL_NAME}"
+                    # not implemented
+                    # sh "./docker/publish-containers.sh ${DOCKER_IMAGE_FULL_NAME}"
                 }
             }
         }
