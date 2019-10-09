@@ -54,15 +54,6 @@ tomcat_alpine_tags=(
 ## funcs
 #
 
-extraction () {
-    . $DIR/extract-artifacts.sh "$CORE_IMAGE" |
-        while IFS= read -r LINE; do
-            echo "$LINE"
-        done
-
-    cd $(pwd)
-}
-
 setup () {
     if [ -d "$ARTIFACTS" ]; then
         pushd "$ARTIFACTS"
@@ -71,9 +62,8 @@ setup () {
             echo "Using existing 'dhis.war' to build."
         else
             echo "No 'dhis.war' file found."
-            echo "Attempting extraction from '${CORE_IMAGE}'"
-
-            extraction
+            echo "Either run ./extract-artifacts.sh or provide a dhis.war"
+            exit 1
         fi
 
         echo "Checksum valiations:"
@@ -93,9 +83,8 @@ setup () {
         popd
     else
         echo "No existing artifact directory found"
-        echo "Attempting extraction from '${CORE_IMAGE}'"
-
-        extraction
+        echo "Either run ./extract-artifacts.sh or provide a dhis.war"
+        exit 1
     fi
 }
 

@@ -77,6 +77,7 @@ pipeline {
                     DOCKER_IMAGE_FULL_NAME = "${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}"
                     echo "Will tag container images as ${DOCKER_IMAGE_FULL_NAME}"
 
+                    sh "./docker/extract-artifacts.sh ${DOCKER_BASE_IMAGE_FULL_NAME}"
                     sh "./docker/build-containers.sh ${DOCKER_IMAGE_FULL_NAME}"
                 }
             }
