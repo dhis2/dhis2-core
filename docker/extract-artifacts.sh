@@ -21,7 +21,7 @@ shopt -s nullglob globstar
 ## script environment
 #
 
-IMAGE="$1"
+CORE_IMAGE="$1"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TEMP="extract-$(date +%s)"
@@ -49,7 +49,7 @@ setup () {
 
 main () {
     echo "Creating temporary image: ${TEMP}"
-    docker create --name "$TEMP" "$IMAGE"
+    docker create --name "$TEMP" "$CORE_IMAGE"
     echo "Done"
 
     echo "Extracting artifacts..."

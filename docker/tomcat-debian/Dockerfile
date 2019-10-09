@@ -1,11 +1,9 @@
 ARG TOMCAT_IMAGE
 FROM $TOMCAT_IMAGE
 
-ARG WAR_FILE
-
 ENV DHIS2_HOME=/DHIS2_home
 
-COPY ./docker/tomcat-debian/docker-entrypoint.sh /usr/local/bin/
+COPY ./tomcat-debian/docker-entrypoint.sh /usr/local/bin/
 
 RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
@@ -21,8 +19,8 @@ RUN apt-get update && \
         bash \
         unzip
 
-COPY ./docker/shared/server.xml /usr/local/tomcat/conf
-COPY ./docker/artifact/dhis.war /usr/local/tomcat/webapps/ROOT.war
+COPY ./shared/server.xml /usr/local/tomcat/conf
+COPY ./artifacts/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
