@@ -11,7 +11,10 @@ RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir $DHIS2_HOME && \
     addgroup -S tomcat && \
     addgroup root tomcat && \
-    adduser -S -D -G tomcat tomcat
+    adduser -S -D -G tomcat tomcat && \
+    echo 'tomcat' >> /etc/cron.deny && \
+    echo 'tomcat' >> /etc/at.deny
+
 
 RUN apk add --update --no-cache \
         bash  \
