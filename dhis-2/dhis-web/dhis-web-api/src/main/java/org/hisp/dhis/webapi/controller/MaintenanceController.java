@@ -31,9 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 
 import org.hisp.dhis.analytics.AnalyticsTableService;
-import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryService;
@@ -83,12 +81,6 @@ public class MaintenanceController
     private MaintenanceService maintenanceService;
 
     @Autowired
-    private HibernateCacheManager cacheManager;
-
-    @Autowired
-    private PartitionManager partitionManager;
-
-    @Autowired
     private RenderService renderService;
 
     @Autowired
@@ -108,7 +100,7 @@ public class MaintenanceController
 
     @Autowired
     private CategoryManager categoryManager;
-    
+
     @Autowired
     private CategoryUtils categoryUtils;
 
@@ -235,7 +227,7 @@ public class MaintenanceController
         }
 
         ImportSummaries importSummaries = categoryUtils.addAndPruneOptionCombos( categoryCombo );
-        
+
         webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
     }
 
@@ -244,8 +236,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void clearCache()
     {
-        cacheManager.clearCache();
-        partitionManager.clearCaches();
+        maintenanceService.clearApplicationCaches();
     }
 
     @RequestMapping( value = "/dataPruning/organisationUnits/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -400,7 +391,7 @@ public class MaintenanceController
         {
             appManager.reloadApps();
         }
-        
+
         if ( resourceTableUpdate )
         {
             analyticsTableGenerator.generateResourceTables( null );

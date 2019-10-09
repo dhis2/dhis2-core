@@ -39,7 +39,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -111,8 +113,10 @@ public class JdbcPartitionManager
     }
 
     @Override
-    public void clearCaches()
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
         analyticsPartitions = new HashMap<>();
+        log.info( "Analytics partition cache cleared" );
     }
 }
