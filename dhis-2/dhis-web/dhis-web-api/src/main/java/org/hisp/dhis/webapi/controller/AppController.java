@@ -276,13 +276,6 @@ public class AppController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "No config specified" ) );
         }
-
-        String appStoreUrl = StringUtils.trimToNull( config.get( SettingKey.APP_STORE_URL.getName() ) );
-
-        if ( appStoreUrl != null )
-        {
-            appManager.setAppStoreUrl( appStoreUrl );
-        }
     }
 
     //--------------------------------------------------------------------------

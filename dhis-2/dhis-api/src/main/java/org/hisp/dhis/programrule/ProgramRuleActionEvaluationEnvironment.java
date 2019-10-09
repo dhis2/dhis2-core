@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.programrule;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,56 +28,49 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.common.DxfNamespaces;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-public class AppStore
+@JacksonXmlRootElement( localName = "programRuleEvaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
+public enum ProgramRuleActionEvaluationEnvironment
 {
-    private String name;
-    
-    private String description;
-    
-    private List<WebApp> apps = new ArrayList<>();
+    WEB( "web" ),
+    ANDROID( "android" );
 
-    public AppStore()
+    private final String value;
+
+    ProgramRuleActionEvaluationEnvironment( String value )
     {
+        this.value = value;
     }
 
-    @JsonProperty
-    public String getName()
+    public static ProgramRuleActionEvaluationEnvironment fromValue( String value )
     {
-        return name;
+        for ( ProgramRuleActionEvaluationEnvironment type : ProgramRuleActionEvaluationEnvironment.values() )
+        {
+            if ( type.value.equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
+
+        return null;
     }
 
-    public void setName( String name )
+    /**
+     * By default, actions should be run in all environments, and its up to the client
+     * to decide which actions are unsuited to be run or not.
+     *
+     * @return Default environments where the actions should be run
+     */
+    public static Set<ProgramRuleActionEvaluationEnvironment> getDefault()
     {
-        this.name = name;
+        return Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.values() );
     }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    public List<WebApp> getApps()
-    {
-        return apps;
-    }
-
-    public void setApps( List<WebApp> apps )
-    {
-        this.apps = apps;
-    }    
 }

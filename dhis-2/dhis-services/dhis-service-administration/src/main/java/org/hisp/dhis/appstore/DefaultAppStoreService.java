@@ -28,59 +28,76 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 07.09.17.
  */
-@Service( "org.hisp.dhis.appstore.AppStoreManager" )
-public class DefaultAppStoreManager
-    implements AppStoreManager
+@Service( "org.hisp.dhis.appstore.AppStoreService" )
+public class DefaultAppStoreService
+    implements
+    AppStoreService
 {
+    private static final Log log = LogFactory.getLog( DefaultAppStoreService.class );
+
     private final RestTemplate restTemplate;
 
     private final AppManager appManager;
 
-    private final SystemSettingManager systemSettingManager;
+    private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    public DefaultAppStoreManager( RestTemplate restTemplate, AppManager appManager,
-        SystemSettingManager systemSettingManager )
+    public DefaultAppStoreService( RestTemplate restTemplate, AppManager appManager,
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
-
         checkNotNull( restTemplate );
         checkNotNull( appManager );
-        checkNotNull( systemSettingManager );
-
+        checkNotNull( dhisConfigurationProvider );
         this.restTemplate = restTemplate;
         this.appManager = appManager;
-        this.systemSettingManager = systemSettingManager;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
 
-    // -------------------------------------------------------------------------
-    // AppStoreManager implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public AppStore getAppStore() {
-        String appStoreIndexUrl = (String) systemSettingManager.getSystemSetting( SettingKey.APP_STORE_INDEX_URL );
+    public List<WebApp> getAppStore()
+    {
+        String appStoreApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_URL );
+        String appStoreApiVersion = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_VERSION );
+        String allAppsUrl;
 
-        return restTemplate.getForObject( appStoreIndexUrl, AppStore.class );
+        if ( "" == appStoreApiVersion )
+        {
+            allAppsUrl = appStoreApiUrl + "/apps";
+        }
+        else
+        {
+            allAppsUrl = appStoreApiUrl + "/" + appStoreApiVersion + "/apps";
+        }
+
+        WebApp[] apps = restTemplate.getForObject( allAppsUrl, WebApp[].class );
+
+        return Arrays.asList( apps );
     }
 
     @Override
@@ -93,11 +110,11 @@ public class DefaultAppStoreManager
 
         try
         {
-            Optional<WebAppVersion> webAppVersion = getWebAppVersion( id );
+            Optional<AppVersion> webAppVersion = getWebAppVersion( id );
 
             if ( webAppVersion.isPresent() )
             {
-                WebAppVersion version = webAppVersion.get();
+                AppVersion version = webAppVersion.get();
 
                 URL url = new URL( version.getDownloadUrl() );
 
@@ -105,6 +122,8 @@ public class DefaultAppStoreManager
 
                 return appManager.installApp( getFile( url ), filename );
             }
+
+            log.info( String.format( "No version found for id %s", id ) );
 
             return AppStatus.NOT_FOUND;
         }
@@ -118,13 +137,11 @@ public class DefaultAppStoreManager
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Optional<WebAppVersion> getWebAppVersion( String id )
+    private Optional<AppVersion> getWebAppVersion( String id )
     {
-        AppStore appStore = getAppStore();
-
-        for ( WebApp app : appStore.getApps() )
+        for ( WebApp app : getAppStore() )
         {
-            for ( WebAppVersion version : app.getVersions() )
+            for ( AppVersion version : app.getVersions() )
             {
                 if ( id.equals( version.getId() ) )
                 {
