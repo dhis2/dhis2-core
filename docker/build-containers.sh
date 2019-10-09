@@ -24,6 +24,7 @@ shopt -s nullglob globstar
 CORE_IMAGE="$1"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+ARTIFACTS="${DIR}/artifacts"
 
 
 
@@ -50,19 +51,37 @@ tomcat_alpine_tags=(
 ## funcs
 #
 
+extraction () {
+    . $DIR/extract-artifacts.sh "$CORE_IMAGE" |
+        while IFS= read -r LINE; do
+            echo "$LINE"
+        done
+
+    cd $(pwd)
+}
+
 setup () {
-    if [ -d "${DIR}/artifacts" ]; then
-        pushd "${DIR}/artifacts"
+    if [ -d "$ARTIFACTS" ]; then
+        pushd "$ARTIFACTS"
+
+        if [ -f "dhis.war" ]; then
+            echo "Using existing 'dhis.war' to build."
+        else
+            echo "No 'dhis.war' file found."
+            echo "Attempting extraction from '${CORE_IMAGE}'"
+
+            extraction
+        fi
 
         echo "Checksum valiations:"
 
-        if [ -f sha256sum.txt ]; then
+        if [ -f "sha256sum.txt" ]; then
             sha256sum -c sha256sum.txt
         else
             echo "Skipping... No SHA256 checksum found."
         fi
 
-        if [ -f md5sum.txt ]; then
+        if [ -f "md5sum.txt" ]; then
             md5sum -c md5sum.txt
         else
             echo "Skipping... No MD5 checksum found."
@@ -70,8 +89,10 @@ setup () {
 
         popd
     else
-        echo "No existing artifacts found, attempting extraction"
-        . "${DIR}/extract-artifacts.sh ${CORE_IMAGE}"
+        echo "No existing artifact directory found"
+        echo "Attempting extraction from '${CORE_IMAGE}'"
+
+        extraction
     fi
 }
 
@@ -92,19 +113,6 @@ main () {
             "$DIR"
     done
 }
-
-cleanup () {
-}
-
-
-
-
-
-#
-## hook up cleanup trap func
-#
-
-trap cleanup EXIT
 
 
 

@@ -24,9 +24,9 @@ shopt -s nullglob globstar
 CORE_IMAGE="$1"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-TEMP="extract-$(date +%s)"
-TARGET="${DIR}/artifacts"
+ARTIFACTS="${DIR}/artifacts"
 
+TEMP="extract-$(date +%s)"
 
 
 
@@ -36,14 +36,18 @@ TARGET="${DIR}/artifacts"
 #
 
 setup () {
-    if [ -d "$TARGET" ]; then
-        echo "Purging existing artifacts directory: ${TARGET}"
-        rm -rf "$TARGET"
+    # When extracting artifacts from an image we absolutely do not want
+    # to run the risk of having a mix of artifacts, so if the dir
+    # exists, we purge it. No exceptions.
+
+    if [ -d "$ARTIFACTS" ]; then
+        echo "Purging existing artifacts directory: ${ARTIFACTS}"
+        rm -rf "$ARTIFACTS"
         echo "Done"
     fi
 
-    echo "Creating artifacts directory: ${TARGET}"
-    mkdir -p "$TARGET"
+    echo "Creating artifacts directory: ${ARTIFACTS}"
+    mkdir -p "$ARTIFACTS"
     echo "Done"
 }
 
@@ -53,9 +57,9 @@ main () {
     echo "Done"
 
     echo "Extracting artifacts..."
-    docker cp "$TEMP":/dhis.war "${TARGET}/dhis.war"
-    docker cp "$TEMP":/sha256sum.txt "${TARGET}/sha256sum.txt"
-    docker cp "$TEMP":/md5sum.txt "${TARGET}/md5sum.txt"
+    docker cp "$TEMP":/dhis.war "${ARTIFACTS}/dhis.war"
+    docker cp "$TEMP":/sha256sum.txt "${ARTIFACTS}/sha256sum.txt"
+    docker cp "$TEMP":/md5sum.txt "${ARTIFACTS}/md5sum.txt"
     echo "Done"
 }
 
