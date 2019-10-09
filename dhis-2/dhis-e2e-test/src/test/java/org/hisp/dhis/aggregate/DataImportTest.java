@@ -86,7 +86,8 @@ public class DataImportTest
     public void dataValuesCanBeImportedInBulk()
     {
         ApiResponse response = dataValueSetActions
-            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ), new QueryParamsBuilder().add( "importReportMode=FULL" ));
+            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
+                new QueryParamsBuilder().add( "importReportMode=FULL" ) );
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
@@ -106,7 +107,8 @@ public class DataImportTest
     public void dataValuesCanBeImportedAsync()
     {
         ApiResponse response = dataValueSetActions
-            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ), new QueryParamsBuilder().addAll( "reportMode=DEBUG", "async=true" ));
+            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
+                new QueryParamsBuilder().addAll( "reportMode=DEBUG", "async=true" ) );
 
         response.validate().statusCode( 200 );
 
@@ -193,7 +195,7 @@ public class DataImportTest
         queryParamsBuilder.addAll( "importReportMode=FULL", "importStrategy=DELETE"  );
 
         ApiResponse response = dataValueSetActions.postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
-            queryParamsBuilder);
+            queryParamsBuilder );
         response.validate().statusCode( 200 );
 
         response = dataValueSetActions.postFile( new File( "src/test/resources/aggregate/dataValues_single_dataset.json" ),
