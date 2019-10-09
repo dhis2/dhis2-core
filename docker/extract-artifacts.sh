@@ -3,6 +3,7 @@
 #
 ## bash environment
 #
+
 if test "$BASH" = "" || "$BASH" -uc "a=();true \"\${a[@]}\"" 2>/dev/null; then
     # Bash 4.4, Zsh
     set -euo pipefail
@@ -12,6 +13,10 @@ else
 fi
 shopt -s nullglob globstar
 
+
+
+
+
 #
 ## script environment
 #
@@ -20,22 +25,55 @@ IMAGE="$1"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TEMP="extract-$(date +%s)"
+TARGET="${DIR}/artifacts"
+
+
+
+
 
 #
 ## funcs
 #
 
-cleanup () {
-    docker rm -f "$TEMP"
+setup () {
+    if [ -d "$TARGET" ]; then
+        echo "Purging existing artifacts directory: ${TARGET}"
+        rm -rf "$TARGET"
+    fi
+
+    echo "Creating artifacts directory: ${TARGET}"
+    mkdir -p "$TARGET"
 }
 
 main () {
     docker create --name "$TEMP" "$IMAGE"
 
-    docker cp "$TEMP":/dhis.war "${DIR}/artifact/dhis.war"
-    docker cp "$TEMP":/sha256sum.txt "${DIR}/artifact/sha256sum.txt"
-    docker cp "$TEMP":/md5sum.txt "${DIR}/artifact/md5sum.txt"
+    docker cp "$TEMP":/dhis.war "${TARGET}/dhis.war"
+    docker cp "$TEMP":/sha256sum.txt "${TARGET}/sha256sum.txt"
+    docker cp "$TEMP":/md5sum.txt "${TARGET}/md5sum.txt"
 }
 
+cleanup () {
+    docker rm -f "$TEMP"
+}
+
+
+
+
+
+#
+## hook up cleanup trap func
+#
+
 trap cleanup EXIT
+
+
+
+
+
+#
+## run the script
+#
+
+setup
 main
