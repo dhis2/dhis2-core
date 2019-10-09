@@ -32,9 +32,9 @@ cleanup () {
 main () {
     docker create --name "$TEMP" "$IMAGE"
 
-    docker cp temp_extract:/dhis.war "${DIR}/artifact/dhis.war"
-    docker cp temp_extract:/sha256sum.txt "${DIR}/artifact/sha256sum.txt"
-    docker cp temp_extract:/md5sum.txt "${DIR}/artifact/md5sum.txt"
+    docker cp "$TEMP":/dhis.war "${DIR}/artifact/dhis.war"
+    docker cp "$TEMP":/sha256sum.txt "${DIR}/artifact/sha256sum.txt"
+    docker cp "$TEMP":/md5sum.txt "${DIR}/artifact/md5sum.txt"
 }
 
 trap cleanup EXIT
