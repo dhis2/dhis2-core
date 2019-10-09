@@ -33,5 +33,5 @@ RUN md5sum /dhis.war > /md5sum.txt
 
 FROM alpine:latest
 COPY --from=build /dhis.war /dhis.war
-COPY --from-build /sha256sum.txt /sha256sum.txt
-COPY --from-build /md5sum.txt /md5sum.txt
+COPY --from=build /sha256sum.txt /sha256sum.txt
+COPY --from=build /md5sum.txt /md5sum.txt
