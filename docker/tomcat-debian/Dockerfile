@@ -11,8 +11,8 @@ RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
     chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     mkdir $DHIS2_HOME && \
-    adduser --system --disabled-password --group tomcat \
-    echo 'tomcat' >> /etc/cron.deny \
+    adduser --system --disabled-password --group tomcat && \
+    echo 'tomcat' >> /etc/cron.deny && \
     echo 'tomcat' >> /etc/at.deny
 
 RUN apt-get update && \
