@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -69,7 +70,7 @@ import static org.junit.Assert.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class RegistrationMultiEventsServiceTest
-    extends DhisSpringTest
+    extends DhisTest
 {
     @Autowired
     private EventService eventService;
