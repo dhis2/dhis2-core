@@ -11,7 +11,7 @@ LABEL identifier=${IDENTIFIER}
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install --no-install-recommends -y \
-        git=1:2.11.0-3+deb9u4 && \
+        git && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
