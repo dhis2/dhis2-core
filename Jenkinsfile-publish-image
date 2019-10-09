@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         DHIS2_VERSION = ''
-        DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core-dev"
+        DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/base"
         DOCKER_IMAGE_TAG = ''
         DOCKER_IMAGE_FULL_NAME = ''
         COMPOSE_PARAMETER = ''
@@ -22,13 +22,13 @@ pipeline {
             }
             steps {
                 script {
-                    DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core"
                     pom = readMavenPom file: 'dhis-2/pom.xml'
                     DHIS2_VERSION = pom.version.toLowerCase()
 
                     echo "DHIS2 version: ${DHIS2_VERSION}"
 
-                    DOCKER_IMAGE_TAG = "${DHIS2_VERSION}"
+                    DOCKER_IMAGE_TAG = "${DHIS2_VERSION}-release"
+                    # e.g. 2.34.0
                 }
             }
         }
@@ -42,7 +42,10 @@ pipeline {
 
             steps {
                 script {
-                    DOCKER_IMAGE_TAG = "${env.BRANCH_NAME}"
+                    DOCKER_IMAGE_TAG = "${env.BRANCH_NAME}-snapshot"
+                    # e.g. 2.32
+                    # e.g. 2.33
+                    # e.g. master
                 }
             }
         }
@@ -53,6 +56,11 @@ pipeline {
                     echo "Docker compose parameter: ${COMPOSE_PARAMETER}"
 
                     DOCKER_IMAGE_FULL_NAME = "${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+
+                    # e.g. dhis2/base:2.34.0-release
+                    # e.g. dhis2/base:master-snapshot
+                    # e.g. dhis2/base:2.33-snapshot
+
                     echo "Will tag image as ${DOCKER_IMAGE_FULL_NAME}"
 
                     sh "docker build -t ${DOCKER_IMAGE_FULL_NAME} --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG}  ."
