@@ -64,28 +64,37 @@ public class MetadataSetupExtension
         {
             started = true;
             logger.info( "Importing metadata for tests" );
+
+            // The following line registers a callback hook when the root test context is shut down
+            context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
+
             MetadataActions metadataActions = new MetadataActions();
 
             new LoginActions().loginAsDefaultUser();
 
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/userGroups.json" ), "async=false" );
+            String[] files = {
+                "src/test/resources/setup/userGroups.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/users.json"
+            };
 
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/metadata.json" ), "async=false" );
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/metadata.json" ), "async=false" );
+            String queryParams = "async=false";
+            for ( String fileName : files
+            )
+            {
+                metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
 
-            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/users.json" ), "async=false" );
+                createdData.putAll( TestRunStorage.getCreatedEntities() );
 
+                iterateCreatedData( id -> {
+                    TestRunStorage.removeEntity( createdData.get( id ), id );
+                } );
 
-            createdData = TestRunStorage.getCreatedEntities();
-
-            iterateCreatedData( id -> {
-                TestRunStorage.removeEntity( createdData.get( id ), id );
-            } );
+            }
 
             setupSuperuser();
 
-            // The following line registers a callback hook when the root test context is shut down
-            context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
         }
     }
 
