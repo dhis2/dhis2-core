@@ -23,9 +23,11 @@ COPY dhis-2 .
 RUN mvn clean install -T1C -f pom.xml -DskipTests
 RUN mvn clean install -T1C -U -f dhis-web/pom.xml -DskipTests
 
-RUN cp dhis-web/dhis-web-portal/target/dhis.war /dhis.war
-RUN sha256sum /dhis.war > /sha256sum.txt
-RUN md5sum /dhis.war > /md5sum.txt
+RUN cp dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
+    pushd / && \
+    sha256sum dhis.war > /sha256sum.txt && \
+    md5sum dhis.war > /md5sum.txt && \
+    popd
 
 #
 # Slim final image that has the build artifacts at root-level

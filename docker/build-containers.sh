@@ -47,21 +47,73 @@ tomcat_alpine_tags=(
 
 
 #
-## builds
+## funcs
 #
 
-for TOMCAT_TAG in "${tomcat_debian_tags[@]}"; do
-    docker build \
-        --tag "${CORE_IMAGE}-${TOMCAT_TAG}" \
-        --file "${DIR}/tomcat-debian/Dockerfile" \
-        --build-arg TOMCAT_IMAGE="tomcat:${TOMCAT_TAG}" \
-        "$DIR"
-done
+setup () {
+    if [ -d "${DIR}/artifacts" ]; then
+        pushd "${DIR}/artifacts"
 
-for TOMCAT_TAG in "${tomcat_alpine_tags[@]}"; do
-    docker build \
-        --tag "${CORE_IMAGE}-${TOMCAT_TAG}" \
-        --file "${DIR}/tomcat-alpine/Dockerfile" \
-        --build-arg TOMCAT_IMAGE="tomcat:${TOMCAT_TAG}" \
-        "$DIR"
-done
+        echo "Checksum valiations:"
+
+        if [ -f sha256sum.txt ]; then
+            sha256sum -c sha256sum.txt
+        else
+            echo "Skipping... No SHA256 checksum found."
+        fi
+
+        if [ -f md5sum.txt ]; then
+            md5sum -c md5sum.txt
+        else
+            echo "Skipping... No MD5 checksum found."
+        fi
+
+        popd
+    else
+        echo "No existing artifacts found, attempting extraction"
+        . "${DIR}/extract-artifacts.sh ${CORE_IMAGE}"
+    fi
+}
+
+main () {
+    for TOMCAT_TAG in "${tomcat_debian_tags[@]}"; do
+        docker build \
+            --tag "${CORE_IMAGE}-${TOMCAT_TAG}" \
+            --file "${DIR}/tomcat-debian/Dockerfile" \
+            --build-arg TOMCAT_IMAGE="tomcat:${TOMCAT_TAG}" \
+            "$DIR"
+    done
+
+    for TOMCAT_TAG in "${tomcat_alpine_tags[@]}"; do
+        docker build \
+            --tag "${CORE_IMAGE}-${TOMCAT_TAG}" \
+            --file "${DIR}/tomcat-alpine/Dockerfile" \
+            --build-arg TOMCAT_IMAGE="tomcat:${TOMCAT_TAG}" \
+            "$DIR"
+    done
+}
+
+cleanup () {
+}
+
+
+
+
+
+#
+## hook up cleanup trap func
+#
+
+trap cleanup EXIT
+
+
+
+
+
+#
+## run the script
+#
+
+
+setup
+main
