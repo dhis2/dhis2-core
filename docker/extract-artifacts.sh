@@ -60,12 +60,9 @@ main () {
 }
 
 cleanup () {
-    local code=$?
     echo "Removing temporary image: ${TEMP}"
     docker rm -f "$TEMP"
     echo "Done"
-    echo "Script completed with code: ${code}"
-    exit $code
 }
 
 
