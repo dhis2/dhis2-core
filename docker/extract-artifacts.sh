@@ -39,22 +39,33 @@ setup () {
     if [ -d "$TARGET" ]; then
         echo "Purging existing artifacts directory: ${TARGET}"
         rm -rf "$TARGET"
+        echo "Done"
     fi
 
     echo "Creating artifacts directory: ${TARGET}"
     mkdir -p "$TARGET"
+    echo "Done"
 }
 
 main () {
+    echo "Creating temporary image: ${TEMP}"
     docker create --name "$TEMP" "$IMAGE"
+    echo "Done"
 
+    echo "Extracting artifacts..."
     docker cp "$TEMP":/dhis.war "${TARGET}/dhis.war"
     docker cp "$TEMP":/sha256sum.txt "${TARGET}/sha256sum.txt"
     docker cp "$TEMP":/md5sum.txt "${TARGET}/md5sum.txt"
+    echo "Done"
 }
 
 cleanup () {
+    local code=$?
+    echo "Removing temporary image: ${TEMP}"
     docker rm -f "$TEMP"
+    echo "Done"
+    echo "Script completed with code: ${code}"
+    exit $code
 }
 
 
