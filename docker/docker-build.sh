@@ -36,18 +36,6 @@ latest_tomcat_tags=(
 ## builds
 #
 
-if [ -z "$WAR_FILE" ]; then
-    echo "No custom WAR-file passed to script, extracting from build"
-    docker build --tag "${CORE_IMAGE}:${CORE_TAG}" --file "${DIR}/docker/core/Dockerfile" "$DIR"
-
-    mkdir -p "${DIR}/${ARTIFACT_DIR}"
-
-    WAR_FILE="${ARTIFACT_DIR}/dhis.war"
-    docker create --name temp_extract "${CORE_IMAGE}:${CORE_TAG}"
-    docker cp temp_extract:/dhis.war "${DIR}/${WAR_FILE}"
-    docker rm -f temp_extract
-fi
-
 for TOMCAT_TAG in "${latest_tomcat_tags[@]}"; do
     docker build \
         --tag "${CORE_IMAGE}:${CORE_TAG}-${TOMCAT_TAG}" \
