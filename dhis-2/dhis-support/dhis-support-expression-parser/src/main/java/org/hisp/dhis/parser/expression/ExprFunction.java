@@ -77,13 +77,4 @@ public interface ExprFunction
      * @return the generated SQL (as a String) for the function
      */
     Object getSql( ExprContext ctx, CommonExpressionVisitor visitor );
-
-    /**
-     * Regenerates the original expression from the parse tree.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return the regenerated expression (as a String) for the function
-     */
-    Object regenerate( ExprContext ctx, CommonExpressionVisitor visitor );
 }

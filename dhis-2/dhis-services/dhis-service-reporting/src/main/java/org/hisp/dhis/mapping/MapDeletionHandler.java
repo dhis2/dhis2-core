@@ -31,10 +31,6 @@ package org.hisp.dhis.mapping;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
-import java.util.Iterator;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Lars Helge Overland
  */
@@ -42,13 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MapDeletionHandler
     extends DeletionHandler
 {
-    private final MappingService mappingService;
-
-    public MapDeletionHandler( MappingService mappingService )
-    {
-        checkNotNull( mappingService );
-        this.mappingService = mappingService;
-    }
+    //TODO remove this?
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -58,18 +48,5 @@ public class MapDeletionHandler
     protected String getClassName()
     {
         return Map.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteMap( Map map )
-    {
-        Iterator<MapView> views = map.getMapViews().iterator();
-
-        while ( views.hasNext() )
-        {
-            MapView view = views.next();
-            views.remove();
-            mappingService.deleteMapView( view );
-        }
     }
 }

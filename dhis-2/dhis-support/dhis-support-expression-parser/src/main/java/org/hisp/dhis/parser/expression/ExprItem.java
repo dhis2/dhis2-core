@@ -87,8 +87,8 @@ public interface ExprItem
     Object getSql( ItemContext ctx, CommonExpressionVisitor visitor );
 
     /**
-     * Regenerates the original expression from the parse tree,
-     * or substitutes a value if one is present.
+     * Regenerates the original item syntax from the parse tree,
+     * or in some cases substitutes a value if one is present.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor

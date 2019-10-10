@@ -57,7 +57,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
+import static org.hisp.dhis.expression.ParseType.*;
 
 /**
  * @author Ken Haase (ken@dhis2.org)
@@ -161,6 +161,26 @@ public class PredictorController
         if ( result.isValid() )
         {
             message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION ) );
+        }
+
+        webMessageService.sendJson( message, response );
+    }
+
+    @RequestMapping( value = "/skipTest/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    public void getSkipTestDescription( @RequestBody String expression, HttpServletResponse response )
+        throws IOException
+    {
+        I18n i18n = i18nManager.getI18n();
+
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_SKIP_TEST );
+
+        DescriptiveWebMessage message = new DescriptiveWebMessage();
+        message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
+        message.setMessage( i18n.getString( result.getKey() ) );
+
+        if ( result.isValid() )
+        {
+            message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_SKIP_TEST ) );
         }
 
         webMessageService.sendJson( message, response );

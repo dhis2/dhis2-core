@@ -36,8 +36,11 @@ import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
@@ -96,8 +99,6 @@ public class DefaultExpressionService
     private final OrganisationUnitGroupService organisationUnitGroupService;
 
     private final DimensionService dimensionService;
-
-    private final IdentifiableObjectManager idObjectManager;
 
     // -------------------------------------------------------------------------
     // Static data
@@ -160,8 +161,7 @@ public class DefaultExpressionService
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
-        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
-        IdentifiableObjectManager idObjectManager )
+        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService )
     {
         checkNotNull( expressionStore );
         checkNotNull( dataElementService );
@@ -169,7 +169,6 @@ public class DefaultExpressionService
         checkNotNull( categoryService );
         checkNotNull( organisationUnitGroupService );
         checkNotNull( dimensionService );
-        checkNotNull( idObjectManager );
 
         this.expressionStore = expressionStore;
         this.dataElementService = dataElementService;
@@ -177,7 +176,6 @@ public class DefaultExpressionService
         this.categoryService = categoryService;
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
-        this.idObjectManager = idObjectManager;
     }
 
     // -------------------------------------------------------------------------
@@ -306,12 +304,15 @@ public class DefaultExpressionService
             Map<String, Double> constantMap = constantService.getConstantMap();
 
             Map<String, Integer> orgUnitCountMap = getIndicatorOrgUnitGroups( indicators ).stream()
-                .collect( Collectors.toMap( OrganisationUnitGroup::getUid, oug -> oug.getMembers().size() ) );
+                .collect(
+                    Collectors.toMap(
+                        OrganisationUnitGroup::getUid,
+                        oug -> oug.getMembers().size() ) );
 
             for ( Indicator indicator : indicators )
             {
-                indicator.setExplodedNumerator( regenerateExpression( indicator.getNumerator(), constantMap, orgUnitCountMap ) );
-                indicator.setExplodedDenominator( regenerateExpression( indicator.getDenominator(), constantMap, orgUnitCountMap ) );
+                indicator.setExplodedNumerator( regenerateIndicatorExpression( indicator.getNumerator(), constantMap, orgUnitCountMap ) );
+                indicator.setExplodedDenominator( regenerateIndicatorExpression( indicator.getDenominator(), constantMap, orgUnitCountMap ) );
             }
         }
     }
@@ -339,7 +340,7 @@ public class DefaultExpressionService
     @Override
     public String getExpressionDescription( String expression, ParseType parseType )
     {
-        if ( expression == null )
+        if ( isEmpty( expression ) )
         {
             return "";
         }
@@ -385,8 +386,7 @@ public class DefaultExpressionService
     {
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
             .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> new DataElementOperand(
-                dataElementService.getDataElement( i.getId0() ),
+            .map( i -> new DataElementOperand( dataElementService.getDataElement( i.getId0() ),
                 i.getId1() == null ? null : categoryService.getCategoryOptionCombo( i.getId1() ) ) )
             .collect( Collectors.toSet());
     }
@@ -449,7 +449,7 @@ public class DefaultExpressionService
     @Override
     public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression, ParseType parseType )
     {
-        if ( expression == null )
+        if ( isEmpty( expression ) )
         {
             return new HashSet<>();
         }
@@ -463,14 +463,16 @@ public class DefaultExpressionService
 
         return orgUnitGroupIds.stream()
             .map( organisationUnitGroupService::getOrganisationUnitGroup )
+            .filter( Objects::nonNull )
             .collect( Collectors.toSet() );
     }
 
     @Override
     public Object getExpressionValue( String expression, ParseType parseType )
     {
-        return getExpressionValue( expression, parseType, null, null,
-            null, null, NEVER_SKIP, DEFAULT_SAMPLE_PERIODS, new MapMap<>() );
+        return getExpressionValue( expression, parseType,
+            new HashMap<>(), new HashMap<>(), new HashMap<>(),
+            null, NEVER_SKIP, DEFAULT_SAMPLE_PERIODS, new MapMap<>() );
     }
 
     @Override
@@ -490,7 +492,7 @@ public class DefaultExpressionService
         MissingValueStrategy missingValueStrategy,
         List<Period> samplePeriods, MapMap<Period, DimensionalItemObject, Double> periodValueMap )
     {
-        if ( expression == null )
+        if ( isEmpty( expression ) )
         {
             return null;
         }
@@ -594,7 +596,7 @@ public class DefaultExpressionService
         Set<DimensionalItemId> itemIds,
         Set<DimensionalItemId> sampleItemIds )
     {
-        if ( expression == null )
+        if ( isEmpty( expression ) )
         {
             return;
         }
@@ -661,11 +663,11 @@ public class DefaultExpressionService
      * @param orgUnitCountMap the map of organisation unit group member counts.
      * @return the regenerated expression string.
      */
-    private String regenerateExpression( String expression,
+    private String regenerateIndicatorExpression( String expression,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap )
     {
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION,
-            FUNCTION_REGENERATE, ITEM_REGENERATE, DEFAULT_SAMPLE_PERIODS );
+            FUNCTION_EVALUATE, ITEM_REGENERATE, DEFAULT_SAMPLE_PERIODS );
 
         visitor.setConstantMap( constantMap );
         visitor.setOrgUnitCountMap( orgUnitCountMap );

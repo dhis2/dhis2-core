@@ -28,7 +28,12 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,9 +42,13 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StrSubstitutor;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -50,32 +59,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Simplistic http gateway sending smses through a get to a url constructed from
- * the provided urlTemplate and map of static parameters.
- * <p>
- * This gateway is simplistic in that it can't evaluate the response from the
- * provider, being most suitable as an example gateway. For production use a
- * more robust gateway should be used implemented for the specific provider.
- *
- * <p>
- * The gateway adds the following keys to the parameters:
- * <ul>
- * <li>recipient</li>
- * <li>message</li>
- * <li>sender - if available in the message</li>
- * </ul>
- *
- * An example usage with bulksms.com would be this template:<br/>
- * http://bulksms.vsms.net:5567/eapi/submission/send_sms/2/2.0?username={
- * username
- * }&amp;password={password}&amp;message={message}&amp;msisdn={recipient}<br/>
- * With the following parameters provided:
- * <ul>
- * <li>username</li>
- * <li>password</li>
- * </ul>
- */
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
     extends SmsGateway
@@ -118,9 +101,7 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        UriComponentsBuilder uriBuilder = buildUrl( genericConfig );
-        uriBuilder.queryParam( genericConfig.getMessageParameter(), text );
-        uriBuilder.queryParam( genericConfig.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
         ResponseEntity<String> responseEntity = null;
 
@@ -128,7 +109,9 @@ public class SimplisticHttpGetGateWay
         {
             URI url = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, null, String.class );
+            HttpEntity<String> requestEntity = getRequestEntity( genericConfig, text, recipients );
+
+            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -150,22 +133,55 @@ public class SimplisticHttpGetGateWay
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config )
+    private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        List<GenericGatewayParameter> parameters = config.getParameters();
 
-        for ( Map.Entry<String, String> entry : getUrlParameters( config.getParameters() ).entrySet() )
+        Map<String, String> valueStore = new HashMap<>();
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : parameters )
         {
-            uriBuilder.queryParam( entry.getKey(), entry.getValue() );
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValueForKey() ) );
+                continue;
+            }
+
+            if ( parameter.isEncode() )
+            {
+                valueStore.put( parameter.getKey(), encodeUrl( parameter.getValueForKey() ) );
+                continue;
+            }
+
+            valueStore.put( parameter.getKey(), parameter.getValueForKey() );
         }
 
-        return uriBuilder;
+        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
+
+        final StrSubstitutor substitutor = new StrSubstitutor( valueStore ); // Matches on ${...}
+
+        String data = substitutor.replace( config.getConfigurationTemplate() );
+
+        return new HttpEntity<>( data, httpHeaders );
     }
 
-    private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
+    private String encodeUrl( String value )
     {
-        return parameters.stream().filter( p -> !p.isHeader() )
-                .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
+        String v = "";
+        try
+        {
+            v = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
+        }
+        catch( UnsupportedEncodingException e )
+        {
+            DebugUtils.getStackTrace( e );
+        }
+
+        return v;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
@@ -180,6 +196,7 @@ public class SimplisticHttpGetGateWay
             return status;
         }
 
+        log.info( responseEntity.getBody() );
         return wrapHttpStatus( responseEntity.getStatusCode() );
     }
 }

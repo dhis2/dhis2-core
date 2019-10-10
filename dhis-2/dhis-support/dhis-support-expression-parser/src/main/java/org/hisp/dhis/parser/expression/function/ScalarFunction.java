@@ -42,7 +42,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ScalarFunction
-    extends BaseExprFunction
+    implements ExprFunction
 {
     @Override
     public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )

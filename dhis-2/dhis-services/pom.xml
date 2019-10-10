@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.33-SNAPSHOT</version>
+    <version>2.34-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-services</artifactId>
@@ -23,7 +23,6 @@
     <module>dhis-service-schema</module>
     <module>dhis-service-setting</module>
     <!-- Level 2 -->
-    <module>dhis-service-logging</module>
     <module>dhis-service-acl</module>
     <!-- Level 4 -->
     <module>dhis-service-node</module>

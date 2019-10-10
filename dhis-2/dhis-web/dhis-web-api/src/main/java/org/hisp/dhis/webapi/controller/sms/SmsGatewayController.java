@@ -89,9 +89,9 @@ public class SmsGatewayController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
     public void getGateways( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws IOException
     {
-        renderService.toJson( response.getOutputStream(), gatewayAdminService.listGateways() );
+        renderService.toJson( response.getOutputStream(), gatewayAdminService.getGatewayConfigurationMap() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )

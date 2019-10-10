@@ -29,7 +29,6 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExprFunction;
 import org.hisp.dhis.period.Period;
@@ -45,7 +44,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class VectorFunction
-    extends BaseExprFunction
+    implements ExprFunction
 {
     @Override
     public final Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )

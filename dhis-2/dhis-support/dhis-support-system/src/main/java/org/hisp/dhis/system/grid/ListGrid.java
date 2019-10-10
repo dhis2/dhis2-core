@@ -291,6 +291,13 @@ public class ListGrid
 
     @Override
     @JsonProperty
+    public int getHeaderWidth()
+    {
+        return headers.size();
+    }
+
+    @Override
+    @JsonProperty
     public Map<String, Object> getMetaData()
     {
         return metaData;

@@ -135,6 +135,7 @@ public class DataValidationTask
 
     private MapMapMap<Long, String, DimensionalItemObject, Double> slidingWindowDataMap;
 
+    @Override
     public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService )
     {
         this.orgUnits = orgUnits;
@@ -341,7 +342,7 @@ public class DataValidationTask
 
         dataMap.putMap( getAnalyticsMap( true, periodTypeX.getIndicators() ) );
 
-        slidingWindowDataMap = new MapMapMap();
+        slidingWindowDataMap = new MapMapMap<>();
 
         if ( periodTypeX.areSlidingWindowsNeeded() )
         {

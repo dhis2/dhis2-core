@@ -29,6 +29,7 @@ package org.hisp.dhis.parser.expression;
  */
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.DimensionService;
@@ -42,6 +43,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
+import org.hisp.dhis.parser.expression.function.FunctionIf;
 import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -52,6 +54,7 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
@@ -237,24 +240,29 @@ public class CommonExpressionVisitor
     @Override
     public Object visitExpr( ExprContext ctx )
     {
-        if ( ctx.fun == null )
+        if ( itemMethod == ITEM_REGENERATE )
         {
-            if ( ctx.expr().size() > 0 ) // There's an expr: visit the expr
+            return regenerateAllChildren( ctx );
+        }
+
+        if ( ctx.fun != null )
+        {
+            ExprFunction function = functionMap.get( ctx.fun.getType() );
+
+            if ( function == null )
             {
-                return visit( ctx.expr( 0 ) );
+                throw new ParserExceptionWithoutContext( "Function " + ctx.fun.getText() + " not supported for this type of expression" );
             }
 
-            return visit( ctx.getChild( 0 ) ); // All others
+            return functionMethod.apply( function, ctx, this );
         }
 
-        ExprFunction function = functionMap.get( ctx.fun.getType() );
-
-        if ( function == null )
+        if ( ctx.expr().size() > 0 ) // If there's an expr, visit the expr
         {
-            throw new ParserExceptionWithoutContext( "Function " + ctx.fun.getText() + " not supported for this type of expression" );
+            return visit( ctx.expr( 0 ) );
         }
 
-        return functionMethod.apply( function, ctx, this );
+        return visit( ctx.getChild( 0 ) ); // All others: visit first child.
     }
 
     @Override
@@ -304,7 +312,7 @@ public class CommonExpressionVisitor
      * @param ctx any context
      * @return the Double value
      */
-    public Double castDoubleVisit( ParserRuleContext ctx )
+    public Double castDoubleVisit( ParseTree ctx )
     {
         return castDouble( visit( ctx ) );
     }
@@ -315,7 +323,7 @@ public class CommonExpressionVisitor
      * @param ctx any context
      * @return the Double value
      */
-    public String castStringVisit( ParserRuleContext ctx )
+    public String castStringVisit( ParseTree ctx )
     {
         return castString( visit( ctx ) );
     }
@@ -326,7 +334,7 @@ public class CommonExpressionVisitor
      * @param ctx any context
      * @return the Boolean value
      */
-    public Boolean castBooleanVisit( ParserRuleContext ctx )
+    public Boolean castBooleanVisit( ParseTree ctx )
     {
         return castBoolean( visit( ctx ) );
     }
@@ -774,5 +782,22 @@ public class CommonExpressionVisitor
 
             return visitor;
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Regenerates an expression by visiting all the children of the
+     * expression node (including any terminal nodes).
+     *
+     * @param ctx the expression context
+     * @return the regenerated expression (as a String)
+     */
+    private Object regenerateAllChildren( ExprContext ctx )
+    {
+        return ctx.children.stream().map( this::castStringVisit )
+            .collect( Collectors.joining() );
     }
 }

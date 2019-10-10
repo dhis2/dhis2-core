@@ -1,0 +1,4 @@
+Name,UID,Code,Description,DataDimensionType,DataDimension
+Gender,,GENDER,Gender,DISAGGREGATION,true
+"Age group",,AGEGROUP,Age group,,
+Partner,,PARTNER,,ATTRIBUTE,true

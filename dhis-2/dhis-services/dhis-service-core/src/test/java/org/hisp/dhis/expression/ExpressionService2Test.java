@@ -91,8 +91,6 @@ public class ExpressionService2Test
     @Mock
     private OrganisationUnitGroupService organisationUnitGroupService;
     @Mock
-    private IdentifiableObjectManager idObjectManager;
-    @Mock
     private DimensionService dimensionService;
 
     @Rule
@@ -169,7 +167,7 @@ public class ExpressionService2Test
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            categoryService, organisationUnitGroupService, dimensionService, idObjectManager );
+            categoryService, organisationUnitGroupService, dimensionService );
         rnd = new BeanRandomizer();
 
         // SETUP FIXTURES
@@ -477,10 +475,6 @@ public class ExpressionService2Test
     @Test
     public void testExpressionIsValid()
     {
-        when( dimensionService.getDataDimensionalItemObject( opA.getUid() ) ).thenReturn( opA );
-        when( dimensionService.getDataDimensionalItemObject( opB.getUid() ) ).thenReturn( opB );
-        when( dimensionService.getDataDimensionalItemObject( opC.getUid() ) ).thenReturn( opC );
-        when( dimensionService.getDataDimensionalItemObject( opD.getUid() ) ).thenReturn( opD );
         when( dimensionService.getDataDimensionalItemObject( getId( deA ) ) ).thenReturn( deA );
         when( dimensionService.getDataDimensionalItemObject( getId( deE ) ) ).thenReturn( deE );
         when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
@@ -559,7 +553,6 @@ public class ExpressionService2Test
         assertThat( description, is( opA.getDisplayName() + "*" + groupA.getDisplayName() ) );
 
         when( dimensionService.getDataDimensionalItemObject( getId( deA ) ) ).thenReturn( deA );
-        when( dimensionService.getDataDimensionalItemObject( getId( deB ) ) ).thenReturn( deB );
         description = target.getExpressionDescription( expressionM, INDICATOR_EXPRESSION );
         assertThat( description, is( deA.getDisplayName() + "-" + deB.getDisplayName() + " " + coc.getDisplayName() ) );
 
@@ -642,7 +635,7 @@ public class ExpressionService2Test
     @Test
     public void testSubstituteIndicatorExpressions()
     {
-        String expressionZ = "if(\"A\" < 'B' and True,C{notFound123},OUG{notFound456})";
+        String expressionZ = "if(\"A\" < 'B' and true,C{notFound123},OUG{notFound456})";
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -655,14 +648,8 @@ public class ExpressionService2Test
         indicatorB.setDenominator( expressionZ );
 
         List<Indicator> indicators = Lists.newArrayList( indicatorA, indicatorB );
-        List<Constant> constants = Lists.newArrayList( constantA, constantB );
-        List<OrganisationUnitGroup> orgUnitGroups = Lists.newArrayList( groupA, groupB );
-
-        when( idObjectManager.getAllNoAcl( Constant.class ) ).thenReturn( constants );
-        when( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ) ).thenReturn( orgUnitGroups );
 
         when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupB.getUid() ) ).thenReturn( groupB );
 
         when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Double>builder()

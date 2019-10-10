@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
@@ -39,7 +41,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -65,7 +66,6 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -111,10 +111,10 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service ( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
+@Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultMetadataExportService.class );
+    private static final Log log = LogFactory.getLog( DefaultMetadataExportService.class );
 
     @Autowired
     private SchemaService schemaService;
@@ -139,9 +139,6 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Autowired
     private AttributeService attributeService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -285,7 +282,7 @@ public class DefaultMetadataExportService implements MetadataExportService
             Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
 
             // class is enabled if value = true, or fields/filter/order is present
-            if ( isSelectedClass( parameters.get( parameterKey ) ) || ( parameter.length > 1 && ( "fields".equalsIgnoreCase( parameter[1] )
+            if ( isSelectedClass( parameters.get( parameterKey ) ) || (parameter.length > 1 && ("fields".equalsIgnoreCase( parameter[1] )
                 || "filter".equalsIgnoreCase( parameter[1] ) || "order".equalsIgnoreCase( parameter[1] ))) )
             {
                 if ( !map.containsKey( klass ) ) map.put( klass, new HashMap<>() );
@@ -875,7 +872,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleAttributes( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, IdentifiableObject identifiableObject )
     {
         if ( identifiableObject == null ) return metadata;
-        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class,  attributeService.getAttribute( av.getAttribute().getUid() ) ) );
+        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class, attributeService.getAttribute( av.getAttribute().getUid() ) ) );
 
         return metadata;
     }

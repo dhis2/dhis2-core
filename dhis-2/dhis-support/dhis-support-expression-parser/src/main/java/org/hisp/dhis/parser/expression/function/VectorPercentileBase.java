@@ -61,12 +61,12 @@ public abstract class VectorPercentileBase
             return null;
         }
 
+        Collections.sort( values );
+
         if ( fraction == 0d )
         {
             return values.get( 0 );
         }
-
-        Collections.sort( values );
 
         double[] vals = ArrayUtils.toPrimitive( values.toArray( new Double[0] ) );
 

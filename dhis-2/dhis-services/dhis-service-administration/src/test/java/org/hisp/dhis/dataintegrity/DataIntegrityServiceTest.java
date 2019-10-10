@@ -48,6 +48,7 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.ParseType;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -482,7 +483,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.expressionIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getExpressionDescription( anyString(), INDICATOR_EXPRESSION ) )
+        when( expressionService.getExpressionDescription( anyString(), any() ) )
             .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
@@ -503,7 +504,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getExpressionDescription( anyString(), INDICATOR_EXPRESSION ) )
+        when( expressionService.getExpressionDescription( anyString(), any() ) )
             .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
@@ -526,7 +527,7 @@ public class DataIntegrityServiceTest
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
 
-        verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), INDICATOR_EXPRESSION );
+        verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), any() );
         assertNotNull( invalidExpressions );
         assertTrue( invalidExpressions.isEmpty() );
     }

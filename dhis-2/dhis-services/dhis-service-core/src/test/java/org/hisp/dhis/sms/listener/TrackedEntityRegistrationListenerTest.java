@@ -139,7 +139,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( teiRegistrationCommand );
 
         // Mock for trackedEntityInstanceService
-        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1l );
+        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
         when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
 
         // Mock for programInstanceService

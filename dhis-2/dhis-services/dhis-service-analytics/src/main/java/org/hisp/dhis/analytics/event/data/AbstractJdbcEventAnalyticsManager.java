@@ -48,6 +48,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -61,6 +62,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -92,17 +94,22 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final StatementBuilder statementBuilder;
 
     protected final ProgramIndicatorService programIndicatorService;
-
-    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService )
+    
+    protected final DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
+    
+    public AbstractJdbcEventAnalyticsManager(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+                                             StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
+                                             DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
         checkNotNull( programIndicatorService );
+        checkNotNull( programIndicatorSubqueryBuilder );
 
         this.jdbcTemplate = jdbcTemplate;
         this.statementBuilder = statementBuilder;
         this.programIndicatorService = programIndicatorService;
+        this.programIndicatorSubqueryBuilder = programIndicatorSubqueryBuilder;
     }
 
     /**
@@ -231,7 +238,19 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
 
                 String asClause = " as " + quote( in.getUid() );
-                columns.add( "(" + programIndicatorService.getAnalyticsSql( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
+
+                if ( queryItem.hasRelationshipType() )
+                {
+                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                        queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
+                        params.getLatestEndDate() ) + asClause );
+                }
+                else
+                {
+                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                        getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
+                }
+                
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -444,7 +463,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
         }
     }
-
+    
     /**
      * Returns an item value for the given query, query item and value. Assumes that
      * data dimensions are collapsed for the given query. Returns the short name
@@ -645,4 +664,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @return SQL to add to the analytics query.
      */
     protected abstract String getWhereClause( EventQueryParams params );
+
+    protected abstract AnalyticsType getAnalyticsType();
 }

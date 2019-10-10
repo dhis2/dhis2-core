@@ -35,6 +35,24 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 
 /**
  * Function if
+ * <pre>
+ *
+ * In-memory Logic:
+ *
+ *     arg0   returns
+ *     ----   -------
+ *     true   arg1
+ *     false  arg2
+ *     null   null
+ *
+ * SQL logic (CASE WHEN arg0 THEN arg1 ELSE arg2 END):
+ *
+ *     arg0   returns
+ *     ----   -------
+ *     true   arg1
+ *     false  arg2
+ *     null   arg2
+ * </pre>
  *
  * @author Jim Grace
  */
@@ -46,9 +64,11 @@ public class FunctionIf
     {
         Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
 
-        return arg0 != null && arg0
-            ? visitor.visit( ctx.expr( 1 ) )
-            : visitor.visit( ctx.expr( 2 ) );
+        return arg0 == null
+            ? null
+            : arg0
+                ? visitor.visit( ctx.expr( 1 ) )
+                : visitor.visit( ctx.expr( 2 ) );
     }
 
     @Override

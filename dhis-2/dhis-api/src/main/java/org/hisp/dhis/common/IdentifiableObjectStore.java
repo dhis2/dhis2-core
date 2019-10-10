@@ -326,7 +326,7 @@ public interface IdentifiableObjectStore<T>
      * @return the UID of all objects created before a given date.
      */
     List<String> getUidsCreatedBefore( Date date );
-    
+
     List<T> getDataReadAll();
 
     List<T> getDataReadAll( User user );

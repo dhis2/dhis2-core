@@ -38,15 +38,15 @@ public class GenericHttpGatewayConfig
 {
     private static final long serialVersionUID = 6340853488475760213L;
 
-    private String messageParameter;
-
-    private String recipientParameter;
+    private String configurationTemplate;
 
     private boolean useGet;
-    
+
+    private ContentType contentType = ContentType.FORM_URL_ENCODED;
+
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
-    @JsonProperty( value = "parameters" )
+    @JsonProperty
     public List<GenericGatewayParameter> getParameters()
     {
         return parameters;
@@ -57,29 +57,7 @@ public class GenericHttpGatewayConfig
         this.parameters = parameters;
     }
 
-    @JsonProperty( value = "messageParameter" )
-    public String getMessageParameter()
-    {
-        return messageParameter;
-    }
-
-    public void setMessageParameter( String messageParameter )
-    {
-        this.messageParameter = messageParameter;
-    }
-
-    @JsonProperty( value = "recipientParameter" )
-    public String getRecipientParameter()
-    {
-        return recipientParameter;
-    }
-
-    public void setRecipientParameter( String recipientParameter )
-    {
-        this.recipientParameter = recipientParameter;
-    }
-
-    @JsonProperty( value = "useGet" )
+    @JsonProperty
     public boolean isUseGet()
     {
         return useGet;
@@ -88,5 +66,27 @@ public class GenericHttpGatewayConfig
     public void setUseGet( boolean useGet )
     {
         this.useGet = useGet;
+    }
+
+    @JsonProperty
+    public String getConfigurationTemplate()
+    {
+        return configurationTemplate;
+    }
+
+    public void setConfigurationTemplate( String configurationTemplate )
+    {
+        this.configurationTemplate = configurationTemplate;
+    }
+
+    @JsonProperty
+    public ContentType getContentType()
+    {
+        return contentType;
+    }
+
+    public void setContentType( ContentType contentType )
+    {
+        this.contentType = contentType;
     }
 }

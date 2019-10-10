@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
@@ -60,7 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Chau Thu Tran
  */
 @Service( "org.hisp.dhis.program.ProgramIndicatorService" )
-public class DefaultProgramIndicatorService
+public class  DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
     // -------------------------------------------------------------------------
@@ -148,7 +149,9 @@ public class DefaultProgramIndicatorService
         .put( D2_COUNT_IF_VALUE, new D2CountIfValue() )
         .put( D2_DAYS_BETWEEN, new D2DaysBetween() )
         .put( D2_HAS_VALUE, new D2HasValue() )
+        .put( D2_MAX_VALUE, new D2MaxValue() )
         .put( D2_MINUTES_BETWEEN, new D2MinutesBetween() )
+        .put( D2_MIN_VALUE, new D2MinValue() )
         .put( D2_MONTHS_BETWEEN, new D2MonthsBetween() )
         .put( D2_OIZP, new D2Oizp() )
         .put( D2_RELATIONSHIP_COUNT, new D2RelationshipCount() )
@@ -176,6 +179,7 @@ public class DefaultProgramIndicatorService
         .put( A_BRACE, new ProgramItemAttribute() )
 
         .build();
+
     // -------------------------------------------------------------------------
     // ProgramIndicator CRUD
     // -------------------------------------------------------------------------
@@ -288,8 +292,21 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
+    {
+        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, null );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
+        String tableAlias )
+    {
+        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias );
+    }
+    
+    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         if ( expression == null )
         {
@@ -306,7 +323,8 @@ public class DefaultProgramIndicatorService
         visitor.setReportingEndDate( endDate );
         visitor.setDataElementAndAttributeIdentifiers( uids );
 
-        return castString( Parser.visit( expression, visitor ) );
+        String sql =  castString( Parser.visit( expression, visitor ) );
+        return (tableAlias != null ? sql.replaceAll( ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\." ) : sql);
     }
 
     @Override

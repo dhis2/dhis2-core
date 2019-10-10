@@ -95,7 +95,6 @@ public class ParserUtils
     public final static ExprFunctionMethod FUNCTION_EVALUATE = ExprFunction::evaluate;
     public final static ExprFunctionMethod FUNCTION_EVALUATE_ALL_PATHS = ExprFunction::evaluateAllPaths;
     public final static ExprFunctionMethod FUNCTION_GET_SQL = ExprFunction::getSql;
-    public final static ExprFunctionMethod FUNCTION_REGENERATE = ExprFunction::regenerate;
 
     public final static ExprItemMethod ITEM_GET_DESCRIPTIONS = ExprItem::getDescription;
     public final static ExprItemMethod ITEM_GET_IDS = ExprItem::getItemId;

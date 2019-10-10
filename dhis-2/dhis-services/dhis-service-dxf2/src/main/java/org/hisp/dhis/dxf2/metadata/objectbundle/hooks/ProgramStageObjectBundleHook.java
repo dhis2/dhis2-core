@@ -1,5 +1,8 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -30,7 +33,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +50,34 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProgramStageObjectBundleHook
     extends AbstractObjectBundleHook
 {
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
+        {
+            return new ArrayList<>();
+        }
+
+        ProgramStage programStage = ( ProgramStage ) object;
+
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( programStage.getNextScheduleDate() != null )
+        {
+            DataElement nextScheduleDate = bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class,
+                programStage.getNextScheduleDate().getUid() );
+
+            if ( !programStage.getDataElements().contains( programStage.getNextScheduleDate() )
+                || nextScheduleDate == null || !nextScheduleDate.getValueType().equals( ValueType.DATE ) )
+            {
+                errors.add( new ErrorReport( ProgramStage.class, ErrorCode.E6001, programStage.getUid(),
+                    programStage.getNextScheduleDate().getUid() ) );
+            }
+        }
+
+        return errors;
+    }
+
     @Override
     public <T extends IdentifiableObject> void postCreate( T object, ObjectBundle bundle )
     {
@@ -65,10 +100,10 @@ public class ProgramStageObjectBundleHook
             return;
         }
 
-        programStage.getProgramStageSections().stream()
-            .forEach( pss -> {
-                if ( pss.getProgramStage() == null ) pss.setProgramStage( programStage );
-            });
+        programStage.getProgramStageSections().stream().forEach( pss -> {
+            if ( pss.getProgramStage() == null )
+                pss.setProgramStage( programStage );
+        } );
 
         session.update( programStage );
     }

@@ -44,6 +44,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.criteria.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -105,5 +107,17 @@ public class HibernateCategoryOptionComboStore
                 dbmsManager.clearSession();
             }
         }
+    }
+
+    @Override
+    public List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupUid )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<CategoryOptionCombo> query = builder.createQuery( CategoryOptionCombo.class );
+        Root<CategoryOptionCombo> root = query.from( CategoryOptionCombo.class );
+        Join<Object, Object> joinCatOption = root.join( "categoryOptions", JoinType.INNER );
+        Join<Object, Object> joinCatOptionGroup = joinCatOption.join( "groups", JoinType.INNER );
+        query.where( builder.equal( joinCatOptionGroup.get( "uid" ), groupUid ) );
+        return getSession().createQuery( query ).list();
     }
 }

@@ -28,7 +28,8 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.logging.LoggingManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -44,7 +45,7 @@ import java.util.List;
 @Service
 public class DefaultTrackerValidationService implements TrackerValidationService
 {
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerValidationService.class );
+    private static final Log log = LogFactory.getLog( DefaultTrackerValidationService.class );
 
     private List<TrackerValidationHook> validationHooks = new ArrayList<>();
 

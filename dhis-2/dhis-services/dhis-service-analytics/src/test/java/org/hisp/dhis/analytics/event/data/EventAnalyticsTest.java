@@ -34,7 +34,9 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -66,6 +68,17 @@ public abstract class EventAnalyticsTest
         dataElementA.setUid( "fWIAEtYVEGk" );
     }
 
+    protected EventQueryParams createRequestParams( ProgramIndicator programIndicator,
+        RelationshipType relationshipType )
+    {
+        EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
+
+        params.addItem( new QueryItem( programIndicator, programIndicator.getProgram(), null, ValueType.NUMBER,
+            programIndicator.getAggregationType(), null, relationshipType ) );
+
+        return params.build();
+    }
+
     protected EventQueryParams createRequestParamsWithFilter(ProgramStage withProgramStage, ValueType withQueryItemValueType )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder( createRequestParams( withProgramStage, withQueryItemValueType ) );
@@ -77,7 +90,7 @@ public abstract class EventAnalyticsTest
 
     protected EventQueryParams createRequestParams( )
     {
-        return createRequestParams( null, null );
+        return _createRequestParams();
     }
 
     protected EventQueryParams createRequestParams( ValueType queryItemValueType )
@@ -90,17 +103,26 @@ public abstract class EventAnalyticsTest
         return createRequestParams( withProgramStage, null );
     }
 
-    protected EventQueryParams createRequestParams( ProgramStage withProgramStage, ValueType withQueryItemValueType )
+    private EventQueryParams _createRequestParams()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
-
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder();
 
         params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
         params.withOrganisationUnits( getList( ouA ) );
         params.withTableName( getTableName() + "_" + programA.getUid() );
+
+        params.withProgram( programA );
+
+        return params.build();
+    }
+
+    protected EventQueryParams createRequestParams( ProgramStage withProgramStage, ValueType withQueryItemValueType )
+    {
+        EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
+
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         params.withProgram( programA );
 
@@ -126,7 +148,6 @@ public abstract class EventAnalyticsTest
 
     void mockEmptyRowSet()
     {
-        // simulate no rows
         when( rowSet.next() ).thenReturn( false );
     }
 

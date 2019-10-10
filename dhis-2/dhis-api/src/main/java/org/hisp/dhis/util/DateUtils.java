@@ -740,6 +740,17 @@ public class DateUtils
     }
 
     /**
+     * Returns only the date part after removing timestamp
+     *
+     * @param date the date to convert.
+     * @return a date
+     */
+    public static Date removeTimeStamp( Date date )
+    {
+        return date == null ? null : getMediumDate( getMediumDateString( date ) ) ;
+    }
+
+    /**
      * Parses the given string into a Date object. In case the date parsed falls in a
      * daylight savings transition, the date is parsed via a local date and converted to the
      * first valid time after the DST gap. When the fallback is used, any timezone offset in the given

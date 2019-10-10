@@ -40,7 +40,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class OperatorCompareEqual
-    extends OperatorCompare
+    extends
+    OperatorCompare
 {
     @Override
     public Object compute( List<Object> values )
@@ -51,7 +52,6 @@ public class OperatorCompareEqual
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.castStringVisit( ctx.expr( 0 ) )
-            + " == " + visitor.castStringVisit( ctx.expr( 1 ) );
+        return visitor.castStringVisit( ctx.expr( 0 ) ) + " = " + visitor.castStringVisit( ctx.expr( 1 ) );
     }
 }
