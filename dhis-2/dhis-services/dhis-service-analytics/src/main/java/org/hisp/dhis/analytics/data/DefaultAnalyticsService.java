@@ -590,7 +590,7 @@ public class DefaultAnalyticsService
 
                 if ( params.isIncludeNumDen() )
                 {
-                    grid.addNullValues( 5 );
+                    grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
                 }
             }
         }
@@ -670,7 +670,7 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 5 );
+                grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
             }
         }
     }
@@ -1059,7 +1059,7 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 3 );
+                grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
             }
         }
     }
