@@ -52,14 +52,25 @@ public class RestApiActions
 {
     protected String endpoint;
 
+    private String baseUri;
+
     public RestApiActions( final String endpoint )
     {
+        this.baseUri = RestAssured.baseURI;
         this.endpoint = endpoint;
+    }
+
+    public RestApiActions setBaseUri( String baseUri )
+    {
+        this.baseUri = baseUri;
+
+        return this;
     }
 
     protected RequestSpecification given()
     {
         return RestAssured.given()
+            .baseUri( this.baseUri )
             .basePath( endpoint )
             .config( RestAssured.config()
                 .objectMapperConfig( new ObjectMapperConfig( ObjectMapperType.GSON ) ) );
@@ -148,7 +159,7 @@ public class RestApiActions
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param resourceId        Id of resource
+     * @param resourceId         Id of resource
      * @param queryParamsBuilder Query params to append to url
      * @return
      */
@@ -188,8 +199,8 @@ public class RestApiActions
     /**
      * Sends PUT request to specified resource.
      *
-     * @param resourceId   Id of resource
-     * @param object Body of request
+     * @param resourceId Id of resource
+     * @param object     Body of request
      * @return
      */
     public ApiResponse update( String resourceId, Object object )
@@ -228,7 +239,6 @@ public class RestApiActions
         {
             return;
         }
-
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
