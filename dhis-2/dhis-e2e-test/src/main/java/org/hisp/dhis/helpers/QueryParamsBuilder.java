@@ -26,53 +26,80 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+package org.hisp.dhis.helpers;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.apache.commons.lang3.tuple.MutablePair;
 
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MaintenanceActions
-    extends RestApiActions
+public class QueryParamsBuilder
 {
-    private Logger logger = Logger.getLogger( MaintenanceActions.class.getName() );
+    List<MutablePair<String, String>> queryParams;
 
-    public MaintenanceActions()
-    {
-        super( "/maintenance" );
+    public QueryParamsBuilder() {
+        queryParams = new ArrayList<>(  );
     }
 
-    public void removeSoftDeletedEvents()
-    {
-        sendRequest( true, "softDeletedEventRemoval=true" );
-    }
+    /**
+     * Adds or updates the query param.
+     * Format: key=value
+     * @param param
+     * @return
+     */
+    public QueryParamsBuilder add(String param) {
+        String[] splited = param.split( "=" );
+        MutablePair pair = getByKey( splited[0] );
 
-    public void removeSoftDeletedMetadata()
-    {
-        sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true",
-            "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true",
-            "softDeletedDataValueRemoval=true" );
-    }
-
-    private void sendRequest( boolean validate, String... queryParams )
-    {
-        ApiResponse apiResponse = super.post( new JsonObject(), new QueryParamsBuilder().addAll( queryParams ) );
-
-        if ( validate )
-        {
-            apiResponse.validate().statusCode( 204 );
-            return;
+        if (pair != null) {
+            pair.setRight( splited[1]);
+            return this;
         }
 
-        if ( apiResponse.statusCode() != 204 )
+        queryParams.add(MutablePair.of( splited[0], splited[1] ));
+
+        return this;
+    }
+
+    public QueryParamsBuilder addAll(String... params) {
+        for ( String param: params
+               )
         {
-            logger.warning( String
-                .format( "Maintenance failed with query params %s. Response: %s", queryParams, apiResponse.getBody().toString() ) );
+            this.add( param );
         }
+
+        return this;
+    }
+
+    private MutablePair getByKey(String key) {
+        return queryParams.stream()
+            .filter( p -> p.getLeft().equals( key ) )
+            .findFirst()
+            .orElse( null );
+    }
+
+    public String build() {
+        if ( queryParams.size() == 0 )
+        {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append( "?" );
+
+        for ( int i = 0; i < queryParams.size(); i++ )
+        {
+            builder.append( String.format( "%s=%s", queryParams.get( i).getLeft(), queryParams.get( i ).getRight()));
+
+            if ( i != queryParams.size() - 1 )
+            {
+                builder.append( "&" );
+            }
+        }
+
+        return builder.toString();
     }
 }
