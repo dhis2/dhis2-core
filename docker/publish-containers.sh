@@ -46,6 +46,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 publish () {
     local IMAGE=$1
 
+    echo "Pushing $IMAGE"
     docker push "$IMAGE"
 }
 
@@ -53,16 +54,16 @@ publish_debian_containers () {
     # publish the default container image
     publish "$CORE_IMAGE"
 
+    # publish the variants
     for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
-        # publish the variants
         publish "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
     done
 
 }
 
 publish_alpine_containers () {
+    # publish the variants
     for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
-        # publish the variants
         publish "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
     done
 }
@@ -71,6 +72,21 @@ main () {
     publish_debian_containers
     publish_alpine_containers
 }
+
+cleanup () {
+    # We can delete published images here if needed
+    echo "Done"
+}
+
+
+
+
+
+#
+## hook up cleanup trap func
+#
+
+trap cleanup EXIT
 
 
 
