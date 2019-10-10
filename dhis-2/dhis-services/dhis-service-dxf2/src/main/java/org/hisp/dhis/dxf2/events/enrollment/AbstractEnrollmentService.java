@@ -96,6 +96,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -914,6 +915,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummary deleteEnrollment( String uid )
     {
         return deleteEnrollment( uid, null, null );
@@ -950,6 +952,8 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
+            programInstance.getProgramStageInstances().stream()
+                .forEach( psi -> programStageInstanceService.deleteProgramStageInstance( psi ) );
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
