@@ -25,45 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions.metadata;
 
-import io.restassured.matcher.RestAssuredMatchers;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.not;
+package org.hisp.dhis.dto;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataActions extends RestApiActions
+public class Conflict
 {
-    public MetadataActions(  )
+    private String object;
+
+    private String value;
+
+    public String getObject()
     {
-        super( "/metadata" );
+        return object;
     }
 
-    public ApiResponse importMetadata( File file, String... queryParams )
+    public void setObject( String object )
     {
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "atomicMode=NONE", "importReportMode=FULL" );
-
-        ApiResponse response = postFile( file, queryParamsBuilder );
-        response.validate().statusCode( 200 );
-
-        return response;
+        this.object = object;
     }
 
-    public ApiResponse importAndValidateMetadata( File file, String... queryParams )
+    public String getValue()
     {
-        ApiResponse response = importMetadata( file, queryParams );
+        return value;
+    }
 
-        response.validate().body( "stats.ignored", not( RestAssuredMatchers.equalToPath( "stats.total" ) ) );
-
-        return response;
+    public void setValue( String value )
+    {
+        this.value = value;
     }
 }
