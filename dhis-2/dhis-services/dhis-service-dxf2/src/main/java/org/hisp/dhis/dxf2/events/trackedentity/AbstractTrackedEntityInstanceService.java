@@ -839,13 +839,13 @@ public abstract class AbstractTrackedEntityInstanceService
         List<Relationship> delete = new ArrayList<>( daoEntityInstance.getRelationshipItems().stream()
             .map( RelationshipItem::getRelationship )
 
-            // Remove items we cant write to
-            .filter(
-                relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
-            .filter(
-                relationship -> relationship.getFrom().getTrackedEntityInstance().getUid().equals( daoEntityInstance.getUid() )
-            )
-            .map( org.hisp.dhis.relationship.Relationship::getUid )
+                // Remove items we cant write to
+                .filter(
+                    relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
+                .filter(
+                    relationship -> isTeiPartOfRelationship( relationship, daoEntityInstance )
+                )
+                .map( org.hisp.dhis.relationship.Relationship::getUid )
 
             // Remove items we are already referencing
             .filter( ( uid ) -> !relationshipUids.contains( uid ) )
@@ -870,7 +870,7 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
 
-                if ( relationship.getFrom() == null )
+                if ( !isTeiPartOfRelationship( relationship, daoEntityInstance ) )
                 {
                     relationshipItem.setTrackedEntityInstance( dtoEntityInstance );
                     relationship.setFrom( relationshipItem );
@@ -880,9 +880,7 @@ public abstract class AbstractTrackedEntityInstanceService
             }
             else
             {
-                String fromUid = relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance();
-
-                if ( fromUid.equals( daoEntityInstance.getUid() ) )
+                if ( isTeiPartOfRelationship( relationship, daoEntityInstance ) )
                 {
                     if ( _relationshipService.relationshipExists( relationship.getRelationship() ) )
                     {
@@ -912,6 +910,46 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummaries.addImportSummaries( relationshipService.deleteRelationships( delete, importOptions ) );
 
         return importSummaries;
+    }
+
+    private boolean isTeiPartOfRelationship( Relationship relationship,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
+    {
+        if ( relationship.getFrom() != null && relationship.getFrom().getTrackedEntityInstance() != null &&
+            relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance().equals( tei.getUid() ) )
+        {
+            return true;
+        }
+        else if ( !relationship.isBidirectional() )
+        {
+            return false;
+        }
+        else
+        {
+            return relationship.getTo() != null && relationship.getTo().getTrackedEntityInstance() != null &&
+                relationship.getTo().getTrackedEntityInstance().getTrackedEntityInstance().equals( tei.getUid() );
+        }
+
+    }
+
+    private boolean isTeiPartOfRelationship( org.hisp.dhis.relationship.Relationship relationship,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
+    {
+        if ( relationship.getFrom() != null && relationship.getFrom().getTrackedEntityInstance() != null &&
+            relationship.getFrom().getTrackedEntityInstance().getUid().equals( tei.getUid() ) )
+        {
+            return true;
+        }
+        else if ( !relationship.getRelationshipType().isBidirectional() )
+        {
+            return false;
+        }
+        else
+        {
+            return relationship.getTo() != null && relationship.getTo().getTrackedEntityInstance() != null &&
+                relationship.getTo().getTrackedEntityInstance().getUid().equals( tei.getUid() );
+        }
+
     }
 
     private ImportSummaries handleEnrollments( TrackedEntityInstance dtoEntityInstance,
