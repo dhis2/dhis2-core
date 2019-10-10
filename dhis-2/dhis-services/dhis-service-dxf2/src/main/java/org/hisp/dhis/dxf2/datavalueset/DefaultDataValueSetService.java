@@ -720,6 +720,11 @@ public class DefaultDataValueSetService
 
         log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
 
+
+        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
+        BatchHandler<DataValueAudit> auditBatchHandler = batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
+        BatchHandler<Period> periodBatchHandler = batchHandlerFactory.createBatchHandler( PeriodBatchHandler.class ).init();
+
         // ---------------------------------------------------------------------
         // Get import options
         // ---------------------------------------------------------------------
@@ -793,7 +798,7 @@ public class DefaultDataValueSetService
             categoryService, categoryOptComboIdScheme, null );
         IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable = new CategoryOptionComboAclCallable(
             categoryService, categoryOptComboIdScheme, null );
-        IdentifiableObjectCallable<Period> periodCallable = new PeriodCallable( periodService, null, trimToNull( dataValueSet.getPeriod() ) );
+        IdentifiableObjectCallable<Period> periodCallable = new PeriodCallable( periodService, periodBatchHandler, null, trimToNull( dataValueSet.getPeriod() ) );
 
         // ---------------------------------------------------------------------
         // Heat caches
@@ -887,10 +892,6 @@ public class DefaultDataValueSetService
         }
 
         final Set<OrganisationUnit> currentOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
-
-        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
-        BatchHandler<DataValueAudit> auditBatchHandler = batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
-        BatchHandler<Period> periodBatchHandler = batchHandlerFactory.createBatchHandler( PeriodBatchHandler.class ).init();
 
         int importCount = 0;
         int updateCount = 0;
@@ -1374,14 +1375,6 @@ public class DefaultDataValueSetService
             }
         }
 
-        periodMap.forEach( ( s, period ) -> {
-            if ( !periodBatchHandler.objectExists( period ) )
-                {
-                    periodBatchHandler.addObject( period );
-                }
-        } );
-
-        periodBatchHandler.flush();
         dataValueBatchHandler.flush();
         auditBatchHandler.flush();
 

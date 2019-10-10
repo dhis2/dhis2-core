@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.quick.BatchHandler;
 
 import java.util.concurrent.ExecutionException;
 
@@ -43,9 +44,12 @@ public class PeriodCallable
 {
     private PeriodService periodService;
 
-    public PeriodCallable( PeriodService periodService, IdScheme idScheme, String id )
+    private BatchHandler<Period> periodBatchHandler;
+
+    public PeriodCallable( PeriodService periodService, BatchHandler<Period> periodBatchHandler, IdScheme idScheme, String id )
     {
         super( null, Period.class, idScheme, id );
+        this.periodBatchHandler = periodBatchHandler;
         this.periodService = periodService;
     }
 
@@ -58,6 +62,8 @@ public class PeriodCallable
         if ( period == null )
         {
             period = PeriodType.getPeriodFromIsoString( id );
+            periodBatchHandler.addObject( period );
+            periodBatchHandler.flush();
         }
 
         return period;
