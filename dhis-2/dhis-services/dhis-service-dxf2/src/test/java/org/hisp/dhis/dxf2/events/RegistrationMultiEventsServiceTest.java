@@ -248,39 +248,6 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Ignore
-    public void testDeleteEnrollmentWithEvents()
-    {
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
-        eventService.addEvent( event, null, false );
-        Enrollment enrollment = createEnrollment( programA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        enrollment.setEvents( Lists.newArrayList( event ) );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        Enrollment retrievedEnrlollment = enrollmentService
-            .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() );
-
-        EventSearchParams params = new EventSearchParams();
-        params.setProgram( programA );
-        params.setOrgUnit( organisationUnitA );
-        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.SELECTED );
-
-        Event retrievedEvent = enrollment.getEvents().get( 0 );
-
-        assertNotNull( retrievedEnrlollment );
-        assertNotNull( retrievedEvent );
-
-        enrollmentService.deleteEnrollment( retrievedEnrlollment.getEnrollment() );
-
-        assertNull( enrollmentService.getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() ) );
-        assertEquals( 0, eventService.getEvents( params ).getEvents().size() );
-    }
-
-    @Test
     @Category( IntegrationTest.class )
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
