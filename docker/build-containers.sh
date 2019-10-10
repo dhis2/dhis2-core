@@ -26,25 +26,15 @@ CORE_IMAGE="$1"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ARTIFACTS="${DIR}/artifacts"
 
-TOMCAT_IMAGE="tomcat"
+
 
 
 
 #
-## tomcat tags
+## config
 #
 
-default_tomcat_tag="8.5.46-jdk8-openjdk-slim"
-
-tomcat_debian_tags=(
-    "9.0-jdk8-openjdk-slim"
-    "8.5-jdk8-openjdk-slim"
-    "8.0-jre8-slim"
-)
-
-tomcat_alpine_tags=(
-    "8.5.34-jre8-alpine"
-)
+. "${DIR}/shared/containers-list.sh"
 
 
 
@@ -100,16 +90,24 @@ build () {
         "$DIR"
 }
 
-main () {
-    build "$CORE_IMAGE" "$default_tomcat_tag" "debian"
+build_debian_containers () {
+    build "$CORE_IMAGE" "$DEFAULT_TOMCAT_TAG" "debian"
 
-    for TOMCAT_TAG in "${tomcat_debian_tags[@]}"; do
+    for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
         build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "debian"
     done
 
-    for TOMCAT_TAG in "${tomcat_alpine_tags[@]}"; do
+}
+
+build_alpine_containers () {
+    for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
         build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "alpine"
     done
+}
+
+main () {
+    build_debian_containers
+    build_alpine_containers
 }
 
 
@@ -119,7 +117,6 @@ main () {
 #
 ## run the script
 #
-
 
 setup
 main
