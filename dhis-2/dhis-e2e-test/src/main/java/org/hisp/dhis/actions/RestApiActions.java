@@ -40,6 +40,7 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
 import java.util.List;
@@ -73,21 +74,33 @@ public class RestApiActions
      */
     public ApiResponse post( Object object )
     {
-        return post( "", object );
+        return post( "", object, null );
     }
 
     public ApiResponse post( String resource, Object object )
     {
-        return post( resource, object, ContentType.JSON.toString() );
+        return post( resource, ContentType.JSON.toString(), object, null );
     }
 
-    public ApiResponse post( String resource, Object object, String contentType )
+    public ApiResponse post( String resource, Object object, QueryParamsBuilder queryParams )
     {
+        return post( resource, ContentType.JSON.toString(), object, queryParams );
+    }
+
+    public ApiResponse post( Object object, QueryParamsBuilder queryParamsBuilder )
+    {
+        return post( "", ContentType.JSON.toString(), object, queryParamsBuilder );
+    }
+
+    public ApiResponse post( String resource, String contentType, Object object, QueryParamsBuilder queryParams )
+    {
+        String path = queryParams == null ? "" : queryParams.build();
+
         ApiResponse response = new ApiResponse( this.given()
             .body( object )
             .contentType( contentType )
             .when()
-            .post( resource ) );
+            .post( resource + path ) );
 
         saveCreatedObjects( response );
 
@@ -119,12 +132,7 @@ public class RestApiActions
      */
     public ApiResponse get( String path )
     {
-        Response response = this.given()
-            .contentType( ContentType.TEXT )
-            .when()
-            .get( path );
-
-        return new ApiResponse( response );
+        return get( path, null );
     }
 
     /**
@@ -134,27 +142,24 @@ public class RestApiActions
      */
     public ApiResponse get()
     {
-        Response response = this.given()
-            .contentType( ContentType.TEXT )
-            .when()
-            .get();
-
-        return new ApiResponse( response );
+        return get( "" );
     }
 
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param path        Id of resource
-     * @param queryParams Query params to append to url
+     * @param resourceId        Id of resource
+     * @param queryParamsBuilder Query params to append to url
      * @return
      */
-    public ApiResponse get( String path, String queryParams )
+    public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
         Response response = this.given()
             .contentType( ContentType.TEXT )
             .when()
-            .get( path + "?" + queryParams );
+            .get( resourceId + path );
 
         return new ApiResponse( response );
     }
@@ -183,26 +188,33 @@ public class RestApiActions
     /**
      * Sends PUT request to specified resource.
      *
-     * @param path   Id of resource
+     * @param resourceId   Id of resource
      * @param object Body of request
      * @return
      */
-    public ApiResponse update( String path, Object object )
+    public ApiResponse update( String resourceId, Object object )
     {
         Response response =
             this.given().body( object, ObjectMapperType.GSON )
                 .when()
-                .put( path );
+                .put( resourceId );
 
         return new ApiResponse( response );
     }
 
-    public ApiResponse postFile( File file, String queryParams )
+    public ApiResponse postFile( File file )
     {
+        return this.postFile( file, null );
+    }
+
+    public ApiResponse postFile( File file, QueryParamsBuilder queryParamsBuilder )
+    {
+        String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
         ApiResponse response = new ApiResponse( this.given()
             .body( file )
             .when()
-            .post( queryParams ) );
+            .post( url ) );
 
         saveCreatedObjects( response );
 
@@ -212,6 +224,11 @@ public class RestApiActions
 
     private void saveCreatedObjects( ApiResponse response )
     {
+        if ( !response.getContentType().contains( "json" ) )
+        {
+            return;
+        }
+
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();

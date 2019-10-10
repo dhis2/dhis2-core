@@ -29,6 +29,8 @@ package org.hisp.dhis.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -42,6 +44,8 @@ public class ImportSummary
     private String reference;
 
     private ImportCount importCount;
+
+    private List<Conflict> conflicts;
 
     public String getStatus()
     {
@@ -83,4 +87,13 @@ public class ImportSummary
         this.importCount = importCount;
     }
 
+    public List<Conflict> getConflicts()
+    {
+        return conflicts;
+    }
+
+    public void setConflicts( List<Conflict> conflicts )
+    {
+        this.conflicts = conflicts;
+    }
 }

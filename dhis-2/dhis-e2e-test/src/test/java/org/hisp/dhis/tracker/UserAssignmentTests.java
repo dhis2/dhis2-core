@@ -69,7 +69,7 @@ public class UserAssignmentTests
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ), "" );
+        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
     @ParameterizedTest
