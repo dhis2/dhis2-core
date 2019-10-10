@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore2;
+package org.hisp.dhis.appstore;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
