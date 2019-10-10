@@ -30,6 +30,7 @@ package org.hisp.dhis.schema;
 
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,6 +40,8 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+
+@Transactional
 public class DefaultMergeService implements MergeService
 {
     private final SchemaService schemaService;
