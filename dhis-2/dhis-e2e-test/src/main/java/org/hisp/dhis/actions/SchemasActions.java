@@ -31,6 +31,7 @@ package org.hisp.dhis.actions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.schemas.Schema;
 import org.hisp.dhis.dto.schemas.SchemaProperty;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,7 +73,7 @@ public class SchemasActions
 
     public String findSchemaPropertyByKnownProperty( String propertyToFind, String knownPropertyName, String knownPropertyValue )
     {
-        return get( String.format( "?fields=%s,%s", propertyToFind, knownPropertyName ) )
+        return get( "", new QueryParamsBuilder().add( String.format( "fields=%s,%s", propertyToFind, knownPropertyName ) ) )
             .extractString(
                 String.format( "schemas.find{it.%s == '%s'}.%s", knownPropertyName, knownPropertyValue, propertyToFind ) );
     }

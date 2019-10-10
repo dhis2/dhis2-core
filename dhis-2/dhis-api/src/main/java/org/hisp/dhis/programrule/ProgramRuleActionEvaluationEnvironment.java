@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore2;
+package org.hisp.dhis.programrule;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,66 +28,49 @@ package org.hisp.dhis.appstore2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.Set;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Enrico Colasante
  */
-public class Developer
+@JacksonXmlRootElement( localName = "programRuleEvaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
+public enum ProgramRuleActionEvaluationEnvironment
 {
-    private String name;
+    WEB( "web" ),
+    ANDROID( "android" );
 
-    private String organisation;
+    private final String value;
 
-    private String address;
-
-    private String email;
-
-    public Developer()
+    ProgramRuleActionEvaluationEnvironment( String value )
     {
+        this.value = value;
     }
 
-    @JsonProperty
-    public String getName()
+    public static ProgramRuleActionEvaluationEnvironment fromValue( String value )
     {
-        return name;
+        for ( ProgramRuleActionEvaluationEnvironment type : ProgramRuleActionEvaluationEnvironment.values() )
+        {
+            if ( type.value.equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
+
+        return null;
     }
 
-    public void setName( String name )
+    /**
+     * By default, actions should be run in all environments, and its up to the client
+     * to decide which actions are unsuited to be run or not.
+     *
+     * @return Default environments where the actions should be run
+     */
+    public static Set<ProgramRuleActionEvaluationEnvironment> getDefault()
     {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getOrganisation()
-    {
-        return organisation;
-    }
-
-    public void setOrganisation( String organisation )
-    {
-        this.organisation = organisation;
-    }
-
-    @JsonProperty
-    public String getEmail()
-    {
-        return email;
-    }
-
-    public void setEmail( String email )
-    {
-        this.email = email;
-    }
-
-    @JsonProperty
-    public String getAddress()
-    {
-        return address;
-    }
-
-    public void setAddress( String address )
-    {
-        this.address = address;
+        return Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.values() );
     }
 }

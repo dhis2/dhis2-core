@@ -33,8 +33,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.appstore2.AppStoreService;
-import org.hisp.dhis.appstore2.WebApp;
+import org.hisp.dhis.appstore.AppStoreService;
+import org.hisp.dhis.appstore.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;

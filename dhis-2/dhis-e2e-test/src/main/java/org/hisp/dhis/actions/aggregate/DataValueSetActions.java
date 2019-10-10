@@ -1,5 +1,3 @@
-package org.hisp.dhis.appstore;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,56 +26,18 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+package org.hisp.dhis.actions.aggregate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
- * @author Lars Helge Overland
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AppStore
+public class DataValueSetActions
+    extends RestApiActions
 {
-    private String name;
-    
-    private String description;
-    
-    private List<WebApp> apps = new ArrayList<>();
-
-    public AppStore()
+    public DataValueSetActions()
     {
+        super( "/dataValueSets" );
     }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    public List<WebApp> getApps()
-    {
-        return apps;
-    }
-
-    public void setApps( List<WebApp> apps )
-    {
-        this.apps = apps;
-    }    
 }

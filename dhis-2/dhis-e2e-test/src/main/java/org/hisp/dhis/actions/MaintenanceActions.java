@@ -30,6 +30,7 @@ package org.hisp.dhis.actions;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.util.logging.Logger;
 
@@ -48,19 +49,19 @@ public class MaintenanceActions
 
     public void removeSoftDeletedEvents()
     {
-        sendRequest( "?softDeletedEventRemoval=true", true );
+        sendRequest( true, "softDeletedEventRemoval=true" );
     }
 
     public void removeSoftDeletedMetadata()
     {
-        sendRequest(
-            "?softDeletedEventRemoval=true&softDeletedTrackedEntityInstanceRemoval=true&softDeletedProgramStageInstanceRemoval=true&softDeletedProgramInstanceRemoval=true",
-            true );
+        sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true",
+            "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true",
+            "softDeletedDataValueRemoval=true" );
     }
 
-    private void sendRequest( String queryParams, boolean validate )
+    private void sendRequest( boolean validate, String... queryParams )
     {
-        ApiResponse apiResponse = super.update( queryParams, new JsonObject() );
+        ApiResponse apiResponse = super.post( new JsonObject(), new QueryParamsBuilder().addAll( queryParams ) );
 
         if ( validate )
         {
