@@ -1,0 +1,3 @@
+Name,UID,Code,DataDimensionType,SkipTotal
+Gender and Age,,GENDER,DISAGGREGATION,true
+Partner,,PARTNER,ATTRIBUTE,true

@@ -181,6 +181,11 @@ public class AppController
         {
             throw new ReadAccessDeniedException( "You don't have access to application " + app + "." );
         }
+        
+        if ( application.getAppState() == AppStatus.DELETION_IN_PROGRESS )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
+        }
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
@@ -270,13 +275,6 @@ public class AppController
         if ( config == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "No config specified" ) );
-        }
-
-        String appStoreUrl = StringUtils.trimToNull( config.get( SettingKey.APP_STORE_URL.getName() ) );
-
-        if ( appStoreUrl != null )
-        {
-            appManager.setAppStoreUrl( appStoreUrl );
         }
     }
 

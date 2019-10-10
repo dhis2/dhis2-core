@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -74,8 +73,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
-        Session session = sessionFactory.getCurrentSession();
-
         if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
 
         Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();

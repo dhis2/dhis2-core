@@ -212,6 +212,11 @@ public class Schema implements Ordered, Klass
     private Map<String, Property> embeddedObjectProperties;
 
     /**
+     * Map of all analytical object properties, cached on first request.
+     */
+    private Map<String, Property> analyticalObjectProperties;
+
+    /**
      * Map containing cached authorities by their type.
      */
     @JsonIgnore
@@ -603,6 +608,20 @@ public class Schema implements Ordered, Klass
         }
 
         return embeddedObjectProperties;
+    }
+
+    public Map<String, Property> getAnalyticalObjectProperties()
+    {
+        if ( analyticalObjectProperties == null )
+        {
+            analyticalObjectProperties = new HashMap<>();
+
+            getPropertyMap().entrySet().stream()
+                    .filter( entry -> entry.getValue().isAnalyticalObject() )
+                    .forEach( entry -> analyticalObjectProperties.put( entry.getKey(), entry.getValue() ) );
+        }
+
+        return analyticalObjectProperties;
     }
 
     public void addProperty( Property property )

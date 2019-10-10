@@ -55,8 +55,7 @@ public enum JobType
     ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes"
     ) ),
-    DATA_SYNC( "dataSynchJob", true, null, null ),
-    PROGRAM_DATA_SYNC( "programDataSyncJob", true, null, null ),
+    DATA_SYNC( "dataSyncJob", true, null, null ),
     TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true,
         TrackerProgramsDataSynchronizationJobParameters.class, null ),
     EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true,

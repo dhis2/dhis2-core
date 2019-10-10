@@ -28,39 +28,95 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.FilenameUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
+
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 07.09.17.
  */
-public class WebAppVersion
+public class ImageResource
 {
     private String id;
-    
-    private String version;
-    
-    private String minPlatformVersion;
-    
-    private String maxPlatformVersion;
-    
-    private String downloadUrl;
-    
-    private String demoUrl;
-    
-    public WebAppVersion()
+
+    private String caption;
+
+    private String description;
+
+    private String imageUrl;
+
+    private boolean logo;
+
+    private Date created;
+
+    private Date lastUpdated;
+
+    @JsonProperty
+    public String getCaption()
     {
+        return caption;
     }
 
-    @JsonIgnore
-    public String getFilename()
+    public void setCaption( String caption )
     {
-        return FilenameUtils.getName( downloadUrl );
+        this.caption = caption;
     }
-    
+
+    @JsonProperty
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
+
+    @JsonProperty
+    public boolean isLogo()
+    {
+        return logo;
+    }
+
+    public void setLogo( boolean logo )
+    {
+        this.logo = logo;
+    }
+
+    @JsonProperty
+    public String getImageUrl()
+    {
+        return imageUrl;
+    }
+
+    public void setImageUrl( String imageUrl )
+    {
+        this.imageUrl = imageUrl;
+    }
+
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
     @JsonProperty
     public String getId()
     {
@@ -70,60 +126,5 @@ public class WebAppVersion
     public void setId( String id )
     {
         this.id = id;
-    }
-
-    @JsonProperty
-    public String getVersion()
-    {
-        return version;
-    }
-
-    public void setVersion( String version )
-    {
-        this.version = version;
-    }
-
-    @JsonProperty( value = "min_platform_version" )
-    public String getMinPlatformVersion()
-    {
-        return minPlatformVersion;
-    }
-
-    public void setMinPlatformVersion( String minPlatformVersion )
-    {
-        this.minPlatformVersion = minPlatformVersion;
-    }
-
-    @JsonProperty( value = "max_platform_version" )
-    public String getMaxPlatformVersion()
-    {
-        return maxPlatformVersion;
-    }
-
-    public void setMaxPlatformVersion( String maxPlatformVersion )
-    {
-        this.maxPlatformVersion = maxPlatformVersion;
-    }
-
-    @JsonProperty( value = "download_url" )
-    public String getDownloadUrl()
-    {
-        return downloadUrl;
-    }
-
-    public void setDownloadUrl( String downloadUrl )
-    {
-        this.downloadUrl = downloadUrl;
-    }
-
-    @JsonProperty( value = "demo_url" )
-    public String getDemoUrl()
-    {
-        return demoUrl;
-    }
-
-    public void setDemoUrl( String demoUrl )
-    {
-        this.demoUrl = demoUrl;
     }
 }

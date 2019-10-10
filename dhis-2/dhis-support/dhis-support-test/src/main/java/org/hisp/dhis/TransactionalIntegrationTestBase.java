@@ -30,9 +30,6 @@ package org.hisp.dhis;
 
 import java.lang.reflect.Method;
 
-import org.hibernate.FlushMode;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.junit.After;
 import org.junit.Before;
@@ -42,13 +39,10 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.orm.hibernate5.SessionFactoryUtils;
-import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

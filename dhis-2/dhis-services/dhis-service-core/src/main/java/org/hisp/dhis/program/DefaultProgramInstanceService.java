@@ -38,7 +38,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
@@ -47,6 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -55,7 +55,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +100,9 @@ public class DefaultProgramInstanceService
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
+    private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+    @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
 
     @Autowired
@@ -142,7 +144,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( long id )
     {
         ProgramInstance programInstance = programInstanceStore.get( id );
@@ -158,7 +160,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( String uid )
     {
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
@@ -174,14 +176,14 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean programInstanceExists( String uid )
     {
         return programInstanceStore.exists( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean programInstanceExistsIncludingDeleted( String uid )
     {
         return programInstanceStore.existsIncludingDeleted( uid );
@@ -202,7 +204,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode,
         Date lastUpdated, String lastUpdatedDuration, String program, ProgramStatus programStatus,
         Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
@@ -283,7 +285,7 @@ public class DefaultProgramInstanceService
 
     // TODO consider security
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
@@ -325,7 +327,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
@@ -357,10 +359,9 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void decideAccess( ProgramInstanceQueryParams params )
     {
-
         if ( params.hasProgram() )
         {
             if ( !aclService.canDataRead( params.getUser(), params.getProgram() ) )
@@ -447,21 +448,21 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramInstance> getProgramInstances( Program program )
     {
         return programInstanceStore.get( program );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status )
     {
         return programInstanceStore.get( program, status );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
         return programInstanceStore.get( entityInstance, program, status );
@@ -470,7 +471,8 @@ public class DefaultProgramInstanceService
     @Override
     @Transactional
     public ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
-        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid ) {
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
+    {
         if ( program.getTrackedEntityType() != null && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException( "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
@@ -515,7 +517,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,Program program,
+    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------
@@ -525,6 +527,13 @@ public class DefaultProgramInstanceService
         ProgramInstance programInstance = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
             incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
+
+        // ---------------------------------------------------------------------
+        // Add program owner and overwrite if already exists.
+        // ---------------------------------------------------------------------
+
+        trackerOwnershipAccessManager.assignOwnership( trackedEntityInstance, program, organisationUnit, true, true );
+
 
         // -----------------------------------------------------------------
         // Send enrollment notifications (if any)
@@ -545,7 +554,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance )
     {
         Set<ProgramStageInstance> programStageInstances = new HashSet<>( programInstance.getProgramStageInstances() );

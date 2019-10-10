@@ -33,12 +33,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -60,7 +64,7 @@ public class DefaultAppManager
 {
     private static final Log log = LogFactory.getLog( DefaultAppManager.class );
 
-    private final SystemSettingManager settingManager;
+    private final DhisConfigurationProvider dhisConfigurationProvider;
 
     private final CurrentUserService currentUserService;
 
@@ -72,18 +76,18 @@ public class DefaultAppManager
 
     private final CacheProvider cacheProvider;
 
-    public DefaultAppManager( SystemSettingManager settingManager, CurrentUserService currentUserService,
-        LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
+                             LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
+                             KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
-        checkNotNull( settingManager );
+        checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( keyJsonValueService );
         checkNotNull( cacheProvider );
 
-        this.settingManager = settingManager;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
@@ -107,7 +111,7 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().collect( Collectors.toList() );
+        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS ).collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
 
@@ -253,7 +257,7 @@ public class DefaultAppManager
 
         appCache.invalidate( app.getKey() );
     }
-    
+
     @Override
     public boolean markAppToDelete( App app )
     {
@@ -275,13 +279,7 @@ public class DefaultAppManager
     @Override
     public String getAppStoreUrl()
     {
-        return StringUtils.trimToNull( (String) settingManager.getSystemSetting( SettingKey.APP_STORE_URL ) );
-    }
-
-    @Override
-    public void setAppStoreUrl( String appStoreUrl )
-    {
-        settingManager.saveSystemSetting( SettingKey.APP_STORE_URL, appStoreUrl );
+        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
     }
 
     /**
@@ -331,6 +329,14 @@ public class DefaultAppManager
         throws IOException
     {
         return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        appCache.invalidateAll();
+        log.info( "App cache cleared" );
     }
 
     // -------------------------------------------------------------------------

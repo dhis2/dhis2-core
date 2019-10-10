@@ -32,7 +32,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -68,7 +67,7 @@ public abstract class EventAnalyticsTest
         dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         dataElementA.setUid( "fWIAEtYVEGk" );
     }
-    
+
     protected EventQueryParams createRequestParams( ProgramIndicator programIndicator,
         RelationshipType relationshipType )
     {
@@ -103,7 +102,7 @@ public abstract class EventAnalyticsTest
     {
         return createRequestParams( withProgramStage, null );
     }
-    
+
     private EventQueryParams _createRequestParams()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -118,7 +117,7 @@ public abstract class EventAnalyticsTest
 
         return params.build();
     }
-    
+
     protected EventQueryParams createRequestParams( ProgramStage withProgramStage, ValueType withQueryItemValueType )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
@@ -149,7 +148,6 @@ public abstract class EventAnalyticsTest
 
     void mockEmptyRowSet()
     {
-        // simulate no rows
         when( rowSet.next() ).thenReturn( false );
     }
 

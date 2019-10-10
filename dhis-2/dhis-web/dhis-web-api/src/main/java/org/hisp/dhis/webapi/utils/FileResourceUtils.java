@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Date;
-import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -125,18 +124,14 @@ public class FileResourceUtils
             ByteSource.wrap( file.getBytes() ).hash( Hashing.md5() ).toString(), domain );
     }
 
-    public static void setImageFileDimensions( FileResource fileResource, String dimension )
+    public static void setImageFileDimensions( FileResource fileResource, ImageFileDimension dimension )
     {
         if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) &&
             FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             if ( fileResource.isHasMultipleStorageFiles() )
             {
-                Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
-
-                ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
-
-                fileResource.setStorageKey( StringUtils.join( fileResource.getStorageKey(), imageFileDimension.getDimension() ) );
+                fileResource.setStorageKey( StringUtils.join( fileResource.getStorageKey(), dimension.getDimension() ) );
             }
         }
     }

@@ -28,7 +28,7 @@ package org.hisp.dhis.dxf2.gml;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.Coordinate.CoordinateUtils.getCoordinatesAsList;
+import static org.hisp.dhis.common.coordinate.CoordinateUtils.getCoordinatesAsList;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
