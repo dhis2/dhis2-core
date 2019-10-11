@@ -917,8 +917,6 @@ public class DefaultAnalyticsService
             // Organisation unit hierarchy
             // -----------------------------------------------------------------
 
-            User user = securityManager.getCurrentUser( params );
-
             List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
 
             Collection<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
