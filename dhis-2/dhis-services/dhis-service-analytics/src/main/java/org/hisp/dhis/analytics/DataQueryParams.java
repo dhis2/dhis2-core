@@ -59,6 +59,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -132,6 +133,13 @@ public class DataQueryParams
 
     public static final int DX_INDEX = 0;
     public static final int NUMERATOR_DENOMINATOR_PROPERTIES_COUNT = 5;
+
+    /**
+     * @see {@link org.hisp.dhis.expression.ExpressionService}
+     * @see "/dhis-2/dhis-support/dhis-support-expression-parser/src/main/antlr4/org/hisp
+     *          /dhis/parser/expression/antlr/Expression.g4"
+     */
+    private static final String NESTED_INDICATOR_PREFIX = "N{";
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of(
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, Category.class );
@@ -1692,7 +1700,7 @@ public class DataQueryParams
             dimension.getItems().addAll( options );
         }
     }
-
+    
     public void addResolvedExpressionItem( DimensionalItemObject item)
     {
         if ( !resolvedExpressionItems.contains(item) )
@@ -1701,9 +1709,20 @@ public class DataQueryParams
         }
         else
         {
+            checkForIndicatorCyclicReference( item );
+        }
+    }
+
+    private void checkForIndicatorCyclicReference( final DimensionalItemObject item )
+    {
+        final boolean isNestedIndicator = item instanceof Indicator
+                && (((Indicator) item).getNumerator().contains( NESTED_INDICATOR_PREFIX )
+                || ((Indicator) item).getDenominator().contains( NESTED_INDICATOR_PREFIX ));
+        if ( isNestedIndicator )
+        {
             throw new CyclicReferenceException(
-                String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item",
-                    item.getDimensionItemType().name(), item.getUid() ) );
+                    String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item.",
+                            item.getDimensionItemType().name(), item.getUid() ) );
         }
     }
 
