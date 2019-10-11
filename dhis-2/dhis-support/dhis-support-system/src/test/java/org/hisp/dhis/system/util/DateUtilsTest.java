@@ -28,6 +28,9 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.MILLISECOND;
+import static org.hamcrest.CoreMatchers.is;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.joda.time.DateTime;
@@ -96,7 +99,8 @@ public class DateUtilsTest
     @Test
     public void testDaysBetween()
     {
-        assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(), new DateTime( 2014, 3, 7, 0, 0 ).toDate() ) );
+        assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(),
+            new DateTime( 2014, 3, 7, 0, 0 ).toDate() ) );
     }
 
     @Test
@@ -279,13 +283,13 @@ public class DateUtilsTest
         int month = 4;
         int day = 14;
 
-        String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-"  + ( day < 10 ? "0" : "" ) + day;
+        String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day;
 
         assertTrue( dateTimeIsValid( dateString + "T00:00" ) );
 
         Date dateParsed = parseDate( dateString );
         cal.setTime( dateParsed );
-        
+
         assertEquals( year, cal.get( Calendar.YEAR ) );
         assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
         assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
@@ -304,9 +308,10 @@ public class DateUtilsTest
         int month = 5;
         int day = 24;
 
-        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day + "T00:00Z";
+        String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day
+            + "T00:00Z";
 
-        assertTrue( dateTimeIsValid( dateString  ) );
+        assertTrue( dateTimeIsValid( dateString ) );
 
         Date dateParsed = parseDate( dateString );
         cal.setTime( dateParsed );
@@ -315,5 +320,57 @@ public class DateUtilsTest
         assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
         assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
         assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingPositiveDays()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, DATE );
+
+        // Then
+        assertTrue( "The new date must be greater.", theNewDate.after( anyInitialDate ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingNegativeDays()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, DATE );
+
+        // Then
+        assertTrue( "The new date must be lower.", theNewDate.before( anyInitialDate ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingPositiveMilis()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, MILLISECOND );
+
+        // Then
+        assertTrue( "The new date must be greater.", theNewDate.after( anyInitialDate ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingNegativeMilis()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, MILLISECOND );
+
+        // Then
+        assertTrue( "The new date must be lower.", theNewDate.before( anyInitialDate ) );
     }
 }
