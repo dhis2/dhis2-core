@@ -47,7 +47,7 @@ public class OptionObjectBundleHook
     extends AbstractObjectBundleHook
 {
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
         List<ErrorReport> errors = new ArrayList<>();
 
@@ -72,7 +72,7 @@ public class OptionObjectBundleHook
 
         return errors;
     }
-    
+
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
