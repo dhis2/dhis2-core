@@ -141,6 +141,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -177,7 +178,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -195,6 +197,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -231,7 +234,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -249,6 +253,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -285,7 +290,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -303,6 +309,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -339,7 +346,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -357,6 +365,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -393,7 +402,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -411,6 +421,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
@@ -437,7 +448,7 @@ public class AnalyticsController
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
-            .apiVersion( apiVersion ).order( order ).build();
+            .apiVersion( apiVersion ).order( order ).userOrgUnitType( userOrgUnitType ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -456,6 +467,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -492,7 +504,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 

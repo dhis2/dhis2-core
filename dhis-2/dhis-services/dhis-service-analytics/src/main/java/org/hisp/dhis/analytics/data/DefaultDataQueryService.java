@@ -566,7 +566,7 @@ public class DefaultDataQueryService
                 break;
             }
         }
-        else if ( currentUser!=null )
+        else if ( currentUser != null )
         {
             units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
         }
