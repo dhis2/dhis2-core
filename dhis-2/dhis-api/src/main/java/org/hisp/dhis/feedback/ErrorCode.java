@@ -89,6 +89,7 @@ public enum ErrorCode
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`." ),
 
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
+    E4028( "OptionSet `{0}` already contains Option `{1}`" ),
 
     /* Program Errors */
     E6000( "Program `{0}` has more than one Program Instances"),
