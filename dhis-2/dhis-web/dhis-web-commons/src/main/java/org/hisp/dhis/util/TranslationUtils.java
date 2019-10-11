@@ -101,7 +101,7 @@ public class TranslationUtils
 
         for ( Translation translation : translations )
         {
-            if ( StringUtils.isNotEmpty( translation.getValue() ) && translation.getLocale().equalsIgnoreCase( locale.toString() ) )
+            if ( StringUtils.isNotEmpty( translation.getValue() ) && translation.getLocale().equalsIgnoreCase( locale.toLanguageTag() ) )
             {
                 translationMap.put( translation.getProperty().getName(), translation.getValue() );
             }

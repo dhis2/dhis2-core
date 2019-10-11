@@ -31,7 +31,7 @@
 <div class="setting">
 <select id="currentLocale" name="currentLocale">
 #foreach( $locale in $availableLocales )
-	<option value="$locale.toString()" #if( $locale == $currentLocale )selected="selected"#end>$locale.getDisplayName()</option>
+	<option value="$locale.toLanguageTag()" #if( $locale == $currentLocale )selected="selected"#end>$locale.getDisplayName()</option>
 #end
 </select>
 </div>
@@ -42,7 +42,7 @@
 <select id="currentLocaleDb" name="currentLocaleDb">
 	<option value="">[$i18n.getString( "use_db_locale_no_translation" )]</option>
 #foreach( $locale in $availableLocalesDb )
-	<option value="$locale.toString()" #if( $locale == $currentLocaleDb )selected="selected"#end>$locale.getDisplayName()</option>
+	<option value="$locale.toLanguageTag()" #if( $locale == $currentLocaleDb )selected="selected"#end>$locale.getDisplayName()</option>
 #end
 </select>
 </div>

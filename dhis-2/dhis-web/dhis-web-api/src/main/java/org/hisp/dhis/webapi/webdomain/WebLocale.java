@@ -48,7 +48,7 @@ public class WebLocale
     {
         WebLocale loc = new WebLocale();
         
-        loc.setLocale( locale.toString() );
+        loc.setLocale( locale.toLanguageTag() );
         loc.setName( locale.getDisplayName() );
         
         return loc;

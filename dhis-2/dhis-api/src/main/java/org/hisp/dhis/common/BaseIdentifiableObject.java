@@ -398,7 +398,7 @@ public class BaseIdentifiableObject
 
         loadTranslationsCacheIfEmpty();
 
-        String cacheKey = Translation.getCacheKey( locale.toString(), property );
+        String cacheKey = Translation.getCacheKey( locale.toLanguageTag(), property );
 
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }

@@ -59,7 +59,7 @@ public class HibernateI18nLocaleStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "locale" ), locale.toString() ) ) );
+            .addPredicate( root -> builder.equal( root.get( "locale" ), locale.toLanguageTag() ) ) );
     }
 
 }

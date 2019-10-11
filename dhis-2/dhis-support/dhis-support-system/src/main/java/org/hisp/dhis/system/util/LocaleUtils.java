@@ -108,7 +108,7 @@ public class LocaleUtils
         
         if ( !locale.getVariant().isEmpty() )
         {
-            locales.add( locale.toString() );
+            locales.add( locale.toLanguageTag() );
         }
         
         return locales;

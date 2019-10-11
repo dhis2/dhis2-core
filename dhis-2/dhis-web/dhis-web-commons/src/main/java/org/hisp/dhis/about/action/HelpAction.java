@@ -84,7 +84,7 @@ public class HelpAction
 
         for ( Locale locale : locales )
         {
-            String helpPage = helpPagePreLocale + locale.toString() + helpPagePostLocale;
+            String helpPage = helpPagePreLocale + locale.toLanguageTag() + helpPagePostLocale;
 
             if ( resourceLoader.getResource( helpPage ) != null )
             {
