@@ -56,7 +56,7 @@ public class I18nLocale
     public I18nLocale( Locale locale )
     {
         this.name = locale.getDisplayName();
-        this.locale = locale.toString();
+        this.locale = locale.toLanguageTag();
     }
     
     // -------------------------------------------------------------------------
