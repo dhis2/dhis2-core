@@ -125,6 +125,6 @@ public class OptionObjectBundleHookTest
 
         Assert.assertNotNull( errors );
         Assert.assertEquals( 1, errors.size() );
-        Assert.assertEquals(ErrorCode.E4028, errors.get( 0 ).getErrorCode() );
+        Assert.assertEquals( ErrorCode.E4028, errors.get( 0 ).getErrorCode() );
     }
 }
