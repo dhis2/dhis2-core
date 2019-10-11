@@ -23,11 +23,12 @@ shopt -s nullglob globstar
 
 TOMCAT_IMAGE="tomcat"
 
-DEFAULT_TOMCAT_TAG="8.5.46-jdk8-openjdk-slim"
+DEFAULT_TOMCAT_TAG="8.5-jdk8-openjdk-slim"
 
 TOMCAT_DEBIAN_TAGS=(
     "9.0-jdk8-openjdk-slim"
     "8.5-jdk8-openjdk-slim"
+    "8.5.46-jdk8-openjdk-slim"
     "8.0-jre8-slim"
 )
 
