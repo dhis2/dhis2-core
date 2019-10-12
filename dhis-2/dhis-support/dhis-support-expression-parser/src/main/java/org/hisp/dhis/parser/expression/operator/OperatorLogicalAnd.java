@@ -40,7 +40,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * Truth table (same as for SQL):
  *
  *       A      B    A and B
- *     -----  -----  -----
+ *     -----  -----  -------
  *     null   null    null
  *     null   false   null
  *     null   true    null
