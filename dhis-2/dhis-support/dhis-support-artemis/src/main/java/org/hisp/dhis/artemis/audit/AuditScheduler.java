@@ -28,15 +28,15 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.DelayQueue;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.DelayQueue;
 
 /**
  * @author Luciano Fiandesio
@@ -45,33 +45,35 @@ import org.springframework.stereotype.Component;
 public class AuditScheduler
 {
     private static final Log log = LogFactory.getLog( AuditScheduler.class );
-    
+
     private final long delay = 20000; // 20 seconds 
 
     private final AuditProducerSupplier auditProducerSupplier;
-    
-    private final BlockingQueue<QueuedAudit> delayed = new DelayQueue<QueuedAudit>();
+
+    private final BlockingQueue<QueuedAudit> delayed = new DelayQueue<>();
 
     public AuditScheduler( AuditProducerSupplier auditProducerSupplier )
     {
         this.auditProducerSupplier = auditProducerSupplier;
     }
 
-    public void addAuditItem(final Audit auditItem )
+    public void addAuditItem( final Audit auditItem )
     {
         log.debug( String.format( "add Audit object with content %s to delayed queue", auditItem.toString() ) );
+
         final QueuedAudit postponed = new QueuedAudit( auditItem, delay );
+
         if ( !delayed.contains( postponed ) )
         {
             delayed.offer( postponed );
         }
     }
 
-    @Scheduled( fixedDelay = 60000 ) // TODO this value should come from configuration
+    @Scheduled( fixedDelay = 30000 ) // TODO this value should come from configuration
     public void process()
     {
         final Collection<QueuedAudit> expired = new ArrayList<>();
-        
+
         delayed.drainTo( expired );
 
         expired.stream().map( QueuedAudit::getAuditItem ).forEach( auditProducerSupplier::publish );

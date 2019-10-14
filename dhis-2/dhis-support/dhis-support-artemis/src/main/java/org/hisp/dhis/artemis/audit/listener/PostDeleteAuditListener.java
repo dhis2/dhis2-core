@@ -37,7 +37,6 @@ import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
 import org.hisp.dhis.artemis.config.UserNameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -47,14 +46,12 @@ import java.util.Date;
  */
 @Component
 public class PostDeleteAuditListener
-    extends
-    AbstractHibernateListener
-    implements
-    PostDeleteEventListener
+    extends AbstractHibernateListener implements PostDeleteEventListener
 {
-
-    public PostDeleteAuditListener( AuditManager auditManager, AuditLegacyObjectFactory auditLegacyObjectFactory,
-                                    UserNameSupplier userNameSupplier )
+    public PostDeleteAuditListener(
+        AuditManager auditManager,
+        AuditLegacyObjectFactory auditLegacyObjectFactory,
+        UserNameSupplier userNameSupplier )
     {
         super( auditManager, auditLegacyObjectFactory, userNameSupplier );
     }
@@ -71,17 +68,15 @@ public class PostDeleteAuditListener
         Object entity = postDeleteEvent.getEntity();
 
         getAuditingScope( entity ).ifPresent( scope -> {
-
             IdentifiableObject io = (IdentifiableObject) entity;
 
-            auditManager.send(Audit.builder().withAuditType( AuditType.DELETE )
-                    .withAuditScope( scope )
-                    .withCreatedAt( new Date() )
-                    .withCreatedBy( getCreatedBy() )
-                    .withObject( entity )
-                    .withData( this.legacyObjectFactory.create( scope, AuditType.DELETE, io, getCreatedBy() ) )
-                    .build());
-        });
-
+            auditManager.send( Audit.builder().withAuditType( AuditType.DELETE )
+                .withAuditScope( scope )
+                .withCreatedAt( new Date() )
+                .withCreatedBy( getCreatedBy() )
+                .withObject( entity )
+                .withData( this.legacyObjectFactory.create( scope, AuditType.DELETE, io, getCreatedBy() ) )
+                .build() );
+        } );
     }
 }

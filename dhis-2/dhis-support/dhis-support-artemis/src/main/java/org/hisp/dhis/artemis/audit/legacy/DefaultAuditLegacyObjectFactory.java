@@ -28,8 +28,6 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -37,16 +35,17 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 /**
  * A factory for constructing "legacy" Auditing objects. For legacy, it is intended objects that contains foreign keys
  * to other objects and are eventually going to be replaced by a key-less Audit object.
  *
- *
  * @author Luciano Fiandesio
  */
 @Component
-public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory {
-    
+public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory
+{
     private final RenderService renderService;
 
     public DefaultAuditLegacyObjectFactory( RenderService renderService )
@@ -55,7 +54,7 @@ public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory
     }
 
     @Override
-    public Object create(AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user)
+    public Object create( AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user )
     {
         if ( auditScope.equals( AuditScope.METADATA ) )
         {
@@ -66,31 +65,28 @@ public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory
                 .setKlass( identifiableObject.getClass().getName() )
                 .setUid( identifiableObject.getUid() )
                 .setCode( identifiableObject.getCode() )
-                .setValue( renderService.toJsonAsString(identifiableObject ) );
+                .setValue( renderService.toJsonAsString( identifiableObject ) );
         }
-        
+
         return null;
     }
 
-
-    private org.hisp.dhis.common.AuditType mapAuditType(AuditType auditType) {
-
+    private org.hisp.dhis.common.AuditType mapAuditType( AuditType auditType )
+    {
         switch ( auditType )
         {
-        case READ:
-            return org.hisp.dhis.common.AuditType.READ;
-        case CREATE:
-            return org.hisp.dhis.common.AuditType.CREATE;
-        case UPDATE:
-            return org.hisp.dhis.common.AuditType.UPDATE;
-        case SEARCH:
-            return org.hisp.dhis.common.AuditType.SEARCH;
-        case DELETE:
-            return org.hisp.dhis.common.AuditType.DELETE;
-        default:
-            throw new IllegalArgumentException("Invalid Audit Type");
+            case READ:
+                return org.hisp.dhis.common.AuditType.READ;
+            case CREATE:
+                return org.hisp.dhis.common.AuditType.CREATE;
+            case UPDATE:
+                return org.hisp.dhis.common.AuditType.UPDATE;
+            case SEARCH:
+                return org.hisp.dhis.common.AuditType.SEARCH;
+            case DELETE:
+                return org.hisp.dhis.common.AuditType.DELETE;
+            default:
+                throw new IllegalArgumentException( "Invalid Audit Type" );
         }
-
     }
-
 }

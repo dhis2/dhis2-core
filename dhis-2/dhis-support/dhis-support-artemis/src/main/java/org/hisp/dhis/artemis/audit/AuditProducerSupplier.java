@@ -28,14 +28,14 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
 import com.google.common.base.Strings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.audit.AuditScope;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * @author Luciano Fiandesio
@@ -44,32 +44,34 @@ import org.springframework.stereotype.Component;
 public class AuditProducerSupplier
 {
     private static final Log log = LogFactory.getLog( AuditProducerSupplier.class );
-    private final MessageManager messageManager;
 
+    private final MessageManager messageManager;
     private final Map<AuditScope, String> auditScopeDestinationMap;
 
-    public AuditProducerSupplier( MessageManager messageManager, Map<AuditScope, String> auditScopeDestinationMap )
+    public AuditProducerSupplier(
+        MessageManager messageManager,
+        Map<AuditScope, String> auditScopeDestinationMap )
     {
         this.messageManager = messageManager;
         this.auditScopeDestinationMap = auditScopeDestinationMap;
     }
 
-    public void publish(Audit audit) {
-
+    public void publish( Audit audit )
+    {
         String topic = getTopicName( audit );
+
         if ( !Strings.isNullOrEmpty( topic ) )
         {
             log.debug( "sending auditing message to topic: [" + topic + "] with content: "
-                    + audit.toString() );
+                + audit.toString() );
 
             this.messageManager.send( topic, audit );
         }
         else
         {
             log.error( String.format( "Unable to map AuditScope [%s] to a topic name. Sending aborted",
-                    audit ) );
+                audit ) );
         }
-
     }
 
     private String getTopicName( Audit audit )

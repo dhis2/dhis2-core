@@ -33,5 +33,5 @@ package org.hisp.dhis.artemis;
  */
 public interface Topics
 {
-    String METADATA_TOPIC_NAME = "dhis2.topic.metadata" ;
+    String METADATA_TOPIC_NAME = "dhis2.topic.metadata";
 }

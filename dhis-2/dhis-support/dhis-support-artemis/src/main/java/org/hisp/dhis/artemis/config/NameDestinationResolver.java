@@ -28,18 +28,21 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.jms.*;
-
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.stereotype.Component;
+
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.QueueSession;
+import javax.jms.Session;
+import javax.jms.TopicSession;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-public class NameDestinationResolver
-    implements
-    DestinationResolver
+public class NameDestinationResolver implements DestinationResolver
 {
     @Override
     public Destination resolveDestinationName( Session session, String destinationName, boolean pubSubDomain )
@@ -86,5 +89,4 @@ public class NameDestinationResolver
             return session.createQueue( queueName );
         }
     }
-
 }

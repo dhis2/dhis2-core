@@ -28,18 +28,13 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-
-import com.google.common.base.Strings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.ProducerConfiguration;
-import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,6 +77,4 @@ public class AuditManager
         }
 
     }
-
-
 }

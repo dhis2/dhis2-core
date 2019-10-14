@@ -28,9 +28,9 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.audit.AuditScope;
@@ -39,17 +39,14 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "audit", namespace = DxfNamespaces.DXF_2_0 )
-public class Audit
-    implements
-    Message
+public class Audit implements Message
 {
     private AuditType auditType;
 
@@ -297,16 +294,17 @@ public class Audit
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "Audit{" +
-                "auditType=" + auditType +
-                ", auditScope=" + auditScope +
-                ", createdAt=" + createdAt +
-                ", createdBy='" + createdBy + '\'' +
-                ", klass='" + klass + '\'' +
-                ", uid='" + uid + '\'' +
-                ", code='" + code + '\'' +
-                ", data=" + data +
-                '}';
+            "auditType=" + auditType +
+            ", auditScope=" + auditScope +
+            ", createdAt=" + createdAt +
+            ", createdBy='" + createdBy + '\'' +
+            ", klass='" + klass + '\'' +
+            ", uid='" + uid + '\'' +
+            ", code='" + code + '\'' +
+            ", data=" + data +
+            '}';
     }
 }

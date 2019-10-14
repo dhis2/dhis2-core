@@ -35,8 +35,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 /**
  * @author Luciano Fiandesio
  */
-public interface AuditLegacyObjectFactory {
-
-    Object create(AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user);
-
+public interface AuditLegacyObjectFactory
+{
+    Object create( AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user );
 }

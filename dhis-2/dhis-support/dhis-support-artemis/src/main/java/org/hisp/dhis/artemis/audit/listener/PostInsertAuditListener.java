@@ -28,8 +28,6 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostInsertEventListener;
 import org.hibernate.persister.entity.EntityPersister;
@@ -41,15 +39,14 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 /**
  * @author Luciano Fiandesio
  */
 @Component
 public class PostInsertAuditListener
-    extends
-    AbstractHibernateListener
-    implements
-    PostInsertEventListener
+    extends AbstractHibernateListener implements PostInsertEventListener
 {
 
     public PostInsertAuditListener( AuditManager auditManager, AuditLegacyObjectFactory auditLegacyObjectFactory,
@@ -64,17 +61,16 @@ public class PostInsertAuditListener
         Object entity = postInsertEvent.getEntity();
 
         getAuditingScope( entity ).ifPresent( scope -> {
-
             IdentifiableObject io = (IdentifiableObject) entity;
 
-            auditManager.send(Audit.builder().withAuditType(AuditType.CREATE)
+            auditManager.send( Audit.builder().withAuditType( AuditType.CREATE )
                 .withAuditScope( scope )
                 .withCreatedAt( new Date() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
                 .withData( this.legacyObjectFactory.create( scope, AuditType.CREATE, io, getCreatedBy() ) )
-                    .build());
-        });
+                .build() );
+        } );
     }
 
     @Override

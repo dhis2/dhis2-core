@@ -51,7 +51,7 @@ public class ArtemisManager
 
     public ArtemisManager(
         EmbeddedActiveMQ embeddedActiveMQ,
-        ArtemisConfigData artemisConfigData)
+        ArtemisConfigData artemisConfigData )
     {
         this.embeddedActiveMQ = embeddedActiveMQ;
         this.artemisConfigData = artemisConfigData;

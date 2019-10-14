@@ -28,14 +28,6 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.artemis.ProducerConfiguration.ProducerConfigurationBuilder;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.jms.ConnectionFactory;
-import javax.jms.DeliveryMode;
-
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
@@ -57,6 +49,13 @@ import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
+import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hisp.dhis.artemis.ProducerConfiguration.ProducerConfigurationBuilder;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -76,7 +75,7 @@ public class ArtemisConfig
     }
 
     @Bean
-    public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData)
+    public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData )
     {
         JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
         connectionFactory.setClientIDPrefix( "dhis2" );
@@ -91,7 +90,7 @@ public class ArtemisConfig
     {
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
-        template.setDestinationResolver(nameDestinationResolver);
+        template.setDestinationResolver( nameDestinationResolver );
         return template;
     }
 
@@ -107,7 +106,7 @@ public class ArtemisConfig
     }
 
     @Bean
-    public EmbeddedActiveMQ createEmbeddedServer( ArtemisConfigData artemisConfigData) throws Exception
+    public EmbeddedActiveMQ createEmbeddedServer( ArtemisConfigData artemisConfigData ) throws Exception
     {
         EmbeddedActiveMQ server = new EmbeddedActiveMQ();
 
@@ -188,7 +187,6 @@ public class ArtemisConfig
 
     /**
      * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve the topic name from the scope
-     *
      */
     @Bean
     public Map<AuditScope, String> scopeToDestinationMap()
@@ -198,7 +196,7 @@ public class ArtemisConfig
         scopeDestinationMap.put( AuditScope.METADATA, Topics.METADATA_TOPIC_NAME );
         return scopeDestinationMap;
     }
-    
+
     @Bean
     public ProducerConfiguration producerConfiguration()
     {

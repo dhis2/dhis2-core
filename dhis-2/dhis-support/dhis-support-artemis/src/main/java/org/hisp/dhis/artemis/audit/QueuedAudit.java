@@ -28,17 +28,15 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Luciano Fiandesio
  */
-public class QueuedAudit
-    implements
-    Delayed
+public class QueuedAudit implements Delayed
 {
     private final long origin;
 
@@ -81,6 +79,7 @@ public class QueuedAudit
         }
 
         long d = (getDelay( TimeUnit.MILLISECONDS ) - delayed.getDelay( TimeUnit.MILLISECONDS ));
+
         return ((d == 0) ? 0 : ((d < 0) ? -1 : 1));
     }
 
@@ -114,6 +113,7 @@ public class QueuedAudit
         }
 
         final QueuedAudit other = (QueuedAudit) obj;
+
         if ( audit == null )
         {
             return other.audit == null;
@@ -122,6 +122,5 @@ public class QueuedAudit
         {
             return audit.equals( other.audit );
         }
-
     }
 }

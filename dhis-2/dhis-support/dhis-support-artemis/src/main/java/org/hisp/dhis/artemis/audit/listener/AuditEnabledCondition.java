@@ -35,12 +35,11 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * Condition that "switches off" the Auditing producer from Hibernate Listener
  * when the system is running in a Test run
- * 
+ *
  * @author Luciano Fiandesio
  */
 public class AuditEnabledCondition
-    extends
-    PropertiesAwareConfigurationCondition
+    extends PropertiesAwareConfigurationCondition
 {
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )

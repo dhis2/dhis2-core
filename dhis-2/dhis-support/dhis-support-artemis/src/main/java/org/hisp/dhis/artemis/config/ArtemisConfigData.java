@@ -130,11 +130,13 @@ public class ArtemisConfigData
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSendAsync() {
+    public boolean isSendAsync()
+    {
         return sendAsync;
     }
 
-    public void setSendAsync(boolean sendAsync) {
+    public void setSendAsync( boolean sendAsync )
+    {
         this.sendAsync = sendAsync;
     }
 }

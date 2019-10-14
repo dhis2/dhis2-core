@@ -28,8 +28,6 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
@@ -41,17 +39,18 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 /**
  * @author Luciano Fiandesio
  */
 @Component
 public class PostUpdateAuditListener
-    extends
-    AbstractHibernateListener
-    implements
-    PostUpdateEventListener
+    extends AbstractHibernateListener implements PostUpdateEventListener
 {
-    public PostUpdateAuditListener( AuditManager auditManager, AuditLegacyObjectFactory auditLegacyObjectFactory,
+    public PostUpdateAuditListener(
+        AuditManager auditManager,
+        AuditLegacyObjectFactory auditLegacyObjectFactory,
         UserNameSupplier userNameSupplier )
     {
         super( auditManager, auditLegacyObjectFactory, userNameSupplier );
@@ -63,18 +62,16 @@ public class PostUpdateAuditListener
         Object entity = postUpdateEvent.getEntity();
 
         getAuditingScope( entity ).ifPresent( scope -> {
-
             IdentifiableObject io = (IdentifiableObject) entity;
 
-            auditManager.send(Audit.builder().withAuditType(AuditType.UPDATE)
+            auditManager.send( Audit.builder().withAuditType( AuditType.UPDATE )
                 .withAuditScope( scope )
                 .withCreatedAt( new Date() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
                 .withData( this.legacyObjectFactory.create( scope, AuditType.UPDATE, io, getCreatedBy() ) )
-                .build());
-
-        });
+                .build() );
+        } );
     }
 
     @Override

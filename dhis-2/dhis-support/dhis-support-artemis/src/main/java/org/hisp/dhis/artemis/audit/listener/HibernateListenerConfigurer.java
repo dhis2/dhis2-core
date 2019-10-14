@@ -28,12 +28,6 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PostDeleteEventListener;
@@ -42,11 +36,17 @@ import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * This component configures the Hibernate Auditing listeners. The listeners are
  * responsible for "intercepting" Hibernate-managed objects after a save/update
  * operation and pass them to the Auditing sub-system.
- *
+ * <p>
  * This bean is not active during tests.
  *
  * @author Luciano Fiandesio
@@ -55,18 +55,17 @@ import org.springframework.stereotype.Component;
 @Conditional( value = AuditEnabledCondition.class )
 public class HibernateListenerConfigurer
 {
-
     @PersistenceUnit
     private EntityManagerFactory emf;
 
     private final PostInsertAuditListener postInsertAuditListener;
-
     private final PostUpdateEventListener postUpdateEventListener;
-
     private final PostDeleteEventListener postDeleteEventListener;
 
-    public HibernateListenerConfigurer( PostInsertAuditListener postInsertAuditListener,
-        PostUpdateEventListener postUpdateEventListener, PostDeleteEventListener postDeleteEventListener )
+    public HibernateListenerConfigurer(
+        PostInsertAuditListener postInsertAuditListener,
+        PostUpdateEventListener postUpdateEventListener,
+        PostDeleteEventListener postDeleteEventListener )
     {
         checkNotNull( postDeleteEventListener );
         checkNotNull( postUpdateEventListener );
