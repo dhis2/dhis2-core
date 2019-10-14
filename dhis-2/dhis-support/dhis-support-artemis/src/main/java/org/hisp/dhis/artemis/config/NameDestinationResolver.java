@@ -48,7 +48,6 @@ public class NameDestinationResolver implements DestinationResolver
     public Destination resolveDestinationName( Session session, String destinationName, boolean pubSubDomain )
         throws JMSException
     {
-
         if ( pubSubDomain )
         {
             return resolveTopic( session, destinationName );
@@ -57,7 +56,6 @@ public class NameDestinationResolver implements DestinationResolver
         {
             return resolveQueue( session, destinationName );
         }
-
     }
 
     private Destination resolveTopic( Session session, String topicName )
