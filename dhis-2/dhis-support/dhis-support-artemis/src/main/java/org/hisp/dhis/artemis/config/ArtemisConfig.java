@@ -91,6 +91,8 @@ public class ArtemisConfig
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
         template.setDestinationResolver( nameDestinationResolver );
+        template.setPubSubDomain( true );
+
         return template;
     }
 
