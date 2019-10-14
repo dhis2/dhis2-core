@@ -31,7 +31,7 @@ package org.hisp.dhis.audit;
 /**
  * @author Luciano Fiandesio
  */
-public enum  AuditScope {
-
+public enum AuditScope
+{
     METADATA
 }
