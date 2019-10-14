@@ -57,9 +57,9 @@ main () {
     echo "Done"
 
     echo "Extracting artifacts..."
-    docker cp "$TEMP":/dhis.war "${ARTIFACTS}/dhis.war"
-    docker cp "$TEMP":/sha256sum.txt "${ARTIFACTS}/sha256sum.txt"
-    docker cp "$TEMP":/md5sum.txt "${ARTIFACTS}/md5sum.txt"
+    docker cp "$TEMP":/srv/dhis2/dhis.war "${ARTIFACTS}/dhis.war"
+    docker cp "$TEMP":/srv/dhis2/sha256sum.txt "${ARTIFACTS}/sha256sum.txt"
+    docker cp "$TEMP":/srv/dhis2/md5sum.txt "${ARTIFACTS}/md5sum.txt"
     echo "Done"
 }
 

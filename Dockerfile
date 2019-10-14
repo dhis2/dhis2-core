@@ -29,10 +29,10 @@ RUN cp dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
     md5sum dhis.war > /md5sum.txt
 
 #
-# Slim final image that has the build artifacts at root-level
+# Slim final image that has the build artifacts at /srv/dhis2
 #
 
 FROM alpine:latest
-COPY --from=build /dhis.war /dhis.war
-COPY --from=build /sha256sum.txt /sha256sum.txt
-COPY --from=build /md5sum.txt /md5sum.txt
+COPY --from=build /dhis.war /srv/dhis2/dhis.war
+COPY --from=build /sha256sum.txt /srv/dhis2/sha256sum.txt
+COPY --from=build /md5sum.txt /srv/dhis2/md5sum.txt
