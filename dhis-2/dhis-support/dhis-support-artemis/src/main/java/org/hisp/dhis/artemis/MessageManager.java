@@ -28,6 +28,7 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.render.RenderService;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
@@ -39,13 +40,16 @@ public class MessageManager
 {
     private final JmsTemplate jmsTemplate;
 
-    public MessageManager( JmsTemplate jmsTemplate )
+    private final RenderService renderService;
+
+    public MessageManager( JmsTemplate jmsTemplate, RenderService renderService )
     {
         this.jmsTemplate = jmsTemplate;
+        this.renderService = renderService;
     }
 
     public void send( String destinationName, Message message )
     {
-        jmsTemplate.send( destinationName, session -> session.createObjectMessage( message ) );
+        jmsTemplate.send( destinationName, session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 }

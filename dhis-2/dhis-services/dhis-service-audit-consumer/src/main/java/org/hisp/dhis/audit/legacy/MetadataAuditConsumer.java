@@ -28,14 +28,17 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
+import java.io.IOException;
+
+import javax.jms.TextMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.springframework.jms.annotation.JmsListener;
@@ -53,48 +56,43 @@ public class MetadataAuditConsumer
 {
 
     private static final Log log = LogFactory.getLog( MetadataAuditConsumer.class );
-
+    
+    private final ObjectMapper mapper = new ObjectMapper();
+    
     private final MetadataAuditService metadataAuditService;
+    private final RenderService renderService;
 
-    public MetadataAuditConsumer( MetadataAuditService metadataAuditService )
+    public MetadataAuditConsumer( MetadataAuditService metadataAuditService, RenderService renderService )
     {
         this.metadataAuditService = metadataAuditService;
+        this.renderService = renderService;
     }
 
     @JmsListener(destination = Topics.METADATA_TOPIC_NAME )
-    public void consume( ObjectMessage message )
+    public void consume( TextMessage message )
     {
-        Audit auditMessage;
         try
         {
-            if ( message.getObject() instanceof Audit )
-            {
-                auditMessage = (Audit) message.getObject();
+            String payload = message.getText();
+            
+            Audit auditMessage = renderService.fromJson( payload, Audit.class);
 
-                if ( auditMessage.getData() instanceof MetadataAudit )
-                {
-                    metadataAuditService.addMetadataAudit( (MetadataAudit) auditMessage.getData() );
-                }
-                else
-                {
-                    log.error( String.format(
-                        "Metadata Audit listener received a message of type: [%s]. Expecting a message of type [%s]. "
-                            + "Audit can not proceed.",
-                        auditMessage.getData(), MetadataAudit.class.getName() ) );
-                }
-            }
-            else
-            {
-                log.error(
-                    String.format(
-                        "Metadata Audit listener received a message of type: [%s]. Expecting a message of type [%s]. "
-                            + "Audit can not proceed.",
-                        message.getObject().getClass().getName(), Audit.class.getName() ) );
-            }
+            metadataAuditService.addMetadataAudit( toMetadataAudit( auditMessage.getData() ) );
         }
-        catch ( JMSException e )
+        catch ( IOException e )
+        {
+            log.error(
+                "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
+                e );
+        }
+        catch ( Exception e )
         {
             log.error( "An error occurred persisting an Audit message of type 'METADATA'", e );
         }
+    }
+
+    private MetadataAudit toMetadataAudit( Object map )
+    {
+        return mapper.convertValue( map, MetadataAudit.class );
     }
 }
