@@ -46,7 +46,7 @@ public class AuditScheduler
 {
     private static final Log log = LogFactory.getLog( AuditScheduler.class );
 
-    private final long delay = 20000; // 20 seconds 
+    private final long delay = 20_000; // 20 seconds
 
     private final AuditProducerSupplier auditProducerSupplier;
 
@@ -69,7 +69,7 @@ public class AuditScheduler
         }
     }
 
-    @Scheduled( fixedDelay = 30000 ) // TODO this value should come from configuration
+    @Scheduled( fixedDelay = 30_000 ) // TODO this value should come from configuration
     public void process()
     {
         final Collection<QueuedAudit> expired = new ArrayList<>();
