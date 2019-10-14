@@ -91,6 +91,7 @@ public class ArtemisConfig
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
         template.setDestinationResolver( nameDestinationResolver );
+        // set to true, since we only use topics and we want to resolve names to topic destination
         template.setPubSubDomain( true );
 
         return template;
@@ -102,6 +103,9 @@ public class ArtemisConfig
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory( connectionFactory );
         factory.setDestinationResolver( nameDestinationResolver );
+        // set to true, since we only use topics and we want to resolve names to topic destination
+        factory.setPubSubDomain( true );
+        // 1 forces the listener to use only one consumer, to avoid duplicated messages
         factory.setConcurrency( "1" );
 
         return factory;
