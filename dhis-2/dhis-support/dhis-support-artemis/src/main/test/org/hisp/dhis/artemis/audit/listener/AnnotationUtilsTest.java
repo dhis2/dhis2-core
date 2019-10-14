@@ -1,11 +1,5 @@
 package org.hisp.dhis.artemis.audit.listener;
 
-import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.system.util.AnnotationUtils;
-import org.junit.Test;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -33,6 +27,13 @@ import org.junit.Test;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.system.util.AnnotationUtils;
+import org.junit.Test;
+
 
 /**
  * @author Luciano Fiandesio
