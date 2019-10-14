@@ -37,6 +37,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -93,7 +94,7 @@ public class TEIimportTest
         tei2enrollment.addProperty( "status", "COMPLETED" );
 
         // act
-        ApiResponse response = teiActions.post( "?strategy=SYNC", object );
+        ApiResponse response = teiActions.post( object, new QueryParamsBuilder().addAll( "strategy=SYNC" ) );
         response.validate().statusCode( 200 );
 
         // assert

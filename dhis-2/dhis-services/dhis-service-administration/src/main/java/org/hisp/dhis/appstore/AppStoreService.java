@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore2;
+package org.hisp.dhis.appstore;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,103 +28,16 @@ package org.hisp.dhis.appstore2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.appmanager.AppStatus;
 
-import java.util.Date;
+import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class ImageResource
+public interface AppStoreService
 {
-    private String id;
+    List<WebApp> getAppStore();
 
-    private String caption;
-
-    private String description;
-
-    private String imageUrl;
-
-    private boolean logo;
-
-    private Date created;
-
-    private Date lastUpdated;
-
-    @JsonProperty
-    public String getCaption()
-    {
-        return caption;
-    }
-
-    public void setCaption( String caption )
-    {
-        this.caption = caption;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    public boolean isLogo()
-    {
-        return logo;
-    }
-
-    public void setLogo( boolean logo )
-    {
-        this.logo = logo;
-    }
-
-    @JsonProperty
-    public String getImageUrl()
-    {
-        return imageUrl;
-    }
-
-    public void setImageUrl( String imageUrl )
-    {
-        this.imageUrl = imageUrl;
-    }
-
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+    AppStatus installAppFromAppStore( String id );
 }

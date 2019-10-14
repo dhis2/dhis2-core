@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
@@ -44,6 +45,7 @@ import java.util.stream.Stream;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -59,6 +61,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,6 +71,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
 /**
@@ -525,6 +529,50 @@ public class DefaultDataQueryServiceTest
                     hasProperty( "key", is( "LAST_12_MONTHS" ) ),
                     hasProperty( "code", is( nullValue() ) ) ) ) );
     }
+
+    @Test
+    public void verifyGetOrgUnitsBasedOnUserOrgUnitType()
+    {
+        testGetUserOrgUnits( UserOrgUnitType.DATA_CAPTURE );
+        testGetUserOrgUnits( UserOrgUnitType.TEI_SEARCH );
+        testGetUserOrgUnits( UserOrgUnitType.DATA_OUTPUT );
+    }
+
+    private void testGetUserOrgUnits( UserOrgUnitType userOrgUnitType )
+    {
+        int orgUnitSize = 10;
+        User user = new User();
+
+        Set<OrganisationUnit> orgUnits = new HashSet<>(
+            beanRandomizer.randomObjects( OrganisationUnit.class, orgUnitSize, "geometry", "parent", "groups", "children" ) );
+
+        switch ( userOrgUnitType )
+        {
+        case DATA_CAPTURE:
+            user.setOrganisationUnits( orgUnits );
+            break;
+        case DATA_OUTPUT:
+            user.setDataViewOrganisationUnits( orgUnits );
+            break;
+        case TEI_SEARCH:
+            user.setTeiSearchOrganisationUnits( orgUnits );
+            break;
+        }
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().userOrgUnitType( userOrgUnitType ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+
+        when( securityManager.getCurrentUser( params ) ).thenReturn( user );
+
+        List<OrganisationUnit> result = target.getUserOrgUnits( params, null );
+        assertThat( result, hasSize( orgUnitSize ) );
+
+        // Check collection is sorted
+        assertTrue( Ordering.natural().isOrdered( result ) );
+    }
+
+
 
     @SuppressWarnings("unchecked")
     private void initOrgUnitGroup( String ouGroupUID )

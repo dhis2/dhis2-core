@@ -28,8 +28,12 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +50,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.repository.TrackedEntityAttributeRepository;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -71,12 +76,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -87,17 +87,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -164,6 +155,9 @@ public abstract class AbstractTrackedEntityInstanceService
     @Autowired
     protected Notifier notifier;
 
+    @Autowired
+    protected TrackedEntityAttributeRepository trackedEntityAttributeRepository;
+
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final CachingMap<String, Program> programCache = new CachingMap<>();
@@ -175,6 +169,25 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
+
+    /**
+     * Merges the two sets, if the passed condition is true
+     *
+     * @param set1 a Set
+     * @param set2 a second Set
+     * @param condition a boolean condition
+     * @return if condition is true, a new Set consisting of the first and second
+     *         set. If false, the first set
+     */
+    private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2,
+        boolean condition )
+    {
+        if ( condition )
+        {
+            set1.addAll( set2 );
+        }
+        return set1;
+    }
 
     @Override
     @Transactional( readOnly = true )
@@ -189,34 +202,26 @@ public abstract class AbstractTrackedEntityInstanceService
 
         List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
 
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityTypes.stream().collect( Collectors.toList() )
-            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeRepository.getTrackedEntityAttributesByTrackedEntityTypes();
 
-        Set<TrackedEntityAttribute> attributes = new HashSet<>();
+        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = trackedEntityAttributeRepository.getTrackedEntityAttributesByProgram();
 
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
-            List<Program> programs = manager.getAll( Program.class );
-
-            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-            {
-                attributes = new HashSet<>( trackedEntityTypeAttributes );
-
-                // pick only those program attributes that user is the owner
-                for ( Program program : programs )
+            daoTEIs.forEach( t -> {
+                Set<TrackedEntityAttribute> attributes = null;
+                for ( Program program : teaByProgram.keySet() )
                 {
-                    if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, program ) )
-                    {
-                        attributes.addAll( program.getTrackedEntityAttributes() );
-                    }
+                    attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
+                            trackerOwnershipAccessManager.hasAccess( user, t, program ) );
                 }
+                dtoTeis.add( getTei( t, attributes , params, user ) );
 
-                dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-
-            }
+            } );
         }
         else
         {
+            Set<TrackedEntityAttribute> attributes;
             attributes = new HashSet<>( trackedEntityTypeAttributes );
 
             if ( queryParams.hasProgram() )
@@ -839,13 +844,13 @@ public abstract class AbstractTrackedEntityInstanceService
         List<Relationship> delete = new ArrayList<>( daoEntityInstance.getRelationshipItems().stream()
             .map( RelationshipItem::getRelationship )
 
-            // Remove items we cant write to
-            .filter(
-                relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
-            .filter(
-                relationship -> relationship.getFrom().getTrackedEntityInstance().getUid().equals( daoEntityInstance.getUid() )
-            )
-            .map( org.hisp.dhis.relationship.Relationship::getUid )
+                // Remove items we cant write to
+                .filter(
+                    relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
+                .filter(
+                    relationship -> isTeiPartOfRelationship( relationship, daoEntityInstance )
+                )
+                .map( org.hisp.dhis.relationship.Relationship::getUid )
 
             // Remove items we are already referencing
             .filter( ( uid ) -> !relationshipUids.contains( uid ) )
@@ -870,7 +875,7 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
 
-                if ( relationship.getFrom() == null )
+                if ( !isTeiPartOfRelationship( relationship, daoEntityInstance ) )
                 {
                     relationshipItem.setTrackedEntityInstance( dtoEntityInstance );
                     relationship.setFrom( relationshipItem );
@@ -880,9 +885,7 @@ public abstract class AbstractTrackedEntityInstanceService
             }
             else
             {
-                String fromUid = relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance();
-
-                if ( fromUid.equals( daoEntityInstance.getUid() ) )
+                if ( isTeiPartOfRelationship( relationship, daoEntityInstance ) )
                 {
                     if ( _relationshipService.relationshipExists( relationship.getRelationship() ) )
                     {
@@ -912,6 +915,46 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummaries.addImportSummaries( relationshipService.deleteRelationships( delete, importOptions ) );
 
         return importSummaries;
+    }
+
+    private boolean isTeiPartOfRelationship( Relationship relationship,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
+    {
+        if ( relationship.getFrom() != null && relationship.getFrom().getTrackedEntityInstance() != null &&
+            relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance().equals( tei.getUid() ) )
+        {
+            return true;
+        }
+        else if ( !relationship.isBidirectional() )
+        {
+            return false;
+        }
+        else
+        {
+            return relationship.getTo() != null && relationship.getTo().getTrackedEntityInstance() != null &&
+                relationship.getTo().getTrackedEntityInstance().getTrackedEntityInstance().equals( tei.getUid() );
+        }
+
+    }
+
+    private boolean isTeiPartOfRelationship( org.hisp.dhis.relationship.Relationship relationship,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
+    {
+        if ( relationship.getFrom() != null && relationship.getFrom().getTrackedEntityInstance() != null &&
+            relationship.getFrom().getTrackedEntityInstance().getUid().equals( tei.getUid() ) )
+        {
+            return true;
+        }
+        else if ( !relationship.getRelationshipType().isBidirectional() )
+        {
+            return false;
+        }
+        else
+        {
+            return relationship.getTo() != null && relationship.getTo().getTrackedEntityInstance() != null &&
+                relationship.getTo().getTrackedEntityInstance().getUid().equals( tei.getUid() );
+        }
+
     }
 
     private ImportSummaries handleEnrollments( TrackedEntityInstance dtoEntityInstance,
@@ -1405,7 +1448,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( params.isDataSynchronizationQuery() )
         {
-            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( e -> e.getProgram() ).collect( Collectors.toList() );
+            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( Enrollment::getProgram ).collect( Collectors.toList() );
 
             IdSchemes idSchemes = new IdSchemes();
             for ( String programUid : programs )
