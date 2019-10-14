@@ -94,7 +94,10 @@ public enum ConfigurationKey
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "off", false ),
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
-    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false );
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false ),
+    APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
+    APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false ),
+    APP_STORE_API_VERSION( "appstore.api.version", "", false );
 
     private final String key;
 

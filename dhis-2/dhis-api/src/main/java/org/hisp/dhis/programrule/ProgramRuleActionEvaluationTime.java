@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore2;
+package org.hisp.dhis.programrule;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,16 +28,49 @@ package org.hisp.dhis.appstore2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.appmanager.AppStatus;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.common.DxfNamespaces;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Enrico Colasante
  */
-public interface AppStoreService
+@JacksonXmlRootElement( localName = "programRuleEvaluationTime", namespace = DxfNamespaces.DXF_2_0 )
+public enum ProgramRuleActionEvaluationTime
 {
-    List<WebApp> getAppStore();
+    ON_DATA_ENTRY( "on_data_entry" ),
+    ON_COMPLETE( "on_complete" ),
+    ALWAYS( "always" );
 
-    AppStatus installAppFromAppStore( String id );
+    private final String value;
+
+    ProgramRuleActionEvaluationTime( String value )
+    {
+        this.value = value;
+    }
+
+    public static ProgramRuleActionEvaluationTime fromValue( String value )
+    {
+        for ( ProgramRuleActionEvaluationTime type : ProgramRuleActionEvaluationTime.values() )
+        {
+            if ( type.value.equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
+
+        return null;
+    }
+
+    public static ProgramRuleActionEvaluationTime getDefault()
+    {
+        return ALWAYS;
+    }
+
+    public static Set<ProgramRuleActionEvaluationTime> getAll()
+    {
+        return Sets.newHashSet( ProgramRuleActionEvaluationTime.values() );
+    }
 }

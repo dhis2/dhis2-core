@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -84,8 +82,7 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElement
-    extends BaseDimensionalItemObject
+public class DataElement extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
     public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
@@ -760,5 +757,42 @@ public class DataElement
     public void setFieldMask( String fieldMask )
     {
         this.fieldMask = fieldMask;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+
+        DataElement that = (DataElement) o;
+        return zeroIsSignificant == that.zeroIsSignificant && valueType == that.valueType
+            && Objects.equals( uid, that.uid )
+            && Objects.equals( formName, that.formName ) && Objects.equals( displayFormName, that.displayFormName )
+            && domainType == that.domainType && Objects.equals( categoryCombo, that.categoryCombo )
+            && Objects.equals( url, that.url )
+            && Objects.equals( aggregationLevels, that.aggregationLevels )
+            && Objects.equals( optionSet, that.optionSet ) && Objects.equals( commentOptionSet, that.commentOptionSet )
+            && Objects.equals( style, that.style ) && Objects.equals( fieldMask, that.fieldMask );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), uid, valueType, formName, displayFormName, domainType, categoryCombo, url,
+            aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
+            fieldMask );
     }
 }

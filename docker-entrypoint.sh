@@ -12,13 +12,13 @@ if [ "$(id -u)" = "0" ]; then
     fi
     
     chown -R root:tomcat $TOMCATDIR
-    chmod -R u+rwX,g+rX,o-rwx $TOMCATDIR
+    chmod -R u=rwX,g=rX,o-rwx $TOMCATDIR
     chown -R tomcat:tomcat $TOMCATDIR/temp \
         $TOMCATDIR/work \
         $TOMCATDIR/logs
 
     chown -R tomcat:tomcat $DHIS2HOME
-    exec su-exec tomcat "$0" "$@"
+    exec setpriv --reuid=tomcat --regid=tomcat --init-groups "$0" "$@"
 fi
 
 exec "$@"

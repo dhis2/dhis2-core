@@ -1,5 +1,3 @@
-package org.hisp.dhis.appstore;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,56 +26,16 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+package org.hisp.dhis.analytics;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
  */
-public class AppStore
+@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
+public enum UserOrgUnitType
 {
-    private String name;
-    
-    private String description;
-    
-    private List<WebApp> apps = new ArrayList<>();
-
-    public AppStore()
-    {
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    public List<WebApp> getApps()
-    {
-        return apps;
-    }
-
-    public void setApps( List<WebApp> apps )
-    {
-        this.apps = apps;
-    }    
+    DATA_CAPTURE, DATA_OUTPUT, TEI_SEARCH
 }

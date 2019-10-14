@@ -52,7 +52,7 @@ RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests
 # Serve the packaged .war file (Tomcat)
 # Use a second build stage in a fresh container so we don't bloat it with the Maven build tools
 ##########
-FROM tomcat:8.5.34-jre8-alpine as serve
+FROM tomcat:8.5.46-jdk8-openjdk-slim as serve
 
 ENV DHIS2_HOME=/DHIS2_home
 
@@ -62,13 +62,15 @@ RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
     chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     mkdir $DHIS2_HOME && \
-    addgroup -S tomcat && \
-    addgroup root tomcat && \
-    adduser -S -D -G tomcat tomcat
+    adduser --system --disabled-password --group tomcat && \
+    echo 'tomcat' >> /etc/cron.deny && \
+    echo 'tomcat' >> /etc/at.deny
 
-RUN apk add --update --no-cache \
-        bash  \
-        su-exec
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+        util-linux \
+        bash \
+        unzip
 
 COPY server.xml /usr/local/tomcat/conf
 COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
@@ -76,5 +78,3 @@ COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/loca
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 CMD ["catalina.sh", "run"]
-
-

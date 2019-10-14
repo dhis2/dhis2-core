@@ -28,17 +28,100 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.hisp.dhis.appmanager.AppStatus;
+import java.util.Date;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 07.09.17.
  */
-public interface AppStoreManager
+public class Review
 {
-    AppStore getAppStore()
-        throws IOException;
-    
-    AppStatus installAppFromAppStore( String id );
+    private String id;
+
+    private String userId;
+
+    private String reviewText;
+
+    private int rate;
+
+    private Date created;
+
+    private Date lastUpdated;
+
+    public Review()
+    {
+    }
+
+    public Review( String userId, String reviewText )
+    {
+        this.userId = userId;
+        this.reviewText = reviewText;
+    }
+
+    @JsonProperty
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    public void setUserId( String userId )
+    {
+        this.userId = userId;
+    }
+
+    @JsonProperty
+    public String getReviewText()
+    {
+        return reviewText;
+    }
+
+    public void setReviewText( String reviewText )
+    {
+        this.reviewText = reviewText;
+    }
+
+    @JsonProperty
+    public int getRate()
+    {
+        return rate;
+    }
+
+    public void setRate( int rate )
+    {
+        this.rate = rate;
+    }
+
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
 }

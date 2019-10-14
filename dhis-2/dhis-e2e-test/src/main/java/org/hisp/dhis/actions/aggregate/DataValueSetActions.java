@@ -1,5 +1,3 @@
-package org.hisp.dhis.appstore2;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,66 +26,18 @@ package org.hisp.dhis.appstore2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.actions.aggregate;
+
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Developer
+public class DataValueSetActions
+    extends RestApiActions
 {
-    private String name;
-
-    private String organisation;
-
-    private String address;
-
-    private String email;
-
-    public Developer()
+    public DataValueSetActions()
     {
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getOrganisation()
-    {
-        return organisation;
-    }
-
-    public void setOrganisation( String organisation )
-    {
-        this.organisation = organisation;
-    }
-
-    @JsonProperty
-    public String getEmail()
-    {
-        return email;
-    }
-
-    public void setEmail( String email )
-    {
-        this.email = email;
-    }
-
-    @JsonProperty
-    public String getAddress()
-    {
-        return address;
-    }
-
-    public void setAddress( String address )
-    {
-        this.address = address;
+        super( "/dataValueSets" );
     }
 }

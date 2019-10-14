@@ -24,7 +24,7 @@
     <list name="dataDimensionItems" table="mapview_datadimensionitems" cascade="all, delete-orphan">
       <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_datadimensionitems_mapviewid" />
-      <list-index column="sort_order" base="0" />
+      <list-index column="sort_order"/>
       <many-to-many column="datadimensionitemid" class="org.hisp.dhis.common.DataDimensionItem"
         foreign-key="fk_mapview_datadimensionitems_datadimensionitemid" />
     </list>
@@ -221,6 +221,14 @@
     <property name="styleDataItem" type="jbObject" />
 
     <property name="translations" type="jblTranslations"/>
+
+    <property name="userOrgUnitType" length="12" >
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.UserOrgUnitType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
   </class>
 

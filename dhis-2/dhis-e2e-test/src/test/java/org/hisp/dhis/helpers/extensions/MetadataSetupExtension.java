@@ -31,7 +31,6 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -69,12 +68,12 @@ public class MetadataSetupExtension
 
             new LoginActions().loginAsDefaultUser();
 
-            metadataActions.importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
+            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/userGroups.json" ), "async=false" );
 
-            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
-            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/metadata.json" ), "async=false" );
+            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/metadata.json" ), "async=false" );
 
-            metadataActions.importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
+            metadataActions.importAndValidateMetadata( new File( "src/test/resources/setup/users.json" ), "async=false" );
 
 
             createdData = TestRunStorage.getCreatedEntities();
@@ -88,17 +87,6 @@ public class MetadataSetupExtension
             // The following line registers a callback hook when the root test context is shut down
             context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
         }
-    }
-
-    @Override
-    public void close()
-    {
-        TestCleanUp testCleanUp = new TestCleanUp();
-
-        iterateCreatedData( id -> {
-            testCleanUp.deleteEntity( createdData.get( id ), id );
-        } );
-
     }
 
     private void setupSuperuser( ) {
@@ -124,5 +112,17 @@ public class MetadataSetupExtension
             String id = (String) iterator.next();
             stringConsumer.accept( id );
         }
+    }
+
+    @Override
+    public void close()
+        throws Throwable
+    {
+        TestCleanUp testCleanUp = new TestCleanUp();
+
+        iterateCreatedData( id -> {
+            testCleanUp.deleteEntity( createdData.get( id ), id );
+        } );
+
     }
 }
