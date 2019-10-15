@@ -35,7 +35,6 @@ import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -196,7 +195,7 @@ public class AttributeValueServiceTest
         assertEquals( 1, attributeValues.size() );
         assertEquals( avB.getValue(), attributeValues.get( 0 ).getValue() );
 
-        List<IdentifiableObject> list = dataElementStore.getByAttributeAndValue( attribute1, "valueA" );
+        List<DataElement> list = dataElementStore.getByAttributeAndValue( attribute1, "valueA" );
         assertNotNull( list );
         assertEquals( 1, list.size() );
         assertEquals( dataElementA, list.get( 0 ) );
@@ -425,7 +424,7 @@ public class AttributeValueServiceTest
         assertEquals( "DataElementB", de2.getName() );
         assertEquals( "DataElementC", de3.getName() );
     }
-    
+
     @Test
     public void testGetAllValuesByAttributes()
     {

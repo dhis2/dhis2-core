@@ -81,23 +81,13 @@ import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.ReportingRateMetric;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -123,6 +113,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
 import com.google.common.collect.ImmutableMap;
@@ -167,6 +158,8 @@ public class DefaultAnalyticsService
 
     private final DataQueryService dataQueryService;
 
+    private final ExpressionResolver resolver;
+
     private final DhisConfigurationProvider dhisConfig;
 
     private final CacheProvider cacheProvider;
@@ -196,7 +189,7 @@ public class DefaultAnalyticsService
         AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
         ConstantService constantService, ExpressionService expressionService,
         OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
-        EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
+        EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService, ExpressionResolver resolver,
         DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment)
     {
         checkNotNull( analyticsManager );
@@ -210,6 +203,7 @@ public class DefaultAnalyticsService
         checkNotNull( systemSettingManager );
         checkNotNull( eventAnalyticsService );
         checkNotNull( dataQueryService );
+        checkNotNull( resolver );
         checkNotNull( dhisConfig );
         checkNotNull( cacheProvider );
         checkNotNull( environment );
@@ -225,6 +219,7 @@ public class DefaultAnalyticsService
         this.systemSettingManager = systemSettingManager;
         this.eventAnalyticsService = eventAnalyticsService;
         this.dataQueryService = dataQueryService;
+        this.resolver = resolver;
         this.dhisConfig = dhisConfig;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
@@ -312,6 +307,14 @@ public class DefaultAnalyticsService
         DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
 
         return getAggregatedDataValueMapping( params );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        queryCache.invalidateAll();
+        log.info( "Analytics cache cleared" );
     }
 
     // -------------------------------------------------------------------------
@@ -587,7 +590,7 @@ public class DefaultAnalyticsService
 
                 if ( params.isIncludeNumDen() )
                 {
-                    grid.addNullValues( 5 );
+                    grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
                 }
             }
         }
@@ -667,7 +670,7 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 5 );
+                grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
             }
         }
     }
@@ -1056,7 +1059,7 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 3 );
+                grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
             }
         }
     }
@@ -1345,7 +1348,7 @@ public class DefaultAnalyticsService
     {
         indicators.forEach( params::addResolvedExpressionItem );
 
-        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( indicators ) );
+        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1368,6 +1371,16 @@ public class DefaultAnalyticsService
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
 
         return grid.getAsMap( grid.getWidth() - 1, DimensionalObject.DIMENSION_SEP );
+    }
+
+    private Collection<Indicator> preprocessIndicators( List<Indicator> indicators )
+    {
+        for ( Indicator indicator : indicators )
+        {
+            indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
+            indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
+        }
+        return indicators;
     }
 
     /**

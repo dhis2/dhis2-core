@@ -28,6 +28,7 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -81,7 +82,7 @@ public class EventQueryCriteria implements Serializable
     /**
      * Property which contains the order of output columns
      */
-    private Set<String> displayColumnOrder;
+    private List<String> displayColumnOrder = new ArrayList<>();
     
     /**
      * Property which contains the filters to be used when querying events.
@@ -229,12 +230,12 @@ public class EventQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getDisplayColumnOrder()
+    public List<String> getDisplayColumnOrder()
     {
         return displayColumnOrder;
     }
 
-    public void setDisplayColumnOrder( Set<String> filters )
+    public void setDisplayColumnOrder( List<String> filters )
     {
         this.displayColumnOrder = filters;
     }

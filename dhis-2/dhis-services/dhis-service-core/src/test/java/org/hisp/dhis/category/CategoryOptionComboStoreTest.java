@@ -58,6 +58,9 @@ public class CategoryOptionComboStoreTest
     @Autowired
     private CategoryService categoryService;
     
+    @Autowired
+    private CategoryOptionGroupStore categoryOptionGroupStore;
+    
     private Category categoryA;
     private Category categoryB;
         
@@ -292,5 +295,20 @@ public class CategoryOptionComboStoreTest
         assertEquals( categoryOptions2, coc2.getCategoryOptions() );
         assertEquals( categoryOptions3, coc3.getCategoryOptions() );
         assertEquals( categoryOptions4, coc4.getCategoryOptions() );
+    }
+
+    @Test
+    public void testGetCategoryOptionComboByOptionGroup()
+    {
+        categoryService.generateOptionCombos( categoryComboA );
+        categoryService.generateOptionCombos( categoryComboB );
+        CategoryOptionGroup catOptionGroup = createCategoryOptionGroup( 'A' );
+        catOptionGroup.addCategoryOption( categoryOptionA );
+        catOptionGroup.addCategoryOption( categoryOptionB );
+        categoryOptionGroupStore.save( catOptionGroup );
+        List<CategoryOptionCombo> result = categoryOptionComboStore
+            .getCategoryOptionCombosByGroupUid( catOptionGroup.getUid() );
+        assertNotNull( result );
+        assertEquals( 6, result.size() );
     }
 }

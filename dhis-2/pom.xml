@@ -1290,12 +1290,12 @@
       <dependency>
         <groupId>org.cache2k</groupId>
         <artifactId>cache2k-api</artifactId>
-        <version>1.2.3.Final</version>
+        <version>1.2.4.Final</version>
       </dependency>
       <dependency>
        <groupId>org.cache2k</groupId>
        <artifactId>cache2k-core</artifactId>
-       <version>1.2.3.Final</version>
+       <version>1.2.4.Final</version>
       </dependency>
       <dependency>
         <groupId>com.googlecode.jsmpp</groupId>
@@ -1430,7 +1430,7 @@
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
     <jacoco.version>0.8.2</jacoco.version>
-    <artemis.version>2.10.0</artemis.version>
+    <artemis.version>2.6.4</artemis.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
   </properties>

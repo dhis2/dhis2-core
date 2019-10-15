@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.referencing.GeodeticCalculator;
-import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;

@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore2;
+package org.hisp.dhis.cache;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,66 +28,74 @@ package org.hisp.dhis.appstore2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Luciano Fiandesio
  */
-public class Developer
+public class TestCache<V>
+    implements
+    Cache<V>
 {
-    private String name;
 
-    private String organisation;
+    private Map<String, V> mapCache = new HashMap<>();
 
-    private String address;
-
-    private String email;
-
-    public Developer()
+    @Override
+    public Optional<V> getIfPresent( String key )
     {
+        if ( mapCache.containsKey( key ) )
+        {
+            return get( key );
+        }
+        else
+        {
+            return Optional.empty();
+        }
     }
 
-    @JsonProperty
-    public String getName()
+    @Override
+    public Optional<V> get( String key )
     {
-        return name;
+        return Optional.ofNullable( mapCache.get( key ) );
     }
 
-    public void setName( String name )
+    @Override
+    public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
-        this.name = name;
+        return Optional.empty();
     }
 
-    @JsonProperty
-    public String getOrganisation()
+    @Override
+    public Collection<V> getAll()
     {
-        return organisation;
+        return mapCache.values();
     }
 
-    public void setOrganisation( String organisation )
+    @Override
+    public void put( String key, V value )
     {
-        this.organisation = organisation;
+        mapCache.put( key, value );
     }
 
-    @JsonProperty
-    public String getEmail()
+    @Override
+    public void invalidate( String key )
     {
-        return email;
+        mapCache.remove( key );
     }
 
-    public void setEmail( String email )
+    @Override
+    public void invalidateAll()
     {
-        this.email = email;
+        mapCache = new HashMap<>();
     }
 
-    @JsonProperty
-    public String getAddress()
+    @Override
+    public CacheType getCacheType()
     {
-        return address;
-    }
-
-    public void setAddress( String address )
-    {
-        this.address = address;
+        return null;
     }
 }

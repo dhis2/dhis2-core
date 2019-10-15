@@ -170,6 +170,11 @@ public class ApiResponse
         return raw.asString();
     }
 
+    public String getAsString()
+    {
+        return raw.asString();
+    }
+
     public String getContentType()
     {
         return raw.getContentType();

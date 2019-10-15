@@ -56,6 +56,7 @@ import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -1078,6 +1079,15 @@ public abstract class DeletionHandler
     }
 
     public void deleteReservedValue( ReservedValue reservedValue )
+    {
+    }
+
+    public String allowDeletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    {
+        return null;
+    }
+
+    public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
     }
 }

@@ -58,6 +58,7 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Ignore
 public class DataImportTest
     extends ApiTest
 {

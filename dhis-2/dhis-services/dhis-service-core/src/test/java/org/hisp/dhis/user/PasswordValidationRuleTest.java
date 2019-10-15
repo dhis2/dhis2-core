@@ -115,8 +115,9 @@ public class PasswordValidationRuleTest
         assertThat( parameterValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
         assertThat( historyValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
 
-        CredentialsInfo credentialsInfoNoEmail = new CredentialsInfo( USERNAME, STRONG_PASSWORD, "", true );
-        assertThat( parameterValidationRule.validate( credentialsInfoNoEmail ).isValid(), is( false ) );
+        assertThat( parameterValidationRule.validate( new CredentialsInfo( USERNAME, STRONG_PASSWORD, "", true ) ).isValid(), is( true ) );
+        assertThat( parameterValidationRule.validate( new CredentialsInfo( USERNAME, "", "", true ) ).isValid(), is( false ) );
+        assertThat( parameterValidationRule.validate( new CredentialsInfo( "", STRONG_PASSWORD, "", false ) ).isValid(), is( false ) );
     }
 
     @Test

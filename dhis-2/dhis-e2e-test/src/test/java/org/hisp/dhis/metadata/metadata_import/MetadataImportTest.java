@@ -29,6 +29,7 @@
 package org.hisp.dhis.metadata.metadata_import;
 
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -184,7 +185,7 @@ public class MetadataImportTest
     }
 
     @Test
-    public void shouldImportMetadataAsync()
+    public void shouldReturnImportSummariesWhenImportingInvalidMetadataAsync()
         throws Exception
     {
         // arrange
@@ -192,9 +193,57 @@ public class MetadataImportTest
         queryParamsBuilder
             .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
 
-        // import metadata so that we have references and can clean up
+        JsonObject metadata = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
+
+        metadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
+            .addProperty( "shortName", RandomStringUtils.random( 51 ) );
+
+        // act
+        ApiResponse response = metadataActions.post( params, metadata );
+        response.validate()
+            .statusCode( 200 )
+            .body( not( equalTo( "null" ) ) )
+            .body( "response.name", equalTo( "metadataImport" ) )
+            .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
+
+        String taskId = response.extractString( "response.id" );
+
+        // Validate that job was successful
+
+        response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
+
+        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Start" ) ) );
+        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );
+
+        // validate task summaries were created
+        response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
+
+        response.validate().statusCode( 200 )
+            .body( not( equalTo( "null" ) ) )
+            .body( "status", equalTo( "WARNING" ) )
+            .body( "typeReports", notNullValue() )
+            .rootPath( "typeReports" )
+            .body( "stats.total", everyItem( greaterThan( 0 ) ) )
+            .body( "stats.ignored", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "objectReports", notNullValue() )
+            .body( "objectReports", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "objectReports.errorReports", notNullValue() );
+
+    }
+
+    @Test
+    public void shouldImportMetadataAsync()
+        throws Exception
+    {
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
+        // arrange
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder
+            .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
+
+        // import metadata so that we have references and can clean up
 
         // act
         ApiResponse response = metadataActions.post( object, queryParamsBuilder );
@@ -204,6 +253,8 @@ public class MetadataImportTest
 
         response = metadataActions.post( object, queryParamsBuilder );
 
+        response = metadataActions.post( object, queryParamsBuilder );
+        
         response.validate()
             .statusCode( 200 )
             .body( "response", notNullValue() )
@@ -226,6 +277,7 @@ public class MetadataImportTest
         response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
 
         response.validate().statusCode( 200 )
+            .body( not( equalTo( "null" ) ) )
             .body( "status", equalTo( "OK" ) )
             .body( "typeReports", notNullValue() )
             .rootPath( "typeReports" )
