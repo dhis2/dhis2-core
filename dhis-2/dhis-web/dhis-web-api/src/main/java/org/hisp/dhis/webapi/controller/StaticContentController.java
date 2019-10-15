@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,23 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.DhisApiVersion.ALL;
+import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
+import static org.hisp.dhis.feedback.Status.WARNING;
+import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
+import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_BANNER;
+import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_FRONT;
+import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
+import static org.springframework.http.HttpStatus.FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
+import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -39,38 +53,36 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.api.client.util.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceKeyUtil;
+import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
+import org.hisp.dhis.fileresource.SimpleStaticResource;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.domain.Blob;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteSource;
-import sun.nio.ch.IOUtil;
 
 /**
  * Serves and uploads custom images for the logo on the front page (logo_front)
@@ -78,12 +90,14 @@ import sun.nio.ch.IOUtil;
  *
  * @author Stian Sandvold
  */
-@Controller
-@RequestMapping( "/staticContent" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RestController
+@RequestMapping(RESOURCE_PATH)
+@ApiVersion( { DEFAULT, ALL } )
 public class StaticContentController
 {
     private static final Log log = LogFactory.getLog( StaticContentController.class );
+
+    protected static final String RESOURCE_PATH = "/staticContent";
 
     private SystemSettingManager systemSettingManager;
 
@@ -95,11 +109,11 @@ public class StaticContentController
 
     protected static final String LOGO_FRONT = "logo_front";
 
-    private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = FileResourceDomain.DOCUMENT;
+    private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
-    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.<String, SettingKey>builder()
-        .put( LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER ).put( LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT )
-        .build();
+    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.of(
+        LOGO_BANNER, USE_CUSTOM_LOGO_BANNER,
+        LOGO_FRONT, USE_CUSTOM_LOGO_FRONT );
 
     @Autowired
     public StaticContentController(
@@ -117,12 +131,48 @@ public class StaticContentController
     }
 
     /**
+     * Serves the descriptor object for the file associated with the given key. If a
+     * custom file is not used the default file path will be returned. The client
+     * should set "Accept=application/json" in the HTTP Header to trigger this
+     * endpoint.
+     *
+     * @param key the key associated with the static file.
+     * @param request the current HttpServletRequest.
+     *
+     * @return the SimpleStaticResource object related to the given key.
+     * @throws WebMessageException if the the informed key is not found.
+     */
+    @GetMapping( value = "/{key}", produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<SimpleStaticResource> getStaticContentInfo( final @PathVariable( "key" ) String key,
+        final HttpServletRequest request )
+        throws WebMessageException
+    {
+        final boolean keyNotFound = !KEY_WHITELIST_MAP.containsKey( key );
+        if ( keyNotFound )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Key does not exist." ) );
+        }
+
+        final boolean useCustomFile = (boolean) systemSettingManager.getSystemSetting( KEY_WHITELIST_MAP.get( key ) );
+        if ( !useCustomFile ) // Serves the default static file URL
+        { // Not Acceptable
+            return new ResponseEntity<>(
+                new SimpleStaticResource( IMAGE_PNG.toString(), getDefaultLogoUrl( request, key ) ), FOUND );
+        }
+        else // Serves the endpoint responsible to actually read/load the file
+        {
+            final String blobEndpoint = ContextUtils.getContextPath( request ) + "/api" + RESOURCE_PATH + "/" + key;
+            return new ResponseEntity<>( new SimpleStaticResource( IMAGE_PNG.toString(), blobEndpoint ), FOUND );
+        }
+    }
+
+    /**
      * Serves the PNG associated with the key. If custom logo is not used the
      * request will redirect to the default.
      *
      * @param key key associated with the file.
      */
-    @RequestMapping( value = "/{key}", method = RequestMethod.GET )
+    @RequestMapping( value = "/{key}", method = GET )
     public void getStaticContent(
         @PathVariable( "key" ) String key, HttpServletRequest request,
         HttpServletResponse response
@@ -151,7 +201,7 @@ public class StaticContentController
         {
             try
             {
-                response.setContentType( MediaType.IMAGE_PNG_VALUE );
+                response.setContentType( IMAGE_PNG_VALUE );
 
                 contentStore.copyContent( FileResourceKeyUtil.makeKey( DEFAULT_RESOURCE_DOMAIN, Optional.of( key ) ),
                     response.getOutputStream() );
@@ -174,8 +224,8 @@ public class StaticContentController
      * @param file the image file.
      */
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @RequestMapping( value = "/{key}", method = RequestMethod.POST )
+    @ResponseStatus( NO_CONTENT )
+    @RequestMapping( value = "/{key}", method = POST )
     public void updateStaticContent( @PathVariable( "key" ) String key,
         @RequestParam( value = "file" ) MultipartFile file )
         throws WebMessageException
@@ -189,9 +239,9 @@ public class StaticContentController
 
         MimeType mimeType = MimeTypeUtils.parseMimeType( file.getContentType() );
 
-        if ( !mimeType.isCompatibleWith( MimeTypeUtils.IMAGE_PNG ) )
+        if ( !mimeType.isCompatibleWith( IMAGE_PNG ) )
         {
-            throw new WebMessageException( new WebMessage( Status.WARNING, HttpStatus.UNSUPPORTED_MEDIA_TYPE ) );
+            throw new WebMessageException( new WebMessage( WARNING, UNSUPPORTED_MEDIA_TYPE ) );
         }
 
         // Only keys in the white list are accepted at the current time
@@ -224,11 +274,10 @@ public class StaticContentController
     }
 
     /**
-     * Returns the relative url of the default logo for a given key.
+     * Returns the relative URL of the default logo for a given key.
      *
-     * @param key the key associated with the logo or null if the key does not
-     *            exist.
-     * @return the relative url of the logo.
+     * @param key the key associated with the logo or null if the key does not exist.
+     * @return the relative URL of the logo.
      */
     private String getDefaultLogoUrl( HttpServletRequest request, String key )
     {
