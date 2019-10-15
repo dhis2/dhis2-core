@@ -200,7 +200,7 @@ public class MetadataImportTest
             .addProperty( "shortName", RandomStringUtils.random( 51 ) );
 
         // act
-        ApiResponse response = metadataActions.post( params, metadata );
+        ApiResponse response = metadataActions.post( metadata, queryParamsBuilder );
         response.validate()
             .statusCode( 200 )
             .body( not( equalTo( "null" ) ) )
