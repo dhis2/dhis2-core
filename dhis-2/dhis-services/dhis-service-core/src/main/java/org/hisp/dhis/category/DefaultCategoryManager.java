@@ -118,7 +118,6 @@ public class DefaultCategoryManager
 
                 iterator.remove();
                 categoryCombo.getOptionCombos().remove( persistedOptionCombo );
-                categoryService.deleteCategoryOptionCombo( persistedOptionCombo );
 
                 log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: " + categoryCombo.getName() );
                 modified = true;
