@@ -31,7 +31,6 @@ package org.hisp.dhis.artemis.audit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.ProducerConfiguration;
-import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -45,22 +44,18 @@ public class AuditManager
     private static final Log log = LogFactory.getLog( AuditManager.class );
 
     private final AuditProducerSupplier auditProducerSupplier;
-
-    private final RenderService renderService;
-
     private final ProducerConfiguration config;
-
     private final AuditScheduler auditScheduler;
 
-    public AuditManager( AuditProducerSupplier auditProducerSupplier, RenderService renderService,
-        AuditScheduler auditScheduler, ProducerConfiguration config )
+    public AuditManager(
+        AuditProducerSupplier auditProducerSupplier,
+        AuditScheduler auditScheduler,
+        ProducerConfiguration config )
     {
         checkNotNull( auditProducerSupplier );
-        checkNotNull( renderService );
         checkNotNull( config );
 
         this.auditProducerSupplier = auditProducerSupplier;
-        this.renderService = renderService;
         this.config = config;
         this.auditScheduler = auditScheduler;
     }
