@@ -25,42 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers.extensions;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.hisp.dhis.helpers.config.TestConfiguration;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+package org.hisp.dhis.helpers.config;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+@org.aeonbits.owner.Config.LoadPolicy( org.aeonbits.owner.Config.LoadType.MERGE )
+@Config.Sources( { "system:properties", "system:env", "classpath:config.properties" } )
+public interface Config
+
+    extends org.aeonbits.owner.Config
 {
-    @Override
-    public void beforeAll( ExtensionContext context )
-    {
-        RestAssured.baseURI = TestConfiguration.get().baseUrl();
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
-    }
+    @Key( "instance.url" )
+    String baseUrl();
 
-    private RequestSpecification defaultRequestSpecification()
-    {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+    @Key( "user.super.password" )
+    String superUserPassword();
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
+    @Key( "user.super.username" )
+    String superUserUsername();
 
-        return requestSpecification.build();
-    }
+    @Key( "user.default.username" )
+    String defaultUserUsername();
+
+    @Key( "user.default.password" )
+    String defaultUSerPassword();
 }

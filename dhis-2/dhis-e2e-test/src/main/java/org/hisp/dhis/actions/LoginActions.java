@@ -30,7 +30,7 @@ package org.hisp.dhis.actions;
 
 import io.restassured.RestAssured;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ConfigurationHelper;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 
 import static io.restassured.RestAssured.preemptive;
 
@@ -60,7 +60,7 @@ public class LoginActions
      */
     public void loginAsSuperUser()
     {
-        loginAsUser( ConfigurationHelper.SUPER_USER_USERNAME, ConfigurationHelper.SUPER_USER_PASS );
+        loginAsUser( TestConfiguration.get().superUserUsername(), TestConfiguration.get().superUserPassword() );
     }
 
     /**
@@ -69,7 +69,7 @@ public class LoginActions
      */
     public void loginAsDefaultUser()
     {
-        loginAsUser( "admin", "district" );
+        loginAsUser( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
     }
 
     public ApiResponse getLoggedInUserInfo()

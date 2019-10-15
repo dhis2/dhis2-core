@@ -31,8 +31,8 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -105,7 +105,8 @@ public class MetadataSetupExtension
         String userRoleId = "yrB6vc5Ip7r";
         String userGroupId = "OPVIvvXzNTw";
 
-        String userId = userActions.get( "?username=" + ConfigurationHelper.SUPER_USER_USERNAME ).extractString( "users.id[0]" );
+        String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
+            .extractString( "users.id[0]" );
 
         userActions.addUserToUserGroup( userId, userGroupId );
         userActions.addURoleToUser( userId, userRoleId );
