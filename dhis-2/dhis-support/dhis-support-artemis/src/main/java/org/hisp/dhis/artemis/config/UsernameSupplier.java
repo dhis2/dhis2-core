@@ -38,13 +38,13 @@ import java.util.function.Supplier;
  * @author Luciano Fiandesio
  */
 @Component
-public class UserNameSupplier implements Supplier<String>
+public class UsernameSupplier implements Supplier<String>
 {
-    private final static String DEFAULT_USERNAME = "system"; // TODO this may come from configuration
+    private final static String DEFAULT_USERNAME = "system-process"; // TODO this may come from configuration
 
     private final CurrentUserService currentUserService;
 
-    public UserNameSupplier( CurrentUserService currentUserService )
+    public UsernameSupplier( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }

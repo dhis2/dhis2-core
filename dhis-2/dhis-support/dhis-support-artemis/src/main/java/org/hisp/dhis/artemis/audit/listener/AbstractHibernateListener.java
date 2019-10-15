@@ -30,7 +30,7 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
-import org.hisp.dhis.artemis.config.UserNameSupplier;
+import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -44,12 +44,12 @@ public abstract class AbstractHibernateListener
 {
     final AuditManager auditManager;
     final AuditLegacyObjectFactory legacyObjectFactory;
-    private final UserNameSupplier userNameSupplier;
+    private final UsernameSupplier userNameSupplier;
 
     public AbstractHibernateListener(
         AuditManager auditManager,
         AuditLegacyObjectFactory legacyObjectFactory,
-        UserNameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier )
     {
         this.auditManager = auditManager;
         this.legacyObjectFactory = legacyObjectFactory;

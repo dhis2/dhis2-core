@@ -28,13 +28,9 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.jms.TextMessage;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
@@ -44,21 +40,21 @@ import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
+import javax.jms.TextMessage;
+import java.io.IOException;
+
 /**
  * A MetadataAudit object consumer.
  *
  * @author Luciano Fiandesio
  */
 @Component
-public class MetadataAuditConsumer
-    implements
-    AuditConsumer
+public class MetadataAuditConsumer implements AuditConsumer
 {
-
     private static final Log log = LogFactory.getLog( MetadataAuditConsumer.class );
-    
+
     private final ObjectMapper mapper = new ObjectMapper();
-    
+
     private final MetadataAuditService metadataAuditService;
     private final RenderService renderService;
 
@@ -68,14 +64,14 @@ public class MetadataAuditConsumer
         this.renderService = renderService;
     }
 
-    @JmsListener(destination = Topics.METADATA_TOPIC_NAME )
+    @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
     public void consume( TextMessage message )
     {
         try
         {
             String payload = message.getText();
-            
-            Audit auditMessage = renderService.fromJson( payload, Audit.class);
+
+            Audit auditMessage = renderService.fromJson( payload, Audit.class );
 
             metadataAuditService.addMetadataAudit( toMetadataAudit( auditMessage.getData() ) );
         }

@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 public class MessageManager
 {
     private final JmsTemplate jmsTemplate;
-
     private final RenderService renderService;
 
     public MessageManager( JmsTemplate jmsTemplate, RenderService renderService )

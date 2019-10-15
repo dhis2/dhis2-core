@@ -34,7 +34,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
-import org.hisp.dhis.artemis.config.UserNameSupplier;
+import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.stereotype.Component;
@@ -50,7 +50,7 @@ public class PostInsertAuditListener
 {
 
     public PostInsertAuditListener( AuditManager auditManager, AuditLegacyObjectFactory auditLegacyObjectFactory,
-        UserNameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier )
     {
         super( auditManager, auditLegacyObjectFactory, userNameSupplier );
     }
