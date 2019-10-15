@@ -70,6 +70,5 @@ public class AuditManager
         {
             auditProducerSupplier.publish( audit );
         }
-
     }
 }
