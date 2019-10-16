@@ -109,10 +109,7 @@ pipeline {
             steps {
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                     sh "docker push ${DOCKER_BASE_IMAGE_FULL_NAME}"
-
                     sh "./docker/publish-containers.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
-
-                    sh "docker image rm -f ${DOCKER_BASE_IMAGE_FULL_NAME}"
                 }
             }
         }
@@ -125,7 +122,7 @@ pipeline {
                 sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down --rmi all -v --remove-orphans"
 
                 sh "docker image prune --force --filter label=stage=intermediate --filter label=identifier=${DOCKER_IMAGE_TAG}"
-
+                sh "docker image rm -f ${DOCKER_BASE_IMAGE_FULL_NAME}"
                 sh "./docker/cleanup-images.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
             }
         }
