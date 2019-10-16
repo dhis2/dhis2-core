@@ -44,6 +44,7 @@ import org.springframework.stereotype.Component;
 
 import javax.jms.TextMessage;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 
 /**
@@ -107,8 +108,14 @@ public class MetadataAuditConsumer implements AuditConsumer
         }
     }
 
+    @SuppressWarnings( "unchecked" )
     private MetadataAudit toMetadataAudit( Object map )
     {
+        if ( map instanceof LinkedHashMap && ((LinkedHashMap) map).containsKey( "value" ) )
+        {
+            ((LinkedHashMap) map).put( "value", renderService.toJsonAsString( ((LinkedHashMap) map).get( "value" ) ) );
+        }
+
         return mapper.convertValue( map, MetadataAudit.class );
     }
 }
