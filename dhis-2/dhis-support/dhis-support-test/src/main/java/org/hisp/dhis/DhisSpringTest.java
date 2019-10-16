@@ -28,17 +28,22 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.lang.reflect.Method;
+import java.util.Collection;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.lang.reflect.Method;
 
 /**
  * @author Trygve Laugst&oslash;l
@@ -46,10 +51,11 @@ import java.lang.reflect.Method;
  */
 @RunWith( SpringRunner.class )
 @ContextConfiguration( classes = UnitTestConfig.class )
-@ActiveProfiles( profiles = {"test-h2"} )
+@ActiveProfiles( profiles = { "test-h2" } )
 @Transactional
 public abstract class DhisSpringTest
-    extends DhisConvenienceTest
+    extends
+    DhisConvenienceTest
 {
     // -------------------------------------------------------------------------
     // ApplicationContextAware implementation
