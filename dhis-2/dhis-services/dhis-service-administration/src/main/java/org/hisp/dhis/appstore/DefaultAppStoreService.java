@@ -83,7 +83,7 @@ public class DefaultAppStoreService
     public List<WebApp> getAppStore()
     {
         String appStoreApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_URL );
-        String allAppsUrl = appStoreApiUrl + "/v1/apps";
+        String allAppsUrl = appStoreApiUrl + "/apps";
 
         WebApp[] apps = restTemplate.getForObject( allAppsUrl, WebApp[].class );
 
