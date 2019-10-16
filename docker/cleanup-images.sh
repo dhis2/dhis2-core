@@ -43,33 +43,33 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ## funcs
 #
 
-publish () {
+remove () {
     local IMAGE=$1
 
-    echo "Pushing $IMAGE"
-    docker push "$IMAGE"
+    echo "Removing $IMAGE"
+    docker image rm -f "$IMAGE"
 }
 
-publish_debian_containers () {
-    # publish the default container image
-    publish "$CORE_IMAGE"
+remove_debian_containers () {
+    # cleanup the default container image
+    remove "$CORE_IMAGE"
 
-    # publish the variants
+    # cleanup the variants
     for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
-        publish "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
+        remove "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
     done
 }
 
-publish_alpine_containers () {
-    # publish the variants
+remove_alpine_containers () {
+    # cleanup the variants
     for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
-        publish "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
+        remove "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
     done
 }
 
 main () {
-    publish_debian_containers
-    publish_alpine_containers
+    remove_debian_containers
+    remove_alpine_containers
 }
 
 
