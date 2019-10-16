@@ -50,6 +50,13 @@ publish () {
     docker push "$IMAGE"
 }
 
+remove () {
+    local IMAGE=$1
+
+    echo "Removing $IMAGE"
+    docker rm -f "$IMAGE"
+}
+
 publish_debian_containers () {
     # publish the default container image
     publish "$CORE_IMAGE"
@@ -58,7 +65,6 @@ publish_debian_containers () {
     for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
         publish "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
     done
-
 }
 
 publish_alpine_containers () {
@@ -74,7 +80,16 @@ main () {
 }
 
 cleanup () {
-    # We can delete published images here if needed
+    remove "$CORE_IMAGE"
+
+    for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
+        remove "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
+    done
+
+    for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
+        remove "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
+    done
+
     echo "Done"
 }
 
