@@ -25,44 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.hisp.dhis.helpers.extensions;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.hisp.dhis.helpers.ConfigurationHelper;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import io.restassured.authentication.NoAuthScheme;
+import io.restassured.authentication.PreemptiveBasicAuthScheme;
+import io.restassured.filter.FilterContext;
+import io.restassured.response.Response;
+import io.restassured.specification.FilterableRequestSpecification;
+import io.restassured.specification.FilterableResponseSpecification;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+public class AuthFilter
+    implements io.restassured.spi.AuthFilter
 {
+    private String lastLoggedInUser = "";
+
     @Override
-    public void beforeAll( ExtensionContext context )
-        throws Exception
+    public Response filter( FilterableRequestSpecification requestSpec, FilterableResponseSpecification responseSpec,
+        FilterContext ctx )
     {
-        RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
+        if ( requestSpec.getAuthenticationScheme() instanceof NoAuthScheme )
+        {
+            if ( hasSessionCookie( requestSpec ) )
+            {
+                requestSpec.removeCookies();
+            }
+
+            lastLoggedInUser = "";
+        }
+
+        if ( requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme &&
+            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName() != lastLoggedInUser )
+        {
+            if ( hasSessionCookie( requestSpec ) )
+            {
+                requestSpec.removeCookies();
+            }
+
+            lastLoggedInUser = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName();
+        }
+
+        final Response response = ctx.next( requestSpec, responseSpec );
+        return response;
     }
 
-    private RequestSpecification defaultRequestSpecification()
+    private boolean hasSessionCookie( FilterableRequestSpecification requestSpec )
     {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
-
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.addFilter( new AuthFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
-
-        return requestSpecification.build();
+        return requestSpec.getCookies().hasCookieWithName( "JSESSIONID" ) ||
+            requestSpec.getCookies().hasCookieWithName( "SESSION" );
     }
 }
