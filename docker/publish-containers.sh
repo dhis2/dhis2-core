@@ -54,7 +54,7 @@ remove () {
     local IMAGE=$1
 
     echo "Removing $IMAGE"
-    docker rm -f "$IMAGE"
+    docker image rm -f "$IMAGE"
 }
 
 publish_debian_containers () {
@@ -80,6 +80,8 @@ main () {
 }
 
 cleanup () {
+    echo "Cleaning up containers..."
+
     remove "$CORE_IMAGE"
 
     for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
