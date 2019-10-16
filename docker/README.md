@@ -38,7 +38,7 @@ for container image build times.
 #### Build the core image (a.k.a. the base image)
 
 ```sh
-docker build -t core:local .
+docker build -t <image> .
 ```
 
 #### Extract artifacts from base image
@@ -105,6 +105,7 @@ E.g. how to build a custom `dhis.war` into the containers:
 
 ```sh
 mv ~/my-custom-dhis.war ./docker/artifacts/dhis.war
+
 ./docker/build-containers.sh core:local-test
 ```
 
@@ -114,6 +115,15 @@ mv ~/my-custom-dhis.war ./docker/artifacts/dhis.war
 
 ```sh
 ./docker/publish-containers.sh <image>
+```
+
+#### Cleanup images
+
+> :information_source: Uses `containers-list.sh` to get a list of
+> containers to clean up
+
+```sh
+./docker/cleanup-images.sh <image>
 ```
 
 #### Checksums
