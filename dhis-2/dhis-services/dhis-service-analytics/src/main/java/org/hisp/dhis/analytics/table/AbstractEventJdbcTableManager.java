@@ -122,7 +122,8 @@ public abstract class AbstractEventJdbcTableManager
         }
         else if ( valueType.isOrganisationUnit() )
         {
-            return "ou.name from organisationunit ou where ou.uid = (select value " ;
+            // org unit is persisted like: /abcd/efgh/djkj so we only extract the last segment using substring
+            return "ou.name from organisationunit ou where ou.uid = (select substring(value, '[^/]*$') " ;
         }
         else
         {
