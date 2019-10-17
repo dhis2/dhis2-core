@@ -28,9 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostDeleteEventListener;
-import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.event.spi.PostLoadEvent;
+import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
@@ -43,13 +42,13 @@ import java.util.Arrays;
 import java.util.Date;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen
  */
 @Component
-public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostDeleteEventListener
+public class PostLoadAuditListener
+    extends AbstractHibernateListener implements PostLoadEventListener
 {
-    public PostDeleteAuditListener(
+    public PostLoadAuditListener(
         AuditManager auditManager,
         AuditLegacyObjectFactory auditLegacyObjectFactory,
         UsernameSupplier userNameSupplier )
@@ -58,19 +57,13 @@ public class PostDeleteAuditListener
     }
 
     @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    public void onPostLoad( PostLoadEvent postLoadEvent )
     {
-        return false;
-    }
-
-    @Override
-    public void onPostDelete( PostDeleteEvent postDeleteEvent )
-    {
-        Object entity = postDeleteEvent.getEntity();
+        Object entity = postLoadEvent.getEntity();
 
         getAuditable( entity ).ifPresent( auditable -> {
             boolean shouldAudit = Arrays.stream( auditable.eventType() )
-                .anyMatch( s -> s.contains( "all" ) || s.contains( "delete" ) );
+                .anyMatch( s -> s.contains( "all" ) || s.contains( "read" ) );
 
             if ( !shouldAudit )
             {
@@ -80,12 +73,12 @@ public class PostDeleteAuditListener
             IdentifiableObject io = (IdentifiableObject) entity;
 
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.DELETE )
+                .withAuditType( AuditType.READ )
                 .withAuditScope( auditable.scope() )
                 .withCreatedAt( new Date() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.DELETE, io, getCreatedBy() ) )
+                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, io, getCreatedBy() ) )
                 .build() );
         } );
     }

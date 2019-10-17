@@ -34,4 +34,8 @@ package org.hisp.dhis.artemis;
 public interface Topics
 {
     String METADATA_TOPIC_NAME = "dhis2.topic.metadata";
+
+    String AGGREGATE_TOPIC_NAME = "dhis2.topic.aggregate";
+
+    String TRACKER_TOPIC_NAME = "dhis2.topic.tracker";
 }

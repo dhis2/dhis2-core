@@ -30,6 +30,8 @@ package org.hisp.dhis.program;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
@@ -49,6 +51,7 @@ import java.util.Set;
 /**
  * @author Abyot Asalefew
  */
+@Auditable( scope = AuditScope.TRACKER )
 public class ProgramStageInstance
     extends BaseIdentifiableObject
 {
@@ -332,7 +335,7 @@ public class ProgramStageInstance
     {
         this.assignedUser = assignedUser;
     }
-    
+
     public boolean isCreatableInSearchScope()
     {
         return this.getStatus() == EventStatus.SCHEDULE && this.getEventDataValues().isEmpty() && this.getExecutionDate() == null;

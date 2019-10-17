@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.audit.legacy;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,15 +28,37 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AuditConsumer;
+import org.hisp.dhis.render.RenderService;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
 
 /**
- * Marker interface marking the class as a proper metadata object (not data, not embedded object, etc).
+ * Tracker audits consumer.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Olav Hansen <morten@dhis2.org>
  */
-@Auditable( scope = AuditScope.METADATA, eventType = { "create", "update", "delete" } )
-public interface MetadataObject
+@Component
+public class TrackerAuditConsumer implements AuditConsumer
 {
+    private static final Log log = LogFactory.getLog( TrackerAuditConsumer.class );
+
+    private final RenderService renderService;
+
+    public TrackerAuditConsumer( RenderService renderService )
+    {
+        this.renderService = renderService;
+    }
+
+    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
+    public void consume( TextMessage message ) throws JMSException
+    {
+        System.err.println( message.getText() );
+    }
 }

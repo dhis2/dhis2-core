@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -49,6 +51,7 @@ import org.hisp.dhis.textpattern.TextPattern;
 /**
  * @author Abyot Asalefew
  */
+@Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityAttribute
     extends BaseDimensionalItemObject

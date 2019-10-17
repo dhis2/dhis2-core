@@ -34,7 +34,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
-
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
@@ -53,6 +54,7 @@ import java.util.Set;
 /**
  * @author Abyot Asalefew
  */
+@Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramInstance
     extends BaseIdentifiableObject
@@ -188,7 +190,7 @@ public class ProgramInstance
 
         return null;
     }
-    
+
     public boolean hasActiveProgramStageInstance( ProgramStage programStage )
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
@@ -198,10 +200,10 @@ public class ProgramInstance
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     public boolean hasProgramStageInstance( ProgramStage programStage )
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
@@ -211,8 +213,8 @@ public class ProgramInstance
                 return true;
             }
         }
-        
-        return false;        
+
+        return false;
     }
 
     // -------------------------------------------------------------------------
