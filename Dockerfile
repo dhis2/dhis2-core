@@ -3,7 +3,6 @@
 #
 
 FROM maven:3.6.2-jdk-8-slim as build
-LABEL stage=intermediate
 
 ARG IDENTIFIER=unknown
 LABEL identifier=${IDENTIFIER}

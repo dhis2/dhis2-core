@@ -22,6 +22,7 @@ shopt -s nullglob globstar
 #
 
 CORE_IMAGE="$1"
+IDENTIFIER="$2"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ARTIFACTS="${DIR}/artifacts"
@@ -87,6 +88,7 @@ build () {
         --tag "${TAG}" \
         --file "${DIR}/tomcat-${TYPE}/Dockerfile" \
         --build-arg TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TC_TAG}" \
+        --build-arg IDENTIFIER="${IDENTIFIER}"
         "$DIR"
 }
 

@@ -1,6 +1,9 @@
 ARG TOMCAT_IMAGE
 FROM $TOMCAT_IMAGE
 
+ARG IDENTIFIER=unknown
+LABEL identifier=${IDENTIFIER}
+
 ENV DHIS2_HOME=/DHIS2_home
 
 COPY ./tomcat-alpine/docker-entrypoint.sh /usr/local/bin/
