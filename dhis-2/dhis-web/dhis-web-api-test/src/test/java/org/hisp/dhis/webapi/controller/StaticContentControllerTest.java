@@ -39,23 +39,29 @@ import static org.apache.http.HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
+import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
+import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_BANNER;
+import static org.hisp.dhis.webapi.controller.StaticContentController.CUSTOM_LOGO;
 import static org.hisp.dhis.webapi.controller.StaticContentController.LOGO_BANNER;
 import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.documentation.common.TestUtils.APPLICATION_JSON_UTF8;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.util.MimeTypeUtils.IMAGE_JPEG;
 import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
+
+import java.util.Optional;
 
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,7 +98,6 @@ public class StaticContentControllerTest
         this.session = getSession( "ALL" );
         this.mockMultipartFile = new MockMultipartFile( "file", "testlogo.png", MIME_PNG, "image".getBytes() );
         systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, FALSE );
-
     }
 
     @Test
@@ -116,44 +121,11 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void testGetStaticContentInfoDefaultKey()
-            throws Exception
-    {
-        // Given
-        final String theExpectedType = "image/png";
-        final String theExpectedExtension = ".png";
-        final String theNonExpectedApiUrl = "/api" + RESOURCE_PATH;
-
-        // a mock file in the content store used during the fetch
-        fileResourceContentStore.saveFileResourceContent( FileResourceUtils.build( LOGO_BANNER,
-                mockMultipartFile, DOCUMENT ), "image".getBytes() );
-
-        // a positive flag indicating the usage of a custom logo
-        systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, FALSE );
-
-        // When
-        final ResultActions result = mvc.perform(
-                get( URL + LOGO_BANNER )
-                    .accept( APPLICATION_JSON )
-                    .session( session ) );
-
-        // Then
-        result
-            .andExpect( content().contentType( APPLICATION_JSON ) )
-            .andExpect( content().string( containsString( "type" ) ) )
-            .andExpect( content().string( containsString( theExpectedType ) ) )
-            .andExpect( content().string( containsString( "path" ) ) )
-            .andExpect( content().string( containsString( theExpectedExtension ) ) )
-            .andExpect( content().string( not ( containsString( theNonExpectedApiUrl ) ) ) )
-            .andExpect( status().isFound() );
-    }
-
-    @Test
     public void verifyFetchCustom()
         throws Exception
     {
         // store a mock file to the content store, before fetching it
-        fileResourceContentStore.saveFileResourceContent( FileResourceUtils.build( LOGO_BANNER,
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
             mockMultipartFile, DOCUMENT ), "image".getBytes() );
 
         systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
@@ -172,30 +144,26 @@ public class StaticContentControllerTest
             throws Exception
     {
         // Given
-        final String theExpectedType = "image/png";
-        final String theNonExpectedFileExtension = ".png";
+        final String theExpectedType = "png";
         final String theExpectedApiUrl = "/api" + RESOURCE_PATH;
 
         // a mock file in the content store used during the fetch
-        fileResourceContentStore.saveFileResourceContent( FileResourceUtils.build( LOGO_BANNER,
+        fileResourceContentStore.saveFileResourceContent( build( CUSTOM_LOGO,
                 mockMultipartFile, DOCUMENT ), "image".getBytes() );
 
         // a positive flag indicating the usage of a custom logo
-        systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
+        systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO, TRUE );
 
         // When
         final ResultActions result = mvc.perform(
-                get( URL + LOGO_BANNER )
+                get( URL + CUSTOM_LOGO )
                     .accept( APPLICATION_JSON )
                     .session( session ) );
 
         // Then
         result
             .andExpect( content().contentType( APPLICATION_JSON ) )
-            .andExpect( content().string( containsString( "type" ) ) )
             .andExpect( content().string( containsString( theExpectedType ) ) )
-            .andExpect( content().string( containsString( "path" ) ) )
-            .andExpect( content().string( not ( containsString( theNonExpectedFileExtension ) ) ) )
             .andExpect( content().string( containsString( theExpectedApiUrl ) ) )
             .andExpect( status().isFound() );
     }
@@ -208,11 +176,11 @@ public class StaticContentControllerTest
         final String theExpectedStatusMessage = "Not Found";
         final String theExpectedStatusCode = "404";
         final String theExpectedStatus = "ERROR";
-        final String theExpectedMessage = "Key does not exist.";
+        final String theExpectedMessage = "Key or file does not exist.";
         final String aNonExistingLogoBanner = "nonExistingLogo";
 
         // a mock file in the content store used during the fetch
-        fileResourceContentStore.saveFileResourceContent( FileResourceUtils.build( LOGO_BANNER,
+        fileResourceContentStore.saveFileResourceContent( build( CUSTOM_LOGO,
                 mockMultipartFile, DOCUMENT ), "image".getBytes() );
 
         // When
@@ -224,13 +192,42 @@ public class StaticContentControllerTest
         // Then
         result
             .andExpect( content().contentType( APPLICATION_JSON ) )
-            .andExpect( content().string( not ( containsString( "path" ) ) ) )
-            .andExpect( content().string( not ( containsString( "type" ) ) ) )
+            .andExpect( content().string( not ( containsString( "png" ) ) ) )
             .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
             .andExpect( content().string( containsString( theExpectedStatus ) ) )
             .andExpect( content().string( containsString( theExpectedMessage ) ) )
             .andExpect( content().string( containsString( theExpectedStatusCode ) ) )
             .andExpect( status().isNotFound() );
+    }
+
+    @Test
+    public void testGetStaticContentInfoUsingNonExistingLogo()
+            throws Exception
+    {
+        // Given
+        final String theExpectedStatusMessage = "Not Found";
+        final String theExpectedStatusCode = "404";
+        final String theExpectedStatus = "ERROR";
+        final String theExpectedMessage = "Key or file does not exist.";
+
+        // a non existing logo in the content store used during the fetch
+        fileResourceContentStore.deleteFileResourceContent( makeKey( DOCUMENT, Optional.of( CUSTOM_LOGO ) ) );
+
+        // When
+        final ResultActions result = mvc.perform(
+                get( URL + CUSTOM_LOGO )
+                        .accept( APPLICATION_JSON )
+                        .session( session ) );
+
+        // Then
+        result
+                .andExpect( content().contentType( APPLICATION_JSON ) )
+                .andExpect( content().string( not ( containsString( "png" ) ) ) )
+                .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
+                .andExpect( content().string( containsString( theExpectedStatus ) ) )
+                .andExpect( content().string( containsString( theExpectedMessage ) ) )
+                .andExpect( content().string( containsString( theExpectedStatusCode ) ) )
+                .andExpect( status().isNotFound() );
     }
 
     @Test

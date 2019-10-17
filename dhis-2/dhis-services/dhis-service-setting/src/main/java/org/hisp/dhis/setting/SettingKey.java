@@ -125,6 +125,7 @@ public enum SettingKey
     ALLOW_OBJECT_ASSIGNMENT( "keyAllowObjectAssignment", Boolean.FALSE, Boolean.class ),
     USE_CUSTOM_LOGO_FRONT( "keyUseCustomLogoFront", Boolean.FALSE, Boolean.class ),
     USE_CUSTOM_LOGO_BANNER( "keyUseCustomLogoBanner", Boolean.FALSE, Boolean.class ),
+    USE_CUSTOM_LOGO( "keyUseCustomLogo", Boolean.TRUE, Boolean.class ),
     METADATA_REPO_URL( "keyMetaDataRepoUrl", "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json", String.class ),
     DATA_IMPORT_STRICT_PERIODS( "keyDataImportStrictPeriods", Boolean.FALSE, Boolean.class ),
     DATA_IMPORT_STRICT_DATA_ELEMENTS( "keyDataImportStrictDataElements", Boolean.FALSE, Boolean.class ),
