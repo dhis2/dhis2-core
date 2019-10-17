@@ -28,67 +28,64 @@
 
 package org.hisp.dhis.fileresource;
 
+import java.util.Map;
 import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.collections.map.HashedMap;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * This is simple class to represent the list of possible static image
+ * resources.
+ */
 @XmlRootElement
-public class SimpleStaticResource
+public class SimpleImageResource
 {
-    private String type;
-
-    private String path;
-
-    public SimpleStaticResource( final String type, final String path )
-    {
-        this.type = type;
-        this.path = path;
-    }
+    private Map<String, String> images;
 
     @JsonProperty
-    public String getType()
+    public Map<String, String> getImages()
     {
-        return type;
+        return images;
     }
 
-    public void setType( final String type )
+    public void setImages( final Map<String, String> images )
     {
-        this.type = type;
+        this.images = images;
     }
 
-    @JsonProperty
-    public String getPath()
+    public void addImage( final String type, final String path )
     {
-        return path;
-    }
-
-    public void setPath( final String path )
-    {
-        this.path = path;
+        if ( images == null )
+        {
+            images = new HashedMap();
+        }
+        images.put( type, path );
     }
 
     @Override
-    public boolean equals( final Object o )
+    public boolean equals( Object o )
     {
         if ( this == o )
             return true;
         if ( o == null || getClass() != o.getClass() )
             return false;
-        SimpleStaticResource that = (SimpleStaticResource) o;
-        return type.equals( that.type ) && path.equals( that.path );
+        SimpleImageResource that = (SimpleImageResource) o;
+        return images.equals( that.images );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( type, path );
+        return Objects.hash( images );
     }
 
     @Override
     public String toString()
     {
-        return "SimpleStaticResource{" + "type='" + type + '\'' + ", path='" + path + '\'' + '}';
+        return "SimpleImageResource{" + "images=" + images + '}';
     }
 }
