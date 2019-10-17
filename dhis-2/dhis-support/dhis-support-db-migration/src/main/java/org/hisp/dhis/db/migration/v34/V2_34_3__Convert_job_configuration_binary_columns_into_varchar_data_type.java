@@ -28,6 +28,13 @@ package org.hisp.dhis.db.migration.v34;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
@@ -35,13 +42,6 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.springframework.util.SerializationUtils;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
@@ -210,6 +210,12 @@ public class V2_34_3__Convert_job_configuration_binary_columns_into_varchar_data
             try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration RENAME COLUMN lastexecutedstatusvarchar TO lastexecutedstatus" );
+            }
+
+            //6. Set default values where NULL is present
+            try ( Statement stmt = context.getConnection().createStatement() )
+            {
+                stmt.executeUpdate( "UPDATE jobconfiguration SET lastexecutedstatus = 'NOT_STARTED' WHERE lastexecutedstatus IS NULL" );
             }
         }
     }
