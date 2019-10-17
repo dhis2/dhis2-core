@@ -579,6 +579,26 @@ public class DateUtils
     }
 
     /**
+     * Method responsible for adding a positive or negative number based in a chronological unit.
+     *
+     * @param date the date to be modified. It's the input date for the calculation.
+     * @param addend a positive or negative integer to be added to the date.
+     * @param chronoUnit the unit of time to be used in the calculation. It's fully based in the Calendar API.
+     *                   Valid values could be: Calendar.DATE, Calendar.MILLISECOND, etc..
+     * @return the resultant date after the addition.
+     */
+    public static Date calculateDateFrom( final Date date, final int addend, final int chronoUnit ) 
+    {
+        Calendar cal = Calendar.getInstance();
+
+        cal.setLenient( false );
+        cal.setTime( date );
+        cal.add( chronoUnit, addend );
+
+        return cal.getTime();
+    }
+
+    /**
      * Sets the name property of each period based on the given I18nFormat.
      */
     public static List<Period> setNames( List<Period> periods, I18nFormat format )
