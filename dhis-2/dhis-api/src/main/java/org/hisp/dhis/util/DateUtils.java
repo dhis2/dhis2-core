@@ -587,7 +587,8 @@ public class DateUtils
      *                   Valid values could be: Calendar.DATE, Calendar.MILLISECOND, etc..
      * @return the resultant date after the addition.
      */
-    public static Date calculateDateFrom( final Date date, final int addend, final int chronoUnit ) {
+    public static Date calculateDateFrom( final Date date, final int addend, final int chronoUnit )
+    {
         Calendar cal = Calendar.getInstance();
 
         cal.setLenient( false );
