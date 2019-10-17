@@ -83,7 +83,7 @@ public class JobConfiguration
 
     private Date nextExecutionTime;
 
-    private JobStatus lastExecutedStatus;
+    private JobStatus lastExecutedStatus = JobStatus.NOT_STARTED;
 
     private Date lastExecuted;
 

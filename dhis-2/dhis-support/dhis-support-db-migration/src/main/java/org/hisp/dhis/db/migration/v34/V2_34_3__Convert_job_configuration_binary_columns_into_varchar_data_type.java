@@ -211,6 +211,12 @@ public class V2_34_3__Convert_job_configuration_binary_columns_into_varchar_data
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration RENAME COLUMN lastexecutedstatusvarchar TO lastexecutedstatus" );
             }
+
+            //6. Set default values where NULL is present
+            try ( Statement stmt = context.getConnection().createStatement() )
+            {
+                stmt.executeUpdate( "UPDATE jobconfiguration SET lastexecutedstatus = 'NOT_STARTED' WHERE lastexecutedstatus IS NULL" );
+            }
         }
     }
 }
