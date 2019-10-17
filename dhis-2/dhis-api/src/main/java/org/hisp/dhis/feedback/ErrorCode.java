@@ -89,6 +89,7 @@ public enum ErrorCode
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`."),
 
     E4027( "Value `{0}` is not a valid for property `{1}`"),
+    E4028( "OptionSet `{0}` already contains Option `{1}`" ),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),

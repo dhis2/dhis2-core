@@ -28,12 +28,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Volker Schmidt
@@ -41,7 +44,32 @@ import org.hisp.dhis.option.OptionSet;
 public class OptionObjectBundleHook
     extends AbstractObjectBundleHook
 {
-    private static final Log log = LogFactory.getLog( OptionObjectBundleHook.class );
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( !( object instanceof Option ) ) return new ArrayList<>();
+
+        final Option option = (Option) object;
+
+        if ( option.getOptionSet() != null )
+        {
+            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+
+            List<Option> persistedOptions = optionSet.getOptions();
+
+            for ( Option persistedOption : persistedOptions )
+            {
+                if ( persistedOption.getName().equals( option.getName() ) && persistedOption.getCode().equals( option.getCode() ) )
+                {
+                    errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
+                }
+            }
+        }
+
+        return errors;
+    }
 
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
