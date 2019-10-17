@@ -125,6 +125,8 @@ pipeline {
             sh "docker image prune --force --filter label=stage=intermediate --filter label=identifier=${DOCKER_IMAGE_TAG}"
             sh "docker image rm -f ${DOCKER_BASE_IMAGE_FULL_NAME}"
             sh "./docker/cleanup-images.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
+
+            sh "docker image prune --force"
         }
 
         failure {
