@@ -132,6 +132,7 @@ public class DataQueryParams
     public static final String DEFAULT_ORG_UNIT_FIELD = "ou";
 
     public static final int DX_INDEX = 0;
+    public static final int NUMERATOR_DENOMINATOR_PROPERTIES_COUNT = 5;
 
     /**
      * @see {@link org.hisp.dhis.expression.ExpressionService}
