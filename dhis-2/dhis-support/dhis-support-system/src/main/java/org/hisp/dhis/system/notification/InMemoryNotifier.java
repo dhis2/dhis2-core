@@ -112,9 +112,12 @@ public class InMemoryNotifier implements Notifier
         {
             if ( lastId != null && lastId.equals( notification.getUid() ) )
             {
+                if ( list.isEmpty() )
+                {
+                    list.add( notification );
+                }
                 break;
             }
-
             list.add( notification );
         }
 
