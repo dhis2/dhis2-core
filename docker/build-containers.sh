@@ -88,7 +88,7 @@ build () {
         --tag "${TAG}" \
         --file "${DIR}/tomcat-${TYPE}/Dockerfile" \
         --build-arg TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TC_TAG}" \
-        --build-arg IDENTIFIER="${IDENTIFIER}"
+        --build-arg IDENTIFIER="${IDENTIFIER}" \
         "$DIR"
 }
 
