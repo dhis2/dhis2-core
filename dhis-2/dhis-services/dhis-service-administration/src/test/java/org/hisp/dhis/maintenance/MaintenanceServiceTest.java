@@ -31,6 +31,7 @@ package org.hisp.dhis.maintenance;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,10 +48,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -159,8 +157,14 @@ public class MaintenanceServiceTest
     @Test
     public void testDeleteSoftDeletedProgramInstanceWithAProgramMessage()
     {
-        ProgramMessage message = new ProgramMessage( "subject", "text", new ProgramMessageRecipients(),
-            Sets.newHashSet(),
+        ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
+        programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
+        programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
+        programMessageRecipients.setOrganisationUnit( organisationUnit );
+        programMessageRecipients.setTrackedEntityInstance( entityInstance );
+
+        ProgramMessage message = new ProgramMessage( "subject", "text", programMessageRecipients,
+            Sets.newHashSet( DeliveryChannel.EMAIL ),
             programInstance );
 
         long idA = programInstanceService.addProgramInstance( programInstance );
