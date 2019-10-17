@@ -197,4 +197,61 @@ public class NotifierTest extends DhisSpringTest
         assertEquals( 4, jobSummariesForAnalyticsType.size() );
     }
 
+    @Test
+    public void testLastNotificationByJobTypeIsNeverEmpty()
+    {
+        String IMPORT_STARTED_MESSAGE = "Import started";
+        String IMPORT_WORKING_MESSAGE = "Import working";
+        String IMPORT_FINISHED_MESSAGE = "Import finished";
+
+        notifier.notify( metadataImportJobConfig, IMPORT_STARTED_MESSAGE );
+        notifier.notify( metadataImportJobConfig, IMPORT_WORKING_MESSAGE );
+
+        Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> notificationsMap = notifier.getNotifications();
+
+        String importStartedNotificationUid = getNotificationUid(
+            notificationsMap.get( metadataImportJobConfig.getJobType() ),
+            metadataImportJobConfig.getUid(), IMPORT_STARTED_MESSAGE );
+        String importWorkingNotificationUid = getNotificationUid(
+            notificationsMap.get( metadataImportJobConfig.getJobType() ),
+            metadataImportJobConfig.getUid(), IMPORT_WORKING_MESSAGE );
+
+        assertEquals( 1,
+            notifier.getLastNotificationsByJobType( metadataImportJobConfig.getJobType(), importStartedNotificationUid )
+                .size() );
+
+        assertEquals( 1,
+            notifier.getLastNotificationsByJobType( metadataImportJobConfig.getJobType(), importWorkingNotificationUid )
+                .size() );
+
+        notifier.notify( metadataImportJobConfig, IMPORT_FINISHED_MESSAGE );
+        String importFinishedNotificationUid = getNotificationUid(
+            notificationsMap.get( metadataImportJobConfig.getJobType() ),
+            metadataImportJobConfig.getUid(), IMPORT_FINISHED_MESSAGE );
+
+        assertEquals( 2,
+            notifier.getLastNotificationsByJobType( metadataImportJobConfig.getJobType(), importStartedNotificationUid )
+                .size() );
+
+        assertEquals( 1,
+            notifier.getLastNotificationsByJobType( metadataImportJobConfig.getJobType(), importWorkingNotificationUid )
+                .size() );
+
+        assertEquals( 1,
+            notifier
+                .getLastNotificationsByJobType( metadataImportJobConfig.getJobType(), importFinishedNotificationUid )
+                .size() );
+    }
+
+    private String getNotificationUid( LinkedHashMap<String, LinkedList<Notification>> notifications, String jobUid,
+        String message )
+    {
+
+        return notifications.get( jobUid )
+            .stream()
+            .filter( notification -> notification.getMessage().equals( message ) )
+            .map( notification -> notification.getUid() )
+            .findAny()
+            .get();
+    }
 }
