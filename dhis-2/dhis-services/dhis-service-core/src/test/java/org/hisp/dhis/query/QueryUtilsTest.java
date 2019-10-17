@@ -32,9 +32,12 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.user.User;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +53,9 @@ import static org.junit.Assert.*;
 public class QueryUtilsTest
 {
     private Schema schema;
+
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
 
     @Before
     public void setUp() throws Exception
@@ -152,6 +158,22 @@ public class QueryUtilsTest
     {
         assertEquals( "'abc'", QueryUtils.parseValue( "abc" ) );
         assertEquals( "123", QueryUtils.parseValue( "123" ) );
+    }
+
+    @Test
+    public void testParserNotFound()
+    {
+        // Given
+        final Class<User> nonSupportedClass = User.class;
+        final String anyValue = "wewee-4343";
+
+        // Then
+        exceptionRule.expect( QueryParserException.class );
+        exceptionRule
+                .expectMessage( "Unable to parse `" + anyValue + "` to `" + nonSupportedClass.getSimpleName() + "`." );
+
+        // When
+        QueryUtils.parseValue( nonSupportedClass, anyValue );
     }
 
     @Test
