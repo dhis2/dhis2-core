@@ -74,13 +74,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class OptionSetTests
     extends ApiTest
 {
-    private OptionActions actions = new OptionActions();
+    private OptionActions actions;
 
-    private LoginActions loginActions = new LoginActions();
+    private LoginActions loginActions;
 
     @BeforeEach
     public void beforeEach()
     {
+        actions = new OptionActions();
+        loginActions = new LoginActions();
+
         loginActions.loginAsSuperUser();
     }
 

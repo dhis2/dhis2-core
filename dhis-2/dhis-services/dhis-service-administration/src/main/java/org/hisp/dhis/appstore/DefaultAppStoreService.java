@@ -83,17 +83,7 @@ public class DefaultAppStoreService
     public List<WebApp> getAppStore()
     {
         String appStoreApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_URL );
-        String appStoreApiVersion = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_VERSION );
-        String allAppsUrl;
-
-        if ( "" == appStoreApiVersion )
-        {
-            allAppsUrl = appStoreApiUrl + "/apps";
-        }
-        else
-        {
-            allAppsUrl = appStoreApiUrl + "/" + appStoreApiVersion + "/apps";
-        }
+        String allAppsUrl = appStoreApiUrl + "/apps";
 
         WebApp[] apps = restTemplate.getForObject( allAppsUrl, WebApp[].class );
 

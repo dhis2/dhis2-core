@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,28 +26,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis;
+package org.hisp.dhis.actions;
 
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import io.restassured.RestAssured;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-public abstract class ApiTest
+public class UaaActions
+    extends RestApiActions
 {
-    @AfterAll
-    public void afterAll()
+    public UaaActions()
     {
-        new LoginActions().loginAsSuperUser();
-        new TestCleanUp().deleteCreatedEntities();
+        super( "/uaa" );
+        setBaseUri( RestAssured.baseURI.replace( "/api", "/" ) );
     }
 }
