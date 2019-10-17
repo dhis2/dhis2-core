@@ -159,7 +159,7 @@ public class StaticContentController
         final HttpServletRequest request )
         throws WebMessageException
     {
-        final String storageKey = makeKey( DOCUMENT, Optional.of( key ) );
+        final String storageKey = makeKey( DEFAULT_RESOURCE_DOMAIN, Optional.of( key ) );
         final boolean keyAndFileExists = KEY_WHITELIST_MAP.containsKey( key )
             && contentStore.fileResourceContentExists( storageKey );
 
