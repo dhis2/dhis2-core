@@ -36,11 +36,14 @@ import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -72,9 +75,12 @@ public class DefaultCurrentUserService
 
     @Autowired
     private Environment env;
-    
+
     @Autowired
     private CacheProvider cacheProvider;
+
+    @Autowired
+    private SessionRegistry sessionRegistry;
 
     // -------------------------------------------------------------------------
     // CurrentUserService implementation
@@ -170,5 +176,18 @@ public class DefaultCurrentUserService
         User user = getCurrentUser();
 
         return user != null && user.getUserCredentials().isAuthorized( auth );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public void expireUserSessions()
+    {
+        UserDetails userDetails = getCurrentUserDetails();
+
+        if ( userDetails != null )
+        {
+            List<SessionInformation> sessions = sessionRegistry.getAllSessions( userDetails, false );
+            sessions.forEach( SessionInformation::expireNow );
+        }
     }
 }
