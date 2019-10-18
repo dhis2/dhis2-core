@@ -473,6 +473,8 @@ public class ProgramInstance
         this.comments = comments;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCompletedBy()
     {
         return completedBy;
@@ -483,6 +485,8 @@ public class ProgramInstance
         this.completedBy = completedBy;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()
     {
         return geometry;
@@ -530,8 +534,8 @@ public class ProgramInstance
         this.relationshipItems = relationshipItems;
     }
 
-
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "ProgramInstance{" +
             "id=" + id +

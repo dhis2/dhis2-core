@@ -29,11 +29,16 @@ package org.hisp.dhis.program;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversation;
@@ -128,6 +133,8 @@ public class ProgramStageInstance
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getCreatedAtClient()
     {
         return createdAtClient;
@@ -138,6 +145,8 @@ public class ProgramStageInstance
         this.createdAtClient = createdAtClient;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getLastUpdatedAtClient()
     {
         return lastUpdatedAtClient;
@@ -148,6 +157,9 @@ public class ProgramStageInstance
         this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramInstance getProgramInstance()
     {
         return programInstance;
@@ -158,6 +170,9 @@ public class ProgramStageInstance
         this.programInstance = programInstance;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStage getProgramStage()
     {
         return programStage;
@@ -168,6 +183,8 @@ public class ProgramStageInstance
         this.programStage = programStage;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getStoredBy()
     {
         return storedBy;
@@ -178,6 +195,8 @@ public class ProgramStageInstance
         this.storedBy = storedBy;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCompletedBy()
     {
         return completedBy;
@@ -188,6 +207,8 @@ public class ProgramStageInstance
         this.completedBy = completedBy;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getDueDate()
     {
         return dueDate;
@@ -198,6 +219,8 @@ public class ProgramStageInstance
         this.dueDate = dueDate;
     }
 
+    @JsonProperty( "eventDate" )
+    @JacksonXmlProperty( localName = "eventDate", namespace = DxfNamespaces.DXF_2_0 )
     public Date getExecutionDate()
     {
         return executionDate;
@@ -208,11 +231,16 @@ public class ProgramStageInstance
         this.executionDate = executionDate;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCompleted()
     {
         return status == EventStatus.COMPLETED;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OrganisationUnit getOrganisationUnit()
     {
         return organisationUnit;
@@ -224,6 +252,9 @@ public class ProgramStageInstance
         return this;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public CategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
@@ -234,6 +265,8 @@ public class ProgramStageInstance
         this.attributeOptionCombo = attributeOptionCombo;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getCompletedDate()
     {
         return completedDate;
@@ -244,12 +277,9 @@ public class ProgramStageInstance
         this.completedDate = completedDate;
     }
 
-    public ProgramStageInstance setStatus( EventStatus status )
-    {
-        this.status = status;
-        return this;
-    }
-
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<MessageConversation> getMessageConversations()
     {
         return messageConversations;
@@ -260,6 +290,9 @@ public class ProgramStageInstance
         this.messageConversations = messageConversations;
     }
 
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityComment> getComments()
     {
         return comments;
@@ -270,6 +303,8 @@ public class ProgramStageInstance
         this.comments = comments;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<EventDataValue> getEventDataValues()
     {
         return eventDataValues;
@@ -280,11 +315,21 @@ public class ProgramStageInstance
         this.eventDataValues = eventDataValues;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public EventStatus getStatus()
     {
         return status;
     }
 
+    public ProgramStageInstance setStatus( EventStatus status )
+    {
+        this.status = status;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDeleted()
     {
         return deleted;
@@ -306,6 +351,9 @@ public class ProgramStageInstance
         this.lastSynchronized = lastSynchronized;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
     public Set<RelationshipItem> getRelationshipItems()
     {
         return relationshipItems;
@@ -316,6 +364,8 @@ public class ProgramStageInstance
         this.relationshipItems = relationshipItems;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()
     {
         return geometry;
@@ -326,6 +376,9 @@ public class ProgramStageInstance
         this.geometry = geometry;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getAssignedUser()
     {
         return assignedUser;
@@ -336,6 +389,8 @@ public class ProgramStageInstance
         this.assignedUser = assignedUser;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCreatableInSearchScope()
     {
         return this.getStatus() == EventStatus.SCHEDULE && this.getEventDataValues().isEmpty() && this.getExecutionDate() == null;
