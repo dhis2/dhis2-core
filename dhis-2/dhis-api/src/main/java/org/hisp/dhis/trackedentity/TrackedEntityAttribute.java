@@ -51,7 +51,6 @@ import org.hisp.dhis.textpattern.TextPattern;
 /**
  * @author Abyot Asalefew
  */
-@Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityAttribute
     extends BaseDimensionalItemObject

@@ -35,7 +35,6 @@ import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -70,15 +69,13 @@ public class PostLoadAuditListener
                 return;
             }
 
-            IdentifiableObject io = (IdentifiableObject) entity;
-
             auditManager.send( Audit.builder()
                 .withAuditType( AuditType.READ )
                 .withAuditScope( auditable.scope() )
                 .withCreatedAt( new Date() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, io, getCreatedBy() ) )
+                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
                 .build() );
         } );
     }

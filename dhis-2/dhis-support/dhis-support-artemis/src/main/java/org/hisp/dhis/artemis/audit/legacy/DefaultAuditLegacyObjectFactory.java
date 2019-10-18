@@ -31,8 +31,14 @@ package org.hisp.dhis.artemis.audit.legacy;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -54,21 +60,71 @@ public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory
     }
 
     @Override
-    public Object create( AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user )
+    public Object create( AuditScope auditScope, AuditType auditType, Object object, String user )
     {
-        if ( auditScope.equals( AuditScope.METADATA ) )
+        switch ( auditScope )
         {
-            return new MetadataAudit()
-                .setType( mapAuditType( auditType ) )
-                .setCreatedAt( new Date() )
-                .setCreatedBy( user ) // TODO was bundle.getUsername()
-                .setKlass( identifiableObject.getClass().getName() )
-                .setUid( identifiableObject.getUid() )
-                .setCode( identifiableObject.getCode() )
-                .setValue( renderService.toJsonAsString( identifiableObject ) );
+            case METADATA:
+                return handleMetadataAudit( auditType, object, user );
+            case TRACKER:
+                return handleTracker( auditType, object, user );
+            case AGGREGATE:
+                return handleAggregate( auditType, object, user );
         }
 
         return null;
+    }
+
+    private Object handleTracker( AuditType auditType, Object object, String user )
+    {
+        if ( object instanceof TrackedEntityInstance )
+        {
+            TrackedEntityInstance trackedEntityInstance = (TrackedEntityInstance) object; // TODO check if we should log
+            return new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, mapAuditType( auditType ) );
+        }
+        else if ( object instanceof TrackedEntityAttributeValue )
+        {
+            TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) object; // TODO check if we should log
+            return new TrackedEntityAttributeValueAudit( trackedEntityAttributeValue, trackedEntityAttributeValue.getAuditValue(),
+                user, mapAuditType( auditType ) );
+        }
+        else if ( object instanceof ProgramInstance )
+        {
+            ProgramInstance programInstance = (ProgramInstance) object; // TODO check if we should log
+            return new ProgramInstanceAudit( programInstance, user, mapAuditType( auditType ) );
+        }
+        /* currently no program stage instance audits
+        else if ( identifiableObject instanceof ProgramStageInstance )
+        {
+            ProgramStageInstance programStageInstance = (ProgramStageInstance) identifiableObject; // TODO check if we should log
+        }
+        */
+
+        return null;
+    }
+
+    private Object handleAggregate( AuditType auditType, Object object, String user )
+    {
+        return null;
+    }
+
+    private Object handleMetadataAudit( AuditType auditType, Object object, String user )
+    {
+        if ( !(object instanceof IdentifiableObject) )
+        {
+            return null;
+        }
+
+        IdentifiableObject identifiableObject = (IdentifiableObject) object;
+
+        return new MetadataAudit()
+            .setType( mapAuditType( auditType ) )
+            .setCreatedAt( new Date() )
+            .setCreatedBy( user ) // TODO was bundle.getUsername()
+            .setKlass( identifiableObject.getClass().getName() )
+            .setUid( identifiableObject.getUid() )
+            .setCode( identifiableObject.getCode() )
+            .setValue( renderService.toJsonAsString( identifiableObject ) );
     }
 
     private org.hisp.dhis.common.AuditType mapAuditType( AuditType auditType )
