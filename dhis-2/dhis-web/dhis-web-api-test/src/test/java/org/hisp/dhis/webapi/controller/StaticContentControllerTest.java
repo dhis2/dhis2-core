@@ -40,9 +40,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
 import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
-import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_BANNER;
-import static org.hisp.dhis.webapi.controller.StaticContentController.CUSTOM_LOGO;
 import static org.hisp.dhis.webapi.controller.StaticContentController.LOGO_BANNER;
 import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.documentation.common.TestUtils.APPLICATION_JSON_UTF8;
@@ -148,15 +146,15 @@ public class StaticContentControllerTest
         final String theExpectedApiUrl = "/api" + RESOURCE_PATH;
 
         // a mock file in the content store used during the fetch
-        fileResourceContentStore.saveFileResourceContent( build( CUSTOM_LOGO,
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
                 mockMultipartFile, DOCUMENT ), "image".getBytes() );
 
         // a positive flag indicating the usage of a custom logo
-        systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO, TRUE );
+        systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
 
         // When
         final ResultActions result = mvc.perform(
-                get( URL + CUSTOM_LOGO )
+                get( URL + LOGO_BANNER )
                     .accept( APPLICATION_JSON )
                     .session( session ) );
 
@@ -176,11 +174,11 @@ public class StaticContentControllerTest
         final String theExpectedStatusMessage = "Not Found";
         final String theExpectedStatusCode = "404";
         final String theExpectedStatus = "ERROR";
-        final String theExpectedMessage = "Key or file does not exist.";
+        final String theExpectedMessage = "Key does not exist.";
         final String aNonExistingLogoBanner = "nonExistingLogo";
 
         // a mock file in the content store used during the fetch
-        fileResourceContentStore.saveFileResourceContent( build( CUSTOM_LOGO,
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
                 mockMultipartFile, DOCUMENT ), "image".getBytes() );
 
         // When
@@ -208,14 +206,14 @@ public class StaticContentControllerTest
         final String theExpectedStatusMessage = "Not Found";
         final String theExpectedStatusCode = "404";
         final String theExpectedStatus = "ERROR";
-        final String theExpectedMessage = "Key or file does not exist.";
+        final String theExpectedMessage = "No custom file found.";
 
         // a non existing logo in the content store used during the fetch
-        fileResourceContentStore.deleteFileResourceContent( makeKey( DOCUMENT, Optional.of( CUSTOM_LOGO ) ) );
+        fileResourceContentStore.deleteFileResourceContent( makeKey( DOCUMENT, Optional.of( LOGO_BANNER ) ) );
 
         // When
         final ResultActions result = mvc.perform(
-                get( URL + CUSTOM_LOGO )
+                get( URL + LOGO_BANNER )
                         .accept( APPLICATION_JSON )
                         .session( session ) );
 
