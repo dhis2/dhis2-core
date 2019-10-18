@@ -28,16 +28,20 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import javax.jms.JMSException;
 import javax.jms.TextMessage;
+import java.io.IOException;
 
 /**
  * Tracker audits consumer.
@@ -49,16 +53,45 @@ public class TrackerAuditConsumer implements AuditConsumer
 {
     private static final Log log = LogFactory.getLog( TrackerAuditConsumer.class );
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
     private final RenderService renderService;
 
-    public TrackerAuditConsumer( RenderService renderService )
+    public TrackerAuditConsumer(
+        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
+        RenderService renderService )
     {
+        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
         this.renderService = renderService;
     }
 
     @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
-    public void consume( TextMessage message ) throws JMSException
+    public void consume( TextMessage message )
     {
-        System.err.println( message.getText() );
+        try
+        {
+            String payload = message.getText();
+
+            Audit auditMessage = renderService.fromJson( payload, Audit.class );
+
+            TrackedEntityInstanceAudit audit = toTrackedEntityInstanceAudit( (String) auditMessage.getData() );
+            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( audit );
+        }
+        catch ( IOException e )
+        {
+            log.error(
+                "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
+                e );
+        }
+        catch ( Exception e )
+        {
+            log.error( "An error occurred persisting an Audit message of type 'TRACKER'", e );
+        }
+    }
+
+    private TrackedEntityInstanceAudit toTrackedEntityInstanceAudit( String payload ) throws IOException
+    {
+        return renderService.fromJson( payload, TrackedEntityInstanceAudit.class );
     }
 }

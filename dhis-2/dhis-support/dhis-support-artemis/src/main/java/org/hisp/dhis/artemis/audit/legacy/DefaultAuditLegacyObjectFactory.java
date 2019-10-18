@@ -31,14 +31,8 @@ package org.hisp.dhis.artemis.audit.legacy;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.audit.MetadataAudit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -77,29 +71,6 @@ public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory
 
     private Object handleTracker( AuditType auditType, Object object, String user )
     {
-        if ( object instanceof TrackedEntityInstance )
-        {
-            TrackedEntityInstance trackedEntityInstance = (TrackedEntityInstance) object; // TODO check if we should log
-            return new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, mapAuditType( auditType ) );
-        }
-        else if ( object instanceof TrackedEntityAttributeValue )
-        {
-            TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) object; // TODO check if we should log
-            return new TrackedEntityAttributeValueAudit( trackedEntityAttributeValue, trackedEntityAttributeValue.getAuditValue(),
-                user, mapAuditType( auditType ) );
-        }
-        else if ( object instanceof ProgramInstance )
-        {
-            ProgramInstance programInstance = (ProgramInstance) object; // TODO check if we should log
-            return new ProgramInstanceAudit( programInstance, user, mapAuditType( auditType ) );
-        }
-        /* currently no program stage instance audits
-        else if ( identifiableObject instanceof ProgramStageInstance )
-        {
-            ProgramStageInstance programStageInstance = (ProgramStageInstance) identifiableObject; // TODO check if we should log
-        }
-        */
-
         return null;
     }
 
