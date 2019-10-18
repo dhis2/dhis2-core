@@ -34,6 +34,7 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -55,11 +56,19 @@ public abstract class AbstractHibernateListener
         this.usernameSupplier = usernameSupplier;
     }
 
-    Optional<Auditable> getAuditable( Object object )
+    Optional<Auditable> getAuditable( Object object, String type )
     {
         if ( AnnotationUtils.isAnnotationPresent( object.getClass(), Auditable.class ) )
         {
-            return Optional.of( AnnotationUtils.getAnnotation( object.getClass(), Auditable.class ) );
+            Auditable auditable = AnnotationUtils.getAnnotation( object.getClass(), Auditable.class );
+
+            boolean shouldAudit = Arrays.stream( auditable.eventType() )
+                .anyMatch( s -> s.contains( "all" ) || s.contains( type ) );
+
+            if ( shouldAudit )
+            {
+                return Optional.of( auditable );
+            }
         }
 
         return Optional.empty();

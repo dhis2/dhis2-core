@@ -38,7 +38,6 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -61,15 +60,7 @@ public class PostUpdateAuditListener
     {
         Object entity = postUpdateEvent.getEntity();
 
-        getAuditable( entity ).ifPresent( auditable -> {
-            boolean shouldAudit = Arrays.stream( auditable.eventType() )
-                .anyMatch( s -> s.contains( "all" ) || s.contains( "update" ) );
-
-            if ( !shouldAudit )
-            {
-                return;
-            }
-
+        getAuditable( entity, "update" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
                 .withAuditType( AuditType.UPDATE )
                 .withAuditScope( auditable.scope() )

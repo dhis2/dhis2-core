@@ -38,7 +38,6 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -67,15 +66,7 @@ public class PostDeleteAuditListener
     {
         Object entity = postDeleteEvent.getEntity();
 
-        getAuditable( entity ).ifPresent( auditable -> {
-            boolean shouldAudit = Arrays.stream( auditable.eventType() )
-                .anyMatch( s -> s.contains( "all" ) || s.contains( "delete" ) );
-
-            if ( !shouldAudit )
-            {
-                return;
-            }
-
+        getAuditable( entity, "delete" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
                 .withAuditType( AuditType.DELETE )
                 .withAuditScope( auditable.scope() )
