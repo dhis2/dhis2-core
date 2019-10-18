@@ -518,7 +518,8 @@ public class ProgramInstance
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
     public Set<RelationshipItem> getRelationshipItems()
     {
         return relationshipItems;
