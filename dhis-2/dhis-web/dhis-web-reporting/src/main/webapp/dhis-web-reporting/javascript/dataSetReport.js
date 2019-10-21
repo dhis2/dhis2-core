@@ -58,6 +58,7 @@ dhis2.dsr.getDataSetReport = function()
     
     dataSetReport.dimension = dims;
     dataSetReport.cp = cps;
+    dataSetReport.selectedNoOfSignatures = $( "#selectedNoOfSignatures" ).val();
     
     return dataSetReport;
 };
@@ -254,7 +255,8 @@ dhis2.dsr.getDataSetReportUrl = function( dataSetReport )
     	"?ds=" + dataSetReport.ds + 
     	"&pe=" + dataSetReport.pe + 
     	"&ou=" + dataSetReport.ou +
-    	"&selectedUnitOnly=" + dataSetReport.selectedUnitOnly;
+    	"&selectedUnitOnly=" + dataSetReport.selectedUnitOnly +
+    	"&selectedNoOfSignatures=" + dataSetReport.selectedNoOfSignatures;
     
     $.each( dataSetReport.dimension, function( inx, val ) {
     	url += "&dimension=" + val;
@@ -321,6 +323,7 @@ dhis2.dsr.showMoreOptions = function()
 	$( "#moreOptionsLink" ).hide();
 	$( "#fewerOptionsLink" ).show();
 	$( "#advancedOptions" ).show();
+	$( "#advancedOptionsSignature" ).show();
 }
 
 dhis2.dsr.showFewerOptions = function()
@@ -328,6 +331,7 @@ dhis2.dsr.showFewerOptions = function()
 	$( "#moreOptionsLink" ).show();
 	$( "#fewerOptionsLink" ).hide();
 	$( "#advancedOptions" ).hide();
+	$( "#advancedOptionsSignature" ).hide();
 }
 
 //------------------------------------------------------------------------------

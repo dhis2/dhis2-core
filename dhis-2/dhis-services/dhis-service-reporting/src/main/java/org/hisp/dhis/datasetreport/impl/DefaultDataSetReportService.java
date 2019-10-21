@@ -125,7 +125,7 @@ public class DefaultDataSetReportService
         
         try
         {
-            return GridUtils.fromHtml( html, dataSet.getName() );
+            return GridUtils.fromHtml( html, dataSet.getName(), period, unit, format );
         }
         catch ( Exception ex )
         {

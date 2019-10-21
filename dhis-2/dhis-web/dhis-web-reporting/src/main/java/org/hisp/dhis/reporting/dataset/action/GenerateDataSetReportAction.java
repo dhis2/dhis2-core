@@ -179,6 +179,18 @@ public class GenerateDataSetReportAction
     {
         this.type = type;
     }
+    
+    private String selectedNoOfSignatures;
+    
+    public void setSelectedNoOfSignatures (String selectedNoOfSignatures )
+    {
+        this.selectedNoOfSignatures = selectedNoOfSignatures;
+    }
+    
+    public String getSelectedNoOfSignatures()
+    {
+        return selectedNoOfSignatures;
+    }
 
     // -------------------------------------------------------------------------
     // Output
@@ -262,6 +274,12 @@ public class GenerateDataSetReportAction
 
         registration = registrationService.getCompleteDataSetRegistration( selectedDataSet, selectedPeriod, selectedOrgunit, attributeOptionCombo );
 
+        int selectedNoOfSign = 0;
+        if(selectedNoOfSignatures != null && !selectedNoOfSignatures.isEmpty()){
+        	selectedNoOfSign = Integer.parseInt(selectedNoOfSignatures);
+        }
+        
+        
         if ( formType.isCustom() )
         {
             if ( type != null )

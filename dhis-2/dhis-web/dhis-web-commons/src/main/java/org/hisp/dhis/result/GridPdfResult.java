@@ -84,6 +84,12 @@ public class GridPdfResult
     {
         return attachment;
     }
+    
+    private String selectedNoOfSignatures;
+    public void setSelectedNoOfSignatures(String selectedNoOfSignatures)
+    {
+    	this.selectedNoOfSignatures = selectedNoOfSignatures;
+    }
 
     // -------------------------------------------------------------------------
     // Result implementation
@@ -106,6 +112,17 @@ public class GridPdfResult
         
         grids = _grids != null ? _grids : grids;
         
+        
+        String _selectedNoOfSignatures = (String) invocation.getStack().findValue( "selectedNoOfSignatures" );
+        
+        selectedNoOfSignatures = _selectedNoOfSignatures != null ? _selectedNoOfSignatures : selectedNoOfSignatures;
+        
+        int selectedNoOfSign = 0;
+        if(selectedNoOfSignatures != null){
+        	selectedNoOfSign = Integer.parseInt(selectedNoOfSignatures);
+        }
+        
+        
         // ---------------------------------------------------------------------
         // Configure response
         // ---------------------------------------------------------------------
@@ -124,11 +141,11 @@ public class GridPdfResult
 
         if ( grid != null )
         {
-            GridUtils.toPdf( grid, out );
+            GridUtils.toPdf( grid, out);
         }
         else
         {
-            GridUtils.toPdf( grids, out );
+            GridUtils.toPdfCustom( grids, out,selectedNoOfSign );
         }
     }
 }

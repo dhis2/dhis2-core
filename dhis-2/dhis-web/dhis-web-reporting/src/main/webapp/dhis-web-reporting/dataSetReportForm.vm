@@ -105,6 +105,17 @@ div.inputSection {
 </select></div>
 #end </div>
 
+<div id="advancedOptionsSignature" style="display:none">
+<div class="inputSection">
+<div><label>$encoder.htmlEncode( "Number of signatures" )</label></div>
+<select id="selectedNoOfSignatures" name="selectedNoOfSignatures" style="width:330px" class="advanced">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+</select></div>
+</div>
+
 #if( $organisationUnitGroupSets.size() > 0 )
 <div id="moreOptionsLink" style="padding: 8px 0;"><a href="javascript:dhis2.dsr.showMoreOptions()">$i18n.getString( "show_more_options" )</a></div>
 <div id="fewerOptionsLink" style="display: none; padding: 8px 0;"><a href="javascript:dhis2.dsr.showFewerOptions()">$i18n.getString( "show_fewer_options" )</a></div>
