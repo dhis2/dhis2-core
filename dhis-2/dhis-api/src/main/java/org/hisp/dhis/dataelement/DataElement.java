@@ -59,7 +59,13 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -76,8 +82,7 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElement
-    extends BaseDimensionalItemObject
+public class DataElement extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
     public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
@@ -218,7 +223,7 @@ public class DataElement
         return ImmutableSet.<CategoryCombo>builder()
             .addAll( dataSetElements.stream()
                 .filter( DataSetElement::hasCategoryCombo )
-                .map(DataSetElement::getCategoryCombo)
+                .map( DataSetElement::getCategoryCombo )
                 .collect( Collectors.toSet() ) )
             .add( categoryCombo ).build();
     }
@@ -228,7 +233,7 @@ public class DataElement
      * given data set for this data element. If not present, returns the
      * category combination for this data element.
      */
-    public CategoryCombo getDataElementCategoryCombo(DataSet dataSet )
+    public CategoryCombo getDataElementCategoryCombo( DataSet dataSet )
     {
         for ( DataSetElement element : dataSetElements )
         {
@@ -249,8 +254,8 @@ public class DataElement
     public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
         return getCategoryCombos().stream()
-            .map(CategoryCombo::getOptionCombos)
-            .flatMap(Collection::stream)
+            .map( CategoryCombo::getOptionCombos )
+            .flatMap( Collection::stream )
             .collect( Collectors.toSet() );
     }
 
@@ -290,7 +295,7 @@ public class DataElement
     public DataSet getDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        list.sort(DataSetFrequencyComparator.INSTANCE);
+        list.sort( DataSetFrequencyComparator.INSTANCE );
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -302,7 +307,7 @@ public class DataElement
     public DataSet getApprovalDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        list.sort(DataSetApprovalFrequencyComparator.INSTANCE);
+        list.sort( DataSetApprovalFrequencyComparator.INSTANCE );
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -314,7 +319,7 @@ public class DataElement
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( DataSetElement::getDataSet ).filter(
-                Objects::nonNull).collect( Collectors.toSet() ) );
+            Objects::nonNull ).collect( Collectors.toSet() ) );
     }
 
     /**
@@ -752,5 +757,43 @@ public class DataElement
     public void setFieldMask( String fieldMask )
     {
         this.fieldMask = fieldMask;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+
+        DataElement that = (DataElement) o;
+
+        return zeroIsSignificant == that.zeroIsSignificant && valueType == that.valueType
+            && Objects.equals( uid, that.uid )
+            && Objects.equals( formName, that.formName ) && Objects.equals( displayFormName, that.displayFormName )
+            && domainType == that.domainType && Objects.equals( categoryCombo, that.categoryCombo )
+            && Objects.equals( url, that.url )
+            && Objects.equals( aggregationLevels, that.aggregationLevels )
+            && Objects.equals( optionSet, that.optionSet ) && Objects.equals( commentOptionSet, that.commentOptionSet )
+            && Objects.equals( style, that.style ) && Objects.equals( fieldMask, that.fieldMask );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), uid, valueType, formName, displayFormName, domainType, categoryCombo, url,
+            aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
+            fieldMask );
     }
 }
