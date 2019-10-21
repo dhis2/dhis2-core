@@ -30,23 +30,25 @@ package org.hisp.dhis.user.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -354,5 +356,28 @@ public class HibernateUserStore
     {
         Query<Long> query = getTypedQuery( "select count(*) from User" );
         return query.uniqueResult().intValue();
+    }
+
+    @Override
+    public User getUser( long id )
+    {
+        return sessionFactory.getCurrentSession().get( User.class, id );
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsByUsername( String username )
+    {
+        if ( username == null )
+        {
+            return null;
+        }
+
+        String hql = "from UserCredentials uc where uc.username = :username";
+
+        javax.persistence.Query query = sessionFactory.getCurrentSession().createQuery( hql );
+        query.setParameter( "username", username );
+        query.setHint( QueryHints.CACHEABLE, true );
+
+        return ( UserCredentials ) query.getResultList().stream().findFirst().orElse( null );
     }
 }
