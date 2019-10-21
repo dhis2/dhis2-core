@@ -138,10 +138,10 @@ public class StaticContentController
 
     /**
      * Serves the descriptor object for the file associated with the given key. If
-     * the given key is not found, this endpoint will return HTTP NOT_FOUND. The
-     * attribute "Accept=application/json" in the HTTP Header should be set in order
-     * to trigger this endpoint. The only supported image type at this moment is
-     * PNG.
+     * the given key of the associated file is not found, this endpoint will return
+     * HTTP NOT_FOUND. The attribute "Accept=application/json" in the HTTP Header
+     * should be set in order to trigger this endpoint. The only supported image
+     * type at this moment is PNG.
      *
      * @param key the key associated with the static file.
      * @param request the current HttpServletRequest.
@@ -151,7 +151,7 @@ public class StaticContentController
      *         associated file is not persisted.
      */
     @GetMapping( value = "/{key}", produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<SimpleImageResource> getStaticFileInfo( final @PathVariable( "key" ) String key,
+    public ResponseEntity<SimpleImageResource> getStaticImages( final @PathVariable( "key" ) String key,
         final HttpServletRequest request )
         throws WebMessageException
     {
