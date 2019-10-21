@@ -55,6 +55,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -374,10 +375,10 @@ public class HibernateUserStore
 
         String hql = "from UserCredentials uc where uc.username = :username";
 
-        javax.persistence.Query query = sessionFactory.getCurrentSession().createQuery( hql );
-        query.setParameter( "username", username );
-        query.setHint( QueryHints.CACHEABLE, true );
+        TypedQuery<UserCredentials> typedQuery = sessionFactory.getCurrentSession().createQuery( hql, UserCredentials.class );
+        typedQuery.setParameter( "username", username );
+        typedQuery.setHint( QueryHints.CACHEABLE, true );
 
-        return ( UserCredentials ) query.getResultList().stream().findFirst().orElse( null );
+        return QueryUtils.getSingleResult( typedQuery );
     }
 }
