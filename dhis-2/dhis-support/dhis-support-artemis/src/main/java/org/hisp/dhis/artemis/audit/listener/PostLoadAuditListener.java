@@ -28,9 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.event.spi.PostUpdateEvent;
-import org.hibernate.event.spi.PostUpdateEventListener;
-import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.event.spi.PostLoadEvent;
+import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
@@ -41,13 +40,13 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen
  */
 @Component
-public class PostUpdateAuditListener
-    extends AbstractHibernateListener implements PostUpdateEventListener
+public class PostLoadAuditListener
+    extends AbstractHibernateListener implements PostLoadEventListener
 {
-    public PostUpdateAuditListener(
+    public PostLoadAuditListener(
         AuditManager auditManager,
         AuditLegacyObjectFactory auditLegacyObjectFactory,
         UsernameSupplier userNameSupplier )
@@ -56,25 +55,19 @@ public class PostUpdateAuditListener
     }
 
     @Override
-    public void onPostUpdate( PostUpdateEvent postUpdateEvent )
+    public void onPostLoad( PostLoadEvent postLoadEvent )
     {
-        Object entity = postUpdateEvent.getEntity();
+        Object entity = postLoadEvent.getEntity();
 
-        getAuditable( entity, "update" ).ifPresent( auditable -> {
+        getAuditable( entity, "read" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.UPDATE )
+                .withAuditType( AuditType.READ )
                 .withAuditScope( auditable.scope() )
                 .withCreatedAt( new Date() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.UPDATE, entity, getCreatedBy() ) )
+                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
                 .build() );
         } );
-    }
-
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return false;
     }
 }
