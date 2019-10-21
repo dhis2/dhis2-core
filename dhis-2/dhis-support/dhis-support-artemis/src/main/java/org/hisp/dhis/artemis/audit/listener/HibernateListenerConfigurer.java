@@ -31,6 +31,7 @@ package org.hisp.dhis.artemis.audit.listener;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PostDeleteEventListener;
+import org.hibernate.event.spi.PostLoadEventListener;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.context.annotation.Conditional;
@@ -61,19 +62,23 @@ public class HibernateListenerConfigurer
     private final PostInsertAuditListener postInsertAuditListener;
     private final PostUpdateEventListener postUpdateEventListener;
     private final PostDeleteEventListener postDeleteEventListener;
+    private final PostLoadEventListener postLoadEventListener;
 
     public HibernateListenerConfigurer(
         PostInsertAuditListener postInsertAuditListener,
         PostUpdateEventListener postUpdateEventListener,
-        PostDeleteEventListener postDeleteEventListener )
+        PostDeleteEventListener postDeleteEventListener,
+        PostLoadEventListener postLoadEventListener )
     {
         checkNotNull( postDeleteEventListener );
         checkNotNull( postUpdateEventListener );
         checkNotNull( postInsertAuditListener );
+        checkNotNull( postLoadEventListener );
 
         this.postInsertAuditListener = postInsertAuditListener;
         this.postUpdateEventListener = postUpdateEventListener;
         this.postDeleteEventListener = postDeleteEventListener;
+        this.postLoadEventListener = postLoadEventListener;
     }
 
     @PostConstruct
@@ -88,5 +93,7 @@ public class HibernateListenerConfigurer
         registry.getEventListenerGroup( EventType.POST_UPDATE ).appendListener( postUpdateEventListener );
 
         registry.getEventListenerGroup( EventType.POST_DELETE ).appendListener( postDeleteEventListener );
+
+        registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
     }
 }

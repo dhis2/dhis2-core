@@ -36,7 +36,7 @@ import org.hisp.dhis.audit.Auditable;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Auditable( scope = AuditScope.METADATA )
+@Auditable( scope = AuditScope.METADATA, eventType = { "create", "update", "delete" } )
 public interface MetadataObject
 {
 }
