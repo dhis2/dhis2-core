@@ -138,7 +138,7 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void testGetStaticContentInfoCustomKey()
+    public void testGetStaticImagesCustomKey()
             throws Exception
     {
         // Given
@@ -167,7 +167,7 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void testGetStaticContentInfoUsingNonExistingKey()
+    public void testGetStaticImagesUsingNonExistingKey()
             throws Exception
     {
         // Given
@@ -199,7 +199,7 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void testGetStaticContentInfoUsingNonExistingLogo()
+    public void testGetStaticImagesUsingNonExistingLogo()
             throws Exception
     {
         // Given
