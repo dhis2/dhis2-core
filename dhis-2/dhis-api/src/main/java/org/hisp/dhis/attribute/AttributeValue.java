@@ -35,16 +35,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MergeableObject;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "attributeValue", namespace = DxfNamespaces.DXF_2_0 )
 public class AttributeValue
-    implements Serializable
+    implements MergeableObject, Serializable
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -199,5 +201,21 @@ public class AttributeValue
     public boolean isMandatory()
     {
         return attribute != null && attribute.isMandatory();
+    }
+
+    @Override
+    public boolean mergeableEquals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+
+        AttributeValue that = (AttributeValue) o;
+
+        if ( !Objects.equals( attribute, that.attribute ) )
+            return false;
+
+        return true;
     }
 }

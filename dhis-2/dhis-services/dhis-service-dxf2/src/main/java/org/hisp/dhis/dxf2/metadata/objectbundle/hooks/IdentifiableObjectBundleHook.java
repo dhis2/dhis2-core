@@ -40,6 +40,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -88,7 +89,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             AttributeValue attributeValue = iterator.next();
 
             // if value null or empty, just skip it
-            if ( StringUtils.isEmpty( attributeValue.getValue() ) ||
+            if ( StringUtils.isEmpty( attributeValue.getValue() ) &&
                 isAttributeValueAlreadyPresent( attributeValues, attributeValue ) )
             {
                 iterator.remove();
@@ -105,15 +106,30 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             }
 
             attributeValue.setAttribute( attribute );
+
+//            Optional<AttributeValue> attributeValueAlreadyPresent = isAttributeValueAlreadyPresent( attributeValues,
+//                attributeValue );
+//            if ( attributeValueAlreadyPresent.isPresent() )
+//            {
+//                AttributeValue oldAttributeValue = attributeValueAlreadyPresent.get();
+//                oldAttributeValue.setValue( attributeValue.getValue() );
+//                attributeValue.setId( oldAttributeValue.getId() );
+//                //session.update( oldAttributeValue );
+//            }
+//            else
+//            {
+//                session.save( attributeValue );
+//            }
             session.save( attributeValue );
         }
     }
 
-    private boolean isAttributeValueAlreadyPresent( Set<AttributeValue> attributeValues, AttributeValue attributeValue )
+    private boolean isAttributeValueAlreadyPresent( Set<AttributeValue> attributeValues,
+        AttributeValue attributeValue )
     {
         return attributeValues
             .stream()
-            .anyMatch( av -> av.getValue().equals( attributeValue.getValue() ) &&
-                av.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) );
+            .anyMatch( av -> av.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) &&
+                av.getValue().equals( attributeValue.getValue() ) );
     }
 }
