@@ -86,7 +86,6 @@ pipeline {
         stage('Start instance') {
             steps {
                 dir("dhis-2/dhis-e2e-test") {
-                    # start the default tomcat container
                     sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
                 }
             }
