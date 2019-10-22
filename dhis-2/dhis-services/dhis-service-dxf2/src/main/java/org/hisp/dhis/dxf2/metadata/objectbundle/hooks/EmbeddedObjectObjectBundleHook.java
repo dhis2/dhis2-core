@@ -72,7 +72,6 @@ public class EmbeddedObjectObjectBundleHook
         schema.getEmbeddedObjectProperties().keySet()
             .stream()
             .forEach( propertyName -> {
-
                 Property property = schema.getEmbeddedObjectProperties().get( propertyName );
                 Object propertyObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
