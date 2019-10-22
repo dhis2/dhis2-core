@@ -28,3 +28,4 @@ services:
     - redis
     ports:
     - "8080"
+    command: wait-for-it.sh db:5432 -- catalina.sh run
