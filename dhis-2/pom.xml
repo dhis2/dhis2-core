@@ -640,6 +640,12 @@
         <groupId>com.google.api-client</groupId>
         <artifactId>google-api-client</artifactId>
         <version>1.22.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava-jdk5</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- Spring Mobile -->
@@ -898,6 +904,12 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-core</artifactId>
         <version>${hibernate.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>classmate</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -908,6 +920,12 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-validator</artifactId>
         <version>${hibernate-validator.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>classmate</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -1112,6 +1130,11 @@
         <artifactId>jackson-datatype-jsr310</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.fasterxml</groupId>
+        <artifactId>classmate</artifactId>
+        <version>1.3.2</version>
+      </dependency>
 
       <!-- GeoTools -->
       <dependency>
@@ -1304,9 +1327,9 @@
         <version>1.2.4.Final</version>
       </dependency>
       <dependency>
-       <groupId>org.cache2k</groupId>
-       <artifactId>cache2k-core</artifactId>
-       <version>1.2.4.Final</version>
+        <groupId>org.cache2k</groupId>
+        <artifactId>cache2k-core</artifactId>
+        <version>1.2.4.Final</version>
       </dependency>
       <dependency>
         <groupId>com.googlecode.jsmpp</groupId>
@@ -1337,7 +1360,7 @@
       <dependency>
         <groupId>org.jboss.logging</groupId>
         <artifactId>jboss-logging</artifactId>
-        <version>3.3.0.Final</version>
+        <version>3.4.1.Final</version>
       </dependency>
       <dependency>
         <groupId>dom4j</groupId>
