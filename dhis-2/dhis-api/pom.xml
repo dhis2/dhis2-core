@@ -106,7 +106,6 @@
     <dependency>
       <groupId>com.bedatadriven</groupId>
       <artifactId>jackson-datatype-jts</artifactId>
-      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
