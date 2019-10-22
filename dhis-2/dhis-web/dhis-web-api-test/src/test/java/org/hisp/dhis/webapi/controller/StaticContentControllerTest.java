@@ -48,7 +48,7 @@ import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -233,7 +233,7 @@ public class StaticContentControllerTest
         throws Exception
     {
         mvc.perform(
-             multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
+            fileUpload( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
             .andExpect( status().is( SC_NO_CONTENT ) );
     }
 
@@ -243,7 +243,7 @@ public class StaticContentControllerTest
     {
         final String error = buildResponse( "Unsupported Media Type", 415, "WARNING", null );
 
-        mvc.perform( multipart( URL + LOGO_BANNER ).file(
+        mvc.perform( fileUpload( URL + LOGO_BANNER ).file(
             new MockMultipartFile( "file", "testlogo.png", IMAGE_JPEG.toString(), "image".getBytes() ) )
             .session( session ) ).andExpect( content().json( error ) )
             .andExpect( status().is( SC_UNSUPPORTED_MEDIA_TYPE ) );
@@ -255,7 +255,7 @@ public class StaticContentControllerTest
     {
         final String error = buildResponse( "Bad Request", 400, "ERROR", "This key is not supported." );
 
-        mvc.perform( multipart( URL + "idontexist" ).file( mockMultipartFile ).session( session ) )
+        mvc.perform( fileUpload( URL + "idontexist" ).file( mockMultipartFile ).session( session ) )
             .andExpect( content().json( error ) ).andExpect( status().is( SC_BAD_REQUEST ) );
     }
 
