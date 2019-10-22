@@ -70,6 +70,21 @@ public class SqlHelper
     }
 
     /**
+     * Returns "where" the first time it is invoked, then nothing ("") for subsequent
+     * invocations.
+     *
+     * @return "where" or "and".
+     */
+    public String whereOrNothing()
+    {
+        String str = invoked ? "" : "where";
+
+        invoked = true;
+
+        return includeSpaces ? " " + str + " " : str;
+    }
+
+    /**
      * Returns "having" the first time it is invoked, then "and" for subsequent
      * invocations.
      * 

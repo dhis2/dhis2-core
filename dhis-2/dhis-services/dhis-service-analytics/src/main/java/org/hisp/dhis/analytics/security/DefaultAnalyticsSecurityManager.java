@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -47,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,6 +81,34 @@ public class DefaultAnalyticsSecurityManager
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation
     // -------------------------------------------------------------------------
+
+    /**
+     * @see AnalyticsSecurityManager#excludeNonAuthorizedCategoryOptions(DataQueryParams)
+     */
+    @Override
+    public void excludeNonAuthorizedCategoryOptions( final DataQueryParams params )
+    {
+        final Set<OrganisationUnit> organisationUnits = params.getProgram().getOrganisationUnits();
+        for (Iterator<OrganisationUnit> i = organisationUnits.iterator(); i.hasNext(); )
+        {
+            final Set<CategoryOption> categoryOptions = i.next().getCategoryOptions();
+
+            for ( Iterator<CategoryOption> it = categoryOptions.iterator(); it.hasNext(); )
+            {
+                final CategoryOption categoryOption = it.next();
+
+                if ( !hasDataReadPermissionFor( categoryOption ) )
+                {
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
+    {
+        return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
+    }
 
     @Override
     public void decideAccess( DataQueryParams params )

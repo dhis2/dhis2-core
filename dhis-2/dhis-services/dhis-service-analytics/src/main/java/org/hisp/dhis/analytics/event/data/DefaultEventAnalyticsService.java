@@ -33,18 +33,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.*;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -89,19 +78,7 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -443,6 +420,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params )
     {
         securityManager.decideAccessEventQuery( params );
+        securityManager.excludeNonAuthorizedCategoryOptions( params );
 
         queryValidator.validate( params );
 
@@ -454,7 +432,7 @@ public class DefaultEventAnalyticsService
 
         return getAggregatedEventDataGrid( params );
     }
-
+    
     private Grid getAggregatedEventDataGrid( EventQueryParams params )
     {
         params.removeProgramIndicatorItems(); // Not supported as items for aggregate
@@ -568,6 +546,7 @@ public class DefaultEventAnalyticsService
     public Grid getEvents( EventQueryParams params )
     {
         securityManager.decideAccessEventQuery( params );
+        securityManager.excludeNonAuthorizedCategoryOptions( params );
 
         queryValidator.validate( params );
 

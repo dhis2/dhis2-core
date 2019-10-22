@@ -28,8 +28,27 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang.time.DateUtils.addYears;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLast;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -39,7 +58,16 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -52,22 +80,8 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang.time.DateUtils.addYears;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * TODO could use row_number() and filtering for paging.
@@ -352,10 +366,16 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
-        for ( DimensionalObject dim : dynamicDimensions )
-        {
-            String col = quoteAlias( dim.getDimensionName() );
-            sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+        if (isNotEmpty(dynamicDimensions)) {
+            // Apply pre-authorized dimensions filtering
+            for ( DimensionalObject dim : dynamicDimensions )
+            {
+                String col = quoteAlias( dim.getDimensionName() );
+                sql += sqlHelper.whereAnd() + " " + col + " in ("
+                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            }
+        } else {
+            sql = queryOnlyAllowedCategoryOptionEvents(sql, params.getProgram().getOrganisationUnits());
         }
 
         // ---------------------------------------------------------------------
@@ -468,6 +488,43 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    String queryOnlyAllowedCategoryOptionEvents( final String sql, final Set<OrganisationUnit> organisationUnits )
+    {
+        boolean andFlag = true;
+        final StringBuilder query = new StringBuilder( sql );
+
+        for ( final OrganisationUnit organisationUnit : organisationUnits )
+        {
+            final Set<CategoryOption> categoryOptions = organisationUnit.getCategoryOptions();
+
+            if ( isNotEmpty( categoryOptions ) )
+            {
+                for ( final CategoryOption categoryOption : categoryOptions )
+                {
+                    final Set<Category> categories = categoryOption.getCategories();
+                    if ( isNotEmpty( categories ) )
+                    {
+                        query.append( andFlag ? " and " : " or " );
+                        andFlag = false;
+                        query.append(buildInFilterForEachCategory( categories, categoryOptions ));
+                    }
+                }
+            }
+        }
+        return query.toString();
+    }
+
+    String buildInFilterForEachCategory( final Set<Category> categories, final Set<CategoryOption> categoryOptions )
+    {
+        final StringBuilder inFilter = new StringBuilder();
+        for ( final Category category : categories )
+        {
+            final String col = quoteAlias( category.getUid() );
+            inFilter.append( col + " in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) ) + ") or " );
+        }
+        return removeLast( inFilter.toString(), "or" );
     }
 
     /**
