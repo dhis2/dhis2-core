@@ -39,6 +39,7 @@ import org.hisp.dhis.util.DateUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -476,5 +477,15 @@ public final class QueryUtils
     {
         return "asc".equals( direction ) || "desc".equals( direction )
             || "iasc".equals( direction ) || "idesc".equals( direction );
+    }
+
+    public static <T> T getSingleResult( TypedQuery<T> query ) {
+        query.setMaxResults( 1 );
+        List<T> list = query.getResultList();
+        if ( list == null || list.isEmpty() ) {
+            return null;
+        }
+
+        return list.get( 0 );
     }
 }
