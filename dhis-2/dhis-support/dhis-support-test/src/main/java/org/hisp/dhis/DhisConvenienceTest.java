@@ -114,6 +114,9 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -1249,6 +1252,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
+        credentials.setUser( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
@@ -1544,6 +1548,59 @@ public abstract class DhisConvenienceTest
         section.setSortOrder( sortOrder );
 
         return section;
+    }
+
+    public static RelationshipType createMalariaCaseLinkedToPersonRelationshipType( char uniqueCharacter,
+        Program program,
+        TrackedEntityType trackedEntityType )
+    {
+        RelationshipConstraint psiConstraint = new RelationshipConstraint();
+        psiConstraint.setProgram( program );
+        psiConstraint.setTrackedEntityType( trackedEntityType );
+        psiConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipConstraint teiConstraint = new RelationshipConstraint();
+        teiConstraint.setProgram( program );
+        teiConstraint.setTrackedEntityType( trackedEntityType );
+        teiConstraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Malaria case linked to person" );
+        relationshipType.setBidirectional( true );
+        relationshipType.setFromConstraint( psiConstraint );
+        relationshipType.setToConstraint( teiConstraint );
+        return relationshipType;
+    }
+
+    public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Person to person" );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createRelationshipType( char uniqueCharacter )
+    {
+        RelationshipType relationshipType = new RelationshipType();
+
+        relationshipType.setFromToName( "from_" + uniqueCharacter );
+        relationshipType.setToFromName( "to_" + uniqueCharacter );
+        relationshipType.setAutoFields();
+        relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
+        relationshipType.setFromConstraint( new RelationshipConstraint() );
+        relationshipType.setToConstraint( new RelationshipConstraint() );
+
+        return relationshipType;
     }
 
     public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
