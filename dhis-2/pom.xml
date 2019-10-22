@@ -750,7 +750,7 @@
       <dependency>
         <groupId>org.hisp</groupId>
         <artifactId>staxwax</artifactId>
-        <version>1.2</version>
+        <version>1.4</version>
       </dependency>
       <dependency>
         <groupId>com.lowagie</groupId>
