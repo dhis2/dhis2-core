@@ -12,7 +12,9 @@ services:
   e2e-test-web:
     image: "${IMAGE_NAME}"
     volumes:
-      - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    environment:
+    - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
     depends_on:
       - db
     ports:
