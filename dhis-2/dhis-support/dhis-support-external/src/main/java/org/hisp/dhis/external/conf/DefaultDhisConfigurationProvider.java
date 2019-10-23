@@ -117,7 +117,7 @@ public class DefaultDhisConfigurationProvider
 
         try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
-            Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
+            HashMap<String, Object> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
 
             this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
         }
