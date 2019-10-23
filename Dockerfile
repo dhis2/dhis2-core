@@ -57,7 +57,7 @@ FROM tomcat:8.5.34-jre8-alpine as serve
 ENV WAIT_FOR_DB_CONTAINER=""
 ENV DHIS2_HOME=/DHIS2_home
 
-COPY ./shared/wait-for-it.sh /usr/local/bin/
+COPY ./docker/shared/wait-for-it.sh /usr/local/bin/
 COPY docker-entrypoint.sh /usr/local/bin/
 
 RUN rm -rf /usr/local/tomcat/webapps/* && \
