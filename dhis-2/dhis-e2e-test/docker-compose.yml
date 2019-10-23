@@ -23,9 +23,10 @@ services:
       context: ../..
     volumes:
     - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    environment:
+      - WAIT_FOR_DB_CONTAINER=db:5432
     depends_on:
     - db
     - redis
     ports:
     - "8080"
-    command: wait-for-it.sh db:5432 -t 0 -- catalina.sh run
