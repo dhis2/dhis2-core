@@ -2,6 +2,7 @@
 set -e
 
 WARFILE=/usr/local/tomcat/webapps/ROOT.war
+BINDIR=/usr/local/bin
 TOMCATDIR=/usr/local/tomcat
 DHIS2HOME=/DHIS2_home
 
@@ -19,6 +20,10 @@ if [ "$(id -u)" = "0" ]; then
 
     chown -R tomcat:tomcat $DHIS2HOME
     exec setpriv --reuid=tomcat --regid=tomcat --init-groups "$0" "$@"
+fi
+
+if [[ ! -z "$WAIT_FOR_DB_CONTAINER" ]]; then
+    $BINDIR/wait-for-it.sh $WAIT_FOR_DB_CONTAINER
 fi
 
 exec "$@"
