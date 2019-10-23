@@ -1200,11 +1200,6 @@
         <artifactId>gt-geojson</artifactId>
         <version>${geotools.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.vividsolutions</groupId>
-        <artifactId>jts</artifactId>
-        <version>1.13</version>
-      </dependency>
 
       <!-- JAXB -->
       <dependency>

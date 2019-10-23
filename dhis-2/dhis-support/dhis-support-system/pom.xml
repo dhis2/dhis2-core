@@ -75,10 +75,6 @@
       <groupId>org.geotools</groupId>
       <artifactId>gt-geojson</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>
-    </dependency>
 
     <!-- JasperReports -->
 
