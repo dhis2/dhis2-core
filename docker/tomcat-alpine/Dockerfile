@@ -4,13 +4,12 @@ FROM $TOMCAT_IMAGE
 ARG IDENTIFIER=unknown
 LABEL identifier=${IDENTIFIER}
 
-ENV DHIS2_HOME=/DHIS2_home
+ENV WAIT_FOR_DB_CONTAINER=""
 
-COPY ./tomcat-alpine/docker-entrypoint.sh /usr/local/bin/
+ENV DHIS2_HOME=/DHIS2_home
 
 RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
-    chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     mkdir $DHIS2_HOME && \
     addgroup -S tomcat && \
     addgroup root tomcat && \
@@ -18,10 +17,15 @@ RUN rm -rf /usr/local/tomcat/webapps/* && \
     echo 'tomcat' >> /etc/cron.deny && \
     echo 'tomcat' >> /etc/at.deny
 
-
 RUN apk add --update --no-cache \
         bash  \
         su-exec
+
+COPY ./shared/wait-for-it.sh /usr/local/bin/
+COPY ./tomcat-alpine/docker-entrypoint.sh /usr/local/bin/
+
+RUN chmod +rx /usr/local/bin/docker-entrypoint.sh && \
+    chmod +rx /usr/local/bin/wait-for-it.sh
 
 COPY ./shared/server.xml /usr/local/tomcat/conf
 COPY ./artifacts/dhis.war /usr/local/tomcat/webapps/ROOT.war
