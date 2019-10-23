@@ -269,8 +269,15 @@ public class DefaultPredictionService
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement outputDataElement = predictor.getOutput();
 
-        Set<DimensionalItemObject> items = new HashSet<>();
-        Set<DimensionalItemObject> sampleItems = new HashSet<>();
+        // Note that data is collected for the output (predicted) period based
+        // on items that are not enclosed within vector functions (like sum,
+        // stddev, etc.) For items that are within vector functions, and
+        // for skip tests, data is collected separately for the set of sample
+        // periods defined by the sequential and annual sample counts. These
+        // two types of data are fetched and stored in different collections.
+
+        Set<DimensionalItemObject> items = new HashSet<>(); // Non-sampled items.
+        Set<DimensionalItemObject> sampleItems = new HashSet<>(); // Sampled items.
         expressionService.getExpressionDimensionalItemObjects( generator.getExpression(), PREDICTOR_EXPRESSION, items, sampleItems );
         if ( skipTest != null )
         {
@@ -302,6 +309,11 @@ public class DefaultPredictionService
 
         predictionSummary.incrementPredictors();
 
+        // Do separate predictor processing for each organisation unit level
+        // selected. This is because at each level, predictions might be based
+        // on data aggregated from all descendant org units. So to prevent
+        // confusion, data for different levels are fetched independently.
+
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
             List<OrganisationUnit> orgUnitsAtLevel = organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
@@ -311,6 +323,8 @@ public class DefaultPredictionService
             {
                 continue;
             }
+
+            // For performance, fetch the data from a bunch of orgUnits at once.
 
             List<List<OrganisationUnit>> orgUnitLists = Lists.partition( orgUnitsAtLevel, 500 );
 
@@ -324,15 +338,25 @@ public class DefaultPredictionService
 
                 List<DataValue> predictions = new ArrayList<>();
 
+                // For each org unit, find its sample data and its non-sample
+                // data values.
+                //
+                // We will make independent predictions for each attribute
+                // option combination, but some analytics data that is not
+                // stored by AOC must be evaluated with every AOC found.
+
                 for ( OrganisationUnit orgUnit : orgUnits )
                 {
                     MapMapMap<String, Period, DimensionalItemObject, Double> sampleMap3 = firstNonNull( sampleMap4.get( orgUnit ), new MapMapMap<>() );
                     MapMapMap<String, Period, DimensionalItemObject, Double> valueMap3 = firstNonNull( valueMap4.get( orgUnit ), new MapMapMap<>() );
 
                     MapMap<Period, DimensionalItemObject, Double> sampleMapNonAoc = firstNonNull( sampleMap3.get( NON_AOC ), new MapMap<>() );
-                    MapMap<Period, DimensionalItemObject, Double> dataMapNonAoc = firstNonNull( valueMap3.get( NON_AOC ), new MapMap<>() );
+                    MapMap<Period, DimensionalItemObject, Double> valueMapNonAoc = firstNonNull( valueMap3.get( NON_AOC ), new MapMap<>() );
 
                     Set<String> attributeOptionCombos = getAttributeOptionCombos( sampleMap3, valueMap3, defaultOptionComboAsSet );
+
+                    // Predict independently for each AOC, adding in the data,
+                    // if any, that is stored without an AOC.
 
                     for ( String aoc : attributeOptionCombos )
                     {
@@ -340,15 +364,17 @@ public class DefaultPredictionService
                         MapMap<Period, DimensionalItemObject, Double> valueMap2 = firstNonNull( valueMap3.get( aoc ), new MapMap<>() );
 
                         sampleMap2.putMap( sampleMapNonAoc );
-                        valueMap2.putMap( dataMapNonAoc );
+                        valueMap2.putMap( valueMapNonAoc );
 
                         MapMap<Period, DimensionalItemObject, Double> periodValueMap = applySkipTest( sampleMap2, skipTest, constantMap );
+
+                        // Predict for each output period.
 
                         for ( Period outputPeriod : outputPeriods )
                         {
                             Map<DimensionalItemObject, Double> valueMap = firstNonNull( valueMap2.get( outputPeriod ), new HashMap<>() );
 
-                            if ( requireData && noDataPresent( outputPeriod, valueMap, samplePeriodsMap, periodValueMap ) )
+                            if ( requireData && dataIsAbsent( outputPeriod, valueMap, samplePeriodsMap, periodValueMap ) )
                             {
                                 continue;
                             }
@@ -577,7 +603,7 @@ public class DefaultPredictionService
 
     /**
      * Returns true if there is no data for this period and no sample data
-     * to be used for a prediction in that period. This allows us to
+     * to be used for a prediction in this period. This allows us to
      * save time by not evaluating an expression where there is no data.
      *
      * @param outputPeriod the current output period.
@@ -586,7 +612,7 @@ public class DefaultPredictionService
      * @param periodValueMap sample data by period.
      * @return
      */
-    private boolean noDataPresent( Period outputPeriod, Map<DimensionalItemObject, Double> valueMap,
+    private boolean dataIsAbsent( Period outputPeriod, Map<DimensionalItemObject, Double> valueMap,
         ListMap<Period, Period> samplePeriodsMap, MapMap<Period, DimensionalItemObject, Double> periodValueMap )
     {
         if ( !valueMap.isEmpty() )

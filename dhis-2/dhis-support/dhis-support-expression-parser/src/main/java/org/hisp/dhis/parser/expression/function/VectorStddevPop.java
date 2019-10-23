@@ -34,7 +34,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Vector function: stddevPop (opulation standard deviation)
+ * Vector function: stddevPop (population standard deviation)
  *
  * @author Jim Grace
  */
