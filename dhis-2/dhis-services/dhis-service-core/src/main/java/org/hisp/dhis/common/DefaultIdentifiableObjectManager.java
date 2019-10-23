@@ -28,8 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -83,7 +83,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
+    private static Cache<IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
     @Autowired
     private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
@@ -102,14 +102,19 @@ public class DefaultIdentifiableObjectManager
 
     @Autowired
     private Environment env;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
 
     @PostConstruct
     public void init()
     {
-        DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
+        DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
+            .forRegion( "defaultObjectCache" )
             .expireAfterAccess( 2, TimeUnit.HOURS )
-            .initialCapacity( 4 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
+            .withInitialCapacity( 4 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
             .build();
     }
 
@@ -1032,10 +1037,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> getByName( Category.class, "default" ) ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> getByName( CategoryCombo.class, "default" ) ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> getByName( CategoryOption.class, "default" ) ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getByName( CategoryOptionCombo.class, "default" ) ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> getByName( Category.class, "default" ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
             .build();
     }
 
