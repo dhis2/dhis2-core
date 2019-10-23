@@ -55,6 +55,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -366,7 +367,8 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
-        if (isNotEmpty(dynamicDimensions)) {
+        if ( isNotEmpty( dynamicDimensions ) )
+        {
             // Apply pre-authorized dimensions filtering
             for ( DimensionalObject dim : dynamicDimensions )
             {
@@ -374,8 +376,10 @@ public class JdbcEventAnalyticsManager
                 sql += sqlHelper.whereAnd() + " " + col + " in ("
                     + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
             }
-        } else {
-            sql = queryOnlyAllowedCategoryOptionEvents(sql, params.getProgram().getOrganisationUnits());
+        }
+        else
+        {
+            sql += queryOnlyAllowedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
         }
 
         // ---------------------------------------------------------------------
@@ -490,41 +494,52 @@ public class JdbcEventAnalyticsManager
         return sql;
     }
 
-    String queryOnlyAllowedCategoryOptionEvents( final String sql, final Set<OrganisationUnit> organisationUnits )
+    /**
+     * This method will generate a sql sentence responsible for filtering only the
+     * allowed category options for this program, and expects to receive only the
+     * authorized category options.
+     * 
+     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#excludeNonAuthorizedCategoryOptions(DataQueryParams)
+     *
+     * @param programCategories the list of program categories containing the list
+     *        of authorized category options for the current user.
+     * @return the sql statement in the format:
+     *          "and ax."mEXqxV2KIUl" in ('qNqYLugIySD') or ax."r7NDRdgj5zs" in ('qNqYLugIySD') "
+     * @throws NullPointerException if programCategories is null.
+     */
+    String queryOnlyAllowedCategoryOptionEvents( final List<Category> programCategories )
     {
         boolean andFlag = true;
-        final StringBuilder query = new StringBuilder( sql );
+        final StringBuilder query = new StringBuilder();
 
-        for ( final OrganisationUnit organisationUnit : organisationUnits )
+        for ( final Category category : programCategories )
         {
-            final Set<CategoryOption> categoryOptions = organisationUnit.getCategoryOptions();
+            final List<CategoryOption> categoryOptions = category.getCategoryOptions();
 
             if ( isNotEmpty( categoryOptions ) )
             {
-                for ( final CategoryOption categoryOption : categoryOptions )
-                {
-                    final Set<Category> categories = categoryOption.getCategories();
-                    if ( isNotEmpty( categories ) )
-                    {
-                        query.append( andFlag ? " and " : " or " );
-                        andFlag = false;
-                        query.append(buildInFilterForEachCategory( categories, categoryOptions ));
-                    }
-                }
+                query.append( andFlag ? " and " : " or " );
+                andFlag = false;
+                query.append(buildInFilterForCategory( category, categoryOptions ));
             }
         }
         return query.toString();
     }
 
-    String buildInFilterForEachCategory( final Set<Category> categories, final Set<CategoryOption> categoryOptions )
+    /**
+     * This method will generate a "in" sql statement for the given category and
+     * category options.
+     * 
+     * @param category
+     * @param categoryOptions
+     * @return a sql statement in the format: "ax."mEXqxV2KIUl" in ('qNqYLugIySD') "
+     */
+    String buildInFilterForCategory( final Category category, final List<CategoryOption> categoryOptions )
     {
-        final StringBuilder inFilter = new StringBuilder();
-        for ( final Category category : categories )
-        {
-            final String col = quoteAlias( category.getUid() );
-            inFilter.append( col + " in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) ) + ") or " );
-        }
-        return removeLast( inFilter.toString(), "or" );
+        final String categoryColumn = quoteAlias( category.getUid() );
+        final String inFilter = categoryColumn + " in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
+            + ") ";
+        return inFilter;
     }
 
     /**

@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -52,6 +53,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -88,18 +91,22 @@ public class DefaultAnalyticsSecurityManager
     @Override
     public void excludeNonAuthorizedCategoryOptions( final DataQueryParams params )
     {
-        final Set<OrganisationUnit> organisationUnits = params.getProgram().getOrganisationUnits();
-        for (Iterator<OrganisationUnit> i = organisationUnits.iterator(); i.hasNext(); )
+        final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
+
+        if ( isNotEmpty( programCategories ) )
         {
-            final Set<CategoryOption> categoryOptions = i.next().getCategoryOptions();
-
-            for ( Iterator<CategoryOption> it = categoryOptions.iterator(); it.hasNext(); )
+            for ( Category category : programCategories )
             {
-                final CategoryOption categoryOption = it.next();
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
 
-                if ( !hasDataReadPermissionFor( categoryOption ) )
+                for ( Iterator<CategoryOption> it = categoryOptions.iterator(); it.hasNext(); )
                 {
-                    it.remove();
+                    final CategoryOption categoryOption = it.next();
+
+                    if ( !hasDataReadPermissionFor( categoryOption ) )
+                    {
+                        it.remove();
+                    }
                 }
             }
         }
