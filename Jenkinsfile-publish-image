@@ -102,6 +102,17 @@ pipeline {
                     }
                 }
             }
+
+            post {
+                failure {
+                    script {
+                        dir("dhis-2/dhis-e2e-test") {
+                            sh "docker-compose logs web > logs.txt"
+                            archiveArtifacts artifacts: 'logs.txt'
+                        }
+                    }
+                }
+            }
         }
 
         stage('Publish image') {
