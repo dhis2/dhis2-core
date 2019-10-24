@@ -146,7 +146,7 @@ public class V2_34_3__Convert_job_configuration_binary_columns_into_varchar_data
         try ( Statement stmt = context.getConnection().createStatement() )
         {
             ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL );
-            if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ))
+            if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
             {
                 continueWithMigration = true;
             }
