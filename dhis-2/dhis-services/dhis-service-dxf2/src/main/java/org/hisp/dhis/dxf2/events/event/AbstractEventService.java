@@ -391,7 +391,14 @@ public abstract class AbstractEventService
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-        List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
+
+        List<String> conflictingEventUids = checkForExistingEventsIncludingDeleted( events, importSummaries );
+
+        List<Event> validEvents = events.stream()
+            .filter( e -> !conflictingEventUids.contains( e.getEvent() ) )
+            .collect( Collectors.toList());
+
+        List<List<Event>> partitions = Lists.partition( validEvents, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
@@ -412,6 +419,27 @@ public abstract class AbstractEventService
         updateEntities( importOptions.getUser() );
 
         return importSummaries;
+    }
+
+    private List<String> checkForExistingEventsIncludingDeleted( List<Event> events, ImportSummaries importSummaries )
+    {
+        List<String> foundEvents = programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted(
+            events.stream()
+                .map( Event::getEvent )
+                .collect( Collectors.toList() )
+        );
+
+        for ( String foundEventUid : foundEvents )
+        {
+            ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+                "Event " + foundEventUid + " already exists or was deleted earlier" )
+                .setReference( foundEventUid )
+                .incrementIgnored();
+
+            importSummaries.addImportSummary( is );
+        }
+
+        return foundEvents;
     }
 
     @Transactional
@@ -444,6 +472,14 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport )
     {
+        if ( !bulkImport && programStageInstanceService.programStageInstanceExistsIncludingDeleted ( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Event " + event.getEvent() + " already exists or was deleted earlier" )
+                .setReference( event.getEvent() )
+                .incrementIgnored();
+        }
+
         importOptions = updateImportOptions( importOptions );
 
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
@@ -451,12 +487,6 @@ public abstract class AbstractEventService
         if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
-        }
-
-        if (  programStageInstance != null && ( programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate() ) )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                .setReference( event.getEvent() ).incrementIgnored();
         }
 
         if ( programStageInstance == null && !StringUtils.isEmpty( event.getEvent() ) && !CodeGenerator.isValidUid( event.getEvent() ) )
