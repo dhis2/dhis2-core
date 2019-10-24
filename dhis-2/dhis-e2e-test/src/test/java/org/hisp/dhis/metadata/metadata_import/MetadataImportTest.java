@@ -191,13 +191,14 @@ public class MetadataImportTest
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
-            .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
+            .addAll( "async=true", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
 
         JsonObject metadata = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
         metadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
             .addProperty( "shortName", RandomStringUtils.random( 51 ) );
+
 
         // act
         ApiResponse response = metadataActions.post( metadata, queryParamsBuilder );
@@ -250,8 +251,6 @@ public class MetadataImportTest
 
         // send async request
         queryParamsBuilder.add( "async=true" );
-
-        response = metadataActions.post( object, queryParamsBuilder );
 
         response = metadataActions.post( object, queryParamsBuilder );
         

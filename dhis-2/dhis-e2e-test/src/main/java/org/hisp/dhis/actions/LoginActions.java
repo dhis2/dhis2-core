@@ -31,7 +31,10 @@ package org.hisp.dhis.actions;
 import io.restassured.RestAssured;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.config.TestConfiguration;
+
+import static io.restassured.RestAssured.oauth2;
 import static io.restassured.RestAssured.preemptive;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
