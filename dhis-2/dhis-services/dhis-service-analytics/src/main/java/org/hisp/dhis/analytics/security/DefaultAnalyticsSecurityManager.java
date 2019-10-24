@@ -97,17 +97,7 @@ public class DefaultAnalyticsSecurityManager
         {
             for ( Category category : programCategories )
             {
-                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                for ( Iterator<CategoryOption> it = categoryOptions.iterator(); it.hasNext(); )
-                {
-                    final CategoryOption categoryOption = it.next();
-
-                    if ( !hasDataReadPermissionFor( categoryOption ) )
-                    {
-                        it.remove();
-                    }
-                }
+                category.getCategoryOptions().removeIf( categoryOption -> !hasDataReadPermissionFor( categoryOption ) );
             }
         }
     }
