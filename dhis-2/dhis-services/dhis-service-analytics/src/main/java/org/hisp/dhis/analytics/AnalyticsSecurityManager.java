@@ -41,14 +41,6 @@ public interface AnalyticsSecurityManager
 {
 
     /**
-     * Will remove/exclude, from DataQueryParams, any category option that the
-     * current user is not allowed to read.
-     * 
-     * @param params the data query parameters.
-     */
-    void excludeNonAuthorizedCategoryOptions( DataQueryParams params );
-
-    /**
      * Decides whether the current user has privileges to execute the given query.
      * 
      * @param params the data query parameters.

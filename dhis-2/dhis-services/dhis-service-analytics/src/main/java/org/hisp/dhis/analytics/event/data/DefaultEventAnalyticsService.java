@@ -420,7 +420,6 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params )
     {
         securityManager.decideAccessEventQuery( params );
-        securityManager.excludeNonAuthorizedCategoryOptions( params );
 
         queryValidator.validate( params );
 
@@ -546,7 +545,6 @@ public class DefaultEventAnalyticsService
     public Grid getEvents( EventQueryParams params )
     {
         securityManager.decideAccessEventQuery( params );
-        securityManager.excludeNonAuthorizedCategoryOptions( params );
 
         queryValidator.validate( params );
 

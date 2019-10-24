@@ -377,7 +377,7 @@ public class JdbcEventAnalyticsManager
                     + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
             }
         }
-        else
+        else if ( params.hasProgram() && params.getProgram().hasCategoryCombo() )
         {
             sql += queryOnlyAllowedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
         }
@@ -499,28 +499,30 @@ public class JdbcEventAnalyticsManager
      * allowed category options for this program, and expects to receive only the
      * authorized category options.
      * 
-     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#excludeNonAuthorizedCategoryOptions(DataQueryParams)
+     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)
      *
      * @param programCategories the list of program categories containing the list
      *        of authorized category options for the current user.
      * @return the sql statement in the format:
      *          "and ax."mEXqxV2KIUl" in ('qNqYLugIySD') or ax."r7NDRdgj5zs" in ('qNqYLugIySD') "
-     * @throws NullPointerException if programCategories is null.
      */
     String queryOnlyAllowedCategoryOptionEvents( final List<Category> programCategories )
     {
         boolean andFlag = true;
         final StringBuilder query = new StringBuilder();
 
-        for ( final Category category : programCategories )
+        if ( isNotEmpty( programCategories ) )
         {
-            final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-            if ( isNotEmpty( categoryOptions ) )
+            for ( final Category category : programCategories )
             {
-                query.append( andFlag ? " and " : " or " );
-                andFlag = false;
-                query.append(buildInFilterForCategory( category, categoryOptions ));
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
+
+                if ( isNotEmpty( categoryOptions ) )
+                {
+                    query.append( andFlag ? " and " : " or " );
+                    andFlag = false;
+                    query.append( buildInFilterForCategory( category, categoryOptions ) );
+                }
             }
         }
         return query.toString();

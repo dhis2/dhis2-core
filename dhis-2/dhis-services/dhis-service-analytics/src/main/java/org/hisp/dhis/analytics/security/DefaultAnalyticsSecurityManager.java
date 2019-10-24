@@ -86,13 +86,13 @@ public class DefaultAnalyticsSecurityManager
     // -------------------------------------------------------------------------
 
     /**
-     * @see AnalyticsSecurityManager#excludeNonAuthorizedCategoryOptions(DataQueryParams)
+     * Will remove/exclude, from DataQueryParams, any category option that the
+     * current user is not allowed to read.
+     *
+     * @param programCategories the categories related to this program.
      */
-    @Override
-    public void excludeNonAuthorizedCategoryOptions( final DataQueryParams params )
+    void excludeNonAuthorizedCategoryOptions( final List<Category> programCategories )
     {
-        final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-
         if ( isNotEmpty( programCategories ) )
         {
             for ( Category category : programCategories )
@@ -170,10 +170,16 @@ public class DefaultAnalyticsSecurityManager
         objects.addAll( params.getAllDataSets() );
         objects.addAll( params.getProgramsInAttributesAndDataElements() );
         objects.addAll( params.getCategoryOptions() );
-        
+
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
+
+            if ( params.getProgram().hasCategoryCombo() )
+            {
+                final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
+                excludeNonAuthorizedCategoryOptions( programCategories );
+            }
         }
         
         if ( params.hasProgramStage() )
