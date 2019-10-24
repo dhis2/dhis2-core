@@ -143,7 +143,7 @@ public class V2_34_3__Convert_job_configuration_binary_columns_into_varchar_data
         //1. Check whether migration is needed at all. Maybe it was already applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
-        try ( Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
             ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL );
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ))
