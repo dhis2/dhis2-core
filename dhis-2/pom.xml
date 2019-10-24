@@ -1463,7 +1463,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring.version>5.2.0.RELEASE</spring.version>
     <spring-security.version>5.2.0.RELEASE</spring-security.version>
-    <spring-security-oauth2.version>2.3.7.RELEASE</spring-security-oauth2.version>
+    <spring-security-oauth2.version>2.3.6.RELEASE</spring-security-oauth2.version>
     <spring-session-data-redis.version>2.2.0.RELEASE</spring-session-data-redis.version>
     <lettuce.version>5.2.0.RELEASE</lettuce.version>
     <spring-data-redis.version>2.2.0.RELEASE</spring-data-redis.version>
