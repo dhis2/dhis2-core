@@ -115,6 +115,7 @@ public class DefaultRenderService
         }
         catch ( JsonProcessingException ignored )
         {
+            ignored.printStackTrace();
         }
 
         return null;

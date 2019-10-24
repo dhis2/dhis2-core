@@ -28,7 +28,7 @@ package org.hisp.dhis.result;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.struts2.dispatcher.VelocityResult;
+import org.apache.struts2.result.VelocityResult;
 
 /**
  * @author Lars Helge Overland
@@ -44,7 +44,7 @@ public class VelocityJsonResult
 
     @Override
     protected final String getContentType( String templateLocation )
-    {       
+    {
         return "application/json";
     }
 }

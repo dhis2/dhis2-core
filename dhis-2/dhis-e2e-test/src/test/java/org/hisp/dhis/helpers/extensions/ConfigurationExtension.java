@@ -60,6 +60,7 @@ public class ConfigurationExtension
 
         requestSpecification.addFilter( new CookieFilter() );
         requestSpecification.addFilter( new SessionFilter() );
+        requestSpecification.addFilter( new AuthFilter() );
         requestSpecification.setContentType( ContentType.JSON );
 
         return requestSpecification.build();

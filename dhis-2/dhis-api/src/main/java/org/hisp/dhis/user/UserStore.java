@@ -76,4 +76,18 @@ public interface UserStore
     int getUserCount();
 
     List<User> getExpiringUsers( UserQueryParams userQueryParams );
+
+    /**
+     * Returns UserCredentials for given username
+     * @param username username for which the UserCredentials will be returned
+     * @return UserCredentials for given username or null
+     */
+    UserCredentials getUserCredentialsByUsername( String username );
+
+    /**
+     * Returns User with given userId
+     * @param userId UserId
+     * @return User with given userId
+     */
+    User getUser( long userId );
 }

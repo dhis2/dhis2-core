@@ -28,7 +28,7 @@ package org.hisp.dhis.result;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.struts2.dispatcher.VelocityResult;
+import org.apache.struts2.result.VelocityResult;
 
 public class VelocityJavascriptResult
     extends VelocityResult
@@ -40,7 +40,7 @@ public class VelocityJavascriptResult
 
     @Override
     protected final String getContentType( String templateLocation )
-    {       
+    {
         return "application/javascript";
     }
 }
