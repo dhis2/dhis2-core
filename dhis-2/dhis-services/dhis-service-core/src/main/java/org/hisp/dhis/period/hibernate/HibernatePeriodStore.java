@@ -38,8 +38,8 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -63,7 +63,10 @@ public class HibernatePeriodStore
     @Autowired
     private Environment env;
 
-    private static Cache<String, Long> PERIOD_ID_CACHE;
+    private static Cache<Long> PERIOD_ID_CACHE;
+
+    @Autowired
+    private CacheProvider cacheProvider;
     
     // -------------------------------------------------------------------------
     // Period
@@ -72,11 +75,13 @@ public class HibernatePeriodStore
     @PostConstruct
     public void init()
     {
-
-        PERIOD_ID_CACHE =  Caffeine.newBuilder()
-                .expireAfterWrite( 24, TimeUnit.HOURS )
-                .initialCapacity( 200 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 10000 ).build();
+        PERIOD_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "periodIdCache" )
+            .expireAfterWrite( 24, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     @Override
@@ -184,8 +189,8 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
-        
+        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
+            .orElse( null );  
         Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
 
         return storedPeriod != null ? storedPeriod.copyTransientProperties( period ) : null;

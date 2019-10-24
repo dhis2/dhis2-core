@@ -28,8 +28,8 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.apache.commons.math3.util.Precision;
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.commons.validator.routines.IntegerValidator;
@@ -51,10 +51,10 @@ public class MathUtils
     /**
      * Cache for JEP expression evaluation.
      */
-    private static Cache<String, Double> EXPR_EVAL_CACHE = Caffeine.newBuilder()
+    private static Cache<Double> EXPR_EVAL_CACHE = new SimpleCacheBuilder<Double>().forRegion( "exprEvalCache" )
         .expireAfterAccess( 1, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( 5000 )
+        .withInitialCapacity( 200 )
+        .withMaximumSize( 5000 )
         .build();
 
     public static final Double ZERO = new Double( 0 );
@@ -115,7 +115,7 @@ public class MathUtils
      */
     public static double calculateExpression( String expression )
     {
-        return EXPR_EVAL_CACHE.get( expression, c -> calculateExpressionInternal( expression ) );
+        return EXPR_EVAL_CACHE.get( expression, c -> calculateExpressionInternal( expression ) ).get();
     }
 
     /**
