@@ -191,7 +191,7 @@ public class MetadataImportTest
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
-            .addAll( "async=true", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
+            .addAll( "async=true", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE" );
 
         JsonObject metadata = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
