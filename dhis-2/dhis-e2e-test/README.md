@@ -6,7 +6,7 @@
  - [docker-compose](https://docs.docker.com/compose/) - defines and runs dhis2 multi-container environment;
 ## Test execution
 
-All properties should be defined in config.properties file (src/main/resources`).
+All properties should be defined in config.properties file (src/main/resources).
 Properties can be overwritten by system or environment variables. 
 
 ### Required properties
