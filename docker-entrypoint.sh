@@ -6,6 +6,10 @@ TOMCATDIR=/usr/local/tomcat
 DHIS2HOME=/DHIS2_home
 BINDIR=/usr/local/bin
 
+if [[ ! -z "$WAIT_FOR_DB_CONTAINER" ]]; then
+    $BINDIR/wait-for-it.sh $WAIT_FOR_DB_CONTAINER
+fi
+
 if [ "$(id -u)" = "0" ]; then
     if [ -f $WARFILE ]; then
         unzip $WARFILE -d $TOMCATDIR/webapps/ROOT
@@ -20,10 +24,6 @@ if [ "$(id -u)" = "0" ]; then
 
     chown -R tomcat:tomcat $DHIS2HOME
     exec su-exec tomcat "$0" "$@"
-fi
-
-if [[ ! -z "$WAIT_FOR_DB_CONTAINER" ]]; then
-    $BINDIR/wait-for-it.sh $WAIT_FOR_DB_CONTAINER
 fi
 
 exec "$@"
