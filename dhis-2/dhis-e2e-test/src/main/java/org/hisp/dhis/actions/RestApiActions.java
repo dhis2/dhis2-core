@@ -34,7 +34,7 @@ import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
@@ -52,14 +52,25 @@ public class RestApiActions
 {
     protected String endpoint;
 
+    private String baseUri;
+
     public RestApiActions( final String endpoint )
     {
+        this.baseUri = RestAssured.baseURI;
         this.endpoint = endpoint;
+    }
+
+    public RestApiActions setBaseUri( String baseUri )
+    {
+        this.baseUri = baseUri;
+
+        return this;
     }
 
     protected RequestSpecification given()
     {
         return RestAssured.given()
+            .baseUri( this.baseUri )
             .basePath( endpoint )
             .config( RestAssured.config()
                 .objectMapperConfig( new ObjectMapperConfig( ObjectMapperType.GSON ) ) );
@@ -228,7 +239,6 @@ public class RestApiActions
         {
             return;
         }
-
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();

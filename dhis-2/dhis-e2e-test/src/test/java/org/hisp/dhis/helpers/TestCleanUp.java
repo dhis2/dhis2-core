@@ -79,8 +79,6 @@ public class TestCleanUp
      */
     public void deleteCreatedEntities()
     {
-        new LoginActions().loginAsSuperUser();
-
         Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
         List<String> reverseOrderedKeys = new ArrayList<>( createdEntities.keySet() );
         Collections.reverse( reverseOrderedKeys );

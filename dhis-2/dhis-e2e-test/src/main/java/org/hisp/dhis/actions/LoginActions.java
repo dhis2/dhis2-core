@@ -31,7 +31,6 @@ package org.hisp.dhis.actions;
 import io.restassured.RestAssured;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.config.TestConfiguration;
-
 import static io.restassured.RestAssured.preemptive;
 
 /**
@@ -39,24 +38,32 @@ import static io.restassured.RestAssured.preemptive;
  */
 public class LoginActions
 {
+    /**
+     * Makes sure user with given name is logged in.
+     * Will throw assertion exception if authentication is not successful.
+     *
+     * @param username
+     * @param password
+     */
     public void loginAsUser( final String username, final String password )
     {
         ApiResponse loggedInUser = getLoggedInUserInfo();
 
-        if ( loggedInUser.getContentType().contains( "json" ) && loggedInUser.extract( "userCredentials.username" ) != null &&
-            loggedInUser.extract( "userCredentials.username" ).equals( username ) )
+        if ( loggedInUser.getContentType().contains( "json" ) &&
+             loggedInUser.extract( "userCredentials.username" ) != null &&
+             loggedInUser.extract( "userCredentials.username" ).equals( username ) )
         {
             return;
         }
 
-        RestAssured.authentication = preemptive().basic( username, password );
+        addAuthenticationHeader( username, password );
 
-        getLoggedInUserInfo().validate().statusCode( 200 );
+        getLoggedInUserInfo().validate().statusCode( 200 ).body( "userCredentials.username", equalTo( username ) );
     }
 
     /**
-     * Logs in with superuser configured in test run time.
-     * If properties are not set default user will be used.
+     * Makes sure user configured in env variables is logged in.
+     * Will throw assertion exception if authentication is not successful.
      */
     public void loginAsSuperUser()
     {
@@ -64,8 +71,8 @@ public class LoginActions
     }
 
     /**
-     * Logs in with default user created by dhis2 setup.
-     * Username: admin
+     * Makes sure user admin:district is logged in.
+     * Will throw assertion exception if authentication is not successful.
      */
     public void loginAsDefaultUser()
     {
@@ -82,5 +89,25 @@ public class LoginActions
     public String getLoggedInUserId()
     {
         return getLoggedInUserInfo().extractString( "id" );
+    }
+  
+    /**
+     * Adds authentication header that is used in all consecutive requests
+     *
+     * @param username
+     * @param password
+     */
+    public void addAuthenticationHeader( final String username, final String password )
+    {
+        RestAssured.authentication = RestAssured.preemptive().basic( username, password );
+    }
+
+    /**
+     * Logs in with oAuth2 token
+     * @param token
+     */
+    public void loginWithToken( String token )
+    {
+        RestAssured.authentication = oauth2( token );
     }
 }

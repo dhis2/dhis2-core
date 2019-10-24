@@ -84,7 +84,9 @@ public class OptionSetTests
     @BeforeEach
     public void beforeEach()
     {
+
         optionActions = new OptionActions();
+
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();

@@ -308,7 +308,7 @@ public class JdbcEventStore
         {
             CachingMap<String, String> dataElementUidToIdentifierCache = new CachingMap<>();
 
-            List<Collection<DataValue>> dataValuesList = events.stream().map( e -> (Set<DataValue>) e.getDataValues() ).collect( Collectors.toList() );
+            List<Collection<DataValue>> dataValuesList = events.stream().map( Event::getDataValues ).collect( Collectors.toList() );
             populateCache( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
             convertDataValuesIdentifiers( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
         }
@@ -700,7 +700,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
         SqlHelper hlp = new SqlHelper();
 
         String sql = "select " + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) + " psi.uid as psi_uid, "
-            + " psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
+            + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
             + "psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, auc.username as user_assigned_username, "
@@ -1336,7 +1336,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
                 String deUid = dv.getDataElement();
                 String deIdentifier = dataElementUidToIdentifierCache.get( deUid );
 
-                if ( deIdentifier == null )
+                if ( StringUtils.isEmpty( deIdentifier ) )
                 {
                     throw new IllegalStateException(
                         "DataElement: " + deUid + " does not have a value assigned for idScheme " + idScheme.name() );

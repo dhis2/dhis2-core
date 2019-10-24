@@ -35,8 +35,6 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -83,17 +81,7 @@ public class DefaultAppStoreService
     public List<WebApp> getAppStore()
     {
         String appStoreApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_URL );
-        String appStoreApiVersion = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_VERSION );
-        String allAppsUrl;
-
-        if ( "" == appStoreApiVersion )
-        {
-            allAppsUrl = appStoreApiUrl + "/apps";
-        }
-        else
-        {
-            allAppsUrl = appStoreApiUrl + "/" + appStoreApiVersion + "/apps";
-        }
+        String allAppsUrl = appStoreApiUrl + "/apps";
 
         WebApp[] apps = restTemplate.getForObject( allAppsUrl, WebApp[].class );
 
