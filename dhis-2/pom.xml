@@ -1470,7 +1470,7 @@
     <struts.version>2.5.20</struts.version>
     <hibernate.version>5.2.17.Final</hibernate.version>
     <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
-    <jclouds.version>2.0.3</jclouds.version>
+    <jclouds.version>2.2.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>
     <!-- Keep in sync with Hibernate -->
     <javassist.version>3.20.0-GA</javassist.version>
