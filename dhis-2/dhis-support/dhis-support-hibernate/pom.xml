@@ -60,6 +60,10 @@
       <groupId>cglib</groupId>
       <artifactId>cglib</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml</groupId>
+      <artifactId>classmate</artifactId>
+    </dependency>
 
     <!-- Jasypt -->
 

@@ -72,8 +72,8 @@ public class MetadataAuditConsumer implements AuditConsumer
         this.metadataAuditService = metadataAuditService;
         this.renderService = renderService;
 
-        this.metadataAuditPersist = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "off" );
-        this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "off" );
+        this.metadataAuditPersist = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
+        this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
     }
 
     @JmsListener( destination = Topics.METADATA_TOPIC_NAME )
