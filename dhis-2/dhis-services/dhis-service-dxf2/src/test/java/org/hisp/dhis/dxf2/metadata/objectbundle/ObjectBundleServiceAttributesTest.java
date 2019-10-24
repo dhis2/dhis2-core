@@ -203,7 +203,7 @@ public class ObjectBundleServiceAttributesTest
         assertTrue( dataElementA.getAttributeValues().isEmpty() );
         assertTrue( dataElementB.getAttributeValues().isEmpty() );
         assertEquals( 2, dataElementC.getAttributeValues().size() );
-        assertEquals( 2, dataElementD.getAttributeValues().size() );
+        assertEquals( 1, dataElementD.getAttributeValues().size() );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -233,6 +233,10 @@ public class ObjectBundleServiceAttributesTest
         assertTrue( dataElementB.getAttributeValues().isEmpty() );
         assertEquals( 2, dataElementC.getAttributeValues().size() );
         assertEquals( 2, dataElementD.getAttributeValues().size() );
+        assertTrue( dataElementD.getAttributeValues().stream()
+            .anyMatch( av -> av.getValue().equals( "Gender_Female_Updated" ) ) );
+        assertTrue( dataElementD.getAttributeValues().stream()
+            .anyMatch( av -> av.getValue().equals( "DataElementTextAttributeD" ) ) );
     }
 
     @Test
