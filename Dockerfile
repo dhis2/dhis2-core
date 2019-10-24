@@ -72,5 +72,6 @@ RUN apk add --update --no-cache \
 COPY server.xml /usr/local/tomcat/conf
 COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
-# Expose the easy-to-remember directory /DHIS2_home for Docker volume mounting to configure the CORE instance
-ENV DHIS2_HOME=/DHIS2_home
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+CMD ["catalina.sh", "run"]
