@@ -36,7 +36,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Jim Grace
  */
-
 public class StandardDeviationPopulationTest
     extends StandardDeviationTest
 {

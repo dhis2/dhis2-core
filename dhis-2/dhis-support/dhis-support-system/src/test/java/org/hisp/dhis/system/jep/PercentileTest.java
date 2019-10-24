@@ -36,7 +36,6 @@ import java.util.Stack;
  *
  * @author Jim Grace
  */
-
 public abstract class PercentileTest
 {
     private final PercentileBase percentileToTest = getPercentileToTest();
