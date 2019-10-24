@@ -109,7 +109,7 @@ public class DefaultMergeService implements MergeService
                     else
                     {
                         merged.addAll(
-                            sourceObject.stream().filter( o -> !merged.contains( o ) ).collect( Collectors.toList() ) );
+                            targetObject.stream().filter( o -> !merged.contains( o ) ).collect( Collectors.toList() ) );
                     }
                     targetObject.clear();
                     targetObject.addAll( merged );
