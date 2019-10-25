@@ -33,5 +33,5 @@ package org.hisp.dhis.common;
  */
 public interface MergeableObject
 {
-    boolean mergeableEquals(Object object);
+    boolean mergeableEquals( Object object );
 }

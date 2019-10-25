@@ -110,20 +110,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             }
 
             attributeValue.setAttribute( attribute );
-
-//            Optional<AttributeValue> attributeValueAlreadyPresent = isAttributeValueAlreadyPresent( attributeValues,
-//                attributeValue );
-//            if ( attributeValueAlreadyPresent.isPresent() )
-//            {
-//                AttributeValue oldAttributeValue = attributeValueAlreadyPresent.get();
-//                oldAttributeValue.setValue( attributeValue.getValue() );
-//                attributeValue.setId( oldAttributeValue.getId() );
-//                //session.update( oldAttributeValue );
-//            }
-//            else
-//            {
-//                session.save( attributeValue );
-//            }
             session.save( attributeValue );
         }
     }
