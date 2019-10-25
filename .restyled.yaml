@@ -178,4 +178,5 @@ restylers_version: "20191012"
 #   The command (and any required argument(s)) to perform the Restyling.
 #
 restylers:
-  - jdt
+  - jdt:
+      command: ["cd ./dhis-2"]
