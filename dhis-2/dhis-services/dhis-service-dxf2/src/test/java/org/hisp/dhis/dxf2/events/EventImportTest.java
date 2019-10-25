@@ -331,8 +331,6 @@ public class EventImportTest
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-        Events events = eventService.getEvents( new EventSearchParams().setProgram( programB ) );
-        assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
     }
 
     @SuppressWarnings("unchecked")
