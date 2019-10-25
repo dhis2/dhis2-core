@@ -4,4 +4,4 @@ services:
   e2e-test:
     stdin_open: true
     image: "${IMAGE_NAME}"
-    command: ./wait-for-it.sh e2e-test-web:8080 -- mvn test -DbaseUrl=http://e2e-test-web:8080/api -DsuperUserUsername=taadmin -DsuperUserPsw=Test1212?
+    command: ./wait-for-it.sh e2e-test-web:8080 -t 0 -- mvn test -DbaseUrl=http://e2e-test-web:8080/api -DsuperUserUsername=taadmin -DsuperUserPsw=Test1212?

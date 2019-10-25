@@ -67,6 +67,10 @@
       <artifactId>velocity</artifactId>
     </dependency>
     <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity-tools</artifactId>
     </dependency>
@@ -86,8 +90,8 @@
       <artifactId>spring-session-data-redis</artifactId>
     </dependency>
     <dependency>
-      <groupId>biz.paluch.redis</groupId>
-      <artifactId>lettuce</artifactId>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
     </dependency>
 
     <!-- Other -->
