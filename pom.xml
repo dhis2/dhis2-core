@@ -22,7 +22,7 @@
                 <artifactId>formatter-maven-plugin</artifactId>
                 <version>2.10.0</version>
                 <configuration>
-                    <configFile>${project.basedir}/DHIS2_codestyle.xml</configFile>
+                    <configFile>${project.basedir}/dhis-2/DHIS2_codestyle.xml</configFile>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
