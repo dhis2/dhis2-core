@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression function If
+ * Function least
  *
  * @author Jim Grace
  */

@@ -105,8 +105,8 @@ public class HibernateTrackedEntityDataValueAuditStore
     }
 
     @Override
-    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType ) {
-
+    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType )
+    {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
@@ -117,7 +117,7 @@ public class HibernateTrackedEntityDataValueAuditStore
     }
 
     private CriteriaQuery getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances,
-        AuditType auditType, CriteriaBuilder builder,  CriteriaQuery query, Root<TrackedEntityDataValueAudit> root )
+        AuditType auditType, CriteriaBuilder builder, CriteriaQuery query, Root<TrackedEntityDataValueAudit> root )
     {
         if ( dataElements != null && !dataElements.isEmpty() )
         {

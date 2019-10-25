@@ -32,7 +32,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -45,7 +45,8 @@ import static org.hisp.dhis.parser.expression.ParserUtils.castDate;
 /**
  * @Author Zubair Asghar.
  */
-public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
+public abstract class ProgramMinMaxFunction
+    extends SimpleScalarFunction
 {
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )

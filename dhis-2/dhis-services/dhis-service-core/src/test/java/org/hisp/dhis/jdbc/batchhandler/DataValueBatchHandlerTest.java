@@ -153,6 +153,16 @@ public class DataValueBatchHandlerTest
     // -------------------------------------------------------------------------
 
     @Test
+    public void testInsertObject()
+    {
+        batchHandler.insertObject( dataValueA );
+
+        DataValue dataValue = dataValueService.getDataValue( dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA );
+
+        assertEquals( dataValue, dataValueA );
+    }
+
+    @Test
     public void testAddObject()
     {
         batchHandler.addObject( dataValueA );
