@@ -178,5 +178,4 @@ restylers_version: "20191012"
 #   The command (and any required argument(s)) to perform the Restyling.
 #
 restylers:
-  - jdt:
-      arguments: ["-f ./dhis-2/pom.xml"]
+  - jdt
