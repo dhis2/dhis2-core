@@ -186,8 +186,7 @@ public class DataElement extends BaseDimensionalItemObject
         group.getMembers().add( this );
     }
 
-    public void removeDataElementGroup( DataElementGroup group )
-    {
+    public void removeDataElementGroup(DataElementGroup group)    {
         groups.remove( group );
         group.getMembers().remove( this );
     }

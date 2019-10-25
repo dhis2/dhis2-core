@@ -346,6 +346,15 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>net.revelc.code.formatter</groupId>
+          <artifactId>formatter-maven-plugin</artifactId>
+          <version>2.10.0</version>
+          <configuration>
+            <configFile>${project.basedir}/DHIS2_codestyle.xml</configFile>
+            <encoding>UTF-8</encoding>
+          </configuration>
+        </plugin>
       </plugins>
 
     </pluginManagement>
