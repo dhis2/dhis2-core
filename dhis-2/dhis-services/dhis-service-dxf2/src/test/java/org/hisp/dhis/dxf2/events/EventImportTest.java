@@ -16,29 +16,29 @@ package org.hisp.dhis.dxf2.events;
  * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import com.vividsolutions.jts.geom.Geometry;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
-
-import com.vividsolutions.jts.geom.Geometry;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -75,306 +75,322 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class EventImportTest
-    extends DhisSpringTest
-{
-    @Autowired
-    private EventService eventService;
+public class EventImportTest extends DhisSpringTest {
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired
+  private ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+  @Autowired private ProgramInstanceService programInstanceService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private TrackedEntityInstance trackedEntityInstanceMaleA;
+  private TrackedEntityInstance trackedEntityInstanceMaleA;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private OrganisationUnit organisationUnitB;
+  private OrganisationUnit organisationUnitB;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private DataElement dataElementA2;
+  private DataElement dataElementA2;
 
-    private DataElement dataElementB;
+  private DataElement dataElementB;
 
-    private Program programA;
+  private Program programA;
 
-    private Program programB;
+  private Program programB;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    private ProgramStage programStageA2;
+  private ProgramStage programStageA2;
 
-    private ProgramStage programStageB;
+  private ProgramStage programStageB;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
 
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitB = createOrganisationUnit( 'B' );
-        manager.save( organisationUnitA );
-        manager.save( organisationUnitB );
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitB = createOrganisationUnit('B');
+    manager.save(organisationUnitA);
+    manager.save(organisationUnitB);
 
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
+    org.hisp.dhis.trackedentity.TrackedEntityInstance maleA =
+        createTrackedEntityInstance(organisationUnitA);
 
-        maleA.setTrackedEntityType( trackedEntityType );
+    maleA.setTrackedEntityType(trackedEntityType);
 
-        manager.save( maleA );
+    manager.save(maleA);
 
-        trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
+    trackedEntityInstanceMaleA =
+        trackedEntityInstanceService.getTrackedEntityInstance(maleA);
 
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setValueType( ValueType.INTEGER );
-        manager.save( dataElementA );
+    dataElementA = createDataElement('A');
+    dataElementA.setValueType(ValueType.INTEGER);
+    manager.save(dataElementA);
 
-        dataElementA2 = createDataElement( 'a' );
-        dataElementA2.setValueType( ValueType.INTEGER );
-        manager.save( dataElementA2 );
+    dataElementA2 = createDataElement('a');
+    dataElementA2.setValueType(ValueType.INTEGER);
+    manager.save(dataElementA2);
 
-        dataElementB = createDataElement( 'B' );
-        dataElementB.setValueType( ValueType.INTEGER );
-        manager.save( dataElementB );
+    dataElementB = createDataElement('B');
+    dataElementB.setValueType(ValueType.INTEGER);
+    manager.save(dataElementB);
 
-        programStageA = createProgramStage( 'A', 0 );
-        programStageA.setFeatureType( FeatureType.POINT );
-        manager.save( programStageA );
+    programStageA = createProgramStage('A', 0);
+    programStageA.setFeatureType(FeatureType.POINT);
+    manager.save(programStageA);
 
-        programStageA2 = createProgramStage( 'a', 0 );
-        programStageA2.setFeatureType( FeatureType.POINT );
-        programStageA2.setRepeatable( true );
-        manager.save( programStageA2 );
+    programStageA2 = createProgramStage('a', 0);
+    programStageA2.setFeatureType(FeatureType.POINT);
+    programStageA2.setRepeatable(true);
+    manager.save(programStageA2);
 
-        programStageB = createProgramStage( 'B', 0 );
-        programStageB.setFeatureType( FeatureType.POINT );
-        manager.save( programStageB );
+    programStageB = createProgramStage('B', 0);
+    programStageB.setFeatureType(FeatureType.POINT);
+    manager.save(programStageB);
 
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        manager.save( programA );
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.setProgramType(ProgramType.WITH_REGISTRATION);
+    manager.save(programA);
 
-        programB = createProgram( 'B', new HashSet<>(), organisationUnitB );
-        programB.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        manager.save( programB );
+    programB = createProgram('B', new HashSet<>(), organisationUnitB);
+    programB.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    manager.save(programB);
 
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA );
-        programStageDataElement.setProgramStage( programStageA );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
+    ProgramStageDataElement programStageDataElement =
+        new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElementA);
+    programStageDataElement.setProgramStage(programStageA);
+    programStageDataElementService.addProgramStageDataElement(
+        programStageDataElement);
 
-        ProgramStageDataElement programStageDataElementA2 = new ProgramStageDataElement();
-        programStageDataElementA2.setDataElement( dataElementA2 );
-        programStageDataElementA2.setProgramStage( programStageA2 );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElementA2 );
+    ProgramStageDataElement programStageDataElementA2 =
+        new ProgramStageDataElement();
+    programStageDataElementA2.setDataElement(dataElementA2);
+    programStageDataElementA2.setProgramStage(programStageA2);
+    programStageDataElementService.addProgramStageDataElement(
+        programStageDataElementA2);
 
-        ProgramStageDataElement programStageDataElementB = new ProgramStageDataElement();
-        programStageDataElementB.setDataElement( dataElementB );
-        programStageDataElementB.setProgramStage( programStageB );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElementB );
+    ProgramStageDataElement programStageDataElementB =
+        new ProgramStageDataElement();
+    programStageDataElementB.setDataElement(dataElementB);
+    programStageDataElementB.setProgramStage(programStageB);
+    programStageDataElementService.addProgramStageDataElement(
+        programStageDataElementB);
 
-        programStageA.getProgramStageDataElements().add( programStageDataElement );
-        programStageA2.getProgramStageDataElements().add( programStageDataElementA2 );
-        programStageA.setProgram( programA );
-        programStageA2.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
-        programA.getProgramStages().add( programStageA2 );
+    programStageA.getProgramStageDataElements().add(programStageDataElement);
+    programStageA2.getProgramStageDataElements().add(programStageDataElementA2);
+    programStageA.setProgram(programA);
+    programStageA2.setProgram(programA);
+    programA.getProgramStages().add(programStageA);
+    programA.getProgramStages().add(programStageA2);
 
-        programStageB.getProgramStageDataElements().add( programStageDataElementB );
-        programStageB.setProgram( programB );
-        programB.getProgramStages().add( programStageB );
+    programStageB.getProgramStageDataElements().add(programStageDataElementB);
+    programStageB.setProgram(programB);
+    programB.getProgramStages().add(programStageB);
 
-        manager.update( programStageA );
-        manager.update( programStageA2 );
-        manager.update( programA );
-        manager.update( programStageB );
-        manager.update( programB );
+    manager.update(programStageA);
+    manager.update(programStageA2);
+    manager.update(programA);
+    manager.update(programStageB);
+    manager.update(programB);
 
-        createUserAndInjectSecurityContext( true );
-    }
+    createUserAndInjectSecurityContext(true);
+  }
 
-    @Test
-    public void testAddEventOnProgramWithoutRegistration()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(), organisationUnitB.getUid(), null, dataElementB, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-    }
+  @Test
+  public void testAddEventOnProgramWithoutRegistration() throws IOException {
+    InputStream is = createEventJsonInputStream(
+        programB.getUid(), programStageB.getUid(), organisationUnitB.getUid(),
+        null, dataElementB, "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+  }
 
-    @Test
-    public void testAddEventOnProgramWithoutRegistrationAndExistingProgramInstance()
-        throws IOException
-    {
-        ProgramInstance pi = new ProgramInstance();
-        pi.setEnrollmentDate( new Date() );
-        pi.setIncidentDate( new Date() );
-        pi.setProgram( programB );
-        pi.setStatus( ProgramStatus.ACTIVE );
-        pi.setStoredBy( "test" );
+  @Test
+  public void
+  testAddEventOnProgramWithoutRegistrationAndExistingProgramInstance()
+      throws IOException {
+    ProgramInstance pi = new ProgramInstance();
+    pi.setEnrollmentDate(new Date());
+    pi.setIncidentDate(new Date());
+    pi.setProgram(programB);
+    pi.setStatus(ProgramStatus.ACTIVE);
+    pi.setStoredBy("test");
 
-        programInstanceService.addProgramInstance( pi );
+    programInstanceService.addProgramInstance(pi);
 
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(), organisationUnitB.getUid(), null, dataElementB, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-    }
+    InputStream is = createEventJsonInputStream(
+        programB.getUid(), programStageB.getUid(), organisationUnitB.getUid(),
+        null, dataElementB, "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+  }
 
-    @Test
-    public void testAddEventOnNonExistentProgram()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( "null", programStageB.getUid(), organisationUnitB.getUid(), null, dataElementB, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
-        assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(), CoreMatchers.containsString( "does not point to a valid program" ) );
+  @Test
+  public void testAddEventOnNonExistentProgram() throws IOException {
+    InputStream is = createEventJsonInputStream("null", programStageB.getUid(),
+                                                organisationUnitB.getUid(),
+                                                null, dataElementB, "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.ERROR, importSummaries.getStatus());
+    assertThat(
+        importSummaries.getImportSummaries().get(0).getDescription(),
+        CoreMatchers.containsString("does not point to a valid program"));
+  }
 
-    }
+  @Test
+  public void testAddEventOnNonExistentProgramStage() throws IOException {
+    InputStream is = createEventJsonInputStream(programA.getUid(), "null",
+                                                organisationUnitA.getUid(),
+                                                null, dataElementA, "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.ERROR, importSummaries.getStatus());
+    assertThat(
+        importSummaries.getImportSummaries().get(0).getDescription(),
+        CoreMatchers.containsString("does not point to a valid programStage"));
+  }
 
-    @Test
-    public void testAddEventOnNonExistentProgramStage()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( programA.getUid(), "null", organisationUnitA.getUid(), null, dataElementA, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
-        assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(), CoreMatchers.containsString( "does not point to a valid programStage" ) );
+  @Test
+  public void testAddEventOnProgramWithRegistration() throws IOException {
+    Enrollment enrollment =
+        createEnrollment(programA.getUid(),
+                         trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    ImportSummary importSummary =
+        enrollmentService.addEnrollment(enrollment, null, null);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    InputStream is = createEventJsonInputStream(
+        programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+        trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA,
+        "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+  }
 
-    }
+  @Test
+  public void testAddEventOnProgramWithRegistrationWithoutTei()
+      throws IOException {
+    InputStream is = createEventJsonInputStream(
+        programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+        null, dataElementA, "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.ERROR, importSummaries.getStatus());
+    assertThat(
+        importSummaries.getImportSummaries().get(0).getDescription(),
+        CoreMatchers.containsString(
+            "Event.trackedEntityInstance does not point to a valid tracked entity instance: null"));
+  }
 
-    @Test
-    public void testAddEventOnProgramWithRegistration()
-        throws IOException
-    {
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-    }
+  @Test
+  public void testAddEventOnProgramWithRegistrationWithInvalidTei()
+      throws IOException {
+    InputStream is = createEventJsonInputStream(
+        programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+        "null", dataElementA, "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.ERROR, importSummaries.getStatus());
+    assertThat(
+        importSummaries.getImportSummaries().get(0).getDescription(),
+        CoreMatchers.containsString(
+            "Event.trackedEntityInstance does not point to a valid tracked entity instance: null"));
+  }
 
-    @Test
-    public void testAddEventOnProgramWithRegistrationWithoutTei()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), null, dataElementA, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
-        assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(),
-            CoreMatchers.containsString( "Event.trackedEntityInstance does not point to a valid tracked entity instance: null" ) );
-    }
+  @Test
+  public void testAddEventOnProgramWithRegistrationButWithoutEnrollment()
+      throws IOException {
+    InputStream is = createEventJsonInputStream(
+        programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+        trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA,
+        "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.ERROR, importSummaries.getStatus());
+    assertThat(importSummaries.getImportSummaries().get(0).getDescription(),
+               CoreMatchers.containsString("is not enrolled in program"));
+  }
 
-    @Test
-    public void testAddEventOnProgramWithRegistrationWithInvalidTei()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), "null", dataElementA, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
-        assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(),
-            CoreMatchers.containsString( "Event.trackedEntityInstance does not point to a valid tracked entity instance: null" ) );
+  @Test
+  public void testAddEventOnRepeatableProgramStageWithRegistration()
+      throws IOException {
+    Enrollment enrollment =
+        createEnrollment(programA.getUid(),
+                         trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    ImportSummary importSummary =
+        enrollmentService.addEnrollment(enrollment, null, null);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    InputStream is = createEventJsonInputStream(
+        programA.getUid(), programStageA2.getUid(), organisationUnitA.getUid(),
+        trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA2,
+        "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+  }
 
-    }
+  @Test
+  public void testGeometry() throws IOException {
+    InputStream is = createEventJsonInputStream(
+        programB.getUid(), programStageB.getUid(), organisationUnitB.getUid(),
+        null, dataElementB, "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+  }
 
-    @Test
-    public void testAddEventOnProgramWithRegistrationButWithoutEnrollment()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
-        assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(), CoreMatchers.containsString( "is not enrolled in program" ) );
-    }
+  @SuppressWarnings("unchecked")
+  private InputStream
+  createEventJsonInputStream(String program, String programStage,
+                             String orgUnit, String person,
+                             DataElement dataElement, String value) {
+    JSONObject eventJsonPayload = new JSONObject();
+    eventJsonPayload.put("program", program);
+    eventJsonPayload.put("programStage", programStage);
+    eventJsonPayload.put("orgUnit", orgUnit);
+    eventJsonPayload.put("status", "COMPLETED");
+    eventJsonPayload.put("eventDate", "2018-08-20");
+    eventJsonPayload.put("completedDate", "2018-08-27");
+    eventJsonPayload.put("trackedEntityInstance", person);
 
-    @Test
-    public void testAddEventOnRepeatableProgramStageWithRegistration()
-        throws IOException
-    {
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        InputStream is = createEventJsonInputStream( programA.getUid(), programStageA2.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA2, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-    }
+    JSONObject dataValue = new JSONObject();
+    dataValue.put("dataElement", dataElement.getUid());
+    dataValue.put("value", value);
 
-    @Test
-    public void testGeometry()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
-            organisationUnitB.getUid(), null, dataElementB, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-    }
+    JSONObject geometry = new JSONObject();
+    geometry.put("type", "Point");
+    JSONArray coordinates = new JSONArray();
+    coordinates.add("1.33343");
+    coordinates.add("-21.9954");
+    geometry.put("coordinates", coordinates);
+    eventJsonPayload.put("geometry", geometry);
 
-    @SuppressWarnings("unchecked")
-    private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person, DataElement dataElement, String value )
-    {
-        JSONObject eventJsonPayload = new JSONObject();
-        eventJsonPayload.put( "program", program );
-        eventJsonPayload.put( "programStage", programStage );
-        eventJsonPayload.put( "orgUnit", orgUnit );
-        eventJsonPayload.put( "status", "COMPLETED" );
-        eventJsonPayload.put( "eventDate", "2018-08-20" );
-        eventJsonPayload.put( "completedDate", "2018-08-27" );
-        eventJsonPayload.put( "trackedEntityInstance", person );
+    JSONArray dataValues = new JSONArray();
+    dataValues.add(dataValue);
+    eventJsonPayload.put("dataValues", dataValues);
 
-        JSONObject dataValue = new JSONObject();
-        dataValue.put( "dataElement", dataElement.getUid() );
-        dataValue.put( "value", value );
+    InputStream is =
+        new ByteArrayInputStream(eventJsonPayload.toString().getBytes());
 
-        JSONObject geometry = new JSONObject();
-        geometry.put( "type", "Point" );
-        JSONArray coordinates = new JSONArray();
-        coordinates.add( "1.33343" );
-        coordinates.add( "-21.9954" );
-        geometry.put( "coordinates", coordinates );
-        eventJsonPayload.put( "geometry", geometry );
+    return is;
+  }
 
-        JSONArray dataValues = new JSONArray();
-        dataValues.add( dataValue );
-        eventJsonPayload.put( "dataValues", dataValues );
+  private Enrollment createEnrollment(String program, String person) {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setOrgUnit(organisationUnitA.getUid());
+    enrollment.setProgram(program);
+    enrollment.setTrackedEntityInstance(person);
+    enrollment.setEnrollmentDate(new Date());
+    enrollment.setIncidentDate(new Date());
 
-        InputStream is = new ByteArrayInputStream( eventJsonPayload.toString().getBytes() );
-
-        return is;
-    }
-
-    private Enrollment createEnrollment( String program, String person )
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setOrgUnit( organisationUnitA.getUid() );
-        enrollment.setProgram( program );
-        enrollment.setTrackedEntityInstance( person );
-        enrollment.setEnrollmentDate( new Date() );
-        enrollment.setIncidentDate( new Date() );
-
-        return enrollment;
-    }
+    return enrollment;
+  }
 }

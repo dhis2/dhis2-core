@@ -16,16 +16,17 @@ package org.hisp.dhis.node.geometry;
  * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
@@ -42,27 +43,21 @@ import org.apache.commons.logging.LogFactory;
  * @author Enrico Colasante
  */
 public class XmlGenericGeometryParser
-    extends BaseParser
-    implements GeometryParser<Geometry>
-{
-    private final static Log log = LogFactory.getLog( XmlGenericGeometryParser.class );
+    extends BaseParser implements GeometryParser<Geometry> {
+  private final static Log log =
+      LogFactory.getLog(XmlGenericGeometryParser.class);
 
-    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
-    {
-        super( geometryFactory );
-    }
+  public XmlGenericGeometryParser(GeometryFactory geometryFactory) {
+    super(geometryFactory);
+  }
 
-    public Geometry geometryFromJson( JsonNode node )
-    {
-        WKTReader wktR = new WKTReader();
-        try
-        {
-            return wktR.read( node.asText() );
-        }
-        catch ( ParseException e )
-        {
-            log.error( "Error reading WKT of geometry", e );
-            return null;
-        }
+  public Geometry geometryFromJson(JsonNode node) {
+    WKTReader wktR = new WKTReader();
+    try {
+      return wktR.read(node.asText());
+    } catch (ParseException e) {
+      log.error("Error reading WKT of geometry", e);
+      return null;
     }
+  }
 }

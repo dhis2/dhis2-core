@@ -16,18 +16,28 @@ package org.hisp.dhis.dxf2.events;
  * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.HashSet;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
@@ -63,111 +73,93 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.HashSet;
-
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
 /**
  * @author Enrico Colasante
  */
-public class EventXmlImportTest
-    extends IntegrationTestBase
-{
-    @Autowired
-    private EventService eventService;
+public class EventXmlImportTest extends IntegrationTestBase {
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired
+  private ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private Program programA;
+  private Program programA;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  @Override
+  public boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
 
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitA.setUid( "A" );
-        manager.save( organisationUnitA );
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitA.setUid("A");
+    manager.save(organisationUnitA);
 
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setValueType( ValueType.INTEGER );
-        dataElementA.setUid( "A" );
-        manager.save( dataElementA );
-//
-//        dataElementA2 = createDataElement( 'a' );
-//        dataElementA2.setValueType( ValueType.INTEGER );
-//        manager.save( dataElementA2 );
-//
-//        dataElementB = createDataElement( 'B' );
-//        dataElementB.setValueType( ValueType.INTEGER );
-//        manager.save( dataElementB );
+    dataElementA = createDataElement('A');
+    dataElementA.setValueType(ValueType.INTEGER);
+    dataElementA.setUid("A");
+    manager.save(dataElementA);
+    //
+    //        dataElementA2 = createDataElement( 'a' );
+    //        dataElementA2.setValueType( ValueType.INTEGER );
+    //        manager.save( dataElementA2 );
+    //
+    //        dataElementB = createDataElement( 'B' );
+    //        dataElementB.setValueType( ValueType.INTEGER );
+    //        manager.save( dataElementB );
 
-        programStageA = createProgramStage( 'A', 0 );
-        programStageA.setFeatureType( FeatureType.POINT );
-        programStageA.setUid( "A" );
-        manager.save( programStageA );
+    programStageA = createProgramStage('A', 0);
+    programStageA.setFeatureType(FeatureType.POINT);
+    programStageA.setUid("A");
+    manager.save(programStageA);
 
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA );
-        programStageDataElement.setProgramStage( programStageA );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
+    ProgramStageDataElement programStageDataElement =
+        new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElementA);
+    programStageDataElement.setProgramStage(programStageA);
+    programStageDataElementService.addProgramStageDataElement(
+        programStageDataElement);
 
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programA.setUid( "A" );
-        manager.save( programA );
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    programA.setUid("A");
+    manager.save(programA);
 
-        programStageA.getProgramStageDataElements().add( programStageDataElement );
-        programStageA.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
+    programStageA.getProgramStageDataElements().add(programStageDataElement);
+    programStageA.setProgram(programA);
+    programA.getProgramStages().add(programStageA);
 
-        manager.update( programStageA );
-        manager.update( programA );
+    manager.update(programStageA);
+    manager.update(programA);
 
-        createUserAndInjectSecurityContext( true );
-    }
+    createUserAndInjectSecurityContext(true);
+  }
 
-    @Test
-    public void testGeometry()
-        throws IOException
-    {
-        InputStream is = createEventXmlInputStream();
-        ImportSummaries importSummaries = eventService.addEventsXml( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
-        assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
-    }
+  @Test
+  public void testGeometry() throws IOException {
+    InputStream is = createEventXmlInputStream();
+    ImportSummaries importSummaries = eventService.addEventsXml(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+    Events events =
+        eventService.getEvents(new EventSearchParams().setProgram(programA));
+    assertTrue(events.getEvents().stream().allMatch(
+        e -> e.getGeometry().getGeometryType().equals("Point")));
+  }
 
-    @SuppressWarnings("unchecked")
-    private InputStream createEventXmlInputStream( )
-        throws IOException
-    {
-        return new ClassPathResource( "events/events.xml" ).getInputStream();
-    }
+  @SuppressWarnings("unchecked")
+  private InputStream createEventXmlInputStream() throws IOException {
+    return new ClassPathResource("events/events.xml").getInputStream();
+  }
 }
