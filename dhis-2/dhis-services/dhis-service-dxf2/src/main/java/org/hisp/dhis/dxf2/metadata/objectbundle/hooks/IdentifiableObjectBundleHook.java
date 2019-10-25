@@ -89,7 +89,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             AttributeValue attributeValue = iterator.next();
 
             // if value null or empty, just skip it
-            if ( StringUtils.isEmpty( attributeValue.getValue() ) &&
+            if ( StringUtils.isEmpty( attributeValue.getValue() ) ||
                 isAttributeValueAlreadyPresent( attributeValues, attributeValue ) )
             {
                 iterator.remove();
