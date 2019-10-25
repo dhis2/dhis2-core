@@ -36,7 +36,6 @@ import java.util.Stack;
  *
  * @author Jim Grace
  */
-
 public abstract class StandardDeviationTest
 {
     private final StandardDeviationBase standardDeviationToTest = getStandardDeviationToTest();
