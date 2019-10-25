@@ -171,7 +171,7 @@
   </dependencyManagement>
 
   <properties>
-    <rootDir>../</rootDir>
+    <rootDir>../../</rootDir>
     <useWarCompression>true</useWarCompression>
     <maven-jetty-plugin.version>9.4.21.v20190926</maven-jetty-plugin.version>
     <tomcat.version>8.5.47</tomcat.version>
