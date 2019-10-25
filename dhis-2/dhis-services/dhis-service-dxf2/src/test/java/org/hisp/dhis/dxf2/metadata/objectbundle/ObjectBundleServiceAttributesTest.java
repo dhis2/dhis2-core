@@ -240,6 +240,75 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
+    public void testImportNewMetadataAttributeValues()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/simple_metadata_with_av.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        // attribute value check
+        DataElement dataElementA = manager.get( DataElement.class, "SG4HuKlNEFH" );
+        DataElement dataElementB = manager.get( DataElement.class, "CCwk5Yx440o" );
+        DataElement dataElementC = manager.get( DataElement.class, "j5PneRdU7WT" );
+        DataElement dataElementD = manager.get( DataElement.class, "k90AVpBahO4" );
+
+        assertNotNull( dataElementA );
+        assertNotNull( dataElementB );
+        assertNotNull( dataElementC );
+        assertNotNull( dataElementD );
+
+        assertTrue( dataElementA.getAttributeValues().isEmpty() );
+        assertTrue( dataElementB.getAttributeValues().isEmpty() );
+        assertEquals( 2, dataElementC.getAttributeValues().size() );
+        assertEquals( 1, dataElementD.getAttributeValues().size() );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setMergeMode( MergeMode.MERGE );
+        params.setObjects( renderService.fromMetadata(
+            new ClassPathResource( "dxf2/simple_metadata_with_new_attribute_value.json" ).getInputStream(),
+            RenderFormat.JSON ) );
+
+        bundle = objectBundleService.create( params );
+        validationReport = objectBundleValidationService.validate( bundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        // attribute value check
+        dataElementA = manager.get( DataElement.class, "SG4HuKlNEFH" );
+        dataElementB = manager.get( DataElement.class, "CCwk5Yx440o" );
+        dataElementC = manager.get( DataElement.class, "j5PneRdU7WT" );
+        dataElementD = manager.get( DataElement.class, "k90AVpBahO4" );
+
+        assertNotNull( dataElementA );
+        assertNotNull( dataElementB );
+        assertNotNull( dataElementC );
+        assertNotNull( dataElementD );
+
+        assertTrue( dataElementA.getAttributeValues().isEmpty() );
+        assertTrue( dataElementB.getAttributeValues().isEmpty() );
+        assertEquals( 2, dataElementC.getAttributeValues().size() );
+        assertEquals( 2, dataElementD.getAttributeValues().size() );
+        assertTrue( dataElementD.getAttributeValues().stream()
+            .anyMatch( av -> av.getValue().equals( "Gender_Female" ) ) );
+        assertTrue( dataElementD.getAttributeValues().stream()
+            .anyMatch( av -> av.getValue().equals( "DataElementTextAttributeD" ) ) );
+    }
+
+    @Test
     public void testValidateMetadataAttributeValuesMandatory() throws IOException
     {
         defaultSetupWithAttributes();

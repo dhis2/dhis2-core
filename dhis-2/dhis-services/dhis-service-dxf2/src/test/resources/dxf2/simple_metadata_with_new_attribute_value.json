@@ -1,0 +1,32 @@
+{
+  "dataElements": [
+    {
+      "publicAccess": "rw------",
+      "aggregationType": "SUM",
+      "userGroupAccesses": [ ],
+      "domainType": "AGGREGATE",
+      "id": "k90AVpBahO4",
+      "name": "DataElementD",
+      "shortName": "DataElementShortD",
+      "valueType": "TEXT",
+      "lastUpdated": "2016-02-27T03:17:51.963+0000",
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "aggregationLevels": [ ],
+      "zeroIsSignificant": false,
+      "created": "2016-02-27T03:17:51.961+0000",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "vNmjWwe4G1g"
+          },
+          "created": "2016-02-27T03:17:51.892+0000",
+          "value": "DataElementTextAttributeD",
+          "lastUpdated": "2016-02-27T03:17:51.965+0000"
+        }
+      ],
+      "code": "DataElementCodeD"
+    }
+  ]
+}

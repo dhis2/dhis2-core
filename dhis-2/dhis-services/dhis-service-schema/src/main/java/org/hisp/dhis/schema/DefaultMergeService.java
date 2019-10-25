@@ -101,7 +101,7 @@ public class DefaultMergeService implements MergeService
                     if ( MergeableObject.class.isAssignableFrom( property.getItemKlass() ) )
                     {
                         merged.addAll(
-                            sourceObject.stream().filter(
+                            targetObject.stream().filter(
                                 o -> merged.stream()
                                     .noneMatch( newO -> ((MergeableObject) newO).mergeableEquals( o ) ) )
                                 .collect( Collectors.toList() ) );
