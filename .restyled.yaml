@@ -179,4 +179,4 @@ restylers_version: "20191012"
 #
 restylers:
   - jdt:
-      arguments: ["-f /code/dhis-2/pom.xml"]
+      arguments: ["-f ./dhis-2/pom.xml"]
