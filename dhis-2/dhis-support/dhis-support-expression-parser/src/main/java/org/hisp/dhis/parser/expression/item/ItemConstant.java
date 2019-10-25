@@ -29,7 +29,6 @@ package org.hisp.dhis.parser.expression.item;
  */
 
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.parser.expression.ExprItem;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
@@ -42,7 +41,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public class ItemConstant
-    implements ExprItem
+    extends BaseExprItem
 {
     @Override
     public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
@@ -92,6 +91,19 @@ public class ItemConstant
         if ( value == null )
         {
             throw new ParserExceptionWithoutContext( "Can't find constant for SQL " + ctx.uid0.getText() );
+        }
+
+        return value.toString();
+    }
+
+    @Override
+    public Object regenerate( ItemContext ctx, CommonExpressionVisitor visitor )
+    {
+        Double value = visitor.getConstantMap().get( ctx.uid0.getText() );
+
+        if ( value == null )
+        {
+            return ctx.getText();
         }
 
         return value.toString();
