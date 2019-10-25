@@ -1,6 +1,5 @@
 package org.hisp.dhis.expression;
 
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
