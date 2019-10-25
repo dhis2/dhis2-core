@@ -470,8 +470,8 @@ public class ValidationUtils
     }
 
     /**
-     * Indicates whether the given value is zero and not zero significant according
-     * to its data element.
+     * Indicates whether the given value is zero and not zero significant
+     * according to its data element.
      *
      * @param value       the data value.
      * @param dataElement the data element.
