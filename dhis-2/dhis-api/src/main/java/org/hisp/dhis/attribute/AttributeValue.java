@@ -207,14 +207,20 @@ public class AttributeValue
     public boolean mergeableEquals( Object o )
     {
         if ( this == o )
+        {
             return true;
+        }
         if ( o == null || getClass() != o.getClass() )
+        {
             return false;
+        }
 
         AttributeValue that = (AttributeValue) o;
 
         if ( !Objects.equals( attribute, that.attribute ) )
+        {
             return false;
+        }
 
         return true;
     }
