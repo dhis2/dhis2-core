@@ -123,7 +123,7 @@ public class DefaultAttributeService
     public Attribute getAttribute( String uid )
     {
         Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
-        return attribute.orElse(null);
+        return attribute.orElse( null );
     }
 
     @Override
