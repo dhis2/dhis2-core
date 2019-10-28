@@ -16,140 +16,131 @@ package org.hisp.dhis.schema;
  * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.MergeableObject;
-import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MergeableObject;
+import org.hisp.dhis.system.util.ReflectionUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DefaultMergeService implements MergeService
-{
-    private final SchemaService schemaService;
+public class DefaultMergeService implements MergeService {
+  private final SchemaService schemaService;
 
-    public DefaultMergeService( SchemaService schemaService )
-    {
-        this.schemaService = schemaService;
-    }
+  public DefaultMergeService(SchemaService schemaService) {
+    this.schemaService = schemaService;
+  }
 
-    @Override
-    public <T> T merge( MergeParams<T> mergeParams )
-    {
-        T source = mergeParams.getSource();
-        T target = mergeParams.getTarget();
+  @Override
+  public <T> T merge(MergeParams<T> mergeParams) {
+    T source = mergeParams.getSource();
+    T target = mergeParams.getTarget();
 
-        Schema schema = schemaService.getDynamicSchema( source.getClass() );
+    Schema schema = schemaService.getDynamicSchema(source.getClass());
 
-        for ( Property property : schema.getProperties() )
-        {
-            if ( schema.isIdentifiableObject() )
-            {
-                if ( mergeParams.isSkipSharing() && ReflectionUtils.isSharingProperty( property ) )
-                {
-                    continue;
-                }
-
-                if ( mergeParams.isSkipTranslation() && ReflectionUtils.isTranslationProperty( property ) )
-                {
-                    continue;
-                }
-            }
-
-            // passwords should only be merged manually
-            if ( property.is( PropertyType.PASSWORD ) )
-            {
-                continue;
-            }
-
-            if ( property.isCollection() )
-            {
-                Collection<T> sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
-                Collection<T> targetObject = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-
-                if ( sourceObject == null )
-                {
-                    continue;
-                }
-
-                if ( targetObject == null )
-                {
-                    targetObject = ReflectionUtils.newCollectionInstance( property.getKlass() );
-                }
-
-                if ( mergeParams.getMergeMode().isMerge() )
-                {
-                    Collection<T> merged = ReflectionUtils.newCollectionInstance( property.getKlass() );
-                    merged.addAll( sourceObject );
-                    if ( MergeableObject.class.isAssignableFrom( property.getItemKlass() ) )
-                    {
-                        merged.addAll(
-                            targetObject.stream().filter(
-                                o -> merged.stream()
-                                    .noneMatch( newO -> ((MergeableObject) newO).mergeableEquals( o ) ) )
-                                .collect( Collectors.toList() ) );
-                    }
-                    else
-                    {
-                        merged.addAll(
-                            targetObject.stream().filter( o -> !merged.contains( o ) ).collect( Collectors.toList() ) );
-                    }
-                    targetObject.clear();
-                    targetObject.addAll( merged );
-                }
-                else
-                {
-                    targetObject.clear();
-                    targetObject.addAll( sourceObject );
-                }
-
-                ReflectionUtils.invokeMethod( target, property.getSetterMethod(), targetObject );
-            }
-            else
-            {
-                Object sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
-
-                if ( mergeParams.getMergeMode().isReplace() || ( mergeParams.getMergeMode().isMerge() && sourceObject != null ) )
-                {
-                    ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
-                }
-            }
+    for (Property property : schema.getProperties()) {
+      if (schema.isIdentifiableObject()) {
+        if (mergeParams.isSkipSharing() &&
+            ReflectionUtils.isSharingProperty(property)) {
+          continue;
         }
 
-        return target;
+        if (mergeParams.isSkipTranslation() &&
+            ReflectionUtils.isTranslationProperty(property)) {
+          continue;
+        }
+      }
+
+      // passwords should only be merged manually
+      if (property.is(PropertyType.PASSWORD)) {
+        continue;
+      }
+
+      if (property.isCollection()) {
+        Collection<T> sourceObject =
+            ReflectionUtils.invokeMethod(source, property.getGetterMethod());
+        Collection<T> targetObject =
+            ReflectionUtils.invokeMethod(target, property.getGetterMethod());
+
+        if (sourceObject == null) {
+          continue;
+        }
+
+        if (targetObject == null) {
+          targetObject =
+              ReflectionUtils.newCollectionInstance(property.getKlass());
+        }
+
+        if (mergeParams.getMergeMode().isMerge()) {
+          Collection<T> merged =
+              ReflectionUtils.newCollectionInstance(property.getKlass());
+          merged.addAll(sourceObject);
+          if (MergeableObject.class.isAssignableFrom(property.getItemKlass())) {
+            merged.addAll(
+                targetObject.stream()
+                    .filter(
+                        o
+                        -> merged.stream().noneMatch(
+                            newO -> ((MergeableObject)newO).mergeableEquals(o)))
+                    .collect(Collectors.toList()));
+          } else {
+            merged.addAll(targetObject.stream()
+                              .filter(o -> !merged.contains(o))
+                              .collect(Collectors.toList()));
+          }
+          targetObject.clear();
+          targetObject.addAll(merged);
+        } else {
+          targetObject.clear();
+          targetObject.addAll(sourceObject);
+        }
+
+        ReflectionUtils.invokeMethod(target, property.getSetterMethod(),
+                                     targetObject);
+      } else {
+        Object sourceObject =
+            ReflectionUtils.invokeMethod(source, property.getGetterMethod());
+
+        if (mergeParams.getMergeMode().isReplace() ||
+            (mergeParams.getMergeMode().isMerge() && sourceObject != null)) {
+          ReflectionUtils.invokeMethod(target, property.getSetterMethod(),
+                                       sourceObject);
+        }
+      }
     }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public <T> T clone( T source )
-    {
-        if ( source == null ) return null;
+    return target;
+  }
 
-        try
-        {
-            return merge( new MergeParams<>( source, (T) source.getClass().newInstance() ).setMergeMode( MergeMode.REPLACE ) );
-        }
-        catch ( InstantiationException | IllegalAccessException ignored )
-        {
-        }
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> T clone(T source) {
+    if (source == null)
+      return null;
 
-        return null;
+    try {
+      return merge(new MergeParams<>(source, (T)source.getClass().newInstance())
+                       .setMergeMode(MergeMode.REPLACE));
+    } catch (InstantiationException | IllegalAccessException ignored) {
     }
+
+    return null;
+  }
 }
