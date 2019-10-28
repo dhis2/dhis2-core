@@ -398,7 +398,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         List<TrackedEntityInstance> validTeis = trackedEntityInstances.stream()
             .filter( tei -> !conflictingTeiUids.contains( tei.getTrackedEntityInstance() ) )
-            .collect( Collectors.toList());
+            .collect( Collectors.toList() );
 
         List<List<TrackedEntityInstance>> partitions = Lists.partition( validTeis, FLUSH_FREQUENCY );
 
