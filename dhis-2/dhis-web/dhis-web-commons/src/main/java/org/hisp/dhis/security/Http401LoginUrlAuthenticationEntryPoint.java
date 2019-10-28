@@ -59,7 +59,7 @@ public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticat
         if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) )
         {
             response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-            response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
             renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( "Unauthorized" ) );
             return;
         }

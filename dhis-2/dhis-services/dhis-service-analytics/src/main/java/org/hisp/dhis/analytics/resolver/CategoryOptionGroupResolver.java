@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.resolver;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.expression.Expression.*;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,6 +43,7 @@ import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.ParseType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,7 +114,7 @@ public class CategoryOptionGroupResolver
     {
         // Get a DimensionalItemId from the expression. The expression is parsed and
         // each element placed in the DimensionalItemId
-        Set<DimensionalItemId> dimItemIds = expressionService.getDimensionalItemIdsInExpression( expression );
+        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION );
         List<String> resolvedOperands = new ArrayList<>();
         if ( isDataElementOperand( dimItemIds ) )
         {

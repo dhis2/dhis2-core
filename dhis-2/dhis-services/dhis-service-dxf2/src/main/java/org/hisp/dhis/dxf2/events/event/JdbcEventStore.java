@@ -94,7 +94,7 @@ import static org.hisp.dhis.util.DateUtils.*;
  */
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore
-        implements EventStore
+    implements EventStore
 {
     private static final Log log = LogFactory.getLog( JdbcEventStore.class );
 
@@ -114,7 +114,7 @@ public class JdbcEventStore
 
     //Cannot use DefaultRenderService mapper. Does not work properly - DHIS2-6102
     private static final ObjectReader eventDataValueJsonReader =
-            JsonEventDataValueSetBinaryType.MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
+        JsonEventDataValueSetBinaryType.MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
 
     private final StatementBuilder statementBuilder;
 
@@ -181,13 +181,15 @@ public class JdbcEventStore
 
             if ( !eventUidToEventMap.containsKey( psiUid ) )
             {
+                validateIdentifiersPresence( rowSet, params.getIdSchemes(), true );
+
                 event = new Event();
                 eventUidToEventMap.put( psiUid, event );
 
                 if ( !params.isSkipEventId() )
                 {
                     event.setUid( psiUid );
-                    event.setEvent( rowSet.getString( "psi_uid" ) );
+                    event.setEvent( psiUid );
                 }
 
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
@@ -204,7 +206,7 @@ public class JdbcEventStore
                 {
                     event.setEnrollment( rowSet.getString( "pi_uid" ) );
                     event.setEnrollmentStatus( EnrollmentStatus
-                            .fromProgramStatus( ProgramStatus.valueOf( rowSet.getString( "pi_status" ) ) ) );
+                        .fromProgramStatus( ProgramStatus.valueOf( rowSet.getString( "pi_status" ) ) ) );
                     event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
                 }
 
@@ -274,7 +276,7 @@ public class JdbcEventStore
                     if ( params.isSynchronizationQuery() )
                     {
                         if ( psdesWithSkipSyncTrue.containsKey( rowSet.getString( "ps_uid" ) ) &&
-                                psdesWithSkipSyncTrue.get( rowSet.getString( "ps_uid" ) ).contains( dv.getDataElement() ) )
+                            psdesWithSkipSyncTrue.get( rowSet.getString( "ps_uid" ) ).contains( dv.getDataElement() ) )
                         {
                             dataValue.setSkipSynchronization( true );
                         }
@@ -319,6 +321,38 @@ public class JdbcEventStore
         }
 
         return events;
+    }
+
+    private void validateIdentifiersPresence( SqlRowSet rowSet, IdSchemes idSchemes,
+        boolean validateCategoryOptionCombo )
+    {
+        if ( StringUtils.isEmpty( rowSet.getString( "p_identifier" ) ) )
+        {
+            throw new IllegalStateException(
+                String.format( "Program %s does not have a value assigned for idScheme %s",
+                    rowSet.getString( "p_uid" ), idSchemes.getProgramIdScheme().name() ) );
+        }
+
+        if ( StringUtils.isEmpty( rowSet.getString( "ps_identifier" ) ) )
+        {
+            throw new IllegalStateException(
+                String.format( "ProgramStage %s does not have a value assigned for idScheme %s",
+                    rowSet.getString( "ps_uid" ), idSchemes.getProgramStageIdScheme().name() ) );
+        }
+
+        if ( StringUtils.isEmpty( rowSet.getString( "ou_identifier" ) ) )
+        {
+            throw new IllegalStateException(
+                String.format( "OrgUnit %s does not have a value assigned for idScheme %s",
+                    rowSet.getString( "ou_uid" ), idSchemes.getOrgUnitIdScheme().name() ) );
+        }
+
+        if ( validateCategoryOptionCombo && StringUtils.isEmpty( rowSet.getString( "coc_identifier" ) ) )
+        {
+            throw new IllegalStateException(
+                String.format( "CategoryOptionCombo %s does not have a value assigned for idScheme %s",
+                    rowSet.getString( "coc_uid" ), idSchemes.getCategoryOptionComboIdScheme().name() ) );
+        }
     }
 
     @Override
@@ -392,6 +426,8 @@ public class JdbcEventStore
 
             if ( eventRow.getUid() == null || !eventRow.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
+                validateIdentifiersPresence( rowSet, params.getIdSchemes(), false );
+
                 eventRow = new EventRow();
 
                 eventRow.setUid( rowSet.getString( "psi_uid" ) );
@@ -440,7 +476,7 @@ public class JdbcEventStore
             }
 
             if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) )
-                    && !processedDataValues.containsKey( rowSet.getString( "psi_uid" ) ) )
+                && !processedDataValues.containsKey( rowSet.getString( "psi_uid" ) ) )
             {
                 List<DataValue> dataValues = new ArrayList<>();
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
@@ -490,7 +526,7 @@ public class JdbcEventStore
         }
         else if ( idScheme.isAttribute() )
         {
-            return attributeSql;
+            return String.format( attributeSql, idScheme.getAttribute() );
         }
         else
         {
@@ -504,54 +540,23 @@ public class JdbcEventStore
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getOrgUnitIdScheme(),
             "ou.uid as ou_identifier, ",
-            "ouav.value as ou_identifier, ",
+            "ou.attributevalues #>> '{%s, value}' as ou_identifier, ",
             "ou.code as ou_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramIdScheme(),
             "p.uid as p_identifier, ",
-            "pav.value as p_identifier, ",
+            "p.attributevalues #>> '{%s, value}' as p_identifier, ",
             "p.code as p_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramStageIdScheme(),
             "ps.uid as ps_identifier, ",
-            "psav.value as ps_identifier, ",
+            "ps.attributevalues #>> '{%s, value}' as ps_identifier, ",
             "ps.code as ps_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getCategoryOptionComboIdScheme(),
             "coc.uid as coc_identifier, ",
-            "cocav.value as coc_identifier, ",
+            "coc.attributevalues #>> '{%s, value}' as coc_identifier, ",
             "coc.code as coc_identifier, " );
-
-        return sql;
-    }
-
-    private String getEventSelectJoinsByIdScheme( IdSchemes idSchemes )
-    {
-        String sql = " ";
-
-        if ( idSchemes.getOrgUnitIdScheme().isAttribute() )
-        {
-            sql += "left join organisationunitattributevalues ouavs on ou.organisationunitid = ouavs.organisationunitid "
-                + "left join attributevalue ouav on ouavs.attributevalueid = ouav.attributevalueid ";
-        }
-
-        if ( idSchemes.getProgramIdScheme().isAttribute() )
-        {
-            sql += "left join programattributevalues pavs on p.programid = pavs.programid "
-                + "left join attributevalue pav on pavs.attributevalueid = pav.attributevalueid ";
-        }
-
-        if ( idSchemes.getProgramStageIdScheme().isAttribute() )
-        {
-            sql += "left join programstageattributevalues psavs on ps.programstageid = psavs.programstageid "
-                + "left join attributevalue psav on psavs.attributevalueid = psav.attributevalueid ";
-        }
-
-        if ( idSchemes.getCategoryOptionComboIdScheme().isAttribute() )
-        {
-            sql += "left join categoryoptioncomboattributevalues cocavs on coc.categoryoptioncomboid = cocavs.categoryoptioncomboid "
-                + "left join attributevalue cocav on cocavs.attributevalueid = cocav.attributevalueid ";
-        }
 
         return sql;
     }
@@ -566,10 +571,10 @@ public class JdbcEventStore
         if ( !isSuperUser )
         {
             params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                    .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
 
             params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                    .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
 
         String sql;
@@ -594,7 +599,7 @@ public class JdbcEventStore
         return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
-private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
+    private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
     {
         DataValue dataValue = new DataValue();
         dataValue.setCreated( DateUtils.getIso8601NoTz( eventDataValue.getCreated() ) );
@@ -616,15 +621,15 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
         // ---------------------------------------------------------------------
 
         String sql = "select psi.uid as " + EVENT_ID + ", " + "psi.created as " + EVENT_CREATED_ID + ", "
-                + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " + "psi.storedby as " + EVENT_STORED_BY_ID + ", "
-                + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
-                + ", " + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID
-                + ", " + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
-                + "psi.status as " + EVENT_STATUS_ID + ", "
-                + "pi.uid as " + EVENT_ENROLLMENT_ID + ", "
-                + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
-                + EVENT_PROGRAM_ID + ", " + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", " + "psi.deleted as " + EVENT_DELETED + ", "
-                + "psi.geometry as " + EVENT_GEOMETRY + ", ";
+            + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " + "psi.storedby as " + EVENT_STORED_BY_ID + ", "
+            + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
+            + ", " + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID
+            + ", " + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
+            + "psi.status as " + EVENT_STATUS_ID + ", "
+            + "pi.uid as " + EVENT_ENROLLMENT_ID + ", "
+            + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
+            + EVENT_PROGRAM_ID + ", " + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", " + "psi.deleted as " + EVENT_DELETED + ", "
+            + "psi.geometry as " + EVENT_GEOMETRY + ", ";
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
@@ -700,6 +705,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
         SqlHelper hlp = new SqlHelper();
 
         String sql = "select " + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) + " psi.uid as psi_uid, "
+            + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
             + "psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
@@ -736,8 +742,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
             + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) "
-            + getEventSelectJoinsByIdScheme( params.getIdSchemes() );
+            + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -777,19 +782,19 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
 
                         eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                                filter.getSqlFilter( encodedFilter ) ) + " ";
+                            filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
                         sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                                filter.getSqlFilter( encodedFilter ) ) + " ";
+                            filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                     else
                     {
                         sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
                             + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                                filter.getSqlFilter( encodedFilter ) ) + " ";
+                            filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                 }
             }
@@ -931,7 +936,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
      * in inner join. For query params, restriction is set in where clause.
      */
     private String getFromWhereClause( EventSearchParams params, SqlHelper hlp,
-                                       List<OrganisationUnit> organisationUnits )
+        List<OrganisationUnit> organisationUnits )
     {
         String sql = "from programstageinstance psi "
             + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
@@ -957,7 +962,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
                 if ( item.hasOptionSet() && item.hasFilter() )
                 {
                     sql += "inner join optionvalue as " + optCol + " on lower(" + optCol + ".code) = " +
-                            "lower(" + dataValueValueSql + ") and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
+                        "lower(" + dataValueValueSql + ") and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
                 }
 
                 joinedColumns.add( col );
@@ -979,7 +984,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
                         }
 
                         eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
@@ -1194,7 +1199,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
     {
 
         if ( params.getGridOrders() != null && params.getDataElements() != null && !params.getDataElements().isEmpty()
-                && STATIC_EVENT_COLUMNS != null && !STATIC_EVENT_COLUMNS.isEmpty() )
+            && STATIC_EVENT_COLUMNS != null && !STATIC_EVENT_COLUMNS.isEmpty() )
         {
             List<String> orderFields = new ArrayList<>();
 
@@ -1347,7 +1352,7 @@ private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDat
         }
     }
 
-private void populateCache( IdScheme idScheme, List<Collection<DataValue>> dataValuesList, CachingMap<String, String> dataElementUidToIdentifierCache )
+    private void populateCache( IdScheme idScheme, List<Collection<DataValue>> dataValuesList, CachingMap<String, String> dataElementUidToIdentifierCache )
     {
         Set<String> deUids = new HashSet<>();
 

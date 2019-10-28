@@ -33,7 +33,6 @@ import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertFalse;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -45,7 +44,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -54,7 +52,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -530,10 +527,5 @@ public class ProgramIndicatorServiceTest
 
         assertEquals( expected,
             programIndicatorService.getAnalyticsSql( expression, indicatorF, dateFrom, dateTo, "axx1" ) );
-    }
-
-    private String dateToString( Date date )
-    {
-        return new SimpleDateFormat( Period.DEFAULT_DATE_FORMAT ).format( date );
     }
 }
