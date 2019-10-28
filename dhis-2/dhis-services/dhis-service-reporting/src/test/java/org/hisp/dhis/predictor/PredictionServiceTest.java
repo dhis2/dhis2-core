@@ -115,6 +115,8 @@ public class PredictionServiceTest
     private BatchHandlerFactory batchHandlerFactory;
 
     private OrganisationUnitLevel orgUnitLevel1;
+    private OrganisationUnitLevel orgUnitLevel2;
+    private OrganisationUnitLevel orgUnitLevel3;
 
     private DataElement dataElementA;
     private DataElement dataElementB;
@@ -166,8 +168,12 @@ public class PredictionServiceTest
         PeriodType.invalidatePeriodCache();
 
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
+        orgUnitLevel2 = new OrganisationUnitLevel( 2, "Level2" );
+        orgUnitLevel3 = new OrganisationUnitLevel( 3, "Level3" );
 
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
+        organisationUnitService.addOrganisationUnitLevel( orgUnitLevel2 );
+        organisationUnitService.addOrganisationUnitLevel( orgUnitLevel3 );
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -606,6 +612,43 @@ public class PredictionServiceTest
 
         // This value is derived from organisation units beneath the actual *sourceB*.
         assertEquals( "15.75", getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2004, 7 ) ) );
+    }
+
+    @Test
+    public void testPredictMultiLevels()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceE, 1 );
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceE, 2 );
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceF, 4 );
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceF, 8 );
+
+        dataValueBatchHandler.flush();
+
+        Set<OrganisationUnitLevel> orgUnitLevels = Sets.newHashSet( orgUnitLevel1, orgUnitLevel2, orgUnitLevel3 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "GetPredictionsMultiLevels",
+            new Expression( "sum(#{" + dataElementA.getUid() + "})", "descriptionA" ), null,
+            periodTypeMonthly, orgUnitLevels, 2, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 8 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceE, makeMonth( 2001, 7 ) ) );
+        assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceF, makeMonth( 2001, 7 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceD, makeMonth( 2001, 7 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
+
+        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceE, makeMonth( 2001, 8 ) ) );
+        assertEquals( "12.0", getDataValue( dataElementX, defaultCombo, sourceF, makeMonth( 2001, 8 ) ) );
+        assertEquals( "15.0", getDataValue( dataElementX, defaultCombo, sourceD, makeMonth( 2001, 8 ) ) );
+        assertEquals( "15.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
+
+        summary = new PredictionSummary();
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 8", shortSummary( summary ) );
     }
 
     @Test
