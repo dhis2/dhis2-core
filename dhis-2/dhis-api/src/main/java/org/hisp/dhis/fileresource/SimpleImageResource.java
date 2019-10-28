@@ -1,7 +1,5 @@
-package org.hisp.dhis.cache;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,75 +26,66 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.function.Function;
+package org.hisp.dhis.fileresource;
 
-import com.google.common.collect.Sets;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.commons.collections.map.HashedMap;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * A No operation implementation of {@link Cache}. The implementation will not
- * cache anything and can be used during system testing when caching has to be
- * disabled.
- * 
- * @author Ameen Mohamed
+ * This is simple class to represent the list of possible static image
+ * resources.
  */
-public class NoOpCache<V> implements Cache<V>
+@XmlRootElement
+public class SimpleImageResource
 {
-    private V defaultValue;
+    private Map<String, String> images;
 
-    public NoOpCache( CacheBuilder<V> cacheBuilder )
+    @JsonProperty
+    public Map<String, String> getImages()
     {
-        this.defaultValue = cacheBuilder.getDefaultValue();
+        return images;
     }
 
-    @Override
-    public Optional<V> getIfPresent( String key )
+    public void setImages( final Map<String, String> images )
     {
-        return Optional.empty();
+        this.images = images;
     }
 
-    @Override
-    public Optional<V> get( String key )
+    public void addImage( final String type, final String path )
     {
-        return Optional.ofNullable( defaultValue );
-    }
-
-    @Override
-    public Optional<V> get( String key, Function<String, V> mappingFunction )
-    {
-        if ( null == mappingFunction )
+        if ( images == null )
         {
-            throw new IllegalArgumentException( "MappingFunction cannot be null" );
+            images = new HashedMap();
         }
-        return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
+        images.put( type, path );
     }
 
     @Override
-    public Collection<V> getAll()
+    public boolean equals( Object o )
     {
-        return Sets.newHashSet();
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        SimpleImageResource that = (SimpleImageResource) o;
+        return images.equals( that.images );
     }
 
     @Override
-    public void put( String key, V value )
+    public int hashCode()
     {
-        if ( null == value )
-        {
-            throw new IllegalArgumentException( "Value cannot be null" );
-        }
-        // No operation
+        return Objects.hash( images );
     }
 
     @Override
-    public void invalidate( String key )
+    public String toString()
     {
-        // No operation
-    }
-
-    @Override
-    public void invalidateAll()
-    {
-        // No operation
+        return "SimpleImageResource{" + "images=" + images + '}';
     }
 }

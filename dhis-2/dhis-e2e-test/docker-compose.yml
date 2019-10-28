@@ -9,13 +9,15 @@ services:
       POSTGRES_DB: dhis2
       POSTGRES_PASSOWRD: dhis
 
-  e2e-test-web:
+  web:
     image: "${IMAGE_NAME}"
     build:
       dockerfile: Dockerfile
       context: ../..
     volumes:
     - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    environment:
+    - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
     depends_on:
     - db
     ports:

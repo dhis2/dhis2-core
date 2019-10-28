@@ -38,8 +38,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
@@ -57,7 +57,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
-    private static Cache<String, List<String>> CAN_DATA_WRITE_COC_CACHE;
+    private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
 
     private final AclService aclService;
 
@@ -79,10 +79,12 @@ public class DefaultAggregateAccessManager
     @PostConstruct
     public void init()
     {
-        CAN_DATA_WRITE_COC_CACHE = Caffeine.newBuilder()
+        CAN_DATA_WRITE_COC_CACHE = new SimpleCacheBuilder<List<String>>().forRegion( "canDataWriteCocCache" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     @Override
@@ -185,7 +187,7 @@ public class DefaultAggregateAccessManager
     {
         String cacheKey = user.getUid() + "-" + optionCombo.getUid();
 
-        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) );
+        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) ).orElse( null );
     }
 
     @Override
