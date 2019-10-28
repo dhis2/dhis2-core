@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -162,7 +162,7 @@ public class SimplisticHttpGetGateWay
         valueStore.put( KEY_TEXT, text );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
-        final StrSubstitutor substitutor = new StrSubstitutor( valueStore ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 

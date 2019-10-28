@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -230,7 +230,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         sql += createCreatedClause( params, namedParamsBuilder );
         sql += createLimitClause( params, namedParamsBuilder );
 
-        sql = new StrSubstitutor( namedParamsBuilder.build(), "${", "}" ).replace( sql );
+        sql = new StringSubstitutor( namedParamsBuilder.build(), "${", "}" ).replace( sql );
 
         log.debug( "CompleteDataSetRegistrations query: " + sql );
 

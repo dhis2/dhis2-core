@@ -90,7 +90,7 @@ public class HibernateDatabaseInfoProviderTest
         Mockito.when( resultSet.getString( Mockito.eq( 3 ) ) ).thenReturn( "dhis" );
 
         Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select version(),current_catalog,current_user" ), Mockito.isA( RowMapper.class ) ) )
-            .thenAnswer( invocation -> ( (RowMapper) invocation.getArgument( 1 ) ).mapRow( resultSet, 1 ) );
+            .thenAnswer( invocation -> ( (RowMapper<?>) invocation.getArgument( 1 ) ).mapRow( resultSet, 1 ) );
 
         provider.init();
 

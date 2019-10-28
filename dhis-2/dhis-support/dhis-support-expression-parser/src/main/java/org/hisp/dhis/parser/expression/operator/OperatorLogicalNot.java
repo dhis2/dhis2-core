@@ -29,22 +29,34 @@ package org.hisp.dhis.parser.expression.operator;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression logical operator: Not
+ * Logical operator: Not
+ * <pre>
+ *
+ * Truth table (same as for SQL):
+ *
+ *       A    not A
+ *     -----  -----
+ *     null   null
+ *     false  true
+ *     true   false
+ * </pre>
  *
  * @author Jim Grace
  */
 public class OperatorLogicalNot
-    extends AbstractExpressionFunction
+    extends SimpleScalarFunction
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return ! visitor.castBooleanVisit( ctx.expr( 0 ) );
+        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
+
+        return value == null ? null : !value;
     }
 
     @Override
