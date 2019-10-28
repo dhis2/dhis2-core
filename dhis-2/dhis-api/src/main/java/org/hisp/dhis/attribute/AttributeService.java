@@ -16,120 +16,123 @@ package org.hisp.dhis.attribute;
  * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
-import org.hisp.dhis.common.IdentifiableObject;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AttributeService
-{
-    String ID = AttributeService.class.getName();
+public interface AttributeService {
+  String ID = AttributeService.class.getName();
 
-    // -------------------------------------------------------------------------
-    // Attribute
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Attribute
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds an attribute.
-     *
-     * @param attribute the attribute.
-     */
-    void addAttribute( Attribute attribute );
+  /**
+   * Adds an attribute.
+   *
+   * @param attribute the attribute.
+   */
+  void addAttribute(Attribute attribute);
 
-    /**
-     * Deletes an attribute.
-     *
-     * @param attribute the attribute.
-     */
-    void deleteAttribute( Attribute attribute );
+  /**
+   * Deletes an attribute.
+   *
+   * @param attribute the attribute.
+   */
+  void deleteAttribute(Attribute attribute);
 
-    /**
-     * Gets the attribute with the given id.
-     *
-     * @param id the attribute id.
-     * @return the attribute with the given id.
-     */
-    Attribute getAttribute( long id );
+  /**
+   * Gets the attribute with the given id.
+   *
+   * @param id the attribute id.
+   * @return the attribute with the given id.
+   */
+  Attribute getAttribute(long id);
 
-    /**
-     * Gets the attribute with the given uid.
-     *
-     * @param uid the attribute uid.
-     * @return the attribute with the given uid.
-     */
-    Attribute getAttribute( String uid );
+  /**
+   * Gets the attribute with the given uid.
+   *
+   * @param uid the attribute uid.
+   * @return the attribute with the given uid.
+   */
+  Attribute getAttribute(String uid);
 
-    /**
-     * Gets the attribute with the given name.
-     *
-     * @param name the name.
-     * @return the attribute with the given name.
-     */
-    Attribute getAttributeByName( String name );
+  /**
+   * Gets the attribute with the given name.
+   *
+   * @param name the name.
+   * @return the attribute with the given name.
+   */
+  Attribute getAttributeByName(String name);
 
-    /**
-     * Gets the attribute with the given code.
-     *
-     * @param code the code.
-     * @return the attribute with the given code.
-     */
-    Attribute getAttributeByCode( String code );
+  /**
+   * Gets the attribute with the given code.
+   *
+   * @param code the code.
+   * @return the attribute with the given code.
+   */
+  Attribute getAttributeByCode(String code);
 
-    /**
-     * Gets all attributes.
-     *
-     * @return a set of all attributes.
-     */
-    List<Attribute> getAllAttributes();
+  /**
+   * Gets all attributes.
+   *
+   * @return a set of all attributes.
+   */
+  List<Attribute> getAllAttributes();
 
-    List<Attribute> getAttributes( Class<?> klass );
+  List<Attribute> getAttributes(Class<?> klass);
 
-    List<Attribute> getMandatoryAttributes( Class<?> klass );
+  List<Attribute> getMandatoryAttributes(Class<?> klass);
 
-    List<Attribute> getUniqueAttributes( Class<?> klass );
+  List<Attribute> getUniqueAttributes(Class<?> klass);
 
-    // -------------------------------------------------------------------------
-    // AttributeValue
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // AttributeValue
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds an attribute value.
-     *
-     * @param attributeValue the attribute value.
-     */
-    <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException;
+  /**
+   * Adds an attribute value.
+   *
+   * @param attributeValue the attribute value.
+   */
+  <T extends IdentifiableObject> void
+  addAttributeValue(T object, AttributeValue attributeValue)
+      throws NonUniqueAttributeValueException;
 
-    /**
-     * Deletes an attribute value.
-     *
-     * @param object the object which the attributeValue belongs to.
-     * @param attributeValue the attribute value.
-     */
-    <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue );
+  /**
+   * Deletes an attribute value.
+   *
+   * @param object the object which the attributeValue belongs to.
+   * @param attributeValue the attribute value.
+   */
+  <T extends IdentifiableObject> void
+  deleteAttributeValue(T object, AttributeValue attributeValue);
 
-    /**
-     * Deletes a Set of attribute values.
-     *
-     * @param object the object which the attributeValue belongs to.
-     * @param attributeValues the Set of attribute values.
-     */
-    <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues );
+  /**
+   * Deletes a Set of attribute values.
+   *
+   * @param object the object which the attributeValue belongs to.
+   * @param attributeValues the Set of attribute values.
+   */
+  <T extends IdentifiableObject> void
+  deleteAttributeValues(T object, Set<AttributeValue> attributeValues);
 
-    <T extends IdentifiableObject> void generateAttributes( List<T> entityList );
+  <T extends IdentifiableObject> void generateAttributes(List<T> entityList);
 }

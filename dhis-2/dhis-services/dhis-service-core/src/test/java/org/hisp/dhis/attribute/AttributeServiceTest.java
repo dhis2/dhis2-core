@@ -16,96 +16,90 @@ package org.hisp.dhis.attribute;
  * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AttributeServiceTest
-    extends DhisSpringTest
-{
-    @Autowired
-    private AttributeService attributeService;
+public class AttributeServiceTest extends DhisSpringTest {
+  @Autowired private AttributeService attributeService;
 
-    @Test
-    public void testAddAttribute()
-    {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
+  @Test
+  public void testAddAttribute() {
+    Attribute attribute = new Attribute();
+    attribute.setValueType(ValueType.TEXT);
+    attribute.setName("attribute1");
 
-        attributeService.addAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
+    attributeService.addAttribute(attribute);
+    attribute = attributeService.getAttribute(attribute.getId());
 
-        assertNotNull( attribute );
-        assertEquals( ValueType.TEXT, attribute.getValueType() );
-        assertEquals( "attribute1", attribute.getName() );
-    }
+    assertNotNull(attribute);
+    assertEquals(ValueType.TEXT, attribute.getValueType());
+    assertEquals("attribute1", attribute.getName());
+  }
 
-    @Test
-    public void testDeleteAttribute()
-    {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
+  @Test
+  public void testDeleteAttribute() {
+    Attribute attribute = new Attribute();
+    attribute.setValueType(ValueType.TEXT);
+    attribute.setName("attribute1");
 
-        attributeService.addAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
+    attributeService.addAttribute(attribute);
+    attribute = attributeService.getAttribute(attribute.getId());
 
-        assertNotNull( attribute );
+    assertNotNull(attribute);
 
-        long attributeId = attribute.getId();
+    long attributeId = attribute.getId();
 
-        attributeService.deleteAttribute( attribute );
-        attribute = attributeService.getAttribute( attributeId );
+    attributeService.deleteAttribute(attribute);
+    attribute = attributeService.getAttribute(attributeId);
 
-        assertNull( attribute );
-    }
+    assertNull(attribute);
+  }
 
-    @Test
-    public void testGetAttribute()
-    {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
+  @Test
+  public void testGetAttribute() {
+    Attribute attribute = new Attribute();
+    attribute.setValueType(ValueType.TEXT);
+    attribute.setName("attribute1");
 
-        attributeService.addAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
+    attributeService.addAttribute(attribute);
+    attribute = attributeService.getAttribute(attribute.getId());
 
-        assertNotNull( attribute );
-    }
+    assertNotNull(attribute);
+  }
 
-    @Test
-    public void testGetAllAttributes()
-    {
-        Attribute attribute1 = new Attribute();
-        attribute1.setValueType( ValueType.TEXT );
-        attribute1.setName( "attribute1" );
+  @Test
+  public void testGetAllAttributes() {
+    Attribute attribute1 = new Attribute();
+    attribute1.setValueType(ValueType.TEXT);
+    attribute1.setName("attribute1");
 
-        Attribute attribute2 = new Attribute();
-        attribute2.setValueType( ValueType.TEXT );
-        attribute2.setName( "attribute2" );
+    Attribute attribute2 = new Attribute();
+    attribute2.setValueType(ValueType.TEXT);
+    attribute2.setName("attribute2");
 
-        attributeService.addAttribute( attribute1 );
-        attributeService.addAttribute( attribute2 );
+    attributeService.addAttribute(attribute1);
+    attributeService.addAttribute(attribute2);
 
-        assertEquals( 2, attributeService.getAllAttributes().size() );
-    }
+    assertEquals(2, attributeService.getAllAttributes().size());
+  }
 }
