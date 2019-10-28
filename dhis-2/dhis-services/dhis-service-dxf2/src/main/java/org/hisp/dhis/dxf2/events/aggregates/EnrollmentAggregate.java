@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.events.enrollment;
+package org.hisp.dhis.dxf2.events.aggregates;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,64 +28,42 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStatus;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.store.EnrollmentStore;
+import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Multimap;
 
 /**
- * FIXME we should probably remove this, and replace it with program status
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public enum EnrollmentStatus
+@Component
+public class EnrollmentAggregate
 {
-    ACTIVE( 0, ProgramStatus.ACTIVE ),
-    COMPLETED( 1, ProgramStatus.COMPLETED ),
-    CANCELLED( 2, ProgramStatus.CANCELLED );
+    private final EnrollmentStore enrollmentStore;
 
-    private final int value;
-    private final ProgramStatus programStatus;
+    private final EventAggregate eventAggregate;
 
-    EnrollmentStatus( int value, ProgramStatus programStatus )
+    public EnrollmentAggregate( EnrollmentStore enrollmentStore, EventAggregate eventAggregate )
     {
-        this.value = value;
-        this.programStatus = programStatus;
+        this.enrollmentStore = enrollmentStore;
+        this.eventAggregate = eventAggregate;
     }
 
-    public int getValue()
+    public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, boolean includeEvents )
     {
-        return value;
-    }
 
-    public ProgramStatus getProgramStatus()
-    {
-        return programStatus;
-    }
+        Multimap<String, Event> events;
+        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollments( ids );
 
-    public static EnrollmentStatus fromProgramStatus( ProgramStatus programStatus )
-    {
-        switch ( programStatus )
+        if ( includeEvents )
         {
-            case ACTIVE:
-                return ACTIVE;
-            case CANCELLED:
-                return CANCELLED;
-            case COMPLETED:
-                return COMPLETED;
+            events = eventAggregate.findByEnrollmentIds( ids );
         }
 
-        throw new IllegalArgumentException( "Enum value not found: " + programStatus );
-    }
-
-    public static EnrollmentStatus fromStatusString( String status )
-    {
-        switch ( status )
-        {
-        case "ACTIVE":
-            return ACTIVE;
-        case "CANCELLED":
-            return CANCELLED;
-        case "COMPLETED":
-            return COMPLETED;
-        }
-        throw new IllegalArgumentException( "Enum value not found for string: " + status );
+        return enrollments;
     }
 }

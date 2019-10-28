@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.enrollment;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,64 +26,46 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStatus;
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.springframework.jdbc.core.RowCallbackHandler;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
- * FIXME we should probably remove this, and replace it with program status
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public enum EnrollmentStatus
+public abstract class AbstractMapper<T>
+    implements
+    RowCallbackHandler
 {
-    ACTIVE( 0, ProgramStatus.ACTIVE ),
-    COMPLETED( 1, ProgramStatus.COMPLETED ),
-    CANCELLED( 2, ProgramStatus.CANCELLED );
 
-    private final int value;
-    private final ProgramStatus programStatus;
+    Multimap<String, T> items;
 
-    EnrollmentStatus( int value, ProgramStatus programStatus )
+    public AbstractMapper()
     {
-        this.value = value;
-        this.programStatus = programStatus;
+        this.items = ArrayListMultimap.create();
     }
 
-    public int getValue()
+    @Override
+    public void processRow( ResultSet rs )
+        throws SQLException
     {
-        return value;
+        this.items.put( rs.getString( getKeyColumn() ), getItem( rs ) );
     }
 
-    public ProgramStatus getProgramStatus()
+    abstract T getItem( ResultSet rs )
+        throws SQLException;
+
+    public Multimap<String, T> getItems()
     {
-        return programStatus;
+        return this.items;
     }
 
-    public static EnrollmentStatus fromProgramStatus( ProgramStatus programStatus )
-    {
-        switch ( programStatus )
-        {
-            case ACTIVE:
-                return ACTIVE;
-            case CANCELLED:
-                return CANCELLED;
-            case COMPLETED:
-                return COMPLETED;
-        }
+    abstract String getKeyColumn();
 
-        throw new IllegalArgumentException( "Enum value not found: " + programStatus );
-    }
-
-    public static EnrollmentStatus fromStatusString( String status )
-    {
-        switch ( status )
-        {
-        case "ACTIVE":
-            return ACTIVE;
-        case "CANCELLED":
-            return CANCELLED;
-        case "COMPLETED":
-            return COMPLETED;
-        }
-        throw new IllegalArgumentException( "Enum value not found for string: " + status );
-    }
 }

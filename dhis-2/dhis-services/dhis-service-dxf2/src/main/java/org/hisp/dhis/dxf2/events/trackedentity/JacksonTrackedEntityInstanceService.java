@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -47,6 +48,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -77,26 +79,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService
 {
     public JacksonTrackedEntityInstanceService(
-        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
-        TrackedEntityAttributeService trackedEntityAttributeService,
-        RelationshipService _relationshipService,
-        org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
-        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
-        IdentifiableObjectManager manager,
-        UserService userService,
-        DbmsManager dbmsManager,
-        EnrollmentService enrollmentService,
-        ProgramInstanceService programInstanceService,
-        CurrentUserService currentUserService,
-        SchemaService schemaService,
-        QueryService queryService,
-        ReservedValueService reservedValueService,
-        TrackerAccessManager trackerAccessManager,
-        FileResourceService fileResourceService,
-        TrackerOwnershipManager trackerOwnershipAccessManager,
-        Notifier notifier,
-        ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+            org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
+            TrackedEntityAttributeService trackedEntityAttributeService,
+            RelationshipService _relationshipService,
+            org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
+            TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+            IdentifiableObjectManager manager,
+            UserService userService,
+            DbmsManager dbmsManager,
+            EnrollmentService enrollmentService,
+            ProgramInstanceService programInstanceService,
+            CurrentUserService currentUserService,
+            SchemaService schemaService,
+            QueryService queryService,
+            ReservedValueService reservedValueService,
+            TrackerAccessManager trackerAccessManager,
+            FileResourceService fileResourceService,
+            TrackerOwnershipManager trackerOwnershipAccessManager,
+            TrackedEntityInstanceAggregate trackedEntityInstanceAggregate,
+            TrackedEntityAttributeStore trackedEntityAttributeStore,
+            Notifier notifier,
+            ObjectMapper jsonMapper,
+            @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
         checkNotNull( teiService );
         checkNotNull( trackedEntityAttributeService );
@@ -115,6 +119,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         checkNotNull( trackerAccessManager );
         checkNotNull( fileResourceService );
         checkNotNull( trackerOwnershipAccessManager );
+        checkNotNull( trackedEntityInstanceAggregate );
+        checkNotNull( trackedEntityAttributeStore );
         checkNotNull( notifier );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
@@ -136,6 +142,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         this.trackerAccessManager = trackerAccessManager;
         this.fileResourceService = fileResourceService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+        this.trackedEntityInstanceAggregate = trackedEntityInstanceAggregate;
+        this.trackedEntityAttributeStore = trackedEntityAttributeStore;
         this.notifier = notifier;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
