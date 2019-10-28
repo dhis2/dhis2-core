@@ -246,6 +246,7 @@ public class ProgramSqlGeneratorItemsTest
             .withRelationshipTypeService( relationshipTypeService )
             .withStatementBuilder( statementBuilder )
             .withI18n( new I18n( null, null ) )
+            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
             .buildForProgramIndicatorExpressions();
 
         visitor.setExpressionLiteral( exprLiteral );
