@@ -29,7 +29,7 @@ package org.hisp.dhis.program.variable;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -39,7 +39,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramVariable
-    extends AbstractExpressionFunction
+    extends SimpleScalarFunction
 {
     @Override
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )

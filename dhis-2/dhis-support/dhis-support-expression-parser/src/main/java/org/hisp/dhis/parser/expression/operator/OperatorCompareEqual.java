@@ -29,10 +29,13 @@ package org.hisp.dhis.parser.expression.operator;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+
+import java.util.List;
+
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression compare operator: equal
+ * Compare operator: equal
  *
  * @author Jim Grace
  */
@@ -41,9 +44,9 @@ public class OperatorCompareEqual
     OperatorCompare
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object compute( List<Object> values )
     {
-        return compare( ctx, visitor ) == 0;
+        return compare( values ) == 0;
     }
 
     @Override

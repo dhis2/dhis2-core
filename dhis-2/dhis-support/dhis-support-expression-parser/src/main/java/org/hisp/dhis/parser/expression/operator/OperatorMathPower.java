@@ -29,8 +29,11 @@ package org.hisp.dhis.parser.expression.operator;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.ComputeFunction;
 
+import java.util.List;
+
+import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import static java.lang.Math.pow;
@@ -41,13 +44,13 @@ import static java.lang.Math.pow;
  * @author Jim Grace
  */
 public class OperatorMathPower
-    extends AbstractExpressionFunction
+    extends ComputeFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object compute( List<Object> values )
     {
-        return pow( visitor.castDoubleVisit( ctx.expr( 0 ) ),
-            visitor.castDoubleVisit( ctx.expr( 1 ) ) );
+        return pow ( castDouble( values.get( 0 ) ),
+            castDouble( values.get( 1 ) ) );
     }
 
     @Override
