@@ -28,7 +28,9 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MergeableObject;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.util.Arrays;
@@ -95,9 +97,20 @@ public class DefaultMergeService implements MergeService
                 if ( mergeParams.getMergeMode().isMerge() )
                 {
                     Collection<T> merged = ReflectionUtils.newCollectionInstance( property.getKlass() );
-                    merged.addAll( targetObject );
-                    merged.addAll( sourceObject.stream().filter( o -> !merged.contains( o ) ).collect( Collectors.toList() ) );
-
+                    merged.addAll( sourceObject );
+                    if ( MergeableObject.class.isAssignableFrom( property.getItemKlass() ) )
+                    {
+                        merged.addAll(
+                            targetObject.stream().filter(
+                                o -> merged.stream()
+                                    .noneMatch( newO -> ((MergeableObject) newO).mergeableEquals( o ) ) )
+                                .collect( Collectors.toList() ) );
+                    }
+                    else
+                    {
+                        merged.addAll(
+                            targetObject.stream().filter( o -> !merged.contains( o ) ).collect( Collectors.toList() ) );
+                    }
                     targetObject.clear();
                     targetObject.addAll( merged );
                 }

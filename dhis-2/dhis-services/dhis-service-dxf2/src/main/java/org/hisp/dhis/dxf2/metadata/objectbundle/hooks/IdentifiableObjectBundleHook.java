@@ -40,6 +40,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -113,11 +114,12 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         }
     }
 
-    private boolean isAttributeValueAlreadyPresent( Set<AttributeValue> attributeValues, AttributeValue attributeValue )
+    private boolean isAttributeValueAlreadyPresent( Set<AttributeValue> attributeValues,
+        AttributeValue attributeValue )
     {
         return attributeValues
             .stream()
-            .anyMatch( av -> av.getValue().equals( attributeValue.getValue() ) &&
-                av.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) );
+            .anyMatch( av -> av.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) &&
+                av.getValue().equals( attributeValue.getValue() ) );
     }
 }
