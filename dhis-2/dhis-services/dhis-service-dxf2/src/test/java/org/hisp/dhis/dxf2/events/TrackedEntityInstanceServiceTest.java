@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -54,8 +55,16 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternMethod;
+import org.hisp.dhis.textpattern.TextPatternSegment;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -78,6 +87,12 @@ public class TrackedEntityInstanceServiceTest
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -104,6 +119,8 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityInstance teiMaleB;
     private TrackedEntityInstance teiFemaleA;
 
+    private TrackedEntityAttribute uniqueIdAttribute;
+
     @Override
     protected void setUpTest() throws Exception
     {
@@ -112,8 +129,24 @@ public class TrackedEntityInstanceServiceTest
 
         organisationUnitB.setParent( organisationUnitA );
 
+        uniqueIdAttribute = createTrackedEntityAttribute( 'A' );
+        uniqueIdAttribute.setGenerated( true );
+        //uniqueIdAttribute.setPattern( "RANDOM(#####)" );
+        TextPattern textPattern = new TextPattern(
+            Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
+        uniqueIdAttribute.setTextPattern( textPattern );
+
+        trackedEntityAttributeService.addTrackedEntityAttribute( uniqueIdAttribute );
+
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+
+        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+        trackedEntityTypeAttribute.setTrackedEntityAttribute( uniqueIdAttribute );
+        trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
+
+        trackedEntityType.setTrackedEntityTypeAttributes( Lists.newArrayList( trackedEntityTypeAttribute ) );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
 
         maleA = createTrackedEntityInstance( organisationUnitA );
         maleB = createTrackedEntityInstance( organisationUnitB );
@@ -121,7 +154,11 @@ public class TrackedEntityInstanceServiceTest
         femaleB = createTrackedEntityInstance( organisationUnitB );
         dateConflictsMaleA = createTrackedEntityInstance( organisationUnitA );
 
+        TrackedEntityAttributeValue uniqueId = createTrackedEntityAttributeValue( 'A', maleA, uniqueIdAttribute );
+        uniqueId.setValue( "12345" );
+
         maleA.setTrackedEntityType( trackedEntityType );
+        maleA.setTrackedEntityAttributeValues( Sets.newHashSet( uniqueId ) );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
         femaleB.setTrackedEntityType( trackedEntityType );
@@ -150,6 +187,8 @@ public class TrackedEntityInstanceServiceTest
         teiMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
         teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance( maleB );
         teiFemaleA = trackedEntityInstanceService.getTrackedEntityInstance( femaleA );
+
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( uniqueId );
 
         programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
         programInstanceService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), null, organisationUnitA );
@@ -209,6 +248,43 @@ public class TrackedEntityInstanceServiceTest
         trackedEntityInstance.getEnrollments().add( enrollment2 );
 
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
+
+    }
+
+    @Test
+    public void testUpdateTeiAfterChangingTextPatternForGeneratedAttribute()
+    {
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
+            .getTrackedEntityInstance( maleA.getUid() );
+        assertNotNull( trackedEntityInstance.getEnrollments() );
+        assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
+
+        Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
+        enrollment1.setStatus( EnrollmentStatus.COMPLETED );
+        enrollment1.setCompletedBy( "test" );
+        enrollment1.setCompletedDate( new Date() );
+
+        Enrollment enrollment2 = new Enrollment();
+        enrollment2.setTrackedEntityInstance( maleA.getUid() );
+
+        TextPattern textPattern = new TextPattern(
+            Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#######)" ) ) );
+        textPattern.setOwnerUid( "owneruid" );
+        textPattern.setOwnerObject( Objects.CONSTANT );
+        uniqueIdAttribute.setTextPattern( textPattern );
+        trackedEntityAttributeService.updateTrackedEntityAttribute( uniqueIdAttribute );
+
+        enrollment2.setEnrollmentDate( new Date() );
+        enrollment2.setOrgUnit( organisationUnitA.getUid() );
+        enrollment2.setProgram( programA.getUid() );
+        enrollment2.setStatus( EnrollmentStatus.ACTIVE );
+
+        trackedEntityInstance.getEnrollments().add( enrollment2 );
+
+        ImportSummary importSummary = trackedEntityInstanceService
+            .updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
 

@@ -1207,10 +1207,12 @@ public abstract class AbstractTrackedEntityInstanceService
         }
     }
 
-    private void validateTextPatternValue( TrackedEntityAttribute attribute, String value, Set<ImportConflict> importConflicts )
+    private void validateTextPatternValue( TrackedEntityAttribute attribute, String value, String oldValue,
+        Set<ImportConflict> importConflicts )
     {
         if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
-            && !reservedValueService.isReserved( attribute.getTextPattern(), value ) )
+            && !reservedValueService.isReserved( attribute.getTextPattern(), value )
+            && !Objects.equals( value, oldValue ) )
         {
             importConflicts
                 .add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern" ) );
@@ -1250,6 +1252,9 @@ public abstract class AbstractTrackedEntityInstanceService
                 .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() ).forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
         }
 
+        Map<String, TrackedEntityAttributeValue> teiAttributeValueMap = getTeiAttributeValueMap(
+            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
+
         for ( Attribute attribute : dtoEntityInstance.getAttributes() )
         {
             if ( StringUtils.isNotEmpty( attribute.getValue() ) )
@@ -1257,6 +1262,8 @@ public abstract class AbstractTrackedEntityInstanceService
                 //Cache was populated in prepareCaches, so I should hit the cache
                 TrackedEntityAttribute daoEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
                     attribute.getAttribute() );
+                TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
+                    .get( daoEntityAttribute.getUid() );
 
                 if ( daoEntityAttribute == null )
                 {
@@ -1266,7 +1273,10 @@ public abstract class AbstractTrackedEntityInstanceService
 
                 if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
                 {
-                    validateTextPatternValue( daoEntityAttribute, attribute.getValue(), importConflicts );
+
+                    validateTextPatternValue( daoEntityAttribute, attribute.getValue(),
+                        trackedEntityAttributeValue != null ? trackedEntityAttributeValue.getValue() : null,
+                        importConflicts );
                 }
 
                 if ( daoEntityAttribute.isUnique() )
