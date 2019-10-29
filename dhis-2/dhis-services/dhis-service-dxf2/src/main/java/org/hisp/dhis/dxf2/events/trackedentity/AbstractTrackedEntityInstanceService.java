@@ -394,11 +394,7 @@ public abstract class AbstractTrackedEntityInstanceService
         ImportSummaries importSummaries = new ImportSummaries();
         List<Enrollment> enrollments = new ArrayList<>();
 
-        List<String> conflictingTeiUids = checkForExistingTeisIncludingDeleted( trackedEntityInstances, importSummaries );
-
-        List<TrackedEntityInstance> validTeis = trackedEntityInstances.stream()
-            .filter( tei -> !conflictingTeiUids.contains( tei.getTrackedEntityInstance() ) )
-            .collect( Collectors.toList() );
+        List<TrackedEntityInstance> validTeis = resolveImportableTeis( trackedEntityInstances, importSummaries );
 
         List<List<TrackedEntityInstance>> partitions = Lists.partition( validTeis, FLUSH_FREQUENCY );
 
@@ -426,6 +422,23 @@ public abstract class AbstractTrackedEntityInstanceService
         linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
+    }
+
+    /**
+     * Filters out Tracked Entity Instances which are already present in the database (regardless of the 'deleted' state)
+     *
+     * @param trackedEntityInstances TEIs to import
+     * @param importSummaries ImportSummaries used for import
+     * @return TEIs that is possible to import (pass validation)
+     */
+    private List<TrackedEntityInstance> resolveImportableTeis( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportSummaries importSummaries ) {
+
+        List<String> conflictingTeiUids = checkForExistingTeisIncludingDeleted( trackedEntityInstances, importSummaries );
+
+        return trackedEntityInstances.stream()
+            .filter( tei -> !conflictingTeiUids.contains( tei.getTrackedEntityInstance() ) )
+            .collect( Collectors.toList() );
     }
 
     private List<String> checkForExistingTeisIncludingDeleted( List<TrackedEntityInstance> teis,
