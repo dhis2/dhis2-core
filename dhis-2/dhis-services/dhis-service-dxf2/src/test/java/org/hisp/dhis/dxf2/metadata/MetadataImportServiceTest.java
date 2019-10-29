@@ -162,6 +162,34 @@ public class MetadataImportServiceTest
     }
 
     @Test
+    public void testImportWithSkipSharingIsTrue() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setSkipSharing( true );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setSkipSharing( true );
+        params.setObjects( metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+    }
+
+    @Test
     public void testImportEmbeddedObjectWithSkipSharingIsTrue() throws IOException
     {
         User user = createUser( 'A' );

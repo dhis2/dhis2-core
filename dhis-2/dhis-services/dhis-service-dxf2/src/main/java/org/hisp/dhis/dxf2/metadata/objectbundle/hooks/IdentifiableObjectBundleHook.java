@@ -58,6 +58,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
         handleAttributeValues( identifiableObject, bundle, schema );
+        handleSkipSharing( identifiableObject, bundle );
     }
 
     @Override
@@ -98,5 +99,13 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
             attributeValue.setAttribute( attribute );
         }
+    }
+
+    private void handleSkipSharing( IdentifiableObject identifiableObject,ObjectBundle bundle )
+    {
+        if ( !bundle.isSkipSharing() ) return;
+
+        identifiableObject.getUserAccesses().clear();
+        identifiableObject.getUserGroupAccesses().clear();
     }
 }
