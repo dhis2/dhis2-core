@@ -821,9 +821,9 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Query q = getSession().createNativeQuery( "select count(*) from trackedentityinstance where uid=? and deleted is false" );
-        q.setParameter( 1, uid );
-        int count = ( (Number) q.getSingleResult() ).intValue();
+        Query query = getSession().createNativeQuery( "select count(*) from trackedentityinstance where uid=? and deleted is false" );
+        query.setParameter( 1, uid );
+        int count = ( (Number) query.getSingleResult() ).intValue();
 
         return count > 0;
     }
@@ -831,9 +831,9 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Query q = getSession().createNativeQuery( "select count(*) from trackedentityinstance where uid=?" );
-        q.setParameter( 1, uid );
-        int count = ( (Number) q.getSingleResult() ).intValue();
+        Query query = getSession().createNativeQuery( "select count(*) from trackedentityinstance where uid=?" );
+        query.setParameter( 1, uid );
+        int count = ( (Number) query.getSingleResult() ).intValue();
 
         return count > 0;
     }
