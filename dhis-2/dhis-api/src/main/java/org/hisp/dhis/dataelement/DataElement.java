@@ -28,23 +28,15 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+
+import java.util.*;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -59,16 +51,13 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * A DataElement is a definition (meta-information about) of the entities that
@@ -762,38 +751,18 @@ public class DataElement extends BaseDimensionalItemObject
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        if ( !super.equals( o ) )
+        if ( !(super.equals( o )) )
         {
             return false;
         }
 
         DataElement that = (DataElement) o;
-
-        return zeroIsSignificant == that.zeroIsSignificant && valueType == that.valueType
-            && Objects.equals( uid, that.uid )
-            && Objects.equals( formName, that.formName ) && Objects.equals( displayFormName, that.displayFormName )
-            && domainType == that.domainType && Objects.equals( categoryCombo, that.categoryCombo )
-            && Objects.equals( url, that.url )
-            && Objects.equals( aggregationLevels, that.aggregationLevels )
-            && Objects.equals( optionSet, that.optionSet ) && Objects.equals( commentOptionSet, that.commentOptionSet )
-            && Objects.equals( style, that.style ) && Objects.equals( fieldMask, that.fieldMask );
+        return super.id == that.getId();
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( super.hashCode(), uid, valueType, formName, displayFormName, domainType, categoryCombo, url,
-            aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
-            fieldMask );
+        return Objects.hash( super.hashCode(), super.id );
     }
 }

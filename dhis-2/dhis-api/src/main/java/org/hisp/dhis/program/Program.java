@@ -35,13 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -323,7 +317,7 @@ public class Program
         {
             for ( ProgramStageDataElement element : stage.getProgramStageDataElements() )
             {
-                if ( dataElement.equals( element.getDataElement() ) )
+                if ( dataElement.getUid().equals( element.getDataElement().getUid() ) )
                 {
                     return true;
                 }
