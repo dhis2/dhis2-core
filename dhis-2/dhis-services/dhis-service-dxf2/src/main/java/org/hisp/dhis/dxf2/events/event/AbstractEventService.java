@@ -392,11 +392,7 @@ public abstract class AbstractEventService
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
 
-        List<String> conflictingEventUids = checkForExistingEventsIncludingDeleted( events, importSummaries );
-
-        List<Event> validEvents = events.stream()
-            .filter( e -> !conflictingEventUids.contains( e.getEvent() ) )
-            .collect( Collectors.toList());
+        List<Event> validEvents = resolveImportableEvents( events, importSummaries );
 
         List<List<Event>> partitions = Lists.partition( validEvents, FLUSH_FREQUENCY );
 
@@ -419,6 +415,22 @@ public abstract class AbstractEventService
         updateEntities( importOptions.getUser() );
 
         return importSummaries;
+    }
+
+    /**
+     * Filters out Events which are already present in the database (regardless of the 'deleted' state)
+     *
+     * @param events Events to import
+     * @param importSummaries ImportSummaries used for import
+     * @return Events that is possible to import (pass validation)
+     */
+    private List<Event> resolveImportableEvents(List<Event> events, ImportSummaries importSummaries) {
+
+        List<String> conflictingEventUids = checkForExistingEventsIncludingDeleted( events, importSummaries );
+
+        return events.stream()
+            .filter( e -> !conflictingEventUids.contains( e.getEvent() ) )
+            .collect( Collectors.toList() );
     }
 
     private List<String> checkForExistingEventsIncludingDeleted( List<Event> events, ImportSummaries importSummaries )

@@ -366,7 +366,12 @@ public abstract class AbstractEnrollmentService
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
-        List<Enrollment> validEnrollments = resolveImportableEnrollments( enrollments, importSummaries );
+        List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments,
+            importSummaries );
+
+        List<Enrollment> validEnrollments = enrollments.stream()
+            .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
+            .collect( Collectors.toList() );
 
         List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
         List<Event> events = new ArrayList<>();
@@ -397,23 +402,6 @@ public abstract class AbstractEnrollmentService
         linkEventSummaries( importSummaries, eventImportSummaries, events );
 
         return importSummaries;
-    }
-
-    /**
-     * Filters out Enrollments which are already present in the database (regardless of the 'deleted' state)
-     *
-     * @param enrollments Enrollments to import
-     * @param importSummaries ImportSummaries used for import
-     * @return Enrollments that is possible to import (pass validation)
-     */
-    private List<Enrollment> resolveImportableEnrollments(List<Enrollment> enrollments, ImportSummaries importSummaries) {
-
-        List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments,
-            importSummaries );
-
-        return enrollments.stream()
-            .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
-            .collect( Collectors.toList() );
     }
 
     private List<String> checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )
