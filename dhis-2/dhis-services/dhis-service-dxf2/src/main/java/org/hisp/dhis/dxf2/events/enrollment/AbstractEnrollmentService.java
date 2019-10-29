@@ -406,7 +406,7 @@ public abstract class AbstractEnrollmentService
      * @param importSummaries ImportSummaries used for import
      * @return Enrollments that is possible to import (pass validation)
      */
-    private List<Enrollment> resolveImportableEnrollments(List<Enrollment> enrollments, ImportSummaries importSummaries) {
+    private List<Enrollment> resolveImportableEnrollments( List<Enrollment> enrollments, ImportSummaries importSummaries ) {
 
         List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments,
             importSummaries );
