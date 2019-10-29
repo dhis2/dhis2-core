@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.*;
+import org.hisp.dhis.parser.expression.function.*;
 import org.hisp.dhis.parser.expression.item.ItemConstant;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.program.function.*;
@@ -142,32 +143,32 @@ public class  DefaultProgramIndicatorService
 
         // Program functions
 
-        .put( D2_CONDITION, new d2Condition() )
-        .put( D2_COUNT, new d2Count() )
-        .put( D2_COUNT_IF_CONDITION, new d2CountIfCondition() )
-        .put( D2_COUNT_IF_VALUE, new d2CountIfValue() )
-        .put( D2_DAYS_BETWEEN, new d2DaysBetween() )
-        .put( D2_HAS_VALUE, new d2HasValue() )
-        .put( D2_MAX_VALUE, new d2MaxValue() )
-        .put( D2_MINUTES_BETWEEN, new d2MinutesBetween() )
-        .put( D2_MIN_VALUE, new d2MinValue() )
-        .put( D2_MONTHS_BETWEEN, new d2MonthsBetween() )
-        .put( D2_OIZP, new d2Oizp() )
-        .put( D2_RELATIONSHIP_COUNT, new d2RelationshipCount() )
-        .put( D2_WEEKS_BETWEEN, new d2WeeksBetween() )
-        .put( D2_YEARS_BETWEEN, new d2YearsBetween() )
-        .put( D2_ZING, new d2Zing() )
-        .put( D2_ZPVC, new d2Zpvc() )
+        .put( D2_CONDITION, new D2Condition() )
+        .put( D2_COUNT, new D2Count() )
+        .put( D2_COUNT_IF_CONDITION, new D2CountIfCondition() )
+        .put( D2_COUNT_IF_VALUE, new D2CountIfValue() )
+        .put( D2_DAYS_BETWEEN, new D2DaysBetween() )
+        .put( D2_HAS_VALUE, new D2HasValue() )
+        .put( D2_MAX_VALUE, new D2MaxValue() )
+        .put( D2_MINUTES_BETWEEN, new D2MinutesBetween() )
+        .put( D2_MIN_VALUE, new D2MinValue() )
+        .put( D2_MONTHS_BETWEEN, new D2MonthsBetween() )
+        .put( D2_OIZP, new D2Oizp() )
+        .put( D2_RELATIONSHIP_COUNT, new D2RelationshipCount() )
+        .put( D2_WEEKS_BETWEEN, new D2WeeksBetween() )
+        .put( D2_YEARS_BETWEEN, new D2YearsBetween() )
+        .put( D2_ZING, new D2Zing() )
+        .put( D2_ZPVC, new D2Zpvc() )
 
         // Program functions for custom aggregation
 
-        .put( AVG, new aggAvg() )
-        .put( COUNT, new aggCount() )
-        .put( MAX, new aggMax() )
-        .put( MIN, new aggMin() )
-        .put( STDDEV, new aggStddev() )
-        .put( SUM, new aggSum() )
-        .put( VARIANCE, new aggVariance() )
+        .put( AVG, new VectorAvg() )
+        .put( COUNT, new VectorCount() )
+        .put( MAX, new VectorMax() )
+        .put( MIN, new VectorMin() )
+        .put( STDDEV, new VectorStddevSamp() )
+        .put( SUM, new VectorSum() )
+        .put( VARIANCE, new VectorVariance() )
 
         .build();
 
@@ -178,6 +179,7 @@ public class  DefaultProgramIndicatorService
         .put( A_BRACE, new ProgramItemAttribute() )
 
         .build();
+
     // -------------------------------------------------------------------------
     // ProgramIndicator CRUD
     // -------------------------------------------------------------------------
@@ -424,6 +426,7 @@ public class  DefaultProgramIndicatorService
             .withRelationshipTypeService( relationshipTypeService )
             .withStatementBuilder( statementBuilder )
             .withI18n( i18nManager.getI18n() )
+            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
             .buildForProgramIndicatorExpressions();
     }
 

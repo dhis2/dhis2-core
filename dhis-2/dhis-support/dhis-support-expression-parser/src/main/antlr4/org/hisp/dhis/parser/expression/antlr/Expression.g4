@@ -30,12 +30,26 @@ expr
 
     //  Functions (alphabetical)
 
-    |   fun='firstNonNull' '(' WS* itemNumStringLiteral WS* (',' WS* itemNumStringLiteral WS* )* ')'
-    |   fun='greatest' '(' expr (',' expr )* ')'
-    |   fun='if' '(' expr ',' expr ',' expr ')'
-    |   fun='isNotNull' '(' WS* item WS* ')'
-    |   fun='isNull' '(' WS* item WS* ')'
-    |   fun='least' '(' expr (',' expr )* ')'
+    |   fun='firstNonNull(' WS* itemNumStringLiteral WS* (',' WS* itemNumStringLiteral WS* )* ')'
+    |   fun='greatest(' expr (',' expr )* ')'
+    |   fun='if(' expr ',' expr ',' expr ')'
+    |   fun='isNotNull(' WS* item WS* ')'
+    |   fun='isNull(' WS* item WS* ')'
+    |   fun='least(' expr (',' expr )* ')'
+
+    //  Aggergation functions (alphabetical)
+
+    |   fun='avg(' expr ')'
+    |   fun='count(' expr ')'
+    |   fun='max(' expr ')'
+    |   fun='median(' expr ')'
+    |   fun='min(' expr ')'
+    |   fun='percentileCont(' expr ',' expr ')'
+    |   fun='stddev(' expr ')'
+    |   fun='stddevPop(' expr ')'
+    |   fun='stddevSamp(' expr ')'
+    |   fun='sum(' expr ')'
+    |   fun='variance(' expr ')'
 
     //  Program variables (alphabtical)
 
@@ -77,16 +91,6 @@ expr
     |   fun='d2:yearsBetween(' compareDate ',' compareDate ')'
     |   fun='d2:zing(' expr ')'
     |   fun='d2:zpvc(' item (',' item )* ')'
-
-    // Program functions for custom aggregation
-
-    |   fun='avg(' expr ')'
-    |   fun='count(' expr ')'
-    |   fun='max(' expr ')'
-    |   fun='min(' expr ')'
-    |   fun='stddev(' expr ')'
-    |   fun='sum(' expr ')'
-    |   fun='variance(' expr ')'
 
     //  Other
 
@@ -177,24 +181,26 @@ VERTICAL_BAR_2      : '||';
 
 // Functions (alphabetical)
 
-FIRST_NON_NULL  : 'firstNonNull';
-GREATEST        : 'greatest';
-IF              : 'if';
-IS_NOT_NULL     : 'isNotNull';
-IS_NULL         : 'isNull';
-LEAST           : 'least';
+FIRST_NON_NULL  : 'firstNonNull(';
+GREATEST        : 'greatest(';
+IF              : 'if(';
+IS_NOT_NULL     : 'isNotNull(';
+IS_NULL         : 'isNull(';
+LEAST           : 'least(';
 
-// Items (alphabetical by symbol)
+// Aggegation functions (alphabetical)
 
-HASH_BRACE  : '#{';
-A_BRACE     : 'A{';
-C_BRACE     : 'C{';
-D_BRACE     : 'D{';
-I_BRACE     : 'I{';
-N_BRACE     : 'N{';
-OUG_BRACE   : 'OUG{';
-R_BRACE     : 'R{';
-DAYS        : '[days]';
+AVG             : 'avg(';
+COUNT           : 'count(';
+MAX             : 'max(';
+MEDIAN          : 'median(';
+MIN             : 'min(';
+PERCENTILE_CONT : 'percentileCont(';
+STDDEV          : 'stddev(';
+STDDEV_POP      : 'stddevPop(';
+STDDEV_SAMP     : 'stddevSamp(';
+SUM             : 'sum(';
+VARIANCE        : 'variance(';
 
 // Program variables (alphabetical)
 
@@ -237,15 +243,17 @@ D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
 D2_ZING                 : 'd2:zing(';
 D2_ZPVC                 : 'd2:zpvc(';
 
-// Program functions for custom aggregation
+// Items (alphabetical by symbol)
 
-AVG                     : 'avg(';
-COUNT                   : 'count(';
-MAX                     : 'max(';
-MIN                     : 'min(';
-STDDEV                  : 'stddev(';
-SUM                     : 'sum(';
-VARIANCE                : 'variance(';
+HASH_BRACE  : '#{';
+A_BRACE     : 'A{';
+C_BRACE     : 'C{';
+D_BRACE     : 'D{';
+I_BRACE     : 'I{';
+N_BRACE     : 'N{';
+OUG_BRACE   : 'OUG{';
+R_BRACE     : 'R{';
+DAYS        : '[days]';
 
 // -----------------------------------------------------------------------------
 // Lexer rules

@@ -64,8 +64,6 @@ public class Expression
     public static final String SEPARATOR = ".";
     public static final String EXP_OPEN = "#{";
     public static final String EXP_CLOSE = "}";
-    public static final String PAR_OPEN = "(";
-    public static final String PAR_CLOSE = ")";
 
     /**
      * The unique identifier for this Expression.
@@ -200,46 +198,6 @@ public class Expression
             "\"expression\":\"" + expression + "\", " +
             "\"description\":\"" + description + "\" " +
             "}";
-    }
-
-    public static int matchExpression( String s, int start )
-    {
-        int i = start, depth = 0, len = s.length();
-
-        while ( i < len )
-        {
-            char c = s.charAt( i );
-
-            if ( (c == ')') || (c == ']') )
-            {
-                if ( depth == 0 )
-                {
-                    return i;
-                }
-                else
-                {
-                    depth--;
-                }
-            }
-            else if ( (c == '(') || (c == '[') )
-            {
-                depth++;
-            }
-            else if ( c == ',' )
-            {
-                if ( depth == 0 )
-                {
-                    return i;
-                }
-            }
-            else
-            {
-            }
-
-            i++;
-        }
-
-        return -1;
     }
 
     // -------------------------------------------------------------------------

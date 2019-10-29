@@ -30,12 +30,11 @@ package org.hisp.dhis.artemis.audit.legacy;
 
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Luciano Fiandesio
  */
 public interface AuditLegacyObjectFactory
 {
-    Object create( AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user );
+    Object create( AuditScope auditScope, AuditType auditType, Object object, String user );
 }

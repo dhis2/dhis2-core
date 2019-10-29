@@ -41,7 +41,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public class ItemOrgUnitGroup
-    extends ExpressionItem
+    extends ExpressionServiceItem
 {
     @Override
     public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
@@ -77,5 +77,18 @@ public class ItemOrgUnitGroup
         }
 
         return count.doubleValue();
+    }
+
+    @Override
+    public Object regenerate( ItemContext ctx, CommonExpressionVisitor visitor )
+    {
+        Integer count = visitor.getOrgUnitCountMap().get( ctx.uid0.getText() );
+
+        if ( count == null )
+        {
+            return ctx.getText();
+        }
+
+        return count.toString();
     }
 }

@@ -31,9 +31,7 @@ package org.hisp.dhis.schema.audit;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.Objects;
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultMetadataAuditService implements MetadataAuditService
 {
     private final MetadataAuditStore auditStore;
-    private final boolean persistAudit;
 
     public DefaultMetadataAuditService(
         MetadataAuditStore auditStore,
@@ -55,7 +52,6 @@ public class DefaultMetadataAuditService implements MetadataAuditService
         checkNotNull( dhisConfig );
 
         this.auditStore = auditStore;
-        this.persistAudit = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
     }
 
     @Transactional
