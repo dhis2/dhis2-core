@@ -125,14 +125,14 @@ public class HibernateProgramStageInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(0) from programstageinstance where uid=? and deleted is false", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=? and deleted is false", Integer.class, uid );
         return result != null && result > 0;
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(0) from programstageinstance where uid=?", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
     }
 
