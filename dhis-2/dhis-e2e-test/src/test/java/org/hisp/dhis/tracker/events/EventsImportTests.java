@@ -37,9 +37,9 @@ public class EventsImportTests
 {
     List<String> createdEvents = new ArrayList<>();
 
-    private EventActions eventActions = new EventActions();
+    private EventActions eventActions;
 
-    private SystemActions systemActions = new SystemActions();
+    private SystemActions systemActions;
 
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
@@ -52,6 +52,9 @@ public class EventsImportTests
     @BeforeAll
     public void before()
     {
+        eventActions = new EventActions();
+        systemActions = new SystemActions();
+
         new LoginActions().loginAsSuperUser();
     }
 
@@ -79,7 +82,7 @@ public class EventsImportTests
 
         List<ImportSummary> importSummaries = systemActions.getTaskSummaries( "EVENT_IMPORT", taskId );
 
-        assertThat( importSummaries.size(), Matchers.greaterThan( 0 ) );
+        assertThat( "Wrong import summaries size",  importSummaries.size(), Matchers.greaterThan( 0 ) );
 
         createdEvents.addAll( importSummaries
             .stream()
