@@ -856,7 +856,6 @@ public class DefaultPredictionService
         params.setDataElementOperands( Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
         params.setPeriods( periods );
         params.setOrganisationUnits( new HashSet<>( orgUnits ) );
-        params.setReturnParentOrgUnit( true );
 
         List<DeflatedDataValue> oldValueList = dataValueService.getDeflatedDataValues( params );
 
