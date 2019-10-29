@@ -49,7 +49,6 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -70,7 +69,7 @@ public class AnalyticsManagerTest
         private QueryPlanner queryPlanner;
 
         @Mock
-        private JdbcTemplate jdbcTemplate;
+        private DefaultQueryExecutor defaultQueryExecutor;
 
         @Rule
         public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -91,7 +90,7 @@ public class AnalyticsManagerTest
         @Before
         public void setUp()
         {
-            analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
+            analyticsManager = new JdbcAnalyticsManager( queryPlanner, defaultQueryExecutor );
         }
 
         @Test
@@ -133,7 +132,7 @@ public class AnalyticsManagerTest
         private QueryPlanner queryPlanner;
 
         @Mock
-        private JdbcTemplate jdbcTemplate;
+        private DefaultQueryExecutor defaultQueryExecutor;
 
         @Rule
         public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -141,7 +140,7 @@ public class AnalyticsManagerTest
         @Test
         public void testReplaceDataPeriodsWithAggregationPeriods()
         {
-            AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
+            AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, defaultQueryExecutor );
             Period y2012 = createPeriod( "2012" );
 
             AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(

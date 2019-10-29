@@ -49,11 +49,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
@@ -71,7 +71,7 @@ public class JdbcAnalyticsManagerTest
     private PartitionManager partitionManager;
 
     @Mock
-    private JdbcTemplate jdbcTemplate;
+    private DefaultQueryExecutor defaultQueryExecutor;
 
     @Mock
     private SqlRowSet rowSet;
@@ -89,9 +89,10 @@ public class JdbcAnalyticsManagerTest
 
         mockRowSet();
 
-        when( jdbcTemplate.queryForRowSet( sql.capture() ) ).thenReturn( rowSet );
+        when( defaultQueryExecutor.fetch( sql.capture(), ArgumentMatchers.any( DataQueryParams.class ) ) )
+            .thenReturn( rowSet );
 
-        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
+        subject = new JdbcAnalyticsManager( queryPlanner, defaultQueryExecutor );
     }
 
     @Test

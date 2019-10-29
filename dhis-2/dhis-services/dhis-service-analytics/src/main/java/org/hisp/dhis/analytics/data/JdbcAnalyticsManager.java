@@ -86,10 +86,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -125,15 +123,15 @@ public class JdbcAnalyticsManager
 
     private final QueryPlanner queryPlanner;
 
-    private final JdbcTemplate jdbcTemplate;
+    private final DefaultQueryExecutor defaultQueryExecutor;
 
-    public JdbcAnalyticsManager( QueryPlanner queryPlanner, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public JdbcAnalyticsManager( QueryPlanner queryPlanner, final DefaultQueryExecutor defaultQueryExecutor)
     {
         checkNotNull( queryPlanner );
-        checkNotNull( jdbcTemplate );
+        checkNotNull(defaultQueryExecutor);
 
         this.queryPlanner = queryPlanner;
-        this.jdbcTemplate = jdbcTemplate;
+        this.defaultQueryExecutor = defaultQueryExecutor;
     }
 
     // -------------------------------------------------------------------------
@@ -659,7 +657,7 @@ public class JdbcAnalyticsManager
 
         log.debug( String.format( "Analytics SQL: %s", sql ) );
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        final SqlRowSet rowSet = defaultQueryExecutor.fetch( sql, params );
 
         int counter = 0;
 
