@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.node.geometry;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,29 +28,34 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jfree.chart.JFreeChart;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
-
-public class ChartUtils
+/**
+ * @author Enrico Colasante
+ */
+public class JtsXmlModule
+    extends SimpleModule
 {
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
+    public JtsXmlModule()
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        this( new GeometryFactory() );
+    }
 
-        try
-        {
-            org.jfree.chart.ChartUtils.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
+    public JtsXmlModule( GeometryFactory geometryFactory )
+    {
+        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
+        this.addSerializer( Geometry.class, new GeometrySerializer() );
+        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
+        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
+    }
 
-            return out.toByteArray();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+    public void setupModule( SetupContext context )
+    {
+        super.setupModule( context );
     }
 }

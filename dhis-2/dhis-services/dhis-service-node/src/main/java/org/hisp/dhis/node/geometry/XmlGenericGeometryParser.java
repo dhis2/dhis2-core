@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.node.geometry;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,29 +28,41 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jfree.chart.JFreeChart;
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
-
-public class ChartUtils
+/**
+ * @author Enrico Colasante
+ */
+public class XmlGenericGeometryParser
+    extends BaseParser
+    implements GeometryParser<Geometry>
 {
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
-    {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+    private final static Log log = LogFactory.getLog( XmlGenericGeometryParser.class );
 
+    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
+    {
+        super( geometryFactory );
+    }
+
+    public Geometry geometryFromJson( JsonNode node )
+    {
+        WKTReader wktR = new WKTReader();
         try
         {
-            org.jfree.chart.ChartUtils.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
-
-            return out.toByteArray();
+            return wktR.read( node.asText() );
         }
-        catch ( IOException ex )
+        catch ( ParseException e )
         {
-            throw new UncheckedIOException( ex );
+            log.error( "Error reading WKT of geometry", e );
+            return null;
         }
     }
 }
