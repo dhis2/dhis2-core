@@ -70,8 +70,7 @@ public class QueryParamsBuilder
 
     public QueryParamsBuilder addAll( String... params )
     {
-        for ( String param : params
-        )
+        for ( String param : params )
         {
             this.add( param );
         }

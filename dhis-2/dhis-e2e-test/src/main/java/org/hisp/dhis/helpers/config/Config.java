@@ -34,7 +34,6 @@ package org.hisp.dhis.helpers.config;
 @org.aeonbits.owner.Config.LoadPolicy( org.aeonbits.owner.Config.LoadType.MERGE )
 @Config.Sources( { "system:properties", "system:env", "classpath:config.properties" } )
 public interface Config
-
     extends org.aeonbits.owner.Config
 {
     @Key( "instance.url" )

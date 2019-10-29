@@ -80,8 +80,7 @@ public class MetadataSetupExtension
             };
 
             String queryParams = "async=false";
-            for ( String fileName : files
-            )
+            for ( String fileName : files )
             {
                 metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
 
