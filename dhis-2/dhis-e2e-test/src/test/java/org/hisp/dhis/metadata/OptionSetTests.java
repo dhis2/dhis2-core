@@ -63,6 +63,7 @@ import org.hisp.dhis.actions.metadata.OptionActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +82,7 @@ public class OptionSetTests
 
     private String createdOptionSet;
 
-    @BeforeEach
+    @BeforeAll
     public void beforeEach()
     {
 

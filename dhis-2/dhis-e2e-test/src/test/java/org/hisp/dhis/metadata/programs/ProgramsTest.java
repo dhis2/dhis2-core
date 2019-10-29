@@ -34,6 +34,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -44,9 +45,16 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class ProgramsTest
     extends ApiTest
 {
-    private LoginActions loginActions = new LoginActions();
+    private LoginActions loginActions;
 
-    private ProgramActions programActions = new ProgramActions();
+    private ProgramActions programActions;
+
+    @BeforeAll
+    public void beforeAll()
+    {
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
+    }
 
     @BeforeEach
     public void before()
