@@ -1165,8 +1165,8 @@ public abstract class AbstractTrackedEntityInstanceService
         Set<ImportConflict> importConflicts )
     {
         if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
-            && !reservedValueService.isReserved( attribute.getTextPattern(), value ) &&
-            !Objects.equals( value, oldValue ) )
+            && !reservedValueService.isReserved( attribute.getTextPattern(), value )
+            && !Objects.equals( value, oldValue ) )
         {
             importConflicts
                 .add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern" ) );
