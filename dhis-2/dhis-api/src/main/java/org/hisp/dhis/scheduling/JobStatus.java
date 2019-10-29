@@ -41,7 +41,8 @@ public enum JobStatus
     STOPPED( "stopped" ),
     SCHEDULED( "scheduled" ),
     DISABLED( "disabled" ),
-    FAILED( "failed" );
+    FAILED( "failed" ),
+    NOT_STARTED( "not_started" );
 
     private final String key;
 

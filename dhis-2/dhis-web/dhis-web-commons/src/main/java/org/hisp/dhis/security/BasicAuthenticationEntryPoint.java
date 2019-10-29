@@ -65,7 +65,7 @@ public class BasicAuthenticationEntryPoint
         }
 
         response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( message ) );
     }
 }

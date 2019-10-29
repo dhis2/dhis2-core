@@ -28,13 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -50,7 +50,7 @@ import org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -142,7 +142,7 @@ public class ChartController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, attachment );
 
-        ChartUtilities.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
+        ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
     @RequestMapping( value = { "/data", "/data.png" }, method = RequestMethod.GET )
@@ -172,7 +172,7 @@ public class ChartController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "chart.png", attachment );
 
-        ChartUtilities.writeChartAsPNG( response.getOutputStream(), chart, width, height );
+        ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
     @RequestMapping( value = { "/history/data", "/history/data.png" }, method = RequestMethod.GET )
@@ -225,7 +225,7 @@ public class ChartController
 
         JFreeChart chart = chartService.getJFreeChartHistory( dataElement, categoryOptionCombo, attributeOptionCombo, period, organisationUnit, 13, i18nManager.getI18nFormat() );
 
-        ChartUtilities.writeChartAsPNG( response.getOutputStream(), chart, width, height );
+        ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
     //--------------------------------------------------------------------------

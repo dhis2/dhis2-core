@@ -28,14 +28,6 @@
 
 package org.hisp.dhis.dxf2.events.event;
 
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -48,6 +40,14 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
@@ -96,6 +96,10 @@ public class JdbcEventStoreTest
         when( rowSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
 
         when( rowSet.getString( "psi_uid" ) ).thenReturn( "iuDUBa26aHN" );
+        when( rowSet.getString( "ps_identifier" ) ).thenReturn( "PsUID000001" );
+        when( rowSet.getString( "p_identifier" ) ).thenReturn( "PrgUID00001" );
+        when( rowSet.getString( "ou_identifier" ) ).thenReturn( "OuUID000001" );
+        when( rowSet.getString( "coc_identifier" ) ).thenReturn( "CocUID00001" );
         when( rowSet.getString( "tei_uid" ) ).thenReturn( "iuXUBa26aHN" );
         when( rowSet.getString( "tei_ou" ) ).thenReturn( "" );
         when( rowSet.getString( "tei_ou_name" ) ).thenReturn( "Ngelehun CHC" );
