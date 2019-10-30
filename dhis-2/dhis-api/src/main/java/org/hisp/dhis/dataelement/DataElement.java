@@ -747,22 +747,4 @@ public class DataElement extends BaseDimensionalItemObject
     {
         this.fieldMask = fieldMask;
     }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( !(super.equals( o )) )
-        {
-            return false;
-        }
-
-        DataElement that = (DataElement) o;
-        return super.id == that.getId();
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( super.hashCode(), super.id );
-    }
 }
