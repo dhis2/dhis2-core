@@ -28,13 +28,15 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
-import com.google.common.collect.Multimap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Luciano Fiandesio
@@ -42,10 +44,11 @@ import java.util.Map;
 public interface TrackedEntityInstanceStore
 {
     /**
-     * Get a List of {@see TrackedEntityInstance} by primary key
+     * Get a Map of {@see TrackedEntityInstance} by Primary Keys
      *
-     * @param ids a List of Long
-     * @return a List of {@see TrackedEntityInstance}
+     * @param ids a list of Tracked Entity Instance Primary Keys
+     * @return a Map where key is a {@see TrackedEntityInstance} uid and the key is
+     *         the corresponding {@see TrackedEntityInstance}
      */
     Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids );
 
@@ -54,14 +57,24 @@ public interface TrackedEntityInstanceStore
      * "left" or "right" relationship
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a List of {@see Relationship} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
+     *         key a List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids );
 
     /**
      *
      * @param ids @param ids a list of Tracked Entity Instance Primary Keys
-     * @returna List of {@see Attribute} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
+     *         key a List of {@see Attribute} objects
      */
     Multimap<String, Attribute> getAttributes( List<Long> ids );
+
+    /**
+     *
+     * @param ids a list of Tracked Entity Instance Primary Keys
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the *
+     *         key a List of {@see ProgramOwner} objects
+     */
+    Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids );
 }

@@ -40,12 +40,12 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TrackedEntityInstanceStore;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 /**
@@ -53,8 +53,9 @@ import com.google.common.collect.Multimap;
  */
 @Component
 public class TrackedEntityInstanceAggregate
+    extends
+    AbstractAggregate
 {
-
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     private final EnrollmentAggregate enrollmentAggregate;
@@ -68,13 +69,15 @@ public class TrackedEntityInstanceAggregate
 
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params )
     {
-        final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = (!params.isIncludeRelationships()
-            ? supplyAsync( ArrayListMultimap::create )
-            : supplyAsync( () -> trackedEntityInstanceStore.getRelationships( ids ) ));
+        final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalFetch(
+            params.isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
 
-        final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = (!params.isIncludeEnrollments()
-            ? supplyAsync( ArrayListMultimap::create )
-            : supplyAsync( () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, params.isIncludeEvents() ) ));
+        final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalFetch(
+            params.isIncludeEnrollments(),
+            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, params.isIncludeEvents() ) );
+
+        final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalFetch(
+            params.isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ) );
 
         CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids ) );
@@ -90,6 +93,7 @@ public class TrackedEntityInstanceAggregate
 
             Multimap<String, Relationship> relationships = relationshipsAsync.join();
             Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
+            Multimap<String, ProgramOwner> programOwners = programOwnersAsync.join();
 
             return teis.keySet().parallelStream().map( uid -> {
 
@@ -97,6 +101,7 @@ public class TrackedEntityInstanceAggregate
                 tei.setAttributes( new ArrayList<>( attributes.get( uid ) ) );
                 tei.setRelationships( new ArrayList<>( relationships.get( uid ) ) );
                 tei.setEnrollments( new ArrayList<>( enrollments.get( uid ) ) );
+                tei.setProgramOwners( new ArrayList<>( programOwners.get( uid ) ) );
                 return tei;
 
             } ).collect( Collectors.toList() );

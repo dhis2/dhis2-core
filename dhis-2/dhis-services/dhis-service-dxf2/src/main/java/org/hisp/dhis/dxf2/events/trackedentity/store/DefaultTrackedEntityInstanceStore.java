@@ -33,8 +33,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
@@ -94,6 +96,13 @@ public class DefaultTrackedEntityInstanceStore
         + "         join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid join trackedentityinstance tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "where teav.trackedentityinstanceid in (:ids)";
 
+    private final static String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid\n" +
+            "from trackedentityprogramowner teop " +
+            "         join program p on teop.programid = p.programid " +
+            "         join organisationunit o on teop.organisationunitid = o.organisationunitid " +
+            "         join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid " +
+            "where teop.trackedentityinstanceid in (:ids)";
+
     public DefaultTrackedEntityInstanceStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
@@ -140,5 +149,13 @@ public class DefaultTrackedEntityInstanceStore
         TrackedEntityAttributeRowCallbackHandler handler = new TrackedEntityAttributeRowCallbackHandler();
         jdbcTemplate.query( GET_TEI_ATTRIBUTES, createIdsParam( ids ), handler );
         return handler.getItems();
+    }
+
+    public Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids )
+    {
+        ProgramOwnerRowCallbackHandler handler = new ProgramOwnerRowCallbackHandler();
+        jdbcTemplate.query( GET_PROGRAM_OWNERS, createIdsParam( ids ), handler );
+        return handler.getItems();
+
     }
 }
