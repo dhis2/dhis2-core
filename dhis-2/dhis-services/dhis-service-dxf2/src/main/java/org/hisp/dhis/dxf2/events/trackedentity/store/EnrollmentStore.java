@@ -28,15 +28,22 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
-import com.google.common.collect.Multimap;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 
-import java.util.List;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Luciano Fiandesio
  */
 public interface EnrollmentStore
 {
-    Multimap<String, Enrollment> getEnrollments( List<Long> ids );
+    /**
+     *
+     * @param ids a list of {@see TrackedEntityInstance} Primary Keys
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
+     *         key a List of {@see Relationship} objects
+     */
+    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids );
 }

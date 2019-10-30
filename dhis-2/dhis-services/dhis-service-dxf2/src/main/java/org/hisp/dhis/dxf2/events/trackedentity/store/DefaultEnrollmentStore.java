@@ -29,9 +29,9 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.AbstractMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EnrollmentRowCallbackHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,7 +50,7 @@ public class DefaultEnrollmentStore
     EnrollmentStore
 {
 
-    private final static String GET_ENROLLMENT_SQL = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, "
+    private final static String GET_ENROLLMENT_SQL_BY_TEI = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, "
         + "       pi.created, pi.createdatclient, pi.lastupdated, pi.lastupdatedatclient, pi.status, "
         + "       pi.enrollmentdate, pi.incidentdate, pi.followup, pi.enddate, pi.completedby, "
         + "       pi.storedby, pi.deleted, pi.geometry, p.uid as program_uid, "
@@ -64,10 +64,10 @@ public class DefaultEnrollmentStore
         super( jdbcTemplate );
     }
 
-    public Multimap<String, Enrollment> getEnrollments( List<Long> ids )
+    public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids )
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
-        jdbcTemplate.query( GET_ENROLLMENT_SQL, createIdsParam( ids ), handler );
+        jdbcTemplate.query(GET_ENROLLMENT_SQL_BY_TEI, createIdsParam( ids ), handler );
         return handler.getItems();
     }
 }

@@ -28,7 +28,11 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.concurrent.CompletableFuture.allOf;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -42,6 +46,8 @@ import com.google.common.collect.Multimap;
  */
 @Component
 public class EnrollmentAggregate
+    extends
+    AbstractAggregate
 {
     private final EnrollmentStore enrollmentStore;
 
@@ -53,17 +59,38 @@ public class EnrollmentAggregate
         this.eventAggregate = eventAggregate;
     }
 
+    /**
+     * Key: tei uid , value Enrollment
+     *
+     * @param ids
+     * @param includeEvents
+     * @return
+     */
     public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, boolean includeEvents )
     {
 
-        Multimap<String, Event> events;
-        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollments( ids );
+        final CompletableFuture<Multimap<String, Enrollment>> enrollmentAsync = asyncFetch(
+            () -> enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids ) );
 
-        if ( includeEvents )
-        {
-            events = eventAggregate.findByEnrollmentIds( ids );
-        }
+        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( includeEvents,
+            () -> eventAggregate.findByEnrollmentIds( ids ) );
 
-        return enrollments;
+        return allOf( enrollmentAsync, eventAsync ).thenApplyAsync( dummy -> {
+
+            Multimap<String, Enrollment> enrollments = enrollmentAsync.join();
+
+            Multimap<String, Event> events = eventAsync.join();
+
+            if ( includeEvents )
+            {
+                for ( Enrollment enrollment : enrollments.values() )
+                {
+                    enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
+                }
+            }
+
+            return enrollments;
+
+        } ).join();
     }
 }

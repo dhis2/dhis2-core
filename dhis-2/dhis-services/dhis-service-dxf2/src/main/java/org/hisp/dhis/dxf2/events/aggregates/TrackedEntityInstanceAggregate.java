@@ -69,14 +69,14 @@ public class TrackedEntityInstanceAggregate
 
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params )
     {
-        final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalFetch(
+        final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
             params.isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
 
-        final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalFetch(
+        final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             params.isIncludeEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, params.isIncludeEvents() ) );
 
-        final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalFetch(
+        final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
             params.isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ) );
 
         CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(

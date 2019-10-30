@@ -42,10 +42,15 @@ import com.google.common.collect.Multimap;
 public abstract class AbstractAggregate
 {
 
-    <T> CompletableFuture<Multimap<String, T>> conditionalFetch( boolean condition,
+    <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch( boolean condition,
         Supplier<Multimap<String, T>> supplier )
     {
         return (condition ? supplyAsync( supplier ) : supplyAsync( ArrayListMultimap::create ));
+    }
+
+    <T> CompletableFuture<Multimap<String, T>> asyncFetch(Supplier<Multimap<String, T>> supplier )
+    {
+        return supplyAsync( supplier );
     }
 
 }
