@@ -29,11 +29,13 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  */
 
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 
 import com.google.common.collect.Multimap;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
 /**
@@ -51,12 +53,12 @@ public interface EventStore
 
     /**
      *
-     * Key: event uid -> Value: DataValue
+     * Key: event uid -> Value: List<DataValue>
      *
      * @param enrollmentsId
      * @return
      */
-    Multimap<String, List<DataValue>> getDataValues( List<Long> enrollmentsId );
+    Map<String, List<DataValue>> getDataValues(List<Long> enrollmentsId );
 
     /**
      * Fetches all the relationships having the Program Stage Instance id specified in the arg as
@@ -67,4 +69,6 @@ public interface EventStore
      *         key a List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships(List<Long> ids );
+
+    Multimap<String, Note> getNotes(List<Long> eventIds);
 }

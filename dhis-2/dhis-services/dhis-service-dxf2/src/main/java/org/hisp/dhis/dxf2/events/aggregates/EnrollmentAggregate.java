@@ -75,19 +75,23 @@ public class EnrollmentAggregate
     {
         Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids );
 
+        if ( enrollments.isEmpty() )
+        {
+            return enrollments;
+        }
         List<Long> enrollmentIds = enrollments.values().stream().map( Enrollment::getId )
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( includeEvents,
-            () -> eventAggregate.findByEnrollmentIds( enrollmentIds ) );
+            () -> eventAggregate.findByEnrollmentIds( enrollmentIds, includeRelationship ) );
 
-        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch( includeEvents,
+        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch( includeRelationship,
                 () -> enrollmentStore.getRelationships( enrollmentIds ) );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> enrollmentStore.getNotes( enrollmentIds ) );
 
-        return allOf( eventAsync, notesAsync ).thenApplyAsync( dummy -> {
+        return allOf( eventAsync, notesAsync, relationshipAsync ).thenApplyAsync( dummy -> {
 
             Multimap<String, Event> events = eventAsync.join();
             Multimap<String, Note> notes = notesAsync.join();

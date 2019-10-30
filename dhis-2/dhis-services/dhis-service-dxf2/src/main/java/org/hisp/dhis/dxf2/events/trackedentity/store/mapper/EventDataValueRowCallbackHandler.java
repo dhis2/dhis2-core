@@ -30,41 +30,39 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.util.DateUtils;
 import org.postgresql.util.PGobject;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.google.gson.Gson;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventDataValueRowCallbackHandler
-    extends
-    AbstractMapper<List<DataValue>>
-{
+public class EventDataValueRowCallbackHandler implements
+        RowCallbackHandler
 
-    @Override
-    List<DataValue> getItem( ResultSet rs )
-        throws SQLException
+{
+    private Map<String, List<DataValue>> dataValues;
+
+    public EventDataValueRowCallbackHandler()
     {
-        return getDataValue( rs );
+        this.dataValues = new HashMap<>();
     }
 
     @Override
-    String getKeyColumn() {
-        return "eventuid";
+    public void processRow( ResultSet rs )
+        throws SQLException
+    {
+        dataValues.put( rs.getString( "key" ), getDataValue( rs ) );
     }
 
     private List<DataValue> getDataValue( ResultSet rs )
         throws SQLException
     {
-
         // TODO not sure this is the most efficient way to handle JSONB -> java
         List<DataValue> dataValues = new ArrayList<>();
         // PGobject
@@ -74,7 +72,6 @@ public class EventDataValueRowCallbackHandler
 
         for ( Object o : json.keySet() )
         {
-
             Map m = (Map) json.get( o );
             DataValue value = new DataValue();
             value.setCreated( DateUtils.getIso8601NoTz( (Date) m.get( "created" ) ) );
@@ -87,5 +84,10 @@ public class EventDataValueRowCallbackHandler
         }
 
         return dataValues;
+    }
+
+    public Map<String, List<DataValue>> getItems()
+    {
+        return this.dataValues;
     }
 }
