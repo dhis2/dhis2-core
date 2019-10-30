@@ -88,7 +88,7 @@ public class AnalyticsQueryCacheTest
 
         // When
         analyticsQueryCache.put( anyCacheKey, anySqlRowSet, aTtlOfOneMillisecond );
-        waitForExpiration( aTtlOfOneMillisecond );
+        waitForExpiration( 300 );
 
         // Then
         final SqlRowSet sqlRowSetActual = analyticsQueryCache.get( anyCacheKey );
