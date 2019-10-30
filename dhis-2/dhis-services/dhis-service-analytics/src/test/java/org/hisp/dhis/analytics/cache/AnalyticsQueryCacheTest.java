@@ -35,11 +35,9 @@ import static org.junit.Assert.assertThat;
 
 import org.hisp.dhis.analytics.util.StubOfSqlRowSet;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-@Ignore
 public class AnalyticsQueryCacheTest
 {
     private static AnalyticsQueryCache analyticsQueryCache;
@@ -77,7 +75,7 @@ public class AnalyticsQueryCacheTest
         final SqlRowSet sqlRowSetNotCached = analyticsQueryCache.get( anyCacheKey );
 
         // Then
-        assertThat( is( equalTo( sqlRowSetNotCached ) ), null );
+        assertThat( sqlRowSetNotCached, is( equalTo( null ) ) );
     }
 
     @Test
@@ -94,7 +92,7 @@ public class AnalyticsQueryCacheTest
 
         // Then
         final SqlRowSet sqlRowSetActual = analyticsQueryCache.get( anyCacheKey );
-        assertThat( is( equalTo( sqlRowSetActual ) ), null );
+        assertThat( sqlRowSetActual, is( equalTo( null ) ) );
     }
 
     private void waitForExpiration( final long millisecondsToWait )

@@ -30,7 +30,9 @@ package org.hisp.dhis.analytics.cache;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.apache.commons.logging.LogFactory.getLog;
 
+import org.apache.commons.logging.Log;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -45,17 +47,37 @@ public class AnalyticsQueryCache
     implements
     QueryCache
 {
+    private static final Log log = getLog( AnalyticsQueryCache.class );
 
-    private boolean usingTimeToLiveInMillis = false;
-    
+    private static final String ANALYTICS_QUERY_CACHE = "analyticsQueryCache";
+
     private static final int MAX_EXPIRATION_TIME = 60;
 
-    private final Cache<Key, SqlRowSet> cache = Cache2kBuilder
-            .of( Key.class, SqlRowSet.class )
-            .name( "analyticsQueryCache" )
-            .eternal( false )
-            .expireAfterWrite(MAX_EXPIRATION_TIME, MINUTES )
-            .build();
+    private boolean usingTimeToLiveInMillis = false;
+
+    private static Cache<Key, SqlRowSet> cache = null;
+
+    public AnalyticsQueryCache()
+    {
+        try {
+            if ( cache == null )
+            {
+                cache = Cache2kBuilder.of( Key.class, SqlRowSet.class )
+                        .name( ANALYTICS_QUERY_CACHE )
+                        .eternal( false )
+                        .expireAfterWrite( MAX_EXPIRATION_TIME, MINUTES )
+                        .build();
+            }
+        }
+        catch ( IllegalStateException e )
+        {
+            log.warn( "Trying to initialize the same Cache2K instance twice. Ignoring..." );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            log.error( "Cache2K instance cannot be created. Missing arguments.", e );
+        }
+    }
 
     /**
      * Add a given key-value pair into the cache respecting the TTL in minutes (default).
