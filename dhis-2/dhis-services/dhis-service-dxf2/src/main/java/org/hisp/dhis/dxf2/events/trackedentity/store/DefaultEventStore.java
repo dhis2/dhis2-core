@@ -29,11 +29,14 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  */
 
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventDataValueRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventRowCallbackHandler;
+import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -82,10 +85,17 @@ public class DefaultEventStore
             "         join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
             "where pi.programinstanceid in (:ids)";
 
-    private final static String GET_DATAVALUES_SQL = "select psi.uid as eventuid, " +
+    private final static String GET_DATAVALUES_SQL = "select psi.uid as key, " +
             "       psi.eventdatavalues " +
             "from programstageinstance psi " +
             "where psi.programinstanceid in (:ids)";
+
+    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created " +
+            "from trackedentitycomment tec " +
+            "         join programstageinstancecomments psic " +
+            "              on tec.trackedentitycommentid = psic.trackedentitycommentid " +
+            "         join programinstance pi on psic.programstageinstanceid = pi.programinstanceid " +
+            "where psic.programstageinstanceid in (:ids)";
 
     public DefaultEventStore( JdbcTemplate jdbcTemplate )
     {
@@ -107,10 +117,18 @@ public class DefaultEventStore
     }
 
     @Override
-    public Multimap<String, List<DataValue>> getDataValues( List<Long> enrollmentsId )
+    public Map<String, List<DataValue>> getDataValues(List<Long> enrollmentsId )
     {
         EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
         jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( enrollmentsId ), handler );
+        return handler.getItems();
+    }
+
+    @Override
+    public Multimap<String, Note> getNotes( List<Long> eventIds )
+    {
+        NoteRowCallbackHandler handler = new NoteRowCallbackHandler();
+        jdbcTemplate.query( GET_NOTES_SQL, createIdsParam( eventIds ), handler );
         return handler.getItems();
     }
 }
