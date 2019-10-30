@@ -67,6 +67,14 @@ public class TrackedEntityInstanceAggregate
         this.enrollmentAggregate = enrollmentAggregate;
     }
 
+    /**
+     *
+     *
+     * @param ids a List of {@see TrackedEntityInstance} Primary Keys
+     * @param params an instance of {@see TrackedEntityInstanceParams}
+     *
+     * @return a List of {@see TrackedEntityInstance} objects
+     */
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params )
     {
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(

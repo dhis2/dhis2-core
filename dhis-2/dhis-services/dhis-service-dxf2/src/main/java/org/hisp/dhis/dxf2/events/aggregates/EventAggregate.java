@@ -54,7 +54,7 @@ public class EventAggregate
     /**
      * Key: enrollment uid -> Value: Event
      *
-     * @param ids
+     * @param ids a List of {@see Enrollment} Primary Keys
      * @return
      */
     public Multimap<String, Event> findByEnrollmentIds( List<Long> ids )
