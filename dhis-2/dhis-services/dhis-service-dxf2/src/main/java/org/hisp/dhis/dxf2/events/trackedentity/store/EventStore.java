@@ -46,7 +46,7 @@ public interface EventStore
      * @param enrollmentsId
      * @return
      */
-    Multimap<String, Event> getEvents( List<Long> enrollmentsId );
+    Multimap<String, Event> getEventsByEnrollmentIds(List<Long> enrollmentsId );
 
     /**
      *

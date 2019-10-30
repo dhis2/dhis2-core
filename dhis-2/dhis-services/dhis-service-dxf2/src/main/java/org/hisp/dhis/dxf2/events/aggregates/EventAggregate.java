@@ -51,9 +51,15 @@ public class EventAggregate
         this.eventStore = eventStore;
     }
 
+    /**
+     * Key: enrollment uid -> Value: Event
+     *
+     * @param ids
+     * @return
+     */
     public Multimap<String, Event> findByEnrollmentIds( List<Long> ids )
     {
-        Multimap<String, Event> events = this.eventStore.getEvents( ids );
+        Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids );
 
         if ( !events.isEmpty() )
         {

@@ -93,7 +93,7 @@ public class DefaultEventStore
     }
 
     @Override
-    public Multimap<String, Event> getEvents( List<Long> enrollmentsId )
+    public Multimap<String, Event> getEventsByEnrollmentIds(List<Long> enrollmentsId )
     {
 
         EventRowCallbackHandler handler = new EventRowCallbackHandler();
