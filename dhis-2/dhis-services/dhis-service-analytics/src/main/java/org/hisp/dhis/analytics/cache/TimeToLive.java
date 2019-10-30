@@ -36,8 +36,8 @@ import static java.time.temporal.ChronoUnit.YEARS;
 import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMinutes.FIFTEEN_MINUTES;
 import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMinutes.FIVE_MINUTES;
 import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMinutes.FORTY_MINUTES;
-import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMinutes.ONE_MINUTE;
 import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMinutes.SIXTY_MINUTES;
+import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMinutes.TWO_MINUTES;
 import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.MONTHLY;
 import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.QUARTERLY;
 import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.SIX_MONTHS;
@@ -61,8 +61,8 @@ public class TimeToLive
 
     private final DataQueryParams params;
 
-    static final Map<Periods, IntervalOfMinutes> expirationTimeTable = ImmutableMap.of(
-            WEEKLY, ONE_MINUTE,
+    static final Map<Periods, IntervalOfMinutes> EXPIRATION_TIME_TABLE = ImmutableMap.of(
+            WEEKLY, TWO_MINUTES,
             MONTHLY, FIVE_MINUTES,
             QUARTERLY, FIFTEEN_MINUTES,
             SIX_MONTHS, FORTY_MINUTES,
@@ -88,13 +88,15 @@ public class TimeToLive
     }
 
     /**
-     * Execute the internal rules in order to calculate a TTL for the given parameters.
+     * Execute the internal rules in order to calculate a TTL for the given
+     * parameters.
      *
-     * @param daysDiff the difference of days between the oldest and most recent date in the period.
+     * @param daysDiff the difference of days between the oldest and most recent
+     *        date in the period.
      * @param mostRecentDate the most recent date of the period.
      * @return a time to live value in MINUTES
      */
-    private long calculationFor( final long daysDiff, final Instant mostRecentDate )
+    long calculationFor( final long daysDiff, final Instant mostRecentDate )
     {
         /*
          * If the difference between the most recent date and NOW is 0 (zero) it means
@@ -106,23 +108,23 @@ public class TimeToLive
 
         if ( daysDiff <= WEEKLY.value() )
         {
-            ttlInMinutes = expirationTimeTable.get(WEEKLY);
+            ttlInMinutes = EXPIRATION_TIME_TABLE.get(WEEKLY);
         }
         else if ( daysDiff <= MONTHLY.value() )
         {
-            ttlInMinutes = expirationTimeTable.get(MONTHLY);
+            ttlInMinutes = EXPIRATION_TIME_TABLE.get(MONTHLY);
         }
         else if ( daysDiff <= QUARTERLY.value() )
         {
-            ttlInMinutes = expirationTimeTable.get(QUARTERLY);
+            ttlInMinutes = EXPIRATION_TIME_TABLE.get(QUARTERLY);
         }
         else if  ( daysDiff <= SIX_MONTHS.value() )
         {
-            ttlInMinutes = expirationTimeTable.get(SIX_MONTHS);
+            ttlInMinutes = EXPIRATION_TIME_TABLE.get(SIX_MONTHS);
         }
         else
         {
-            ttlInMinutes = expirationTimeTable.get( YEARLY );
+            ttlInMinutes = EXPIRATION_TIME_TABLE.get( YEARLY );
         }
         return ttlInMinutes.value() * ttlMultiplierOrOne;
     }
@@ -146,7 +148,7 @@ public class TimeToLive
 
     enum IntervalOfMinutes
     {
-        ONE_MINUTE( 1 ), FIVE_MINUTES( 5 ), FIFTEEN_MINUTES( 15 ), FORTY_MINUTES( 40 ), SIXTY_MINUTES( 60 );
+        TWO_MINUTES( 2 ), FIVE_MINUTES( 5 ), FIFTEEN_MINUTES( 15 ), FORTY_MINUTES( 40 ), SIXTY_MINUTES( 60 );
 
         final int minutes;
 

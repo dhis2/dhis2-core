@@ -46,23 +46,50 @@ public class AnalyticsQueryCache
     QueryCache
 {
 
+    private boolean usingTimeToLiveInMillis = false;
+    
+    private static final int MAX_EXPIRATION_TIME = 60;
+
     private final Cache<Key, SqlRowSet> cache = Cache2kBuilder
             .of( Key.class, SqlRowSet.class )
             .name( "analyticsQueryCache" )
             .eternal( false )
-            .expireAfterWrite( 60, MINUTES )
+            .expireAfterWrite(MAX_EXPIRATION_TIME, MINUTES )
             .build();
 
+    /**
+     * Add a given key-value pair into the cache respecting the TTL in minutes (default).
+     * If you need a support for TTL in milliseconds, you can enable it by invoking
+     * "usingTimeToLiveInMillis()"
+     *
+     * @param key the key to be cached.
+     * @param sqlRowSet the object containing the results.
+     * @param ttl a time to live for the given key. Minutes is the default, unless
+     *            usingTimeToLiveInMillis() was previously invoked.
+     */
     @Override
     public void put( final Key key, final SqlRowSet sqlRowSet, final long ttl )
     {
-        final long expirationTime = currentTimeMillis() + MINUTES.toMillis( ttl );
+        final long expirationTime = currentTimeMillis() + getTimeToLive( ttl );
         cache.invoke( key, e -> e.setValue( sqlRowSet ).setExpiryTime( expirationTime ) );
     }
 
     @Override
-    public SqlRowSet get( Key key )
+    public SqlRowSet get( final Key key )
     {
         return cache.get( key );
+    }
+
+    public void usingTimeToLiveInMillis() {
+        usingTimeToLiveInMillis = true;
+    }
+    
+    private long getTimeToLive( final long ttl )
+    {
+        if ( !usingTimeToLiveInMillis )
+        {
+            return MINUTES.toMillis( ttl );
+        }
+        return ttl;
     }
 }

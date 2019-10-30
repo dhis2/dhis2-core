@@ -31,19 +31,19 @@ package org.hisp.dhis.analytics.cache;
 import java.util.Objects;
 
 /**
- * This class is used as the key during caching operations of sql queries
- * and their result objects.
+ * This class is used as the key during caching operations of sql queries and
+ * their result objects.
  */
 public class CacheKey
     implements
     Key
 {
 
-    private final String sql;
+    private final String key;
 
-    public CacheKey( final String sql )
+    public CacheKey( final String key )
     {
-        this.sql = sql;
+        this.key = key;
     }
 
     @Override
@@ -54,18 +54,18 @@ public class CacheKey
         if ( o == null || getClass() != o.getClass() )
             return false;
         CacheKey that = (CacheKey) o;
-        return sql.equals( that.sql );
+        return key.equals( that.key );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( sql );
+        return Objects.hash( key );
     }
 
     @Override
     public String toString()
     {
-        return "DefaultAnalyticsCacheKey{" + "sql='" + sql + '\'' + '}';
+        return "CacheKey{" + "key='" + key + '\'' + '}';
     }
 }

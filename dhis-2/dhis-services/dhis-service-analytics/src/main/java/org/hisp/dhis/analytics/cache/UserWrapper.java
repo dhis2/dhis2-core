@@ -28,34 +28,33 @@
 
 package org.hisp.dhis.analytics.cache;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.join;
-
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 /**
- * This component is responsible for building the caching key only.
+ * Simple component used only to hide the nested objects related to the CurrentUserService.
+ * It facilitates the testing and reduce the coupling and exposition of unnecessary objects to
+ * classes which need information related to the current user.
  */
 @Component
-public class CacheKeyBuilder
-    implements
-    KeyBuilder
-{
+public class UserWrapper {
 
-    static final String SEPARATOR = "#";
+    private final CurrentUserService currentUserService;
 
-    static final String DELIMITER = ",";
+    public UserWrapper(final CurrentUserService currentUserService) {
+        checkNotNull( currentUserService );
+        this.currentUserService = currentUserService;
+    }
 
-    @Override
-    public Key build( final String key, final String... additional )
+    public String getUserAuthorityGroupsName()
     {
-        checkNotNull( key );
-
-        if ( additional != null && additional.length > 0 )
+        if ( currentUserService.getCurrentUserCredentials() != null )
         {
-            final String joinedAdditional = join( DELIMITER, additional );
-            return new CacheKey( key + SEPARATOR + joinedAdditional );
+            return currentUserService.getCurrentUserCredentials().getUserAuthorityGroupsName();
         }
-        return new CacheKey( key );
+        return EMPTY;
     }
 }

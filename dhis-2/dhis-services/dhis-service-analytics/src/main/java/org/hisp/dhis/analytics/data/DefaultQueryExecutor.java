@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.logging.LogFactory.getLog;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.hisp.dhis.analytics.CacheableQuery;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -40,7 +39,7 @@ import org.hisp.dhis.analytics.cache.Key;
 import org.hisp.dhis.analytics.cache.KeyBuilder;
 import org.hisp.dhis.analytics.cache.QueryCache;
 import org.hisp.dhis.analytics.cache.TimeToLive;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.analytics.cache.UserWrapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -61,29 +60,29 @@ public class DefaultQueryExecutor
 
     private final KeyBuilder keyBuilder;
 
-    private final QueryCache defaultQueryCache;
+    private final QueryCache analyticsQueryCache;
 
-    private final CurrentUserService currentUserService;
+    private final UserWrapper userWrapper;
 
-    public DefaultQueryExecutor(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-                                final QueryCache defaultQueryCache, final CacheKeyBuilder cacheKeyBuilder,
-                                final CurrentUserService currentUserService )
+    public DefaultQueryExecutor( @Qualifier( "readOnlyJdbcTemplate" )
+    final JdbcTemplate jdbcTemplate, final QueryCache analyticsQueryCache, final CacheKeyBuilder cacheKeyBuilder,
+        final UserWrapper userWrapper)
     {
         checkNotNull( jdbcTemplate );
-        checkNotNull( defaultQueryCache );
+        checkNotNull( analyticsQueryCache );
         checkNotNull( cacheKeyBuilder );
-        checkNotNull( currentUserService );
+        checkNotNull(userWrapper);
         this.jdbcTemplate = jdbcTemplate;
-        this.defaultQueryCache = defaultQueryCache;
+        this.analyticsQueryCache = analyticsQueryCache;
         this.keyBuilder = cacheKeyBuilder;
-        this.currentUserService = currentUserService;
+        this.userWrapper = userWrapper;
     }
 
     public SqlRowSet fetch( final String sqlQuery, final DataQueryParams params )
     {
-        final String userAuthorityGroups = getUserAuthorityGroups();
+        final String userAuthorityGroups = userWrapper.getUserAuthorityGroupsName();
         final Key key = keyBuilder.build( sqlQuery, userAuthorityGroups );
-        final SqlRowSet cachedSqlRowSet = defaultQueryCache.get( key );
+        final SqlRowSet cachedSqlRowSet = analyticsQueryCache.get( key );
 
         if ( cachedSqlRowSet != null )
         {
@@ -98,7 +97,7 @@ public class DefaultQueryExecutor
             log.debug( "# Cache TTL in minutes: " + ttl );
 
             final SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( sqlQuery );
-            defaultQueryCache.put( key, sqlRowSet, ttl );
+            analyticsQueryCache.put( key, sqlRowSet, ttl );
 
             return sqlRowSet;
         }
@@ -107,14 +106,5 @@ public class DefaultQueryExecutor
     public SqlRowSet forceFetch( final String sqlQuery )
     {
         return jdbcTemplate.queryForRowSet( sqlQuery );
-    }
-
-    private String getUserAuthorityGroups()
-    {
-        if ( currentUserService.getCurrentUserCredentials() != null )
-        {
-            return currentUserService.getCurrentUserCredentials().getUserAuthorityGroupsName();
-        }
-        return StringUtils.EMPTY;
     }
 }
