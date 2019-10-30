@@ -29,10 +29,11 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EnrollmentRowCallbackHandler;
+import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -59,6 +60,12 @@ public class DefaultEnrollmentStore
         + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "where pi.trackedentityinstanceid in (:ids)";
 
+    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created "
+        + "from trackedentitycomment tec join programinstancecomments pic "
+        + "              on tec.trackedentitycommentid = pic.trackedentitycommentid "
+        + "         join programinstance pi on pic.programinstanceid = pi.programinstanceid "
+        + "where pic.programinstanceid in (:ids)";
+
     public DefaultEnrollmentStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
@@ -67,7 +74,15 @@ public class DefaultEnrollmentStore
     public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids )
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
-        jdbcTemplate.query(GET_ENROLLMENT_SQL_BY_TEI, createIdsParam( ids ), handler );
+        jdbcTemplate.query( GET_ENROLLMENT_SQL_BY_TEI, createIdsParam( ids ), handler );
+        return handler.getItems();
+    }
+
+    @Override
+    public Multimap<String, Note> getNotes( List<Long> ids )
+    {
+        NoteRowCallbackHandler handler = new NoteRowCallbackHandler();
+        jdbcTemplate.query( GET_NOTES_SQL, createIdsParam( ids ), handler );
         return handler.getItems();
     }
 }

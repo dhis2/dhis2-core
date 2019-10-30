@@ -26,33 +26,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.trackedentity.store;
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;
-
-import com.google.common.collect.Multimap;
+import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Luciano Fiandesio
  */
-public interface EnrollmentStore
+public class NoteRowCallbackHandler
+    extends
+    AbstractMapper<Note>
 {
-    /**
-     *
-     * @param ids a list of {@see TrackedEntityInstance} Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
-     *         key a List of {@see Relationship} objects
-     */
-    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids );
 
-    /**
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of
-     *         {@see Note} objects
-     */
-    Multimap<String, Note> getNotes( List<Long> ids );
+    @Override
+    Note getItem( ResultSet rs )
+        throws SQLException
+    {
+        return getNote( rs );
+    }
+
+    @Override
+    String getKeyColumn()
+    {
+        return "key";
+    }
+
+    private Note getNote( ResultSet rs )
+        throws SQLException
+    {
+        Note note = new Note();
+
+        note.setNote( rs.getString( "uid" ) );
+        note.setValue( rs.getString( "commenttext" ) );
+        note.setStoredBy( rs.getString( "creator" ) );
+        note.setStoredDate( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
+
+        return note;
+    }
 }

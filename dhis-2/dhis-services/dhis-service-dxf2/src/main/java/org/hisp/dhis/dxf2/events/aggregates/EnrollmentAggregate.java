@@ -33,9 +33,11 @@ import static java.util.concurrent.CompletableFuture.allOf;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EnrollmentStore;
 import org.springframework.stereotype.Component;
 
@@ -69,25 +71,29 @@ public class EnrollmentAggregate
      */
     public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, boolean includeEvents )
     {
+        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids );
 
-        final CompletableFuture<Multimap<String, Enrollment>> enrollmentAsync = asyncFetch(
-            () -> enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids ) );
+        List<Long> enrollmentIds = enrollments.values().stream().map( Enrollment::getId )
+            .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( includeEvents,
-            () -> eventAggregate.findByEnrollmentIds( ids ) );
+            () -> eventAggregate.findByEnrollmentIds( enrollmentIds ) );
 
-        return allOf( enrollmentAsync, eventAsync ).thenApplyAsync( dummy -> {
+        final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
+            () -> enrollmentStore.getNotes( enrollmentIds ) );
 
-            Multimap<String, Enrollment> enrollments = enrollmentAsync.join();
+        return allOf( eventAsync, notesAsync ).thenApplyAsync( dummy -> {
 
             Multimap<String, Event> events = eventAsync.join();
+            Multimap<String, Note> notes = notesAsync.join();
 
-            if ( includeEvents )
+            for ( Enrollment enrollment : enrollments.values() )
             {
-                for ( Enrollment enrollment : enrollments.values() )
+                if ( includeEvents )
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
+                enrollment.setNotes( new ArrayList<>( notes.get( enrollment.getEnrollment() ) ) );
             }
 
             return enrollments;
