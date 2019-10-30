@@ -82,7 +82,7 @@ public class TrackedEntityInstanceAggregate
 
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             params.isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, params.isIncludeEvents() ) );
+            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, params.isIncludeEvents(), params.isIncludeRelationships() ) );
 
         final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
             params.isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ) );

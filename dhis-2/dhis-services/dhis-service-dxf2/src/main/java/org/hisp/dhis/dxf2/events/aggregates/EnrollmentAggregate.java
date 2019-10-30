@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
 import static java.util.concurrent.CompletableFuture.allOf;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EnrollmentStore;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +71,7 @@ public class EnrollmentAggregate
      *
      * @return
      */
-    public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, boolean includeEvents )
+    public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, boolean includeEvents, boolean includeRelationship )
     {
         Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids );
 
@@ -79,6 +81,9 @@ public class EnrollmentAggregate
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( includeEvents,
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds ) );
 
+        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch( includeEvents,
+                () -> enrollmentStore.getRelationships( enrollmentIds ) );
+
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> enrollmentStore.getNotes( enrollmentIds ) );
 
@@ -86,6 +91,7 @@ public class EnrollmentAggregate
 
             Multimap<String, Event> events = eventAsync.join();
             Multimap<String, Note> notes = notesAsync.join();
+            Multimap<String, Relationship> relationships = relationshipAsync.join();
 
             for ( Enrollment enrollment : enrollments.values() )
             {
@@ -93,6 +99,11 @@ public class EnrollmentAggregate
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
+                if ( includeRelationship )
+                {
+                    enrollment.setRelationships( new HashSet<>( relationships.get( enrollment.getEnrollment() ) ) );
+                }
+
                 enrollment.setNotes( new ArrayList<>( notes.get( enrollment.getEnrollment() ) ) );
             }
 
