@@ -34,6 +34,7 @@ import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 
 import com.google.common.collect.Multimap;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
 /**
  * @author Luciano Fiandesio
@@ -57,4 +58,13 @@ public interface EventStore
      */
     Multimap<String, List<DataValue>> getDataValues( List<Long> enrollmentsId );
 
+    /**
+     * Fetches all the relationships having the Program Stage Instance id specified in the arg as
+     * "left" or "right" relationship
+     *
+     * @param ids a list of {@see Enrollment} Primary Keys
+     * @return a MultiMap where key is a {@see Enrollment} uid and the
+     *         key a List of {@see Relationship} objects
+     */
+    Multimap<String, Relationship> getRelationships(List<Long> ids );
 }
