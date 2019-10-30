@@ -85,4 +85,10 @@ public class DefaultEnrollmentStore
         jdbcTemplate.query( GET_NOTES_SQL, createIdsParam( ids ), handler );
         return handler.getItems();
     }
+
+    @Override
+    String getRelationshipEntityColumn()
+    {
+        return "programinstanceid";
+    }
 }

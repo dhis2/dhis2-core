@@ -93,20 +93,24 @@ public class DefaultEventStore
     }
 
     @Override
-    public Multimap<String, Event> getEventsByEnrollmentIds(List<Long> enrollmentsId )
+    String getRelationshipEntityColumn()
     {
-
-        EventRowCallbackHandler handler = new EventRowCallbackHandler();
-        jdbcTemplate.query( GET_EVENTS_SQL, createIdsParam( enrollmentsId ), handler );
-        return handler.getItems();
-
+        return "programstageinstanceid";
     }
 
     @Override
-    public Multimap<String, List<DataValue>> getDataValues( List<Long> eventsId )
+    public Multimap<String, Event> getEventsByEnrollmentIds(List<Long> enrollmentsId )
+    {
+        EventRowCallbackHandler handler = new EventRowCallbackHandler();
+        jdbcTemplate.query( GET_EVENTS_SQL, createIdsParam( enrollmentsId ), handler );
+        return handler.getItems();
+    }
+
+    @Override
+    public Multimap<String, List<DataValue>> getDataValues( List<Long> enrollmentsId )
     {
         EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
-        jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( eventsId ), handler );
+        jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( enrollmentsId ), handler );
         return handler.getItems();
     }
 }

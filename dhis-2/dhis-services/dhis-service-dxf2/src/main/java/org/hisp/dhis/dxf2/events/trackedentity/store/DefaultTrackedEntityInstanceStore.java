@@ -28,23 +28,19 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
-import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 /**
@@ -65,27 +61,7 @@ public class DefaultTrackedEntityInstanceStore
         + "         join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids)";
 
-    private final static String GET_RELATIONSHIP_SQL = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
-        + "       coalesce((select tei.uid from trackedentityinstance tei "
-        + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-        + "                 where ri.relationshipitemid = r.to_relationshipitemid) , (select pi.uid "
-        + "                 from programinstance pi "
-        + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-        + "                 where ri.relationshipitemid = r.to_relationshipitemid), (select psi.uid "
-        + "                 from programstageinstance psi "
-        + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
-        + "                 where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
-        + "       coalesce((select tei.uid from trackedentityinstance tei "
-        + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-        + "                 where ri.relationshipitemid = r.from_relationshipitemid) , (select pi.uid "
-        + "                 from programinstance pi "
-        + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-        + "                 where ri.relationshipitemid = r.from_relationshipitemid), (select psi.uid "
-        + "                 from programstageinstance psi "
-        + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
-        + "                 where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
-        + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
-        + "where r.relationshipid in (:ids)";
+
 
     private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid"
         + ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, "
@@ -109,38 +85,16 @@ public class DefaultTrackedEntityInstanceStore
     }
 
     @Override
+    String getRelationshipEntityColumn() {
+        return "trackedentityinstanceid";
+    }
+
+    @Override
     public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids )
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
         jdbcTemplate.query( GET_TEIS_SQL, createIdsParam( ids ), handler );
         return handler.getItems();
-    }
-
-    @Override
-    public Multimap<String, Relationship> getRelationships(List<Long> ids )
-    {
-        String getRelationshipsHavingTeiIdSQL = "select ri.trackedentityinstanceid as id, r.relationshipid"
-            + " FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid"
-            + " where ri.trackedentityinstanceid in (:ids)";
-
-        // Get all the relationship ids that have at least one relationship item having
-        // the tei ids in the trackedentityinstance column
-        List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( getRelationshipsHavingTeiIdSQL,
-            createIdsParam( ids ) );
-
-        List<Long> relationshipIds = new ArrayList<>();
-        for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )
-        {
-            relationshipIds.add( (Long) relationshipIdsMap.get( "relationshipid" ) );
-        }
-
-        if ( !relationshipIds.isEmpty() )
-        {
-            RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
-            jdbcTemplate.query( GET_RELATIONSHIP_SQL, createIdsParam( relationshipIds ), handler );
-            return handler.getItems();
-        }
-        return ArrayListMultimap.create();
     }
 
     @Override
