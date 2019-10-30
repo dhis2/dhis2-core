@@ -59,11 +59,11 @@ public class TimeToLiveTest
         final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
         final long expectedTtl = EXPIRATION_TIME_TABLE.get( WEEKLY ).value();
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -79,10 +79,10 @@ public class TimeToLiveTest
         final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -96,10 +96,10 @@ public class TimeToLiveTest
         final long expectedTtl = EXPIRATION_TIME_TABLE.get( MONTHLY ).value();
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -115,10 +115,10 @@ public class TimeToLiveTest
         final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -132,10 +132,10 @@ public class TimeToLiveTest
         final long expectedTtl = EXPIRATION_TIME_TABLE.get( QUARTERLY ).value();
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -151,10 +151,10 @@ public class TimeToLiveTest
         final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -168,10 +168,10 @@ public class TimeToLiveTest
         final long expectedTtl = EXPIRATION_TIME_TABLE.get( SIX_MONTHS ).value();
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -187,10 +187,10 @@ public class TimeToLiveTest
         final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -204,10 +204,10 @@ public class TimeToLiveTest
         final long expectedTtl = EXPIRATION_TIME_TABLE.get( YEARLY ).value();
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     @Test
@@ -223,10 +223,10 @@ public class TimeToLiveTest
         final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
 
         // When
-        final long ttl = new TimeToLive( dataQueryParams ).compute();
+        final long actualTtl = new TimeToLive( dataQueryParams ).compute();
 
         // Then
-        assertThat( ttl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
     private DataQueryParams stubbedParams( final Date mostRecentDate, final Date oldestDate )
