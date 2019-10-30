@@ -62,8 +62,9 @@ public class EnrollmentAggregate
     /**
      * Key: tei uid , value Enrollment
      *
-     * @param ids
-     * @param includeEvents
+     * @param ids a List of {@see TrackedEntityInstance} Primary Keys
+     * @param includeEvents if true, fetch also Events related to each enrollment
+     *
      * @return
      */
     public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, boolean includeEvents )
