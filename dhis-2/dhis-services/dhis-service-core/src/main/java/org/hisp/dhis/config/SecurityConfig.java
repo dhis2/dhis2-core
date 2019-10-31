@@ -151,9 +151,6 @@ public class SecurityConfig
         return new UserDetailsServiceLdapAuthoritiesPopulator( userDetailsService );
     }
 
-    // @Autowired
-    // private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
-
     @Autowired
     private DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
