@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -88,7 +89,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
@@ -657,22 +657,22 @@ public class JdbcAnalyticsManager
 
         log.debug( String.format( "Analytics SQL: %s", sql ) );
 
-        final SqlRowSet rowSet = defaultQueryExecutor.fetch( sql, params );
+        final List<Map<String, Object>> resultList = defaultQueryExecutor.fetch( sql, params );
 
-        int counter = 0;
-
-        while ( rowSet.next() )
+        if ( maxLimit > 0 && isNotEmpty( resultList ) && resultList.size() > maxLimit )
         {
-            if ( maxLimit > 0 && ++counter > maxLimit )
-            {
-                throw new IllegalQueryException( "Query result set exceeds max limit: " + maxLimit );
-            }
+            throw new IllegalQueryException( "Query result set exceeds max limit: " + maxLimit );
+        }
+
+        for ( final Object object : resultList )
+        {
+            final Map<String, Object> element = (Map<String, Object>) object;
 
             StringBuilder key = new StringBuilder();
 
             for ( DimensionalObject dim : params.getDimensions() )
             {
-                String value = dim.isFixed() ? dim.getDimensionName() : rowSet.getString( dim.getDimensionName() );
+                String value = dim.isFixed() ? dim.getDimensionName() : (String) element.get( dim.getDimensionName() );
 
                 key.append( value ).append( DIMENSION_SEP );
             }
@@ -681,13 +681,13 @@ public class JdbcAnalyticsManager
 
             if ( params.isDataType( TEXT ) )
             {
-                String value = rowSet.getString( VALUE_ID );
+                String value = (String) element.get(VALUE_ID );
 
                 map.put( key.toString(), value );
             }
             else // NUMERIC
             {
-                Double value = rowSet.getDouble( VALUE_ID );
+                Double value = (Double) element.get( VALUE_ID );
 
                 map.put( key.toString(), value );
             }

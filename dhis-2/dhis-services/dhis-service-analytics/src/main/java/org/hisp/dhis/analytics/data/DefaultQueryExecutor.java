@@ -45,6 +45,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * This component os responsible for fetching and caching data from the
  * respective database based in the JDBC template provided.
@@ -66,29 +69,26 @@ public class DefaultQueryExecutor
 
     public DefaultQueryExecutor( @Qualifier( "readOnlyJdbcTemplate" )
     final JdbcTemplate jdbcTemplate, final QueryCache analyticsQueryCache, final CacheKeyBuilder cacheKeyBuilder,
-        final UserWrapper userWrapper)
+        final UserWrapper userWrapper )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( analyticsQueryCache );
         checkNotNull( cacheKeyBuilder );
-        checkNotNull(userWrapper);
+        checkNotNull( userWrapper );
         this.jdbcTemplate = jdbcTemplate;
         this.analyticsQueryCache = analyticsQueryCache;
         this.keyBuilder = cacheKeyBuilder;
         this.userWrapper = userWrapper;
     }
 
-    public SqlRowSet fetch( final String sqlQuery, final DataQueryParams params )
+    public List<Map<String, Object>> fetch( final String sqlQuery, final DataQueryParams params )
     {
         final String userAuthorityGroups = userWrapper.getUserAuthorityGroupsName();
         final Key key = keyBuilder.build( sqlQuery, userAuthorityGroups );
-        final SqlRowSet cachedSqlRowSet = analyticsQueryCache.get( key );
+        final List<Map<String, Object>> cachedSqlRowSet = analyticsQueryCache.get( key );
 
         if ( cachedSqlRowSet != null )
         {
-            // Guarantees the cached row set cursor is set at the beginning.
-            cachedSqlRowSet.beforeFirst();
-
             return cachedSqlRowSet;
         }
         else
@@ -96,15 +96,15 @@ public class DefaultQueryExecutor
             final long ttl = new TimeToLive( params ).compute();
             log.debug( "# Cache TTL in minutes: " + ttl );
 
-            final SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet( sqlQuery );
-            analyticsQueryCache.put( key, sqlRowSet, ttl );
+            final List<Map<String, Object>> resultList = jdbcTemplate.queryForList( sqlQuery );
+            analyticsQueryCache.put( key, resultList, ttl );
 
-            return sqlRowSet;
+            return resultList;
         }
     }
 
-    public SqlRowSet forceFetch( final String sqlQuery )
+    public List<Map<String, Object>> forceFetch( final String sqlQuery )
     {
-        return jdbcTemplate.queryForRowSet( sqlQuery );
+        return jdbcTemplate.queryForList( sqlQuery );
     }
 }

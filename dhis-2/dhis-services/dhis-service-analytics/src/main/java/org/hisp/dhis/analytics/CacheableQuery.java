@@ -28,7 +28,8 @@
 
 package org.hisp.dhis.analytics;
 
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the basic methods responsible for fetching data from a given database.
@@ -46,9 +47,9 @@ public interface CacheableQuery
      *
      * @param sqlQuery the full sql query.
      * @param params the current data params.
-     * @return a SQLRowSet object containing the results fetched.
+     * @return a List object containing the results fetched.
      */
-    SqlRowSet fetch( final String sqlQuery, final DataQueryParams params );
+    List<Map<String, Object>> fetch(final String sqlQuery, final DataQueryParams params );
 
     /**
      * The main responsibility of this method is forcing a fetch directly
@@ -58,7 +59,7 @@ public interface CacheableQuery
      * behavior can be respected.
      *
      * @param sqlQuery
-     * @return a SQLRowSet object containing the results fetched.
+     * @return a List object containing the results fetched.
      */
-    SqlRowSet forceFetch( final String sqlQuery );
+    List<Map<String, Object>> forceFetch( final String sqlQuery );
 }

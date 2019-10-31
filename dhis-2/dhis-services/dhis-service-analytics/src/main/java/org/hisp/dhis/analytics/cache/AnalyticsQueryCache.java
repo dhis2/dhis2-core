@@ -38,6 +38,9 @@ import org.cache2k.Cache2kBuilder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Component responsible to cache and retrieve the result object from a give sql query.
  * It will also create and manage an internal cache for caching only analytics queries.
@@ -55,14 +58,14 @@ public class AnalyticsQueryCache
 
     private boolean usingTimeToLiveInMillis = false;
 
-    private static Cache<Key, SqlRowSet> cache = null;
+    private static Cache<Key, List> cache = null;
 
     public AnalyticsQueryCache()
     {
         try {
             if ( cache == null )
             {
-                cache = Cache2kBuilder.of( Key.class, SqlRowSet.class )
+                cache = Cache2kBuilder.of( Key.class, List.class )
                         .name( ANALYTICS_QUERY_CACHE )
                         .eternal( false )
                         .expireAfterWrite( MAX_EXPIRATION_TIME, MINUTES )
@@ -90,14 +93,14 @@ public class AnalyticsQueryCache
      *            usingTimeToLiveInMillis() was previously invoked.
      */
     @Override
-    public void put( final Key key, final SqlRowSet sqlRowSet, final long ttl )
+    public void put( final Key key, final List<Map<String, Object>> sqlRowSet, final long ttl )
     {
         final long expirationTime = currentTimeMillis() + getTimeToLive( ttl );
         cache.invoke( key, e -> e.setValue( sqlRowSet ).setExpiryTime( expirationTime ) );
     }
 
     @Override
-    public SqlRowSet get( final Key key )
+    public List<Map<String, Object>> get( final Key key )
     {
         return cache.get( key );
     }

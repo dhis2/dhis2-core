@@ -38,20 +38,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.cache.AnalyticsQueryCache;
 import org.hisp.dhis.analytics.cache.CacheKeyBuilder;
 import org.hisp.dhis.analytics.cache.Key;
 import org.hisp.dhis.analytics.cache.UserWrapper;
-import org.hisp.dhis.analytics.util.StubOfSqlRowSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public class DefaultQueryExecutorTest
 {
@@ -85,16 +86,16 @@ public class DefaultQueryExecutorTest
         final String anyUserAuthorities = "auht1-auth2-auth3";
         final DataQueryParams stubbedParams = stubbedParamsForYearlyPeriod();
         final Key anyKey = new CacheKeyBuilder().build( anySqlQuery, anyUserAuthorities );
-        final SqlRowSet anySqlRowSet = new StubOfSqlRowSet();
+        final List<Map<String, Object>> anyResultList = new ArrayList<>();
 
         // When
         when( userWrapper.getUserAuthorityGroupsName() ).thenReturn( anyUserAuthorities );
         when( keyBuilder.build( anySqlQuery, anyUserAuthorities ) ).thenReturn( anyKey );
-        when( analyticsQueryCache.get( anyKey ) ).thenReturn( anySqlRowSet );
-        final SqlRowSet expectedSqlRowSet = defaultQueryExecutor.fetch( anySqlQuery, stubbedParams );
+        when( analyticsQueryCache.get( anyKey ) ).thenReturn( anyResultList );
+        final List<Map<String, Object>> expectedSqlRowSet = defaultQueryExecutor.fetch( anySqlQuery, stubbedParams );
 
         // Then
-        assertThat( anySqlRowSet, is( equalTo( expectedSqlRowSet ) ) );
+        assertThat( anyResultList, is( equalTo( expectedSqlRowSet ) ) );
     }
 
     @Test
@@ -105,21 +106,21 @@ public class DefaultQueryExecutorTest
         final String anyUserAuthorities = "auht1-auth2-auth3";
         final DataQueryParams stubbedParams = stubbedParamsForYearlyPeriod();
         final Key anyKey = new CacheKeyBuilder().build( anySqlQuery, anyUserAuthorities );
-        final SqlRowSet nonExistingSqlRowSet = null;
-        final SqlRowSet sqlRowSetFromDatabase = new StubOfSqlRowSet();
+        final List<Map<String, Object>> nonExistingResultList = null;
+        final List<Map<String, Object>> resultListFromDatabse = new ArrayList<>();
         final long yearlyTimeTiLive = 60; // See TimeToLive.Periods.YEARLY and TimeToLive.EXPIRATION_TIME_TABLE
 
         // When
         when( userWrapper.getUserAuthorityGroupsName() ).thenReturn( anyUserAuthorities );
         when( keyBuilder.build( anySqlQuery, anyUserAuthorities ) ).thenReturn( anyKey );
-        when( analyticsQueryCache.get( anyKey ) ).thenReturn( nonExistingSqlRowSet );
-        when( jdbcTemplate.queryForRowSet( anySqlQuery ) ).thenReturn( sqlRowSetFromDatabase );
-        final SqlRowSet expectedSqlRowSet = defaultQueryExecutor.fetch( anySqlQuery, stubbedParams );
+        when( analyticsQueryCache.get( anyKey ) ).thenReturn( nonExistingResultList );
+        when( jdbcTemplate.queryForList( anySqlQuery ) ).thenReturn( resultListFromDatabse );
+        final List<Map<String, Object>> expectedSqlRowSet = defaultQueryExecutor.fetch( anySqlQuery, stubbedParams );
 
         // Then
-        assertThat( sqlRowSetFromDatabase, is( equalTo( expectedSqlRowSet ) ) );
-        verify( jdbcTemplate, times( 1 ) ).queryForRowSet( anySqlQuery );
-        verify( analyticsQueryCache, times( 1 ) ).put( anyKey, sqlRowSetFromDatabase, yearlyTimeTiLive );
+        assertThat( resultListFromDatabse, is( equalTo( expectedSqlRowSet ) ) );
+        verify( jdbcTemplate, times( 1 ) ).queryForList( anySqlQuery );
+        verify( analyticsQueryCache, times( 1 ) ).put( anyKey, resultListFromDatabse, yearlyTimeTiLive );
     }
 
     @Test

@@ -33,10 +33,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import org.hisp.dhis.analytics.util.StubOfSqlRowSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public class AnalyticsQueryCacheTest
 {
@@ -54,15 +56,15 @@ public class AnalyticsQueryCacheTest
     {
         // Given
         final Key anyCacheKey = new CacheKeyBuilder().build( "anyKey" );
-        final SqlRowSet expectedSqlRowSet = new StubOfSqlRowSet();
+        final List<Map<String, Object>> expectedResultList = new ArrayList<>();
         final long aTtlOfOneSecond = (1) + 1000;
 
         // When
-        analyticsQueryCache.put( anyCacheKey, expectedSqlRowSet, aTtlOfOneSecond );
+        analyticsQueryCache.put( anyCacheKey, expectedResultList, aTtlOfOneSecond );
 
         // Then
-        final SqlRowSet sqlRowSetActual = analyticsQueryCache.get( anyCacheKey );
-        assertThat( sqlRowSetActual, is( equalTo( expectedSqlRowSet ) ) );
+        final List<Map<String, Object>> sqlRowSetActual = analyticsQueryCache.get( anyCacheKey );
+        assertThat( sqlRowSetActual, is( equalTo( expectedResultList ) ) );
     }
 
     @Test
@@ -72,10 +74,10 @@ public class AnalyticsQueryCacheTest
         final Key anyCacheKey = new CacheKeyBuilder().build( "anyKey" );
 
         // When
-        final SqlRowSet sqlRowSetNotCached = analyticsQueryCache.get( anyCacheKey );
+        final List<Map<String, Object>> resultListNotCached = analyticsQueryCache.get( anyCacheKey );
 
         // Then
-        assertThat( sqlRowSetNotCached, is( equalTo( null ) ) );
+        assertThat( resultListNotCached, is( equalTo( null ) ) );
     }
 
     @Test
@@ -83,15 +85,15 @@ public class AnalyticsQueryCacheTest
     {
         // Given
         final Key anyCacheKey = new CacheKeyBuilder().build( "anyKey" );
-        final SqlRowSet anySqlRowSet = new StubOfSqlRowSet();
+        final List<Map<String, Object>> anyResultList = new ArrayList<>();
         final long aTtlOfOneMillisecond = 1;
 
         // When
-        analyticsQueryCache.put( anyCacheKey, anySqlRowSet, aTtlOfOneMillisecond );
-        waitForExpiration( 300 );
+        analyticsQueryCache.put( anyCacheKey, anyResultList, aTtlOfOneMillisecond );
+        waitForExpiration( 500 );
 
         // Then
-        final SqlRowSet sqlRowSetActual = analyticsQueryCache.get( anyCacheKey );
+        final List<Map<String, Object>> sqlRowSetActual = analyticsQueryCache.get( anyCacheKey );
         assertThat( sqlRowSetActual, is( equalTo( null ) ) );
     }
 

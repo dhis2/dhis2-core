@@ -54,7 +54,10 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Luciano Fiandesio
@@ -73,9 +76,6 @@ public class JdbcAnalyticsManagerTest
     @Mock
     private DefaultQueryExecutor defaultQueryExecutor;
 
-    @Mock
-    private SqlRowSet rowSet;
-
     @Captor
     private ArgumentCaptor<String> sql;
 
@@ -84,13 +84,12 @@ public class JdbcAnalyticsManagerTest
     @Before
     public void setUp()
     {
+        final List<Map<String, Object>> anyResultList = new ArrayList<>();
         QueryPlanner queryPlanner = new DefaultQueryPlanner( new DefaultQueryValidator( this.systemSettingManager ),
             partitionManager );
 
-        mockRowSet();
-
         when( defaultQueryExecutor.fetch( sql.capture(), ArgumentMatchers.any( DataQueryParams.class ) ) )
-            .thenReturn( rowSet );
+            .thenReturn(anyResultList);
 
         subject = new JdbcAnalyticsManager( queryPlanner, defaultQueryExecutor );
     }
@@ -113,12 +112,6 @@ public class JdbcAnalyticsManagerTest
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
         assertExpectedSql("desc");
-    }
-
-    private void mockRowSet()
-    {
-        // Simulate no rows
-        when( rowSet.next() ).thenReturn( false );
     }
 
     private DataQueryParams createParams(AggregationType aggregationType) {

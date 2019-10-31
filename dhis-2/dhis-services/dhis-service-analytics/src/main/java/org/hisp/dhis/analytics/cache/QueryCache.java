@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics.cache;
 
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * This interface provides the basic methods for caching sql queries
  * and their respective results.
@@ -42,7 +45,7 @@ public interface QueryCache
      * @param sqlRowSet the object containing the results.
      * @param ttl a time to live for the given key.
      */
-    void put( Key key, SqlRowSet sqlRowSet, long ttl );
+    void put( Key key, List<Map<String, Object>> sqlRowSet, long ttl );
 
     /**
      * Retrieves a SqlRowSet object from the cache based on the key.
@@ -51,5 +54,5 @@ public interface QueryCache
      * @param key the key associated to a query
      * @return the SqlRowSet object associated with the given key.
      */
-    SqlRowSet get( Key key );
+    List<Map<String, Object>> get(Key key );
 }
