@@ -136,6 +136,7 @@ public class EventXmlImportTest
         ImportSummaries importSummaries = eventService.addEventsXml( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         Events events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
+        assertEquals( 1, events.getEvents().size() );
         assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
     }
 
