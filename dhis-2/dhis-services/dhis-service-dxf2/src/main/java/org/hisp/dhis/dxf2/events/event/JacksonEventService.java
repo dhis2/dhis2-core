@@ -176,7 +176,7 @@ public class JacksonEventService extends AbstractEventService
 
         try
         {
-            Metadata multiple = fromXml( input, Metadata.class );
+            Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
         catch ( JsonMappingException ex )
