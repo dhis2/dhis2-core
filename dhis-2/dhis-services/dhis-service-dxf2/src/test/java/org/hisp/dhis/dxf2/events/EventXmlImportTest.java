@@ -138,6 +138,7 @@ public class EventXmlImportTest
         EventSearchParams eventSearchParams = new EventSearchParams();
         eventSearchParams.setProgram( programA );
         Events events = eventService.getEvents( eventSearchParams );
+        assertEquals( 1, events.getEvents().size() );
         assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
     }
 
