@@ -88,15 +88,15 @@ public class AnalyticsQueryCache
      * "usingTimeToLiveInMillis()"
      *
      * @param key the key to be cached.
-     * @param sqlRowSet the object containing the results.
+     * @param resultList the object containing the results.
      * @param ttl a time to live for the given key. Minutes is the default, unless
      *            usingTimeToLiveInMillis() was previously invoked.
      */
     @Override
-    public void put( final Key key, final List<Map<String, Object>> sqlRowSet, final long ttl )
+    public void put( final Key key, final List<Map<String, Object>> resultList, final long ttl )
     {
         final long expirationTime = currentTimeMillis() + getTimeToLive( ttl );
-        cache.invoke( key, e -> e.setValue( sqlRowSet ).setExpiryTime( expirationTime ) );
+        cache.invoke( key, e -> e.setValue( resultList ).setExpiryTime( expirationTime ) );
     }
 
     @Override
