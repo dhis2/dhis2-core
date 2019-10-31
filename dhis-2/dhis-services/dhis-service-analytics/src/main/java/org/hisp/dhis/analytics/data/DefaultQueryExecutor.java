@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.cache.TimeToLive;
 import org.hisp.dhis.analytics.cache.UserWrapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
