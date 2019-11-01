@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<events xmlns="http://dhis2.org/schema/dxf/2.0">
+    <event dueDate="2019-08-04T15:17:39.821" program="A"
+           href="http://localhost:8181/dhis_web_portal_war_exploded/api/events/n1V0AKAOgj2" event="n1V0AKAOgj2"
+           programStage="A" orgUnit="A" status="ACTIVE" orgUnitName="A"
+           eventDate="2019-08-01T00:00:00.000">
+        <attributeCategoryOptions>xYerKDKCefk</attributeCategoryOptions>
+        <lastUpdated>2018-08-04T15:17:39.870</lastUpdated>
+        <created>2018-08-04T15:17:39.870</created>
+        <deleted>false</deleted>
+        <attributeOptionCombo>HllvX50cXC0</attributeOptionCombo>
+        <geometry>POINT (-12.1646118164062 8.24411005754922)</geometry>
+        <coordinate latitude="8.19517945064858" longitude="-12.2621154785156"/>
+        <dataValues>
+            <dataValue lastUpdated="2016-12-06T18:22:34.438" storedBy="bjorn" created="2016-12-06T18:22:34.438"
+                       dataElement="A" value="10"
+                       providedElsewhere="false"/>
+        </dataValues>
+    </event>
+</events>
