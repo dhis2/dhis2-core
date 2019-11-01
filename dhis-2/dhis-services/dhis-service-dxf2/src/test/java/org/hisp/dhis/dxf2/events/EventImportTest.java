@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Geometry;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,7 +50,6 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -166,16 +164,13 @@ public class EventImportTest
         manager.save( dataElementB );
 
         programStageA = createProgramStage( 'A', 0 );
-        programStageA.setFeatureType( FeatureType.POINT );
         manager.save( programStageA );
 
         programStageA2 = createProgramStage( 'a', 0 );
-        programStageA2.setFeatureType( FeatureType.POINT );
         programStageA2.setRepeatable( true );
         manager.save( programStageA2 );
 
         programStageB = createProgramStage( 'B', 0 );
-        programStageB.setFeatureType( FeatureType.POINT );
         manager.save( programStageB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -449,14 +444,6 @@ public class EventImportTest
         JSONObject dataValue = new JSONObject();
         dataValue.put( "dataElement", dataElement.getUid() );
         dataValue.put( "value", value );
-
-        JSONObject geometry = new JSONObject();
-        geometry.put( "type", "Point" );
-        JSONArray coordinates = new JSONArray();
-        coordinates.add( "1.33343" );
-        coordinates.add( "-21.9954" );
-        geometry.put( "coordinates", coordinates );
-        eventJsonPayload.put( "geometry", geometry );
 
         JSONArray dataValues = new JSONArray();
         dataValues.add( dataValue );
