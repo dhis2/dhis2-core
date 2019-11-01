@@ -30,6 +30,7 @@ package org.hisp.dhis.category;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -41,4 +42,17 @@ public interface CategoryOptionComboStore
     CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
     
     void updateNames();
+
+    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+
+    /**
+     * Fetch all {@see CategoryOptionCombo} from a given {@see CategoryOptionGroup} uid.
+     *
+     * A {@see CategoryOptionGroup} is a collection of {@see CategoryOption}. Therefore, this method finds all
+     * {@see CategoryOptionCombo} for all the members of the given {@see CategoryOptionGroup}
+     *
+     * @param groupId a {@see CategoryOptionGroup} uid
+     * @return a List of {@see CategoryOptionCombo} or empty List
+     */
+    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
 }

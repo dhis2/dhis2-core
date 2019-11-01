@@ -59,7 +59,7 @@
   </filter>
   <filter>
     <filter-name>Struts</filter-name>
-    <filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
+    <filter-class>org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter</filter-class>
     <async-supported>true</async-supported>
   </filter>
   <filter>
@@ -159,6 +159,9 @@
   </listener>
   <listener>
     <listener-class>org.hisp.dhis.system.startup.StartupListener</listener-class>
+  </listener>
+  <listener>
+    <listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
   </listener>
 
   <!-- Servlets -->

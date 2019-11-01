@@ -58,6 +58,7 @@ package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
@@ -72,14 +73,13 @@ public class ProgramActions
 
     public ProgramActions()
     {
-
         super( "/programs" );
         this.programStageActions = new RestApiActions( "/programStages" );
     }
 
     public ApiResponse createProgram( String programType )
     {
-        JsonObject object = baseBody( programType );
+        JsonObject object = getDummy( programType );
 
         return post( object );
     }
@@ -97,9 +97,7 @@ public class ProgramActions
 
     public ApiResponse createProgram( String programType, String... orgUnitIds )
     {
-        JsonObject object = baseBody( programType );
-        //object.addProperty( "publicAccess", "rwrw----" );
-
+        JsonObject object = getDummy( programType );
         JsonArray orgUnits = new JsonArray();
 
         for ( String ouid : orgUnitIds
@@ -131,25 +129,36 @@ public class ProgramActions
         return update( programId, body );
     }
 
-    public ApiResponse createProgramStage( String name )
+    public String createProgramStage( String name )
     {
         JsonObject body = new JsonObject();
 
         body.addProperty( "name", name );
 
-        return programStageActions.post( body );
+        ApiResponse response = programStageActions.post( body );
+        response.validate().statusCode( Matchers.isOneOf( 201, 200 ) );
+
+        return response.extractUid();
     }
 
-    private JsonObject baseBody( String programType )
+    public JsonObject getDummy()
     {
         String random = DataGenerator.randomString();
 
         JsonObject object = new JsonObject();
-        object.addProperty( "programType", programType );
         object.addProperty( "name", "AutoTest program " + random );
         object.addProperty( "shortName", "AutoTest program " + random );
 
         return object;
+    }
+
+    public JsonObject getDummy( String programType )
+    {
+
+        JsonObject program = getDummy();
+        program.addProperty( "programType", programType );
+
+        return program;
     }
 
 }

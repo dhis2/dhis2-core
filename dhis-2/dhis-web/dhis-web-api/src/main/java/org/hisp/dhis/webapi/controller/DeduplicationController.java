@@ -146,7 +146,7 @@ public class DeduplicationController
         return potentialDuplicate;
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST }, value = "/{id}/invalidation")
+    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST }, value = "/{id}/invalidation" )
     public void markPotentialDuplicateInvalid(
         @PathVariable String id
     )
@@ -163,7 +163,7 @@ public class DeduplicationController
         deduplicationService.markPotentialDuplicateInvalid( potentialDuplicate );
     }
 
-    @DeleteMapping( value = "/{id}")
+    @DeleteMapping( value = "/{id}" )
     public void deletePotentialDuplicate(
         @PathVariable String id
     )

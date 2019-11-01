@@ -8,9 +8,11 @@ pipeline {
 
     environment {
         DHIS2_VERSION = ''
-        DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core-dev"
+        DOCKER_HUB_CORE_REPOSITORY = "${DOCKER_HUB_OWNER}/core-dev"
+        DOCKER_HUB_BASE_REPOSITORY = "${DOCKER_HUB_OWNER}/base-dev"
         DOCKER_IMAGE_TAG = ''
-        DOCKER_IMAGE_FULL_NAME = ''
+        DOCKER_CORE_IMAGE_FULL_NAME = ''
+        DOCKER_BASE_IMAGE_FULL_NAME = ''
         COMPOSE_PARAMETER = ''
         TESTS_IMAGE_FULL_NAME = ''
     }
@@ -22,7 +24,9 @@ pipeline {
             }
             steps {
                 script {
-                    DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core"
+                    DOCKER_HUB_CORE_REPOSITORY = "${DOCKER_HUB_OWNER}/core"
+                    DOCKER_HUB_BASE_REPOSITORY = "${DOCKER_HUB_OWNER}/base"
+
                     pom = readMavenPom file: 'dhis-2/pom.xml'
                     DHIS2_VERSION = pom.version.toLowerCase()
 
@@ -46,16 +50,35 @@ pipeline {
                 }
             }
         }
-        stage('Build image') {
+
+        stage('Prepare Docker compose') {
             steps {
                 script {
                     COMPOSE_PARAMETER = "${env.JOB_NAME}"
                     echo "Docker compose parameter: ${COMPOSE_PARAMETER}"
+                }
+            }
+        }
 
-                    DOCKER_IMAGE_FULL_NAME = "${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}"
-                    echo "Will tag image as ${DOCKER_IMAGE_FULL_NAME}"
+        stage('Build image') {
+            steps {
+                script {
+                    DOCKER_BASE_IMAGE_FULL_NAME = "${DOCKER_HUB_BASE_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+                    echo "Will tag base image as ${DOCKER_BASE_IMAGE_FULL_NAME}"
 
-                    sh "docker build -t ${DOCKER_IMAGE_FULL_NAME} --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG}  ."
+                    sh "docker build -t ${DOCKER_BASE_IMAGE_FULL_NAME} --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG} ."
+                }
+            }
+        }
+
+        stage('Build containers') {
+            steps {
+                script {
+                    DOCKER_CORE_IMAGE_FULL_NAME = "${DOCKER_HUB_CORE_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+                    echo "Will tag container images as ${DOCKER_CORE_IMAGE_FULL_NAME}"
+
+                    sh "./docker/extract-artifacts.sh ${DOCKER_BASE_IMAGE_FULL_NAME}"
+                    sh "./docker/build-containers.sh ${DOCKER_CORE_IMAGE_FULL_NAME} ${DOCKER_IMAGE_TAG}"
                 }
             }
         }
@@ -63,7 +86,7 @@ pipeline {
         stage('Start instance') {
             steps {
                 dir("dhis-2/dhis-e2e-test") {
-                    sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
+                    sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
                 }
             }
         }
@@ -79,12 +102,24 @@ pipeline {
                     }
                 }
             }
+
+            post {
+                failure {
+                    script {
+                        dir("dhis-2/dhis-e2e-test") {
+                            sh "docker-compose -p ${COMPOSE_PARAMETER} logs web > logs.txt"
+                            archiveArtifacts artifacts: 'logs.txt'
+                        }
+                    }
+                }
+            }
         }
 
         stage('Publish image') {
             steps {
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                    sh "docker push ${DOCKER_IMAGE_FULL_NAME}"
+                    sh "docker push ${DOCKER_BASE_IMAGE_FULL_NAME}"
+                    sh "./docker/publish-containers.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
                 }
             }
         }
@@ -93,16 +128,20 @@ pipeline {
     post {
         always {
             dir("dhis-2/dhis-e2e-test") {
-                sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} down --rmi all --remove-orphans"
-                sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down --rmi all --remove-orphans"
-                sh "docker image prune --force --filter label=stage=intermediate --filter label=identifier=${DOCKER_IMAGE_TAG}"
+                sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} down --rmi all -v --remove-orphans"
+                sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down --rmi all -v --remove-orphans"
             }
+
+            sh "docker image rm -f ${DOCKER_BASE_IMAGE_FULL_NAME}"
+            sh "./docker/cleanup-images.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
+
+            sh "docker image prune --force --filter label=identifier=${DOCKER_IMAGE_TAG}"
         }
 
         failure {
             slackSend(
                 color: '#ff0000',
-                message: 'Publishing of docker image for branch ' + env.BRANCH_NAME + ' failed. Visit ' + env.BUILD_URL + ' for more information',
+                message: 'Publishing of docker images for branch ' + env.BRANCH_NAME + ' failed. Visit ' + env.BUILD_URL + ' for more information',
                 channel: 'jenkins'
             )
         }

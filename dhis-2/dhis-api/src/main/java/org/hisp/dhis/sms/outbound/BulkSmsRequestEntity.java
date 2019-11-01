@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 public class BulkSmsRequestEntity
 {
-    private Set<Recipient> recipients = new HashSet<>();
+    private Set<BulkSmsRecipient> recipients = new HashSet<>();
 
     private String body;
 
@@ -49,12 +49,12 @@ public class BulkSmsRequestEntity
 
     public BulkSmsRequestEntity( String body, Set<String> recipients )
     {
-        this.recipients = recipients.stream().map( Recipient::new ).collect( Collectors.toSet() );
+        this.recipients = recipients.stream().map( BulkSmsRecipient::new ).collect( Collectors.toSet() );
         this.body = body;
     }
 
     @JsonProperty( value = "to" )
-    public Set<Recipient> getRecipients()
+    public Set<BulkSmsRecipient> getRecipients()
     {
         return recipients;
     }
@@ -62,30 +62,5 @@ public class BulkSmsRequestEntity
     public String getBody()
     {
         return body;
-    }
-
-    private static class Recipient
-    {
-        private String type = "INTERNATIONAL";
-        private String address;
-
-        public Recipient()
-        {
-        }
-
-        public Recipient( String address )
-        {
-            this.address = address;
-        }
-
-        public String getType()
-        {
-            return type;
-        }
-
-        public String getAddress()
-        {
-            return address;
-        }
     }
 }

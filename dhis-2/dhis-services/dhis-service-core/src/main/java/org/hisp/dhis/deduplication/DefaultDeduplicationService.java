@@ -104,6 +104,7 @@ public class DefaultDeduplicationService
     }
 
     @Override
+    @Transactional
     public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
         potentialDuplicateStore.delete( potentialDuplicate );

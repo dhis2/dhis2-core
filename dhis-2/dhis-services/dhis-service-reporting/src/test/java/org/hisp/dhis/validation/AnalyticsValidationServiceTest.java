@@ -33,6 +33,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -59,7 +60,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -121,9 +121,6 @@ public class AnalyticsValidationServiceTest
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private IndicatorService indicatorService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -421,8 +418,11 @@ public class AnalyticsValidationServiceTest
 
         for ( ValidationResult result : results )
         {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
+            String test = result.getLeftsideValue()
+                + result.getValidationRule().getOperator().getMathematicalOperator()
+                + result.getRightsideValue();
+
+            assertFalse( (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST ) );
         }
     }
 

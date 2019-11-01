@@ -114,6 +114,9 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -1112,7 +1115,7 @@ public abstract class DhisConvenienceTest
      * @param generator             The right side expression.
      * @param skipTest              The skiptest expression
      * @param periodType            The period-type.
-     * @param organisationUnitLevel The unit level of organisations to be
+     * @param organisationUnitLevel The organisation unit level to be
      *                              evaluated by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
      * @param annualSampleCount     How many years of past periods to sample.
@@ -1123,8 +1126,32 @@ public abstract class DhisConvenienceTest
         OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
+        return createPredictor( output, combo, uniqueCharacter, generator,
+            skipTest, periodType, Sets.newHashSet( organisationUnitLevel ),
+            sequentialSampleCount, sequentialSkipCount, annualSampleCount );
+    }
+
+    /**
+     * Creates a Predictor
+     *
+     * @param output                 The data element where the predictor stores its predictions
+     * @param combo                  The category option combo (or null) under which the predictors are stored
+     * @param uniqueCharacter        A unique character to identify the object.
+     * @param generator              The right side expression.
+     * @param skipTest               The skiptest expression
+     * @param periodType             The period-type.
+     * @param organisationUnitLevels The organisation unit levels to be
+     *                               evaluated by this rule.
+     * @param sequentialSampleCount  How many sequential past periods to sample.
+     * @param annualSampleCount      How many years of past periods to sample.
+     * @param sequentialSkipCount    How many periods in the current year to skip
+     */
+    public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
+        String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
+        Set<OrganisationUnitLevel> organisationUnitLevels, int sequentialSampleCount,
+        int sequentialSkipCount, int annualSampleCount )
+    {
         Predictor predictor = new Predictor();
-        Set<OrganisationUnitLevel> orgUnitlevels = Sets.newHashSet( organisationUnitLevel );
         predictor.setAutoFields();
 
         predictor.setOutput( output );
@@ -1134,7 +1161,7 @@ public abstract class DhisConvenienceTest
         predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
-        predictor.setOrganisationUnitLevels( orgUnitlevels );
+        predictor.setOrganisationUnitLevels( organisationUnitLevels );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1249,6 +1276,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
+        credentials.setUser( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
@@ -1544,6 +1572,59 @@ public abstract class DhisConvenienceTest
         section.setSortOrder( sortOrder );
 
         return section;
+    }
+
+    public static RelationshipType createMalariaCaseLinkedToPersonRelationshipType( char uniqueCharacter,
+        Program program,
+        TrackedEntityType trackedEntityType )
+    {
+        RelationshipConstraint psiConstraint = new RelationshipConstraint();
+        psiConstraint.setProgram( program );
+        psiConstraint.setTrackedEntityType( trackedEntityType );
+        psiConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipConstraint teiConstraint = new RelationshipConstraint();
+        teiConstraint.setProgram( program );
+        teiConstraint.setTrackedEntityType( trackedEntityType );
+        teiConstraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Malaria case linked to person" );
+        relationshipType.setBidirectional( true );
+        relationshipType.setFromConstraint( psiConstraint );
+        relationshipType.setToConstraint( teiConstraint );
+        return relationshipType;
+    }
+
+    public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Person to person" );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createRelationshipType( char uniqueCharacter )
+    {
+        RelationshipType relationshipType = new RelationshipType();
+
+        relationshipType.setFromToName( "from_" + uniqueCharacter );
+        relationshipType.setToFromName( "to_" + uniqueCharacter );
+        relationshipType.setAutoFields();
+        relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
+        relationshipType.setFromConstraint( new RelationshipConstraint() );
+        relationshipType.setToConstraint( new RelationshipConstraint() );
+
+        return relationshipType;
     }
 
     public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )

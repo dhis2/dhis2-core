@@ -43,6 +43,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -53,6 +54,8 @@ public class UserAssignmentTests
     extends ApiTest
 {
     private MetadataActions metadataActions;
+
+    private LoginActions loginActions;
 
     private ProgramActions programActions;
 
@@ -66,37 +69,44 @@ public class UserAssignmentTests
         metadataActions = new MetadataActions();
         programActions = new ProgramActions();
         eventActions = new EventActions();
+        loginActions = new LoginActions();
 
-        new LoginActions().loginAsSuperUser();
-
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ), "" );
+        loginActions.loginAsSuperUser();
+        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
     @ParameterizedTest
     @ValueSource( strings = { "WITHOUT_REGISTRATION", "WITH_REGISTRATION" } )
-    public void userAssignmentShouldBeEnabledOnProgramStage( String programType )
+    public void shouldBeEnabledOnProgramStage( String programType )
     {
+        // arrange
         String programId = programActions.get( "?filter=programStages:ge:1&filter=programType:eq:" + programType )
             .extractString( "programs.id[0]" );
+
         String programStageId = programActions.get( programId ).extractString( "programStages.id[0]" );
 
-        // test enabling of user assignment
+        // act - enabling user assignment
         ApiResponse response = enableUserAssignmentOnProgramStage( programStageId, true );
 
+        // assert
         ResponseValidationHelper.validateObjectUpdate( response, 200 );
 
         response = programActions.programStageActions.get( programStageId );
-        response.validate().statusCode( 200 );
-        assertEquals( true, response.getBody().get( userAssignmentProperty ).getAsBoolean(), "User assignment was not enabled" );
 
-        //test disabling of user assignment
+        response.validate()
+            .statusCode( 200 )
+            .body( userAssignmentProperty, equalTo( true ) );
+
+        // act - disabling user assignment
         response = enableUserAssignmentOnProgramStage( programStageId, false );
 
+        // assert
         ResponseValidationHelper.validateObjectUpdate( response, 200 );
 
         response = programActions.programStageActions.get( programStageId );
-        response.validate().statusCode( 200 );
-        assertEquals( false, response.getBody().get( userAssignmentProperty ).getAsBoolean() );
+
+        response.validate().statusCode( 200 )
+            .body( userAssignmentProperty, equalTo( false ) );
     }
 
     @ParameterizedTest
@@ -106,7 +116,7 @@ public class UserAssignmentTests
     {
         String programStageId = "l8oDIfJJhtg";
         String programId = "BJ42SUrAvHo";
-        String loggedInUser = new LoginActions().getLoggedInUserInfo().extractString( "id" );
+        String loggedInUser = loginActions.getLoggedInUserId();
 
         enableUserAssignmentOnProgramStage( programStageId, Boolean.valueOf( userAssignmentEnabled ) );
 
@@ -132,7 +142,7 @@ public class UserAssignmentTests
         // arrange
         String programStageId = "l8oDIfJJhtg";
         String programId = "BJ42SUrAvHo";
-        String loggedInUser = new LoginActions().getLoggedInUserInfo().extractString( "id" );
+        String loggedInUser = loginActions.getLoggedInUserId();
 
         enableUserAssignmentOnProgramStage( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );

@@ -103,7 +103,7 @@ public class MetadataSyncController
             {
                 boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
 
-                if( isSyncRequired )
+                if ( isSyncRequired )
                 {
                     metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
                     validateSyncSummaryResponse(metadataSyncSummary);
@@ -114,7 +114,7 @@ public class MetadataSyncController
                 }
             }
 
-            catch (MetadataSyncImportException importerException)
+            catch ( MetadataSyncImportException importerException )
             {
                 throw new MetadataSyncException( "Runtime exception occurred while doing import: " + importerException.getMessage() );
             }
@@ -131,10 +131,12 @@ public class MetadataSyncController
         return new ResponseEntity<MetadataSyncSummary>( metadataSyncSummary, HttpStatus.OK );
     }
 
-    private void validateSyncSummaryResponse( MetadataSyncSummary metadataSyncSummary ) throws MetadataImportConflictException
+    private void validateSyncSummaryResponse( MetadataSyncSummary metadataSyncSummary )
+        throws MetadataImportConflictException
     {
         ImportReport importReport = metadataSyncSummary.getImportReport();
-        if(importReport.getStatus() != Status.OK){
+        if ( importReport.getStatus() != Status.OK )
+        {
             throw new MetadataImportConflictException( metadataSyncSummary );
         }
     }

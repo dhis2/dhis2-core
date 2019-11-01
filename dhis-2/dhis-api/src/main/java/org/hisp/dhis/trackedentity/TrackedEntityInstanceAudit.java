@@ -40,7 +40,6 @@ import java.util.Objects;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstanceAudit

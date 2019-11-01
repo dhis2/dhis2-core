@@ -36,9 +36,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -77,7 +75,7 @@ public class TrackerController
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
 
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         TrackerImportReport importReport = trackerImportService.importTracker( params );
         renderService.toJson( response.getOutputStream(), importReport );

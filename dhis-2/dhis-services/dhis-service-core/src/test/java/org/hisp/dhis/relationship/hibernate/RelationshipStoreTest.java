@@ -34,7 +34,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -185,19 +184,5 @@ public class RelationshipStoreTest
     public boolean emptyDatabaseAfterTest()
     {
         return true;
-    }
-
-    private RelationshipType createRelationshipType( char key )
-    {
-        RelationshipType relationshipType = new RelationshipType();
-
-        relationshipType.setFromToName( "from_" + key );
-        relationshipType.setToFromName( "to_" + key );
-        relationshipType.setAutoFields();
-        relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
-        relationshipType.setFromConstraint( new RelationshipConstraint() );
-        relationshipType.setToConstraint( new RelationshipConstraint() );
-
-        return relationshipType;
     }
 }

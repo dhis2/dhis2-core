@@ -129,7 +129,7 @@ public class MetadataImportExportController
             renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON );
         params.setObjects( objects );
 
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         if ( params.hasJobId() )
         {

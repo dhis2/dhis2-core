@@ -77,18 +77,13 @@ public enum ConfigurationKey
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
-    AMQP_MODE( "amqp.mode", "EMBEDDED" ),
-    AMQP_HOST( "amqp.host", "127.0.0.1" ),
-    AMQP_PORT( "amqp.port", "15672" ),
-    AMQP_USERNAME( "amqp.username", "guest", true ),
-    AMQP_PASSWORD( "amqp.password", "guest", true ),
-    AMQP_EMBEDDED_SECURITY( "amqp.embedded.security", "false" ),
-    AMQP_EMBEDDED_PERSISTENCE( "amqp.embedded.persistence", "false" ),
-    LOGGING_LEVEL( "logging.level", "INFO" ),
-    LOGGING_FORMAT( "logging.format", "TEXT" ),
-    LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
-    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
-    LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
+    ARTEMIS_MODE( "artemis.mode", "EMBEDDED" ),
+    ARTEMIS_HOST( "artemis.host", "127.0.0.1" ),
+    ARTEMIS_PORT( "artemis.port", "15672" ),
+    ARTEMIS_USERNAME( "artemis.username", "guest", true ),
+    ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
+    ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", "false" ),
+    ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", "false" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
@@ -99,7 +94,9 @@ public enum ConfigurationKey
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "off", false ),
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
-    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false );
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false ),
+    APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
+    APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false );
 
     private final String key;
 
