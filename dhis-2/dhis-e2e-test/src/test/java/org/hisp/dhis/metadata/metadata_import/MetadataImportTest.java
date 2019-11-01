@@ -26,35 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Copyright (c) 2004-2019, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-package org.hisp.dhis.metadataimport;
+package org.hisp.dhis.metadata.metadata_import;
 
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -63,13 +35,13 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
-import org.hisp.dhis.actions.system.SystemActions;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -95,7 +67,7 @@ public class MetadataImportTest
 
     private SystemActions systemActions;
 
-    @BeforeEach
+    @BeforeAll
     public void before()
     {
         schemasActions = new SchemasActions();
@@ -121,15 +93,17 @@ public class MetadataImportTest
         // assert
         response.validate()
             .statusCode( 200 )
-            .body( "stats.total", greaterThan( 0 ) )
-            .body( "stats.created", Matchers.equalTo( 0 ) )
-            .body( "stats.deleted", Matchers.equalTo( 0 ) )
-            .body( "stats.total", equalTo( response.extract( "stats." + expected ) ) );
+            .body( "stats", notNullValue() )
+            .rootPath( "stats" )
+            .body( "total", greaterThan( 0 ) )
+            .body( "created", Matchers.equalTo( 0 ) )
+            .body( "deleted", Matchers.equalTo( 0 ) )
+            .body( "total", equalTo( response.extract( "stats." + expected ) ) );
 
         List<HashMap> typeReports = response.extractList( "typeReports.stats" );
 
         typeReports.forEach( x -> {
-            assertEquals( x.get( expected ), x.get( "total" ) );
+            assertEquals( x.get( expected ), x.get( "total" ), expected + " for " + x + " not equals to total" );
         } );
     }
 
@@ -148,9 +122,10 @@ public class MetadataImportTest
         // assert
         response.validate()
             .statusCode( 200 )
+            .body( "stats", notNullValue() )
             .body( "stats.total", greaterThan( 0 ) )
-            .body( "typeReports", Matchers.notNullValue() )
-            .body( "typeReports.stats", Matchers.notNullValue() )
+            .body( "typeReports", notNullValue() )
+            .body( "typeReports.stats", notNullValue() )
             .body( "typeReports.objectReports", Matchers.notNullValue() );
 
         List<HashMap> stats = response.extractList( "typeReports.stats" );
@@ -193,10 +168,10 @@ public class MetadataImportTest
         // assert
         response.validate()
             .statusCode( 200 )
+            .body( "stats", notNullValue() )
             .body( "stats.total", greaterThan( 1 ) )
-            .body( "stats.ignored", equalTo( 1 ) );
-
-        assertEquals( response.extract( "stats.created" ), (Integer) response.extract( "stats.total" ) - 1 );
+            .body( "stats.ignored", equalTo( 1 ) )
+            .body( "stats.created", equalTo( (Integer) response.extract( "stats.total" ) - 1 ) );
 
         int total = (int) response.extract( "stats.total" );
 
@@ -205,7 +180,7 @@ public class MetadataImportTest
         assertNotNull( objectReports );
         validateCreatedEntities( objectReports );
 
-        assertThat( objectReports, Matchers.hasItems( hasProperty( "errorReports", notNullValue() ) ) );
+        assertThat( objectReports, hasItems( hasProperty( "errorReports", notNullValue() ) ) );
         assertEquals( total, objectReports.size(), "Not all imported entities had object reports" );
     }
 
@@ -214,10 +189,9 @@ public class MetadataImportTest
         throws Exception
     {
         // arrange
-        String params = "?async=true" +
-            "&importReportMode=DEBUG" +
-            "&importStrategy=CREATE_AND_UPDATE" +
-            "&atomicMode=NONE";
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder
+            .addAll( "async=true", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE" );
 
         JsonObject metadata = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
@@ -225,8 +199,9 @@ public class MetadataImportTest
         metadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
             .addProperty( "shortName", RandomStringUtils.random( 51 ) );
 
+
         // act
-        ApiResponse response = metadataActions.post( params, metadata );
+        ApiResponse response = metadataActions.post( metadata, queryParamsBuilder );
         response.validate()
             .statusCode( 200 )
             .body( not( equalTo( "null" ) ) )
@@ -281,18 +256,21 @@ public class MetadataImportTest
         
         response.validate()
             .statusCode( 200 )
-            .body( not( equalTo( "null" ) ) )
+            .body( "response", notNullValue() )
             .body( "response.name", equalTo( "metadataImport" ) )
             .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
 
         String taskId = response.extractString( "response.id" );
-
+        assertNotNull( taskId, "Task id was not returned" );
         // Validate that job was successful
 
         response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
 
-        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Start" ) ) );
-        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );
+        response.validate()
+            .statusCode( 200 )
+            .body( "message", notNullValue() )
+            .body( "message", hasItem( containsString( "Import:Start" ) ) )
+            .body( "message", hasItem( containsString( "Import:Done" ) ) );
 
         // validate task summaries were created
         response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
@@ -301,8 +279,10 @@ public class MetadataImportTest
             .body( not( equalTo( "null" ) ) )
             .body( "status", equalTo( "OK" ) )
             .body( "typeReports", notNullValue() )
-            .body( "typeReports.stats.total", everyItem( greaterThan( 0 ) ) )
-            .body( "typeReports.objectReports", hasSize( greaterThan( 0 ) ) );
+            .rootPath( "typeReports" )
+            .body( "stats", notNullValue() )
+            .body( "stats.total", everyItem( greaterThan( 0 ) ) )
+            .body( "objectReports", hasSize( greaterThan( 0 ) ) );
     }
 
     private List<ObjectReport> getObjectReports( List<TypeReport> typeReports )

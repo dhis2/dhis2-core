@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,73 +26,51 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dto;
+package org.hisp.dhis.metadata.programs;
 
-import com.google.gson.annotations.Expose;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnit
+public class ProgramsTest
+    extends ApiTest
 {
-    private String name;
+    private LoginActions loginActions;
 
-    private String shortName;
+    private ProgramActions programActions;
 
-    private String openingDate;
-
-    @Expose( serialize = false, deserialize = false )
-    private String parent;
-
-    private Integer level;
-
-    public String getName()
+    @BeforeAll
+    public void beforeAll()
     {
-        return name;
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
     }
 
-    public void setName( String name )
+    @BeforeEach
+    public void before()
     {
-        this.name = name;
+        loginActions.loginAsSuperUser();
     }
 
-    public String getShortName()
+    @ParameterizedTest( name = "withType[{0}]" )
+    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
+    public void shouldCreateProgram( String programType )
     {
-        return shortName;
-    }
+        JsonObject object = programActions.getDummy();
+        object.addProperty( "programType", programType );
 
-    public void setShortName( String shortName )
-    {
-        this.shortName = shortName;
-    }
+        ApiResponse response = programActions.post( object );
 
-    public String getOpeningDate()
-    {
-        return openingDate;
-    }
-
-    public void setOpeningDate( String openingDate )
-    {
-        this.openingDate = openingDate;
-    }
-
-    public String getParent()
-    {
-        return parent;
-    }
-
-    public void setParent( String parent )
-    {
-        this.parent = parent;
-    }
-
-    public Integer getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel( Integer level )
-    {
-        this.level = level;
+        ResponseValidationHelper.validateObjectCreation( response );
     }
 }
