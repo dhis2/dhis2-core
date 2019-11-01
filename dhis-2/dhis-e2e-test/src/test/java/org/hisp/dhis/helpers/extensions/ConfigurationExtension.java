@@ -34,7 +34,7 @@ import io.restassured.filter.session.SessionFilter;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.specification.RequestSpecification;
-import org.hisp.dhis.helpers.ConfigurationHelper;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -46,9 +46,8 @@ public class ConfigurationExtension
 {
     @Override
     public void beforeAll( ExtensionContext context )
-        throws Exception
     {
-        RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
+        RestAssured.baseURI = TestConfiguration.get().baseUrl();
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();
@@ -60,6 +59,7 @@ public class ConfigurationExtension
 
         requestSpecification.addFilter( new CookieFilter() );
         requestSpecification.addFilter( new SessionFilter() );
+        requestSpecification.addFilter( new AuthFilter() );
         requestSpecification.setContentType( ContentType.JSON );
 
         return requestSpecification.build();

@@ -37,10 +37,10 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditQuery;
 import org.hisp.dhis.schema.audit.MetadataAuditStore;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Date;
 
 /**
@@ -58,10 +58,14 @@ public class MetadataAuditStoreTest
     @Autowired
     private RenderService renderService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Test
     public void testQueryMetadataAudit()
     {
         DataElement de = createDataElement( 'A' );
+
         dataElementService.addDataElement( de );
 
         MetadataAudit audit = new MetadataAudit();

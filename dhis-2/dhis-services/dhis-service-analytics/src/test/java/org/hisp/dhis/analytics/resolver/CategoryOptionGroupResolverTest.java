@@ -29,6 +29,7 @@
 package org.hisp.dhis.analytics.resolver;
 
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionGroup;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -114,7 +115,7 @@ public class CategoryOptionGroupResolverTest
         // #{DEUID.COGUID.AOCUID}
         String exp = createIndicatorExp();
 
-        when( expressionService.getDimensionalItemIdsInExpression( exp ) )
+        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
             .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
         when( categoryOptionGroupStore.getByUid( elem2 ) ).thenReturn( categoryOptionGroup );
@@ -150,7 +151,7 @@ public class CategoryOptionGroupResolverTest
         // #{DEUID.COGUID.COGUID}
         String exp = createIndicatorExp();
 
-        when( expressionService.getDimensionalItemIdsInExpression( exp ) )
+        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
             .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
         when( categoryOptionGroupStore.getByUid( elem2 ) ).thenReturn( categoryOptionGroup1 );
@@ -187,7 +188,7 @@ public class CategoryOptionGroupResolverTest
         // #{DEUID.COCUID.COGUID}
         String exp = createIndicatorExp();
 
-        when( expressionService.getDimensionalItemIdsInExpression( exp ) )
+        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
             .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
         when( categoryOptionGroupStore.getByUid( elem3 ) ).thenReturn( categoryOptionGroup1 );
@@ -215,7 +216,7 @@ public class CategoryOptionGroupResolverTest
         // #{DEUID.COCUID.AOCUID}
         String exp = createIndicatorExp();
 
-        when( expressionService.getDimensionalItemIdsInExpression( exp ) )
+        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
                 .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
         String expression = resolver.resolve( exp );
@@ -236,7 +237,7 @@ public class CategoryOptionGroupResolverTest
         // #{DEUID}
         String exp = "#{" + elem1 + "}";
 
-        when( expressionService.getDimensionalItemIdsInExpression( exp ) )
+        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
                 .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
         String expression = resolver.resolve( exp );

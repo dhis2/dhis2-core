@@ -29,7 +29,7 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
@@ -41,7 +41,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramExprFunction
-    extends AbstractExpressionFunction
+    extends SimpleScalarFunction
 {
     @Override
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )

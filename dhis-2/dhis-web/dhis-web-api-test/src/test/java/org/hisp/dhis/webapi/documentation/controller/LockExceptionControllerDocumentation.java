@@ -40,7 +40,6 @@ import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -137,7 +136,7 @@ public class LockExceptionControllerDocumentation
             fieldWithPath( "dataSet" ).description( "Property" )
         );
 
-        mvc.perform( get( getUrl ).session( session ).accept( MediaType.APPLICATION_JSON_UTF8 ) )
+        mvc.perform( get( getUrl ).session( session ).accept( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( status().is( 200 ) )
             .andDo( documentPrettyPrint( "lockExceptions/get" )
             ).andReturn();

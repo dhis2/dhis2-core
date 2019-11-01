@@ -83,7 +83,7 @@ public class I18nController
             }
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), output );
     }
 }

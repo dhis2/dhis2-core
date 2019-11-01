@@ -28,40 +28,47 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "org.hisp.dhis.schema.audit.MetadataAuditService" )
-@Transactional
 public class DefaultMetadataAuditService implements MetadataAuditService
 {
     private final MetadataAuditStore auditStore;
 
-    public DefaultMetadataAuditService( MetadataAuditStore auditStore )
+    public DefaultMetadataAuditService(
+        MetadataAuditStore auditStore,
+        DhisConfigurationProvider dhisConfig )
     {
         checkNotNull( auditStore );
+        checkNotNull( dhisConfig );
+
         this.auditStore = auditStore;
     }
 
+    @Transactional
     @Override
     public void addMetadataAudit( MetadataAudit audit )
     {
         auditStore.save( audit );
     }
 
+    @Transactional(readOnly = true)
     @Override
     public int count( MetadataAuditQuery query )
     {
         return auditStore.count( query );
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<MetadataAudit> query( MetadataAuditQuery query )
     {

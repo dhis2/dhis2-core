@@ -1,4 +1,3 @@
-
 package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
@@ -6,7 +5,7 @@ import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -171,7 +170,8 @@ public class ApiResponse
         return raw.asString();
     }
 
-    public String getContentType() {
+    public String getContentType()
+    {
         return raw.getContentType();
     }
 
