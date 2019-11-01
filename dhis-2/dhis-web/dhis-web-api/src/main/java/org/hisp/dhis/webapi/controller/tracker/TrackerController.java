@@ -75,7 +75,7 @@ public class TrackerController
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
 
-        response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         TrackerImportReport importReport = trackerImportService.importTracker( params );
         renderService.toJson( response.getOutputStream(), importReport );

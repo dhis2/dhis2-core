@@ -46,9 +46,9 @@ import org.springframework.util.SerializationUtils;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-public class V2_34_4__Convert_job_configuration_binary_columns_into_varchar_data_type extends BaseJavaMigration
+public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_34_4__Convert_job_configuration_binary_columns_into_varchar_data_type.class );
+    private static final Log log = LogFactory.getLog( V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type.class );
 
     private static final String CHECK_JOB_STATUS_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE " +
         "table_name = 'jobconfiguration' AND column_name = 'jobstatus';";

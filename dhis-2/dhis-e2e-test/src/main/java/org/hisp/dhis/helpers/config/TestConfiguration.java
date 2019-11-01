@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.util;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,29 +26,24 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jfree.chart.JFreeChart;
+package org.hisp.dhis.helpers.config;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import org.aeonbits.owner.ConfigFactory;
 
-
-public class ChartUtils
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class TestConfiguration
 {
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
+    private static Config config;
+
+    public static Config get()
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        try
+        if ( config == null )
         {
-            org.jfree.chart.ChartUtils.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
+            config = ConfigFactory.create( Config.class );
+        }
 
-            return out.toByteArray();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        return config;
     }
 }
