@@ -33,10 +33,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.aggregate.DataValueActions;
 import org.hisp.dhis.actions.aggregate.DataValueSetActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -84,7 +84,8 @@ public class DataImportTest
     public void dataValuesCanBeImportedInBulk()
     {
         ApiResponse response = dataValueSetActions
-            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ), new QueryParamsBuilder().add( "importReportMode=FULL" ));
+            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
+                new QueryParamsBuilder().add( "importReportMode=FULL" ) );
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
@@ -104,7 +105,8 @@ public class DataImportTest
     public void dataValuesCanBeImportedAsync()
     {
         ApiResponse response = dataValueSetActions
-            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ), new QueryParamsBuilder().addAll( "reportMode=DEBUG", "async=true" ));
+            .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
+                new QueryParamsBuilder().addAll( "reportMode=DEBUG", "async=true" ) );
 
         response.validate().statusCode( 200 );
 
@@ -147,8 +149,8 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "importCount", notNullValue() )
             .body( "conflicts", nullValue() )
+            .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )
             .body( "deleted", not( greaterThan( 0 ) ) );
@@ -191,7 +193,7 @@ public class DataImportTest
         queryParamsBuilder.addAll( "importReportMode=FULL", "importStrategy=DELETE"  );
 
         ApiResponse response = dataValueSetActions.postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
-            queryParamsBuilder);
+            queryParamsBuilder );
         response.validate().statusCode( 200 );
 
         response = dataValueSetActions.postFile( new File( "src/test/resources/aggregate/dataValues_single_dataset.json" ),
