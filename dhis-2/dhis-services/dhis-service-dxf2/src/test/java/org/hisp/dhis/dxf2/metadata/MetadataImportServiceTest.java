@@ -147,6 +147,7 @@ public class MetadataImportServiceTest
         params.setObjects( metadata );
 
         ImportReport report = importService.importMetadata( params );
+        System.out.println( "report = " + report );
         assertEquals( Status.OK, report.getStatus() );
 
         metadata = renderService.fromMetadata(
@@ -165,7 +166,7 @@ public class MetadataImportServiceTest
     public void testImportWithSkipSharingIsTrue() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -177,7 +178,7 @@ public class MetadataImportServiceTest
         assertEquals( Status.OK, report.getStatus() );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );

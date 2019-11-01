@@ -38,7 +38,13 @@
       "attributeValues": [ ],
       "id": "em8Bg4LCr5k",
       "indicators": [ ],
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",

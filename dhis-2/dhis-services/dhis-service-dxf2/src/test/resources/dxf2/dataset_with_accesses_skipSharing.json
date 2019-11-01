@@ -14,7 +14,13 @@
       "shortName": "Simple Value",
       "attributeValues": [ ],
       "zeroIsSignificant": false,
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ],
       "domainType": "AGGREGATE",
       "id": "nHwIqKAudKN"
     },
@@ -57,7 +63,14 @@
       "userGroupAccesses": [ ],
       "skipTotal": false,
       "dataDimensionType": "DISAGGREGATION",
-      "id": "faV8QvLgIwB"
+      "id": "faV8QvLgIwB",
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ]
     }
   ],
   "organisationUnits": [
@@ -174,7 +187,13 @@
       "lastUpdated": "2016-03-08T07:28:58.740+0000",
       "dataDimension": true,
       "dataDimensionType": "DISAGGREGATION",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ],
       "id": "XJGLlMAMCcn"
     }
   ],
@@ -303,7 +322,13 @@
       "attributeValues": [ ],
       "id": "em8Bg4LCr5k",
       "indicators": [ ],
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",
