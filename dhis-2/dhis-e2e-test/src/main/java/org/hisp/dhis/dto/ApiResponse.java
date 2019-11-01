@@ -1,4 +1,3 @@
-
 package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
@@ -171,7 +170,8 @@ public class ApiResponse
         return raw.asString();
     }
 
-    public String getContentType() {
+    public String getContentType()
+    {
         return raw.getContentType();
     }
 
