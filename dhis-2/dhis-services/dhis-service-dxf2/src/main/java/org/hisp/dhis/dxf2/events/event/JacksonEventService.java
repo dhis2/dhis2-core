@@ -45,13 +45,11 @@ import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.node.geometry.JtsXmlModule;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
@@ -154,7 +152,7 @@ public class JacksonEventService extends AbstractEventService
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
         JSON_MAPPER.registerModules( module, new JtsModule(  ) );
-        XML_MAPPER.registerModules( module, new JtsXmlModule() );
+        XML_MAPPER.registerModules( module, new JtsModule(  ) );
     }
 
     @Override
@@ -214,7 +212,7 @@ public class JacksonEventService extends AbstractEventService
 
         try
         {
-            Metadata multiple = fromXml( input, Metadata.class );
+            Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
         catch ( JsonMappingException ex )

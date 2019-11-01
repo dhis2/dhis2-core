@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -38,7 +37,6 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
 
-import com.vividsolutions.jts.geom.Geometry;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -46,15 +44,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -159,16 +154,13 @@ public class EventImportTest
         manager.save( dataElementB );
 
         programStageA = createProgramStage( 'A', 0 );
-        programStageA.setFeatureType( FeatureType.POINT );
         manager.save( programStageA );
 
         programStageA2 = createProgramStage( 'a', 0 );
-        programStageA2.setFeatureType( FeatureType.POINT );
         programStageA2.setRepeatable( true );
         manager.save( programStageA2 );
 
         programStageB = createProgramStage( 'B', 0 );
-        programStageB.setFeatureType( FeatureType.POINT );
         manager.save( programStageB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -323,16 +315,6 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
-    @Test
-    public void testGeometry()
-        throws IOException
-    {
-        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
-            organisationUnitB.getUid(), null, dataElementB, "10" );
-        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-    }
-
     @SuppressWarnings("unchecked")
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person, DataElement dataElement, String value )
     {
@@ -348,14 +330,6 @@ public class EventImportTest
         JSONObject dataValue = new JSONObject();
         dataValue.put( "dataElement", dataElement.getUid() );
         dataValue.put( "value", value );
-
-        JSONObject geometry = new JSONObject();
-        geometry.put( "type", "Point" );
-        JSONArray coordinates = new JSONArray();
-        coordinates.add( "1.33343" );
-        coordinates.add( "-21.9954" );
-        geometry.put( "coordinates", coordinates );
-        eventJsonPayload.put( "geometry", geometry );
 
         JSONArray dataValues = new JSONArray();
         dataValues.add( dataValue );
