@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,74 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.actions;
 
-package org.hisp.dhis.dto;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
 
-import com.google.gson.annotations.Expose;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnit
+public class SystemActions
+    extends RestApiActions
 {
-    private String name;
+    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
 
-    private String shortName;
-
-    private String openingDate;
-
-    @Expose( serialize = false, deserialize = false )
-    private String parent;
-
-    private Integer level;
-
-    public String getName()
+    public SystemActions()
     {
-        return name;
+        super( "/system" );
     }
 
-    public void setName( String name )
+    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
     {
-        this.name = name;
+        logger.info( "Waiting until task " + taskType + " with id " + taskId + "is completed" );
+        ApiResponse response = null;
+        boolean completed = false;
+        while ( !completed )
+        {
+            response = get( "/tasks/" + taskType + "/" + taskId );
+            response.validate().statusCode( 200 );
+            completed = response.extractList( "completed" ).contains( true );
+        }
+
+        logger.info( "Task completed. Message: " + response.extract( "message" ) );
+        return response;
     }
 
-    public String getShortName()
+    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
     {
-        return shortName;
+        return getTaskSummariesResponse( taskType, taskId ).getImportSummaries();
     }
 
-    public void setShortName( String shortName )
+    public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
     {
-        this.shortName = shortName;
+        return get( "/taskSummaries/" + taskType + "/" + taskId );
     }
 
-    public String getOpeningDate()
-    {
-        return openingDate;
-    }
-
-    public void setOpeningDate( String openingDate )
-    {
-        this.openingDate = openingDate;
-    }
-
-    public String getParent()
-    {
-        return parent;
-    }
-
-    public void setParent( String parent )
-    {
-        this.parent = parent;
-    }
-
-    public Integer getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel( Integer level )
-    {
-        this.level = level;
-    }
 }

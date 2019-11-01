@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,73 +26,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dto;
+package org.hisp.dhis.helpers.config;
 
-import com.google.gson.annotations.Expose;
+import org.aeonbits.owner.ConfigFactory;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnit
+public class TestConfiguration
 {
-    private String name;
+    private static Config config;
 
-    private String shortName;
-
-    private String openingDate;
-
-    @Expose( serialize = false, deserialize = false )
-    private String parent;
-
-    private Integer level;
-
-    public String getName()
+    public static Config get()
     {
-        return name;
-    }
+        if ( config == null )
+        {
+            config = ConfigFactory.create( Config.class );
+        }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    public String getShortName()
-    {
-        return shortName;
-    }
-
-    public void setShortName( String shortName )
-    {
-        this.shortName = shortName;
-    }
-
-    public String getOpeningDate()
-    {
-        return openingDate;
-    }
-
-    public void setOpeningDate( String openingDate )
-    {
-        this.openingDate = openingDate;
-    }
-
-    public String getParent()
-    {
-        return parent;
-    }
-
-    public void setParent( String parent )
-    {
-        this.parent = parent;
-    }
-
-    public Integer getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel( Integer level )
-    {
-        this.level = level;
+        return config;
     }
 }

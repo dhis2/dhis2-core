@@ -39,9 +39,10 @@ import static org.hamcrest.CoreMatchers.not;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataActions extends RestApiActions
+public class MetadataActions
+    extends RestApiActions
 {
-    public MetadataActions(  )
+    public MetadataActions()
     {
         super( "/metadata" );
     }
