@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.util;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,30 +25,51 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.actions;
 
-import org.jfree.chart.JFreeChart;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.logging.Logger;
 
-
-public class ChartUtils
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class SystemActions
+    extends RestApiActions
 {
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
+    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
+
+    public SystemActions()
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        try
-        {
-            org.jfree.chart.ChartUtils.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
-
-            return out.toByteArray();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        super( "/system" );
     }
+
+    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
+    {
+        logger.info( "Waiting until task " + taskType + " with id " + taskId + "is completed" );
+        ApiResponse response = null;
+        boolean completed = false;
+        while ( !completed )
+        {
+            response = get( "/tasks/" + taskType + "/" + taskId );
+            response.validate().statusCode( 200 );
+            completed = response.extractList( "completed" ).contains( true );
+        }
+
+        logger.info( "Task completed. Message: " + response.extract( "message" ) );
+        return response;
+    }
+
+    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
+    {
+        return getTaskSummariesResponse( taskType, taskId ).getImportSummaries();
+    }
+
+    public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
+    {
+        return get( "/taskSummaries/" + taskType + "/" + taskId );
+    }
+
 }

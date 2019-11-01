@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.util;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,29 +26,51 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jfree.chart.JFreeChart;
+package org.hisp.dhis.metadata.programs;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-
-public class ChartUtils
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class ProgramsTest
+    extends ApiTest
 {
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
+    private LoginActions loginActions;
+
+    private ProgramActions programActions;
+
+    @BeforeAll
+    public void beforeAll()
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
+    }
 
-        try
-        {
-            org.jfree.chart.ChartUtils.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
+    @BeforeEach
+    public void before()
+    {
+        loginActions.loginAsSuperUser();
+    }
 
-            return out.toByteArray();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+    @ParameterizedTest( name = "withType[{0}]" )
+    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
+    public void shouldCreateProgram( String programType )
+    {
+        JsonObject object = programActions.getDummy();
+        object.addProperty( "programType", programType );
+
+        ApiResponse response = programActions.post( object );
+
+        ResponseValidationHelper.validateObjectCreation( response );
     }
 }
