@@ -115,10 +115,7 @@ public class TrackedEntityInstanceServiceTest
 
     private ProgramStage programStageA2;
 
-<<<<<<< HEAD
-=======
     private TrackedEntityAttribute uniqueIdAttribute;
->>>>>>> 5138ab565... [DHIS2-7606] Ignore old values not matching attribute pattern
 
     @Override
     protected void setUpTest() throws Exception
@@ -146,20 +143,11 @@ public class TrackedEntityInstanceServiceTest
         trackedEntityType.setTrackedEntityTypeAttributes( Lists.newArrayList( trackedEntityTypeAttribute ) );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-<<<<<<< HEAD
         maleA = createTrackedEntityInstance( 'A', organisationUnitA );
         maleB = createTrackedEntityInstance( 'B', organisationUnitB );
         femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
         femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
         dateConflictsMaleA = createTrackedEntityInstance( 'E', organisationUnitA );
-=======
-
-        maleA = createTrackedEntityInstance( organisationUnitA );
-        maleB = createTrackedEntityInstance( organisationUnitB );
-        femaleA = createTrackedEntityInstance( organisationUnitA );
-        femaleB = createTrackedEntityInstance( organisationUnitB );
-        dateConflictsMaleA = createTrackedEntityInstance( organisationUnitA );
->>>>>>> 5138ab565... [DHIS2-7606] Ignore old values not matching attribute pattern
 
         TrackedEntityAttributeValue uniqueId = createTrackedEntityAttributeValue( 'A', maleA, uniqueIdAttribute );
         uniqueId.setValue( "12345" );
