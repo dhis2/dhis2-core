@@ -100,7 +100,9 @@ public class EventAggregate
                 {
                     event.setRelationships( new HashSet<>( relationships.get( event.getEvent() ) ) );
                 }
-                if ( !dataValues.isEmpty() )
+
+                List<DataValue> dataValuesForEvent = dataValues.get( event.getEvent() );
+                if ( dataValuesForEvent != null && !dataValuesForEvent.isEmpty() )
                 {
                     event.setDataValues( new HashSet<>( dataValues.get( event.getEvent() ) ) );
                 }
