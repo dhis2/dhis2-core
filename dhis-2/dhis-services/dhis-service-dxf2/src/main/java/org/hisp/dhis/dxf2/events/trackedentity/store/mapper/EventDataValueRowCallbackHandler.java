@@ -74,8 +74,11 @@ public class EventDataValueRowCallbackHandler implements
         {
             Map m = (Map) json.get( o );
             DataValue value = new DataValue();
-            value.setCreated( DateUtils.getIso8601NoTz( (Date) m.get( "created" ) ) );
-            value.setLastUpdated( DateUtils.getIso8601NoTz( (Date) m.get( "created" ) ) );
+            System.out.println( "created: " + m.get( "created" ) );
+            System.out.println( "lastUpdated: " + m.get( "lastUpdated" ) ); // TODO
+            // value.setCreated( DateUtils.getIso8601NoTz( (Date) m.get( "created" ) ) );
+            // value.setLastUpdated( DateUtils.getIso8601NoTz( (Date) m.get( "lastUpdated" )
+            // ) );
             value.setValue( (String) m.get( "value" ) );
             value.setStoredBy( (String) m.get( "storedBy" ) );
             value.setDataElement( (String) m.get( "dataElement" ) );
