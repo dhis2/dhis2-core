@@ -60,7 +60,13 @@
         }
       ],
       "name": "Gender",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ],
       "skipTotal": false,
       "dataDimensionType": "DISAGGREGATION",
       "id": "faV8QvLgIwB",
@@ -104,7 +110,14 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------"
+      "publicAccess": "rw------",
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ]
     },
     {
       "shortName": "Male",
@@ -118,7 +131,14 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "publicAccess": "rw------"
+      "publicAccess": "rw------",
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "fvz8d3u6jFd",
+          "id": "fvz8d3u6jFd"
+        }
+      ]
     }
   ],
   "userRoles": [
