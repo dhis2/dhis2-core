@@ -60,25 +60,6 @@ public class AttributeServiceTest
     }
 
     @Test
-    public void testUpdateAttribute()
-    {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
-
-        attributeService.addAttribute( attribute );
-
-        attribute.setValueType( ValueType.INTEGER );
-        attribute.setName( "attribute2" );
-
-        attributeService.updateAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
-
-        assertEquals( ValueType.INTEGER, attribute.getValueType() );
-        assertEquals( "attribute2", attribute.getName() );
-    }
-
-    @Test
     public void testDeleteAttribute()
     {
         Attribute attribute = new Attribute();
