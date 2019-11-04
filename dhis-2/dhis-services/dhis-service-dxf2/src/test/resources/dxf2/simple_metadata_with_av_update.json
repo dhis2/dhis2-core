@@ -3,6 +3,42 @@
     {
       "publicAccess": "rw------",
       "aggregationType": "SUM",
+      "shortName": "DataElementShortC",
+      "name": "DataElementC",
+      "id": "j5PneRdU7WT",
+      "domainType": "AGGREGATE",
+      "userGroupAccesses": [],
+      "lastUpdated": "2016-02-27T03:17:13.827+0000",
+      "valueType": "TEXT",
+      "aggregationLevels": [],
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "created": "2016-02-27T03:17:13.820+0000",
+      "zeroIsSignificant": false,
+      "code": "DataElementCodeC",
+      "attributeValues": [
+        {
+          "created": "2016-02-27T03:17:13.583+0000",
+          "value": "DataElementTextAttributeC",
+          "attribute": {
+            "id": "vNmjWwe4G1g"
+          },
+          "lastUpdated": "2016-02-27T03:17:13.832+0000"
+        },
+        {
+          "value": "Gender_Male",
+          "created": "2016-02-27T03:17:13.583+0000",
+          "attribute": {
+            "id": "dxk9vlXm8rI"
+          },
+          "lastUpdated": "2016-02-27T03:17:13.830+0000"
+        }
+      ]
+    },
+    {
+      "publicAccess": "rw------",
+      "aggregationType": "SUM",
       "userGroupAccesses": [ ],
       "domainType": "AGGREGATE",
       "id": "k90AVpBahO4",
@@ -30,7 +66,7 @@
           "attribute": {
             "id": "dxk9vlXm8rI"
           },
-          "value": "Gender_Female",
+          "value": "Gender_Female_Updated",
           "created": "2016-02-27T03:17:51.892+0000"
         }
       ],
