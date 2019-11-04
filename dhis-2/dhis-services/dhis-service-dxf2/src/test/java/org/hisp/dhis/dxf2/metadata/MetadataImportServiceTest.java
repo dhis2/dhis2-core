@@ -374,4 +374,46 @@ public class MetadataImportServiceTest
         assertEquals(true, dataset.getSections().isEmpty() );
 
     }
+
+    @Test
+    public void testUpdateUserGroupWithoutCreatedUserProperty() throws IOException
+    {
+        User userA = createUser( "A", "ALL" );
+        userService.addUser( userA );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/usergroups.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+        params.setUser( userA );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        UserGroup userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
+        assertEquals( userA, userGroup.getUser() );
+
+        User userB = createUser( "B", "ALL" );
+        userService.addUser( userB );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/usergroups_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setObjects( metadata );
+        params.setUser( userB );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
+        assertEquals( "TA user group updated", userGroup.getName() );
+        assertEquals( userA, userGroup.getUser() );
+
+    }
 }
