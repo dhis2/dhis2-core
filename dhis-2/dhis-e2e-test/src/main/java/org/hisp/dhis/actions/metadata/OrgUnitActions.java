@@ -80,7 +80,7 @@ public class OrgUnitActions
      * @param orgUnit
      * @return
      */
-    public ApiResponse sendCreateRequest( final OrgUnit orgUnit )
+    public ApiResponse post( final OrgUnit orgUnit )
     {
         JsonObject object = JsonParserUtils.toJsonObject( orgUnit );
         if ( orgUnit.getParent() != null )
@@ -97,26 +97,21 @@ public class OrgUnitActions
      * Generates dummy org unit and sends POST request to create it.
      * @return
      */
-    public ApiResponse sendCreateRequest()
+    public ApiResponse postDummyOrgUnit()
     {
-        return sendCreateRequest( generateDummyOrgUnit() );
+        return post( generateDummy() );
     }
 
-    public String createOrgUnit( final OrgUnit orgUnit )
+    public String create( final OrgUnit orgUnit )
     {
-        ApiResponse response = sendCreateRequest( orgUnit );
+        ApiResponse response = post( orgUnit );
 
         response.validate().statusCode( 201 );
 
         return response.extractString( "response.uid" );
     }
 
-    public ApiResponse updateOrgUnit( final String uid, final OrgUnit orgUnit )
-    {
-        return update( uid, orgUnit );
-    }
-
-    public OrgUnit generateDummyOrgUnit()
+    public OrgUnit generateDummy()
     {
         String randomString = DataGenerator.randomString();
 
@@ -130,15 +125,32 @@ public class OrgUnitActions
 
     public String createOrgUnit()
     {
-        return createOrgUnit( generateDummyOrgUnit() );
+        return create( generateDummy() );
     }
 
-    public String createOrgUnitWithParent( String parent )
+    public String createOrgUnit( int level )
     {
-        OrgUnit orgUnit = generateDummyOrgUnit();
+        OrgUnit orgUnit = generateDummy();
+        orgUnit.setLevel( level );
 
-        orgUnit.setParent( parent );
+        return create( orgUnit );
+    }
 
-        return createOrgUnit( orgUnit );
+    public String createOrgUnitWithParent( String parentId )
+    {
+        OrgUnit orgUnit = generateDummy();
+
+        orgUnit.setParent( parentId );
+
+        return create( orgUnit );
+    }
+
+    public String createOrgUnitWithParent( String parentId, int level )
+    {
+        OrgUnit orgUnit = generateDummy();
+        orgUnit.setLevel( level );
+        orgUnit.setParent( parentId );
+
+        return create( orgUnit );
     }
 }

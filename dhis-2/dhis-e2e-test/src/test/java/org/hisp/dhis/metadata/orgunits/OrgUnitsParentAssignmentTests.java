@@ -84,15 +84,15 @@
 
 package org.hisp.dhis.metadata.orgunits;
 
+import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.OrgUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -119,38 +119,39 @@ public class OrgUnitsParentAssignmentTests
     {
         String orgUnitId = orgUnitActions.createOrgUnit();
 
+        assertNotNull( orgUnitId, "Parent org unit wasn't created" );
         String childId = orgUnitActions.createOrgUnitWithParent( orgUnitId );
 
-        assertNotNull( childId );
+        assertNotNull( childId, "Child org unit wasn't created" );
 
         ApiResponse response = orgUnitActions.get( childId );
-        assertEquals( orgUnitId, response.extractString( "parent.id" ) );
+        response.validate()
+            .statusCode( 200 )
+            .body( "parent.id", Matchers.equalTo( orgUnitId ) );
 
         response = orgUnitActions.get( orgUnitId );
-        assertEquals( childId, response.extractString( "children.id[0]" ) );
+        response.validate()
+            .statusCode( 200 )
+            .body( "children", Matchers.not( Matchers.emptyArray() ) )
+            .body( "children.id", Matchers.not( Matchers.emptyArray() ) )
+            .body( "children.id[0]", Matchers.equalTo( childId ) );
     }
 
     @Test
-    public void shouldAdjustChildLevel()
+    public void shouldAdjustTheOrgUnitTree()
     {
-        String parentOrgUnitId = createOrgUnitWithLevelAndParent( 1, null );
-        String intOrgUnit = createOrgUnitWithLevelAndParent( 1, parentOrgUnitId );
+        String parentOrgUnitId = orgUnitActions.createOrgUnit( 1 );
+        String intOrgUnit = orgUnitActions.createOrgUnitWithParent( parentOrgUnitId, 1 );
         String childOrgUnitId = orgUnitActions.createOrgUnitWithParent( intOrgUnit );
 
-        assertEquals( "2", orgUnitActions.get( intOrgUnit ).extractString( "level" ),
-            "Parent org unit id changed after creating child" );
-        assertEquals( "3", orgUnitActions.get( childOrgUnitId ).extractString( "level" ),
-            "Child level wasn´t adjusted based on parents level" );
+        orgUnitActions.get( intOrgUnit )
+            .validate()
+            .statusCode( 200 )
+            .body( "level", equalTo( 2 ) );
 
+        orgUnitActions.get( childOrgUnitId )
+            .validate()
+            .statusCode( 200 )
+            .body( "level", equalTo( 3 ) );
     }
-
-    private String createOrgUnitWithLevelAndParent( int level, String parent )
-    {
-        OrgUnit orgUnit = orgUnitActions.generateDummyOrgUnit();
-        orgUnit.setLevel( level );
-        orgUnit.setParent( parent );
-
-        return orgUnitActions.createOrgUnit( orgUnit );
-    }
-
 }

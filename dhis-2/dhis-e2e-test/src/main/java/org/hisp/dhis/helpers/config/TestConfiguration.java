@@ -1,5 +1,3 @@
-package org.hisp.dhis.result;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,19 +26,24 @@ package org.hisp.dhis.result;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.struts2.dispatcher.VelocityResult;
+package org.hisp.dhis.helpers.config;
 
-public class VelocityCacheManifestResult
-    extends VelocityResult
+import org.aeonbits.owner.ConfigFactory;
+
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class TestConfiguration
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 1038408987156030639L;
+    private static Config config;
 
-    @Override
-    protected final String getContentType( String templateLocation )
-    {       
-        return "text/cache-manifest";
+    public static Config get()
+    {
+        if ( config == null )
+        {
+            config = ConfigFactory.create( Config.class );
+        }
+
+        return config;
     }
 }

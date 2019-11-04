@@ -1,5 +1,3 @@
-package org.hisp.dhis.node.geometry;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,35 +25,51 @@ package org.hisp.dhis.node.geometry;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.actions;
 
-import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
-import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
+
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
- * @author Enrico Colasante
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class JtsXmlModule
-    extends SimpleModule
+public class SystemActions
+    extends RestApiActions
 {
-    public JtsXmlModule()
+    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
+
+    public SystemActions()
     {
-        this( new GeometryFactory() );
+        super( "/system" );
     }
 
-    public JtsXmlModule( GeometryFactory geometryFactory )
+    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
     {
-        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
-        this.addSerializer( Geometry.class, new GeometrySerializer() );
-        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
-        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
+        logger.info( "Waiting until task " + taskType + " with id " + taskId + "is completed" );
+        ApiResponse response = null;
+        boolean completed = false;
+        while ( !completed )
+        {
+            response = get( "/tasks/" + taskType + "/" + taskId );
+            response.validate().statusCode( 200 );
+            completed = response.extractList( "completed" ).contains( true );
+        }
+
+        logger.info( "Task completed. Message: " + response.extract( "message" ) );
+        return response;
     }
 
-    public void setupModule( SetupContext context )
+    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
     {
-        super.setupModule( context );
+        return getTaskSummariesResponse( taskType, taskId ).getImportSummaries();
     }
+
+    public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
+    {
+        return get( "/taskSummaries/" + taskType + "/" + taskId );
+    }
+
 }

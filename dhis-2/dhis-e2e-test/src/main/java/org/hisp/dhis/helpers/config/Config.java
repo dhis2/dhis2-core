@@ -1,5 +1,3 @@
-package org.hisp.dhis.node.geometry;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,41 +26,28 @@ package org.hisp.dhis.node.geometry;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
-import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+package org.hisp.dhis.helpers.config;
 
 /**
- * @author Enrico Colasante
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class XmlGenericGeometryParser
-    extends BaseParser
-    implements GeometryParser<Geometry>
+@org.aeonbits.owner.Config.LoadPolicy( org.aeonbits.owner.Config.LoadType.MERGE )
+@Config.Sources( { "system:properties", "system:env", "classpath:config.properties" } )
+public interface Config
+    extends org.aeonbits.owner.Config
 {
-    private final static Log log = LogFactory.getLog( XmlGenericGeometryParser.class );
+    @Key( "instance.url" )
+    String baseUrl();
 
-    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
-    {
-        super( geometryFactory );
-    }
+    @Key( "user.super.password" )
+    String superUserPassword();
 
-    public Geometry geometryFromJson( JsonNode node )
-    {
-        WKTReader wktR = new WKTReader();
-        try
-        {
-            return wktR.read( node.asText() );
-        }
-        catch ( ParseException e )
-        {
-            log.error( "Error reading WKT of geometry", e );
-            return null;
-        }
-    }
+    @Key( "user.super.username" )
+    String superUserUsername();
+
+    @Key( "user.default.username" )
+    String defaultUserUsername();
+
+    @Key( "user.default.password" )
+    String defaultUSerPassword();
 }

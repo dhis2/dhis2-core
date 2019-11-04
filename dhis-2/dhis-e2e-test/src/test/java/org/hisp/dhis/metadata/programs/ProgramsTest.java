@@ -25,51 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions.system;
 
-import org.hisp.dhis.actions.RestApiActions;
+package org.hisp.dhis.metadata.programs;
+
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
-
-import java.util.List;
-import java.util.logging.Logger;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SystemActions
-    extends RestApiActions
+public class ProgramsTest
+    extends ApiTest
 {
-    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
+    private LoginActions loginActions;
 
-    public SystemActions()
+    private ProgramActions programActions;
+
+    @BeforeAll
+    public void beforeAll()
     {
-        super( "/system" );
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
     }
 
-    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
+    @BeforeEach
+    public void before()
     {
-        logger.info( "Waiting until task " + taskType + " with id " + taskId + "is completed" );
-        ApiResponse response = null;
-        boolean completed = false;
-        while ( !completed )
-        {
-            response = get( "/tasks/" + taskType + "/" + taskId );
-            response.validate().statusCode( 200 );
-            completed = response.extractList( "completed" ).contains( true );
-        }
-
-        logger.info( "Task completed. Message: " + response.extract( "message" ) );
-        return response;
+        loginActions.loginAsSuperUser();
     }
 
-    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
+    @ParameterizedTest( name = "withType[{0}]" )
+    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
+    public void shouldCreateProgram( String programType )
     {
-        return getTaskSummariesResponse( taskType, taskId ).getImportSummaries();
-    }
+        JsonObject object = programActions.getDummy();
+        object.addProperty( "programType", programType );
 
-    public ApiResponse getTaskSummariesResponse(String taskType, String taskId) {
-        return get( "/taskSummaries/" + taskType + "/" + taskId );
-    }
+        ApiResponse response = programActions.post( object );
 
+        ResponseValidationHelper.validateObjectCreation( response );
+    }
 }
