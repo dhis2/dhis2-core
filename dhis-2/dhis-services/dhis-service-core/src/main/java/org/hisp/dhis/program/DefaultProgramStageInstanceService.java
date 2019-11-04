@@ -184,6 +184,13 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional( readOnly = true )
+    public List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids )
+    {
+        return programStageInstanceStore.getUidsIncludingDeleted( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public long getProgramStageInstanceCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
