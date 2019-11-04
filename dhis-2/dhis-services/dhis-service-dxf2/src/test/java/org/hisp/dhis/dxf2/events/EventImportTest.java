@@ -70,8 +70,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class EventImportTest
-    extends DhisSpringTest
+public class EventImportTest extends DhisSpringTest
 {
     @Autowired
     private EventService eventService;

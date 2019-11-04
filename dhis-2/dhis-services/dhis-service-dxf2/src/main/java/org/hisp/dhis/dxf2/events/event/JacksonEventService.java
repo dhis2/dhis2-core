@@ -41,9 +41,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.node.geometry.JtsXmlModule;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
@@ -121,7 +119,7 @@ public class JacksonEventService extends AbstractEventService
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
         JSON_MAPPER.registerModules( module, new JtsModule(  ) );
-        XML_MAPPER.registerModules( module, new JtsXmlModule() );
+        XML_MAPPER.registerModules( module, new JtsModule(  ) );
     }
 
     @Override
@@ -178,8 +176,7 @@ public class JacksonEventService extends AbstractEventService
     {
         List<Event> events = new ArrayList<>();
 
-        try
-        {
+        try {
             Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
