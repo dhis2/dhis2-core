@@ -101,6 +101,14 @@ public interface ProgramStageInstanceService
     boolean programStageInstanceExistsIncludingDeleted( String uid );
 
     /**
+     * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of existing PSIs (including deleted)
+     */
+    List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids );
+
+    /**
      * Returns a {@link ProgramStageInstance}.
      *
      * @param id the id of the ProgramStageInstance to return.

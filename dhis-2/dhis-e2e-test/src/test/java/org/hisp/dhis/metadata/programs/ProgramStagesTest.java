@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,76 +26,80 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.metadata.users;
+package org.hisp.dhis.metadata.programs;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.metadata.OptionActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UsersRemovalTests
+public class ProgramStagesTest
     extends ApiTest
 {
-    private UserActions userActions;
-
-    private OptionActions optionActions;
-
     private LoginActions loginActions;
 
-    private String userId;
+    private ProgramActions programActions;
 
-    private String userName;
+    private RestApiActions programStageActions;
 
-    private String password = "!XPTOqwerty1";
+    private String programId;
 
-    @BeforeEach
-    public void beforeEach()
+    private String programStageId;
+
+    @BeforeAll
+    public void preconditions()
     {
-        userActions = new UserActions();
-        optionActions = new OptionActions();
         loginActions = new LoginActions();
-
-        userName = DataGenerator.randomString();
+        programActions = new ProgramActions();
+        programStageActions = programActions.programStageActions;
 
         loginActions.loginAsSuperUser();
-
-        userId = userActions.addUser( "johnny", "bravo", userName, password );
+        programId = programActions.createTrackerProgram().extractUid();
+        programStageId = programActions.createProgramStage( "Tracker program stage 1" );
     }
 
     @Test
-    public void shouldRemoveWhenUserWasLoggedIn()
-    {
-        loginActions.loginAsUser( userName, password );
-        loginActions.loginAsSuperUser();
-
-        ApiResponse response = userActions.delete( userId );
-
-        ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
-    }
-
-    @Test
-    @Disabled
-    //jira issue 5573
-    public void shouldRemoveWhenUserWasGrantedAccessToMetadata()
+    public void shouldAddProgramStageToProgram()
     {
         // arrange
-        String id = optionActions.createOptionSet();
 
-        optionActions.grantUserAccessToOptionSet( id, userId );
+        JsonObject programBody = programActions.get( programId ).getBody();
+        JsonArray programStages = new JsonArray();
+
+        JsonObject programStage = new JsonObject();
+        programStage.addProperty( "id", programStageId );
+
+        programStages.add( programStage );
+
+        programBody.add( "programStages", programStages );
 
         // act
-        ApiResponse response = userActions.delete( userId );
+        ApiResponse response = programActions.update( programId, programBody );
 
         // assert
-        ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
+        ResponseValidationHelper.validateObjectUpdate( response, 200 );
+
+        response = programActions.get( programId );
+        response.validate().statusCode( 200 )
+            .body( "programStages", not( emptyArray() ) )
+            .body( "programStages.id", not( emptyArray() ) )
+            .body( "programStages.id", hasItem( programStageId ) );
+
+        response = programStageActions.get( programStageId );
+        response.validate().statusCode( 200 )
+            .body( "program", notNullValue() )
+            .body( "program.id", equalTo( programId ) );
+
     }
 }

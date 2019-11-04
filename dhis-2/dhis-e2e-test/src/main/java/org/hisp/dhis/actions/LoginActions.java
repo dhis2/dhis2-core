@@ -30,9 +30,10 @@ package org.hisp.dhis.actions;
 
 import io.restassured.RestAssured;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ConfigurationHelper;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 
 import static io.restassured.RestAssured.oauth2;
+import static io.restassured.RestAssured.preemptive;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
@@ -69,7 +70,7 @@ public class LoginActions
      */
     public void loginAsSuperUser()
     {
-        loginAsUser( ConfigurationHelper.SUPER_USER_USERNAME, ConfigurationHelper.SUPER_USER_PASS );
+        loginAsUser( TestConfiguration.get().superUserUsername(), TestConfiguration.get().superUserPassword() );
     }
 
     /**
@@ -78,7 +79,7 @@ public class LoginActions
      */
     public void loginAsDefaultUser()
     {
-        loginAsUser( "admin", "district" );
+        loginAsUser( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
     }
 
     public ApiResponse getLoggedInUserInfo()
@@ -88,6 +89,11 @@ public class LoginActions
         return response;
     }
 
+    public String getLoggedInUserId()
+    {
+        return getLoggedInUserInfo().extractString( "id" );
+    }
+  
     /**
      * Adds authentication header that is used in all consecutive requests
      *
