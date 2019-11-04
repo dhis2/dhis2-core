@@ -5,21 +5,28 @@
  - [jUnit 5](https://junit.org/junit5/);
  - [docker-compose](https://docs.docker.com/compose/) - defines and runs dhis2 multi-container environment;
 ## Test execution
+
+All properties should be defined in config.properties file (src/main/resources).
+Properties can be overwritten by system or environment variables. 
+
 ### Required properties
 
-  - baseUrl - points to API under test url. 
+  - `instance.url` - points to API under test url. 
   
     Example: [https://play.dhis2.org/dev/api]
-    
-  - superUserUsername - super user username to use when running tests. Default: admin
-  - superUserPass - super user password to use when running tests. Default: district
+## Other properties    
+  - `user.super.username` - super user username to use when running tests. Default: user created during test run
+  - `user.super.password` - super user password to use when running tests. Default: user created during test run
+  - `user.default.username` - user to use for preconditions, like setting up metadata used in tests. Default: admin
+  - `user.default.password` - user to use for preconditions, like setting up metadata used in tests. Default: district
 
 ### Local dev environment
-In order to test local version of dhis2 - use docker compose to start dhis2-db and dhis2-web containers. To do that: 
+If you already have a running instance, just point instance.url property to it. 
+If you don't, you can use docker. To do that: 
 
-1. cd dhis-e2e-test
-2. docker-compose up -d
-3. run tests with property baseUrl set to "http://localhost:8070/api"
+1. `cd dhis-e2e-test`
+2. `IMAGE_NAME=dhis2/core-dev:master docker-compose up -d`
+3. run tests with property `instance.url` set to "http://localhost:8070/api"
   
 ### Test clean up 
 After every test class, created data will be cleaned up starting from latest created object to avoid as much references as possible. 

@@ -1,5 +1,3 @@
-package org.hisp.dhis.result;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,19 +26,51 @@ package org.hisp.dhis.result;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.struts2.dispatcher.VelocityResult;
+package org.hisp.dhis.metadata.programs;
 
-public class VelocityCacheManifestResult
-    extends VelocityResult
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class ProgramsTest
+    extends ApiTest
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 1038408987156030639L;
+    private LoginActions loginActions;
 
-    @Override
-    protected final String getContentType( String templateLocation )
-    {       
-        return "text/cache-manifest";
+    private ProgramActions programActions;
+
+    @BeforeAll
+    public void beforeAll()
+    {
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
+    }
+
+    @BeforeEach
+    public void before()
+    {
+        loginActions.loginAsSuperUser();
+    }
+
+    @ParameterizedTest( name = "withType[{0}]" )
+    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
+    public void shouldCreateProgram( String programType )
+    {
+        JsonObject object = programActions.getDummy();
+        object.addProperty( "programType", programType );
+
+        ApiResponse response = programActions.post( object );
+
+        ResponseValidationHelper.validateObjectCreation( response );
     }
 }
