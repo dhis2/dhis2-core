@@ -73,13 +73,12 @@ public class TestCleanUp
     private Logger logger = Logger.getLogger( TestCleanUp.class.getName() );
 
     private int deleteCount = 0;
+
     /**
      * Deletes entities created during test run. Entities deleted one by one starting from last created one.
      */
     public void deleteCreatedEntities()
     {
-        new LoginActions().loginAsSuperUser();
-
         Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
         List<String> reverseOrderedKeys = new ArrayList<>( createdEntities.keySet() );
         Collections.reverse( reverseOrderedKeys );

@@ -31,10 +31,10 @@ package org.hisp.dhis.artemis.audit.listener;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
-import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -44,23 +44,31 @@ public abstract class AbstractHibernateListener
 {
     final AuditManager auditManager;
     final AuditLegacyObjectFactory legacyObjectFactory;
-    private final UsernameSupplier userNameSupplier;
+    private final UsernameSupplier usernameSupplier;
 
     public AbstractHibernateListener(
         AuditManager auditManager,
         AuditLegacyObjectFactory legacyObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier usernameSupplier )
     {
         this.auditManager = auditManager;
         this.legacyObjectFactory = legacyObjectFactory;
-        this.userNameSupplier = userNameSupplier;
+        this.usernameSupplier = usernameSupplier;
     }
 
-    Optional<AuditScope> getAuditingScope( Object object )
+    Optional<Auditable> getAuditable( Object object, String type )
     {
         if ( AnnotationUtils.isAnnotationPresent( object.getClass(), Auditable.class ) )
         {
-            return Optional.of( AnnotationUtils.getAnnotation( object.getClass(), Auditable.class ).scope() );
+            Auditable auditable = AnnotationUtils.getAnnotation( object.getClass(), Auditable.class );
+
+            boolean shouldAudit = Arrays.stream( auditable.eventType() )
+                .anyMatch( s -> s.contains( "all" ) || s.contains( type ) );
+
+            if ( shouldAudit )
+            {
+                return Optional.of( auditable );
+            }
         }
 
         return Optional.empty();
@@ -68,6 +76,6 @@ public abstract class AbstractHibernateListener
 
     public String getCreatedBy()
     {
-        return userNameSupplier.get();
+        return usernameSupplier.get();
     }
 }

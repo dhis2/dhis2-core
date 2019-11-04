@@ -28,20 +28,20 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.collections4.Predicate;
+
 import java.util.Calendar;
 import java.util.Date;
-
-import org.apache.commons.collections.Predicate;
 
 public class PastPeriodPredicate
     implements Predicate
 {
     private Date date;
-    
+
     protected PastPeriodPredicate()
     {
     }
-    
+
     public PastPeriodPredicate( Date d )
     {
         Calendar cal = PeriodType.createCalendarInstance( d );

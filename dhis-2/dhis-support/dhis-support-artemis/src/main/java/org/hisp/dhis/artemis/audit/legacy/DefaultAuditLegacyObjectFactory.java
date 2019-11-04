@@ -54,21 +54,48 @@ public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory
     }
 
     @Override
-    public Object create( AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user )
+    public Object create( AuditScope auditScope, AuditType auditType, Object object, String user )
     {
-        if ( auditScope.equals( AuditScope.METADATA ) )
+        switch ( auditScope )
         {
-            return new MetadataAudit()
-                .setType( mapAuditType( auditType ) )
-                .setCreatedAt( new Date() )
-                .setCreatedBy( user ) // TODO was bundle.getUsername()
-                .setKlass( identifiableObject.getClass().getName() )
-                .setUid( identifiableObject.getUid() )
-                .setCode( identifiableObject.getCode() )
-                .setValue( renderService.toJsonAsString( identifiableObject ) );
+            case METADATA:
+                return handleMetadataAudit( auditType, object, user );
+            case TRACKER:
+                return handleTracker( auditType, object, user );
+            case AGGREGATE:
+                return handleAggregate( auditType, object, user );
         }
 
         return null;
+    }
+
+    private Object handleTracker( AuditType auditType, Object object, String user )
+    {
+        return null;
+    }
+
+    private Object handleAggregate( AuditType auditType, Object object, String user )
+    {
+        return null;
+    }
+
+    private Object handleMetadataAudit( AuditType auditType, Object object, String user )
+    {
+        if ( !(object instanceof IdentifiableObject) )
+        {
+            return null;
+        }
+
+        IdentifiableObject identifiableObject = (IdentifiableObject) object;
+
+        return new MetadataAudit()
+            .setType( mapAuditType( auditType ) )
+            .setCreatedAt( new Date() )
+            .setCreatedBy( user ) // TODO was bundle.getUsername()
+            .setKlass( identifiableObject.getClass().getName() )
+            .setUid( identifiableObject.getUid() )
+            .setCode( identifiableObject.getCode() )
+            .setValue( renderService.toJsonAsString( identifiableObject ) );
     }
 
     private org.hisp.dhis.common.AuditType mapAuditType( AuditType auditType )

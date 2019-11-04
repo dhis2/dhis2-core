@@ -57,8 +57,7 @@ import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
-import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_GET_SQL;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_FUNCTIONS;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
@@ -364,6 +363,7 @@ public class ProgramSqlGeneratorVariablesTest
             .withRelationshipTypeService( relationshipTypeService )
             .withStatementBuilder( statementBuilder )
             .withI18n( new I18n( null, null ) )
+            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
             .buildForProgramIndicatorExpressions();
 
         subject.setExpressionLiteral( new SqlLiteral() );

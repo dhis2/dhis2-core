@@ -44,7 +44,7 @@ public class VelocityXMLResult
 
     @Override
     protected final String getContentType( String templateLocation )
-    {       
+    {
         return "text/xml";
     }
 }

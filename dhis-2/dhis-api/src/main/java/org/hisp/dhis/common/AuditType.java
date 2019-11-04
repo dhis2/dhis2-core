@@ -29,9 +29,10 @@ package org.hisp.dhis.common;
  */
 
 /**
+ * This class is deprecated in favor of new async auditing solution, do not use.
+ *
  * @author Halvdan Hoem Grelland
  */
-@Deprecated
 public enum AuditType
 {
     CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" ), READ( "read" ), SEARCH( "search" );

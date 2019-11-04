@@ -29,7 +29,6 @@
 package org.hisp.dhis.random;
 
 import org.apache.commons.lang3.RandomUtils;
-import org.hisp.dhis.common.CodeGenerator;
 
 import io.github.benas.randombeans.api.Randomizer;
 
