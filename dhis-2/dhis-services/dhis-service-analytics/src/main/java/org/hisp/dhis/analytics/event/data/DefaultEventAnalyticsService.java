@@ -33,7 +33,18 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
-import static org.hisp.dhis.analytics.DataQueryParams.*;
+import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -78,7 +89,19 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -100,7 +123,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 public class DefaultEventAnalyticsService
-    implements EventAnalyticsService
+        implements EventAnalyticsService
 {
     private static final Log log = LogFactory.getLog( DefaultEventAnalyticsService.class );
 
@@ -172,7 +195,7 @@ public class DefaultEventAnalyticsService
         boolean enabled = expiration > 0 && !SystemUtils.isTestRun();
 
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
-            .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
+                .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
 
         log.info( String.format( "Event analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
     }
@@ -181,8 +204,8 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
     {
         return AnalyticsUtils.isTableLayout( columns, rows ) ?
-            getAggregatedEventDataTableLayout( params, columns, rows ) :
-            getAggregatedEventData( params );
+                getAggregatedEventDataTableLayout( params, columns, rows ) :
+                getAggregatedEventData( params );
     }
 
     /**
@@ -253,7 +276,7 @@ public class DefaultEventAnalyticsService
         for ( String row : rowDimensions )
         {
             MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
-                .get( ITEMS.getKey() )).get( row );
+                    .get( ITEMS.getKey() )).get( row );
 
             String name = StringUtils.defaultIfEmpty( metadataItem.getName(), row );
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
@@ -270,15 +293,15 @@ public class DefaultEventAnalyticsService
                     builder.append( key ).append( SPACE );
                 }
                 builder.append( value.getDisplayProperty( params.getDisplayProperty() ) )
-                    .append( DASH_PRETTY_SEPARATOR );
+                        .append( DASH_PRETTY_SEPARATOR );
             } );
 
             String display = builder.length() > 0 ?
-                builder.substring( 0, builder.lastIndexOf( DASH_PRETTY_SEPARATOR ) ) :
-                TOTAL_COLUMN_PRETTY_NAME;
+                    builder.substring( 0, builder.lastIndexOf( DASH_PRETTY_SEPARATOR ) ) :
+                    TOTAL_COLUMN_PRETTY_NAME;
 
             outputGrid.addHeader( new GridHeader( display, display,
-                ValueType.NUMBER, Double.class.getName(), false, false ) );
+                    ValueType.NUMBER, Double.class.getName(), false, false ) );
         } );
 
         for ( Map<String, EventAnalyticsDimensionalItem> rowCombination : rowPermutations )
@@ -310,7 +333,7 @@ public class DefaultEventAnalyticsService
             }
 
             rowDimensions.forEach( dimension -> outputGrid
-                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+                    .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
@@ -326,7 +349,7 @@ public class DefaultEventAnalyticsService
      * @param dimension the requested dimension
      */
     private void addEventDataObjects( Grid grid, EventQueryParams params,
-        Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension )
+                                      Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension )
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
@@ -337,7 +360,7 @@ public class DefaultEventAnalyticsService
             if ( eventDimensionalItemObject == null )
             {
                 eventDimensionalItemObject = trackedEntityAttributeService
-                    .getTrackedEntityAttribute( dimension );
+                        .getTrackedEntityAttribute( dimension );
             }
 
             addEventReportDimensionalItems( eventDimensionalItemObject, objects, grid, dimension );
@@ -360,7 +383,7 @@ public class DefaultEventAnalyticsService
      */
     @SuppressWarnings( "unchecked" )
     private void addEventReportDimensionalItems( ValueTypedDimensionalItemObject eventDimensionalItemObject,
-        List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
+                                                 List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
     {
         if ( eventDimensionalItemObject == null )
         {
@@ -385,8 +408,8 @@ public class DefaultEventAnalyticsService
         else if ( eventDimensionalItemObject.hasLegendSet() )
         {
             List<String> legendOptions = (List<String>) ((Map<String, Object>) grid.getMetaData()
-                .get( DIMENSIONS.getKey() ))
-                .get( dimension );
+                    .get( DIMENSIONS.getKey() ))
+                    .get( dimension );
 
             if ( legendOptions.isEmpty() )
             {
@@ -397,7 +420,7 @@ public class DefaultEventAnalyticsService
                     for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue().intValue(); i++ )
                     {
                         objects.add( new EventAnalyticsDimensionalItem( new Option(
-                            String.valueOf( i ), String.valueOf( i ) ), parentUid ) );
+                                String.valueOf( i ), String.valueOf( i ) ), parentUid ) );
                     }
                 }
             }
@@ -406,11 +429,11 @@ public class DefaultEventAnalyticsService
                 for ( String legend : legendOptions )
                 {
                     MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
-                        .get( ITEMS.getKey() ))
-                        .get( legend );
+                            .get( ITEMS.getKey() ))
+                            .get( legend );
 
                     objects.add( new EventAnalyticsDimensionalItem(
-                        new Option( metadataItem.getName(), legend ), parentUid ) );
+                            new Option( metadataItem.getName(), legend ), parentUid ) );
                 }
             }
         }
@@ -431,7 +454,7 @@ public class DefaultEventAnalyticsService
 
         return getAggregatedEventDataGrid( params );
     }
-    
+
     private Grid getAggregatedEventDataGrid( EventQueryParams params )
     {
         params.removeProgramIndicatorItems(); // Not supported as items for aggregate
@@ -472,10 +495,10 @@ public class DefaultEventAnalyticsService
             if ( params.isIncludeNumDen() )
             {
                 grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+                        .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
+                        .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
+                        .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
+                        .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
             }
 
             // -----------------------------------------------------------------
@@ -549,8 +572,8 @@ public class DefaultEventAnalyticsService
         queryValidator.validate( params );
 
         params = new EventQueryParams.Builder( params )
-            .withStartEndDatesForPeriods()
-            .build();
+                .withStartEndDatesForPeriods()
+                .build();
 
         Grid grid = new ListGrid();
 
@@ -559,12 +582,12 @@ public class DefaultEventAnalyticsService
         // ---------------------------------------------------------------------
 
         grid.addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
+                .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
@@ -657,9 +680,9 @@ public class DefaultEventAnalyticsService
         }
 
         params = new EventQueryParams.Builder( params )
-            .withGeometryOnly( true )
-            .withStartEndDatesForPeriods()
-            .build();
+                .withGeometryOnly( true )
+                .withStartEndDatesForPeriods()
+                .build();
 
         securityManager.decideAccessEventQuery( params );
 
@@ -672,9 +695,9 @@ public class DefaultEventAnalyticsService
         // ---------------------------------------------------------------------
 
         grid.addHeader( new GridHeader( ITEM_COUNT, NAME_COUNT, ValueType.NUMBER, Long.class.getName(), false, false ) )
-            .addHeader( new GridHeader( ITEM_CENTER, NAME_CENTER, ValueType.TEXT, String.class.getName(), false, false ) )
-            .addHeader( new GridHeader( ITEM_EXTENT, NAME_EXTENT, ValueType.TEXT, String.class.getName(), false, false ) )
-            .addHeader( new GridHeader( ITEM_POINTS, NAME_POINTS, ValueType.TEXT, String.class.getName(), false, false ) );
+                .addHeader( new GridHeader( ITEM_CENTER, NAME_CENTER, ValueType.TEXT, String.class.getName(), false, false ) )
+                .addHeader( new GridHeader( ITEM_EXTENT, NAME_EXTENT, ValueType.TEXT, String.class.getName(), false, false ) )
+                .addHeader( new GridHeader( ITEM_POINTS, NAME_POINTS, ValueType.TEXT, String.class.getName(), false, false ) );
 
         // ---------------------------------------------------------------------
         // Data
@@ -696,9 +719,9 @@ public class DefaultEventAnalyticsService
         }
 
         params = new EventQueryParams.Builder( params )
-            .withGeometryOnly( true )
-            .withStartEndDatesForPeriods()
-            .build();
+                .withGeometryOnly( true )
+                .withStartEndDatesForPeriods()
+                .build();
 
         securityManager.decideAccessEventQuery( params );
 
@@ -795,8 +818,8 @@ public class DefaultEventAnalyticsService
         Calendar calendar = PeriodType.getCalendar();
 
         List<String> periodUids = calendar.isIso8601() ?
-            getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
-            getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
+                getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+                getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
         Map<String, List<String>> dimensionItems = new HashMap<>();
 

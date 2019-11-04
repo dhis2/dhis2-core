@@ -153,7 +153,7 @@ public class DefaultAnalyticsSecurityManager
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
-    private void decideAccessDataReadObjects( DataQueryParams params, User user )
+    void decideAccessDataReadObjects( DataQueryParams params, User user )
         throws IllegalQueryException
     {
         Set<IdentifiableObject> objects = new HashSet<>();
