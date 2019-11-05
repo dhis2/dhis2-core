@@ -87,6 +87,9 @@ public class DefaultProgramRuleEntityMapperService
             .put( ProgramRuleActionType.HIDESECTION, pra -> RuleActionHideSection.create( pra.getProgramStageSection().getUid() ) )
             .put( ProgramRuleActionType.SHOWERROR, pra -> RuleActionShowError.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
             .put( ProgramRuleActionType.SHOWWARNING, pra -> RuleActionShowWarning.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+            .put( ProgramRuleActionType.CREATEMANAGEMENT,
+                pra -> RuleActionCreateManagement
+                    .create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
             .put( ProgramRuleActionType.SETMANDATORYFIELD, pra -> RuleActionSetMandatoryField.create( getAssignedParameter( pra ) ) )
         .put( ProgramRuleActionType.SENDMESSAGE, pra -> RuleActionSendMessage.create( pra.getTemplateUid(), pra.getData() ) )
         .put( ProgramRuleActionType.SCHEDULEMESSAGE, pra -> RuleActionScheduleMessage.create( pra.getTemplateUid(), pra.getData() ) )
