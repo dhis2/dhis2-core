@@ -33,7 +33,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Component;
 
-@Component
 public class UserGroupObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override
