@@ -349,7 +349,7 @@ public class DefaultEventAnalyticsService
      * @param dimension the requested dimension
      */
     private void addEventDataObjects( Grid grid, EventQueryParams params,
-                                      Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension )
+        Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension )
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
@@ -383,7 +383,7 @@ public class DefaultEventAnalyticsService
      */
     @SuppressWarnings( "unchecked" )
     private void addEventReportDimensionalItems( ValueTypedDimensionalItemObject eventDimensionalItemObject,
-                                                 List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
+        List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
     {
         if ( eventDimensionalItemObject == null )
         {
