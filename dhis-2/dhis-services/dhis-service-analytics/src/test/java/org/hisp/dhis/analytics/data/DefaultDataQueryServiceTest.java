@@ -122,9 +122,9 @@ public class DefaultDataQueryServiceTest
     private RequestBuilder rb;
 
     private OrganisationUnit rootOu;
-    
+
     private BeanRandomizer beanRandomizer;
-    
+
     @Before
     public void setUp()
     {
@@ -139,7 +139,7 @@ public class DefaultDataQueryServiceTest
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );
         rootOu.setCode( "OU_525" );
-        
+
         beanRandomizer = new BeanRandomizer();
     }
 
@@ -337,12 +337,12 @@ public class DefaultDataQueryServiceTest
     {
         OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
         OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
-        
+
         OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
         OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
-        
+
         OrganisationUnitGroup groupOu = beanRandomizer.randomObject(OrganisationUnitGroup.class, "geometry");
-        
+
 
         mockDimensionService();
 
@@ -370,17 +370,15 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
 
-        List<DimensionalKeywords.Keyword> x = filter.getDimensionalKeywords().getGroupBy();
-
         assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 3 ) );
         assertThat( filter.getDimensionalKeywords().getGroupBy(),
-                IsIterableContainingInAnyOrder.containsInAnyOrder(
-                        allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                                hasProperty( "code", is( nullValue() ) ) ),
-                        allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
-                                hasProperty( "code", is( groupOu.getCode() ) ) ),
-                        allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                                hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
+                allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
+                    hasProperty( "code", is( groupOu.getCode() ) ) ),
+                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
+                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
 
     }
 
@@ -571,8 +569,6 @@ public class DefaultDataQueryServiceTest
         // Check collection is sorted
         assertTrue( Ordering.natural().isOrdered( result ) );
     }
-
-
 
     @SuppressWarnings("unchecked")
     private void initOrgUnitGroup( String ouGroupUID )
