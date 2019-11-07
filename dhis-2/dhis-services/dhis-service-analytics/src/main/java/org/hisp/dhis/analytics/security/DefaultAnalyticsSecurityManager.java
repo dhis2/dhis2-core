@@ -33,6 +33,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -47,9 +49,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -79,6 +84,28 @@ public class DefaultAnalyticsSecurityManager
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation
     // -------------------------------------------------------------------------
+
+    /**
+     * Will remove/exclude, from DataQueryParams, any category option that the
+     * current user is not allowed to read.
+     *
+     * @param programCategories the categories related to this program.
+     */
+    void excludeNonAuthorizedCategoryOptions( final List<Category> programCategories )
+    {
+        if ( isNotEmpty( programCategories ) )
+        {
+            for ( Category category : programCategories )
+            {
+                category.getCategoryOptions().removeIf( categoryOption -> !hasDataReadPermissionFor( categoryOption ) );
+            }
+        }
+    }
+
+    private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
+    {
+        return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
+    }
 
     @Override
     public void decideAccess( DataQueryParams params )
@@ -126,17 +153,23 @@ public class DefaultAnalyticsSecurityManager
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
-    private void decideAccessDataReadObjects( DataQueryParams params, User user )
+    void decideAccessDataReadObjects( DataQueryParams params, User user )
         throws IllegalQueryException
     {
         Set<IdentifiableObject> objects = new HashSet<>();
         objects.addAll( params.getAllDataSets() );
         objects.addAll( params.getProgramsInAttributesAndDataElements() );
         objects.addAll( params.getCategoryOptions() );
-        
+
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
+
+            if ( params.getProgram().hasCategoryCombo() )
+            {
+                final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
+                excludeNonAuthorizedCategoryOptions( programCategories );
+            }
         }
         
         if ( params.hasProgramStage() )
