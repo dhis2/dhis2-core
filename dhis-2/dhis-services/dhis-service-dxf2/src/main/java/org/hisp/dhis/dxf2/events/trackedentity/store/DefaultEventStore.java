@@ -113,7 +113,7 @@ public class DefaultEventStore
     public Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, Long userId )
     {
         EventRowCallbackHandler handler = new EventRowCallbackHandler();
-        jdbcTemplate.query( GET_EVENTS_SQL, createIdsParam( enrollmentsId ), handler );
+        jdbcTemplate.query( GET_EVENTS_SQL, createIdsParam( enrollmentsId, userId ), handler );
         return handler.getItems();
     }
 
