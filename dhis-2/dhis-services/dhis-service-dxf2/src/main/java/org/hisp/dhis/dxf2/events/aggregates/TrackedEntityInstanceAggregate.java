@@ -44,6 +44,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TrackedEntityInstanceStore;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Multimap;
@@ -60,11 +61,14 @@ public class TrackedEntityInstanceAggregate
 
     private final EnrollmentAggregate enrollmentAggregate;
 
+    private final CurrentUserService currentUserService;
+
     public TrackedEntityInstanceAggregate( TrackedEntityInstanceStore trackedEntityInstanceStore,
-        EnrollmentAggregate enrollmentAggregate )
+        EnrollmentAggregate enrollmentAggregate, CurrentUserService currentUserService )
     {
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.enrollmentAggregate = enrollmentAggregate;
+        this.currentUserService = currentUserService;
     }
 
     /**
@@ -77,18 +81,21 @@ public class TrackedEntityInstanceAggregate
      */
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params )
     {
+        Long userId = currentUserService.getCurrentUser().getId();
+
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
             params.isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
 
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             params.isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, params.isIncludeEvents(), params.isIncludeRelationships() ) );
+            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, userId, params.isIncludeEvents(),
+                params.isIncludeRelationships() ) );
 
         final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
             params.isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ) );
 
         CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(
-            () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids ) );
+            () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, userId ) );
 
         CompletableFuture<Multimap<String, Attribute>> attributesAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getAttributes( ids ) );

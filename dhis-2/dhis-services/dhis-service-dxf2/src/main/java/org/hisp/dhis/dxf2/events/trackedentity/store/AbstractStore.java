@@ -53,26 +53,35 @@ public abstract class AbstractStore
         + "where ri.%s in (:ids)";
 
     final static String GET_RELATIONSHIP_SQL = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
-            + "       coalesce((select tei.uid from trackedentityinstance tei "
-            + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-            + "                 where ri.relationshipitemid = r.to_relationshipitemid) , (select pi.uid "
-            + "                 from programinstance pi "
-            + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-            + "                 where ri.relationshipitemid = r.to_relationshipitemid), (select psi.uid "
-            + "                 from programstageinstance psi "
-            + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
-            + "                 where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
-            + "       coalesce((select tei.uid from trackedentityinstance tei "
-            + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
-            + "                 where ri.relationshipitemid = r.from_relationshipitemid) , (select pi.uid "
-            + "                 from programinstance pi "
-            + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
-            + "                 where ri.relationshipitemid = r.from_relationshipitemid), (select psi.uid "
-            + "                 from programstageinstance psi "
-            + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
-            + "                 where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
-            + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
-            + "where r.relationshipid in (:ids)";
+        + "       coalesce((select tei.uid from trackedentityinstance tei "
+        + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
+        + "                 where ri.relationshipitemid = r.to_relationshipitemid) , (select pi.uid "
+        + "                 from programinstance pi "
+        + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
+        + "                 where ri.relationshipitemid = r.to_relationshipitemid), (select psi.uid "
+        + "                 from programstageinstance psi "
+        + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
+        + "                 where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
+        + "       coalesce((select tei.uid from trackedentityinstance tei "
+        + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
+        + "                 where ri.relationshipitemid = r.from_relationshipitemid) , (select pi.uid "
+        + "                 from programinstance pi "
+        + "                          join relationshipitem ri on pi.trackedentityinstanceid = ri.programinstanceid "
+        + "                 where ri.relationshipitemid = r.from_relationshipitemid), (select psi.uid "
+        + "                 from programstageinstance psi "
+        + "                          join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
+        + "                 where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
+        + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
+        + "where r.relationshipid in (:ids)";
+
+    final static String GET_ENROLLMENT_OR_EVENT_ACL_CHECK = "p.programid = (SELECT distinct PUGA.programid "
+        + "                     from public.programusergroupaccesses PUGA "
+        + "                              LEFT JOIN usergroupaccess UGA on PUGA.usergroupaccessid = UGA.usergroupaccessid "
+        + "                              LEFT JOIN usergroupmembers UGM on UGA.usergroupid = UGM.usergroupid, "
+        + "                          programuseraccesses PUA "
+        + "                              LEFT JOIN useraccess UA on PUA.useraccessid = UA.useraccessid "
+        + "                     WHERE UGM.userid = :userId AND UA.userid = :userId "
+        + "                       AND UGA.access LIKE '__r_____')";
 
     public AbstractStore( JdbcTemplate jdbcTemplate )
     {
@@ -86,7 +95,16 @@ public abstract class AbstractStore
         return parameters;
     }
 
-    public Multimap<String, Relationship> getRelationships(List<Long> ids) {
+    MapSqlParameterSource createIdsParam( List<Long> ids, Long userId )
+    {
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue( "ids", ids );
+        parameters.addValue( "userId", userId );
+        return parameters;
+    }
+
+    public Multimap<String, Relationship> getRelationships( List<Long> ids )
+    {
 
         String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL,
             getRelationshipEntityColumn(), getRelationshipEntityColumn() );
@@ -95,7 +113,7 @@ public abstract class AbstractStore
         // the ids in the tei|pi|psi column (depending on the subclass)
 
         List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( getRelationshipsHavingIdSQL,
-                createIdsParam( ids ) );
+            createIdsParam( ids ) );
 
         List<Long> relationshipIds = new ArrayList<>();
         for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )

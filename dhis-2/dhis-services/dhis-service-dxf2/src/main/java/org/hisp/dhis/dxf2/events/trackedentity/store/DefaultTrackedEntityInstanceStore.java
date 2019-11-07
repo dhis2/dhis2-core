@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,14 +55,23 @@ public class DefaultTrackedEntityInstanceStore
     TrackedEntityInstanceStore
 {
 
+    private final static String GET_TEI_ACL_CHECK = "tei.trackedentitytypeid = (SELECT distinct TETUGA.trackedentitytypeid"
+        + "                                 FROM trackedentitytypeusergroupaccesses TETUGA"
+        + "                                          LEFT JOIN usergroupaccess UGA on TETUGA.usergroupaccessid = UGA.usergroupaccessid"
+        + "                                          LEFT JOIN usergroupmembers UGM on UGA.usergroupid = UGM.usergroupid,"
+        + "                                      trackedentitytypeuseraccesses TETUA"
+        + "                                          LEFT JOIN useraccess UA on TETUA.useraccessid = UA.useraccessid"
+        + "                                 WHERE UGM.userid = :userId"
+        + "                                   AND UA.userid = :userId"
+        + "                                   AND UGA.access LIKE '__r_____')";
+
     private final static String GET_TEIS_SQL = "SELECT tei.uid as teiuid"
         + ", tei.created, " + "tei.createdatclient, tei.lastupdated, tei.lastupdatedatclient, tei.inactive, "
         + "       tei.deleted, tei.geometry, tet.uid as type_uid, o.uid   as ou_uid "
         + "FROM trackedentityinstance tei "
         + "         join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
-        + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids)";
-
-
+        + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids) AND "
+        + GET_TEI_ACL_CHECK;
 
     private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid"
         + ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, "
@@ -72,7 +82,8 @@ public class DefaultTrackedEntityInstanceStore
         + "         join trackedentityattribute t on teav.trackedentityattributeid = t.trackedentityattributeid join trackedentityinstance tei on teav.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "where teav.trackedentityinstanceid in (:ids)";
 
-    private final static String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid\n" +
+    private final static String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid "
+        +
             "from trackedentityprogramowner teop " +
             "         join program p on teop.programid = p.programid " +
             "         join organisationunit o on teop.organisationunitid = o.organisationunitid " +
@@ -90,10 +101,10 @@ public class DefaultTrackedEntityInstanceStore
     }
 
     @Override
-    public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids )
+    public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, Long userId )
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
-        jdbcTemplate.query( GET_TEIS_SQL, createIdsParam( ids ), handler );
+        jdbcTemplate.query( GET_TEIS_SQL, createIdsParam( ids, userId ), handler );
         return handler.getItems();
     }
 

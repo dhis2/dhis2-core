@@ -245,6 +245,9 @@ public abstract class AbstractTrackedEntityInstanceService
     public List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
                                                                   TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
+
+        // TODO DHIS2-7336 here we should only get the TEI ids, since we don't need the
+        // TEI object
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
                 .getTrackedEntityInstances( queryParams, skipAccessValidation );
 

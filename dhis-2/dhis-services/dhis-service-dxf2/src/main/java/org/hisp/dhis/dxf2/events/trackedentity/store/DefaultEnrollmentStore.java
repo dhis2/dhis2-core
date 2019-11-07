@@ -58,7 +58,7 @@ public class DefaultEnrollmentStore
         + "       p.featuretype as program_feature_type from programinstance pi "
         + "         join program p on pi.programid = p.programid "
         + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
-        + "where pi.trackedentityinstanceid in (:ids)";
+        + "where pi.trackedentityinstanceid in (:ids) AND " + GET_ENROLLMENT_OR_EVENT_ACL_CHECK;
 
     private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created "
         + "from trackedentitycomment tec join programinstancecomments pic "
