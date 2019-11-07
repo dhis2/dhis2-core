@@ -47,7 +47,7 @@ public interface AnalyticsSecurityManager
      *          to execute the given query.
      */
     void decideAccess( DataQueryParams params )
-            throws IllegalQueryException;
+        throws IllegalQueryException;
 
     /**
      * Decides whether the current user has privileges to execute the given event
@@ -58,7 +58,7 @@ public interface AnalyticsSecurityManager
      *          to execute the given query.
      */
     void decideAccessEventQuery( EventQueryParams params )
-            throws IllegalQueryException;
+        throws IllegalQueryException;
 
     /**
      * Returns the current user. Looks for a current user to be specified for the
@@ -82,11 +82,11 @@ public interface AnalyticsSecurityManager
     DataQueryParams withDataApprovalConstraints( DataQueryParams params );
 
     /**
-     * Returns a query with dimension constraints. Dimension constraints with 
+     * Returns a query with dimension constraints. Dimension constraints with
      * all accessible dimension items will be added as filters to this query.
-     * If current user has no dimension constraints, no action is taken. If the 
-     * constraint dimensions are already specified with accessible items in the 
-     * query, no action is taken. If the current user does not have accessible 
+     * If current user has no dimension constraints, no action is taken. If the
+     * constraint dimensions are already specified with accessible items in the
+     * query, no action is taken. If the current user does not have accessible
      * items in any dimension constraint, an IllegalQueryException is thrown.
      *
      * @param params the data query parameters.
