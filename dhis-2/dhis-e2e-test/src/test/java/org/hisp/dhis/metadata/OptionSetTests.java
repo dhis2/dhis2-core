@@ -83,7 +83,7 @@ public class OptionSetTests
     private String createdOptionSet;
 
     @BeforeAll
-    public void beforeEach()
+    public void beforeAll()
     {
 
         optionActions = new OptionActions();
@@ -91,7 +91,11 @@ public class OptionSetTests
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();
+    }
 
+    @BeforeEach
+    public void beforeEach()
+    {
         createdOptionSet = createOptionSet();
     }
 
