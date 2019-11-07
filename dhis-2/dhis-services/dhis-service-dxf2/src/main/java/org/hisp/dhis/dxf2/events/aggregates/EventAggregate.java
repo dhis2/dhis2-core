@@ -68,7 +68,7 @@ public class EventAggregate
      * @param ids a List of {@see Enrollment} Primary Keys
      * @return
      */
-    public Multimap<String, Event> findByEnrollmentIds( List<Long> ids, boolean includeRelationships )
+    public Multimap<String, Event> findByEnrollmentIds( List<Long> ids, Long userId, boolean includeRelationships )
     {
         Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids );
 

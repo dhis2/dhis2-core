@@ -50,7 +50,7 @@ public interface TrackedEntityInstanceStore
      * @return a Map where key is a {@see TrackedEntityInstance} uid and the key is
      *         the corresponding {@see TrackedEntityInstance}
      */
-    Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids );
+    Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, Long userId );
 
     /**
      * Fetches all the relationships having the TEI id specified in the arg as

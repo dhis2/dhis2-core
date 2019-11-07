@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventDataValueRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -83,7 +84,7 @@ public class DefaultEventStore
             "         join program p on pi.programid = p.programid " +
             "         join programstage ps on psi.programstageid = ps.programstageid " +
             "         join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
-            "where pi.programinstanceid in (:ids)";
+        "where pi.programinstanceid in (:ids) AND " + GET_ENROLLMENT_OR_EVENT_ACL_CHECK;
 
     private final static String GET_DATAVALUES_SQL = "select psi.uid as key, " +
             "       psi.eventdatavalues " +
@@ -109,7 +110,7 @@ public class DefaultEventStore
     }
 
     @Override
-    public Multimap<String, Event> getEventsByEnrollmentIds(List<Long> enrollmentsId )
+    public Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, Long userId )
     {
         EventRowCallbackHandler handler = new EventRowCallbackHandler();
         jdbcTemplate.query( GET_EVENTS_SQL, createIdsParam( enrollmentsId ), handler );
