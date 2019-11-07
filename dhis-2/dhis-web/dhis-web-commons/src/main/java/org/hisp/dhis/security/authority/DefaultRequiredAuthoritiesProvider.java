@@ -1,16 +1,3 @@
-package org.hisp.dhis.security.authority;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.hisp.dhis.security.StrutsAuthorityUtils;
-import org.hisp.dhis.security.intercept.SingleSecurityMetadataSource;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityMetadataSource;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -38,6 +25,19 @@ import org.springframework.security.access.SecurityMetadataSource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+package org.hisp.dhis.security.authority;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.security.StrutsAuthorityUtils;
+import org.hisp.dhis.security.intercept.SingleSecurityMetadataSource;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityMetadataSource;
 
 import com.opensymphony.xwork2.config.entities.ActionConfig;
 
