@@ -366,7 +366,12 @@ public abstract class AbstractEnrollmentService
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
-        List<Enrollment> validEnrollments = resolveImportableEnrollments( enrollments, importSummaries );
+        List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments,
+            importSummaries );
+
+        List<Enrollment> validEnrollments = enrollments.stream()
+            .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
+            .collect( Collectors.toList() );
 
         List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
         List<Event> events = new ArrayList<>();

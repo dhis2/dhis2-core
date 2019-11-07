@@ -390,10 +390,13 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
         ImportOptions importOptions )
     {
-        List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
         List<Enrollment> enrollments = new ArrayList<>();
+
+        List<TrackedEntityInstance> validTeis = resolveImportableTeis( trackedEntityInstances, importSummaries );
+
+        List<List<TrackedEntityInstance>> partitions = Lists.partition( validTeis, FLUSH_FREQUENCY );
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
@@ -402,7 +405,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
-                ImportSummary importSummary = addTrackedEntityInstance( trackedEntityInstance, importOptions, false );
+                ImportSummary importSummary = addTrackedEntityInstance( trackedEntityInstance, importOptions, false,
+                    true );
                 importSummaries.addImportSummary( importSummary );
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
@@ -418,6 +422,45 @@ public abstract class AbstractTrackedEntityInstanceService
         linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
+    }
+
+    /**
+     * Filters out Tracked Entity Instances which are already present in the database (regardless of the 'deleted' state)
+     *
+     * @param trackedEntityInstances TEIs to import
+     * @param importSummaries ImportSummaries used for import
+     * @return TEIs that is possible to import (pass validation)
+     */
+    private List<TrackedEntityInstance> resolveImportableTeis( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportSummaries importSummaries ) {
+
+        List<String> conflictingTeiUids = checkForExistingTeisIncludingDeleted( trackedEntityInstances, importSummaries );
+
+        return trackedEntityInstances.stream()
+            .filter( tei -> !conflictingTeiUids.contains( tei.getTrackedEntityInstance() ) )
+            .collect( Collectors.toList() );
+    }
+
+    private List<String> checkForExistingTeisIncludingDeleted( List<TrackedEntityInstance> teis,
+        ImportSummaries importSummaries )
+    {
+        List<String> foundTeis = teiService.getTrackedEntityInstancesUidsIncludingDeleted(
+            teis.stream()
+                .map( TrackedEntityInstance::getTrackedEntityInstance )
+                .collect( Collectors.toList() )
+        );
+
+        for ( String foundTeiUid : foundTeis )
+        {
+            ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+                "Tracked entity instance " + foundTeiUid + " already exists or was deleted earlier" )
+                .setReference( foundTeiUid )
+                .incrementIgnored();
+
+            importSummaries.addImportSummary( is );
+        }
+
+        return foundTeis;
     }
 
     @Override
@@ -453,20 +496,23 @@ public abstract class AbstractTrackedEntityInstanceService
     @Transactional
     public ImportSummary addTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions )
     {
-        return addTrackedEntityInstance( dtoEntityInstance, importOptions, true );
+        return addTrackedEntityInstance( dtoEntityInstance, importOptions, true, false );
     }
 
-    private ImportSummary addTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions, boolean handleEnrollments )
+    private ImportSummary addTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance,
+        ImportOptions importOptions, boolean handleEnrollments, boolean bulkImport )
     {
-        importOptions = updateImportOptions( importOptions );
-
-        if ( teiService.trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
+        if ( !bulkImport &&
+            teiService.trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
         {
-            String message = "Tracked entity instance " + dtoEntityInstance.getTrackedEntityInstance() +
-                " already exists or was deleted earlier";
-            return new ImportSummary( ImportStatus.ERROR, message )
-                .setReference( dtoEntityInstance.getTrackedEntityInstance() ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR,
+                "Tracked entity instance " + dtoEntityInstance.getTrackedEntityInstance() +
+                    " already exists or was deleted earlier" )
+                .setReference( dtoEntityInstance.getTrackedEntityInstance() )
+                .incrementIgnored();
         }
+
+        importOptions = updateImportOptions( importOptions );
 
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
 
