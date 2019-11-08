@@ -109,8 +109,6 @@ public class DefaultTrackedEntityInstanceService
 
     private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-
     private final AclService aclService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
@@ -125,8 +123,7 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityAttributeValueService attributeValueService, TrackedEntityAttributeService attributeService,
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
-        TrackedEntityAttributeValueAuditService attributeValueAuditService,
-        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService, AclService aclService,
+        TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
         @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager, RenderService renderService )
     {
         checkNotNull( trackedEntityInstanceStore );
@@ -137,7 +134,6 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( organisationUnitService );
         checkNotNull( currentUserService );
         checkNotNull( attributeValueAuditService );
-        checkNotNull( trackedEntityInstanceAuditService );
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( auditManager );
@@ -151,7 +147,6 @@ public class DefaultTrackedEntityInstanceService
         this.organisationUnitService = organisationUnitService;
         this.currentUserService = currentUserService;
         this.attributeValueAuditService = attributeValueAuditService;
-        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;

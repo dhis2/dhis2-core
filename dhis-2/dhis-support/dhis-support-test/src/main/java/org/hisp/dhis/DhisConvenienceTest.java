@@ -368,7 +368,6 @@ public abstract class DhisConvenienceTest
      * @param dependency    the dependency.
      * @param clazz         the interface type of the dependency.
      */
-    @Deprecated
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
         try
