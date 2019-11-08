@@ -36,12 +36,12 @@ import java.util.stream.Collectors;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Abstract expression function for greatest or least functions
+ * Abstract function for greatest or least
  *
  * @author Jim Grace
  */
 public abstract class FunctionGreatestOrLeast
-    extends AbstractExpressionFunction
+    extends SimpleScalarFunction
 {
     /**
      * Returns the greatest or least value.

@@ -323,7 +323,7 @@ public class Program
         {
             for ( ProgramStageDataElement element : stage.getProgramStageDataElements() )
             {
-                if ( dataElement.equals( element.getDataElement() ) )
+                if ( dataElement.getUid().equals( element.getDataElement().getUid() ) )
                 {
                     return true;
                 }

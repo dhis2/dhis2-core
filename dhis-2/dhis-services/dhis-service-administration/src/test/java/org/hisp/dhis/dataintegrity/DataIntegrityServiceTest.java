@@ -481,7 +481,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.expressionIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
+        when( expressionService.getExpressionDescription( anyString(), any() ) )
             .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
@@ -502,7 +502,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
+        when( expressionService.getExpressionDescription( anyString(), any() ) )
             .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
@@ -525,7 +525,7 @@ public class DataIntegrityServiceTest
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
 
-        verify( expressionService, times( 0 ) ).getIndicatorExpressionDescription( anyString() );
+        verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), any() );
         assertNotNull( invalidExpressions );
         assertTrue( invalidExpressions.isEmpty() );
     }

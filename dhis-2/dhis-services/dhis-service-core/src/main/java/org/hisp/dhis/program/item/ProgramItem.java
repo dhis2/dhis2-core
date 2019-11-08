@@ -29,9 +29,9 @@ package org.hisp.dhis.program.item;
  */
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.parser.expression.ExprItem;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.item.BaseExprItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
@@ -41,7 +41,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public abstract class ProgramItem
-    implements ExprItem
+    extends BaseExprItem
 {
     @Override
     public final Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )

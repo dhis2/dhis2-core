@@ -368,7 +368,6 @@ public abstract class DhisConvenienceTest
      * @param dependency    the dependency.
      * @param clazz         the interface type of the dependency.
      */
-    @Deprecated
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
         try
@@ -1115,7 +1114,7 @@ public abstract class DhisConvenienceTest
      * @param generator             The right side expression.
      * @param skipTest              The skiptest expression
      * @param periodType            The period-type.
-     * @param organisationUnitLevel The unit level of organisations to be
+     * @param organisationUnitLevel The organisation unit level to be
      *                              evaluated by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
      * @param annualSampleCount     How many years of past periods to sample.
@@ -1126,8 +1125,32 @@ public abstract class DhisConvenienceTest
         OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
+        return createPredictor( output, combo, uniqueCharacter, generator,
+            skipTest, periodType, Sets.newHashSet( organisationUnitLevel ),
+            sequentialSampleCount, sequentialSkipCount, annualSampleCount );
+    }
+
+    /**
+     * Creates a Predictor
+     *
+     * @param output                 The data element where the predictor stores its predictions
+     * @param combo                  The category option combo (or null) under which the predictors are stored
+     * @param uniqueCharacter        A unique character to identify the object.
+     * @param generator              The right side expression.
+     * @param skipTest               The skiptest expression
+     * @param periodType             The period-type.
+     * @param organisationUnitLevels The organisation unit levels to be
+     *                               evaluated by this rule.
+     * @param sequentialSampleCount  How many sequential past periods to sample.
+     * @param annualSampleCount      How many years of past periods to sample.
+     * @param sequentialSkipCount    How many periods in the current year to skip
+     */
+    public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
+        String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
+        Set<OrganisationUnitLevel> organisationUnitLevels, int sequentialSampleCount,
+        int sequentialSkipCount, int annualSampleCount )
+    {
         Predictor predictor = new Predictor();
-        Set<OrganisationUnitLevel> orgUnitlevels = Sets.newHashSet( organisationUnitLevel );
         predictor.setAutoFields();
 
         predictor.setOutput( output );
@@ -1137,7 +1160,7 @@ public abstract class DhisConvenienceTest
         predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
-        predictor.setOrganisationUnitLevels( orgUnitlevels );
+        predictor.setOrganisationUnitLevels( organisationUnitLevels );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );

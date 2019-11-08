@@ -42,7 +42,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public abstract class DimensionalItem
-    extends ExpressionItem
+    extends ExpressionServiceItem
 {
     @Override
     public final Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
@@ -78,7 +78,9 @@ public abstract class DimensionalItem
     @Override
     public final Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.getItemValue( getId( ctx ) );
+        Double value = visitor.getItemValueMap().get( getId( ctx ) );
+
+        return visitor.handleNulls( value );
     }
 
     /**

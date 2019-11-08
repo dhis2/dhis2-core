@@ -40,7 +40,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public class ItemDays
-    extends ExpressionItem
+    extends ExpressionServiceItem
 {
     @Override
     public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )

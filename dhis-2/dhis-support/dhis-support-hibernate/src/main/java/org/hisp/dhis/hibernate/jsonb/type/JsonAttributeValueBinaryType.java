@@ -54,6 +54,7 @@ public class JsonAttributeValueBinaryType
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String convertObjectToJson( Object object )
     {
         try
