@@ -136,19 +136,6 @@ public class DefaultProgramRuleService
     }
 
     @Override
-    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime )
-    {
-        return programRuleStore.getProgramRulesByEvaluationTime( evaluationTime );
-    }
-
-    @Override
-    public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
-        ProgramRuleActionEvaluationEnvironment evaluationEnvironment )
-    {
-        return programRuleStore.getProgramRulesByEvaluationEnvironment( evaluationEnvironment );
-    }
-
-    @Override
     public List<ProgramRule> getProgramRulesWithNoAction()
     {
         return programRuleStore.getProgramRulesWithNoAction();

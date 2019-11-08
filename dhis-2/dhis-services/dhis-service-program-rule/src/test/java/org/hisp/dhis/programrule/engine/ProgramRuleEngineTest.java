@@ -68,6 +68,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
@@ -263,7 +264,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+        List<RuleEffect> ruleEffects = programRuleEngine
+            .evaluateEvent( programStageInstance, ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -319,7 +321,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+        List<RuleEffect> ruleEffects = programRuleEngine
+            .evaluateEvent( programStageInstance, ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
 
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
@@ -332,7 +335,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+        List<RuleEffect> ruleEffects = programRuleEngine
+            .evaluateEvent( programStageInstance, ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
 
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );

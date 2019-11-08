@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.stereotype.Component;
@@ -59,18 +60,21 @@ public class ProgramRuleEngineListener
     @TransactionalEventListener
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService
+            .evaluateEvent( event.getProgramStageInstance(), ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
     }
 
     @TransactionalEventListener
     public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService
+            .evaluateEvent( event.getProgramStageInstance(), ProgramRuleActionEvaluationTime.ON_COMPLETE );
     }
 
     @TransactionalEventListener
     public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService
+            .evaluateEvent( event.getProgramStageInstance(), ProgramRuleActionEvaluationTime.ALWAYS );
     }
 }

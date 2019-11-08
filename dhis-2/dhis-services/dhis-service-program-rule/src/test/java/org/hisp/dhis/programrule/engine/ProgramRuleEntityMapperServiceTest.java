@@ -143,7 +143,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedProgramRules()
     {
-        List<Rule> rules = subject.toMappedProgramRules();
+        List<Rule> rules = subject.toMappedProgramRules( ProgramRuleActionEvaluationTime.ALWAYS );
 
         assertEquals( 3, rules.size() );
     }
@@ -153,7 +153,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     {
         programRules.get( 0 ).setCondition( null );
 
-        List<Rule> rules = subject.toMappedProgramRules();
+        List<Rule> rules = subject.toMappedProgramRules( ProgramRuleActionEvaluationTime.ALWAYS );
 
         programRules.get( 0 ).setCondition( "" );
 
@@ -165,7 +165,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     {
         programRules.get( 0 ).setProgramRuleActions( null );
 
-        List<Rule> rules = subject.toMappedProgramRules();
+        List<Rule> rules = subject.toMappedProgramRules( ProgramRuleActionEvaluationTime.ALWAYS );
 
         programRules.get( 0 ).setProgramRuleActions( Sets.newHashSet( assignAction ) );
 

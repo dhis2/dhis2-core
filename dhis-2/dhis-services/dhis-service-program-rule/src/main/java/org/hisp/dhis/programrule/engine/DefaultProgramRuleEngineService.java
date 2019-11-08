@@ -30,11 +30,11 @@ package org.hisp.dhis.programrule.engine;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -84,20 +84,29 @@ public class DefaultProgramRuleEngineService
     @Override
     public List<RuleEffect> evaluateEnrollment( long programInstance )
     {
-        List<RuleEffect> ruleEffects = new ArrayList<>();
-
         ProgramInstance pi = programInstanceService.getProgramInstance( programInstance );
 
-        try
-        {
-            ruleEffects = programRuleEngine.evaluateEnrollment( pi );
-        }
-        catch( Exception ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-        }
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( pi );
 
+        implementRuleEffects( ruleEffects, pi );
+
+        return ruleEffects;
+    }
+
+    @Override
+    public List<RuleEffect> evaluateEvent( long programStageInstance, ProgramRuleActionEvaluationTime evaluationTime )
+    {
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstance );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( psi, evaluationTime );
+
+        implementRuleEffects( ruleEffects, psi.getProgramInstance() );
+
+        return ruleEffects;
+    }
+
+    private void implementRuleEffects( List<RuleEffect> ruleEffects, ProgramInstance pi )
+    {
         for ( RuleEffect effect : ruleEffects )
         {
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
@@ -107,37 +116,5 @@ public class DefaultProgramRuleEngineService
                 i.implement( effect, pi );
             } );
         }
-
-        return ruleEffects;
-    }
-
-    @Override
-    public List<RuleEffect> evaluateEvent( long programStageInstance )
-    {
-        List<RuleEffect> ruleEffects = new ArrayList<>();
-
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstance );
-
-        try
-        {
-            ruleEffects = programRuleEngine.evaluateEvent( psi );
-        }
-        catch( Exception ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-        }
-
-        for ( RuleEffect effect : ruleEffects )
-        {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
-            {
-                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
-
-                i.implement( effect, psi );
-            } );
-        }
-
-        return ruleEffects;
     }
 }

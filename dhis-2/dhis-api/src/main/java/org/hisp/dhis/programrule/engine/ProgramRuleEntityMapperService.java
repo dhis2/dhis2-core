@@ -32,6 +32,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.models.*;
 
@@ -48,22 +49,27 @@ public interface ProgramRuleEntityMapperService
 {
     /***
      * @return A list of mapped Rules for all programs
+     * @param evaluationTime
      */
-    List<Rule> toMappedProgramRules();
+    List<Rule> toMappedProgramRules( ProgramRuleActionEvaluationTime evaluationTime );
 
     /**
-     *@param program The program which provides ProgramRule.
-     * @return A list of mapped Rules for a specific program.
+     *
+     * @param program The program which provides ProgramRule.
+     * @param evaluationTime @return A list of mapped Rules for a specific program.
      */
-    List<Rule> toMappedProgramRules( Program program );
+    List<Rule> toMappedProgramRules( Program program,
+        ProgramRuleActionEvaluationTime evaluationTime );
 
     /**
      * @param programRules The list of program rules to be mapped
+     * @param evaluationTime
      * @return A list of mapped Rules for list of programs.
      */
-    List<Rule> toMappedProgramRules( List<ProgramRule> programRules );
+    List<Rule> toMappedProgramRules( List<ProgramRule> programRules, ProgramRuleActionEvaluationTime evaluationTime );
 
-    Rule toMappedProgramRule( ProgramRule programRule );
+    Rule toMappedProgramRule( ProgramRule programRule,
+        ProgramRuleActionEvaluationTime evaluationTime );
 
     /**
      * @param program The program which provides ProgramRuleVariable.

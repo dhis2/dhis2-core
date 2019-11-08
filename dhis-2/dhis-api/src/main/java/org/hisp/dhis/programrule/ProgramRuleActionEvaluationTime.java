@@ -40,15 +40,23 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "programRuleEvaluationTime", namespace = DxfNamespaces.DXF_2_0 )
 public enum ProgramRuleActionEvaluationTime
 {
-    ON_DATA_ENTRY( "on_data_entry" ),
-    ON_COMPLETE( "on_complete" ),
-    ALWAYS( "always" );
+    ON_DATA_ENTRY( "on_data_entry", 1 ),
+    ON_COMPLETE( "on_complete", 1 ),
+    ALWAYS( "always", 2 );
 
     private final String value;
 
-    ProgramRuleActionEvaluationTime( String value )
+    private final int order;
+
+    ProgramRuleActionEvaluationTime( String value, int order )
     {
         this.value = value;
+        this.order = order;
+    }
+
+    public boolean isIncluded( ProgramRuleActionEvaluationTime evaluationTime )
+    {
+        return this.order > evaluationTime.order;
     }
 
     public static ProgramRuleActionEvaluationTime fromValue( String value )

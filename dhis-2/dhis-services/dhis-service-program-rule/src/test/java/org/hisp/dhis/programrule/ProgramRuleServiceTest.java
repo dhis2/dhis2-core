@@ -236,20 +236,6 @@ public class ProgramRuleServiceTest
 
         assertEquals( ruleA, retrievedProgramRuleA );
         assertEquals( ruleB, retrievedProgramRuleB );
-
-        assertEquals( 2,
-            programRuleService.getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment.WEB )
-                .size() );
-        assertEquals( 2,
-            programRuleService.getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment.ANDROID )
-                .size() );
-        assertEquals( 1,
-            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime.ALWAYS ).size() );
-        assertEquals( 2,
-            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime.ON_COMPLETE ).size() );
-        assertEquals( 2,
-            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime.ON_DATA_ENTRY )
-                .size() );
     }
 
     @Test
@@ -297,31 +283,7 @@ public class ProgramRuleServiceTest
         assertEquals( ruleA, retrievedProgramRuleA );
         assertEquals( ruleB, retrievedProgramRuleB );
 
-        assertEquals( 3,
-            programRuleService.getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment.WEB )
-                .size() );
-        assertEquals( 3,
-            programRuleService.getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment.ANDROID )
-                .size() );
-        assertEquals( 2,
-            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime.ALWAYS ).size() );
-        assertEquals( 3,
-            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime.ON_COMPLETE ).size() );
-        assertEquals( 3,
-            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime.ON_DATA_ENTRY )
-                .size() );
-
-        ProgramRule programRuleARetrievedByEnvironment = programRuleService
-            .getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment.WEB ).stream()
-            .filter( rule -> rule.getId() == idA ).findAny().get();
-        assertEquals( 1,
-            programRuleARetrievedByEnvironment.getProgramRuleActions().size() );
-
-        ProgramRule programRuleARetrievedByEvaluationTime = programRuleService
-            .getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime.ON_COMPLETE ).stream()
-            .filter( rule -> rule.getId() == idA ).findAny().get();
-        assertEquals( 1,
-            programRuleARetrievedByEvaluationTime.getProgramRuleActions().size() );
+        List<ProgramRule> allProgramRule = programRuleService.getAllProgramRule();
 
     }
 

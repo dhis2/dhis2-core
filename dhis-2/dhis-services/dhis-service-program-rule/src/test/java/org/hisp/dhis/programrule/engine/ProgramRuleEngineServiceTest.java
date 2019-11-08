@@ -119,7 +119,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         // stub for programRuleEngine
         when( programRuleEngine.evaluateEnrollment( any() ) ).thenReturn( effects );
-        when( programRuleEngine.evaluateEvent( any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluateEvent( any(), any() ) ).thenReturn( effects );
 
         // stub for ruleActionSendMessage
         when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
@@ -188,11 +188,11 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluateEvent( programStageInstance.getId() );
+        List<RuleEffect> ruleEffects = service.evaluateEvent( programStageInstance.getId(), any() );
 
         assertEquals( 1, ruleEffects.size() );
 
-        verify( programRuleEngine, times( 1 ) ).evaluateEvent( argumentCaptor.capture() );
+        verify( programRuleEngine, times( 1 ) ).evaluateEvent( argumentCaptor.capture(), any() );
         assertEquals( programStageInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );

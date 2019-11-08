@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -71,10 +72,6 @@ public interface ProgramRuleStore
     List<ProgramRule> getProgramRulesWithNoCondition();
 
     List<ProgramRule> getProgramRulesWithNoPriority();
-
-    List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime );
-
-    List<ProgramRule> getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment environment );
 
     List<ProgramRule> getProgramRulesWithNoAction();
 }

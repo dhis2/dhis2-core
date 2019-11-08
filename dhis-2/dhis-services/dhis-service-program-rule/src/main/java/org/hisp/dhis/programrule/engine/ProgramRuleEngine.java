@@ -28,9 +28,11 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -121,6 +123,7 @@ public class ProgramRuleEngine
 
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        ProgramRuleActionEvaluationTime onComplete = ProgramRuleActionEvaluationTime.ON_COMPLETE;
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
         if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
@@ -138,7 +141,8 @@ public class ProgramRuleEngine
 
         try
         {
-            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables, onComplete )
+                .events( ruleEvents ).build();
 
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
 
@@ -153,7 +157,9 @@ public class ProgramRuleEngine
         return ruleEffects;
     }
 
-    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance )
+    @Transactional
+    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance,
+        ProgramRuleActionEvaluationTime evaluationTime )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
@@ -182,7 +188,8 @@ public class ProgramRuleEngine
         try
         {
 
-            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables, evaluationTime )
+                .enrollment( ruleEnrollment ).events( ruleEvents ).build();
 
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
 
@@ -197,7 +204,9 @@ public class ProgramRuleEngine
         return ruleEffects;
     }
 
-    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
+    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules,
+        List<ProgramRuleVariable> programRuleVariables,
+        ProgramRuleActionEvaluationTime evaluationTime )
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
 
@@ -209,7 +218,7 @@ public class ProgramRuleEngine
 
         for ( ProgramRule programRule : programRules )
         {
-            Rule rule = programRuleEntityMapperService.toMappedProgramRule( programRule );
+            Rule rule = programRuleEntityMapperService.toMappedProgramRule( programRule, evaluationTime );
 
             if( rule != null )
             {

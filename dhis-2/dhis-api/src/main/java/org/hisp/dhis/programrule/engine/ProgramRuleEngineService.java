@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
 import org.hisp.dhis.rules.models.RuleEffect;
 
 import java.util.List;
@@ -39,5 +40,5 @@ public interface ProgramRuleEngineService
 {
     List<RuleEffect> evaluateEnrollment( long enrollment );
 
-    List<RuleEffect> evaluateEvent( long event );
+    List<RuleEffect> evaluateEvent( long event, ProgramRuleActionEvaluationTime evaluationTime );
 }
