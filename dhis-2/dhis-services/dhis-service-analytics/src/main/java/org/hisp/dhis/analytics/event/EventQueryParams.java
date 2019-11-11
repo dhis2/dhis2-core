@@ -38,7 +38,9 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -368,6 +370,8 @@ public class EventQueryParams
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
+        org.hisp.dhis.calendar.Calendar calendar = PeriodType.getCalendar();
+
         for ( Period period : periods )
         {
             Date start = period.getStartDate();
@@ -383,6 +387,10 @@ public class EventQueryParams
                 endDate = end;
             }
         }
+
+        startDate = DateUtils.getDate( calendar, startDate );
+
+        endDate = DateUtils.getDate( calendar, endDate );
 
         removeDimensionOrFilter( PERIOD_DIM_ID );
     }

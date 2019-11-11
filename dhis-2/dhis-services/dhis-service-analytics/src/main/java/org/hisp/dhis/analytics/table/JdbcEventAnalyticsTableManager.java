@@ -81,8 +81,6 @@ public class JdbcEventAnalyticsTableManager
 
         List<AnalyticsTable> tables = new ArrayList<>();
 
-        Calendar calendar = PeriodType.getCalendar();
-
         String baseName = getTableName();
 
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
@@ -97,7 +95,7 @@ public class JdbcEventAnalyticsTableManager
 
             for ( Integer year : dataYears )
             {
-                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
+                table.addPartitionTable( year, PartitionUtils.getIsoCalendarStartDate( year ) , PartitionUtils.getIsoCalendarEndDate( year )  );
             }
 
             if ( table.hasPartitionTables() )

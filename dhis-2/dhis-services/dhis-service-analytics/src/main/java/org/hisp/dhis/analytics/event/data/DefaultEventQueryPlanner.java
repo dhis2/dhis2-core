@@ -29,7 +29,10 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.hisp.dhis.analytics.Partitions;
@@ -42,11 +45,15 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
@@ -118,9 +125,30 @@ public class DefaultEventQueryPlanner
      */
     private EventQueryParams withTableNameAndPartitions( EventQueryParams params )
     {
-        Partitions partitions = params.hasStartEndDate() ?
-            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
-            PartitionUtils.getPartitions( params.getAllPeriods() );
+        Calendar calendar = PeriodType.getCalendar();
+
+        Partitions partitions = null;
+
+        if ( params.hasStartEndDate() )
+        {
+            partitions = PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() );
+        }
+        else
+        {
+            Set<Integer> years = new HashSet<Integer>();
+
+            if ( params.hasPeriods() )
+            {
+                for( DimensionalItemObject period : params.getAllPeriods() )
+                {
+                    Period p = (Period) period;
+                    years.add( DateTimeUnit.fromJdkDate( DateUtils.getDate( calendar, p.getStartDate())).getYear() );
+                    years.add( DateTimeUnit.fromJdkDate( DateUtils.getDate( calendar, p.getEndDate())).getYear() );
+                }
+            }
+
+            partitions = new Partitions( years );
+        }
 
         String baseName = params.hasEnrollmentProgramIndicatorDimension() ?
             AnalyticsTableType.ENROLLMENT.getTableName() :

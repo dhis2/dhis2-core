@@ -39,6 +39,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
@@ -46,12 +48,15 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -317,7 +322,18 @@ public class JdbcEventAnalyticsManager
         {
             String alias = getPeriodAlias( params );
 
-            sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+            List<String> years = new ArrayList<String>();
+
+            Calendar calendar = PeriodType.getCalendar();
+
+            for( DimensionalItemObject period : params.getDimensionOrFilterItems( PERIOD_DIM_ID ) )
+            {
+                Period p = (Period) period;
+                years.add( Integer.toString( DateTimeUnit.fromJdkDate( DateUtils.getDate( calendar, p.getStartDate())).getYear() ) );
+                years.add( Integer.toString( DateTimeUnit.fromJdkDate( DateUtils.getDate( calendar, p.getEndDate())).getYear() ) );
+            }
+
+            sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( years ) + ") ";
         }
 
         // ---------------------------------------------------------------------

@@ -30,8 +30,10 @@ package org.hisp.dhis.resourcetable.table;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.calendar.Calendar;
@@ -42,6 +44,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.system.util.DateUtils;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
@@ -92,20 +95,31 @@ public class DatePeriodResourceTable
 
         Date startDate = new Cal( 1975, 1, 1, true ).time(); //TODO
         Date endDate = new Cal( 2025, 1, 1, true ).time();
-        
+
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
         List<Date> days = new UniqueArrayList<>( dailyPeriods.stream().map( Period::getStartDate ).collect( Collectors.toList() ) );
 
         Calendar calendar = PeriodType.getCalendar();
 
+        Set<Date> uniqueIsoDates = new HashSet<>();
+
         for ( Date day : days )
         {
             List<Object> values = new ArrayList<>();
 
+            Date isoDate = DateUtils.getDate( calendar, day );
+
+            if ( !uniqueIsoDates.add( isoDate ) )
+            {
+                // Protect against duplicates produced by calendar implementations
+                log.warn( "Duplicate ISO date for period, ignoring: " + day + ", ISO date: " + isoDate );
+                continue;
+            }
+
             final int year = PeriodType.getCalendar().fromIso( day ).getYear();
-            
-            values.add( day );
+
+            values.add( isoDate );
             values.add( year );
 
             for ( PeriodType periodType : periodTypes )
