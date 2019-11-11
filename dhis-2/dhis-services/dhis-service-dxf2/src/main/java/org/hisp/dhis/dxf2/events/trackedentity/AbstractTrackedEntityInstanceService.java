@@ -1196,10 +1196,9 @@ public abstract class AbstractTrackedEntityInstanceService
                 .map( Enrollment::getProgram )
                 .collect( Collectors.toList() );
 
-            readableAttributesCopy = new HashSet<>(
-                readableAttributes.stream()
-                    .filter( att -> !att.getSkipSynchronization() )
-                    .collect( Collectors.toSet() )  );
+            readableAttributesCopy = readableAttributes.stream()
+                .filter( att -> !att.getSkipSynchronization() )
+                .collect( Collectors.toSet() ) ;
 
             IdSchemes idSchemes = new IdSchemes();
             for ( String programUid : programs )
