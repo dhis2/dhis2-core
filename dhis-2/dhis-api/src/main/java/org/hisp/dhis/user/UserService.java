@@ -386,5 +386,5 @@ public interface UserService
      *
      * @param credentials the user credentials
      */
-     void expireActiveSessions( UserCredentials credentials );
+    void expireActiveSessions( UserCredentials credentials );
 }

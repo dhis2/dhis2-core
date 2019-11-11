@@ -48,7 +48,6 @@ import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,7 +113,6 @@ public class DefaultUserService
         this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
-        this.sessionRegistry = sessionRegistry;
     }
 
     // -------------------------------------------------------------------------
