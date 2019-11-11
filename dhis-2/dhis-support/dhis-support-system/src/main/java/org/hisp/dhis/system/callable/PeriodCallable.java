@@ -46,7 +46,8 @@ public class PeriodCallable
 
     private BatchHandler<Period> periodBatchHandler;
 
-    public PeriodCallable( PeriodService periodService, BatchHandler<Period> periodBatchHandler, IdScheme idScheme, String id )
+    public PeriodCallable( PeriodService periodService, BatchHandler<Period> periodBatchHandler, IdScheme idScheme,
+        String id )
     {
         super( null, Period.class, idScheme, id );
         this.periodBatchHandler = periodBatchHandler;
@@ -57,13 +58,13 @@ public class PeriodCallable
     public Period call()
         throws ExecutionException
     {
-        Period period = periodService.getPeriod( id );
+        Period period = periodService.getPeriodNoCache( id );
 
         if ( period == null )
         {
             period = PeriodType.getPeriodFromIsoString( id );
-            periodBatchHandler.addObject( period );
-            periodBatchHandler.flush();
+            periodBatchHandler.insertObject( period );
+            period = periodService.getPeriod( id );
         }
 
         return period;

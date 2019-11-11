@@ -38,6 +38,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.callable.CategoryOptionComboCallable;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.callable.PeriodCallable;
+import org.hisp.quick.BatchHandler;
 
 /**
  * @author Lars Helge Overland
@@ -53,13 +54,13 @@ class MetadataCallables
     private final IdentifiableObjectCallable<Period> periodCallable;
 
     MetadataCallables(ImportConfig config, IdentifiableObjectManager idObjManager, PeriodService periodService,
-                      CategoryService categoryService )
+                      BatchHandler<Period> periodBatchHandler, CategoryService categoryService )
     {
         dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.getDsScheme(), null );
         orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.getOuScheme(),
             null );
         optionComboCallable = new CategoryOptionComboCallable( categoryService, config.getAocScheme(), null );
-        periodCallable = new PeriodCallable( periodService, null, null );
+        periodCallable = new PeriodCallable( periodService, periodBatchHandler, null, null );
     }
 
     IdentifiableObjectCallable<DataSet> getDataSetCallable()

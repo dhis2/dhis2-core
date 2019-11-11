@@ -110,6 +110,18 @@ public class HibernatePeriodStore
     }
 
     @Override
+    public Period getPeriodNoCache( Date startDate, Date endDate, PeriodType periodType )
+    {
+        String query = "from Period p where p.startDate =:startDate and p.endDate =:endDate and p.periodType =:periodType";
+
+        return getSingleResult( getQuery( query )
+            .setCacheable( false )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate )
+            .setParameter( "periodType", reloadPeriodType( periodType ) ) );
+    }
+
+    @Override
     public Period getPeriod( Date startDate, Date endDate, PeriodType periodType )
     {
         String query = "from Period p where p.startDate =:startDate and p.endDate =:endDate and p.periodType =:periodType";

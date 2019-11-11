@@ -28,8 +28,10 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,10 +43,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 /**
  * @author Kristian Nordal
@@ -92,18 +92,32 @@ public class DefaultPeriodService
     {
         return periodStore.get( id );
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Period getPeriod( String isoPeriod )
     {
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
-        
+
         if ( period != null )
-        {        
+        {
             period = periodStore.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
         }
-        
+
+        return period;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Period getPeriodNoCache( String isoPeriod )
+    {
+        Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
+
+        if ( period != null )
+        {
+            period = periodStore.getPeriodNoCache( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
+        }
+
         return period;
     }
 

@@ -70,11 +70,21 @@ public interface PeriodService
 
     /**
      * Gets the Period with the given ISO period identifier.
-     * 
+     *
      * @param isoPeriod the ISO period identifier.
      * @return the Period with the given ISO period identifier.
      */
     Period getPeriod( String isoPeriod );
+
+    /**
+     * Gets the Period with the given ISO period identifier.
+     * Uses the getPeriodNoCache method for retrieving period.
+     * Required when working with BatchHandler.
+     *
+     * @param isoPeriod the ISO period identifier.
+     * @return the Period with the given ISO period identifier.
+     */
+    Period getPeriodNoCache( String isoPeriod );
     
     /**
      * Returns a Period.

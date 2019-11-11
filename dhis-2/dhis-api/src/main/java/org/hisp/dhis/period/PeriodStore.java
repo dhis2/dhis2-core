@@ -54,6 +54,16 @@ public interface PeriodStore
     void addPeriod( Period period );
 
     /**
+     * Returns a Period, but does not cache it. Required when working together with BatchHandler.
+     *
+     * @param startDate  the start date of the Period.
+     * @param endDate    the end date of the Period.
+     * @param periodType the PeriodType of the Period
+     * @return the Period matching the dates and periodtype, or null if no match.
+     */
+    Period getPeriodNoCache( Date startDate, Date endDate, PeriodType periodType );
+
+    /**
      * Returns a Period.
      *
      * @param startDate  the start date of the Period.

@@ -28,16 +28,7 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,6 +61,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
+import org.hisp.dhis.jdbc.batchhandler.PeriodBatchHandler;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -90,9 +82,16 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-
-import com.google.common.collect.ImmutableSet;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Nonnull;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -446,8 +445,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         // Set up meta-data
         // ---------------------------------------------------------------------
 
+        BatchHandler<Period> periodBatchHandler = batchHandlerFactory.createBatchHandler( PeriodBatchHandler.class ).init();
+
         MetadataCaches caches = new MetadataCaches();
-        MetadataCallables metaDataCallables = new MetadataCallables( cfg, this.idObjManager, this.periodService,
+        MetadataCallables metaDataCallables = new MetadataCallables( cfg, this.idObjManager, this.periodService, periodBatchHandler,
             this.categoryService );
 
         if ( importOptions.isPreheatCacheDefaultFalse() )
