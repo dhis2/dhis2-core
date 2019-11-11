@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -75,7 +76,7 @@ public class UserDisableTest
         ApiResponse preChangeResponse = userActions.get( userId );
         preChangeResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( false ) );
 
-        ApiResponse response = userActions.post( userId + "/disable" );
+        ApiResponse response = userActions.post( userId + "/disabled" );
         response.validate().statusCode( 204 );
 
         ApiResponse getResponse = userActions.get( userId );
@@ -92,7 +93,7 @@ public class UserDisableTest
 
         loginActions.loginAsSuperUser();
 
-        ApiResponse enableResponse = userActions.post( userId + "/enable" );
+        ApiResponse enableResponse = userActions.post( userId + "/enabled" );
         enableResponse.validate().statusCode( 204 );
 
         ApiResponse getAfterEnabled = userActions.get( userId );

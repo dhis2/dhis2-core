@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
+import org.hisp.dhis.actions.tracker.RelationshipTypeActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
@@ -76,6 +77,8 @@ public class RelationshipsTest
 
     private RelationshipActions relationshipActions;
 
+    private RelationshipTypeActions relationshipTypeActions;
+
     private static Stream<Arguments> provideRelationshipData()
     {
         return Stream.of(
@@ -94,6 +97,7 @@ public class RelationshipsTest
         trackedEntityInstanceActions = new RestApiActions( "/trackedEntityInstances" );
         metadataActions = new MetadataActions();
         eventActions = new EventActions();
+        relationshipTypeActions = new RelationshipTypeActions();
 
         new LoginActions().loginAsSuperUser();
 

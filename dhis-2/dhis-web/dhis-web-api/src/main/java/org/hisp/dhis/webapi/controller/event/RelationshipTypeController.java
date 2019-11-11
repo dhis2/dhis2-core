@@ -28,9 +28,19 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -42,4 +52,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class RelationshipTypeController
     extends AbstractCrudController<RelationshipType>
 {
+
+    @Override
+    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+
+        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
+            renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON );
+        params.setObjects( objects );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
+        ImportReport importReport = importService.importMetadata( params );
+        renderService.toJson( response.getOutputStream(), importReport );
+    }
 }
