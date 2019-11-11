@@ -28,7 +28,6 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,6 +60,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.context.ApplicationEventPublisher;
@@ -81,6 +81,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author bobj
@@ -142,24 +144,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public final Criteria getDataSharingCriteria( String access )
-    {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
-    }
-
-    @Override
-    public final Criteria getDataSharingCriteria( User user, String access )
-    {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( UserInfo.fromUser( user ), access ) );
-    }
-
-    @Override
-    public final Criteria getSharingCriteria( String access )
-    {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
-    }
-
-    @Override
     public final Criteria getSharingCriteria( User user )
     {
         return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
@@ -208,7 +192,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void save( T object, boolean clearSharing )
     {
-        User user = currentUserService.getCurrentUser();
+        User user = getCurrentUser();
 
         String username = user != null ? user.getUsername() : "system-process";
 
@@ -280,7 +264,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void update( T object )
     {
-        update( object, currentUserService.getCurrentUser() );
+        update( object, getCurrentUser() );
     }
 
     @Override
@@ -324,7 +308,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void delete( T object )
     {
-        this.delete( object, currentUserService.getCurrentUser() );
+        this.delete( object, getCurrentUser() );
     }
 
     @Override
@@ -351,7 +335,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         T object = getSession().get( getClazz(), id );
 
-        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
+        if ( !isReadAllowed( object, getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( object.toString() );
@@ -436,7 +420,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
 
-        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
+        if ( !isReadAllowed( object, getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( String.valueOf( object ) );
@@ -1371,5 +1355,17 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void flush()
     {
         getSession().flush();
+    }
+
+    private User getCurrentUser()
+    {
+        UserCredentials userCredentials = currentUserService.getCurrentUserCredentials();
+
+        if ( userCredentials != null )
+        {
+            return userCredentials.getUser();
+        }
+
+        return null;
     }
 }

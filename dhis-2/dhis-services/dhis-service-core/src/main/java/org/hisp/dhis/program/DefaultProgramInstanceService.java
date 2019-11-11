@@ -320,7 +320,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null )
         {
-            addProrgamInstanceAudits( programInstances, user.getUsername() );
+            addProgramInstanceAudits( programInstances, user.getUsername() );
         }
 
         return programInstances;
@@ -664,7 +664,7 @@ public class DefaultProgramInstanceService
         }
     }
 
-    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
+    private void addProgramInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
     {
         for ( ProgramInstance programInstance : programInstances )
         {

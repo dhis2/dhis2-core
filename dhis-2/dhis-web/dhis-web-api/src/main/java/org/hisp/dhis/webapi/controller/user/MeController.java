@@ -46,6 +46,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -142,6 +144,9 @@ public class MeController
 
     @Autowired
     private DataSetService dataSetService;
+
+    @Autowired
+    private DataApprovalLevelService approvalLevelService;
 
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>( Sets.newHashSet( UserSettingKey.values() ) );
 
@@ -380,6 +385,8 @@ public class MeController
 
         updatePassword( currentUser, newPassword );
         manager.update( currentUser );
+
+        currentUserService.expireUserSessions();
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
@@ -427,6 +434,15 @@ public class MeController
     public void updateInterpretationsLastRead()
     {
         interpretationService.updateCurrentUserLastChecked();
+    }
+
+    @RequestMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
+    public void getApprovalLevels( HttpServletResponse response ) throws IOException
+    {
+        List<DataApprovalLevel> approvalLevels = approvalLevelService.getUserDataApprovalLevels( currentUserService.getCurrentUser() );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoStore( response );
+        renderService.toJson( response.getOutputStream(), approvalLevels );
     }
 
     //------------------------------------------------------------------------------------------------

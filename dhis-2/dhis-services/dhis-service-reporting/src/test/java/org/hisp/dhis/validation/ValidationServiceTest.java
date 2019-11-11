@@ -48,7 +48,6 @@ import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.*;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +60,7 @@ import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.expression.Operator.*;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 
 /**
  * @author Jim Grace
@@ -440,8 +440,16 @@ public class ValidationServiceTest
 
         for ( ValidationResult result : results )
         {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
+            String operator = result.getValidationRule().getOperator().getMathematicalOperator();
+
+            if ( !operator.startsWith( "[" ) )
+            {
+                String test = result.getLeftsideValue()
+                    + result.getValidationRule().getOperator().getMathematicalOperator()
+                    + result.getRightsideValue();
+
+                assertFalse( (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST ) );
+            }
         }
     }
 

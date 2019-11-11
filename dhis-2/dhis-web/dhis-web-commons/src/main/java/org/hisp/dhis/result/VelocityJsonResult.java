@@ -44,7 +44,7 @@ public class VelocityJsonResult
 
     @Override
     protected final String getContentType( String templateLocation )
-    {       
+    {
         return "application/json";
     }
 }

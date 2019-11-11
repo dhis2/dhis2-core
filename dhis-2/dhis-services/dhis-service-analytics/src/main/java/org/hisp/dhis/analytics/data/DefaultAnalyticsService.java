@@ -109,7 +109,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -242,7 +241,7 @@ public class DefaultAnalyticsService
         if ( dhisConfig.isAnalyticsCacheEnabled() )
         {
             final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
-            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).orElseGet( () -> new ListGrid() );
+            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).orElseGet( ListGrid::new );
         }
 
         return getAggregatedDataValueGridInternal( params );
@@ -916,10 +915,9 @@ public class DefaultAnalyticsService
             // Organisation unit hierarchy
             // -----------------------------------------------------------------
 
-            User user = securityManager.getCurrentUser( params );
-
             List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
+            Collection<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
 
             if ( params.isHierarchyMeta() )
             {

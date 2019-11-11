@@ -55,6 +55,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-audit-consumer</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-hibernate</artifactId>
     </dependency>
     <dependency>
@@ -79,7 +84,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-amqp</artifactId>
+      <artifactId>dhis-support-artemis</artifactId>
     </dependency>
 
     <!-- Other -->
@@ -168,8 +173,12 @@
       <artifactId>velocity</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.eHealthAfrica</groupId>
-      <artifactId>dhis2-sms-compression</artifactId>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.dhis2</groupId>
+      <artifactId>sms-compression</artifactId>
       <version>0.1.7</version>
     </dependency>
 
