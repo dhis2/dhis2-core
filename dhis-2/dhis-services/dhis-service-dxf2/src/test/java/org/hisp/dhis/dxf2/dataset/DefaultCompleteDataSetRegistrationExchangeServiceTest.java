@@ -28,18 +28,7 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-
-import java.io.ByteArrayInputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.DefaultCacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -61,6 +50,7 @@ import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
+import org.hisp.dhis.jdbc.batchhandler.PeriodBatchHandler;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -88,7 +78,19 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 
-import com.google.common.collect.Sets;
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
  * @author Luciano Fiandesio
@@ -142,7 +144,10 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     private I18n i18n;
 
     @Mock
-    private BatchHandler<CompleteDataSetRegistration> batchHandler;
+    private BatchHandler<CompleteDataSetRegistration> completeDataSetRegistrationBatchHandler;
+
+    @Mock
+    private BatchHandler<Period> periodBatchHandler;
 
     @Mock
     private MetadataCaches metaDataCaches;
@@ -220,8 +225,11 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 
         when( categoryService.getDefaultCategoryOptionCombo() ).thenReturn( DEFAULT_COC );
         when( batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ) )
-            .thenReturn( batchHandler );
-        when( batchHandler.init() ).thenReturn( batchHandler );
+            .thenReturn( completeDataSetRegistrationBatchHandler );
+        when( completeDataSetRegistrationBatchHandler.init() ).thenReturn( completeDataSetRegistrationBatchHandler );
+        when( batchHandlerFactory.createBatchHandler( PeriodBatchHandler.class ) )
+            .thenReturn( periodBatchHandler );
+        when( periodBatchHandler.init() ).thenReturn( periodBatchHandler );
 
         // caches
         when( metaDataCaches.getDataSets() ).thenReturn( datasetCache );
