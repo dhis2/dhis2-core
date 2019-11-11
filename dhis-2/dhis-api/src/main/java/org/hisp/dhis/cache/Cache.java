@@ -100,8 +100,6 @@ public interface Cache<V>
      * cache previously contained a value associated with the {@code key}, the
      * old value is replaced by the new {@code value}. It also sets a custom
      * time to live for the given key, which overrides the cache's default.
-     * Prefer{@link #get(String, Function)} when using the conventional
-     * "if cached, return; otherwise create, cache and return" pattern.
      *
      * @param key the key for the value
      * @param value value to be mapped to the key
