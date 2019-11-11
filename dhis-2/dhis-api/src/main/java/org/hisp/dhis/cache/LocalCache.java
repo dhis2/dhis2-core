@@ -36,6 +36,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.cache2k.Cache2kBuilder;
+import org.springframework.util.Assert;
+
+import static java.lang.System.currentTimeMillis;
+import static org.springframework.util.Assert.hasText;
 
 /**
  * Local cache implementation of {@link Cache}. This implementation is backed by
@@ -137,7 +141,12 @@ public class LocalCache<V> implements Cache<V>
         cache2kInstance.put( key, value );
     }
 
-
+    @Override
+    public void put( String key, V value, long ttl )
+    {
+        hasText(key, "Value cannot be null");
+        cache2kInstance.invoke( key, e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + ttl ) );
+    }
 
     @Override
     public void invalidate( String key )

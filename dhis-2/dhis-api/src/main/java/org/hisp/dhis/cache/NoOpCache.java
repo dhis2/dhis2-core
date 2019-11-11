@@ -34,6 +34,9 @@ import java.util.function.Function;
 
 import com.google.common.collect.Sets;
 
+import static java.lang.System.currentTimeMillis;
+import static org.springframework.util.Assert.hasText;
+
 /**
  * A No operation implementation of {@link Cache}. The implementation will not
  * cache anything and can be used during system testing when caching has to be
@@ -85,6 +88,13 @@ public class NoOpCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "Value cannot be null" );
         }
+        // No operation
+    }
+
+    @Override
+    public void put( String key, V value, long ttl )
+    {
+        hasText(key, "Value cannot be null");
         // No operation
     }
 

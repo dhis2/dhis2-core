@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  */
 
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.cache.AnalyticsCacheWrapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.cache.CacheProvider;
@@ -89,10 +90,7 @@ public abstract class AnalyticsServiceBaseTest {
     private DhisConfigurationProvider dhisConfig;
 
     @Mock
-    private CacheProvider cacheProvider;
-
-    @Mock
-    private Environment environment;
+    private AnalyticsCacheWrapper analyticsCacheWrapper;
 
     @Mock
     private ExpressionResolver resolver;
@@ -106,7 +104,7 @@ public abstract class AnalyticsServiceBaseTest {
 
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, resolver, dhisConfig, cacheProvider, environment );
+            eventAnalyticsService, dataQueryService, resolver, dhisConfig, analyticsCacheWrapper );
 
         when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
         when( dhisConfig.getAnalyticsCacheExpiration() ).thenReturn( 0L );

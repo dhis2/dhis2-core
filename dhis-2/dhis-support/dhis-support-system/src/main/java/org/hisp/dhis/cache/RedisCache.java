@@ -28,11 +28,15 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.springframework.util.Assert.hasText;
+
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -155,6 +159,15 @@ public class RedisCache<V> implements Cache<V>
         {
             redisTemplate.boundValueOps( redisKey ).set( value );
         }
+    }
+
+    @Override
+    public void put( String key, V value, long ttl )
+    {
+        hasText(key, "Value cannot be null");
+        final String redisKey = generateActualKey( key );
+
+        redisTemplate.boundValueOps( redisKey ).set( value, ttl, MILLISECONDS );
     }
 
     @Override
