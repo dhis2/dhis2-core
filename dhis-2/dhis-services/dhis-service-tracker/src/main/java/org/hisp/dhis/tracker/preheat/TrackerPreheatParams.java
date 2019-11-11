@@ -76,6 +76,9 @@ public class TrackerPreheatParams
      */
     private List<Event> events = new ArrayList<>();
 
+    /**
+     * Required by Jackson
+     */
     public TrackerPreheatParams()
     {
     }

@@ -73,6 +73,8 @@ public interface EnrollmentService
     // CREATE
     // -------------------------------------------------------------------------
 
+    ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions );
+
     ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;

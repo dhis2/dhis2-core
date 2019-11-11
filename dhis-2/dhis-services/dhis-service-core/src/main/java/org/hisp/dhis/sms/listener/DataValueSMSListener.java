@@ -91,8 +91,6 @@ public class DataValueSMSListener
 
     private final DataValueService dataValueService;
 
-    private final CategoryService dataElementCategoryService;
-
     private final SMSCommandService smsCommandService;
 
     private final DataSetService dataSetService;
@@ -104,7 +102,7 @@ public class DataValueSMSListener
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender,
         CompleteDataSetRegistrationService registrationService, DataValueService dataValueService,
-        CategoryService dataElementCategoryService1, SMSCommandService smsCommandService, DataSetService dataSetService,
+        SMSCommandService smsCommandService, DataSetService dataSetService,
         DataElementService dataElementService )
     {
         super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
@@ -112,7 +110,6 @@ public class DataValueSMSListener
 
         this.registrationService = registrationService;
         this.dataValueService = dataValueService;
-        this.dataElementCategoryService = dataElementCategoryService1;
         this.smsCommandService = smsCommandService;
         this.dataSetService = dataSetService;
         this.dataElementService = dataElementService;
@@ -179,7 +176,7 @@ public class DataValueSMSListener
         }
 
         markCompleteDataSet( sms, orgUnit, smsCommand, date );
-        sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit );
+        sendSuccessFeedback( senderPhoneNumber, smsCommand, date, orgUnit );
 
         update( sms, SmsMessageStatus.PROCESSED, true );
     }
@@ -427,7 +424,7 @@ public class DataValueSMSListener
         registerCompleteDataSet( command.getDataset(), period, orgunit, storedBy );
     }
 
-    protected void sendSuccessFeedback( String sender, SMSCommand command, Map<String, String> parsedMessage, Date date,
+    protected void sendSuccessFeedback( String sender, SMSCommand command, Date date,
         OrganisationUnit orgunit )
     {
         String reportBack = "Thank you! Values entered: ";

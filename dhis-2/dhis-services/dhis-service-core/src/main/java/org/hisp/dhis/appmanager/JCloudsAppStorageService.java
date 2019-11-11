@@ -299,7 +299,7 @@ public class JCloudsAppStorageService
             Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
             if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
             {
-                log.error( "Failed to install app: App with same name is currently being deleted" );
+                log.error( "Failed to install app: App deletion is still in progress." );
 
                 zip.close();
                 app.setAppState( AppStatus.DELETION_IN_PROGRESS );

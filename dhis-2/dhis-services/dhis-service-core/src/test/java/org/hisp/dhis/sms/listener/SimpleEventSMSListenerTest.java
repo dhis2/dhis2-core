@@ -131,7 +131,7 @@ public class SimpleEventSMSListenerTest
     @Mock
     private ProgramInstanceService programInstanceService;
 
-    SimpleEventSMSListener subject;
+    private SimpleEventSMSListener subject;
 
     private IncomingSms incomingSmsSimpleEvent;
 

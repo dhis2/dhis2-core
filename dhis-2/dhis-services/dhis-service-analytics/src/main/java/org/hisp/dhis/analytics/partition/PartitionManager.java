@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
  * Manager for analytics table partitions.
@@ -42,7 +43,7 @@ public interface PartitionManager
 {
     /**
      * Returns a set of names of current event analytics partitions.
-     * 
+     *
      * @param tableType the type to get all existing table partitions for.
      */
     Set<String> getAnalyticsPartitions( AnalyticsTableType tableType );
@@ -64,7 +65,9 @@ public interface PartitionManager
     void filterNonExistingPartitions( Partitions partitions, String tableName );
 
     /**
-     * Clears the partition name caches.
+     * Event handler for {@link ApplicationCacheClearedEvent}.
+     *
+     * @param event the {@link ApplicationCacheClearedEvent}.
      */
-    void clearCaches();
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }

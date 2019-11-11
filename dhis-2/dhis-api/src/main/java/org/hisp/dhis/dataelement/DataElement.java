@@ -28,23 +28,15 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+
+import java.util.*;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -59,10 +51,13 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * A DataElement is a definition (meta-information about) of the entities that
@@ -76,8 +71,7 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElement
-    extends BaseDimensionalItemObject
+public class DataElement extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
     public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
@@ -218,7 +212,7 @@ public class DataElement
         return ImmutableSet.<CategoryCombo>builder()
             .addAll( dataSetElements.stream()
                 .filter( DataSetElement::hasCategoryCombo )
-                .map(DataSetElement::getCategoryCombo)
+                .map( DataSetElement::getCategoryCombo )
                 .collect( Collectors.toSet() ) )
             .add( categoryCombo ).build();
     }
@@ -228,7 +222,7 @@ public class DataElement
      * given data set for this data element. If not present, returns the
      * category combination for this data element.
      */
-    public CategoryCombo getDataElementCategoryCombo(DataSet dataSet )
+    public CategoryCombo getDataElementCategoryCombo( DataSet dataSet )
     {
         for ( DataSetElement element : dataSetElements )
         {
@@ -249,8 +243,8 @@ public class DataElement
     public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
         return getCategoryCombos().stream()
-            .map(CategoryCombo::getOptionCombos)
-            .flatMap(Collection::stream)
+            .map( CategoryCombo::getOptionCombos )
+            .flatMap( Collection::stream )
             .collect( Collectors.toSet() );
     }
 
@@ -290,7 +284,7 @@ public class DataElement
     public DataSet getDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        list.sort(DataSetFrequencyComparator.INSTANCE);
+        list.sort( DataSetFrequencyComparator.INSTANCE );
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -302,7 +296,7 @@ public class DataElement
     public DataSet getApprovalDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        list.sort(DataSetApprovalFrequencyComparator.INSTANCE);
+        list.sort( DataSetApprovalFrequencyComparator.INSTANCE );
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -314,7 +308,7 @@ public class DataElement
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( DataSetElement::getDataSet ).filter(
-                Objects::nonNull).collect( Collectors.toSet() ) );
+            Objects::nonNull ).collect( Collectors.toSet() ) );
     }
 
     /**

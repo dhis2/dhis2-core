@@ -87,8 +87,6 @@ public class J2MEDataValueSMSListener
 
     private final DataValueService dataValueService;
 
-    private final CategoryService dataElementCategoryService;
-
     private final SMSCommandService smsCommandService;
 
     private final CompleteDataSetRegistrationService registrationService;
@@ -97,19 +95,17 @@ public class J2MEDataValueSMSListener
         CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, DataValueService dataValueService,
-        CategoryService dataElementCategoryService1, SMSCommandService smsCommandService,
+        SMSCommandService smsCommandService,
         CompleteDataSetRegistrationService registrationService )
     {
         super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( dataValueService );
-        checkNotNull( dataElementCategoryService );
         checkNotNull( smsCommandService );
         checkNotNull( registrationService );
 
         this.dataValueService = dataValueService;
-        this.dataElementCategoryService = dataElementCategoryService1;
         this.smsCommandService = smsCommandService;
         this.registrationService = registrationService;
     }

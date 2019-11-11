@@ -73,20 +73,13 @@ public class HttpUtils
      * <b>Description : </b>
      * Method to make an http GET call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param authorize
-     * @param username
-     * @param password
-     * @param headers
-     * @param timeout
-     * @return
      * @throws Exception </pre>
      */
     public static DhisHttpResponse httpGET( String requestURL, boolean authorize, String username, String password,
         Map<String, String> headers, int timeout, boolean processResponse ) throws Exception
     {
         DefaultHttpClient httpclient = null;
-        DhisHttpResponse dhisHttpResponse = null;
+        DhisHttpResponse dhisHttpResponse;
         HttpParams params = new BasicHttpParams();
 
         try
@@ -142,21 +135,13 @@ public class HttpUtils
      * <b>Description : </b>
      * Method to make an http POST call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param body
-     * @param authorize
-     * @param username
-     * @param password
-     * @param contentType
-     * @param timeout
-     * @return </pre>
      */
     public static DhisHttpResponse httpPOST( String requestURL, Object body, boolean authorize, String username, String password,
         String contentType, int timeout ) throws Exception
     {
         DefaultHttpClient httpclient = null;
         HttpParams params = new BasicHttpParams();
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+        List<NameValuePair> pairs = new ArrayList<>();
         DhisHttpResponse dhisHttpResponse = null;
 
         try
@@ -218,20 +203,13 @@ public class HttpUtils
      * <b>Description : </b>
      * Method to make an http DELETE call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param authorize
-     * @param username
-     * @param password
-     * @param headers
-     * @param timeout
-     * @return
      * @throws Exception </pre>
      */
     public static DhisHttpResponse httpDELETE( String requestURL, boolean authorize, String username, String password,
         Map<String, String> headers, int timeout ) throws Exception
     {
         DefaultHttpClient httpclient = null;
-        DhisHttpResponse dhisHttpResponse = null;
+        DhisHttpResponse dhisHttpResponse;
         try
         {
             HttpParams params = new BasicHttpParams();
@@ -281,18 +259,14 @@ public class HttpUtils
      * <b>Description : </b>
      * Processes the HttpResponse to create a DHisHttpResponse object
      *
-     * @param requestURL
-     * @param username
-     * @param response
-     * @return
      * @throws IOException </pre>
      */
     private static DhisHttpResponse processResponse( String requestURL, String username, HttpResponse response )
         throws Exception
     {
-        DhisHttpResponse dhisHttpResponse = null;
-        String output = null;
-        int statusCode = 0;
+        DhisHttpResponse dhisHttpResponse;
+        String output;
+        int statusCode;
         if ( response != null )
         {
             HttpEntity responseEntity = response.getEntity();

@@ -33,12 +33,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -107,7 +109,7 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().collect( Collectors.toList() );
+        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS ).collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
 
@@ -243,17 +245,17 @@ public class DefaultAppManager
         if ( app != null )
         {
             getAppStorageServiceByApp( app ).deleteApp( app );
-        }
 
-        if ( deleteAppData )
-        {
-            keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
-            log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
-        }
+            if ( deleteAppData )
+            {
+                keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
+                log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
+            }
 
-        appCache.invalidate( app.getKey() );
+            appCache.invalidate( app.getKey() );
+        }
     }
-    
+
     @Override
     public boolean markAppToDelete( App app )
     {
@@ -331,6 +333,14 @@ public class DefaultAppManager
         throws IOException
     {
         return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        appCache.invalidateAll();
+        log.info( "App cache cleared" );
     }
 
     // -------------------------------------------------------------------------

@@ -118,6 +118,9 @@ public class TrackerPreheat
      */
     private Map<TrackerIdentifier, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
+    /**
+     * Required by Jackson
+     */
     public TrackerPreheat()
     {
     }

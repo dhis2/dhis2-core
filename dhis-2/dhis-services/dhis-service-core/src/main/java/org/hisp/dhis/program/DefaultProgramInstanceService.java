@@ -38,7 +38,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
@@ -47,6 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -55,7 +55,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -101,8 +100,11 @@ public class DefaultProgramInstanceService
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
+    private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+    @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
-    
+
     @Autowired
     private AclService aclService;
 
@@ -188,6 +190,12 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    public List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids )
+    {
+        return programInstanceStore.getUidsIncludingDeleted( uids );
+    }
+
+    @Override
     @Transactional
     public void updateProgramInstance( ProgramInstance programInstance )
     {
@@ -203,7 +211,7 @@ public class DefaultProgramInstanceService
         boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-        
+
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
         User user = currentUserService.getCurrentUser();
@@ -223,7 +231,7 @@ public class DefaultProgramInstanceService
                 {
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
                 }
-                
+
                 if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
                 {
                     throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
@@ -311,7 +319,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null )
         {
-            addProrgamInstanceAudits( programInstances, user.getUsername() );
+            addProgramInstanceAudits( programInstances, user.getUsername() );
         }
 
         return programInstances;
@@ -519,6 +527,12 @@ public class DefaultProgramInstanceService
             incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
 
+        // ---------------------------------------------------------------------
+        // Add program owner and overwrite if already exists.
+        // ---------------------------------------------------------------------
+
+        trackerOwnershipAccessManager.assignOwnership( trackedEntityInstance, program, organisationUnit, true, true );
+
         // -----------------------------------------------------------------
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
@@ -648,7 +662,7 @@ public class DefaultProgramInstanceService
         }
     }
 
-    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
+    private void addProgramInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
     {
         for ( ProgramInstance programInstance : programInstances )
         {

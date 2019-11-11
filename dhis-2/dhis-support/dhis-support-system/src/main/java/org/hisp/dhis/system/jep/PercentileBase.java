@@ -86,19 +86,22 @@ public abstract class PercentileBase
         {
             throw new NoValueException();
         }
-        else if ( fraction == 0d )
-        {
-            inStack.push( valList.get( 0 ) );
-        }
         else
         {
             Collections.sort( valList );
 
-            double[] vals = ArrayUtils.toPrimitive( valList.toArray( new Double[0]) );
+            if ( fraction == 0d )
+            {
+                inStack.push( valList.get( 0 ) );
+            }
+            else
+            {
+                double[] vals = ArrayUtils.toPrimitive( valList.toArray( new Double[0] ) );
 
-            Double result = percentile.evaluate( vals, fraction * 100. );
+                Double result = percentile.evaluate( vals, fraction * 100. );
 
-            inStack.push( result );
+                inStack.push( result );
+            }
         }
     }
 }

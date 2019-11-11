@@ -81,6 +81,9 @@ public class TrackedEntity
 
     private Geometry geometry;
 
+    /**
+     * Required by Jackson
+     */
     public TrackedEntity()
     {
     }

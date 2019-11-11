@@ -1,5 +1,7 @@
 package org.hisp.dhis.appmanager;
 
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -180,11 +182,18 @@ public interface AppManager
      */
     Resource getAppResource( App app, String pageName )
         throws IOException;
-    
+
     /**
-     * Sets the app status to DELETION_IN_PROGRESS. 
+     * Sets the app status to DELETION_IN_PROGRESS.
      * @param app The app that has to be marked as deleted.
      * @return true if the status was changed in this method.
      */
     boolean markAppToDelete( App app );
+
+    /**
+     * Event handler for {@link ApplicationCacheClearedEvent}.
+     *
+     * @param event the {@link ApplicationCacheClearedEvent}.
+     */
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }

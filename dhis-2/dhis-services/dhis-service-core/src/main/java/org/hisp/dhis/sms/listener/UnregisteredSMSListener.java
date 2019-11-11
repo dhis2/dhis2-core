@@ -70,25 +70,21 @@ public class UnregisteredSMSListener
 
     private final SMSCommandService smsCommandService;
 
-    private final UserService userService;
-
     private final MessageService messageService;
 
     public UnregisteredSMSListener( ProgramInstanceService programInstanceService,
         CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        UserService userService1, MessageService messageService )
+        MessageService messageService )
     {
         super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
-        checkNotNull( userService );
         checkNotNull( messageService );
 
         this.smsCommandService = smsCommandService;
-        this.userService = userService1;
         this.messageService = messageService;
     }
 

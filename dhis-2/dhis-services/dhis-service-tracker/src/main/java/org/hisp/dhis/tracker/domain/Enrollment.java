@@ -95,6 +95,9 @@ public class Enrollment
 
     private Geometry geometry;
 
+    /**
+     * Required by Jackson
+     */
     public Enrollment()
     {
     }

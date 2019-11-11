@@ -115,6 +115,8 @@ public class PredictionServiceTest
     private BatchHandlerFactory batchHandlerFactory;
 
     private OrganisationUnitLevel orgUnitLevel1;
+    private OrganisationUnitLevel orgUnitLevel2;
+    private OrganisationUnitLevel orgUnitLevel3;
 
     private DataElement dataElementA;
     private DataElement dataElementB;
@@ -164,8 +166,12 @@ public class PredictionServiceTest
         PeriodType.invalidatePeriodCache();
 
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
+        orgUnitLevel2 = new OrganisationUnitLevel( 2, "Level2" );
+        orgUnitLevel3 = new OrganisationUnitLevel( 3, "Level3" );
 
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
+        organisationUnitService.addOrganisationUnitLevel( orgUnitLevel2 );
+        organisationUnitService.addOrganisationUnitLevel( orgUnitLevel3 );
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -570,6 +576,43 @@ public class PredictionServiceTest
 
         // This value is derived from organisation units beneath the actual *sourceB*.
         assertEquals( "15.75", getDataValue( dataElementX, altCombo, sourceB, makeMonth( 2004, 7 ) ) );
+    }
+
+    @Test
+    public void testPredictMultiLevels()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceE, 1 );
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceE, 2 );
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceF, 4 );
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceF, 8 );
+
+        dataValueBatchHandler.flush();
+
+        Set<OrganisationUnitLevel> orgUnitLevels = Sets.newHashSet( orgUnitLevel1, orgUnitLevel2, orgUnitLevel3 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "GetPredictionsMultiLevels",
+            new Expression( "sum(#{" + dataElementA.getUid() + "})", "descriptionA" ), null,
+            periodTypeMonthly, orgUnitLevels, 2, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 8 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceE, makeMonth( 2001, 7 ) ) );
+        assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceF, makeMonth( 2001, 7 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceD, makeMonth( 2001, 7 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
+
+        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceE, makeMonth( 2001, 8 ) ) );
+        assertEquals( "12.0", getDataValue( dataElementX, defaultCombo, sourceF, makeMonth( 2001, 8 ) ) );
+        assertEquals( "15.0", getDataValue( dataElementX, defaultCombo, sourceD, makeMonth( 2001, 8 ) ) );
+        assertEquals( "15.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
+
+        summary = new PredictionSummary();
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 8", shortSummary( summary ) );
     }
 
     @Test
@@ -1079,6 +1122,85 @@ public class PredictionServiceTest
         assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values 10, 20, 30, 40
         assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
         assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
+    }
+
+    @Test
+    public void testPredictPercentileCont()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 1 ), sourceA, 50 );
+        useDataValue( dataElementA, makeMonth( 2001, 2 ), sourceA, 10 );
+        useDataValue( dataElementA, makeMonth( 2001, 3 ), sourceA, 40 );
+        useDataValue( dataElementA, makeMonth( 2001, 4 ), sourceA, 30 );
+        useDataValue( dataElementA, makeMonth( 2001, 5 ), sourceA, 20 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression0 = new Expression( "percentileCont(0,#{" + dataElementA.getUid() + "})", "expression0" );
+        Expression expression20 = new Expression("percentileCont(.2,#{" + dataElementA.getUid() + "})", "expression20" );
+        Expression expression50 = new Expression("percentileCont(.5,#{" + dataElementA.getUid() + "})", "expression50" );
+        Expression expression100 = new Expression("percentileCont(1,#{" + dataElementA.getUid() + "})", "expression100" );
+
+        expressionService.addExpression( expression0 );
+        expressionService.addExpression( expression20 );
+        expressionService.addExpression( expression50 );
+        expressionService.addExpression( expression100 );
+
+        Predictor predictor0 = createPredictor( dataElementY, defaultCombo, "0", expression0, null,
+            periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );
+        Predictor predictor20 = createPredictor( dataElementY, defaultCombo, "2", expression20, null,
+            periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );
+        Predictor predictor50 = createPredictor( dataElementY, defaultCombo, "5", expression50, null,
+            periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );
+        Predictor predictor100 = createPredictor( dataElementY, defaultCombo, "1", expression100, null,
+            periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );
+
+        predictorService.addPredictor( predictor0 );
+        predictorService.addPredictor( predictor20 );
+        predictorService.addPredictor( predictor50 );
+        predictorService.addPredictor( predictor100 );
+
+        predictionService.predict( predictor0, monthStart( 2001, 6 ), monthStart( 2001, 11 ), summary );
+
+        assertEquals( "Pred 1 Ins 5 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "10", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) ); // Values 10, 20, 30, 40, 50
+        assertEquals( "10", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values 10, 20, 30, 40
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
+
+        summary = new PredictionSummary();
+        predictionService.predict( predictor20, monthStart( 2001, 6 ), monthStart( 2001, 11 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 4 Del 0 Unch 1", shortSummary( summary ) );
+
+        assertEquals( "18", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) ); // Values 10, 20, 30, 40, 50
+        assertEquals( "16", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values 10, 20, 30, 40
+        assertEquals( "24", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
+        assertEquals( "22", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
+
+        summary = new PredictionSummary();
+        predictionService.predict( predictor50, monthStart( 2001, 6 ), monthStart( 2001, 11 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 4 Del 0 Unch 1", shortSummary( summary ) );
+
+        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) ); // Values 10, 20, 30, 40, 50
+        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values 10, 20, 30, 40
+        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
+        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
+
+        summary = new PredictionSummary();
+        predictionService.predict( predictor100, monthStart( 2001, 6 ), monthStart( 2001, 11 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 4 Del 0 Unch 1", shortSummary( summary ) );
+
+        assertEquals( "50", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) ); // Values 10, 20, 30, 40, 50
+        assertEquals( "40", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values 10, 20, 30, 40
+        assertEquals( "40", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
+        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
         assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
     }
 
