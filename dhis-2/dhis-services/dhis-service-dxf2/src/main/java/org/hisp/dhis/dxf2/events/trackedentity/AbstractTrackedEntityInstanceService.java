@@ -1214,7 +1214,7 @@ public abstract class AbstractTrackedEntityInstanceService
         }
         else
         {
-            readableAttributesCopy = readableAttributes;
+            readableAttributesCopy = new HashSet<>( readableAttributes );
         }
 
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
