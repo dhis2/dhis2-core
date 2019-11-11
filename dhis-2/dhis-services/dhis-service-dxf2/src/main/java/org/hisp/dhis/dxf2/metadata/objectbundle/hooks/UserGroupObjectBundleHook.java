@@ -1,4 +1,4 @@
-package org.hisp.dhis.period;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,30 +28,34 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections4.Predicate;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.user.UserGroup;
+import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
-import java.util.Date;
-
-public class PastPeriodPredicate
-    implements Predicate
+@Component
+public class UserGroupObjectBundleHook extends AbstractObjectBundleHook
 {
-    private Date date;
-
-    protected PastPeriodPredicate()
-    {
-    }
-
-    public PastPeriodPredicate( Date d )
-    {
-        Calendar cal = PeriodType.createCalendarInstance( d );
-        cal.set( Calendar.DAY_OF_MONTH, cal.getActualMaximum( Calendar.DAY_OF_MONTH ) );
-        this.date = cal.getTime();
-    }
-
     @Override
-    public boolean evaluate( Object o )
+    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        return ((Period) o).getEndDate().compareTo( date ) <= 0;
+        if ( !UserGroup.class.isInstance( persistedObject ) ) return;
+        handleCreatedUserProperty( object, persistedObject, bundle );
+    }
+
+    /**
+     * As User property of UserGroup is marked with @JsonIgnore ( see {@link UserGroup} ), the new object will always has User = NULL.
+     * So we need to get this from persisted UserGroup, otherwise it will always be set to current User when updating.
+     * @param object
+     * @param persistedObject
+     * @param <T>
+     */
+    private <T extends IdentifiableObject> void handleCreatedUserProperty( T object, T persistedObject, ObjectBundle bundle )
+    {
+        UserGroup userGroup = (UserGroup) object;
+        UserGroup persistedUserGroup = (UserGroup) persistedObject;
+
+        userGroup.setUser( persistedUserGroup.getUser() );
+        bundle.getPreheat().put( bundle.getPreheatIdentifier(), persistedUserGroup.getUser() );
     }
 }

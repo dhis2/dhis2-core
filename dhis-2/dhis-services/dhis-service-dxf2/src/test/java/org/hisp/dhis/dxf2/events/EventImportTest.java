@@ -28,37 +28,36 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
+import static junit.framework.TestCase.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
@@ -66,6 +65,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -95,6 +96,9 @@ public class EventImportTest
     private ProgramInstanceService programInstanceService;
 
     @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
     private UserService _userService;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
@@ -118,6 +122,10 @@ public class EventImportTest
     private ProgramStage programStageA2;
 
     private ProgramStage programStageB;
+
+    private ProgramInstance pi;
+
+    private Event event;
 
     @Override
     protected void setUpTest()
@@ -202,6 +210,15 @@ public class EventImportTest
         manager.update( programA );
         manager.update( programStageB );
         manager.update( programB );
+
+        pi = new ProgramInstance();
+        pi.setEnrollmentDate( new Date() );
+        pi.setIncidentDate( new Date() );
+        pi.setProgram( programB );
+        pi.setStatus( ProgramStatus.ACTIVE );
+        pi.setStoredBy( "test" );
+
+        event = createEvent( "eventUid001" );
 
         createUserAndInjectSecurityContext( true );
     }
@@ -315,6 +332,101 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
+    @Test
+    public void testEventDeletion() throws IOException
+    {
+        programInstanceService.addProgramInstance( pi );
+
+        ImportOptions importOptions = new ImportOptions();
+
+        ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        assertNotNull( psi );
+
+        importSummary = eventService.deleteEvent( event.getUid() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        assertNull( psi );
+
+        boolean existsDeleted = programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getUid() );
+        assertTrue( existsDeleted );
+    }
+
+    @Test
+    public void testAddAlreadyDeletedEvent() throws IOException
+    {
+        programInstanceService.addProgramInstance( pi );
+
+        ImportOptions importOptions = new ImportOptions();
+
+        eventService.addEvent( event, importOptions, false );
+        eventService.deleteEvent( event.getUid() );
+
+        manager.flush();
+
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        event.setDeleted( true );
+        ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getIgnored() );
+        assertTrue( importSummary.getDescription().contains( "already exists or was deleted earlier" ) );
+    }
+
+    @Test
+    public void testAddAlreadyDeletedEventInBulk() throws IOException
+    {
+        programInstanceService.addProgramInstance( pi );
+
+        ImportOptions importOptions = new ImportOptions();
+
+        eventService.addEvent( event, importOptions, false );
+        eventService.deleteEvent( event.getUid() );
+
+        manager.flush();
+
+        Event event2 = createEvent( "eventUid002" );
+        Event event3 = createEvent( "eventUid003" );
+
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        event.setDeleted( true );
+
+        List<Event> events = new ArrayList<>();
+        events.add( event );
+        events.add( event2 );
+        events.add( event3 );
+
+        ImportSummaries importSummaries = eventService.addEvents( events, importOptions, true );
+
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
+        assertEquals( 1, importSummaries.getIgnored() );
+        assertEquals( 2, importSummaries.getImported() );
+        assertTrue( importSummaries.getImportSummaries().stream()
+            .anyMatch( is -> is.getDescription().contains( "already exists or was deleted earlier" ) ) );
+
+        manager.flush();
+        List<String> uids = new ArrayList<>();
+        uids.add( "eventUid001" );
+        uids.add( "eventUid002" );
+        uids.add( "eventUid003" );
+        List<String> fetchedUids = programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted( uids );
+
+        assertTrue( Sets.difference( new HashSet<>( uids ), new HashSet<>( fetchedUids ) ).isEmpty() );
+    }
+
+    @Test
+    public void testGeometry()
+        throws IOException
+    {
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+    }
+
     @SuppressWarnings("unchecked")
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person, DataElement dataElement, String value )
     {
@@ -350,5 +462,22 @@ public class EventImportTest
         enrollment.setIncidentDate( new Date() );
 
         return enrollment;
+    }
+
+    private Event createEvent( String uid )
+    {
+        Event event = new Event();
+        event.setUid( uid );
+        event.setEvent( uid );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgram( programB.getUid() );
+        event.setProgramStage( programStageB.getUid() );
+        event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event.setOrgUnit( organisationUnitB.getUid() );
+        event.setEnrollment( pi.getUid() );
+        event.setEventDate( "2019-10-24" );
+        event.setDeleted( false );
+
+        return event;
     }
 }
