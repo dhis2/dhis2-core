@@ -171,6 +171,7 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public void invalidateAll()
     {
-        // No operation
+        Set<String> keysToDelete = redisTemplate.keys( cacheRegion.concat( ":*" ) );
+        redisTemplate.delete( keysToDelete );
     }
 }
