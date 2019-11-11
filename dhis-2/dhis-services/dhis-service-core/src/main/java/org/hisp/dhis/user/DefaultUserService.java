@@ -113,6 +113,7 @@ public class DefaultUserService
         this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
+        this.sessionRegistry = sessionRegistry;
     }
 
     // -------------------------------------------------------------------------
