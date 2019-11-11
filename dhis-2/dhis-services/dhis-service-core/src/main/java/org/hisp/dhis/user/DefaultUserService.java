@@ -46,6 +46,8 @@ import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,10 +91,12 @@ public class DefaultUserService
 
     private final PasswordManager passwordManager;
 
+    private final SessionRegistry sessionRegistry;
+
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
-        @Lazy PasswordManager passwordManager )
+        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
@@ -100,7 +104,8 @@ public class DefaultUserService
         checkNotNull( userAuthorityGroupStore );
         checkNotNull( systemSettingManager );
         checkNotNull( passwordManager );
-        
+        checkNotNull( sessionRegistry );
+
         this.userStore = userStore;
         this.userGroupService = userGroupService;
         this.userCredentialsStore = userCredentialsStore;
@@ -108,6 +113,7 @@ public class DefaultUserService
         this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
+        this.sessionRegistry = sessionRegistry;
     }
 
     // -------------------------------------------------------------------------
@@ -684,5 +690,13 @@ public class DefaultUserService
         user.getUserCredentials().setTwoFA( twoFa );
 
         updateUser( user );
+    }
+
+    @Override
+    public void expireActiveSessions( UserCredentials credentials )
+    {
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions( credentials, false );
+
+        sessions.forEach( SessionInformation::expireNow );
     }
 }
