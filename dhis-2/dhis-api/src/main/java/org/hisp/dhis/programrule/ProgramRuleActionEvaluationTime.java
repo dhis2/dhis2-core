@@ -29,9 +29,11 @@ package org.hisp.dhis.programrule;
  */
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -40,23 +42,29 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "programRuleEvaluationTime", namespace = DxfNamespaces.DXF_2_0 )
 public enum ProgramRuleActionEvaluationTime
 {
-    ON_DATA_ENTRY( "on_data_entry", 1 ),
-    ON_COMPLETE( "on_complete", 1 ),
-    ALWAYS( "always", 2 );
+    ON_DATA_ENTRY( "on_data_entry" ),
+    ON_COMPLETE( "on_complete" ),
+    ALWAYS( "always", Lists.newArrayList( ON_DATA_ENTRY, ON_COMPLETE ) );
 
     private final String value;
 
-    private final int order;
+    private final List<ProgramRuleActionEvaluationTime> included;
 
-    ProgramRuleActionEvaluationTime( String value, int order )
+    ProgramRuleActionEvaluationTime( String value )
     {
         this.value = value;
-        this.order = order;
+        this.included = Lists.newArrayList();
+    }
+
+    ProgramRuleActionEvaluationTime( String value, List<ProgramRuleActionEvaluationTime> included )
+    {
+        this.value = value;
+        this.included = included;
     }
 
     public boolean isIncluded( ProgramRuleActionEvaluationTime evaluationTime )
     {
-        return this.order > evaluationTime.order;
+        return this.equals( evaluationTime ) || this.included.contains( evaluationTime );
     }
 
     public static ProgramRuleActionEvaluationTime fromValue( String value )

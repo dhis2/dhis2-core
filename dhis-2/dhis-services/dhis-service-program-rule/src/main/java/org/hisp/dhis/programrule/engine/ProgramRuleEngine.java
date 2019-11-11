@@ -116,12 +116,12 @@ public class ProgramRuleEngine
 
     public List<RuleEffect> evaluateEnrollment(ProgramInstance enrollment )
     {
+        List<RuleEffect> ruleEffects = new ArrayList<>();
+
         if ( enrollment == null )
         {
-            return new ArrayList<>();
+            return ruleEffects;
         }
-
-        List<RuleEffect> ruleEffects = new ArrayList<>();
 
         ProgramRuleActionEvaluationTime onComplete = ProgramRuleActionEvaluationTime.ON_COMPLETE;
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
@@ -144,7 +144,7 @@ public class ProgramRuleEngine
             ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables, onComplete )
                 .events( ruleEvents ).build();
 
-            ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
+            ruleEffects = ruleEngine.evaluate( ruleEnrollment ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
                 .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );

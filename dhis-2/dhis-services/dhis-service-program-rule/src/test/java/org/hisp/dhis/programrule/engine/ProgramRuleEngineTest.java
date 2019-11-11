@@ -108,6 +108,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramRule programRuleS;
 
+    private ProgramRule programRuleR;
+
     private DataElement dataElementA;
 
     private DataElement dataElementB;
@@ -258,9 +260,75 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
+    public void testSendMessageOnCompleteForEnrollment()
+    {
+        setUpSendMessageOnCompleteForEnrollment();
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionSendMessage );
+
+        RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
+
+        assertEquals( "PNT-1", ruleActionSendMessage.notification() );
+    }
+
+    @Test
+    public void testSendMessageOnDataEntryForEnrollment()
+    {
+        setUpSendMessageOnDataEntryForEnrollment();
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+
+        assertEquals( 0, ruleEffects.size() );
+    }
+
+    @Test
     public void testSendMessageForEvent()
     {
         setUpSendMessageForEnrollment();
+
+        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine
+            .evaluateEvent( programStageInstance, ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionSendMessage );
+
+        RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
+
+        assertEquals( "PNT-1", ruleActionSendMessage.notification() );
+    }
+
+    @Test
+    public void testSendMessageOnCompleteForEvent()
+    {
+        setUpSendMessageOnCompleteForEnrollment();
+
+        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine
+            .evaluateEvent( programStageInstance, ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
+
+        assertEquals( 0, ruleEffects.size() );
+    }
+
+    @Test
+    public void testSendMessageOnDataEntryForEvent()
+    {
+        setUpSendMessageOnDataEntryForEnrollment();
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
 
@@ -521,6 +589,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleS.setCondition( expressionS );
         programRuleService.addProgramRule( programRuleS );
 
+        programRuleR = createProgramRule( 'R', programA );
+        programRuleR.setCondition( expressionC );
+        programRuleService.addProgramRule( programRuleR );
+
         ProgramRuleVariable programRuleVariableA = createProgramRuleVariable( 'A', programA );
         programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariableA.setDataElement( dataElementA );
@@ -580,6 +652,56 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleC.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleC );
+    }
+
+    private void setUpSendMessageOnCompleteForEnrollment()
+    {
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-1" );
+
+        programNotificationTemplateStore.save( pnt );
+
+        ProgramRuleAction programRuleActionForSendMessage = createProgramRuleAction( 'R', programRuleR );
+        programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionForSendMessage.setTemplateUid( pnt.getUid() );
+        programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
+        programRuleActionForSendMessage
+            .setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ON_COMPLETE );
+        programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
+
+        programRuleR.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
+        programRuleService.updateProgramRule( programRuleR );
+    }
+
+    private void setUpSendMessageOnDataEntryForEnrollment()
+    {
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-1" );
+
+        programNotificationTemplateStore.save( pnt );
+
+        ProgramRuleAction programRuleActionForSendMessage = createProgramRuleAction( 'R', programRuleR );
+        programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionForSendMessage.setTemplateUid( pnt.getUid() );
+        programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
+        programRuleActionForSendMessage
+            .setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
+        programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
+
+        programRuleR.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
+        programRuleService.updateProgramRule( programRuleR );
     }
 
     private void setUpScheduleMessage()

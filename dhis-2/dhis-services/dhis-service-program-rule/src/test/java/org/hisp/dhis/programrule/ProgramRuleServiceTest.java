@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import com.google.common.collect.Sets;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.*;
 
 public class ProgramRuleServiceTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     private Program programA;
     private Program programB;
@@ -72,12 +73,6 @@ public class ProgramRuleServiceTest
 
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     public void setUpTest()
@@ -130,161 +125,6 @@ public class ProgramRuleServiceTest
         assertEquals( ruleA, programRuleService.getProgramRule( idA ) );
         assertEquals( ruleB, programRuleService.getProgramRule( idB ) );
         assertEquals( ruleC, programRuleService.getProgramRule( idC ) );
-    }
-
-    @Test
-    public void testAddGetDefaultValuesForEvaluationTimeAndEnvironments()
-    {
-        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-
-        long idA = programRuleService.addProgramRule( ruleA );
-
-        ProgramRuleAction ruleActionA = createProgramRuleAction( 'A', ruleA );
-        programRuleActonService.addProgramRuleAction( ruleActionA );
-
-        ruleA.setProgramRuleActions( Sets.newHashSet( ruleActionA ) );
-        programRuleService.updateProgramRule( ruleA );
-
-        ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
-        Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
-            .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
-                Collectors.toSet() );
-        Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
-            .getProgramRuleActions().stream()
-            .flatMap( action -> action.getProgramRuleActionEvaluationEnvironments().stream() ).collect(
-                Collectors.toSet() );
-
-        assertEquals( ruleA, retrievedProgramRule );
-        assertEquals( 1, evaluationTimesForActions.size() );
-        assertTrue( evaluationTimesForActions.contains( ProgramRuleActionEvaluationTime.ALWAYS ) );
-        assertEquals( ProgramRuleActionEvaluationEnvironment.getDefault().size(),
-            evaluationEnvironmentsForActions.size() );
-        assertEquals( ProgramRuleActionEvaluationEnvironment.getDefault(),
-            evaluationEnvironmentsForActions );
-    }
-
-    @Test
-    public void testAddGetNotDefaultValuesForEvaluationTimeAndEnvironments()
-    {
-        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-
-        long idA = programRuleService.addProgramRule( ruleA );
-
-        ProgramRuleAction ruleActionA = createProgramRuleAction( 'A', ruleA );
-
-        ruleActionA.setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ON_COMPLETE );
-        ruleActionA.setProgramRuleActionEvaluationEnvironments(
-            Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.ANDROID ) );
-
-        programRuleActonService.addProgramRuleAction( ruleActionA );
-
-        ruleA.setProgramRuleActions( Sets.newHashSet( ruleActionA ) );
-        programRuleService.updateProgramRule( ruleA );
-
-        ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
-        Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
-            .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
-                Collectors.toSet() );
-        Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
-            .getProgramRuleActions().stream()
-            .flatMap( action -> action.getProgramRuleActionEvaluationEnvironments().stream() ).collect(
-                Collectors.toSet() );
-
-        assertEquals( ruleA, retrievedProgramRule );
-        assertEquals( 1, evaluationTimesForActions.size() );
-        assertTrue( evaluationTimesForActions.contains( ProgramRuleActionEvaluationTime.ON_COMPLETE ) );
-        assertEquals( 1,
-            evaluationEnvironmentsForActions.size() );
-        assertEquals( Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.ANDROID ),
-            evaluationEnvironmentsForActions );
-    }
-
-    @Test
-    public void testAddRetrieveProgramRulesByEvaluationTimeAndEnvironments()
-    {
-        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programB, programStageA, null, "true", null );
-
-        long idA = programRuleService.addProgramRule( ruleA );
-        long idB = programRuleService.addProgramRule( ruleB );
-
-        ProgramRuleAction ruleActionA = createProgramRuleAction( 'C', ruleA );
-
-        ruleActionA.setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ON_COMPLETE );
-        ruleActionA.setProgramRuleActionEvaluationEnvironments(
-            Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.ANDROID ) );
-
-        programRuleActonService.addProgramRuleAction( ruleActionA );
-
-        ProgramRuleAction ruleActionB = createProgramRuleAction( 'D', ruleB );
-
-        ruleActionB.setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
-        ruleActionB.setProgramRuleActionEvaluationEnvironments(
-            Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.WEB ) );
-
-        programRuleActonService.addProgramRuleAction( ruleActionB );
-
-        ruleA.setProgramRuleActions( Sets.newHashSet( ruleActionA ) );
-        programRuleService.updateProgramRule( ruleA );
-        ruleB.setProgramRuleActions( Sets.newHashSet( ruleActionB ) );
-        programRuleService.updateProgramRule( ruleB );
-
-        ProgramRule retrievedProgramRuleA = programRuleService.getProgramRule( idA );
-        ProgramRule retrievedProgramRuleB = programRuleService.getProgramRule( idB );
-
-        assertEquals( ruleA, retrievedProgramRuleA );
-        assertEquals( ruleB, retrievedProgramRuleB );
-    }
-
-    @Test
-    public void testAddRetrieveProgramRulesAndActionsByEvaluationTimeAndEnvironments()
-    {
-        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programB, programStageA, null, "true", null );
-
-        long idA = programRuleService.addProgramRule( ruleA );
-        long idB = programRuleService.addProgramRule( ruleB );
-
-        ProgramRuleAction ruleActionA1 = createProgramRuleAction( 'C', ruleA );
-
-        ruleActionA1.setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ON_COMPLETE );
-        ruleActionA1.setProgramRuleActionEvaluationEnvironments(
-            Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.ANDROID ) );
-
-        programRuleActonService.addProgramRuleAction( ruleActionA1 );
-
-        ProgramRuleAction ruleActionA2 = createProgramRuleAction( 'D', ruleA );
-
-        ruleActionA2.setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ON_DATA_ENTRY );
-        ruleActionA2.setProgramRuleActionEvaluationEnvironments(
-            Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.WEB ) );
-
-        programRuleActonService.addProgramRuleAction( ruleActionA2 );
-
-        ProgramRuleAction ruleActionB = createProgramRuleAction( 'E', ruleB );
-
-        ruleActionB.setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime.ALWAYS );
-        ruleActionB.setProgramRuleActionEvaluationEnvironments(
-            Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.WEB,
-                ProgramRuleActionEvaluationEnvironment.ANDROID ) );
-
-        programRuleActonService.addProgramRuleAction( ruleActionB );
-
-        ruleA.setProgramRuleActions( Sets.newHashSet( ruleActionA1, ruleActionA2 ) );
-        programRuleService.updateProgramRule( ruleA );
-        ruleB.setProgramRuleActions( Sets.newHashSet( ruleActionB ) );
-        programRuleService.updateProgramRule( ruleB );
-
-        ProgramRule retrievedProgramRuleA = programRuleService.getProgramRule( idA );
-        ProgramRule retrievedProgramRuleB = programRuleService.getProgramRule( idB );
-
-        assertEquals( ruleA, retrievedProgramRuleA );
-        assertEquals( ruleB, retrievedProgramRuleB );
-
-        List<ProgramRule> allProgramRule = programRuleService.getAllProgramRule();
-
     }
 
     @Test

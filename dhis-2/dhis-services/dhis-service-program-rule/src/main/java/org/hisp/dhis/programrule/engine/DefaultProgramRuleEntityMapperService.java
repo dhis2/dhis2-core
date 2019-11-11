@@ -161,7 +161,9 @@ public class DefaultProgramRuleEntityMapperService
     {
         return programRules.stream()
             .map( pr -> toRule( pr, evaluationTime ) )
-            .filter( pr -> !pr.actions().isEmpty() ).collect( Collectors.toList() );
+            .filter( Objects::nonNull )
+            .filter( pr -> !pr.actions().isEmpty() )
+            .collect( Collectors.toList() );
     }
 
     @Override

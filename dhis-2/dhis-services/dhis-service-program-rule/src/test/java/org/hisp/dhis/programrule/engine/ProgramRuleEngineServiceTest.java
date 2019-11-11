@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -118,8 +120,10 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         ruleActionImplementers.add( ruleActionSendMessage );
 
         // stub for programRuleEngine
-        when( programRuleEngine.evaluateEnrollment( any() ) ).thenReturn( effects );
-        when( programRuleEngine.evaluateEvent( any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluateEvent( any(), eq( ON_COMPLETE ) ) )
+            .thenReturn( effects );
+        when( programRuleEngine.evaluateEvent( any(), eq( ON_DATA_ENTRY ) ) )
+            .thenReturn( effects );
 
         // stub for ruleActionSendMessage
         when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
@@ -188,15 +192,18 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluateEvent( programStageInstance.getId(), any() );
+        List<RuleEffect> ruleEffects = service
+            .evaluateEvent( programStageInstance.getId(), ON_DATA_ENTRY );
 
         assertEquals( 1, ruleEffects.size() );
 
-        verify( programRuleEngine, times( 1 ) ).evaluateEvent( argumentCaptor.capture(), any() );
+        verify( programRuleEngine, times( 1 ) )
+            .evaluateEvent( argumentCaptor.capture(), eq( ON_DATA_ENTRY ) );
         assertEquals( programStageInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
-        verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), argumentCaptor.capture() );
+        verify( ruleActionSendMessage )
+            .implement( any( RuleEffect.class ), any( ProgramInstance.class ) );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
