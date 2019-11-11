@@ -120,6 +120,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         ruleActionImplementers.add( ruleActionSendMessage );
 
         // stub for programRuleEngine
+        when( programRuleEngine.evaluateEnrollment( any() ) ).thenReturn( effects );
         when( programRuleEngine.evaluateEvent( any(), eq( ON_COMPLETE ) ) )
             .thenReturn( effects );
         when( programRuleEngine.evaluateEvent( any(), eq( ON_DATA_ENTRY ) ) )
