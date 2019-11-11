@@ -389,7 +389,7 @@ public class MeController
 
     @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
-    public void updatePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
+    public void updatePassword( @RequestBody Map<String, String> body )
         throws WebMessageException, NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
