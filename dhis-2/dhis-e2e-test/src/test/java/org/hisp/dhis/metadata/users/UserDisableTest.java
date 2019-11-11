@@ -38,7 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author Morten Svanæs <netroms@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class UserDisableTest
     extends ApiTest
