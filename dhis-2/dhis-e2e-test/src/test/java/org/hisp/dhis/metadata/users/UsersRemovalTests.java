@@ -39,19 +39,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UsersRemovalTests
     extends ApiTest
 {
-    private UserActions userActions = new UserActions();
+    private UserActions userActions;
 
-    private OptionActions optionActions = new OptionActions();
+    private OptionActions optionActions;
 
-    private LoginActions loginActions = new LoginActions();
+    private LoginActions loginActions;
 
     private String userId;
 
@@ -62,9 +60,14 @@ public class UsersRemovalTests
     @BeforeEach
     public void beforeEach()
     {
+        userActions = new UserActions();
+        optionActions = new OptionActions();
+        loginActions = new LoginActions();
+
         userName = DataGenerator.randomString();
 
         loginActions.loginAsSuperUser();
+
         userId = userActions.addUser( "johnny", "bravo", userName, password );
     }
 
@@ -72,13 +75,11 @@ public class UsersRemovalTests
     public void shouldRemoveWhenUserWasLoggedIn()
     {
         loginActions.loginAsUser( userName, password );
-
         loginActions.loginAsSuperUser();
 
         ApiResponse response = userActions.delete( userId );
 
-        assertEquals( 200, response.statusCode() );
-        assertEquals( response.extractUid(), userId );
+        ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
     }
 
     @Test
@@ -86,11 +87,15 @@ public class UsersRemovalTests
     //jira issue 5573
     public void shouldRemoveWhenUserWasGrantedAccessToMetadata()
     {
+        // arrange
         String id = optionActions.createOptionSet();
 
         optionActions.grantUserAccessToOptionSet( id, userId );
 
+        // act
         ApiResponse response = userActions.delete( userId );
+
+        // assert
         ResponseValidationHelper.validateObjectRemoval( response, "User was not removed" );
     }
 }

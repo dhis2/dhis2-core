@@ -28,12 +28,11 @@
 
 package org.hisp.dhis.fileresource;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
-import org.apache.commons.collections.map.HashedMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -61,20 +60,27 @@ public class SimpleImageResource
     {
         if ( images == null )
         {
-            images = new HashedMap();
+            images = new HashMap<>();
         }
         images.put( type, path );
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object other )
     {
-        if ( this == o )
+        if ( this == other )
+        {
             return true;
-        if ( o == null || getClass() != o.getClass() )
+        }
+
+        if ( other == null || getClass() != other.getClass() )
+        {
             return false;
-        SimpleImageResource that = (SimpleImageResource) o;
-        return images.equals( that.images );
+        }
+
+        SimpleImageResource that = (SimpleImageResource) other;
+
+        return Objects.equals( this.images, that.images );
     }
 
     @Override

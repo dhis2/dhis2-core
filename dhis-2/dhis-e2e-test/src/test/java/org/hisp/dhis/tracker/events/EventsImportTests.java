@@ -5,7 +5,7 @@ import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.system.SystemActions;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
@@ -27,6 +27,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -36,9 +37,9 @@ public class EventsImportTests
 {
     List<String> createdEvents = new ArrayList<>();
 
-    private EventActions eventActions = new EventActions();
+    private EventActions eventActions;
 
-    private SystemActions systemActions = new SystemActions();
+    private SystemActions systemActions;
 
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
@@ -51,6 +52,9 @@ public class EventsImportTests
     @BeforeAll
     public void before()
     {
+        eventActions = new EventActions();
+        systemActions = new SystemActions();
+
         new LoginActions().loginAsSuperUser();
     }
 
@@ -72,12 +76,13 @@ public class EventsImportTests
             .statusCode( 200 );
 
         String taskId = response.extractString( "response.id" );
+        assertNotNull( taskId, "Task id was not returned" );
 
         systemActions.waitUntilTaskCompleted( "EVENT_IMPORT", taskId );
 
         List<ImportSummary> importSummaries = systemActions.getTaskSummaries( "EVENT_IMPORT", taskId );
 
-        assertThat( importSummaries.size(), Matchers.greaterThan( 0 ) );
+        assertThat( "Wrong import summaries size",  importSummaries.size(), Matchers.greaterThan( 0 ) );
 
         createdEvents.addAll( importSummaries
             .stream()
@@ -106,6 +111,7 @@ public class EventsImportTests
         response = post( "events.json", true );
 
         String taskId = response.extractString( "response.id" );
+        assertNotNull( taskId, "Task id was not returned" );
 
         systemActions.waitUntilTaskCompleted( "EVENT_IMPORT", taskId );
 
