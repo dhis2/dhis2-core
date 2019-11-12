@@ -289,6 +289,8 @@ public class MeController
 
         updatePassword( currentUser, newPassword );
         manager.update( currentUser );
+
+        currentUserService.expireUserSessions();
     }
 
     @RequestMapping( value = { "/authorization", "/authorities" } )
