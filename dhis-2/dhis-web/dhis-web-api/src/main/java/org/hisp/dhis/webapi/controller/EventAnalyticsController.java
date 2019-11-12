@@ -747,7 +747,7 @@ public class EventAnalyticsController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Grid substituteValues(Grid grid )
+    private Grid substituteValues( Grid grid )
     {
         if ( grid.getMetaData() != null && grid.getMetaData().containsKey( AnalyticsMetaDataKey.ITEMS.getKey() ) )
         {
