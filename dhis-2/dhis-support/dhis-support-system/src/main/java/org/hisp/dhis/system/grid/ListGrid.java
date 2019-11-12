@@ -880,6 +880,25 @@ public class ListGrid
     }
 
     @Override
+    public Grid substituteValues( Map<String, String> uidToNameMap )
+    {
+        for ( List<Object> columns : grid )
+        {
+            for ( int col = 0; col < columns.size(); col++ )
+            {
+                Object column = columns.get( col );
+                if ( column != null && !MathUtils.isNumeric( String.valueOf( column ) )
+                        && uidToNameMap.containsKey( String.valueOf( column ) ) )
+                {
+                    columns.set( col, uidToNameMap.get( String.valueOf( column ) ) );
+                }
+            }
+        }
+
+        return this;
+    }
+
+    @Override
     public List<Integer> getMetaColumnIndexes()
     {
         List<Integer> indexes = new ArrayList<>();
