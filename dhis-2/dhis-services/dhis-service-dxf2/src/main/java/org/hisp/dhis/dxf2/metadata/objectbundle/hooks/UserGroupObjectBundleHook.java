@@ -1,4 +1,4 @@
-package org.hisp.dhis.result;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,19 +28,34 @@ package org.hisp.dhis.result;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.struts2.dispatcher.VelocityResult;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.user.UserGroup;
+import org.springframework.stereotype.Component;
 
-public class VelocityCacheManifestResult
-    extends VelocityResult
+@Component
+public class UserGroupObjectBundleHook extends AbstractObjectBundleHook
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 1038408987156030639L;
-
     @Override
-    protected final String getContentType( String templateLocation )
-    {       
-        return "text/cache-manifest";
+    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    {
+        if ( !UserGroup.class.isInstance( persistedObject ) ) return;
+        handleCreatedUserProperty( object, persistedObject, bundle );
+    }
+
+    /**
+     * As User property of UserGroup is marked with @JsonIgnore ( see {@link UserGroup} ), the new object will always has User = NULL.
+     * So we need to get this from persisted UserGroup, otherwise it will always be set to current User when updating.
+     * @param object
+     * @param persistedObject
+     * @param <T>
+     */
+    private <T extends IdentifiableObject> void handleCreatedUserProperty( T object, T persistedObject, ObjectBundle bundle )
+    {
+        UserGroup userGroup = (UserGroup) object;
+        UserGroup persistedUserGroup = (UserGroup) persistedObject;
+
+        userGroup.setUser( persistedUserGroup.getUser() );
+        bundle.getPreheat().put( bundle.getPreheatIdentifier(), persistedUserGroup.getUser() );
     }
 }

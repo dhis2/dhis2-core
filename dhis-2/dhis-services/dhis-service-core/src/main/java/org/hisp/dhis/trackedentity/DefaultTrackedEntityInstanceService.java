@@ -28,24 +28,19 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -65,20 +60,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -109,8 +90,6 @@ public class DefaultTrackedEntityInstanceService
 
     private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-
     private final AclService aclService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
@@ -125,8 +104,7 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityAttributeValueService attributeValueService, TrackedEntityAttributeService attributeService,
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
-        TrackedEntityAttributeValueAuditService attributeValueAuditService,
-        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService, AclService aclService,
+        TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
         @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager, RenderService renderService )
     {
         checkNotNull( trackedEntityInstanceStore );
@@ -137,7 +115,6 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( organisationUnitService );
         checkNotNull( currentUserService );
         checkNotNull( attributeValueAuditService );
-        checkNotNull( trackedEntityInstanceAuditService );
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( auditManager );
@@ -151,7 +128,6 @@ public class DefaultTrackedEntityInstanceService
         this.organisationUnitService = organisationUnitService;
         this.currentUserService = currentUserService;
         this.attributeValueAuditService = attributeValueAuditService;
-        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;
@@ -193,7 +169,7 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
-        String accessedBy = user.getUsername();
+        String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
