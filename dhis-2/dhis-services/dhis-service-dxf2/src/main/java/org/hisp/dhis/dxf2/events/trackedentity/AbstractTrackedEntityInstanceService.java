@@ -80,6 +80,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -136,7 +138,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected FileResourceService fileResourceService;
-    
+
     @Autowired
     private I18nManager i18nManager;
 
@@ -471,16 +473,16 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
-        
+
         User user = currentUserService.getCurrentUser();
 
         if ( entityInstance != null )
         {
             if( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
-            {                
+            {
                 return new ImportSummary( ImportStatus.ERROR, "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
             }
-            
+
             teiService.deleteTrackedEntityInstance( entityInstance );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
         }
@@ -635,6 +637,13 @@ public abstract class AbstractTrackedEntityInstanceService
         return trackedEntityAttributeCache.get( id, () -> manager.getObject( TrackedEntityAttribute.class, idSchemes.getTrackedEntityAttributeIdScheme(), id ) );
     }
 
+    private Map<String, TrackedEntityAttributeValue> getTeiAttributeValueMap(
+        List<TrackedEntityAttributeValue> teiAttributeValues )
+    {
+        return teiAttributeValues.stream()
+            .collect( Collectors.toMap( tav -> tav.getAttribute().getUid(), tav -> tav ) );
+    }
+
     //--------------------------------------------------------------------------
     // VALIDATION
     //--------------------------------------------------------------------------
@@ -695,16 +704,17 @@ public abstract class AbstractTrackedEntityInstanceService
                     + dtoRelationship.getTrackedEntityInstanceB() ) );
             }
         }
-
         return importConflicts;
     }
 
-    private List<ImportConflict> validateTextPatternValue( TrackedEntityAttribute attribute, String value )
+    private List<ImportConflict> validateTextPatternValue( TrackedEntityAttribute attribute, String value,
+        String oldValue )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
 
         if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
-            && !reservedValueService.isReserved( attribute.getTextPattern(), value ) )
+            && !reservedValueService.isReserved( attribute.getTextPattern(), value )
+            && !Objects.equals( value, oldValue ) )
         {
             importConflicts.add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern." ) );
         }
@@ -747,10 +757,14 @@ public abstract class AbstractTrackedEntityInstanceService
                 .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
         }
 
+        Map<String, TrackedEntityAttributeValue> teiAttributeValueMap = getTeiAttributeValueMap(
+            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstanceTemp ) );
 
         for ( Attribute attribute : dtoEntityInstance.getAttributes() )
         {
             TrackedEntityAttribute daoEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(), attribute.getAttribute() );
+            TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
+                .get( daoEntityAttribute.getUid() );
 
             if ( daoEntityAttribute == null )
             {
@@ -760,7 +774,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
             {
-                importConflicts.addAll( validateTextPatternValue( daoEntityAttribute, attribute.getValue() ) );
+                importConflicts.addAll( validateTextPatternValue( daoEntityAttribute, attribute.getValue(),
+                    trackedEntityAttributeValue != null ? trackedEntityAttributeValue.getValue() : null ) );
             }
 
             if ( daoEntityAttribute.isUnique() )
@@ -858,14 +873,14 @@ public abstract class AbstractTrackedEntityInstanceService
         FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
         return fileResource != null && fileResource.isAssigned() && !oldFileValues.contains( attribute.getValue() );
     }
-    
+
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
         TrackedEntityInstanceParams params, User user )
     {
         if ( daoTrackedEntityInstance == null )
         {
             return null;
-        }        
+        }
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( daoTrackedEntityInstance.getUid() );
