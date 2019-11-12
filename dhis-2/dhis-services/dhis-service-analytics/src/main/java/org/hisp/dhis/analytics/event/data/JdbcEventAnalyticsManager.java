@@ -322,18 +322,7 @@ public class JdbcEventAnalyticsManager
         {
             String alias = getPeriodAlias( params );
 
-            List<String> years = new ArrayList<String>();
-
-            Calendar calendar = PeriodType.getCalendar();
-
-            for( DimensionalItemObject period : params.getDimensionOrFilterItems( PERIOD_DIM_ID ) )
-            {
-                Period p = (Period) period;
-                years.add( Integer.toString( DateTimeUnit.fromJdkDate( DateUtils.getDate( calendar, p.getStartDate())).getYear() ) );
-                years.add( Integer.toString( DateTimeUnit.fromJdkDate( DateUtils.getDate( calendar, p.getEndDate())).getYear() ) );
-            }
-
-            sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( years ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
