@@ -138,10 +138,10 @@ public class JdbcEventAnalyticsTableManagerTest
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
 
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
+            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01'",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.deleted is false ",
+            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
     }
 
