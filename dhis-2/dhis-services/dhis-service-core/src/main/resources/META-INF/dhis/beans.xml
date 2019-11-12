@@ -1727,6 +1727,8 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
+
   <!-- AOP definitions -->
 
   <aop:config>
