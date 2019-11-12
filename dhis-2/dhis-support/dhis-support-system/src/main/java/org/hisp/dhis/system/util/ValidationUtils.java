@@ -66,9 +66,9 @@ public class ValidationUtils
     private static final Pattern BBOX_PATTERN = Pattern.compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
 
-    private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "f", "F", "0" );
+    private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
 
-    private static Set<String> BOOL_TRUE_VARIANTS = Sets.newHashSet( "true", "True", "t", "T", "1" );
+    private static Set<String> BOOL_TRUE_VARIANTS = Sets.newHashSet( "true", "True", "TRUE", "t", "T", "1" );
 
     private static final int VALUE_MAX_LENGTH = 50000;
 
@@ -437,11 +437,11 @@ public class ValidationUtils
         {
             return "value_not_zero_or_positive_integer";
         }
-        else if ( ValueType.BOOLEAN == valueType && !MathUtils.isBool( value ) )
+        else if ( ValueType.BOOLEAN == valueType && !MathUtils.isBool( value.toLowerCase() ) )
         {
             return "value_not_bool";
         }
-        else if ( ValueType.TRUE_ONLY == valueType && !DataValue.TRUE.equals( value ) )
+        else if ( ValueType.TRUE_ONLY == valueType && !DataValue.TRUE.equals( value.toLowerCase() ) )
         {
             return "value_not_true_only";
         }
