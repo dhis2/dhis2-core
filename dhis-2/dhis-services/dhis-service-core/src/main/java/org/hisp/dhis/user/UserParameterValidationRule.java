@@ -52,7 +52,7 @@ public class UserParameterValidationRule
         String password = credentialsInfo.getPassword();
         String username = credentialsInfo.getUsername();
 
-        if ( StringUtils.isBlank( email ) || StringUtils.isBlank( password ) || StringUtils.isBlank( username ) )
+        if ( StringUtils.isBlank( password ) || StringUtils.isBlank( username ) )
         {
             return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
         }
