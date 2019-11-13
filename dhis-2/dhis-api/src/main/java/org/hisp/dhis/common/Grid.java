@@ -422,6 +422,16 @@ public interface Grid
     Grid substituteMetaData( int sourceColumnIndex, int targetColumnIndex, Map<?, ?> metaDataMap );
 
     /**
+     * Substitutes the grid values based on the supplied UID <--> NAME mapping. It
+     * replaces the UID with the name found in the supplied map. Values are left
+     * unchanged when there is not match in the given meta data map.
+     *
+     * @param uidToNameMap a metadata map containing the mapping between UID and
+     *        actual Name
+     */
+    Grid substituteValues( Map<String, String> uidToNameMap );
+
+    /**
      * Returns indexes of the meta grid headers.
      */
     List<Integer> getMetaColumnIndexes();
