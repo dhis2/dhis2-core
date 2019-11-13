@@ -118,6 +118,7 @@ public class PasswordValidationRuleTest
         assertThat( parameterValidationRule.validate( new CredentialsInfo( USERNAME, STRONG_PASSWORD, "", true ) ).isValid(), is( true ) );
         assertThat( parameterValidationRule.validate( new CredentialsInfo( USERNAME, "", "", true ) ).isValid(), is( false ) );
         assertThat( parameterValidationRule.validate( new CredentialsInfo( "", STRONG_PASSWORD, "", false ) ).isValid(), is( false ) );
+        assertThat( parameterValidationRule.validate( credentialsInfoNoPassword ).getErrorMessage(), is( "Username or password is missing" ) );
     }
 
     @Test
