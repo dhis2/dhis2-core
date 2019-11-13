@@ -39,6 +39,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
@@ -124,6 +125,15 @@ public class JobConfigurationObjectBundleHook
         if ( tempJobConfiguration.getJobParameters() != null )
         {
             tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
+        }
+
+        // JobParameters cannot be null when JobType is PushAnalysis
+        if ( JobType.PUSH_ANALYSIS.equals( tempJobConfiguration.getJobType() ) )
+        {
+            if ( tempJobConfiguration.getJobParameters() == null )
+            {
+                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, "pushAnalysis" ) );
+            }
         }
 
         validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );

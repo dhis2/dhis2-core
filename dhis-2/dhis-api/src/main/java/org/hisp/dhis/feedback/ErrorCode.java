@@ -90,6 +90,7 @@ public enum ErrorCode
 
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
     E4028( "OptionSet `{0}` already contains Option `{1}`" ),
+    E4029( "JobParameters cannot be null for JobType {0}" ),
 
     /* Program Errors */
     E6000( "Program `{0}` has more than one Program Instances"),

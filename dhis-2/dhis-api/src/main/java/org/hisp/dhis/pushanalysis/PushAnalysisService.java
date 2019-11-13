@@ -71,4 +71,6 @@ public interface PushAnalysisService
      * @param jobId to track process
      */
     void runPushAnalysis( String uid, JobConfiguration jobId );
+
+    void runPushAnalysis( List<String> uids, JobConfiguration jobId );
 }
