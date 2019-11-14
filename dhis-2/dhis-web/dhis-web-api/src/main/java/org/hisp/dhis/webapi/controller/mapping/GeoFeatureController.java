@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.common.DataQueryRequest.DataQueryRequestBuilder;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -191,12 +190,16 @@ public class GeoFeatureController
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( ou );
         dimensionParams.add( oug );
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimensionParams ).aggregationType( AggregationType.SUM ).displayProperty( displayProperty )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );       
+
+        DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
+            .dimension( dimensionParams )
+            .aggregationType( AggregationType.SUM )
+            .displayProperty( displayProperty )
+            .relativePeriodDate( relativePeriodDate )
+            .userOrgUnit( userOrgUnit )
+            .apiVersion( apiVersion ).build();
+
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         boolean useOrgUnitGroup = ou == null;
         DimensionalObject dimensionalObject = params
@@ -228,7 +231,7 @@ public class GeoFeatureController
 
         List<OrganisationUnitGroupSet> groupSets = includeGroupSets ?
             organisationUnitGroupService.getAllOrganisationUnitGroupSets() :
-            null;
+            new ArrayList<>();
 
         List<GeoFeature> features = new ArrayList<>();
 
