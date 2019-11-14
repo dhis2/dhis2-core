@@ -40,8 +40,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
@@ -53,13 +52,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class InputUtils
 {
-    private static Cache<String, Long> ATTR_OPTION_COMBO_ID_CACHE;
+    private static Cache<Long> ATTR_OPTION_COMBO_ID_CACHE;
 
     private final CategoryService categoryService;
 
     private final IdentifiableObjectManager idObjectManager;
 
     private Environment env;
+    
+    private CacheProvider cacheProvider;
 
     public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager, Environment env,
         CacheProvider cacheProvider )
@@ -67,15 +68,19 @@ public class InputUtils
         this.categoryService = categoryService;
         this.idObjectManager = idObjectManager;
         this.env = env;
+        this.cacheProvider = cacheProvider;
     }
 
     @PostConstruct
     public void init()
     {
-        ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
+        ATTR_OPTION_COMBO_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "attrOptionComboIdCache" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     /**
@@ -94,7 +99,7 @@ public class InputUtils
     {
         String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
 
-        Long id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
+        Long id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey ).orElse( null );
 
         if ( id != null )
         {

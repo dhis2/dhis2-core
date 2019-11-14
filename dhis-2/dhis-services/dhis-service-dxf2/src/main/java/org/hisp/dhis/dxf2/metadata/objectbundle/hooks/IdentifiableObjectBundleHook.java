@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Sets;
 import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -39,6 +40,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
 import java.util.Iterator;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -67,14 +70,21 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         identifiableObject.setLastUpdatedBy( bundle.getUser() );
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
-        handleAttributeValues( object, bundle, schema );
+        handleAttributeValuesNoDuplicates( object, persistedObject.getAttributeValues(), bundle, schema );
     }
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
+        handleAttributeValuesNoDuplicates( identifiableObject, Sets.newHashSet(), bundle, schema );
+    }
+
+    private void handleAttributeValuesNoDuplicates( IdentifiableObject identifiableObject,
+        Set<AttributeValue> attributeValues, ObjectBundle bundle, Schema schema )
+    {
         Session session = sessionFactory.getCurrentSession();
 
-        if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
+        if ( !schema.havePersistedProperty( "attributeValues" ) )
+            return;
 
         Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
 
@@ -83,13 +93,15 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             AttributeValue attributeValue = iterator.next();
 
             // if value null or empty, just skip it
-            if ( StringUtils.isEmpty( attributeValue.getValue() ) )
+            if ( StringUtils.isEmpty( attributeValue.getValue() ) ||
+                isAttributeValueAlreadyPresent( attributeValues, attributeValue ) )
             {
                 iterator.remove();
                 continue;
             }
 
-            Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
+            Attribute attribute = bundle.getPreheat()
+                .get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
 
             if ( attribute == null )
             {
@@ -100,5 +112,14 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             attributeValue.setAttribute( attribute );
             session.save( attributeValue );
         }
+    }
+
+    private boolean isAttributeValueAlreadyPresent( Set<AttributeValue> attributeValues,
+        AttributeValue attributeValue )
+    {
+        return attributeValues
+            .stream()
+            .anyMatch( av -> av.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) &&
+                av.getValue().equals( attributeValue.getValue() ) );
     }
 }

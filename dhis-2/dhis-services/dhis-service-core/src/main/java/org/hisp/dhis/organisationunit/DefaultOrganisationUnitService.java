@@ -59,11 +59,9 @@ import org.hisp.dhis.user.UserSettingService;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import com.google.common.collect.Sets;
-
-import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -73,9 +71,9 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private static Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
+    private static Cache<Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
 
-    private static Cache<String, Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
+    private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -94,6 +92,13 @@ public class DefaultOrganisationUnitService
     private ConfigurationService configurationService;
 
     private UserSettingService userSettingService;
+    
+    private CacheProvider cacheProvider;
+    
+    public void setCacheProvider( CacheProvider cacheProvider )
+    {
+        this.cacheProvider = cacheProvider;
+    }
 
     public void setUserSettingService( UserSettingService userSettingService )
     {
@@ -137,15 +142,21 @@ public class DefaultOrganisationUnitService
     @PostConstruct
     public void init()
     {
-        IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
+        IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserOuHierarchy" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 )
+            .build();
 
-        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = Caffeine.newBuilder()
+        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserSearchOuHierarchy" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -485,7 +496,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) );
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) ).get();
     }
 
     @Override
@@ -529,7 +540,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) );
+        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).get();
     }
 
     @Override

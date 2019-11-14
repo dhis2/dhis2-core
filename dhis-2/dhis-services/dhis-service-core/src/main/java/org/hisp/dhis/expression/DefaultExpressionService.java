@@ -28,6 +28,7 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
@@ -39,8 +40,8 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.stream.Stream;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -635,6 +636,7 @@ public class DefaultExpressionService
                 "D".equals( key ) ? PROGRAM_DATA_ELEMENT :
                 "A".equals( key ) ? PROGRAM_ATTRIBUTE :
                 "I".equals( key ) ? PROGRAM_INDICATOR :
+                "N".equals( key ) ? INDICATOR :
                 "R".equals( key ) ? REPORTING_RATE : null;
 
             if ( itemType != null )

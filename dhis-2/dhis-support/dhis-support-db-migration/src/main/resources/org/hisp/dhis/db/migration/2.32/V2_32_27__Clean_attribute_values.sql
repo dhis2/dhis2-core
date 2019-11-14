@@ -1,0 +1,43 @@
+
+WITH nonRepeatedIds AS (select min(av2.attributevalueid) as id from attributevalue av2 LEFT JOIN dataelementattributevalues deav2 ON av2.attributevalueid = deav2.attributevalueid
+        group by deav2.dataelementid, av2.value, av2.attributeid),
+    uniqueAttributeIds AS (select av.attributevalueid as id from attributevalue av JOIN dataelementattributevalues deav ON av.attributevalueid = deav.attributevalueid WHERE (dataelementid, attributeid, value) IN
+                            (select deav2.dataelementid, av2.attributeid, max(av2.value) as value from attributevalue av2 LEFT JOIN dataelementattributevalues deav2 ON av2.attributevalueid = deav2.attributevalueid
+                    group by deav2.dataelementid, av2.attributeid)),
+    orphanAttributeValues AS (select av.attributevalueid as id from attributevalue av LEFT JOIN dataelementattributevalues deav ON av.attributevalueid = deav.attributevalueid WHERE deav.dataelementid IS NULL),
+    relationsDeleted AS (delete from dataelementattributevalues deav where deav.attributevalueid NOT IN (SELECT id FROM nonRepeatedIds UNION SELECT id FROM uniqueAttributeIds) returning attributevalueid),
+    categoryattributevaluesDeleted AS (delete from categoryattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    categoryoptioncomboattributevaluesDeleted AS (delete from categoryoptioncomboattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    categoryoptiongroupattributevaluesDeleted AS (delete from categoryoptiongroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    categoryoptiongroupsetattributevaluesDeleted AS (delete from categoryoptiongroupsetattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    constantattributevaluesDeleted AS (delete from constantattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    dataelementattributevaluesDeleted AS (delete from dataelementattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    dataelementcategoryoptionattributevaluesDeleted AS (delete from dataelementcategoryoptionattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    dataelementgroupattributevaluesDeleted AS (delete from dataelementgroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    dataelementgroupsetattributevaluesDeleted AS (delete from dataelementgroupsetattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    datasetattributevaluesDeleted AS (delete from datasetattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    documentattributevaluesDeleted AS (delete from documentattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    indicatorattributevaluesDeleted AS (delete from indicatorattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    indicatorgroupattributevaluesDeleted AS (delete from indicatorgroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    legendsetattributevaluesDeleted AS (delete from legendsetattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    optionattributevaluesDeleted AS (delete from optionattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    optiongroupattributevaluesDeleted AS (delete from optiongroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    optionsetattributevaluesDeleted AS (delete from optionsetattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    organisationunitattributevaluesDeleted AS (delete from organisationunitattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    orgunitgroupattributevaluesDeleted AS (delete from orgunitgroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    orgunitgroupsetattributevaluesDeleted AS (delete from orgunitgroupsetattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    programattributevaluesDeleted AS (delete from programattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    programindicatorattributevaluesDeleted AS (delete from programindicatorattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    programindicatorgroupattributevaluesDeleted AS (delete from programindicatorgroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    programstageattributevaluesDeleted AS (delete from programstageattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    sectionattributevaluesDeleted AS (delete from sectionattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    sqlviewattributevaluesDeleted AS (delete from sqlviewattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    trackedentityattributeattributevaluesDeleted AS (delete from trackedentityattributeattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    trackedentitytypeattributevaluesDeleted AS (delete from trackedentitytypeattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    userattributevaluesDeleted AS (delete from userattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    usergroupattributevaluesDeleted AS (delete from usergroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    validationruleattributevaluesDeleted AS (delete from validationruleattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    validationrulegroupattributevaluesDeleted AS (delete from validationrulegroupattributevalues where attributevalueid in (select id from orphanAttributeValues)),
+    attributeValuesDeleted AS (delete from attributevalue where attributevalueid in (select id from orphanAttributeValues))
+delete from attributevalue av
+where av.attributevalueid NOT IN (SELECT id FROM nonRepeatedIds UNION SELECT id FROM uniqueAttributeIds);

@@ -96,16 +96,14 @@ public class DefaultAnalyticsDimensionService
                 .flatMap( c -> c.stream() )
                 .filter( Category::isDataDimension )
                 .collect( Collectors.toSet() ) );
-
-            //TODO data set elements
         }
 
         dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
 
-        //TODO filter org unit group sets
+        //TODO Filter org unit group sets
 
         return dimensions.stream()
-            .filter( d -> aclService.canDataRead( user, d ) )
+            .filter( d -> aclService.canDataOrMetadataRead( user, d ) )
             .sorted()
             .collect( Collectors.toList() );
     }

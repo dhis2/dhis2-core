@@ -29,5 +29,7 @@
   <bean id="org.hisp.dhis.system.velocity.VelocityManager" class="org.hisp.dhis.system.velocity.VelocityManager" />
 
   <bean id="logInitializer" class="org.hisp.dhis.system.log.Log4JLogConfigInitializer" init-method="initConfig" />
-  
+
+  <bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
+
 </beans>

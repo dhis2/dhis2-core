@@ -1,6 +1,6 @@
 package org.hisp.dhis.cache;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,31 +30,25 @@ package org.hisp.dhis.cache;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * Provides cache builder to build instances.
- * 
+ *
  * @author Ameen Mohamed
  *
  */
+@Component( "cacheProvider" )
 public class DefaultCacheProvider implements CacheProvider
 {
     private DhisConfigurationProvider configurationProvider;
 
     private RedisTemplate<String, ?> redisTemplate;
 
-    /**
-     * Creates a new {@link CacheBuilder} that can be used to build a cache that
-     * stores the valueType specified.
-     * 
-     * 
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link CacheBuilder}
-     */
-    public <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType )
+    @Override
+    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
     {
-        return new CacheBuilder<V>( redisTemplate, configurationProvider );
+        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
     }
 
     @Autowired
