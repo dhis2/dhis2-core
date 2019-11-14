@@ -128,7 +128,9 @@ public class PasswordValidationRuleTest
         assertThat( historyValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
 
         CredentialsInfo credentialsInfoNoEmail = new CredentialsInfo( USERNAME, STRONG_PASSWORD, "", true );
-        assertThat( parameterValidationRule.validate( credentialsInfoNoEmail ).isValid(), is( false ) );
+
+        assertThat( parameterValidationRule.validate( credentialsInfoNoEmail ).isValid(), is( true ) );
+        assertThat( parameterValidationRule.validate( credentialsInfoNoPassword ).getErrorMessage(), is( "Username or password is missing" ) );
     }
 
     @Test
