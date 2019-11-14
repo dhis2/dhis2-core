@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Volker Schmidt
@@ -59,11 +61,13 @@ public class OptionObjectBundleHook
         {
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
 
-            List<Option> persistedOptions = optionSet.getOptions();
+            List<Option> persistedOptions = optionSet.getOptions().stream().filter( Objects::nonNull )
+                .collect( Collectors.toList() );
 
             for ( Option persistedOption : persistedOptions )
             {
-                if ( persistedOption.getName().equals( option.getName() ) && persistedOption.getCode().equals( option.getCode() ) )
+                if ( Objects.equals( persistedOption.getName(), option.getName() ) &&
+                    Objects.equals( persistedOption.getCode(), option.getCode() ) )
                 {
                     errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
                 }

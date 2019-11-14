@@ -106,6 +106,18 @@ public class OptionObjectBundleHookTest
         option.setOptionSet( optionSet );
         optionSet.addOption( option );
 
+        Option nullNameOption = new Option();
+        nullNameOption.setCode( "optionCode" );
+        nullNameOption.setOptionSet( optionSet );
+        optionSet.addOption( nullNameOption );
+
+        Option nullCodeOption = new Option();
+        nullCodeOption.setName( "optionName" );
+        nullCodeOption.setOptionSet( optionSet );
+        optionSet.addOption( nullCodeOption );
+
+        optionSet.getOptions().add( null );
+
         OptionSet persistedOptionSet = new OptionSet();
         persistedOptionSet.setUid( "optionSet1" );
 
