@@ -119,20 +119,6 @@ public class RestApiActions
     }
 
     /**
-     * Send a post request without any body
-     *
-     * @param path url part on this resource i.e. (baseUri + endpoint + "path" )
-     * @return ApiResponse instance
-     */
-    public ApiResponse post( String path )
-    {
-        return new ApiResponse( this.given()
-            .contentType( ContentType.JSON.toString() )
-            .when()
-            .post( path ) );
-    }
-
-    /**
      * Shortcut used in preconditions only.
      * Sends post request to specified endpoint and verifies that request was successful
      *
