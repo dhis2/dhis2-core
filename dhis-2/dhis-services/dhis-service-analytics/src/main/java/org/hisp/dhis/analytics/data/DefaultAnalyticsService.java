@@ -165,6 +165,8 @@ public class DefaultAnalyticsService
 
     private final Environment environment;
 
+    private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
+
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
@@ -421,7 +423,6 @@ public class DefaultAnalyticsService
      * Adds headers to the given grid based on the given data query parameters.
      *
      * @param params the {@link DataQueryParams}.
-     * @return the grid.
      */
     private void addHeaders( DataQueryParams params, Grid grid )
     {
@@ -903,7 +904,7 @@ public class DefaultAnalyticsService
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
-                if ( !dimensionItems.keySet().contains( dim.getDimension() ) )
+                if ( !dimensionItems.containsKey( dim.getDimension() ) )
                 {
                     dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
@@ -1324,8 +1325,6 @@ public class DefaultAnalyticsService
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
-        indicators.forEach( params::removeResolvedExpressionItem );
-
         Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );
 
         return DataQueryParams.getPermutationDimensionalItemValueMap( valueMap );
@@ -1344,9 +1343,18 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        indicators.forEach( params::addResolvedExpressionItem );
+        if ( params.getLevel() == 0 )
+        {
+            nestedIndicatorCyclicDependencyInspector = new NestedIndicatorCyclicDependencyInspector( indicators,
+                this.expressionService );
+        }
+        else
+        {
+            nestedIndicatorCyclicDependencyInspector.add( indicators );
+        }
 
-        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
+        List<DimensionalItemObject> items = Lists
+            .newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1363,7 +1371,8 @@ public class DefaultAnalyticsService
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withResolvedExpressionItems( items )
+            // increase the nesting level for the DataQueryParams
+            .withIncreaseLevel()
             .withSkipMeta( true ).build();
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
