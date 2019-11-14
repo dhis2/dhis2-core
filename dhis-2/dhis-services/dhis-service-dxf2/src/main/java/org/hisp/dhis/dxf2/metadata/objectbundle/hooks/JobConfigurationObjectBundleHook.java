@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -63,6 +64,8 @@ public class JobConfigurationObjectBundleHook
     extends AbstractObjectBundleHook
 {
     private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
+
+    private static final Set<JobType> PARAMETER_DEPENDANT_JOB_TYPES = Sets.newHashSet( JobType.PUSH_ANALYSIS );
 
     private final JobConfigurationService jobConfigurationService;
 
@@ -127,12 +130,12 @@ public class JobConfigurationObjectBundleHook
             tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
         }
 
-        // JobParameters cannot be null when JobType is PushAnalysis
-        if ( JobType.PUSH_ANALYSIS == tempJobConfiguration.getJobType() )
+        // If JobType is dependant on JobParameters
+        if ( PARAMETER_DEPENDANT_JOB_TYPES.contains( tempJobConfiguration.getJobType() ) )
         {
             if ( tempJobConfiguration.getJobParameters() == null )
             {
-                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, "pushAnalysis" ) );
+                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType().getKey() ) );
             }
         }
 
