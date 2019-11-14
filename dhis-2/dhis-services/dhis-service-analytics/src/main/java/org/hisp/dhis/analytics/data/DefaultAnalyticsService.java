@@ -165,8 +165,6 @@ public class DefaultAnalyticsService
 
     private final Environment environment;
 
-    private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
-
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
@@ -1343,18 +1341,23 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        if ( params.getLevel() == 0 )
+        DataQueryParams queryParamsWithNestedInspector = null;
+
+        if ( params.getNestedIndicatorCyclicDependencyInspector() == null )
         {
-            nestedIndicatorCyclicDependencyInspector = new NestedIndicatorCyclicDependencyInspector( indicators,
-                this.expressionService );
+            // init the Indicator Cyclic Dependency Inspector
+            queryParamsWithNestedInspector = DataQueryParams.newBuilder( params )
+                    .withNestedIndicatorCyclicDependencyInspector(
+                            new NestedIndicatorCyclicDependencyInspector( indicators, this.expressionService ) )
+                    .build();
         }
         else
         {
-            nestedIndicatorCyclicDependencyInspector.add( indicators );
+            params.getNestedIndicatorCyclicDependencyInspector().add( indicators );
         }
 
         List<DimensionalItemObject> items = Lists
-            .newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
+                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1365,14 +1368,13 @@ public class DefaultAnalyticsService
 
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
-        DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
+        DataQueryParams dataSourceParams = DataQueryParams
+            .newBuilder( queryParamsWithNestedInspector == null ? params : queryParamsWithNestedInspector )
             .replaceDimension( dimension )
             .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            // increase the nesting level for the DataQueryParams
-            .withIncreaseLevel()
             .withSkipMeta( true ).build();
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );

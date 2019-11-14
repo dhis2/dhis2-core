@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.data.NestedIndicatorCyclicDependencyInspector;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -410,28 +411,11 @@ public class DataQueryParams
     protected transient boolean skipDataDimensionValidation = false;
 
     /**
-     * Specifies the level of nested indicators. This is used to support nested indicators and nested indicators
-     * cyclic reference detection in Indicator Formulas.
-     *
-     * Example:
-     *
-     * IndicatorA
-     *
-     *
-     *
-     *   Level 1  +    IndicatorA
-     *            |        + +
-     *            |        | |
-     *            |        | +------->IndicatorD
-     *   Level 2  |        v
-     *            |    IndicatorB
-     *            |        +
-     *            |        |
-     *            |        v
-     *   Level 3  +    IndicatorC
-     *
+     * Holds a service that detects cyclic dependencies between Indicators
+     * This service throws an exception if an an Indicator is referencing another Indicator
+     * which points back to itself (e.g. indA -> indB -> indC -> indA)
      */
-    protected transient int level = 0;
+    protected transient NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -523,7 +507,7 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
-        params.level = this.level;
+        params.nestedIndicatorCyclicDependencyInspector = this.nestedIndicatorCyclicDependencyInspector;
         return params;
     }
 
@@ -572,6 +556,11 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Logic read methods
     // -------------------------------------------------------------------------
+
+    public NestedIndicatorCyclicDependencyInspector getNestedIndicatorCyclicDependencyInspector()
+    {
+        return nestedIndicatorCyclicDependencyInspector;
+    }
 
     /**
      * Returns a key representing a group of queries which should be run in
@@ -1199,11 +1188,6 @@ public class DataQueryParams
     public boolean hasApprovalLevel()
     {
         return approvalLevel != null;
-    }
-
-    public int getLevel()
-    {
-        return this.level;
     }
 
     /**
@@ -2938,19 +2922,16 @@ public class DataQueryParams
             return this;
         }
 
-        /**
-         * Increase current level by one
-         * @return this Builder
-         */
-        public Builder withIncreaseLevel( )
-        {
-            this.params.level ++;
-            return this;
-        }
-
         public Builder withUserOrgUnitType( UserOrgUnitType userOrgUnitType )
         {
             this.params.userOrgUnitType = userOrgUnitType;
+            return this;
+        }
+
+        public Builder withNestedIndicatorCyclicDependencyInspector(
+                NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
+        {
+            this.params.nestedIndicatorCyclicDependencyInspector = nestedIndicatorCyclicDependencyInspector;
             return this;
         }
 
