@@ -59,7 +59,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -133,13 +132,6 @@ public class DataQueryParams
 
     public static final int DX_INDEX = 0;
     public static final int NUMERATOR_DENOMINATOR_PROPERTIES_COUNT = 5;
-
-    /**
-     * @see {@link org.hisp.dhis.expression.ExpressionService}
-     * @see "/dhis-2/dhis-support/dhis-support-expression-parser/src/main/antlr4/org/hisp
-     *          /dhis/parser/expression/antlr/Expression.g4"
-     */
-    private static final String NESTED_INDICATOR_PREFIX = "N{";
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of(
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, Category.class );
@@ -418,10 +410,28 @@ public class DataQueryParams
     protected transient boolean skipDataDimensionValidation = false;
 
     /**
-     * Holds a list of {@see DimensionalItemObject} resolved during expression evaluation.
-     * The Set is used to detect cyclic dependency between items
+     * Specifies the level of nested indicators. This is used to support nested indicators and nested indicators
+     * cyclic reference detection in Indicator Formulas.
+     *
+     * Example:
+     *
+     * IndicatorA
+     *
+     *
+     *
+     *   Level 1  +    IndicatorA
+     *            |        + +
+     *            |        | |
+     *            |        | +------->IndicatorD
+     *   Level 2  |        v
+     *            |    IndicatorB
+     *            |        +
+     *            |        |
+     *            |        v
+     *   Level 3  +    IndicatorC
+     *
      */
-    protected transient Set<DimensionalItemObject> resolvedExpressionItems = new HashSet<>();
+    protected transient int level = 0;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -512,8 +522,8 @@ public class DataQueryParams
         params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
-        params.resolvedExpressionItems = this.resolvedExpressionItems;
         params.userOrgUnitType = this.userOrgUnitType;
+        params.level = this.level;
         return params;
     }
 
@@ -1191,6 +1201,11 @@ public class DataQueryParams
         return approvalLevel != null;
     }
 
+    public int getLevel()
+    {
+        return this.level;
+    }
+
     /**
      * Returns all dimension items.
      */
@@ -1690,41 +1705,6 @@ public class DataQueryParams
             dimension.getItems().removeAll( existing );
             dimension.getItems().addAll( options );
         }
-    }
-    
-    public void addResolvedExpressionItem( DimensionalItemObject item)
-    {
-        if ( !resolvedExpressionItems.contains(item) )
-        {
-            resolvedExpressionItems.add(item);
-        }
-        else
-        {
-            checkForIndicatorCyclicReference( item );
-        }
-    }
-
-    private void checkForIndicatorCyclicReference( final DimensionalItemObject item )
-    {
-        final boolean isNestedIndicator = item instanceof Indicator
-                && (((Indicator) item).getNumerator().contains( NESTED_INDICATOR_PREFIX )
-                || ((Indicator) item).getDenominator().contains( NESTED_INDICATOR_PREFIX ));
-        if ( isNestedIndicator )
-        {
-            throw new CyclicReferenceException(
-                    String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item.",
-                            item.getDimensionItemType().name(), item.getUid() ) );
-        }
-    }
-
-    private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )
-    {
-        dimensionalItemObjectList.forEach( this::addResolvedExpressionItem );
-    }
-
-    public void removeResolvedExpressionItem( DimensionalItemObject item )
-    {
-        this.resolvedExpressionItems.remove( item );
     }
 
     // -------------------------------------------------------------------------
@@ -2958,9 +2938,13 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder withResolvedExpressionItems( List<DimensionalItemObject> items )
+        /**
+         * Increase current level by one
+         * @return this Builder
+         */
+        public Builder withIncreaseLevel( )
         {
-            this.params.addResolvedExpressionItems( items );
+            this.params.level ++;
             return this;
         }
 

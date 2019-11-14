@@ -1,3 +1,5 @@
+package org.hisp.dhis.node.geometry;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,15 +28,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.resolver;
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
- * A component that can analyze analytics expressions so that each expression
- * can be resolved to its final "shape".
- *
- * @author Luciano Fiandesio
+ * @author Enrico Colasante
  */
-public interface ExpressionResolver
+public class XmlGenericGeometryParser
+    extends BaseParser
+    implements GeometryParser<Geometry>
 {
-    String resolve( String expression );
+    private final static Log log = LogFactory.getLog( XmlGenericGeometryParser.class );
+
+    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
+    {
+        super( geometryFactory );
+    }
+
+    public Geometry geometryFromJson( JsonNode node )
+    {
+        WKTReader wktR = new WKTReader();
+        try
+        {
+            return wktR.read( node.asText() );
+        }
+        catch ( ParseException e )
+        {
+            log.error( "Error reading WKT of geometry", e );
+            return null;
+        }
+    }
 }
