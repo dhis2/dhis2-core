@@ -128,7 +128,7 @@ public class JobConfigurationObjectBundleHook
         }
 
         // JobParameters cannot be null when JobType is PushAnalysis
-        if ( JobType.PUSH_ANALYSIS.equals( tempJobConfiguration.getJobType() ) )
+        if ( JobType.PUSH_ANALYSIS == tempJobConfiguration.getJobType() )
         {
             if ( tempJobConfiguration.getJobParameters() == null )
             {
