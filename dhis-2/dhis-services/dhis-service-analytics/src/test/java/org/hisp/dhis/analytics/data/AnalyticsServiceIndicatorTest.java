@@ -43,10 +43,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CyclicReferenceException;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -357,7 +354,7 @@ public class AnalyticsServiceIndicatorTest
         createIndicator( 'H', indicatorTypeB, "N{mindicatorF}" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
 
         // When
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
@@ -397,7 +394,7 @@ public class AnalyticsServiceIndicatorTest
         createIndicator( 'L', indicatorTypeB, "#{dataElemenA}/4" );
         createIndicator( 'M', indicatorTypeB, "N{mindicatorG}" );
 
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
         thrown.expectMessage( String.format(ERROR_STRING, "mindicatorG") );
 
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
@@ -419,7 +416,7 @@ public class AnalyticsServiceIndicatorTest
                 "N{mindicatorW}" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
 
         // When
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF, indicatorW ) );
@@ -450,7 +447,7 @@ public class AnalyticsServiceIndicatorTest
         createIndicator( 'D', indicatorTypeB, "#{dataElemenA}/2" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
 
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA  ) );
 
@@ -474,7 +471,7 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorB = createIndicator( 'B', indicatorTypeB, "1", "N{mindicatorA}" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
 
         // When
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB ) );
@@ -498,7 +495,7 @@ public class AnalyticsServiceIndicatorTest
         createIndicator( 'D', indicatorTypeAny, "N{mindicatorA}" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
 
         // When
         this.analyticsService
@@ -520,7 +517,7 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorB = createIndicator( 'B', indicatorTypeAny, "N{mindicatorA}", "1" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
 
         // When
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB ) );
@@ -539,7 +536,7 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "1", "N{mindicatorA}" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
         thrown.expectMessage( String.format( ERROR_STRING, "mindicatorA" ) );
 
         // When
@@ -559,7 +556,7 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "N{mindicatorA}" );
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
         thrown.expectMessage( String.format( ERROR_STRING, "mindicatorA" ) );
 
         // When
@@ -584,7 +581,7 @@ public class AnalyticsServiceIndicatorTest
 
 
         // Then
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
 
         // When
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB, indicatorC ) );
