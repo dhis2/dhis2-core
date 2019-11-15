@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -66,8 +67,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -76,13 +75,9 @@ import org.mockito.junit.MockitoRule;
  */
 public class QueryValidatorTest
 {
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @InjectMocks
     private DefaultQueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
@@ -116,6 +111,8 @@ public class QueryValidatorTest
     @Before
     public void setUp()
     {
+        queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ),
+            mock( NestedIndicatorCyclicDependencyInspector.class ) );
         PeriodType pt = new MonthlyPeriodType();
 
         itA = createIndicatorType( 'A' );
@@ -149,7 +146,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesA()
+    public void validateSuccessA()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
@@ -160,7 +157,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesB()
+    public void validateSuccessB()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB, pdeA, pdeB ) ) )
@@ -171,7 +168,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesSingleIndicatorFilter()
+    public void validateSuccessSingleIndicatorFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
@@ -275,7 +272,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccesWithSkipDataDimensionCheck()
+    public void validateSuccessWithSkipDataDimensionCheck()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
                 .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
