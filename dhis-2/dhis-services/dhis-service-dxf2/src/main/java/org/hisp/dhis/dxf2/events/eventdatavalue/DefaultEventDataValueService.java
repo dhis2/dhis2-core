@@ -122,7 +122,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             }
         }
 
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, newDataValues, dataElementsCache, programStageInstance, singleValue );
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementsCache, programStageInstance, singleValue );
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
