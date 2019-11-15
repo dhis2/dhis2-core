@@ -83,23 +83,43 @@ public class TrackedEntityInstanceAggregate
     {
         Long userId = currentUserService.getCurrentUser().getId();
 
+        /*
+         * Async fetch Relationships for the given TrackedEntityInstance id (only if
+         * isIncludeRelationships = true)
+         */
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
             params.isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
 
+        /*
+         * Async fetch Enrollments for the given TrackedEntityInstance id (only if
+         * isIncludeEnrollments = true)
+         */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             params.isIncludeEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, userId, params.isIncludeEvents(),
                 params.isIncludeRelationships() ) );
 
+        /*
+         * Async fetch all ProgramOwner for the given TrackedEntityInstance id
+         */
         final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
             params.isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ) );
 
+        /*
+         * Async Fetch TrackedEntityInstances by id
+         */
         CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, userId ) );
 
+        /*
+         * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance id
+         */
         CompletableFuture<Multimap<String, Attribute>> attributesAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getAttributes( ids ) );
 
+        /*
+         * Execute all queries and merge the results
+         */
         return allOf( teisAsync, attributesAsync, relationshipsAsync, enrollmentsAsync ).thenApplyAsync( dummy -> {
 
             Map<String, TrackedEntityInstance> teis = teisAsync.join();
