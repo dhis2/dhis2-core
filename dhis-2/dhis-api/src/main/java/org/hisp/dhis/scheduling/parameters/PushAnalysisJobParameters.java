@@ -85,10 +85,9 @@ public class PushAnalysisJobParameters
     {
         if ( pushAnalysis == null || pushAnalysis.isEmpty() )
         {
-            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ));
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ) );
         }
 
         return Optional.empty();
     }
-
 }
