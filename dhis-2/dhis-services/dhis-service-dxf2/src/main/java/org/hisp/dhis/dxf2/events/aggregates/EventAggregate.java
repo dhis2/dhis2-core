@@ -70,7 +70,7 @@ public class EventAggregate
      */
     public Multimap<String, Event> findByEnrollmentIds( List<Long> ids, Long userId, boolean includeRelationships )
     {
-        Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids );
+        Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids, userId );
 
         if ( events.isEmpty() )
         {
