@@ -559,6 +559,18 @@ public class UserController
         }
     }
 
+    @Override
+    protected void postPatchEntity( User entity )
+    {
+        UserCredentials credentials = entity.getUserCredentials();
+
+        // Make sure we always expire all of the user's active sessions if we have disabled the user.
+        if ( credentials != null && credentials.isDisabled() )
+        {
+            userService.expireActiveSessions( credentials );
+        }
+    }
+
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
