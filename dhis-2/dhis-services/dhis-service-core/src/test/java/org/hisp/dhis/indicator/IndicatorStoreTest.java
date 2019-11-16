@@ -29,12 +29,12 @@ package org.hisp.dhis.indicator;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -48,11 +48,12 @@ public class IndicatorStoreTest
 {
     @Autowired
     private IndicatorStore indicatorStore;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    @Resource(name="org.hisp.dhis.indicator.IndicatorTypeStore")
+    @Autowired
+    @Qualifier( "org.hisp.dhis.indicator.IndicatorTypeStore" )
     private IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
 
     // -------------------------------------------------------------------------
@@ -309,16 +310,16 @@ public class IndicatorStoreTest
         indicatorStore.save( indicatorA );
         indicatorStore.save( indicatorB );
         indicatorStore.save( indicatorC );
-        
+
         IndicatorGroup igA = createIndicatorGroup( 'A' );
-        
+
         igA.addIndicator( indicatorA );
         igA.addIndicator( indicatorB );
-        
+
         idObjectManager.save( igA );
-        
+
         List<Indicator> indicators = indicatorStore.getIndicatorsWithoutGroups();
-        
+
         assertEquals( 1, indicators.size() );
         assertTrue( indicators.contains( indicatorC ) );
     }
