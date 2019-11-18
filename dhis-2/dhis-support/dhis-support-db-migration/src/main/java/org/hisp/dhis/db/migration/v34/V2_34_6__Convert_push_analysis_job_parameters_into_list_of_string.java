@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
@@ -55,13 +57,6 @@ public class V2_34_6__Convert_push_analysis_job_parameters_into_list_of_string e
     @Override
     public void migrate( Context context ) throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enableDefaultTyping();
-        mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-
-        JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
-        ObjectWriter writer = mapper.writerFor( resultingJavaType );
-
         String pushAnalysisUid = null;
 
         try ( Statement statement = context.getConnection().createStatement() )
@@ -72,20 +67,26 @@ public class V2_34_6__Convert_push_analysis_job_parameters_into_list_of_string e
             if ( resultSet.next() )
             {
                 pushAnalysisUid = resultSet.getString( 1 );
+                pushAnalysisUid = StringUtils.strip( pushAnalysisUid, "\"" );
             }
         }
 
         if ( pushAnalysisUid != null )
         {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
+            mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+
+            JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
+            ObjectWriter writer = mapper.writerFor( resultingJavaType );
+
             try ( PreparedStatement ps = context.getConnection().prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
             {
                 PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters( pushAnalysisUid );
 
                 PGobject pg = new PGobject();
                 pg.setType( "jsonb" );
-
-                String str =  writer.writeValueAsString( jobParameters );
-                pg.setValue( str );
+                pg.setValue( writer.writeValueAsString( jobParameters ) );
 
                 ps.setObject( 1, pg );
                 ps.setString( 2, JobType.PUSH_ANALYSIS.name() );
