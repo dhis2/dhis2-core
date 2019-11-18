@@ -31,7 +31,6 @@ package org.hisp.dhis.db.migration.v34;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,9 +48,9 @@ import java.sql.Statement;
 /**
  * @Author Zubair Asghar.
  */
-public class V2_34_6_Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
+public class V2_34_6__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_34_6_Convert_push_analysis_job_parameters_into_list_of_string.class );
+    private static final Log log = LogFactory.getLog( V2_34_6__Convert_push_analysis_job_parameters_into_list_of_string.class );
 
     @Override
     public void migrate( Context context ) throws Exception
@@ -63,30 +62,38 @@ public class V2_34_6_Convert_push_analysis_job_parameters_into_list_of_string ex
         JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
         ObjectWriter writer = mapper.writerFor( resultingJavaType );
 
-        String pushAnalysisUid;
+        String pushAnalysisUid = null;
 
         try ( Statement statement = context.getConnection().createStatement() )
         {
             ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
                 JobType.PUSH_ANALYSIS.name() + "';" );
 
-            pushAnalysisUid = resultSet.getString( 0 );
+            if ( resultSet.next() )
+            {
+                pushAnalysisUid = resultSet.getString( 1 );
+            }
         }
 
-        try ( PreparedStatement ps = context.getConnection().prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
+        if ( pushAnalysisUid != null )
         {
-            PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters( pushAnalysisUid );
+            try ( PreparedStatement ps = context.getConnection().prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
+            {
+                PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters( pushAnalysisUid );
 
-            PGobject pg = new PGobject();
-            pg.setType( "jsonb" );
-            pg.setValue( writer.writeValueAsString( jobParameters ) );
+                PGobject pg = new PGobject();
+                pg.setType( "jsonb" );
 
-            ps.setObject( 1, pg );
-            ps.setString( 2, JobType.PUSH_ANALYSIS.name() );
+                String str =  writer.writeValueAsString( jobParameters );
+                pg.setValue( str );
 
-            ps.execute();
+                ps.setObject( 1, pg );
+                ps.setString( 2, JobType.PUSH_ANALYSIS.name() );
 
-            log.info( "JobType " + JobType.PUSH_ANALYSIS.name() + " has been updated." );
+                ps.execute();
+
+                log.info( "JobType " + JobType.PUSH_ANALYSIS.name() + " has been updated." );
+            }
         }
     }
 }
