@@ -50,11 +50,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
-import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -125,7 +125,8 @@ public class DefaultProgramMessageService
         this.aclService = aclService;
     }
 
-    @Resource( name = "smsMessageSender" )
+    @Autowired
+    @Qualifier( "smsMessageSender" )
     private MessageSender smsSender;
 
     @Autowired
@@ -136,7 +137,7 @@ public class DefaultProgramMessageService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramMessageQueryParams getFromUrl( Set<String> ou, String piUid, String psiUid,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate )
     {
@@ -177,35 +178,35 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean exists( String uid )
     {
         return programMessageStore.exists( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramMessage getProgramMessage( long id )
     {
         return programMessageStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramMessage getProgramMessage( String uid )
     {
         return programMessageStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramMessage> getAllProgramMessages()
     {
         return programMessageStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
     {
         hasAccess( params, currentUserService.getCurrentUser() );
@@ -258,9 +259,9 @@ public class DefaultProgramMessageService
     public void sendMessagesAsync( List<ProgramMessage> programMessages )
     {
         List<ProgramMessage> populatedProgramMessages = programMessages.stream()
-                .filter( this::hasDataWriteAccess )
-                .map( this::setAttributesBasedOnStrategy )
-                .collect( Collectors.toList() );
+            .filter( this::hasDataWriteAccess )
+            .map( this::setAttributesBasedOnStrategy )
+            .collect( Collectors.toList() );
 
         List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
@@ -272,7 +273,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void hasAccess( ProgramMessageQueryParams params, User user )
     {
         ProgramInstance programInstance = null;
@@ -303,7 +304,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void validateQueryParameters( ProgramMessageQueryParams params )
     {
         String violation = null;
@@ -322,7 +323,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void validatePayload( ProgramMessage message )
     {
         String violation = null;
@@ -375,26 +376,26 @@ public class DefaultProgramMessageService
 
         boolean isAuthorized;
 
-            if ( message.hasProgramInstance() )
-            {
-                object = message.getProgramInstance().getProgram();
-            }
-            else if( message.hasProgramStageInstance() )
-            {
-                object = message.getProgramStageInstance().getProgramStage();
-            }
+        if ( message.hasProgramInstance() )
+        {
+            object = message.getProgramInstance().getProgram();
+        }
+        else if ( message.hasProgramStageInstance() )
+        {
+            object = message.getProgramStageInstance().getProgramStage();
+        }
 
-            if ( object != null )
+        if ( object != null )
+        {
+            isAuthorized = aclService.canDataWrite( currentUserService.getCurrentUser(), object );
+
+            if ( !isAuthorized )
             {
-                isAuthorized = aclService.canDataWrite( currentUserService.getCurrentUser(), object );
+                log.error( String.format( "Sending message failed. User does not have write access for %s.", object.getName() ) );
 
-                if ( !isAuthorized )
-                {
-                    log.error( String.format( "Sending message failed. User does not have write access for %s.", object.getName() ) );
-
-                    return false;
-                }
+                return false;
             }
+        }
 
         return true;
     }
@@ -450,7 +451,7 @@ public class DefaultProgramMessageService
 
         for ( DeliveryChannel channel : channels )
         {
-            for( DeliveryChannelStrategy strategy : strategies )
+            for ( DeliveryChannelStrategy strategy : strategies )
             {
                 if ( strategy.getDeliveryChannel().equals( channel ) )
                 {
