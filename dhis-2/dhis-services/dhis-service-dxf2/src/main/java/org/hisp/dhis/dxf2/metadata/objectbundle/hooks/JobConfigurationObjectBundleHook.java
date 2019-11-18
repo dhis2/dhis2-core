@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -40,7 +39,6 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
@@ -64,8 +62,6 @@ public class JobConfigurationObjectBundleHook
     extends AbstractObjectBundleHook
 {
     private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
-
-    private static final Set<JobType> PARAMETER_DEPENDANT_JOB_TYPES = Sets.newHashSet( JobType.PUSH_ANALYSIS );
 
     private final JobConfigurationService jobConfigurationService;
 
@@ -129,11 +125,10 @@ public class JobConfigurationObjectBundleHook
         {
             tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
         }
-
-        // If JobType is dependant on JobParameters
-        if ( PARAMETER_DEPENDANT_JOB_TYPES.contains( tempJobConfiguration.getJobType() ) )
+        else
         {
-            if ( tempJobConfiguration.getJobParameters() == null )
+            // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
+            if ( tempJobConfiguration.getJobType().getJobParameters() != null )
             {
                 errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType().getKey() ) );
             }
