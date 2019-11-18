@@ -1,3 +1,5 @@
+package org.hisp.dhis.node.geometry;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,15 +28,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.resolver;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 
 /**
- * A component that can analyze analytics expressions so that each expression
- * can be resolved to its final "shape".
- *
- * @author Luciano Fiandesio
+ * @author Enrico Colasante
  */
-public interface ExpressionResolver
+public class JtsXmlModule
+    extends SimpleModule
 {
-    String resolve( String expression );
+    public JtsXmlModule()
+    {
+        this( new GeometryFactory() );
+    }
+
+    public JtsXmlModule( GeometryFactory geometryFactory )
+    {
+        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
+        this.addSerializer( Geometry.class, new GeometrySerializer() );
+        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
+        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
+    }
+
+    public void setupModule( SetupContext context )
+    {
+        super.setupModule( context );
+    }
 }
