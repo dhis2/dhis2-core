@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
@@ -44,6 +45,7 @@ import java.util.stream.Stream;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -59,6 +61,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,6 +71,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
 /**
@@ -118,9 +122,9 @@ public class DefaultDataQueryServiceTest
     private RequestBuilder rb;
 
     private OrganisationUnit rootOu;
-    
+
     private BeanRandomizer beanRandomizer;
-    
+
     @Before
     public void setUp()
     {
@@ -135,7 +139,7 @@ public class DefaultDataQueryServiceTest
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );
         rootOu.setCode( "OU_525" );
-        
+
         beanRandomizer = new BeanRandomizer();
     }
 
@@ -333,12 +337,12 @@ public class DefaultDataQueryServiceTest
     {
         OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
         OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
-        
+
         OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
         OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
-        
+
         OrganisationUnitGroup groupOu = beanRandomizer.randomObject(OrganisationUnitGroup.class, "geometry");
-        
+
 
         mockDimensionService();
 
@@ -366,17 +370,15 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
 
-        List<DimensionalKeywords.Keyword> x = filter.getDimensionalKeywords().getGroupBy();
-
         assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 3 ) );
         assertThat( filter.getDimensionalKeywords().getGroupBy(),
-                IsIterableContainingInAnyOrder.containsInAnyOrder(
-                        allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                                hasProperty( "code", is( nullValue() ) ) ),
-                        allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
-                                hasProperty( "code", is( groupOu.getCode() ) ) ),
-                        allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                                hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
+                allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
+                    hasProperty( "code", is( groupOu.getCode() ) ) ),
+                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
+                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
 
     }
 
@@ -524,6 +526,48 @@ public class DefaultDataQueryServiceTest
                     hasProperty( "name", is( "Last 12 months" ) ),
                     hasProperty( "key", is( "LAST_12_MONTHS" ) ),
                     hasProperty( "code", is( nullValue() ) ) ) ) );
+    }
+
+    @Test
+    public void verifyGetOrgUnitsBasedOnUserOrgUnitType()
+    {
+        testGetUserOrgUnits( UserOrgUnitType.DATA_CAPTURE );
+        testGetUserOrgUnits( UserOrgUnitType.TEI_SEARCH );
+        testGetUserOrgUnits( UserOrgUnitType.DATA_OUTPUT );
+    }
+
+    private void testGetUserOrgUnits( UserOrgUnitType userOrgUnitType )
+    {
+        int orgUnitSize = 10;
+        User user = new User();
+
+        Set<OrganisationUnit> orgUnits = new HashSet<>(
+            beanRandomizer.randomObjects( OrganisationUnit.class, orgUnitSize, "geometry", "parent", "groups", "children" ) );
+
+        switch ( userOrgUnitType )
+        {
+        case DATA_CAPTURE:
+            user.setOrganisationUnits( orgUnits );
+            break;
+        case DATA_OUTPUT:
+            user.setDataViewOrganisationUnits( orgUnits );
+            break;
+        case TEI_SEARCH:
+            user.setTeiSearchOrganisationUnits( orgUnits );
+            break;
+        }
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().userOrgUnitType( userOrgUnitType ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+
+        when( securityManager.getCurrentUser( params ) ).thenReturn( user );
+
+        List<OrganisationUnit> result = target.getUserOrgUnits( params, null );
+        assertThat( result, hasSize( orgUnitSize ) );
+
+        // Check collection is sorted
+        assertTrue( Ordering.natural().isOrdered( result ) );
     }
 
     @SuppressWarnings("unchecked")

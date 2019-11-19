@@ -62,7 +62,7 @@ public class UserParameterValidationRule
                 return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
             }
         }
-        else if ( StringUtils.isBlank( email ) || StringUtils.isBlank( password ) || StringUtils.isBlank( username ) )
+        else if ( StringUtils.isBlank( password ) || StringUtils.isBlank( username ) )
         {
             return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
         }

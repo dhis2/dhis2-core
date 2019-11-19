@@ -47,7 +47,7 @@ import javax.crypto.Cipher;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -117,7 +117,7 @@ public class DefaultDhisConfigurationProvider
 
         try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
-            Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
+            HashMap<String, Object> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
 
             this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
         }
@@ -344,7 +344,7 @@ public class DefaultDhisConfigurationProvider
 
     private void substituteEnvironmentVariables( Properties properties )
     {
-        final StrSubstitutor substitutor = new StrSubstitutor( System.getenv() ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( System.getenv() ); // Matches on ${...}
 
         properties.entrySet().forEach( entry -> entry.setValue( substitutor.replace( entry.getValue() ).trim() ) );
     }

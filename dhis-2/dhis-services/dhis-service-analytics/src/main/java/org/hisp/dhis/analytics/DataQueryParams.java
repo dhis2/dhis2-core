@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.data.NestedIndicatorCyclicDependencyInspector;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -388,6 +389,11 @@ public class DataQueryParams
     protected Date endDateRestriction;
 
     /**
+     * Used to set the type of OrgUnit from the current user to the {@see DataQueryParams} object
+     */
+    protected UserOrgUnitType userOrgUnitType;
+
+    /**
      * Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels.
      */
     protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
@@ -404,13 +410,6 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
-    /**
-     * Holds a list of {@see DimensionalItemObject} resolved during expression evaluation.
-     * The Set is used to detect cyclic dependency between items
-     */
-    protected transient Set<DimensionalItemObject> resolvedExpressionItems = new HashSet<>();
-
-    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -499,7 +498,7 @@ public class DataQueryParams
         params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
-        params.resolvedExpressionItems = this.resolvedExpressionItems;
+        params.userOrgUnitType = this.userOrgUnitType;
         return params;
     }
 
@@ -541,6 +540,7 @@ public class DataQueryParams
             .add( order )
             .add( timeField )
             .add( orgUnitField )
+            .add( userOrgUnitType )
             .addIgnoreNull( apiVersion ).build();
     }
 
@@ -1544,25 +1544,9 @@ public class DataQueryParams
      */
     private DataQueryParams pruneToDimensionType( DimensionType type )
     {
-        Iterator<DimensionalObject> dimensionIter = dimensions.iterator();
+        dimensions.removeIf( dimensionalObject -> dimensionalObject.getDimensionType() != type );
 
-        while ( dimensionIter.hasNext() )
-        {
-            if ( dimensionIter.next().getDimensionType() != type )
-            {
-                dimensionIter.remove();
-            }
-        }
-
-        Iterator<DimensionalObject> filterIter = filters.iterator();
-
-        while ( filterIter.hasNext() )
-        {
-            if ( filterIter.next().getDimensionType() != type )
-            {
-                filterIter.remove();
-            }
-        }
+        filters.removeIf( dimensionalObject -> dimensionalObject.getDimensionType() != type );
 
         return this;
     }
@@ -1691,30 +1675,6 @@ public class DataQueryParams
             dimension.getItems().removeAll( existing );
             dimension.getItems().addAll( options );
         }
-    }
-
-    public void addResolvedExpressionItem( DimensionalItemObject item)
-    {
-        if ( !resolvedExpressionItems.contains(item) )
-        {
-            resolvedExpressionItems.add(item);
-        }
-        else
-        {
-            throw new CyclicReferenceException(
-                String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item",
-                    item.getDimensionItemType().name(), item.getUid() ) );
-        }
-    }
-
-    private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )
-    {
-        dimensionalItemObjectList.forEach( this::addResolvedExpressionItem );
-    }
-
-    public void removeResolvedExpressionItem( DimensionalItemObject item )
-    {
-        this.resolvedExpressionItems.remove( item );
     }
 
     // -------------------------------------------------------------------------
@@ -2434,10 +2394,14 @@ public class DataQueryParams
         return ImmutableList.copyOf( getFilterOptions( ORGUNIT_DIM_ID ) );
     }
 
+    public UserOrgUnitType getUserOrgUnitType()
+    {
+        return userOrgUnitType;
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
-
     /**
      * Builder for {@link DataQueryParams} instances.
      */
@@ -2944,9 +2908,9 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder withResolvedExpressionItems( List<DimensionalItemObject> items )
+        public Builder withUserOrgUnitType( UserOrgUnitType userOrgUnitType )
         {
-            this.params.addResolvedExpressionItems( items );
+            this.params.userOrgUnitType = userOrgUnitType;
             return this;
         }
 
@@ -2954,7 +2918,5 @@ public class DataQueryParams
         {
             return params;
         }
-
-
     }
 }

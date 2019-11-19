@@ -33,7 +33,8 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -45,9 +46,13 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -58,7 +63,8 @@ import static org.junit.Assert.*;
 public class StdDevOutlierAnalysisServiceTest
     extends DhisSpringTest
 {
-    @Resource( name = "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
+    @Autowired
+    @Qualifier( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
     private DataAnalysisService stdDevOutlierAnalysisService;
 
     @Autowired

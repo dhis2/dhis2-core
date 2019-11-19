@@ -109,7 +109,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -242,7 +241,7 @@ public class DefaultAnalyticsService
         if ( dhisConfig.isAnalyticsCacheEnabled() )
         {
             final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
-            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).orElseGet( () -> new ListGrid() );
+            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).orElseGet( ListGrid::new );
         }
 
         return getAggregatedDataValueGridInternal( params );
@@ -422,7 +421,6 @@ public class DefaultAnalyticsService
      * Adds headers to the given grid based on the given data query parameters.
      *
      * @param params the {@link DataQueryParams}.
-     * @return the grid.
      */
     private void addHeaders( DataQueryParams params, Grid grid )
     {
@@ -904,7 +902,7 @@ public class DefaultAnalyticsService
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
-                if ( !dimensionItems.keySet().contains( dim.getDimension() ) )
+                if ( !dimensionItems.containsKey( dim.getDimension() ) )
                 {
                     dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
@@ -916,10 +914,9 @@ public class DefaultAnalyticsService
             // Organisation unit hierarchy
             // -----------------------------------------------------------------
 
-            User user = securityManager.getCurrentUser( params );
-
             List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
+            Collection<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
 
             if ( params.isHierarchyMeta() )
             {
@@ -1326,8 +1323,6 @@ public class DefaultAnalyticsService
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
-        indicators.forEach( params::removeResolvedExpressionItem );
-
         Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );
 
         return DataQueryParams.getPermutationDimensionalItemValueMap( valueMap );
@@ -1346,9 +1341,8 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        indicators.forEach( params::addResolvedExpressionItem );
-
-        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
+        List<DimensionalItemObject> items = Lists
+                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1359,13 +1353,13 @@ public class DefaultAnalyticsService
 
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
-        DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
+        DataQueryParams dataSourceParams = DataQueryParams
+            .newBuilder( params )
             .replaceDimension( dimension )
             .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withResolvedExpressionItems( items )
             .withSkipMeta( true ).build();
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );

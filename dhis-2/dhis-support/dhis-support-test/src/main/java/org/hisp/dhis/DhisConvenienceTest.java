@@ -37,12 +37,23 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.category.*;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
@@ -79,15 +90,30 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UniqunessType;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -99,7 +125,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -127,15 +158,25 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
  */
-@ActiveProfiles( profiles = {"test"} )
+@ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
@@ -327,7 +368,6 @@ public abstract class DhisConvenienceTest
      * @param dependency    the dependency.
      * @param clazz         the interface type of the dependency.
      */
-    @Deprecated
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
         try
@@ -487,7 +527,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryCombo the category combo.
+     * @param categoryCombo   the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -787,11 +827,11 @@ public abstract class DhisConvenienceTest
         return unit;
     }
 
-    public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry)
+    public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, Geometry geometry )
     {
         OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
 
-        unit.setGeometry(geometry);
+        unit.setGeometry( geometry );
 
         return unit;
     }
@@ -1052,8 +1092,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter          A unique character to identify the object.
-     * @param expressionString         The expression string.
+     * @param uniqueCharacter  A unique character to identify the object.
+     * @param expressionString The expression string.
      */
     public static Expression createExpression2( char uniqueCharacter, String expressionString )
     {
@@ -1074,7 +1114,7 @@ public abstract class DhisConvenienceTest
      * @param generator             The right side expression.
      * @param skipTest              The skiptest expression
      * @param periodType            The period-type.
-     * @param organisationUnitLevel The unit level of organisations to be
+     * @param organisationUnitLevel The organisation unit level to be
      *                              evaluated by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
      * @param annualSampleCount     How many years of past periods to sample.
@@ -1085,8 +1125,32 @@ public abstract class DhisConvenienceTest
         OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
+        return createPredictor( output, combo, uniqueCharacter, generator,
+            skipTest, periodType, Sets.newHashSet( organisationUnitLevel ),
+            sequentialSampleCount, sequentialSkipCount, annualSampleCount );
+    }
+
+    /**
+     * Creates a Predictor
+     *
+     * @param output                 The data element where the predictor stores its predictions
+     * @param combo                  The category option combo (or null) under which the predictors are stored
+     * @param uniqueCharacter        A unique character to identify the object.
+     * @param generator              The right side expression.
+     * @param skipTest               The skiptest expression
+     * @param periodType             The period-type.
+     * @param organisationUnitLevels The organisation unit levels to be
+     *                               evaluated by this rule.
+     * @param sequentialSampleCount  How many sequential past periods to sample.
+     * @param annualSampleCount      How many years of past periods to sample.
+     * @param sequentialSkipCount    How many periods in the current year to skip
+     */
+    public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
+        String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
+        Set<OrganisationUnitLevel> organisationUnitLevels, int sequentialSampleCount,
+        int sequentialSkipCount, int annualSampleCount )
+    {
         Predictor predictor = new Predictor();
-        Set<OrganisationUnitLevel> orgUnitlevels = Sets.newHashSet( organisationUnitLevel );
         predictor.setAutoFields();
 
         predictor.setOutput( output );
@@ -1096,7 +1160,7 @@ public abstract class DhisConvenienceTest
         predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
-        predictor.setOrganisationUnitLevels( orgUnitlevels );
+        predictor.setOrganisationUnitLevels( organisationUnitLevels );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1211,6 +1275,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
+        credentials.setUser( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
@@ -1260,7 +1325,7 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+        return createUserAuthorityGroup( uniqueCharacter, new String[]{} );
     }
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
@@ -1683,7 +1748,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content The content of the file
+     * @param content    The content of the file
      * @return a fileResource object
      */
     public static FileResource createFileResource( char uniqueChar, byte[] content )
@@ -1702,7 +1767,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content The content of the file
+     * @param content    The content of the file
      * @return an externalFileResource object
      */
     public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
@@ -1767,17 +1832,17 @@ public abstract class DhisConvenienceTest
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
-            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
+        String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
     {
         return new ProgramNotificationTemplate(
-                name,
-                "Subject",
-                "Message",
-                trigger,
-                recipient,
-                Sets.newHashSet(),
-                days,
-                null, null
+            name,
+            "Subject",
+            "Message",
+            trigger,
+            recipient,
+            Sets.newHashSet(),
+            days,
+            null, null
         );
     }
 
@@ -1967,7 +2032,7 @@ public abstract class DhisConvenienceTest
         }
 
         @Override
-        public Iterator<?> getPrefixes( String namespaceURI )
+        public Iterator<String> getPrefixes( String namespaceURI )
         {
             return null;
         }

@@ -34,12 +34,12 @@ import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression function isNull
+ * Function isNull
  *
  * @author Jim Grace
  */
 public class FunctionIsNotNull
-    extends AbstractExpressionFunction
+    extends SimpleScalarFunction
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )

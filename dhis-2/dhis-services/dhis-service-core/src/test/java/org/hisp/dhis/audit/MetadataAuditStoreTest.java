@@ -28,7 +28,8 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,7 +42,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
+import com.google.common.collect.Lists;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -62,6 +63,7 @@ public class MetadataAuditStoreTest
     public void testQueryMetadataAudit()
     {
         DataElement de = createDataElement( 'A' );
+
         dataElementService.addDataElement( de );
 
         MetadataAudit audit = new MetadataAudit();

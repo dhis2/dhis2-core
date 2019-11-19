@@ -28,6 +28,7 @@
 
 package org.hisp.dhis;
 
+import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
@@ -46,6 +47,7 @@ public abstract class ApiTest
     @AfterAll
     public void afterAll()
     {
+        new LoginActions().loginAsSuperUser();
         new TestCleanUp().deleteCreatedEntities();
     }
 }

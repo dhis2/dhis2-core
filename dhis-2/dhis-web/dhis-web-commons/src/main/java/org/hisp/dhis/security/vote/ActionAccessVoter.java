@@ -32,7 +32,6 @@ import com.opensymphony.xwork2.config.entities.ActionConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.security.StrutsAuthorityUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -54,7 +53,6 @@ public class ActionAccessVoter
 
     private String requiredAuthoritiesKey;
 
-    @Required
     public void setRequiredAuthoritiesKey( String requiredAuthoritiesKey )
     {
         this.requiredAuthoritiesKey = requiredAuthoritiesKey;
@@ -62,7 +60,6 @@ public class ActionAccessVoter
 
     private String anyAuthoritiesKey;
 
-    @Required
     public void setAnyAuthoritiesKey( String anyAuthoritiesKey )
     {
         this.anyAuthoritiesKey = anyAuthoritiesKey;

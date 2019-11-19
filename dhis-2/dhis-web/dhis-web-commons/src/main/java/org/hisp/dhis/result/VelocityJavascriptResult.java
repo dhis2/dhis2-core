@@ -40,7 +40,7 @@ public class VelocityJavascriptResult
 
     @Override
     protected final String getContentType( String templateLocation )
-    {       
+    {
         return "application/javascript";
     }
 }

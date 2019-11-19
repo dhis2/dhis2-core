@@ -39,6 +39,8 @@ import org.junit.Test;
 import static org.hisp.dhis.relationship.RelationshipEntity.*;
 import static org.junit.Assert.*;
 
+import org.apache.commons.text.StringSubstitutor;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -177,7 +179,7 @@ public class RelationshipTypeJoinGeneratorTest
 
     private String addWhere( RelationshipType relationshipType )
     {
-        return new org.apache.commons.text.StrSubstitutor(
+        return new StringSubstitutor(
             ImmutableMap.<String, Long> builder().put( "relationshipid", relationshipType.getId() ).build() )
                 .replace( RelationshipTypeJoinGenerator.RELATIONSHIP_JOIN );
     }
