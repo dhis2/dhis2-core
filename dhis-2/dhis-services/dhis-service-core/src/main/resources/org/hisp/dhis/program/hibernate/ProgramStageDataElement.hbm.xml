@@ -31,7 +31,7 @@
 
     <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
 
-    <property name="renderType" type="jbRenderType" column="rendertype" />
+    <property name="renderType" type="jbValueRenderType" column="rendertype" />
 
     <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
 
