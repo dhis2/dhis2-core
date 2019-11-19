@@ -387,6 +387,38 @@ public class MetadataImportServiceTest
         userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( "TA user group updated", userGroup.getName() );
         assertEquals( userA, userGroup.getUser() );
+    }
 
+    @Test
+    public void testImportWithSkipSharingIsTrue() throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setSkipSharing( true );
+        params.setObjects( metadata );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setSkipSharing( true );
+        params.setObjects( metadata );
+        params.setUser( user );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
     }
 }
