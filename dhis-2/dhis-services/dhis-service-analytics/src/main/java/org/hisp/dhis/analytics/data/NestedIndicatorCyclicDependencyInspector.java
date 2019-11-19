@@ -28,144 +28,167 @@
 
 package org.hisp.dhis.analytics.data;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static java.util.Collections.*;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.indicator.Indicator;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.CyclicReferenceException;
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.expression.ParseType;
-import org.hisp.dhis.indicator.Indicator;
-
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
 /**
- * Builds a tree structure representing nested Indicators and detects if an Indicator has a cyclic dependency
- * within the same tree.
+ * Builds a tree structure representing nested Indicators and detects if an
+ * Indicator has a cyclic dependency within the same tree.
  *
+ * See tests for different sequences of nested Indicators
  *
  * @author Luciano Fiandesio
  */
+@Component
 public class NestedIndicatorCyclicDependencyInspector
 {
-    /**
-     * Holds the tree structure of the nested indicators
-     */
-    private List<TreeNode<String>> nestedIndicatorTrees;
+    private final ExpressionService expressionService;
 
-    private ExpressionService expressionService;
+    private final DimensionService dimensionService;
+
+    public NestedIndicatorCyclicDependencyInspector( DimensionService dimensionService,
+        ExpressionService expressionService )
+    {
+        checkNotNull( expressionService );
+        checkNotNull( dimensionService );
+
+        this.dimensionService = dimensionService;
+        this.expressionService = expressionService;
+    }
 
     private final static String ERROR_STRING = "An Indicator with identifier '%s' has a cyclic reference to another Indicator in the Nominator or Denominator expression";
 
     /**
-     * Initialize the component
+     * Initiate the inspection, by invoking the recursive 'inspect' function
      *
-     * @param indicators a List of Indicators representing the root of the trees. Each Indicator passed in the
-     *                   constructor will create a new tree structure
-     *
-     * @param expressionService the {@see ExpressionService} required to resolve expressions
+     * @param dimensionalItemObjects a List of root {@see DimensionalItemObject} as
+     *        Indicators
      */
-    public NestedIndicatorCyclicDependencyInspector( List<Indicator> indicators, ExpressionService expressionService )
+    public void inspect( List<DimensionalItemObject> dimensionalItemObjects )
     {
-        this.expressionService = expressionService;
-        // init the tree structures
-        resetTrees();
-        // add root nodes represented by the Indicators
+        // Make sure the List contains only Indicator objects
+        List<Indicator> indicators = asTypedList( dimensionalItemObjects.stream()
+            .filter( d -> d.getDimensionItemType().equals( INDICATOR ) ).collect( Collectors.toList() ) );
+
         for ( Indicator indicator : indicators )
         {
-            nestedIndicatorTrees.add( getNode( indicator ) );
+            addDescendants( indicator, new ArrayMultiTreeNode<>( indicator.getUid() ), indicator.getUid() );
         }
     }
 
-    public void add( List<Indicator> indicators )
+    /**
+     * Recursively add all the given Indicator's nested Indicators (if any) to the
+     * tree
+     * 
+     * @param indicator The Indicator to add to the main Indicators tree
+     * @param tree the complete Indicator tree
+     * @param parent the uid of the parent node to which the Indicator is added
+     */
+    private void addDescendants( Indicator indicator, TreeNode<String> tree, String parent )
     {
-        List<String> alreadyAdded = new ArrayList<>();
+        // get a list of indicators from the current Indicator
+        // (in case the current Indicator references other Indicators in the
+        // expressions)
+        List<Indicator> indicators = getDescendants( indicator );
 
-        for ( Indicator indicator : indicators )
+        if ( !indicators.isEmpty() )
         {
-            if ( !alreadyAdded.contains( indicator.getUid() ) )
+            add( indicators, tree, parent );
+            for ( Indicator innerIndicator : indicators )
             {
-                for ( TreeNode<String> node : nestedIndicatorTrees )
-                {
-                    TreeNode<String> root = node.root();
-                    TreeNode<String> nodeToReplace = root.find( indicator.getUid() );
-
-                    if ( nodeToReplace != null && !nodeToReplace.isRoot() )
-                    {
-                        if ( nodeToReplace.isLeaf() )
-                        {
-                            // Replace the "write-ahead" node with the "real" node
-                            TreeNode<String> parent = nodeToReplace.parent();
-                            root.remove( nodeToReplace );
-                            parent.add( getNode( indicator ) );
-                            alreadyAdded.add( indicator.getUid() );
-                            break;
-                        }
-                        // If the node is not leaf, it means that it was found
-                        // up in the tree structure, therefore we need to
-                        // throw an exception
-                        else
-                        {
-                            throw new CyclicReferenceException( format( ERROR_STRING, nodeToReplace.data() ) );
-                        }
-                    }
-                }
+                addDescendants( innerIndicator, tree, innerIndicator.getUid() );
             }
         }
     }
 
     /**
-     * Create a Node from an Indicator.
+     * Add the List of Indicators as Nodes to the given Tree
+     * 
+     * Fails if any of the Indicators UID is already present in the tree as **direct
+     * ancestor**.
      *
-     * @param indicator an instance of {@see Indicator}
-     * @return a TreeNode
+     * @param indicators list of Indicators to add to the tree
+     * @param tree the full tree built so far
+     * @param parent the UID of the parent node to which to attach the Indicators
      */
-    private TreeNode<String> getNode( Indicator indicator )
+    public void add( List<Indicator> indicators, TreeNode<String> tree, String parent )
     {
-        // Create the Node using the Indicator UID as value
-        TreeNode<String> node = new ArrayMultiTreeNode<>( indicator.getUid() );
+        for ( Indicator indicator : indicators )
+        {
+            // find the parent node to which we attach the indicators
+            TreeNode<String> parentNode = tree.find( parent );
+            if ( parentNode == null )
+            {
+                return;
+            }
+            if ( !parentNode.isRoot() )
+            {
+                TreeNode<String> mNode = parentNode;
+                // navigate backward from the parent node to verify that a direct ancestor
+                // doesn't have the same UID as the current indicator
+                do
+                {
+                    mNode = mNode.parent();
+                    if ( indicator.getUid().equals( mNode.data() ) )
+                    {
+                        throw new CyclicReferenceException( format( ERROR_STRING, indicator.getUid() ) );
+                    }
+                }
+                while ( !mNode.isRoot() );
+            }
 
-        // Add to the newly created node all the DimensionalItems found in the numerator
-        // and denominator expressions as
-        // child nodes ("Write-ahead"). The write-ahead nodes are required to "connect"
-        // the next iteration of Indicators
-        //
+            // check that the node to add doesn't have the same value as the parent
+            // IndicatorA <--> IndicatorA
+            if ( parentNode.data().equals( indicator.getUid() ) )
+            {
+                throw new CyclicReferenceException( format( ERROR_STRING, indicator.getUid() ) );
+            }
+            else
+            {
+                parentNode.add( new ArrayMultiTreeNode<>( indicator.getUid() ) );
+            }
+        }
+    }
 
-        // Merge numerator and denominator
+    /**
+     * Fetch the Indicators referenced in the numerator and denominator expression
+     * for the given Indicator
+     * 
+     * @param indicator an Indicator
+     * @return a List of direct descendants Indicators of the current Indicator.
+     *         Empty List if the current Indicator has no descendants
+     */
+    private List<Indicator> getDescendants( Indicator indicator )
+    {
         Set<DimensionalItemId> expressionDataElements = Sets.union(
             expressionService.getExpressionDimensionalItemIds( indicator.getNumerator(), INDICATOR_EXPRESSION ),
             expressionService.getExpressionDimensionalItemIds( indicator.getDenominator(), INDICATOR_EXPRESSION ) );
 
-        for ( DimensionalItemId dimensionalItemId : expressionDataElements )
+        if ( !expressionDataElements.isEmpty() )
         {
-            // Only add Indicators to the tree, since Indicators can be nested
-            if ( dimensionalItemId.getDimensionItemType().equals( INDICATOR ) )
-            {
-                // Throw exception if the child node is equal to the parent ( A --> A )
-                if ( !node.data().equals( dimensionalItemId.getId0() ) )
-                {
-                    node.add( new ArrayMultiTreeNode<>( dimensionalItemId.getId0() ) );
-                }
-                else
-                {
-                    throw new CyclicReferenceException( format( ERROR_STRING, node.data() ) );
-                }
-            }
+            return asTypedList( dimensionService.getDataDimensionalItemObjects( expressionDataElements ).stream()
+                .filter( d -> d.getDimensionItemType().equals( INDICATOR ) ).collect( Collectors.toList() ) );
         }
-
-        return node;
-    }
-
-    private void resetTrees()
-    {
-        nestedIndicatorTrees = new ArrayList<>();
+        else
+        {
+            return emptyList();
+        }
     }
 }

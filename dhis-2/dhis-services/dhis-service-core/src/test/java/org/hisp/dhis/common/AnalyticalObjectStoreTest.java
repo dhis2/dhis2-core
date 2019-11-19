@@ -36,8 +36,8 @@ import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -64,7 +64,8 @@ public class AnalyticalObjectStoreTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    @Resource( name = "org.hisp.dhis.mapping.MapViewStore" )
+    @Autowired
+    @Qualifier( "org.hisp.dhis.mapping.MapViewStore" )
     private MapViewStore mapViewStore;
 
     @Override
