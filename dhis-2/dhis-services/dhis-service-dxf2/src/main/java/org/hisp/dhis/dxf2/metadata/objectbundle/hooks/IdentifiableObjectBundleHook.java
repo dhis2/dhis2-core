@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
@@ -43,12 +44,22 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Order( 0 )
 public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 {
+    private final AclService aclService;
+
+    public IdentifiableObjectBundleHook( AclService aclService )
+    {
+        checkNotNull( aclService );
+        this.aclService = aclService;
+    }
+
     @Override
     public void preCreate( IdentifiableObject identifiableObject, ObjectBundle bundle )
     {
@@ -60,6 +71,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
         handleAttributeValues( identifiableObject, bundle, schema );
+        handleSkipSharing( identifiableObject, bundle );
     }
 
     @Override
@@ -121,5 +133,12 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             .stream()
             .anyMatch( av -> av.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) &&
                 av.getValue().equals( attributeValue.getValue() ) );
+    }
+
+    private void handleSkipSharing( IdentifiableObject identifiableObject, ObjectBundle bundle )
+    {
+        if ( !bundle.isSkipSharing() ) return;
+
+        aclService.clearSharing( identifiableObject, bundle.getUser() );
     }
 }
