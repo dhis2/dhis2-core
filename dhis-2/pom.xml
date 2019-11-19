@@ -1448,7 +1448,12 @@
         <artifactId>proton-j</artifactId>
         <version>0.33.6</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.10</version>
+        <scope>provided</scope>
+      </dependency>
       <!-- SMPP -->
       <dependency>
         <groupId>org.jsmpp</groupId>

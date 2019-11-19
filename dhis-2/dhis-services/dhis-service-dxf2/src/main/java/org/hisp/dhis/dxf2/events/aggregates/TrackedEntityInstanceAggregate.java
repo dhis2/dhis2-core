@@ -81,7 +81,10 @@ public class TrackedEntityInstanceAggregate
      */
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params )
     {
-        Long userId = currentUserService.getCurrentUser().getId();
+
+        AggregateContext aggregateContext = AggregateContext.builder()
+            .userId( currentUserService.getCurrentUser().getId() )
+            .superUser( currentUserService.getCurrentUser().isSuper() ).build();
 
         /*
          * Async fetch Relationships for the given TrackedEntityInstance id (only if
@@ -96,7 +99,7 @@ public class TrackedEntityInstanceAggregate
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             params.isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, userId, params.isIncludeEvents(),
+            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, aggregateContext, params.isIncludeEvents(),
                 params.isIncludeRelationships() ) );
 
         /*
@@ -109,7 +112,7 @@ public class TrackedEntityInstanceAggregate
          * Async Fetch TrackedEntityInstances by id
          */
         CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(
-            () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, userId ) );
+            () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, aggregateContext ) );
 
         /*
          * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance id

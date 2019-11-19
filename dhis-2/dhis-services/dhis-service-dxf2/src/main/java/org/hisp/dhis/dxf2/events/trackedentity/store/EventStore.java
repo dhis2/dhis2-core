@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 
@@ -49,7 +50,7 @@ public interface EventStore
      * @param enrollmentsId
      * @return
      */
-    Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, Long userId );
+    Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, AggregateContext ctx );
 
     /**
      *

@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -50,7 +51,7 @@ public interface TrackedEntityInstanceStore
      * @return a Map where key is a {@see TrackedEntityInstance} uid and the key is
      *         the corresponding {@see TrackedEntityInstance}
      */
-    Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, Long userId );
+    Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx );
 
     /**
      * Fetches all the relationships having the TEI id specified in the arg as
