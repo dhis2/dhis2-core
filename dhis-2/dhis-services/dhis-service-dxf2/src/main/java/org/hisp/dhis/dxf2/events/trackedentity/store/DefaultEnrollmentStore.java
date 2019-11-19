@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.List;
 
+import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EnrollmentRowCallbackHandler;
@@ -58,7 +59,7 @@ public class DefaultEnrollmentStore
         + "       p.featuretype as program_feature_type from programinstance pi "
         + "         join program p on pi.programid = p.programid "
         + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
-        + "where pi.trackedentityinstanceid in (:ids) AND " + GET_ENROLLMENT_OR_EVENT_ACL_CHECK;
+        + "where pi.trackedentityinstanceid in (:ids) ";
 
     private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, tec.creator, tec.created "
         + "from trackedentitycomment tec join programinstancecomments pic "
@@ -71,10 +72,11 @@ public class DefaultEnrollmentStore
         super( jdbcTemplate );
     }
 
-    public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids )
+    public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx )
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
-        jdbcTemplate.query( GET_ENROLLMENT_SQL_BY_TEI, createIdsParam( ids ), handler );
+        jdbcTemplate.query( withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, GET_ENROLLMENT_OR_EVENT_ACL_CHECK ),
+            createIdsParam( ids, ctx.getUserId() ), handler );
         return handler.getItems();
     }
 

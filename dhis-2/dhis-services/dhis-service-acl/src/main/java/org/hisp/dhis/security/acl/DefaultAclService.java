@@ -138,14 +138,14 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
+        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) ) // --> we can skip this check
         {
-            if ( object instanceof CategoryOptionCombo )
+            if ( object instanceof CategoryOptionCombo ) // this maybe we can skip as well
             {
                 return checkOptionComboSharingPermission( user, object, Permission.DATA_READ ) || checkOptionComboSharingPermission( user, object, Permission.DATA_WRITE );
             }
 
-            if ( schema.isDataShareable() &&
+            if ( schema.isDataShareable() && // sql from Stian
                 ( checkSharingPermission( user, object, Permission.DATA_READ )
                     || checkSharingPermission( user, object, Permission.DATA_WRITE )) )
             {

@@ -26,45 +26,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.trackedentity.store;
+package org.hisp.dhis.dxf2.events.aggregates;
 
-import java.util.List;
-
-import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Note;
-
-import com.google.common.collect.Multimap;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import lombok.Builder;
+import lombok.Value;
 
 /**
  * @author Luciano Fiandesio
  */
-public interface EnrollmentStore
+@Value
+@Builder
+public class AggregateContext
 {
-    /**
-     *
-     * @param ids a list of {@see TrackedEntityInstance} Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
-     *         key a List of {@see Relationship} objects
-     */
-    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx );
+    private boolean superUser;
 
-    /**
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of
-     *         {@see Note} objects
-     */
-    Multimap<String, Note> getNotes( List<Long> ids );
-
-    /**
-     * Fetches all the relationships having the Program Instance id specified in the arg as
-     * "left" or "right" relationship
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the
-     *         key a List of {@see Relationship} objects
-     */
-    Multimap<String, Relationship> getRelationships(List<Long> ids );
+    private Long userId;
 }

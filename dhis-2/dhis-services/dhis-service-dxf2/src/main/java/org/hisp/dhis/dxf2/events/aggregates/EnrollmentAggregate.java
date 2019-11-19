@@ -71,10 +71,10 @@ public class EnrollmentAggregate
      *
      * @return
      */
-    public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, Long userId,
+    public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx,
         boolean includeEvents, boolean includeRelationship )
     {
-        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids );
+        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids, ctx );
 
         if ( enrollments.isEmpty() )
         {
@@ -85,7 +85,7 @@ public class EnrollmentAggregate
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( includeEvents,
-            () -> eventAggregate.findByEnrollmentIds( enrollmentIds, userId, includeRelationship ) );
+            () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx, includeRelationship ) );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch( includeRelationship,
                 () -> enrollmentStore.getRelationships( enrollmentIds ) );

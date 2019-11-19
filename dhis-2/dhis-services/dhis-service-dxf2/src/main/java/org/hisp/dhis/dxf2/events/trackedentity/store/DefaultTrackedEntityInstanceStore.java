@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -54,7 +55,6 @@ public class DefaultTrackedEntityInstanceStore
     implements
     TrackedEntityInstanceStore
 {
-
     private final static String GET_TEI_ACL_CHECK = "tei.trackedentitytypeid = (SELECT distinct TETUGA.trackedentitytypeid"
         + "                                 FROM trackedentitytypeusergroupaccesses TETUGA"
         + "                                          LEFT JOIN usergroupaccess UGA on TETUGA.usergroupaccessid = UGA.usergroupaccessid"
@@ -70,8 +70,8 @@ public class DefaultTrackedEntityInstanceStore
         + "       tei.deleted, tei.geometry, tet.uid as type_uid, o.uid   as ou_uid "
         + "FROM trackedentityinstance tei "
         + "         join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
-        + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids) AND "
-        + GET_TEI_ACL_CHECK;
+        + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids) ";
+
 
     private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid"
         + ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, "
@@ -101,10 +101,11 @@ public class DefaultTrackedEntityInstanceStore
     }
 
     @Override
-    public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, Long userId )
+    public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx )
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
-        jdbcTemplate.query( GET_TEIS_SQL, createIdsParam( ids, userId ), handler );
+        jdbcTemplate.query( withAclCheck( GET_TEIS_SQL, ctx, GET_TEI_ACL_CHECK ),
+            createIdsParam( ids, ctx.getUserId() ), handler );
         return handler.getItems();
     }
 

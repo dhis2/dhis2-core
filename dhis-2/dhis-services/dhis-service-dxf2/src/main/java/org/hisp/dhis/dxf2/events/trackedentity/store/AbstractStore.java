@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -131,4 +132,20 @@ public abstract class AbstractStore
     }
 
     abstract String getRelationshipEntityColumn();
+
+    /**
+     *
+     * @param sql an sql statement to which we want to "attach" the ACL sharing
+     *        condition
+     * @param ctx the {@see AAggregateContext} object containing information about
+     *        the current user
+     * @param aclSql the sql statement as WHERE condition to filter out elements for
+     *        which the user has no sharing access
+     *
+     * @return a merge between the sql and the aclSql
+     */
+    String withAclCheck( String sql, AggregateContext ctx, String aclSql )
+    {
+        return ctx.isSuperUser() ? sql : sql + " AND " + aclSql;
+    }
 }
