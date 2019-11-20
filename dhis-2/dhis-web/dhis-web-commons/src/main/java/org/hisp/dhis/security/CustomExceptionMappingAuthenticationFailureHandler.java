@@ -60,8 +60,6 @@ public class CustomExceptionMappingAuthenticationFailureHandler
 
         request.getSession().setAttribute( "username", username );
 
-        securityService.registerFailedLogin( username );
-
         I18n i18n = i18nManager.getI18n();
 
         if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class ) != -1)
