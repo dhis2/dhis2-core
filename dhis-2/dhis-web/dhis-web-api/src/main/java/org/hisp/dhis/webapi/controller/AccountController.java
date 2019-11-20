@@ -178,9 +178,18 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
         }
 
+        CredentialsInfo credentialsInfo;
         User user = credentials.getUser();
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "", false );
+        // In case of restoring password
+        if ( user == null )
+        {
+            credentialsInfo = new CredentialsInfo( username, password, "", false );
+        }
+        else
+        {
+            credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "", false );
+        }
 
         PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
