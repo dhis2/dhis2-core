@@ -179,12 +179,12 @@ public class AccountController
         }
 
         CredentialsInfo credentialsInfo;
-        User user = credentials.getUser();
+        User user = credentials.getUserInfo();
 
-        // In case of restoring password
+        // if user is null then something is internally wrong and request should be terminated.
         if ( user == null )
         {
-            credentialsInfo = new CredentialsInfo( username, password, "", false );
+            throw new WebMessageException( WebMessageUtils.error( String.format( "No user found for username: %s", username ) ) );
         }
         else
         {
