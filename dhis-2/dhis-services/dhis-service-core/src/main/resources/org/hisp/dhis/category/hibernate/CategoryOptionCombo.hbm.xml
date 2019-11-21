@@ -15,7 +15,7 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" access="property" unique="false" not-null="false" type="text" index="in_categoryoptioncombo_name" />
+    <property name="name" column="name" access="property" not-null="false" type="text" index="in_categoryoptioncombo_name" />
 
     <property name="translations" type="jblTranslations"/>
 
