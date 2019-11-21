@@ -110,12 +110,4 @@ public class IdentifiableObjectBundleHook
             session.save( attributeValue );
         }
     }
-
-    private void handleSkipSharing( IdentifiableObject identifiableObject, ObjectBundle bundle )
-    {
-        if ( !bundle.isSkipSharing() )
-            return;
-
-        aclService.clearSharing( identifiableObject, bundle.getUser() );
-    }
 }
