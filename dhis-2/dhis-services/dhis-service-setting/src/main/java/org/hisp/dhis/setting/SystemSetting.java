@@ -29,6 +29,16 @@ package org.hisp.dhis.setting;
  */
 
 import java.io.Serializable;
+import java.util.Optional;
+import java.util.StringJoiner;
+
+import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
 /**
  * TODO make IdentifiableObject
@@ -38,11 +48,17 @@ import java.io.Serializable;
 public class SystemSetting
     implements Serializable
 {
+    private static final Logger log = LoggerFactory.getLogger( SystemSetting.class );
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     private long id;
 
     private String name;
 
-    private Serializable value;
+    private String value;
+
+    private transient Serializable displayValue;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -85,14 +101,72 @@ public class SystemSetting
         this.name = name;
     }
 
-    public Serializable getValue()
+    //Should be used only by Spring/Hibernate
+    public void setValue( String value )
+    {
+        this.value = value;
+    }
+
+    //Should be used only by Spring/Hibernate
+    public String getValue()
     {
         return value;
     }
 
-    public void setValue( Serializable value )
+    public void setDisplayValue( Serializable displayValue )
     {
-        this.value = value;
+        this.displayValue = displayValue;
+        try
+        {
+            this.value = objectMapper.writeValueAsString( displayValue );
+        }
+        catch ( JsonProcessingException e )
+        {
+            log.error( "An error occurred while serializing SystemSetting '" + name + "'", e );
+        }
+    }
+
+    public Serializable getDisplayValue()
+    {
+        if ( displayValue == null )
+        {
+            displayValue = convertValueToSerializable();
+        }
+
+        return displayValue;
+    }
+
+    private Serializable convertValueToSerializable()
+    {
+        Serializable valueAsSerializable = null;
+        if ( hasValue() )
+        {
+            Optional<SettingKey> settingKey = SettingKey.getByName( name );
+
+            try
+            {
+                if ( settingKey.isPresent() )
+                {
+                    Object valueAsObject = objectMapper.readValue( value, settingKey.get().getClazz() );
+                    valueAsSerializable = (Serializable) valueAsObject;
+                }
+                else
+                {
+                    valueAsSerializable = StringEscapeUtils.unescapeJava( value );
+                }
+            }
+            catch ( MismatchedInputException e )
+            {
+                log.warn( "Content could not be de-serialized by Jackson", e );
+                valueAsSerializable = StringEscapeUtils.unescapeJava( value );
+            }
+            catch ( JsonProcessingException e )
+            {
+                log.error( "An error occurred while de-serializing SystemSetting '" + name + "'", e );
+            }
+        }
+
+        return valueAsSerializable;
     }
 
     // -------------------------------------------------------------------------
@@ -131,5 +205,15 @@ public class SystemSetting
         result = result * prime + name.hashCode();
 
         return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        return new StringJoiner( ", ", SystemSetting.class.getSimpleName() + "[", "]" )
+            .add( "id=" + id )
+            .add( "name='" + name + "'" )
+            .add( "value='" + value + "'" )
+            .add( "displayValue=" + displayValue ).toString();
     }
 }
