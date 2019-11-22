@@ -55,4 +55,6 @@ public interface CategoryOptionComboStore
      * @return a List of {@see CategoryOptionCombo} or empty List
      */
     List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
+
+    CategoryOptionCombo getDefaultCoC();
 }

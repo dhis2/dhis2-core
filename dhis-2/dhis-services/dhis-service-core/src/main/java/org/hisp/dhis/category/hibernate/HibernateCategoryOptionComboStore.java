@@ -31,6 +31,7 @@ package org.hisp.dhis.category.hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -130,5 +131,18 @@ public class HibernateCategoryOptionComboStore
         publisher.publishEvent( event );
 
         getSession().delete( categoryOptionCombo );
+    }
+
+    @Override
+    public CategoryOptionCombo getDefaultCoC()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<CategoryOptionCombo> query = builder.createQuery( getClazz() );
+        Root<CategoryOptionCombo> root = query.from( getClazz() );
+        root.fetch( "categoryOptions", JoinType.INNER );
+        query.select( root );
+        query.where( builder.equal( root.get( "name" ), CategoryOptionCombo.DEFAULT_NAME ) );
+        return getSession().createQuery( query ).uniqueResult();
     }
 }
