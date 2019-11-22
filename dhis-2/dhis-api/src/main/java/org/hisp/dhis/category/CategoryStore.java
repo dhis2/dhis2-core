@@ -44,4 +44,6 @@ public interface CategoryStore
     List<Category> getCategories( DataDimensionType dataDimensionType, boolean dataDimension );
     
     List<Category> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
+
+    Category getDefaultCat();
 }
