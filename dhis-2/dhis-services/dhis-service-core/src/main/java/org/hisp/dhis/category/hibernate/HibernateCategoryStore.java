@@ -41,9 +41,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Root;
 import java.util.List;
 
 /**
@@ -90,18 +87,5 @@ public class HibernateCategoryStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
-    }
-
-    @Override
-    public Category getDefaultCat()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        CriteriaQuery<Category> query = builder.createQuery( getClazz() );
-        Root<Category> root = query.from( getClazz() );
-        root.fetch( "categoryCombos", JoinType.INNER );
-        query.select( root );
-        query.where( builder.equal( root.get( "name" ), Category.DEFAULT_NAME ) );
-        return getSession().createQuery( query ).uniqueResult();
     }
 }

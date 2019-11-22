@@ -43,7 +43,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.schema.Schema;
@@ -54,7 +53,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,13 +105,12 @@ public class DefaultIdentifiableObjectManager
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
 
-    private final CategoryService categoryService;
 
     public DefaultIdentifiableObjectManager(
         Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
         Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
         SessionFactory sessionFactory, CurrentUserService currentUserService, SchemaService schemaService,
-        Environment env, CacheProvider cacheProvider, @Lazy CategoryService categoryService )
+        Environment env, CacheProvider cacheProvider )
     {
         checkNotNull( identifiableObjectStores );
         checkNotNull( dimensionalObjectStores );
@@ -122,8 +119,6 @@ public class DefaultIdentifiableObjectManager
         checkNotNull( schemaService );
         checkNotNull( env );
         checkNotNull( cacheProvider );
-        checkNotNull( cacheProvider );
-        checkNotNull( categoryService );
 
         this.identifiableObjectStores = identifiableObjectStores;
         this.dimensionalObjectStores = dimensionalObjectStores;
@@ -132,7 +127,6 @@ public class DefaultIdentifiableObjectManager
         this.schemaService = schemaService;
         this.env = env;
         this.cacheProvider = cacheProvider;
-        this.categoryService = categoryService;
     }
 
     @PostConstruct
@@ -1094,10 +1088,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> categoryService.getDefaultCaEagerFetch() ).orElse( null ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> categoryService.getDefaultCcEagerFetch() ).orElse( null ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> categoryService.getDefaultCoEagerFetch() ).orElse( null ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> categoryService.getDefaultCoCEagerFetch() ).orElse( null ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> getByName( Category.class, "default" ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
             .build();
     }
 

@@ -520,9 +520,4 @@ public interface CategoryService
     CategoryOption getDefaultCategoryOption();
 
     Category getDefaultCategory();
-
-    Category getDefaultCaEagerFetch();
-    CategoryOption getDefaultCoEagerFetch();
-    CategoryCombo getDefaultCcEagerFetch();
-    CategoryOptionCombo getDefaultCoCEagerFetch();
 }
