@@ -31,6 +31,8 @@ package org.hisp.dhis.sqlview;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,11 +45,15 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.sqlview.SqlView.*;
 
 /**
  * @author Dang Duy Hieu
@@ -68,6 +74,15 @@ public class DefaultSqlViewService
     private final StatementBuilder statementBuilder;
 
     private final DhisConfigurationProvider config;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Override
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     public DefaultSqlViewService( SqlViewStore sqlViewStore, StatementBuilder statementBuilder,
         DhisConfigurationProvider config )
@@ -223,7 +238,7 @@ public class DefaultSqlViewService
 
         boolean hasFilter = filters != null && !filters.isEmpty();
 
-        String sql = SqlViewUtils.substituteSqlVariables( sqlView.getSqlQuery(), variables );
+        String sql = substituteQueryVariables( sqlView, variables );
 
         if ( hasCriteria || hasFilter )
         {
@@ -244,6 +259,21 @@ public class DefaultSqlViewService
             }
 
             sql = outerSql;
+        }
+
+        return sql;
+    }
+
+    private String substituteQueryVariables( SqlView sqlView, Map<String, String> variables )
+    {
+        String sql = SqlViewUtils.substituteSqlVariables( sqlView.getSqlQuery(), variables );
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser != null )
+        {
+            sql = SqlViewUtils.substituteSqlVariable( sql, CURRENT_USER_ID_VARIABLE, Long.toString( currentUser.getId() ) );
+            sql = SqlViewUtils.substituteSqlVariable( sql, CURRENT_USERNAME_VARIABLE, currentUser.getUsername() );
         }
 
         return sql;
@@ -306,6 +336,7 @@ public class DefaultSqlViewService
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
         final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
         final boolean ignoreSqlViewTableProtection = config.isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
+        final Set<String> allowedVariables = variables == null ? BUILT_IN_VARIABLES : Sets.union( variables.keySet(), BUILT_IN_VARIABLES );
 
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
@@ -337,7 +368,7 @@ public class DefaultSqlViewService
             violation = "Variables are invalid: " + SqlView.getInvalidQueryValues( variables.values() );
         }
 
-        if ( sqlView.isQuery() && !sqlVars.isEmpty() && ( variables == null || !variables.keySet().containsAll( sqlVars ) ) )
+        if ( sqlView.isQuery() && !sqlVars.isEmpty() && ( !allowedVariables.containsAll( sqlVars ) ) )
         {
             violation = "SQL query contains variables which were not provided in request: " + sqlVars;
         }

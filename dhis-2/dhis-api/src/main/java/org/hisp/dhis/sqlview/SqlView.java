@@ -64,6 +64,12 @@ public class SqlView
         "delete", "alter", "update", "create", "drop", "commit", "createdb",
         "createuser", "insert", "rename", "restore", "write" ).build();
 
+    public static final String CURRENT_USER_ID_VARIABLE = "_current_user_id";
+    public static final String CURRENT_USERNAME_VARIABLE = "_current_username";
+
+    public static final Set<String> BUILT_IN_VARIABLES = ImmutableSet.<String>builder().add(
+        CURRENT_USER_ID_VARIABLE, CURRENT_USERNAME_VARIABLE ).build();
+
     private static final String CRITERIA_SEP = ":";
     private static final String REGEX_SEP = "|";
 
