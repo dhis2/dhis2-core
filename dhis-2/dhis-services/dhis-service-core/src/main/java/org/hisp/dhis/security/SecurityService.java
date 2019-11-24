@@ -40,6 +40,22 @@ import java.io.IOException;
 public interface SecurityService
 {
     /**
+     * Register a account recovery attempt for the given user account.
+     *
+     * @param username the username of the user account.
+     */
+    void registerRecoverAttempt( String username );
+
+    /**
+     * Indicates whether the recovery of the user account is locked due
+     * to too many recovery attempts within a specific time span.
+     * The max number of attempts is 5 and the time span is 15 minutes.
+     *
+     * @param username the username of the user account.
+     */
+    boolean isRecoveryLocked( String username );
+
+    /**
      * Register a failed login attempt for the given user account.
      * 
      * @param username the username of the user account.

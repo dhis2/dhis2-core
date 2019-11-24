@@ -93,11 +93,13 @@ public class DefaultSecurityService
     private static final int RESTORE_TOKEN_LENGTH = 50;
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
     private static final int LOGIN_LOCKOUT_MINS = 15;
+    private static final int RECOVERY_LOCKOUT_MINS = 15;
+    private static final int RECOVER_MAX_ATTEMPTS = 5;
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     private Cache<Integer> userFailedLoginAttemptCache;
-    
+    private Cache<Integer> userAccountRecoverAttemptCache;
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -161,12 +163,43 @@ public class DefaultSecurityService
         this.userFailedLoginAttemptCache = cacheProvider.newCacheBuilder( Integer.class )
             .forRegion( "userFailedLoginAttempt" ).expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
             .withDefaultValue( 0 ).build();
-        
+
+        this.userAccountRecoverAttemptCache = cacheProvider.newCacheBuilder( Integer.class )
+            .forRegion( "userAccountRecoverAttempt" ).expireAfterWrite( RECOVERY_LOCKOUT_MINS, TimeUnit.MINUTES )
+            .withDefaultValue( 0 ).build();
     }
 
     // -------------------------------------------------------------------------
     // SecurityService implementation
     // -------------------------------------------------------------------------
+    @Override
+    public void registerRecoverAttempt( String username )
+    {
+        if ( !isBlockMultipleRecoverAttemptsEnabled() || username == null )
+        {
+            return;
+        }
+
+        Integer attempts = userAccountRecoverAttemptCache.get( username ).orElse( 0 );
+
+        userAccountRecoverAttemptCache.put( username, ++attempts );
+    }
+
+    @Override
+    public boolean isRecoveryLocked( String username )
+    {
+        if ( !isBlockMultipleRecoverAttemptsEnabled() || username == null )
+        {
+            return false;
+        }
+
+        return userAccountRecoverAttemptCache.get( username ).orElse( 0 ) > RECOVER_MAX_ATTEMPTS;
+    }
+
+    private boolean isBlockMultipleRecoverAttemptsEnabled()
+    {
+        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_RECOVERY_ATTEMPTS );
+    }
 
     @Override
     public void registerFailedLogin( String username )
@@ -288,6 +321,15 @@ public class DefaultSecurityService
         if ( validateRestore( credentials ) != null )
         {
             return false;
+        }
+
+        if ( isRecoveryLocked( credentials.getUsername() ) )
+        {
+            return false;
+        }
+        else
+        {
+            registerRecoverAttempt( credentials.getUsername() );
         }
 
         RestoreType restoreType = restoreOptions.getRestoreType();
