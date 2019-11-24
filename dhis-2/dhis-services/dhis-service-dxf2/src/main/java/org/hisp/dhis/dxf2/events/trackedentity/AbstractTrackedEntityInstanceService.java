@@ -1440,8 +1440,6 @@ public abstract class AbstractTrackedEntityInstanceService
             return null;
         }
 
-        Set<TrackedEntityAttribute> readableAttributesCopy = new HashSet<>( readableAttributes );
-
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( daoTrackedEntityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( daoTrackedEntityInstance.getOrganisationUnit().getUid() );
@@ -1501,17 +1499,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         }
 
-        if ( params.isDataSynchronizationQuery() )
-        {
-            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( Enrollment::getProgram ).collect( Collectors.toList() );
-
-            IdSchemes idSchemes = new IdSchemes();
-            for ( String programUid : programs )
-            {
-                Program program = getProgram( idSchemes, programUid );
-                readableAttributesCopy.addAll( program.getTrackedEntityAttributes() );
-            }
-        }
+        Set<TrackedEntityAttribute> readableAttributesCopy = filterOutSkipSyncAttributesIfApplies( params,
+            trackedEntityInstance, readableAttributes );
 
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {
@@ -1534,5 +1523,39 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return trackedEntityInstance;
+    }
+
+    private Set<TrackedEntityAttribute> filterOutSkipSyncAttributesIfApplies( TrackedEntityInstanceParams params,
+        TrackedEntityInstance trackedEntityInstance, Set<TrackedEntityAttribute> readableAttributes )
+    {
+        Set<TrackedEntityAttribute> readableAttributesCopy;
+
+        if ( params.isDataSynchronizationQuery() )
+        {
+            List<String> programs = trackedEntityInstance.getEnrollments().stream()
+                .map( Enrollment::getProgram )
+                .collect( Collectors.toList() );
+
+            readableAttributesCopy = readableAttributes.stream()
+                .filter( att -> !att.getSkipSynchronization() )
+                .collect( Collectors.toSet() ) ;
+
+            IdSchemes idSchemes = new IdSchemes();
+            for ( String programUid : programs )
+            {
+                Program program = getProgram( idSchemes, programUid );
+
+                readableAttributesCopy.addAll(
+                    program.getTrackedEntityAttributes().stream()
+                        .filter( att -> !att.getSkipSynchronization() )
+                        .collect( Collectors.toSet() ) );
+            }
+        }
+        else
+        {
+            readableAttributesCopy = new HashSet<>( readableAttributes );
+        }
+
+        return readableAttributesCopy;
     }
 }

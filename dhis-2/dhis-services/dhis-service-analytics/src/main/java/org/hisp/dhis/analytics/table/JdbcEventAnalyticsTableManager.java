@@ -493,6 +493,7 @@ public class JdbcEventAnalyticsTableManager
             "where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and pi.programid = " + program.getId() + " " +
             "and psi.executiondate is not null " +
+            "and psi.executiondate > '1000-01-01' " +
             "and psi.deleted is false ";
 
         if ( params.getFromDate() != null )
