@@ -103,7 +103,7 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     private final CurrentUserService currentUserService;
     
     private final UserSettingService userSettingService;
