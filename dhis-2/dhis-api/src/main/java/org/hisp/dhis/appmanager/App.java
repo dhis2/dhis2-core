@@ -30,14 +30,19 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hisp.dhis.common.DxfNamespaces;
+
 /**
  * @author Saptarshi
  */
+@JacksonXmlRootElement( localName = "app", namespace = DxfNamespaces.DXF_2_0 )
 public class App
     implements Serializable
 {
@@ -119,7 +124,9 @@ public class App
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
+
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getVersion()
     {
         return version;
@@ -131,6 +138,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getName()
     {
         return name;
@@ -142,6 +150,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AppType getAppType()
     {
         return appType;
@@ -153,6 +162,7 @@ public class App
     }
 
     @JsonProperty( "launch_path" )
+    @JacksonXmlProperty( localName = "launch_path", namespace = DxfNamespaces.DXF_2_0 )
     public String getLaunchPath()
     {
         return launchPath;
@@ -164,6 +174,7 @@ public class App
     }
 
     @JsonProperty( "installs_allowed_from" )
+    @JacksonXmlProperty( localName = "installs_allowed_from", namespace = DxfNamespaces.DXF_2_0 )
     public String[] getInstallsAllowedFrom()
     {
         return installsAllowedFrom;
@@ -175,6 +186,7 @@ public class App
     }
 
     @JsonProperty( "default_locale" )
+    @JacksonXmlProperty( localName = "default_locale", namespace = DxfNamespaces.DXF_2_0 )
     public String getDefaultLocale()
     {
         return defaultLocale;
@@ -186,6 +198,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
     {
         return description;
@@ -197,6 +210,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AppDeveloper getDeveloper()
     {
         return developer;
@@ -208,6 +222,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AppIcons getIcons()
     {
         return icons;
@@ -230,6 +245,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AppActivities getActivities()
     {
         return activities;
@@ -241,6 +257,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFolderName()
     {
         return folderName;
@@ -252,6 +269,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getLaunchUrl()
     {
         return launchUrl;
@@ -274,6 +292,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AppStorageSource getAppStorageSource()
     {
         return appStorageSource;
@@ -285,6 +304,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<String> getAuthorities()
     {
         return authorities;
@@ -296,6 +316,7 @@ public class App
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AppStatus getAppState()
     {
         return appState;
