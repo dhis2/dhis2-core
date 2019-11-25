@@ -175,7 +175,7 @@ public class DefaultSecurityService
     @Override
     public void registerRecoverAttempt( String username )
     {
-        if ( !isBlockMultipleRecoverAttemptsEnabled() || username == null )
+        if ( !isBlockFailedLogins() || username == null )
         {
             return;
         }
@@ -188,17 +188,12 @@ public class DefaultSecurityService
     @Override
     public boolean isRecoveryLocked( String username )
     {
-        if ( !isBlockMultipleRecoverAttemptsEnabled() || username == null )
+        if ( !isBlockFailedLogins() || username == null )
         {
             return false;
         }
 
         return userAccountRecoverAttemptCache.get( username ).orElse( 0 ) > RECOVER_MAX_ATTEMPTS;
-    }
-
-    private boolean isBlockMultipleRecoverAttemptsEnabled()
-    {
-        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_RECOVERY_ATTEMPTS );
     }
 
     @Override
