@@ -50,10 +50,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string.class );
+    private static final Log log = LogFactory
+        .getLog( V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string.class );
 
-    private static final String CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE " +
-        "table_name = 'systemsetting' AND column_name = 'value';";
+    private static final String CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL = "SELECT data_type FROM information_schema.columns " +
+        "WHERE table_name = 'systemsetting' AND column_name = 'value';";
 
     @Override
     public void migrate( final Context context ) throws Exception
@@ -63,7 +64,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
             //1. Check whether migration is needed at all. Maybe it was already applied.
             boolean continueWithMigration = false;
             try ( Statement stmt = context.getConnection().createStatement();
-                  ResultSet rs = stmt.executeQuery( CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL ); )
+                ResultSet rs = stmt.executeQuery( CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL ); )
             {
                 if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
                 {
@@ -79,7 +80,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
                 Set<SystemSetting> systemSettingsToConvert = new HashSet<>();
 
                 try ( Statement stmt = context.getConnection().createStatement();
-                      ResultSet rs = stmt.executeQuery( "select * from systemsetting" ); )
+                    ResultSet rs = stmt.executeQuery( "select * from systemsetting" ); )
                 {
                     while ( rs.next() )
                     {
@@ -88,53 +89,51 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
                         SystemSetting systemSetting = new SystemSetting();
                         systemSetting.setId( rs.getLong( "systemsettingid" ) );
                         systemSetting.setName( name );
-                        systemSetting.setValue( (Serializable) SerializationUtils.deserialize( rs.getBytes( "value" ) ) );
+                        systemSetting
+                            .setValue( (Serializable) SerializationUtils.deserialize( rs.getBytes( "value" ) ) );
 
                         systemSettingsToConvert.add( systemSetting );
                     }
                 }
 
-                if ( !systemSettingsToConvert.isEmpty() )
+                //3. Create a new column of type varchar in systemsetting table
+                try ( Statement stmt = context.getConnection().createStatement() )
                 {
-                    //3. Create a new column of type varchar in systemsetting table
-                    try ( Statement stmt = context.getConnection().createStatement() )
-                    {
-                        stmt.executeUpdate( "ALTER TABLE systemsetting ADD COLUMN IF NOT EXISTS value_text TEXT" );
-                    }
+                    stmt.executeUpdate( "ALTER TABLE systemsetting ADD COLUMN IF NOT EXISTS value_text TEXT" );
+                }
 
-                    //4. Fill the new column with transformed data
-                    try ( PreparedStatement ps = context.getConnection()
-                        .prepareStatement( "UPDATE systemsetting SET value_text = ? WHERE systemsettingid = ?" ) )
+                //4. Fill the new column with transformed data
+                try ( PreparedStatement ps = context.getConnection()
+                    .prepareStatement( "UPDATE systemsetting SET value_text = ? WHERE systemsettingid = ?" ) )
+                {
+                    for ( SystemSetting systemSetting : systemSettingsToConvert )
                     {
-                        for ( SystemSetting systemSetting : systemSettingsToConvert )
-                        {
-                            ps.setString( 1, objectMapper.writeValueAsString( systemSetting.getValue() ) );
-                            ps.setLong( 2, systemSetting.getId() );
+                        ps.setString( 1, objectMapper.writeValueAsString( systemSetting.getValue() ) );
+                        ps.setLong( 2, systemSetting.getId() );
 
-                            ps.execute();
-                        }
+                        ps.execute();
                     }
-                    catch ( SQLException e )
-                    {
-                        log.error( "Flyway java migration error:", e );
-                        throw new FlywayException( e );
-                    }
+                }
+                catch ( SQLException e )
+                {
+                    log.error( "Flyway java migration error:", e );
+                    throw new FlywayException( e );
+                }
 
-                    //5. Delete old byte array column for value in systemsetting table
-                    try ( Statement stmt = context.getConnection().createStatement() )
-                    {
-                        stmt.executeUpdate( "ALTER TABLE systemsetting DROP COLUMN value" );
-                    }
+                //5. Delete old byte array column for value in systemsetting table
+                try ( Statement stmt = context.getConnection().createStatement() )
+                {
+                    stmt.executeUpdate( "ALTER TABLE systemsetting DROP COLUMN value" );
+                }
 
-                    //6. Rename new value_text column to the name of the recently deleted column
-                    try ( Statement stmt = context.getConnection().createStatement() )
-                    {
-                        stmt.executeUpdate( "ALTER TABLE systemsetting RENAME COLUMN value_text TO value" );
-                    }
+                //6. Rename new value_text column to the name of the recently deleted column
+                try ( Statement stmt = context.getConnection().createStatement() )
+                {
+                    stmt.executeUpdate( "ALTER TABLE systemsetting RENAME COLUMN value_text TO value" );
                 }
             }
         }
-        catch (Exception e)
+        catch ( Exception e )
         {
             log.error( "Exception occurred: " + e, e );
             throw e;
