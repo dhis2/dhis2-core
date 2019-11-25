@@ -67,8 +67,8 @@ public class SqlView
     public static final String CURRENT_USER_ID_VARIABLE = "_current_user_id";
     public static final String CURRENT_USERNAME_VARIABLE = "_current_username";
 
-    public static final Set<String> BUILT_IN_VARIABLES = ImmutableSet.<String>builder().add(
-        CURRENT_USER_ID_VARIABLE, CURRENT_USERNAME_VARIABLE ).build();
+    public static final Set<String> STANDARD_VARIABLES = ImmutableSet.of(
+        CURRENT_USER_ID_VARIABLE, CURRENT_USERNAME_VARIABLE );
 
     private static final String CRITERIA_SEP = ":";
     private static final String REGEX_SEP = "|";

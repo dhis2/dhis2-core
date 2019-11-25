@@ -336,7 +336,7 @@ public class DefaultSqlViewService
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
         final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
         final boolean ignoreSqlViewTableProtection = config.isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
-        final Set<String> allowedVariables = variables == null ? BUILT_IN_VARIABLES : Sets.union( variables.keySet(), BUILT_IN_VARIABLES );
+        final Set<String> allowedVariables = variables == null ? STANDARD_VARIABLES : Sets.union( variables.keySet(), STANDARD_VARIABLES );
 
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
