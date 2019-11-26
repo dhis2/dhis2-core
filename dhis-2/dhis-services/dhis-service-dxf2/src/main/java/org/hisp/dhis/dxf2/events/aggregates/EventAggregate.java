@@ -70,8 +70,7 @@ public class EventAggregate
      * @return a Map where the key is a Program Instance Primary Key, and the value
      *         is a List of {@see Event}
      */
-    public Multimap<String, Event> findByEnrollmentIds( List<Long> ids, AggregateContext ctx,
-        boolean includeRelationships )
+    Multimap<String, Event> findByEnrollmentIds( List<Long> ids, AggregateContext ctx )
     {
         // Fetch all the Events that are linked to the given Enrollment IDs
 
@@ -88,7 +87,7 @@ public class EventAggregate
          * Async fetch Relationships for the given Event ids (only if isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            includeRelationships, () -> eventStore.getRelationships( eventIds ) );
+            ctx.isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ) );
 
         /*
          * Async fetch Notes for the given Event ids
@@ -110,7 +109,7 @@ public class EventAggregate
 
             for ( Event event : events.values() )
             {
-                if ( includeRelationships )
+                if ( ctx.isIncludeRelationships() )
                 {
                     event.setRelationships( new HashSet<>( relationships.get( event.getEvent() ) ) );
                 }

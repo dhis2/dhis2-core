@@ -83,22 +83,20 @@ public class TrackedEntityInstanceAggregate
      *
      * @return a List of {@see TrackedEntityInstance} objects
      */
-    public List<TrackedEntityInstance> find( List<Long> idsx, TrackedEntityInstanceParams params )
+    public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params )
     {
-        List<Long> idss = new ArrayList<>();
-        idss.add(1353118L);
-        final List<Long> ids = idss;
-
         final Long userId = currentUserService.getCurrentUser().getId();
 
-        AggregateContext securityContext = getSecurityContext( userId );
-        AggregateContext aggregateContext = AggregateContext.builder()
+        AggregateContext securityCtx = getSecurityContext( userId );
+        AggregateContext ctx = AggregateContext.builder()
             .userId( userId )
             .superUser( currentUserService.getCurrentUser().isSuper() )
-            .trackedEntityTypes( securityContext.getTrackedEntityTypes() )
-            .programs( securityContext.getPrograms() )
-            .programStages( securityContext.getProgramStages() )
-            .relationshipTypes( securityContext.getRelationshipTypes() )
+            .trackedEntityTypes( securityCtx.getTrackedEntityTypes() )
+            .programs( securityCtx.getPrograms() )
+            .programStages( securityCtx.getProgramStages() )
+            .relationshipTypes( securityCtx.getRelationshipTypes() )
+            .includeRelationships( params.isIncludeRelationships() )
+            .includeEvents( params.isIncludeEvents() )
             .build();
 
         /*
@@ -106,7 +104,7 @@ public class TrackedEntityInstanceAggregate
          * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
-            params.isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
+            ctx.isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ) );
 
         /*
          * Async fetch Enrollments for the given TrackedEntityInstance id (only if
@@ -114,8 +112,7 @@ public class TrackedEntityInstanceAggregate
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             params.isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, aggregateContext, params.isIncludeEvents(),
-                params.isIncludeRelationships() ) );
+            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ) );
 
         /*
          * Async fetch all ProgramOwner for the given TrackedEntityInstance id
@@ -127,7 +124,7 @@ public class TrackedEntityInstanceAggregate
          * Async Fetch TrackedEntityInstances by id
          */
         CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(
-            () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, aggregateContext ) );
+            () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, ctx ) );
 
         /*
          * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance id

@@ -75,8 +75,10 @@ public class DefaultEnrollmentStore
     public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx )
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
+
         jdbcTemplate.query( withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)" ),
             createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
+
         return handler.getItems();
     }
 
@@ -84,7 +86,9 @@ public class DefaultEnrollmentStore
     public Multimap<String, Note> getNotes( List<Long> ids )
     {
         NoteRowCallbackHandler handler = new NoteRowCallbackHandler();
+
         jdbcTemplate.query( GET_NOTES_SQL, createIdsParam( ids ), handler );
+
         return handler.getItems();
     }
 
