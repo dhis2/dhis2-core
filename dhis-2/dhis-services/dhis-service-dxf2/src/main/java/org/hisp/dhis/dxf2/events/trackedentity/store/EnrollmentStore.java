@@ -46,7 +46,7 @@ public interface EnrollmentStore
      *
      * @param ids a list of {@see TrackedEntityInstance} Primary Keys
      * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
-     *         key a List of {@see Relationship} objects
+     *         key a List of {@see Enrollment} objects
      */
     Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx );
 

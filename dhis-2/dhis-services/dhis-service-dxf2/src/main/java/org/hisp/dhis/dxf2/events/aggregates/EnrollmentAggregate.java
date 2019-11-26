@@ -67,12 +67,11 @@ public class EnrollmentAggregate
      * Key: tei uid , value Enrollment
      *
      * @param ids a List of {@see TrackedEntityInstance} Primary Keys
-     * @param includeEvents if true, fetch also Events related to each enrollment
      *
-     * @return
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
+     *         key a List of {@see Enrollment} objects
      */
-    public Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx,
-        boolean includeEvents, boolean includeRelationship )
+    Multimap<String, Enrollment> findByTrackedEntityInstanceIds(List<Long> ids, AggregateContext ctx)
     {
         Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids, ctx );
 
@@ -84,10 +83,10 @@ public class EnrollmentAggregate
         List<Long> enrollmentIds = enrollments.values().stream().map( Enrollment::getId )
             .collect( Collectors.toList() );
 
-        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( includeEvents,
-            () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx, includeRelationship ) );
+        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( ctx.isIncludeEvents(),
+            () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ) );
 
-        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch( includeRelationship,
+        final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch( ctx.isIncludeRelationships(),
                 () -> enrollmentStore.getRelationships( enrollmentIds ) );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
@@ -101,11 +100,11 @@ public class EnrollmentAggregate
 
             for ( Enrollment enrollment : enrollments.values() )
             {
-                if ( includeEvents )
+                if ( ctx.isIncludeEvents() )
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( includeRelationship )
+                if ( ctx.isIncludeRelationships() )
                 {
                     enrollment.setRelationships( new HashSet<>( relationships.get( enrollment.getEnrollment() ) ) );
                 }

@@ -40,15 +40,37 @@ import java.util.List;
 @Builder
 public class AggregateContext
 {
+    /**
+     * returns true if user is Super User
+     */
     private boolean superUser;
 
+    /**
+     * The current user id
+     */
     private Long userId;
 
+    /**
+     * A List of Tracked Entity Types ID to which the user has READ ONLY access
+     */
     private List<Long> trackedEntityTypes;
 
+    /**
+     * A List of Programs ID to which the user has READ ONLY access
+     */
     private List<Long> programs;
 
+    /**
+     * A List of Program Stages ID to which the user has READ ONLY access
+     */
     private List<Long> programStages;
 
+    /**
+     * A List of Relationship ID to which the user has READ ONLY access
+     */
     private List<Long> relationshipTypes;
+
+    private boolean includeRelationships;
+
+    private boolean includeEvents;
 }
