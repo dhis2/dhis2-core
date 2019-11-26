@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.trackedentity.store;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,29 +28,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.aggregates;
-
-import lombok.Builder;
-import lombok.Value;
-
 import java.util.List;
 
 /**
  * @author Luciano Fiandesio
  */
-@Value
-@Builder
-public class AggregateContext
+public interface AclStore
 {
-    private boolean superUser;
 
-    private Long userId;
+    List<Long> getAccessibleTrackedEntityInstanceTypes( Long userId );
 
-    private List<Long> trackedEntityTypes;
+    List<Long> getAccessiblePrograms( Long userId );
 
-    private List<Long> programs;
+    List<Long> getAccessibleProgramStages( Long userId );
 
-    private List<Long> programStages;
-
-    private List<Long> relationshipTypes;
+    List<Long> getAccessibleRelationshipTypes( Long userId );
 }

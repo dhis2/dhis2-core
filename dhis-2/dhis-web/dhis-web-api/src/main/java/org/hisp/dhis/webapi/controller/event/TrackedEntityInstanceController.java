@@ -206,7 +206,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) boolean includeAllAttributes,
-        @RequestParam( required = false ) String order ) throws Exception
+        @RequestParam( required = false ) String order,
+        @RequestParam( required = false ) boolean useFast ) throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -235,8 +236,13 @@ public class TrackedEntityInstanceController
 
         if ( trackedEntityInstance == null )
         {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
+            if (useFast) {
+                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2(queryParams,
+                        getTrackedEntityInstanceParams(fields), false);
+            } else {
+                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(queryParams,
+                        getTrackedEntityInstanceParams(fields), false);
+            }
         }
         else
         {

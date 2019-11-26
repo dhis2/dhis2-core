@@ -142,7 +142,30 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
-        String hql = buildTrackedEntityInstanceHql( params );
+        String hql = buildTrackedEntityInstanceHql( params, false );
+
+        //If it is a sync job running a query, I need to adjust an HQL a bit, because I am adding 2 joins and don't want duplicates in results
+        if ( params.isSynchronizationQuery() )
+        {
+            hql = hql.replaceFirst( "select tei from", "select distinct tei from" );
+        }
+
+        Query query = getQuery( hql );
+
+        if ( params.isPaging() )
+        {
+            query.setFirstResult( params.getOffset() );
+            query.setMaxResults( params.getPageSizeWithDefault() );
+        }
+
+        return query.list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
+    {
+        String hql = buildTrackedEntityInstanceHql( params, true );
 
         //If it is a sync job running a query, I need to adjust an HQL a bit, because I am adding 2 joins and don't want duplicates in results
         if ( params.isSynchronizationQuery() )
@@ -163,7 +186,7 @@ public class HibernateTrackedEntityInstanceStore
 
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
     {
-        return buildTrackedEntityInstanceHql( params )
+        return buildTrackedEntityInstanceHql( params, false )
             .replaceFirst( "select tei from", "select count(distinct tei) from" )
             .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
             .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
@@ -173,11 +196,11 @@ public class HibernateTrackedEntityInstanceStore
             .replaceFirst( "order by tei.lastUpdated desc ", "" );
     }
 
-    private String buildTrackedEntityInstanceHql( TrackedEntityInstanceQueryParams params )
+    private String buildTrackedEntityInstanceHql( TrackedEntityInstanceQueryParams params, boolean idOnly )
     {
         SqlHelper hlp = new SqlHelper( true );
 
-        String hql = "select tei from TrackedEntityInstance tei ";
+        String hql = "select " + (idOnly ? "tei.id" : "tei") + " from TrackedEntityInstance tei ";
 
         //Used for switing between registration org unit or ownership org unit. Default source is registration ou.
         String teiOuSource = "tei.organisationUnit";

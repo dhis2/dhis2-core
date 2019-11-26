@@ -49,11 +49,11 @@ public abstract class AbstractStore
 {
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    final static String GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL = "select ri.%s as id, r.relationshipid "
+    private final static String GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL = "select ri.%s as id, r.relationshipid "
         + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
         + "where ri.%s in (:ids)";
 
-    final static String GET_RELATIONSHIP_SQL = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
+    private final static String GET_RELATIONSHIP_SQL = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
         + "       coalesce((select tei.uid from trackedentityinstance tei "
         + "                          join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
         + "                 where ri.relationshipitemid = r.to_relationshipitemid) , (select pi.uid "
@@ -74,15 +74,6 @@ public abstract class AbstractStore
         + "                 where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
         + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
         + "where r.relationshipid in (:ids)";
-
-    final static String GET_ENROLLMENT_OR_EVENT_ACL_CHECK = "p.programid = (SELECT distinct PUGA.programid "
-        + "                     from public.programusergroupaccesses PUGA "
-        + "                              LEFT JOIN usergroupaccess UGA on PUGA.usergroupaccessid = UGA.usergroupaccessid "
-        + "                              LEFT JOIN usergroupmembers UGM on UGA.usergroupid = UGM.usergroupid, "
-        + "                          programuseraccesses PUA "
-        + "                              LEFT JOIN useraccess UA on PUA.useraccessid = UA.useraccessid "
-        + "                     WHERE UGM.userid = :userId AND UA.userid = :userId "
-        + "                       AND UGA.access LIKE '__r_____')";
 
     public AbstractStore( JdbcTemplate jdbcTemplate )
     {

@@ -248,8 +248,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         // TODO DHIS2-7336 here we should only get the TEI ids, since we don't need the
         // TEI object
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
-                .getTrackedEntityInstances( queryParams, skipAccessValidation );
+        List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
 
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
@@ -263,7 +262,7 @@ public abstract class AbstractTrackedEntityInstanceService
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
 
-            List<Long> ids = daoTEIs.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toList());
+            //List<Long> ids = daoTEIs.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toList());
 
             return this.trackedEntityInstanceAggregate.find(ids, params);
         }
@@ -277,13 +276,13 @@ public abstract class AbstractTrackedEntityInstanceService
                 attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
             }
 
-            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-            {
-                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, queryParams.getProgram() ) )
-                {
-                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-                }
-            }
+//            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
+//            {
+//                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, queryParams.getProgram() ) )
+//                {
+//                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
+//                }
+//            }
         }
 
         return dtoTeis;

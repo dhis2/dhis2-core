@@ -117,6 +117,8 @@ public interface TrackedEntityInstanceService
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
+    List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
+
     /**
      * Return the count of the Tracked entity instances that meet the criteria specified in params
      *
