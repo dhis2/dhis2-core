@@ -34,9 +34,12 @@ import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -84,6 +87,12 @@ public class  DefaultProgramIndicatorService
     private I18nManager i18nManager;
 
     private RelationshipTypeService relationshipTypeService;
+
+    private static Cache<String> ANALYTICS_SQL_CACHE = new SimpleCacheBuilder<String>().forRegion( "analyticsSql" )
+        .expireAfterAccess( 10, TimeUnit.HOURS )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
@@ -293,7 +302,7 @@ public class  DefaultProgramIndicatorService
     @Transactional( readOnly = true )
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
-        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, null );
+        return getAnalyticsSqlCached( expression, programIndicator, startDate, endDate, null );
     }
 
     @Override
@@ -301,16 +310,32 @@ public class  DefaultProgramIndicatorService
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
         String tableAlias )
     {
-        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias );
+        return getAnalyticsSqlCached( expression, programIndicator, startDate, endDate, tableAlias );
     }
-    
-    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+
+    private String getAnalyticsSqlCached( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         if ( expression == null )
         {
             return null;
         }
 
+        String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate, tableAlias );
+
+        return ANALYTICS_SQL_CACHE.get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) ).orElse( null );
+    }
+
+    private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+    {
+        return expression
+            + "|" + programIndicator.getUid()
+            + "|" + startDate.getTime()
+            + "|" + endDate.getTime()
+            + "|" + ( tableAlias == null ? "" : tableAlias );
+    }
+
+    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+    {
         Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
 
         CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
