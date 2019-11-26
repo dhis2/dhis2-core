@@ -129,11 +129,11 @@ public class DefaultEventStore
     }
 
     @Override
-    public Map<String, List<DataValue>> getDataValues(List<Long> enrollmentsId )
+    public Map<String, List<DataValue>> getDataValues(List<Long> programStageInstanceId )
     {
         EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
 
-        jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( enrollmentsId ), handler );
+        jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( programStageInstanceId ), handler );
 
         return handler.getItems();
     }
