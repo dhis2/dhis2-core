@@ -68,9 +68,9 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
         //1. Check whether migration is needed at all. Maybe it was already applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
-        try ( Statement stmt = context.getConnection().createStatement() )
+        try ( Statement stmt = context.getConnection().createStatement();
+              ResultSet rs = stmt.executeQuery( CHECK_JOB_STATUS_DATA_TYPE_SQL ); )
         {
-            ResultSet rs = stmt.executeQuery( CHECK_JOB_STATUS_DATA_TYPE_SQL );
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ))
             {
                 continueWithMigration = true;
@@ -87,15 +87,13 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
 
             //3. Move existing jobstatus from bytearray column into varchar column
             Map<Integer, byte[]> jobStatusByteMap = new HashMap<>();
-            try ( Statement stmt = context.getConnection().createStatement() )
+            String sql = "SELECT jobconfigurationid, jobstatus FROM jobconfiguration WHERE jobstatus IS NOT NULL";
+            try ( Statement stmt = context.getConnection().createStatement();
+                  ResultSet rs = stmt.executeQuery( sql ); )
             {
-                try ( ResultSet rows = stmt.executeQuery(
-                    "SELECT jobconfigurationid, jobstatus FROM jobconfiguration WHERE jobstatus IS NOT NULL" ) )
+                while ( rs.next() )
                 {
-                    while ( rows.next() )
-                    {
-                        jobStatusByteMap.put( rows.getInt( "jobconfigurationid" ), rows.getBytes( "jobstatus" ) );
-                    }
+                    jobStatusByteMap.put( rs.getInt( "jobconfigurationid" ), rs.getBytes( "jobstatus" ) );
                 }
             }
 
@@ -143,9 +141,9 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
         //1. Check whether migration is needed at all. Maybe it was already applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
-        try ( Statement stmt = context.getConnection().createStatement() )
+        try ( Statement stmt = context.getConnection().createStatement();
+              ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL ); )
         {
-            ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL );
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
             {
                 continueWithMigration = true;
@@ -162,16 +160,15 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
 
             //3. Move existing lastexecutedstatus from bytearray column into varchar column
             Map<Integer, byte[]> lastExecutedStatusByteMap = new HashMap<>();
-            try ( Statement stmt = context.getConnection().createStatement() )
+            String sql = "SELECT jobconfigurationid, lastexecutedstatus FROM jobconfiguration " +
+                "WHERE lastexecutedstatus IS NOT NULL";
+            try ( Statement stmt = context.getConnection().createStatement();
+                  ResultSet rs = stmt.executeQuery( sql ); )
             {
-                try ( ResultSet rows = stmt.executeQuery(
-                    "SELECT jobconfigurationid, lastexecutedstatus FROM jobconfiguration WHERE lastexecutedstatus IS NOT NULL" ) )
+                while ( rs.next() )
                 {
-                    while ( rows.next() )
-                    {
-                        lastExecutedStatusByteMap.put( rows.getInt( "jobconfigurationid" ),
-                            rows.getBytes( "lastexecutedstatus" ) );
-                    }
+                    lastExecutedStatusByteMap.put( rs.getInt( "jobconfigurationid" ),
+                        rs.getBytes( "lastexecutedstatus" ) );
                 }
             }
 
