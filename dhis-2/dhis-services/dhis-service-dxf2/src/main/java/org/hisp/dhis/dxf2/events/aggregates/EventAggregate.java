@@ -66,11 +66,15 @@ public class EventAggregate
      * Key: enrollment uid -> Value: Event
      *
      * @param ids a List of {@see Enrollment} Primary Keys
-     * @param userId
-     * @return
+     * @param ctx the {@see AggregateContext}
+     * @return a Map where the key is a Program Instance Primary Key, and the value
+     *         is a List of {@see Event}
      */
-    public Multimap<String, Event> findByEnrollmentIds(List<Long> ids, AggregateContext ctx, boolean includeRelationships )
+    public Multimap<String, Event> findByEnrollmentIds( List<Long> ids, AggregateContext ctx,
+        boolean includeRelationships )
     {
+        // Fetch all the Events that are linked to the given Enrollment IDs
+
         Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids, ctx );
 
         if ( events.isEmpty() )
@@ -80,12 +84,21 @@ public class EventAggregate
 
         List<Long> eventIds = events.values().stream().map( Event::getId ).collect( Collectors.toList() );
 
+        /*
+         * Async fetch Relationships for the given Event ids (only if isIncludeRelationships = true)
+         */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
             includeRelationships, () -> eventStore.getRelationships( eventIds ) );
 
+        /*
+         * Async fetch Notes for the given Event ids
+         */
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> eventStore.getNotes( eventIds ) );
 
+        /*
+         * Async fetch DataValues for the given Event ids
+         */
         final CompletableFuture<Map<String, List<DataValue>>> dataValuesAsync = supplyAsync(
             () -> eventStore.getDataValues( eventIds ) );
 
