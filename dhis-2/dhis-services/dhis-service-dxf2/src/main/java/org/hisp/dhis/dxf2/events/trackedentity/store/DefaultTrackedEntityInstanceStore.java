@@ -55,22 +55,12 @@ public class DefaultTrackedEntityInstanceStore
     implements
     TrackedEntityInstanceStore
 {
-    private final static String GET_TEI_ACL_CHECK = "tei.trackedentitytypeid = (SELECT distinct TETUGA.trackedentitytypeid"
-        + "                                 FROM trackedentitytypeusergroupaccesses TETUGA"
-        + "                                          LEFT JOIN usergroupaccess UGA on TETUGA.usergroupaccessid = UGA.usergroupaccessid"
-        + "                                          LEFT JOIN usergroupmembers UGM on UGA.usergroupid = UGM.usergroupid,"
-        + "                                      trackedentitytypeuseraccesses TETUA"
-        + "                                          LEFT JOIN useraccess UA on TETUA.useraccessid = UA.useraccessid"
-        + "                                 WHERE UGM.userid = :userId"
-        + "                                   AND UA.userid = :userId"
-        + "                                   AND UGA.access LIKE '__r_____')";
-
     private final static String GET_TEIS_SQL = "SELECT tei.uid as teiuid"
         + ", tei.created, " + "tei.createdatclient, tei.lastupdated, tei.lastupdatedatclient, tei.inactive, "
         + "       tei.deleted, tei.geometry, tet.uid as type_uid, o.uid   as ou_uid "
         + "FROM trackedentityinstance tei "
         + "         join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
-        + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids) ";
+        + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids)";
 
 
     private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid"
@@ -104,8 +94,8 @@ public class DefaultTrackedEntityInstanceStore
     public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx )
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
-        jdbcTemplate.query( withAclCheck( GET_TEIS_SQL, ctx, GET_TEI_ACL_CHECK ),
-            createIdsParam( ids, ctx.getUserId() ), handler );
+        jdbcTemplate.query( withAclCheck( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)" ),
+            createIdsParam( ids ).addValue( "teiTypeIds", ctx.getTrackedEntityTypes() ), handler );
         return handler.getItems();
     }
 

@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.store.AclStore;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
@@ -63,12 +64,15 @@ public class TrackedEntityInstanceAggregate
 
     private final CurrentUserService currentUserService;
 
+    private final AclStore aclStore;
+
     public TrackedEntityInstanceAggregate( TrackedEntityInstanceStore trackedEntityInstanceStore,
-        EnrollmentAggregate enrollmentAggregate, CurrentUserService currentUserService )
+        EnrollmentAggregate enrollmentAggregate, AclStore aclStore, CurrentUserService currentUserService )
     {
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.enrollmentAggregate = enrollmentAggregate;
         this.currentUserService = currentUserService;
+        this.aclStore = aclStore;
     }
 
     /**
@@ -79,12 +83,23 @@ public class TrackedEntityInstanceAggregate
      *
      * @return a List of {@see TrackedEntityInstance} objects
      */
-    public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params )
+    public List<TrackedEntityInstance> find( List<Long> idsx, TrackedEntityInstanceParams params )
     {
+        List<Long> idss = new ArrayList<>();
+        idss.add(1353118L);
+        final List<Long> ids = idss;
 
+        final Long userId = currentUserService.getCurrentUser().getId();
+
+        AggregateContext securityContext = getSecurityContext( userId );
         AggregateContext aggregateContext = AggregateContext.builder()
-            .userId( currentUserService.getCurrentUser().getId() )
-            .superUser( currentUserService.getCurrentUser().isSuper() ).build();
+            .userId( userId )
+            .superUser( currentUserService.getCurrentUser().isSuper() )
+            .trackedEntityTypes( securityContext.getTrackedEntityTypes() )
+            .programs( securityContext.getPrograms() )
+            .programStages( securityContext.getProgramStages() )
+            .relationshipTypes( securityContext.getRelationshipTypes() )
+            .build();
 
         /*
          * Async fetch Relationships for the given TrackedEntityInstance id (only if
@@ -147,4 +162,43 @@ public class TrackedEntityInstanceAggregate
         } ).join();
     }
 
+    /**
+     * Fetch security related information and add them to the
+     * {@see AggregateContext}
+     *
+     * - all Tracked Entity Instance Types this user has READ access to
+     *
+     * - all Programs Type this user has READ access to
+     *
+     * - all Program Stages Type this user has READ access to
+     *
+     * - all Relationship Types this user has READ access to
+     *
+     * @param userId the user id of a {@see User}
+     *
+     * @return an instance of {@see AggregateContext} populated with ACL-related info
+     */
+    private AggregateContext getSecurityContext( Long userId )
+    {
+
+        final CompletableFuture<List<Long>> getTeiTypes = supplyAsync(
+            () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userId ) );
+
+        final CompletableFuture<List<Long>> getPrograms = supplyAsync( () -> aclStore.getAccessiblePrograms( userId ) );
+
+        final CompletableFuture<List<Long>> getProgramStages = supplyAsync(
+            () -> aclStore.getAccessibleProgramStages( userId ) );
+
+        final CompletableFuture<List<Long>> getRelationshipTypes = supplyAsync(
+            () -> aclStore.getAccessibleRelationshipTypes( userId ) );
+
+        return allOf( getTeiTypes, getPrograms, getProgramStages, getRelationshipTypes ).thenApplyAsync(
+            dummy -> AggregateContext.builder()
+                .trackedEntityTypes( getTeiTypes.join() )
+                .programs( getPrograms.join() )
+                .programStages( getProgramStages.join() )
+                .relationshipTypes( getRelationshipTypes.join() )
+                .build() )
+            .join();
+    }
 }

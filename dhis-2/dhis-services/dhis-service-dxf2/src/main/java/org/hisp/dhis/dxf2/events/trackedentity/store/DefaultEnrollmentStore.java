@@ -75,8 +75,8 @@ public class DefaultEnrollmentStore
     public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx )
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
-        jdbcTemplate.query( withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, GET_ENROLLMENT_OR_EVENT_ACL_CHECK ),
-            createIdsParam( ids, ctx.getUserId() ), handler );
+        jdbcTemplate.query( withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)" ),
+            createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
         return handler.getItems();
     }
 

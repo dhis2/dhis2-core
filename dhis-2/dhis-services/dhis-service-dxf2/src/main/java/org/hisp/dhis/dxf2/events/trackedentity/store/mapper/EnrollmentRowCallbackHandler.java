@@ -61,7 +61,7 @@ public class EnrollmentRowCallbackHandler
         throws SQLException
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( "uid" );
+        enrollment.setEnrollment( rs.getString("uid") );
 
         // we set these 4 fields in post-processing TODO
 
