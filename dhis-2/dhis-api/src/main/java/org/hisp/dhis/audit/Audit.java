@@ -40,27 +40,54 @@ import java.time.LocalDateTime;
 @Data( staticConstructor = "of" )
 public class Audit implements Serializable
 {
+    /**
+     * Type of audit.
+     */
     @JsonProperty
     private final AuditType auditType;
 
+    /**
+     * Scope of audit.
+     */
     @JsonProperty
     private final AuditScope auditScope;
 
+    /**
+     * When audit was done. Necessary since there might be delayed from when the Audit
+     * is put on the queue, to when its actually persisted.
+     */
     @JsonProperty
     private final LocalDateTime createdAt;
 
+    /**
+     * Who initiated the audit action.
+     */
     @JsonProperty
     private final String createdBy;
 
+    /**
+     * Name of klass being audited. Only required if linked directly to an object.
+     */
     @JsonProperty
-    private final String klass;
+    private String klass;
 
+    /**
+     * UID of object being audited, implies required for klass.
+     */
     @JsonProperty
     private final String uid;
 
+    /**
+     * Code of object being audited, implies required for klass.
+     */
     @JsonProperty
     private final String code;
 
+    /**
+     * Payload to be saved a long with audit. Generally will be JSON.
+     * <p>
+     * TODO should we allow anything here? if we are using JSONB field, it must be JSON compatible, but what about other strings? gzip?
+     */
     @JsonProperty
     private final String data;
 }
