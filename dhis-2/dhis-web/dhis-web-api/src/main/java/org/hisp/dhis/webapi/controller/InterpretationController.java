@@ -55,6 +55,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +123,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     // -------------------------------------------------------------------------
-    // Intepretation create
+    // Interpretation create
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
@@ -165,6 +166,27 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, chart, currentUserService.getCurrentUser() );
 
         createIntepretation( new Interpretation( chart, orgUnit, text ), request, response );
+    }
+
+    @RequestMapping( value = "/visualizations/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
+    public void postVisualizationInterpretation( @PathVariable( "uid" )
+    final String visualizationUid, @RequestParam( value = "ou", required = false )
+    final String orgUnitUid, @RequestBody
+    final String text, final HttpServletResponse response, final HttpServletRequest request )
+        throws WebMessageException
+    {
+        final Visualization visualization = idObjectManager.get( Visualization.class, visualizationUid );
+
+        if ( visualization == null )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Visualization does not exist or is not accessible: " + visualizationUid ) );
+        }
+
+        final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
+            currentUserService.getCurrentUser() );
+
+        createIntepretation( new Interpretation( visualization, orgUnit, text ), request, response );
     }
 
     @RequestMapping( value = "/map/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )

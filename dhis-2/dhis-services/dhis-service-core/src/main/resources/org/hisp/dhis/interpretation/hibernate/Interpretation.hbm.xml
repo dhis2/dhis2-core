@@ -16,6 +16,9 @@
 
     <property name="lastUpdated" type="timestamp" index="interpretation_lastupdated" not-null="true" />
 
+    <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid"
+      foreign-key="fk_interpretation_visualizationid" />
+
     <many-to-one name="reportTable" class="org.hisp.dhis.reporttable.ReportTable" column="reporttableid"
       foreign-key="fk_interpretation_reporttableid" />
 

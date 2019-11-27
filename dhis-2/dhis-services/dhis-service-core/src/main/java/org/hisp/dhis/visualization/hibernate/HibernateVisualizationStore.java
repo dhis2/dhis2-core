@@ -1,5 +1,3 @@
-package org.hisp.dhis.interpretation;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,31 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
+package org.hisp.dhis.visualization.hibernate;
 
-/**
- * @author Lars Helge Overland
- */
-public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository( "org.hisp.dhis.visualization.VisualizationStore" )
+public class HibernateVisualizationStore
+    extends
+    HibernateIdentifiableObjectStore<Visualization>
+    implements
+    VisualizationStore
 {
-    int countMapInterpretations( Map map );
-
-    int countChartInterpretations( Chart chart );
-
-    int countReportTableInterpretations( ReportTable reportTable );
-
-    Interpretation getByChartId( long id );
-
-    Interpretation getByVisualizationId( long id );
+    public HibernateVisualizationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, Visualization.class, currentUserService, deletedObjectService,
+            aclService, true );
+    }
 }

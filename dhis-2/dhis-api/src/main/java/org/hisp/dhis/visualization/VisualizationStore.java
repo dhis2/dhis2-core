@@ -1,5 +1,3 @@
-package org.hisp.dhis.interpretation;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,12 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
+package org.hisp.dhis.visualization;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
 
-/**
- * @author Lars Helge Overland
- */
-public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
+public interface VisualizationStore
+    extends
+    IdentifiableObjectStore<Visualization>
 {
-    int countMapInterpretations( Map map );
-
-    int countChartInterpretations( Chart chart );
-
-    int countReportTableInterpretations( ReportTable reportTable );
-
-    Interpretation getByChartId( long id );
-
-    Interpretation getByVisualizationId( long id );
 }

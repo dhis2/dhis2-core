@@ -131,6 +131,7 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.version.Version;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * A DeletionHandler should override methods for objects that, when deleted,
@@ -1088,6 +1089,15 @@ public abstract class DeletionHandler
     }
 
     public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    {
+    }
+    
+    public String allowDeleteVisualization( Visualization visualization )
+    {
+        return null;
+    }
+    
+    public void deleteVisualization( Visualization visualization )
     {
     }
 }

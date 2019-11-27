@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "analyticsFavoriteType", namespace = DxfNamespaces.DXF_2_0 )
 public enum AnalyticsFavoriteType
 {
+    VISUALIZATION,
     REPORT_TABLE, 
     CHART, 
     MAP, 

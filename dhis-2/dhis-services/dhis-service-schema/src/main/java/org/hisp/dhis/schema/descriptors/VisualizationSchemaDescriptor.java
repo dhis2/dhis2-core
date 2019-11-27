@@ -1,5 +1,3 @@
-package org.hisp.dhis.interpretation;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,38 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
+package org.hisp.dhis.schema.descriptors;
 
-/**
- * @author Lars Helge Overland
- */
-public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
+import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.security.AuthorityType.CREATE_PUBLIC;
+import static org.hisp.dhis.security.AuthorityType.EXTERNALIZE;
+
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.visualization.Visualization;
+
+public class VisualizationSchemaDescriptor
+    implements
+    SchemaDescriptor
 {
-    int countMapInterpretations( Map map );
+    public static final String SINGULAR = "visualization";
 
-    int countChartInterpretations( Chart chart );
+    public static final String PLURAL = "visualizations";
 
-    int countReportTableInterpretations( ReportTable reportTable );
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    Interpretation getByChartId( long id );
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( Visualization.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setImplicitPrivateAuthority( true );
+        schema.setOrder( 2000 );
 
-    Interpretation getByVisualizationId( long id );
+        schema.getAuthorities().add( new Authority( CREATE_PUBLIC, newArrayList( "F_VISUALIZATION_PUBLIC_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( EXTERNALIZE, newArrayList( "F_VISUALIZATION_EXTERNAL" ) ) );
+
+        return schema;
+    }
 }

@@ -28,6 +28,8 @@ package org.hisp.dhis.mobile.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -39,8 +41,6 @@ import java.util.Set;
 import org.hisp.dhis.api.mobile.ActivityReportingService;
 import org.hisp.dhis.api.mobile.model.Interpretation;
 import org.hisp.dhis.api.mobile.model.InterpretationComment;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
@@ -49,9 +49,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Service( "org.hisp.dhis.mobile.api.ActivityReportingService" )
 public class ActivityReportingServiceImpl
@@ -77,22 +77,22 @@ public class ActivityReportingServiceImpl
 
     private final InterpretationService interpretationService;
 
-    private final ChartService chartService;
+    private final VisualizationService visualizationService;
 
     public ActivityReportingServiceImpl( CurrentUserService currentUserService, MessageService messageService,
-        UserService userService, InterpretationService interpretationService, ChartService chartService )
+        UserService userService, InterpretationService interpretationService, VisualizationService visualizationService)
     {
         checkNotNull( currentUserService );
         checkNotNull( messageService );
         checkNotNull( userService );
         checkNotNull( interpretationService );
-        checkNotNull( chartService );
+        checkNotNull(visualizationService);
 
         this.currentUserService = currentUserService;
         this.messageService = messageService;
         this.userService = userService;
         this.interpretationService = interpretationService;
-        this.chartService = chartService;
+        this.visualizationService = visualizationService;
     }
 
     @Override
@@ -244,10 +244,10 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Interpretation getInterpretation( String uId ) {
-        Chart chart = chartService.getChart( uId );
+    public Interpretation getInterpretation( String uid ) {
+        Visualization visualization = visualizationService.loadVisualization( uid );
         org.hisp.dhis.interpretation.Interpretation interpretationCore = interpretationService
-            .getInterpretationByChart( chart.getId() );
+            .getInterpretationByVisualization( visualization.getId() );
 
         Collection<InterpretationComment> interComments = new HashSet<>();
 
@@ -277,13 +277,13 @@ public class ActivityReportingServiceImpl
     @Override
     public String postInterpretation( String data ) {
 
-        String uId = data.substring( 0, 11 );
+        String uid = data.substring( 0, 11 );
 
         String interpretation = data.substring( 11 );
 
-        Chart c = chartService.getChart( uId );
+        Visualization visualization = visualizationService.loadVisualization( uid );
 
-        org.hisp.dhis.interpretation.Interpretation i = new org.hisp.dhis.interpretation.Interpretation( c, null,
+        org.hisp.dhis.interpretation.Interpretation i = new org.hisp.dhis.interpretation.Interpretation( visualization, null,
             interpretation );
 
         i.setUser( currentUserService.getCurrentUser() );

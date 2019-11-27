@@ -129,27 +129,30 @@ public class EmbeddedObjectObjectBundleHook
     
     private void handleProperty( Object o, ObjectBundle bundle, Property property )
     {
-        if ( property.isIdentifiableObject() )
+        if ( o != null && bundle != null && property != null )
         {
-            ((BaseIdentifiableObject) o).setAutoFields();
-        }
-        
-        Schema embeddedSchema = schemaService.getDynamicSchema( o.getClass() );
-        for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
-        {
-            if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
+            if ( property.isIdentifiableObject() )
             {
-                PeriodType periodType = ReflectionUtils.invokeMethod( o, embeddedProperty.getGetterMethod() );
-    
-                if ( periodType != null )
+                ((BaseIdentifiableObject) o).setAutoFields();
+            }
+
+            Schema embeddedSchema = schemaService.getDynamicSchema( o.getClass() );
+            for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
+            {
+                if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
                 {
-                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
-                    ReflectionUtils.invokeMethod( o, embeddedProperty.getSetterMethod(), periodType );
+                    PeriodType periodType = ReflectionUtils.invokeMethod( o, embeddedProperty.getGetterMethod() );
+
+                    if ( periodType != null )
+                    {
+                        periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
+                        ReflectionUtils.invokeMethod( o, embeddedProperty.getSetterMethod(), periodType );
+                    }
                 }
             }
-        }
 
-        preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+            preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+        }
     }
 
     private void handleEmbeddedAnalyticalProperty(Object identifiableObject, ObjectBundle bundle, Property property )

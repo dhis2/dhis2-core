@@ -28,17 +28,21 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.DATASET_REPORT;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_CHART;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_REPORT;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.MAP;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.VISUALIZATION;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.eventchart.EventChart;
@@ -49,19 +53,25 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "interpretation", namespace = DXF_2_0 )
 public class Interpretation
-    extends BaseIdentifiableObject
+    extends
+    BaseIdentifiableObject
 {
+    private Visualization visualization;
+
     private ReportTable reportTable;
 
     private Chart chart;
@@ -85,7 +95,7 @@ public class Interpretation
     private int likes;
 
     private Set<User> likedBy = new HashSet<>();
-    
+
     private List<Mention> mentions = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -94,6 +104,23 @@ public class Interpretation
 
     public Interpretation()
     {
+    }
+
+    public Interpretation( Visualization visualization, OrganisationUnit organisationUnit, String text )
+    {
+        this.visualization = visualization;
+        visualization.getInterpretations().add( this );
+        this.organisationUnit = organisationUnit;
+        this.text = text;
+    }
+
+    public Interpretation( Visualization visualization, Period period, OrganisationUnit organisationUnit, String text )
+    {
+        this.visualization = visualization;
+        visualization.getInterpretations().add( this );
+        this.period = period;
+        this.organisationUnit = organisationUnit;
+        this.text = text;
     }
 
     public Interpretation( Chart chart, OrganisationUnit organisationUnit, String text )
@@ -150,23 +177,27 @@ public class Interpretation
 
     /**
      * Overriding getUser in order to expose user in web api. Sharing is not enabled
-     * for interpretations but "user" is used for representing the creator. Must
-     * be removed when sharing is enabled for this class.
+     * for interpretations but "user" is used for representing the creator. Must be
+     * removed when sharing is enabled for this class.
      */
     @Override
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public User getUser()
     {
         return user;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public AnalyticsFavoriteType getType()
     {
-        if ( reportTable != null )
+        if ( visualization != null )
+        {
+            return VISUALIZATION;
+        }
+        else if ( reportTable != null )
         {
             return AnalyticsFavoriteType.REPORT_TABLE;
         }
@@ -176,19 +207,19 @@ public class Interpretation
         }
         else if ( map != null )
         {
-            return AnalyticsFavoriteType.MAP;
+            return MAP;
         }
         else if ( eventReport != null )
         {
-            return AnalyticsFavoriteType.EVENT_REPORT;
+            return EVENT_REPORT;
         }
         else if ( eventChart != null )
         {
-            return AnalyticsFavoriteType.EVENT_CHART;
+            return EVENT_CHART;
         }
         else if ( dataSet != null )
         {
-            return AnalyticsFavoriteType.DATASET_REPORT;
+            return DATASET_REPORT;
         }
 
         return null;
@@ -196,7 +227,11 @@ public class Interpretation
 
     public IdentifiableObject getObject()
     {
-        if ( reportTable != null )
+        if ( visualization != null )
+        {
+            return visualization;
+        }
+        else if ( reportTable != null )
         {
             return reportTable;
         }
@@ -227,6 +262,11 @@ public class Interpretation
     public void addComment( InterpretationComment comment )
     {
         this.comments.add( comment );
+    }
+
+    public boolean isVisualizationInterpretation()
+    {
+        return visualization != null;
     }
 
     public boolean isChartInterpretation()
@@ -266,8 +306,8 @@ public class Interpretation
 
     /**
      * Attempts to add the given user to the set of users liking this
-     * interpretation. If user not already present, increments the like count
-     * with one.
+     * interpretation. If user not already present, increments the like count with
+     * one.
      *
      * @param user the user liking this interpretation.
      * @return true if the given user had not already liked this interpretation.
@@ -286,8 +326,8 @@ public class Interpretation
 
     /**
      * Attempts to remove the given user from the set of users liking this
-     * interpretation. If user not already present, decrease the like count
-     * with one.
+     * interpretation. If user not already present, decrease the like count with
+     * one.
      *
      * @param user the user removing the like from this interpretation.
      * @return true if the given user had previously liked this interpretation.
@@ -316,7 +356,20 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public Visualization getVisualization()
+    {
+        return visualization;
+    }
+
+    public void setVisualization( Visualization visualization )
+    {
+        this.visualization = visualization;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public ReportTable getReportTable()
     {
         return reportTable;
@@ -329,7 +382,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Chart getChart()
     {
         return chart;
@@ -342,7 +395,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Map getMap()
     {
         return map;
@@ -355,7 +408,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public EventReport getEventReport()
     {
         return eventReport;
@@ -368,7 +421,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public EventChart getEventChart()
     {
         return eventChart;
@@ -381,7 +434,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public DataSet getDataSet()
     {
         return dataSet;
@@ -394,7 +447,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Period getPeriod()
     {
         return period;
@@ -407,7 +460,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public OrganisationUnit getOrganisationUnit()
     {
         return organisationUnit;
@@ -419,7 +472,7 @@ public class Interpretation
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getText()
     {
         return text;
@@ -431,8 +484,8 @@ public class Interpretation
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "comments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "comment", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "comments", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "comment", namespace = DXF_2_0 )
     public List<InterpretationComment> getComments()
     {
         return comments;
@@ -445,7 +498,7 @@ public class Interpretation
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public int getLikes()
     {
         return likes;
@@ -458,8 +511,8 @@ public class Interpretation
 
     @JsonProperty( "likedBy" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "likedBy", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "likeByUser", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "likedBy", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "likeByUser", namespace = DXF_2_0 )
     public Set<User> getLikedBy()
     {
         return likedBy;
@@ -469,10 +522,10 @@ public class Interpretation
     {
         this.likedBy = likedBy;
     }
-    
+
     @JsonProperty( "mentions" )
-    @JacksonXmlElementWrapper( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "mentions", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "mentions", namespace = DXF_2_0 )
     public List<Mention> getMentions()
     {
         return mentions;
@@ -482,7 +535,7 @@ public class Interpretation
     {
         this.mentions = mentions;
     }
-    
+
     @JsonIgnore
     public void setMentionsFromUsers( Set<User> users )
     {

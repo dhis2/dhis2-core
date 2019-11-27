@@ -130,4 +130,15 @@ public class HibernateInterpretationStore
 
         return (Interpretation) query.uniqueResult();
     }
+
+    @Override
+    public Interpretation getByVisualizationId( long id )
+    {
+        String hql = "from Interpretation i where i.visualization.id = " + id;
+
+        Query query = getSession().createQuery( hql )
+            .setCacheable( cacheable );
+
+        return (Interpretation) query.uniqueResult();
+    }
 }
