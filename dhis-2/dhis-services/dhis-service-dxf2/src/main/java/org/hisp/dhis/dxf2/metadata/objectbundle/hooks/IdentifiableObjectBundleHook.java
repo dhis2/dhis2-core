@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Sets;
 import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -40,19 +39,22 @@ import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
 import java.util.Iterator;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Order( 0 )
-public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
+public class IdentifiableObjectBundleHook
+    extends AbstractObjectBundleHook
 {
     @Override
     public void preCreate( IdentifiableObject identifiableObject, ObjectBundle bundle )
     {
         ((BaseIdentifiableObject) identifiableObject).setAutoFields();
+
+        BaseIdentifiableObject identifableObject = (BaseIdentifiableObject) identifiableObject;
+        identifableObject.setAutoFields();
+        identifableObject.setLastUpdatedBy( bundle.getUser() );
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
         handleAttributeValues( identifiableObject, bundle, schema );
@@ -66,16 +68,16 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         identifiableObject.setLastUpdatedBy( bundle.getUser() );
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
-        handleAttributeValuesNoDuplicates( object, persistedObject.getAttributeValues(), bundle, schema );
+        handleAttributeValuesNoDuplicates( object, bundle, schema );
     }
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
-        handleAttributeValuesNoDuplicates( identifiableObject, Sets.newHashSet(), bundle, schema );
+        handleAttributeValuesNoDuplicates( identifiableObject, bundle, schema );
     }
 
     private void handleAttributeValuesNoDuplicates( IdentifiableObject identifiableObject,
-        Set<AttributeValue> attributeValues, ObjectBundle bundle, Schema schema )
+        ObjectBundle bundle, Schema schema )
     {
         Session session = sessionFactory.getCurrentSession();
 
@@ -89,8 +91,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             AttributeValue attributeValue = iterator.next();
 
             // if value null or empty, just skip it
-            if ( StringUtils.isEmpty( attributeValue.getValue() ) ||
-                isAttributeValueAlreadyPresent( attributeValues, attributeValue ) )
+            if ( StringUtils.isEmpty( attributeValue.getValue() ) )
             {
                 iterator.remove();
                 continue;
@@ -108,14 +109,5 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             attributeValue.setAttribute( attribute );
             session.save( attributeValue );
         }
-    }
-
-    private boolean isAttributeValueAlreadyPresent( Set<AttributeValue> attributeValues,
-        AttributeValue attributeValue )
-    {
-        return attributeValues
-            .stream()
-            .anyMatch( av -> av.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) &&
-                av.getValue().equals( attributeValue.getValue() ) );
     }
 }
