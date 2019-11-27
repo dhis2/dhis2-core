@@ -673,6 +673,8 @@ public class DataAnalysisController
             {
                 validationResultView.setOrganisationUnitId( organisationUnit.getUid() );
                 validationResultView.setOrganisationUnitDisplayName( organisationUnit.getDisplayName() );
+                validationResultView.setOrganisationUnitPath( organisationUnit.getPath() );
+                validationResultView.setOrganisationUnitAncestorNames( organisationUnit.getAncestorNames() );
             }
 
             Period period = validationResult.getPeriod();
