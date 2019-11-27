@@ -42,13 +42,27 @@ import com.google.common.collect.Multimap;
 public abstract class AbstractAggregate
 {
 
+    /**
+     * Executes the Supplier asynchronously
+     *
+     * @param condition A condition that, if true, executes the Suppier, if false, returns an empty Multimap
+     * @param supplier The Supplier to execute
+     * @return A CompletableFuture with the result of the Supplier
+     */
     <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch( boolean condition,
         Supplier<Multimap<String, T>> supplier )
     {
         return (condition ? supplyAsync( supplier ) : supplyAsync( ArrayListMultimap::create ));
     }
 
-    <T> CompletableFuture<Multimap<String, T>> asyncFetch(Supplier<Multimap<String, T>> supplier )
+    /**
+     * Executes the Supplier asynchronously
+     *
+     * @param supplier The Supplier to execute
+     *
+     * @return A CompletableFuture with the result of the Supplier
+     */
+    <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier )
     {
         return supplyAsync( supplier );
     }

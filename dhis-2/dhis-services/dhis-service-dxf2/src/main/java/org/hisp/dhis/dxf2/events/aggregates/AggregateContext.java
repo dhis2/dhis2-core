@@ -28,10 +28,10 @@
 
 package org.hisp.dhis.dxf2.events.aggregates;
 
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Value;
-
-import java.util.List;
 
 /**
  * @author Luciano Fiandesio
