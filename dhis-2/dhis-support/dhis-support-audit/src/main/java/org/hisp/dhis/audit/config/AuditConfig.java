@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit;
+package org.hisp.dhis.audit.config;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,68 +28,12 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.Value;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder
-public class AuditQuery
+@Configuration
+public class AuditConfig
 {
-    /**
-     * This narrows the search scope for audits, the class name should be fully qualified.
-     * <p>
-     * TODO should it be fully qualified? what about refactors? what about duplicate class names if we don't do it?
-     */
-    private List<String> klass;
-
-    /**
-     * This narrows the search scope by search by a list of UIDs. This binds an AND relationship with klass,
-     * and a OR relationship with code.
-     */
-    private List<String> uid;
-
-    /**
-     * This narrows the search scope by search by a list of codes. This binds an AND relationship with klass,
-     * and a OR relationship with uid.
-     */
-    private List<String> code;
-
-    /**
-     * From/To dates to query from.
-     */
-    private Range range;
-
-    static Range range( LocalDateTime from )
-    {
-        return Range.builder().from( from ).build();
-    }
-
-    static Range range( LocalDateTime from, LocalDateTime to )
-    {
-        return Range.builder().from( from ).to( to ).build();
-    }
-
-    @Value
-    @Builder( access = AccessLevel.PRIVATE )
-    public static class Range
-    {
-        /**
-         * From date to fetch audits from.
-         */
-        private @NonNull LocalDateTime from;
-
-        /**
-         * To date to fetch audits from.
-         */
-        private LocalDateTime to;
-    }
 }
