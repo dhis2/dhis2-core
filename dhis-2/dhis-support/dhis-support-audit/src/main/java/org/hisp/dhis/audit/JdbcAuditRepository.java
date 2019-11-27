@@ -28,68 +28,51 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder
-public class AuditQuery
+@Repository
+public class JdbcAuditRepository implements AuditRepository
 {
-    /**
-     * This narrows the search scope for audits, the class name should be fully qualified.
-     * <p>
-     * TODO should it be fully qualified? what about refactors? what about duplicate class names if we don't do it?
-     */
-    private List<String> klass;
+    private final JdbcTemplate jdbcTemplate;
 
-    /**
-     * This narrows the search scope by search by a list of UIDs. This binds an AND relationship with klass,
-     * and a OR relationship with code.
-     */
-    private List<String> uid;
-
-    /**
-     * This narrows the search scope by search by a list of codes. This binds an AND relationship with klass,
-     * and a OR relationship with uid.
-     */
-    private List<String> code;
-
-    /**
-     * From/To dates to query from.
-     */
-    private Range range;
-
-    static Range range( LocalDateTime from )
+    public JdbcAuditRepository( JdbcTemplate jdbcTemplate )
     {
-        return Range.builder().from( from ).build();
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    static Range range( LocalDateTime from, LocalDateTime to )
+    @Override
+    public long save( Audit audit )
     {
-        return Range.builder().from( from ).to( to ).build();
+        return 0;
     }
 
-    @Value
-    @Builder( access = AccessLevel.PRIVATE )
-    public static class Range
+    @Override
+    public void delete( Audit audit )
     {
-        /**
-         * From date to fetch audits from.
-         */
-        private @NonNull LocalDateTime from;
 
-        /**
-         * To date to fetch audits from.
-         */
-        private LocalDateTime to;
+    }
+
+    @Override
+    public void delete( AuditQuery query )
+    {
+
+    }
+
+    @Override
+    public int count( AuditQuery query )
+    {
+        return 0;
+    }
+
+    @Override
+    public List<Audit> query( AuditQuery query )
+    {
+        return null;
     }
 }

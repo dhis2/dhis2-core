@@ -86,13 +86,13 @@ public class AuditTest
             .klass( Collections.singletonList( DataElement.class.getName() ) )
             .uid( Collections.singletonList( uid ) )
             .code( Collections.singletonList( code ) )
-            .dateRange( AuditQuery.dateRange( dateFrom, dateTo ) )
+            .range( AuditQuery.range( dateFrom, dateTo ) )
             .build();
 
         assertEquals( Collections.singletonList( DataElement.class.getName() ), query.getKlass() );
         assertEquals( Collections.singletonList( uid ), query.getUid() );
         assertEquals( Collections.singletonList( code ), query.getCode() );
-        assertEquals( dateFrom, query.getDateRange().getFrom() );
-        assertEquals( dateTo, query.getDateRange().getTo() );
+        assertEquals( dateFrom, query.getRange().getFrom() );
+        assertEquals( dateTo, query.getRange().getTo() );
     }
 }

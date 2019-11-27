@@ -29,6 +29,7 @@ package org.hisp.dhis.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -38,6 +39,7 @@ import java.time.LocalDateTime;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data( staticConstructor = "of" )
+@AllArgsConstructor( staticName = "of" )
 public class Audit implements Serializable
 {
     /**
