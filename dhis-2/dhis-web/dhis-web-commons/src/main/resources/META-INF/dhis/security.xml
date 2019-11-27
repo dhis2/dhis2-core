@@ -217,11 +217,7 @@
       </map>
     </property>
   </bean>
-
-  <!-- Security : Listener -->
-
-  <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
-
+  
   <!-- Security : AccessProvider -->
 
   <bean id="databaseAutomaticAccessProvider" class="org.hisp.dhis.security.DatabaseAutomaticAccessProvider">
