@@ -452,6 +452,14 @@ public class ProgramIndicatorServiceTest
     }
 
     @Test
+    public void testGetAnalyticsSQl2()
+    {
+        String expected = "((cast(incidentdate as date) - cast(enrollmentdate as date))) / 7.0";
+
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorA.getExpression(), indicatorA, new Date(), new Date() ) );
+    }
+
+    @Test
     public void testExpressionIsValid()
     {
         programIndicatorService.addProgramIndicator( indicatorB );
