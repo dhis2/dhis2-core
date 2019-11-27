@@ -28,6 +28,9 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
@@ -39,10 +42,11 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload
@@ -51,6 +55,7 @@ import java.util.List;
  * @author Halvdan Hoem Grelland
  */
 @Component
+@Scope( value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class FileResourceCleanUpJob
     extends AbstractJob
 {
@@ -76,6 +81,7 @@ public class FileResourceCleanUpJob
     }
 
     @Override
+    @Transactional( propagation = Propagation.REQUIRES_NEW )
     public void execute( JobConfiguration jobConfiguration )
     {
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
