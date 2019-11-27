@@ -95,6 +95,9 @@ public enum ConfigurationKey
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
     MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false ),
+    MONITORING_LOG_REQUESTID_ENABLED("monitoring.requestidlog.enabled", "off", false),
+    MONITORING_LOG_REQUESTID_HASHALGO("monitoring.requestidlog.hash", "SHA-256", false),
+    MONITORING_LOG_REQUESTID_MAXSIZE("monitoring.requestidlog.maxsize", "-1", false),
     APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
     APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false );
 
