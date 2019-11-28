@@ -35,8 +35,8 @@ import lombok.NonNull;
 import lombok.Value;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,21 +51,21 @@ public class AuditQuery
      * TODO should it be fully qualified? what about refactors? what about duplicate class names if we don't do it?
      */
     @Builder.Default
-    private List<String> klass = new ArrayList<>();
+    private Set<String> klass = new HashSet<>();
 
     /**
      * This narrows the search scope by search by a list of UIDs. This binds an AND relationship with klass,
      * and a OR relationship with code.
      */
     @Builder.Default
-    private List<String> uid = new ArrayList<>();
+    private Set<String> uid = new HashSet<>();
 
     /**
      * This narrows the search scope by search by a list of codes. This binds an AND relationship with klass,
      * and a OR relationship with uid.
      */
     @Builder.Default
-    private List<String> code = new ArrayList<>();
+    private Set<String> code = new HashSet<>();
 
     /**
      * From/To dates to query from.

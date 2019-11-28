@@ -28,6 +28,7 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
@@ -37,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -148,7 +149,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
         } );
 
         List<Audit> audits = auditRepository.query( AuditQuery.builder()
-            .klass( Arrays.asList( DataElement.class.getName(), OrganisationUnit.class.getName() ) )
+            .klass( Sets.newHashSet( DataElement.class.getName(), OrganisationUnit.class.getName() ) )
             .build() );
 
         assertEquals( 100, audits.size() );
@@ -180,7 +181,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
         } );
 
         List<Audit> audits = auditRepository.query( AuditQuery.builder()
-            .uid( uids.subList( 0, 50 ) )
+            .uid( new HashSet<>( uids.subList( 0, 50 ) ) )
             .build() );
 
         assertEquals( 50, audits.size() );
@@ -212,7 +213,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
         } );
 
         List<Audit> audits = auditRepository.query( AuditQuery.builder()
-            .code( codes.subList( 50, 100 ) )
+            .code( new HashSet<>( codes.subList( 50, 100 ) ) )
             .build() );
 
         assertEquals( 50, audits.size() );

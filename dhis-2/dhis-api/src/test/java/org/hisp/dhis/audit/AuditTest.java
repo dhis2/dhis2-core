@@ -28,12 +28,12 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -83,15 +83,15 @@ public class AuditTest
         assertTrue( dateFrom.isBefore( dateTo ) );
 
         AuditQuery query = AuditQuery.builder()
-            .klass( Collections.singletonList( DataElement.class.getName() ) )
-            .uid( Collections.singletonList( uid ) )
-            .code( Collections.singletonList( code ) )
+            .klass( Sets.newHashSet( DataElement.class.getName() ) )
+            .uid( Sets.newHashSet( uid ) )
+            .code( Sets.newHashSet( code ) )
             .range( AuditQuery.range( dateFrom, dateTo ) )
             .build();
 
-        assertEquals( Collections.singletonList( DataElement.class.getName() ), query.getKlass() );
-        assertEquals( Collections.singletonList( uid ), query.getUid() );
-        assertEquals( Collections.singletonList( code ), query.getCode() );
+        assertEquals( Sets.newHashSet( DataElement.class.getName() ), query.getKlass() );
+        assertEquals( Sets.newHashSet( uid ), query.getUid() );
+        assertEquals( Sets.newHashSet( code ), query.getCode() );
         assertEquals( dateFrom, query.getRange().getFrom() );
         assertEquals( dateTo, query.getRange().getTo() );
     }

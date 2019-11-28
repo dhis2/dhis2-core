@@ -38,21 +38,28 @@ import java.util.List;
 @Service
 public class DefaultAuditService implements AuditService
 {
+    private final AuditRepository auditRepository;
+
+    public DefaultAuditService( AuditRepository auditRepository )
+    {
+        this.auditRepository = auditRepository;
+    }
+
     @Override
     public long addAudit( Audit audit )
     {
-        return 0;
+        return auditRepository.save( audit );
     }
 
     @Override
     public int countAudits( AuditQuery query )
     {
-        return 0;
+        return auditRepository.count( query );
     }
 
     @Override
     public List<Audit> getAudits( AuditQuery query )
     {
-        return null;
+        return auditRepository.query( query );
     }
 }
