@@ -39,7 +39,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.List;
 
@@ -49,17 +49,21 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Lists;
 
@@ -67,18 +71,30 @@ public class DefaultAnalyticsSecurityManagerTest
 {
 
     @Mock
+    private DataApprovalLevelService approvalLevelService;
+
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
+    @Mock
+    private DimensionService dimensionService;
+
+    @Mock
     private AclService aclService;
 
     @Mock
     private CurrentUserService currentUserService;
 
-    @InjectMocks
+    @Rule
+    public MockitoRule mockitoRule = rule();
+
     private DefaultAnalyticsSecurityManager defaultAnalyticsSecurityManager;
 
     @Before
     public void setUp()
     {
-        initMocks( this );
+        defaultAnalyticsSecurityManager = new DefaultAnalyticsSecurityManager( approvalLevelService,
+            systemSettingManager, dimensionService, aclService, currentUserService );
     }
 
     @Test
