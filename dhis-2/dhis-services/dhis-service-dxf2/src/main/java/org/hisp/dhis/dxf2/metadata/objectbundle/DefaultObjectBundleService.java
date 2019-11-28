@@ -184,7 +184,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
 
-            if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
+            if ( FlushMode.AUTO == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
         }
 
         if ( !bundle.getImportMode().isDelete() )
@@ -255,7 +258,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -329,7 +334,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -387,7 +394,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         return typeReport;

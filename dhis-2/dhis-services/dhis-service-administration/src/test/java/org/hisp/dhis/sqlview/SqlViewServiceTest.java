@@ -37,8 +37,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.*;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -47,8 +55,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class SqlViewServiceTest
     extends DhisSpringTest
 {
+    @Mock
+    private CurrentUserService currentUserService;
+
     @Autowired
     private SqlViewService sqlViewService;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private String sqlA = "SELECT   *  FROM     _categorystructure;;  ; ;;;  ;; ; ";
 
@@ -293,5 +307,51 @@ public class SqlViewServiceTest
         SqlView sqlView = new SqlView( "Name", "SELECT name, created, lastupdated FROM dataelement", SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test
+    public void testValidateSuccessE()
+    {
+        SqlView sqlView = new SqlView( "Name", "select * from datavalue where storedby = '${_current_username}'", SqlViewType.QUERY );
+
+        sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test
+    public void testValidateSuccessF()
+    {
+        SqlView sqlView = new SqlView( "Name", "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}", SqlViewType.QUERY );
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put( "timelyDays", "15" );
+
+        sqlViewService.validateSqlView( sqlView, null, variables );
+    }
+
+    @Test
+    public void testGetSqlViewGrid()
+    {
+        UserCredentials currentUserCredentials = new UserCredentials();
+        currentUserCredentials.setUsername( "Mary" );
+
+        User currentUser = new User();
+        currentUser.setUserCredentials( currentUserCredentials );
+        currentUser.setId( 47 );
+
+        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
+
+        sqlViewService.setCurrentUserService( currentUserService );
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put( "ten", "10" );
+
+        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}", SqlViewType.QUERY );
+
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
+
+        assertEquals( grid.toString(), "[\n" +
+            "['Mary', 47, 10]\n" +
+            "[Mary, 47, 10]\n" +
+            "]" );
     }
 }
