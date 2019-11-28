@@ -59,7 +59,6 @@ public class RemoveExpiredReservedValuesJob
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
-        throws Exception
     {
         reservedValueService.removeExpiredReservations();
     }

@@ -82,6 +82,7 @@ public class DefaultJobConfigurationService
         {
             jobConfigurationStore.save( jobConfiguration );
         }
+
         return jobConfiguration.getId();
     }
 
@@ -215,6 +216,12 @@ public class DefaultJobConfigurationService
         jobConfigurationStore.update( jobConfiguration );
     }
 
+    /**
+     * Returns a pretty, readable version of the field name.
+     *
+     * @param field the field name.
+     * @return a pretty field name.
+     */
     private String prettyPrint( String field )
     {
         List<String> fieldStrings = Arrays.stream( field.split( "(?=[A-Z])" ) ).map( String::toLowerCase )
