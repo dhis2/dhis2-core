@@ -58,7 +58,6 @@ public class MetadataAuditConsumer implements AuditConsumer
     private static final Log log = LogFactory.getLog( MetadataAuditConsumer.class );
 
     private final ObjectMapper mapper = new ObjectMapper();
-
     private final MetadataAuditService metadataAuditService;
     private final RenderService renderService;
     private final boolean metadataAuditLog;

@@ -37,6 +37,8 @@ public interface AuditRepository
 {
     long save( Audit audit );
 
+    void save( List<Audit> audits );
+
     void delete( Audit audit );
 
     void delete( AuditQuery query );

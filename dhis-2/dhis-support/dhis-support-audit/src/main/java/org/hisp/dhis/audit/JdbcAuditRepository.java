@@ -29,9 +29,16 @@ package org.hisp.dhis.audit;
  */
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,39 +47,83 @@ import java.util.List;
 public class JdbcAuditRepository implements AuditRepository
 {
     private final JdbcTemplate jdbcTemplate;
+    private final SimpleJdbcInsert auditInsert;
 
     public JdbcAuditRepository( JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
+        this.auditInsert = new SimpleJdbcInsert( jdbcTemplate )
+            .withTableName( "audit" )
+            .usingGeneratedKeyColumns( "auditid" );
     }
 
     @Override
+    @Transactional
     public long save( Audit audit )
     {
-        return 0;
+        Map<String, Object> values = new HashMap<>();
+        values.put( "auditType", audit.getAuditType() );
+        values.put( "auditScope", audit.getAuditScope() );
+        values.put( "createdAt", audit.getCreatedAt() );
+        values.put( "createdBy", audit.getCreatedBy() );
+        values.put( "klass", audit.getKlass() );
+        values.put( "uid", audit.getUid() );
+        values.put( "code", audit.getCode() );
+        values.put( "data", audit.getData() );
+
+        return auditInsert.executeAndReturnKey( values ).longValue();
     }
 
     @Override
-    public void delete( Audit audit )
+    @Transactional
+    public void save( List<Audit> audits )
     {
 
     }
 
     @Override
+    @Transactional
+    public void delete( Audit audit )
+    {
+        System.err.println( "Deleting audit " + audit.getId() );
+        jdbcTemplate.update( "DELETE FROM audit WHERE auditId=?", audit.getId() );
+    }
+
+    @Override
+    @Transactional
     public void delete( AuditQuery query )
     {
 
     }
 
     @Override
+    @Transactional( readOnly = true )
     public int count( AuditQuery query )
     {
         return 0;
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<Audit> query( AuditQuery query )
     {
-        return null;
+        List<Audit> audits = jdbcTemplate.query( "SELECT * FROM audit", auditRowMapper );
+        return audits;
     }
+
+    private RowMapper<Audit> auditRowMapper = ( rs, rowNum ) -> {
+        Date createdAt = rs.getDate( "createdAt" );
+
+        return Audit.builder()
+            .id( rs.getLong( "auditId" ) )
+            .auditType( AuditType.valueOf( rs.getString( "auditType" ) ) )
+            .auditScope( AuditScope.valueOf( rs.getString( "auditScope" ) ) )
+            .createdAt( new Timestamp( createdAt.getTime() ).toLocalDateTime() )
+            .createdBy( rs.getString( "createdBy" ) )
+            .klass( rs.getString( "klass" ) )
+            .uid( rs.getString( "uid" ) )
+            .code( rs.getString( "code" ) )
+            .data( rs.getString( "data" ) )
+            .build();
+    };
 }

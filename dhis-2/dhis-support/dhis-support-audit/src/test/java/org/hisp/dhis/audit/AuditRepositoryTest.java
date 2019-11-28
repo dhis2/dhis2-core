@@ -28,12 +28,15 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -41,10 +44,13 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AuditTest
+public class AuditRepositoryTest extends IntegrationTestBase
 {
+    @Autowired
+    private AuditRepository auditRepository;
+
     @Test
-    public void testStaticConstructor()
+    public void testSaveAudit()
     {
         String uid = CodeGenerator.generateUid();
         String code = CodeGenerator.generateUid();
@@ -60,39 +66,65 @@ public class AuditTest
             .data( "{}" )
             .build();
 
-        assertEquals( AuditType.CREATE, audit.getAuditType() );
-        assertEquals( AuditScope.AGGREGATE, audit.getAuditScope() );
-        assertEquals( LocalDateTime.of( 2019, 5, 5, 12, 30 ), audit.getCreatedAt() );
-        assertEquals( "test-user", audit.getCreatedBy() );
-        assertEquals( DataElement.class.getName(), audit.getKlass() );
-        assertEquals( uid, audit.getUid() );
-        assertEquals( code, audit.getCode() );
-        assertEquals( "{}", audit.getData() );
+        long id = auditRepository.save( audit );
+        assertEquals( 1, id );
     }
 
     @Test
-    public void testAuditQueryBuilder()
+    public void testAuditQuery()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 2019, 5, 5, 12, 30 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( null );
+        assertEquals( 100, audits.size() );
+    }
+
+    @Test
+    public void testDeleteAudit()
     {
         String uid = CodeGenerator.generateUid();
         String code = CodeGenerator.generateUid();
 
-        LocalDateTime dateFrom = LocalDateTime.of( 2010, 4, 6, 12, 0, 0 );
-        LocalDateTime dateTo = dateFrom.plusYears( 4 );
-
-        // TODO should we add bean validation in AuditQuery so we know the from is before to
-        assertTrue( dateFrom.isBefore( dateTo ) );
-
-        AuditQuery query = AuditQuery.builder()
-            .klass( Collections.singletonList( DataElement.class.getName() ) )
-            .uid( Collections.singletonList( uid ) )
-            .code( Collections.singletonList( code ) )
-            .range( AuditQuery.range( dateFrom, dateTo ) )
+        Audit audit = Audit.builder()
+            .auditType( AuditType.CREATE )
+            .auditScope( AuditScope.AGGREGATE )
+            .createdAt( LocalDateTime.of( 2019, 5, 5, 12, 30 ) )
+            .createdBy( "test-user" )
+            .klass( DataElement.class.getName() )
+            .uid( uid )
+            .code( code )
+            .data( "{}" )
             .build();
 
-        assertEquals( Collections.singletonList( DataElement.class.getName() ), query.getKlass() );
-        assertEquals( Collections.singletonList( uid ), query.getUid() );
-        assertEquals( Collections.singletonList( code ), query.getCode() );
-        assertEquals( dateFrom, query.getRange().getFrom() );
-        assertEquals( dateTo, query.getRange().getTo() );
+        long id = auditRepository.save( audit );
+        assertEquals( 1, id );
+
+        audit.setId( id );
+        auditRepository.delete( audit );
+
+        List<Audit> audits = auditRepository.query( null );
+        assertTrue( audits.isEmpty() );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }
