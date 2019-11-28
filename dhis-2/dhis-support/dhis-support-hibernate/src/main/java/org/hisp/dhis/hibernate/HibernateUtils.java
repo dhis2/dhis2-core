@@ -33,7 +33,13 @@ import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.SerializableProxy;
+import org.hisp.dhis.commons.util.DebugUtils;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
@@ -44,7 +50,7 @@ public class HibernateUtils
 {
     public static boolean isProxy( Object object )
     {
-        return object != null && ((object instanceof HibernateProxy) || (object instanceof PersistentCollection));
+        return ( ( object instanceof HibernateProxy ) || ( object instanceof PersistentCollection ) );
     }
 
     /**
@@ -84,6 +90,40 @@ public class HibernateUtils
             }
 
             return (T) persistentCollection.getStoredSnapshot();
+        }
+
+        return proxy;
+    }
+
+    /**
+     * Eager fetch all its collections
+     *
+     * @param proxy Object to check and unwrap
+     * @return fully initialized object
+     */
+    public static <T> T initializeProxy( T proxy )
+    {
+        if ( !Hibernate.isInitialized( proxy ) )
+        {
+            Hibernate.initialize( proxy );
+        }
+
+        Field[] fields = proxy.getClass().getDeclaredFields();
+
+        for ( Field field : fields )
+        {
+            if ( Collection.class.isAssignableFrom( field.getType() ) )
+            {
+                try
+                {
+                    PropertyDescriptor pd = new PropertyDescriptor( field.getName(), proxy.getClass() );
+                    Hibernate.initialize( pd.getReadMethod().invoke( proxy ) );
+                }
+                catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
+                {
+                    DebugUtils.getStackTrace( e );
+                }
+            }
         }
 
         return proxy;
