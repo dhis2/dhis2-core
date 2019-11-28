@@ -39,6 +39,7 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -110,21 +111,20 @@ public class HibernateUtils
 
         Field[] fields = proxy.getClass().getDeclaredFields();
 
-        for ( Field field : fields )
-        {
-            if ( Collection.class.isAssignableFrom( field.getType() ) )
+        Arrays.stream( fields )
+            .filter( f -> Collection.class.isAssignableFrom( f.getType() ) )
+            .forEach( f ->
             {
                 try
                 {
-                    PropertyDescriptor pd = new PropertyDescriptor( field.getName(), proxy.getClass() );
+                    PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
                     Hibernate.initialize( pd.getReadMethod().invoke( proxy ) );
                 }
                 catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
                 {
                     DebugUtils.getStackTrace( e );
                 }
-            }
-        }
+            });
 
         return proxy;
     }
