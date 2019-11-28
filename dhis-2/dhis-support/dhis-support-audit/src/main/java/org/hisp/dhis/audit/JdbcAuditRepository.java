@@ -111,6 +111,18 @@ public class JdbcAuditRepository implements AuditRepository
         StringBuilder sqlBuilder = new StringBuilder();
         SqlHelper sqlHelper = new SqlHelper( true );
 
+        if ( !query.getAuditType().isEmpty() )
+        {
+            sqlBuilder.append( sqlHelper.whereAnd() )
+                .append( "auditType in (" ).append( buildQuotedSet( query.getAuditType() ) ).append( ")" );
+        }
+
+        if ( !query.getAuditScope().isEmpty() )
+        {
+            sqlBuilder.append( sqlHelper.whereAnd() )
+                .append( "auditScope in (" ).append( buildQuotedSet( query.getAuditScope() ) ).append( ")" );
+        }
+
         if ( !query.getKlass().isEmpty() )
         {
             sqlBuilder.append( sqlHelper.whereAnd() )
@@ -120,17 +132,17 @@ public class JdbcAuditRepository implements AuditRepository
         if ( !query.getUid().isEmpty() || !query.getCode().isEmpty() )
         {
             sqlBuilder.append( sqlHelper.whereAnd() ).append( "(" );
-            SqlHelper idHelper = new SqlHelper( true );
+            SqlHelper innerSql = new SqlHelper( true );
 
             if ( !query.getUid().isEmpty() )
             {
-                sqlBuilder.append( idHelper.or() )
+                sqlBuilder.append( innerSql.or() )
                     .append( "uid in (" ).append( buildQuotedSet( query.getUid() ) ).append( ")" );
             }
 
             if ( !query.getCode().isEmpty() )
             {
-                sqlBuilder.append( idHelper.or() )
+                sqlBuilder.append( innerSql.or() )
                     .append( "code in (" ).append( buildQuotedSet( query.getCode() ) ).append( ")" );
             }
 
@@ -140,10 +152,10 @@ public class JdbcAuditRepository implements AuditRepository
         return sqlBuilder.toString();
     }
 
-    private String buildQuotedSet( Set<String> items )
+    private String buildQuotedSet( Set<?> items )
     {
         return items.stream()
-            .map( s -> "'" + s + "'" )
+            .map( s -> "'" + s.toString() + "'" )
             .collect( Collectors.joining( ", " ) );
     }
 

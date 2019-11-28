@@ -41,6 +41,8 @@ public class SqlHelper
 
     private boolean havingInvoked = false;
 
+    private boolean andInvoked = false;
+
     private boolean orInvoked = false;
 
     private boolean betweenInvoked = false;
@@ -80,6 +82,21 @@ public class SqlHelper
         String str = havingInvoked ? "and" : "having";
 
         havingInvoked = true;
+
+        return includeSpaces ? " " + str + " " : str;
+    }
+
+    /**
+     * Returns the empty string the first time it is invoked, then "and" for subsequent
+     * invocations.
+     *
+     * @return empty string or "and".
+     */
+    public String and()
+    {
+        String str = andInvoked ? "and" : "";
+
+        andInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }
