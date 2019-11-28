@@ -32,7 +32,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -58,7 +57,6 @@ public class JdbcAuditRepository implements AuditRepository
     }
 
     @Override
-    @Transactional
     public long save( Audit audit )
     {
         Map<String, Object> values = new HashMap<>();
@@ -75,36 +73,30 @@ public class JdbcAuditRepository implements AuditRepository
     }
 
     @Override
-    @Transactional
     public void save( List<Audit> audits )
     {
 
     }
 
     @Override
-    @Transactional
     public void delete( Audit audit )
     {
-        System.err.println( "Deleting audit " + audit.getId() );
         jdbcTemplate.update( "DELETE FROM audit WHERE auditId=?", audit.getId() );
     }
 
     @Override
-    @Transactional
     public void delete( AuditQuery query )
     {
 
     }
 
     @Override
-    @Transactional( readOnly = true )
     public int count( AuditQuery query )
     {
         return 0;
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Audit> query( AuditQuery query )
     {
         List<Audit> audits = jdbcTemplate.query( "SELECT * FROM audit", auditRowMapper );
