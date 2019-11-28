@@ -31,10 +31,13 @@ package org.hisp.dhis.audit;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -67,32 +70,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
             .build();
 
         auditRepository.save( audit );
-        assertEquals( 1, auditRepository.query( null ).size() );
-    }
-
-    @Test
-    public void testAuditQuery()
-    {
-        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
-            String uid = CodeGenerator.generateUid();
-            String code = CodeGenerator.generateUid();
-
-            Audit audit = Audit.builder()
-                .auditType( AuditType.CREATE )
-                .auditScope( AuditScope.AGGREGATE )
-                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
-                .createdBy( "test-user" )
-                .klass( DataElement.class.getName() )
-                .uid( uid )
-                .code( code )
-                .data( "{}" )
-                .build();
-
-            auditRepository.save( audit );
-        } );
-
-        List<Audit> audits = auditRepository.query( null );
-        assertEquals( 100, audits.size() );
+        assertEquals( 1, auditRepository.query( AuditQuery.builder().build() ).size() );
     }
 
     @Test
@@ -118,8 +96,126 @@ public class AuditRepositoryTest extends IntegrationTestBase
         audit.setId( id );
         auditRepository.delete( audit );
 
-        List<Audit> audits = auditRepository.query( null );
+        List<Audit> audits = auditRepository.query( AuditQuery.builder().build() );
         assertTrue( audits.isEmpty() );
+    }
+
+    @Test
+    public void testAuditQueryAll()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder().build() );
+
+        assertEquals( 100, audits.size() );
+    }
+
+    @Test
+    public void testAuditQueryKlasses()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder()
+            .klass( Arrays.asList( DataElement.class.getName(), OrganisationUnit.class.getName() ) )
+            .build() );
+
+        assertEquals( 100, audits.size() );
+    }
+
+    @Test
+    public void testAuditQueryUids()
+    {
+        List<String> uids = new ArrayList<>();
+
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            uids.add( uid );
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder()
+            .uid( uids.subList( 0, 50 ) )
+            .build() );
+
+        assertEquals( 50, audits.size() );
+    }
+
+    @Test
+    public void testAuditQueryCodes()
+    {
+        List<String> codes = new ArrayList<>();
+
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            codes.add( code );
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder()
+            .code( codes.subList( 50, 100 ) )
+            .build() );
+
+        assertEquals( 50, audits.size() );
     }
 
     @Override

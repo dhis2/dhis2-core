@@ -28,6 +28,7 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -38,6 +39,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,8 +101,49 @@ public class JdbcAuditRepository implements AuditRepository
     @Override
     public List<Audit> query( AuditQuery query )
     {
-        List<Audit> audits = jdbcTemplate.query( "SELECT * FROM audit", auditRowMapper );
-        return audits;
+        String sql = buildQuery( query );
+        return jdbcTemplate.query( "SELECT * FROM audit" + sql, auditRowMapper );
+    }
+
+    private String buildQuery( AuditQuery query )
+    {
+        StringBuilder sqlBuilder = new StringBuilder();
+        SqlHelper sqlHelper = new SqlHelper( true );
+
+        if ( !query.getKlass().isEmpty() )
+        {
+            sqlBuilder.append( sqlHelper.whereAnd() )
+                .append( "klass in (" ).append( buildQuotedList( query.getKlass() ) ).append( ")" );
+        }
+
+        if ( !query.getUid().isEmpty() || !query.getCode().isEmpty() )
+        {
+            sqlBuilder.append( sqlHelper.whereAnd() ).append( "(" );
+            SqlHelper idHelper = new SqlHelper( true );
+
+            if ( !query.getUid().isEmpty() )
+            {
+                sqlBuilder.append( idHelper.or() )
+                    .append( "uid in (" ).append( buildQuotedList( query.getUid() ) ).append( ")" );
+            }
+
+            if ( !query.getCode().isEmpty() )
+            {
+                sqlBuilder.append( idHelper.or() )
+                    .append( "code in (" ).append( buildQuotedList( query.getCode() ) ).append( ")" );
+            }
+
+            sqlBuilder.append( ")" );
+        }
+
+        return sqlBuilder.toString();
+    }
+
+    private String buildQuotedList( List<String> items )
+    {
+        return items.stream()
+            .map( s -> "'" + s + "'" )
+            .collect( Collectors.joining( ", " ) );
     }
 
     private RowMapper<Audit> auditRowMapper = ( rs, rowNum ) -> {
