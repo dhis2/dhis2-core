@@ -36,7 +36,7 @@ import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.junit.Assert.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.List;
 
@@ -47,25 +47,42 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoRule;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.Lists;
 
 public class JdbcEventAnalyticsManagerTest
 {
 
-    @InjectMocks
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @Mock
+    private StatementBuilder statementBuilder;
+
+    @Mock
+    private ProgramIndicatorService programIndicatorService;
+
+    @Rule
+    public MockitoRule mockitoRule = rule();
+
     private JdbcEventAnalyticsManager jdbcEventAnalyticsManager;
 
     @Before
     public void setUp()
     {
-        initMocks( this );
+        jdbcEventAnalyticsManager = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder,
+            programIndicatorService );
     }
 
     @Test
