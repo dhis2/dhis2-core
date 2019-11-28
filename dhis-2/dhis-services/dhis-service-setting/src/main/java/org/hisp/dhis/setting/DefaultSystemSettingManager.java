@@ -64,7 +64,7 @@ public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-            SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
 
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
@@ -169,7 +169,7 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional} on cache miss.
      */
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public Serializable getSystemSetting( SettingKey key )
     {
         Optional<Serializable> value = settingCache.get( key.getName(),
@@ -183,7 +183,7 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional}.
      */
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
         return getSystemSettingOptional( key.getName(), defaultValue ).orElse( null );
