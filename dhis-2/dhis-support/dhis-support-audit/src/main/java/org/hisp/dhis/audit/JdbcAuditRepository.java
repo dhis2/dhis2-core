@@ -90,13 +90,13 @@ public class JdbcAuditRepository implements AuditRepository
     @Override
     public void delete( AuditQuery query )
     {
-
     }
 
     @Override
     public int count( AuditQuery query )
     {
-        return 0;
+        String sql = buildQuery( query );
+        return jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM audit" + sql, Integer.class );
     }
 
     @Override
