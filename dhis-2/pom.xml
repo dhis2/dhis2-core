@@ -552,6 +552,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-audit</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
         <version>1.0.5.1-SNAPSHOT</version>

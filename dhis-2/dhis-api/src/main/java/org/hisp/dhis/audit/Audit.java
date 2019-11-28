@@ -29,7 +29,7 @@ package org.hisp.dhis.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -38,10 +38,12 @@ import java.time.LocalDateTime;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data( staticConstructor = "of" )
-@AllArgsConstructor( staticName = "of" )
+@Data
+@Builder
 public class Audit implements Serializable
 {
+    private Long id;
+
     /**
      * Type of audit.
      */
@@ -77,13 +79,13 @@ public class Audit implements Serializable
      * UID of object being audited, implies required for klass.
      */
     @JsonProperty
-    private final String uid;
+    private String uid;
 
     /**
      * Code of object being audited, implies required for klass.
      */
     @JsonProperty
-    private final String code;
+    private String code;
 
     /**
      * Payload to be saved a long with audit. Generally will be JSON.
