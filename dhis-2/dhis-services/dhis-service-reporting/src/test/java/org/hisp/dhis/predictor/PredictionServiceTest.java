@@ -1212,6 +1212,45 @@ public class PredictionServiceTest
     }
 
     @Test
+    public void testPredictPercentileCont()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 1 ), sourceA, 10 );
+        useDataValue( dataElementA, makeMonth( 2001, 2 ), sourceA, 30 );
+        useDataValue( dataElementA, makeMonth( 2001, 3 ), sourceA, 20 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expressionP25 = new Expression("percentileCont(.25, #{" + dataElementA.getUid() + "})", "percentileCont25" );
+        expressionService.addExpression( expressionP25 );
+
+        Expression expressionP50 = new Expression("percentileCont(.50, #{" + dataElementA.getUid() + "})", "percentileCont20" );
+        expressionService.addExpression( expressionP50 );
+
+        Predictor predictorP25 = createPredictor( dataElementY, defaultCombo, "2", expressionP25, null,
+            periodTypeMonthly, orgUnitLevel1, 3, 0, 0 );
+
+        Predictor predictorP50 = createPredictor( dataElementZ, defaultCombo, "5", expressionP50, null,
+            periodTypeMonthly, orgUnitLevel1, 3, 0, 0 );
+
+        predictorService.addPredictor( predictorP25 );
+        predictorService.addPredictor( predictorP50 );
+
+        predictionService.predict( predictorP25, monthStart( 2001, 4 ), monthStart( 2001, 6 ), summary );
+
+        assertEquals( "Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "15", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 25th percentile of 10, 20, 30
+        assertEquals( "23", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 25th percentile of 20, 30
+
+        predictionService.predict( predictorP50, monthStart( 2001, 4 ), monthStart( 2001, 6 ), summary );
+
+        assertEquals( "Pred 2 Ins 4 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "20", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 50th percentile of 10, 20, 30
+        assertEquals( "25", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 50th percentile of 20, 30
+    }
+
+    @Test
     public void testPredictNullDataValue()
     {
         useDataValue( dataElementA, makeMonth( 2010, 6 ), sourceA, 42 );
