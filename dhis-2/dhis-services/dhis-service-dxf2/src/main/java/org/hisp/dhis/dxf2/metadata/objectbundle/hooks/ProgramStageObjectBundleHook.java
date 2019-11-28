@@ -29,12 +29,22 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.security.acl.AclService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ProgramStageObjectBundleHook
         extends AbstractObjectBundleHook
@@ -43,10 +53,33 @@ public class ProgramStageObjectBundleHook
 
     private final ProgramStageSectionService programStageSectionService;
 
-    public ProgramStageObjectBundleHook( ProgramStageService programStageService, ProgramStageSectionService programStageSectionService )
+    private final AclService aclService;
+
+    public ProgramStageObjectBundleHook( ProgramStageService programStageService, ProgramStageSectionService programStageSectionService, AclService aclService )
     {
+        checkNotNull( aclService );
+        checkNotNull( programStageService );
+        checkNotNull( programStageSectionService );
+        this.aclService = aclService;
         this.programStageSectionService = programStageSectionService;
         this.programStageService = programStageService;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
+        {
+            return new ArrayList<>();
+        }
+
+        ProgramStage programStage = ( ProgramStage ) object;
+
+        List<ErrorReport> errors = new ArrayList<>();
+
+        errors.addAll( validateProgramStageDataElementsAcl( programStage, bundle ) );
+
+        return errors;
     }
 
     @Override
@@ -79,5 +112,30 @@ public class ProgramStageObjectBundleHook
         });
 
         programStageService.saveProgramStage( programStage );
+    }
+
+    private List<ErrorReport> validateProgramStageDataElementsAcl( ProgramStage programStage, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( programStage.getProgramStageDataElements().isEmpty() )
+        {
+            return errors;
+        }
+
+        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+        programStage.getProgramStageDataElements().forEach( de -> {
+
+            DataElement dataElement = bundle.getPreheat().get( identifier, de.getDataElement() );
+
+            if ( dataElement == null || !aclService.canRead( bundle.getUser(), de ) )
+            {
+                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                    identifier.getIdentifiersWithName( de ) ) );
+            }
+        } );
+
+        return errors;
     }
 }
