@@ -92,7 +92,7 @@ public class DefaultAnalyticsSecurityManager
      */
     void excludeNonAuthorizedCategoryOptions( final List<Category> programCategories )
     {
-        if (isNotEmpty( programCategories ) )
+        if ( isNotEmpty( programCategories ) )
         {
             for ( Category category : programCategories )
             {
