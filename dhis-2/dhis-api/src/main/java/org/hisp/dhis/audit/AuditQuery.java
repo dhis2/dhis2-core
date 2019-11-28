@@ -45,6 +45,12 @@ import java.util.Set;
 @Builder
 public class AuditQuery
 {
+    @Builder.Default
+    private Set<AuditType> auditType = new HashSet<>();
+
+    @Builder.Default
+    private Set<AuditScope> auditScope = new HashSet<>();
+
     /**
      * This narrows the search scope for audits, the class name should be fully qualified.
      * <p>
