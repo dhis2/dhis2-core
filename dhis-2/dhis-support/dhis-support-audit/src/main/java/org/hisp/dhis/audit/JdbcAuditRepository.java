@@ -39,6 +39,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -113,7 +114,7 @@ public class JdbcAuditRepository implements AuditRepository
         if ( !query.getKlass().isEmpty() )
         {
             sqlBuilder.append( sqlHelper.whereAnd() )
-                .append( "klass in (" ).append( buildQuotedList( query.getKlass() ) ).append( ")" );
+                .append( "klass in (" ).append( buildQuotedSet( query.getKlass() ) ).append( ")" );
         }
 
         if ( !query.getUid().isEmpty() || !query.getCode().isEmpty() )
@@ -124,13 +125,13 @@ public class JdbcAuditRepository implements AuditRepository
             if ( !query.getUid().isEmpty() )
             {
                 sqlBuilder.append( idHelper.or() )
-                    .append( "uid in (" ).append( buildQuotedList( query.getUid() ) ).append( ")" );
+                    .append( "uid in (" ).append( buildQuotedSet( query.getUid() ) ).append( ")" );
             }
 
             if ( !query.getCode().isEmpty() )
             {
                 sqlBuilder.append( idHelper.or() )
-                    .append( "code in (" ).append( buildQuotedList( query.getCode() ) ).append( ")" );
+                    .append( "code in (" ).append( buildQuotedSet( query.getCode() ) ).append( ")" );
             }
 
             sqlBuilder.append( ")" );
@@ -139,7 +140,7 @@ public class JdbcAuditRepository implements AuditRepository
         return sqlBuilder.toString();
     }
 
-    private String buildQuotedList( List<String> items )
+    private String buildQuotedSet( Set<String> items )
     {
         return items.stream()
             .map( s -> "'" + s + "'" )
