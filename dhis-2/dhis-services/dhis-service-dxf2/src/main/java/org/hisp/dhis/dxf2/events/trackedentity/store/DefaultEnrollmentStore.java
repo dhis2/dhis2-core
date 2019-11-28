@@ -85,11 +85,7 @@ public class DefaultEnrollmentStore
     @Override
     public Multimap<String, Note> getNotes( List<Long> ids )
     {
-        NoteRowCallbackHandler handler = new NoteRowCallbackHandler();
-
-        jdbcTemplate.query( GET_NOTES_SQL, createIdsParam( ids ), handler );
-
-        return handler.getItems();
+        return fetch( GET_NOTES_SQL, new NoteRowCallbackHandler(), ids );
     }
 
     @Override

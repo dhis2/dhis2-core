@@ -38,7 +38,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -94,24 +93,21 @@ public class DefaultTrackedEntityInstanceStore
     public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx )
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
+
         jdbcTemplate.query( withAclCheck( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)" ),
             createIdsParam( ids ).addValue( "teiTypeIds", ctx.getTrackedEntityTypes() ), handler );
+
         return handler.getItems();
     }
 
     @Override
     public Multimap<String, Attribute> getAttributes( List<Long> ids )
     {
-        TrackedEntityAttributeRowCallbackHandler handler = new TrackedEntityAttributeRowCallbackHandler();
-        jdbcTemplate.query( GET_TEI_ATTRIBUTES, createIdsParam( ids ), handler );
-        return handler.getItems();
+        return  fetch(GET_TEI_ATTRIBUTES, new TrackedEntityAttributeRowCallbackHandler(), ids);
     }
 
     public Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids )
     {
-        ProgramOwnerRowCallbackHandler handler = new ProgramOwnerRowCallbackHandler();
-        jdbcTemplate.query( GET_PROGRAM_OWNERS, createIdsParam( ids ), handler );
-        return handler.getItems();
-
+        return  fetch(GET_PROGRAM_OWNERS, new ProgramOwnerRowCallbackHandler(), ids);
     }
 }

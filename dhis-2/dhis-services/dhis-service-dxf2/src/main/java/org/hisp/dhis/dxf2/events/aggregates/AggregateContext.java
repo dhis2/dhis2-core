@@ -37,7 +37,7 @@ import lombok.Value;
  * @author Luciano Fiandesio
  */
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class AggregateContext
 {
     /**
