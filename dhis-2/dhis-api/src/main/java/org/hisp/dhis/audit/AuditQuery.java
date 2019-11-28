@@ -45,9 +45,15 @@ import java.util.Set;
 @Builder
 public class AuditQuery
 {
+    /**
+     * This narrows the search scope for audits by types.
+     */
     @Builder.Default
     private Set<AuditType> auditType = new HashSet<>();
 
+    /**
+     * This narrows the search scope for audits by scopes.
+     */
     @Builder.Default
     private Set<AuditScope> auditScope = new HashSet<>();
 

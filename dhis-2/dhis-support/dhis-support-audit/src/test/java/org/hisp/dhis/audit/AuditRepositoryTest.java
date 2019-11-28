@@ -128,6 +128,202 @@ public class AuditRepositoryTest extends IntegrationTestBase
     }
 
     @Test
+    public void testAuditQueryAuditType()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder()
+            .auditType( Sets.newHashSet( AuditType.CREATE ) )
+            .build() );
+
+        assertEquals( 100, audits.size() );
+    }
+
+    @Test
+    public void testAuditQueryAuditTypeNoMatch()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder()
+            .auditType( Sets.newHashSet( AuditType.UPDATE ) )
+            .build() );
+
+        assertTrue( audits.isEmpty() );
+    }
+
+    @Test
+    public void testAuditQueryCountAuditType()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        int audits = auditRepository.count( AuditQuery.builder()
+            .auditType( Sets.newHashSet( AuditType.CREATE ) )
+            .build() );
+
+        assertEquals( 100, audits );
+    }
+
+    @Test
+    public void testAuditQueryCountAuditTypeNoMatch()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        int audits = auditRepository.count( AuditQuery.builder()
+            .auditType( Sets.newHashSet( AuditType.UPDATE ) )
+            .build() );
+
+        assertEquals( 0, audits );
+    }
+
+    @Test
+    public void testAuditQueryAuditScope()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder()
+            .auditScope( Sets.newHashSet( AuditScope.AGGREGATE ) )
+            .build() );
+
+        assertEquals( 100, audits.size() );
+    }
+
+    @Test
+    public void testAuditQueryAuditScopeNoMatch()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        List<Audit> audits = auditRepository.query( AuditQuery.builder()
+            .auditScope( Sets.newHashSet( AuditScope.TRACKER ) )
+            .build() );
+
+        assertTrue( audits.isEmpty() );
+    }
+
+    @Test
+    public void testAuditQueryCountAuditScope()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        int audits = auditRepository.count( AuditQuery.builder()
+            .auditScope( Sets.newHashSet( AuditScope.AGGREGATE ) )
+            .build() );
+
+        assertEquals( 100, audits );
+    }
+
+    @Test
     public void testAuditQueryKlasses()
     {
         IntStream.rangeClosed( 1, 100 ).forEach( n -> {
