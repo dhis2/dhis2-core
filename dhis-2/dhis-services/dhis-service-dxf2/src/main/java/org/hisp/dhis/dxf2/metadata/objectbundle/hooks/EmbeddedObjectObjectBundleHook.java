@@ -98,10 +98,10 @@ public class EmbeddedObjectObjectBundleHook
 
     private List<ErrorReport> formatEmbeddedErrorReport( List<ErrorReport> errors, String embeddedPropertyName )
     {
-        errors.stream()
-            .forEach( errorReport -> {
-                errorReport.setErrorProperty( embeddedPropertyName + "." + errorReport.getErrorProperty() );
-            } );
+        for ( ErrorReport errorReport : errors )
+        {
+            errorReport.setErrorProperty( embeddedPropertyName + "." + errorReport.getErrorProperty() );
+        }
 
         return errors;
     }

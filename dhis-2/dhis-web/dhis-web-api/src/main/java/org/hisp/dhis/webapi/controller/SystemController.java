@@ -237,24 +237,6 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/tasks/extended/{jobType}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
-    public void getTasksExtendedJsonReverted( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
-        throws IOException
-    {
-        Map<String, LinkedList<Notification>> notifications = new HashMap<>();
-
-        if ( jobType != null )
-        {
-            notifications = notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
-        }
-
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        renderService.toJson( response.getOutputStream(), notifications );
-    }
-
     @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
@@ -276,24 +258,6 @@ public class SystemController
     // -------------------------------------------------------------------------
     // Tasks summary
     // -------------------------------------------------------------------------
-
-    @RequestMapping( value = "/taskSummaries/extended/{jobType}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
-    public void getTaskSummaryExtendedJsonReverted( @PathVariable( "jobType" ) String jobType,
-        HttpServletResponse response )
-        throws IOException
-    {
-        if ( jobType != null )
-        {
-            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
-
-            handleSummary( response, summary );
-            return;
-        }
-
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-    }
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

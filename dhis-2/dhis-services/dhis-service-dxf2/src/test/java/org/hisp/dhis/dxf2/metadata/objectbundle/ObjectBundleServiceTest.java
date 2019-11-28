@@ -79,6 +79,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -1143,6 +1144,8 @@ public class ObjectBundleServiceTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "leftSide.description", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4001, validate.getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test
