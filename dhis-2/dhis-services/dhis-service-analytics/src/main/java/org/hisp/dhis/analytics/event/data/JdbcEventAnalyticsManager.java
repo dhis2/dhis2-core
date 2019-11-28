@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -52,11 +53,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -400,10 +404,19 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
-        for ( DimensionalObject dim : dynamicDimensions )
+        if ( isNotEmpty( dynamicDimensions ) )
         {
-            String col = quoteAlias( dim.getDimensionName() );
-            sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            // Apply pre-authorized dimensions filtering
+            for ( DimensionalObject dim : dynamicDimensions )
+            {
+                String col = quoteAlias( dim.getDimensionName() );
+                sql += sqlHelper.whereAnd() + " " + col + " in ("
+                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            }
+        }
+        else if ( params.hasProgram() && params.getProgram().hasCategoryCombo() )
+        {
+            sql += queryOnlyAllowedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
         }
 
         // ---------------------------------------------------------------------
@@ -517,6 +530,56 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    /**
+     * This method will generate a sql sentence responsible for filtering only the
+     * allowed category options for this program, and expects to receive only the
+     * authorized category options.
+     *
+     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams) 
+     *
+     * @param programCategories the list of program categories containing the list
+     *        of authorized category options for the current user.
+     * @return the sql statement in the format:
+     *          "and ax."mEXqxV2KIUl" in ('qNqYLugIySD') or ax."r7NDRdgj5zs" in ('qNqYLugIySD') "
+     */
+    String queryOnlyAllowedCategoryOptionEvents( final List<Category> programCategories )
+    {
+        boolean andFlag = true;
+        final StringBuilder query = new StringBuilder();
+
+        if ( isNotEmpty( programCategories ) )
+        {
+            for ( final Category category : programCategories )
+            {
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
+
+                if ( isNotEmpty( categoryOptions ) )
+                {
+                    query.append( andFlag ? " and " : " or " );
+                    andFlag = false;
+                    query.append( buildInFilterForCategory( category, categoryOptions ) );
+                }
+            }
+        }
+        return query.toString();
+    }
+
+    /**
+     * This method will generate a "in" sql statement for the given category and
+     * category options.
+     *
+     * @param category
+     * @param categoryOptions
+     * @return a sql statement in the format: "ax."mEXqxV2KIUl" in ('qNqYLugIySD') "
+     */
+    String buildInFilterForCategory(final Category category, final List<CategoryOption> categoryOptions )
+    {
+        final String categoryColumn = quoteAlias( category.getUid() );
+        final String inFilter = categoryColumn + " in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
+            + ") ";
+        return inFilter;
     }
 
     /**
