@@ -87,17 +87,16 @@ public class TrackedEntityInstanceAggregate
     {
         final Long userId = currentUserService.getCurrentUser().getId();
 
-        AggregateContext securityCtx = getSecurityContext( userId );
-        AggregateContext ctx = AggregateContext.builder()
-            .userId( userId )
-            .superUser( currentUserService.getCurrentUser().isSuper() )
-            .trackedEntityTypes( securityCtx.getTrackedEntityTypes() )
-            .programs( securityCtx.getPrograms() )
-            .programStages( securityCtx.getProgramStages() )
-            .relationshipTypes( securityCtx.getRelationshipTypes() )
-            .includeRelationships( params.isIncludeRelationships() )
-            .includeEvents( params.isIncludeEvents() )
-            .build();
+        /*
+           Create a context with information which will be used to fetch the entities
+         */
+        AggregateContext ctx = getSecurityContext( userId )
+                .toBuilder()
+                .userId( userId )
+                .superUser( currentUserService.getCurrentUser().isSuper() )
+                .includeRelationships( params.isIncludeRelationships() )
+                .includeEvents( params.isIncludeEvents() )
+                .build();
 
         /*
          * Async fetch Relationships for the given TrackedEntityInstance id (only if

@@ -34,6 +34,7 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.AbstractMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -138,5 +139,21 @@ public abstract class AbstractStore
     String withAclCheck( String sql, AggregateContext ctx, String aclSql )
     {
         return ctx.isSuperUser() ? sql : sql + " AND " + aclSql;
+    }
+
+    /**
+     * Execute a SELECT statement and maps the results to the specified Mapper
+     *
+     * @param sql The SELECT statement to execute
+     * @param handler the {@see RowCallbackHandler} to use for mapping a Resultset to an object
+     * @param ids the list of primary keys mapped to the :ids parameter
+     *
+     * @return a Multimap where the keys are of the same type as the specified
+     *         {@see RowCallbackHandler}
+     */
+    <T> Multimap<String, T> fetch( String sql, AbstractMapper<T> handler, List<Long> ids )
+    {
+        jdbcTemplate.query( sql, createIdsParam( ids ), handler );
+        return handler.getItems();
     }
 }

@@ -141,8 +141,6 @@ public class DefaultEventStore
     @Override
     public Multimap<String, Note> getNotes( List<Long> eventIds )
     {
-        NoteRowCallbackHandler handler = new NoteRowCallbackHandler();
-        jdbcTemplate.query( GET_NOTES_SQL, createIdsParam( eventIds ), handler );
-        return handler.getItems();
+        return fetch( GET_NOTES_SQL, new NoteRowCallbackHandler(), eventIds );
     }
 }
