@@ -58,7 +58,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
         Audit audit = Audit.builder()
             .auditType( AuditType.CREATE )
             .auditScope( AuditScope.AGGREGATE )
-            .createdAt( LocalDateTime.of( 2019, 5, 5, 12, 30 ) )
+            .createdAt( LocalDateTime.of( 2019, 1, 1, 0, 0 ) )
             .createdBy( "test-user" )
             .klass( DataElement.class.getName() )
             .uid( uid )
@@ -66,8 +66,8 @@ public class AuditRepositoryTest extends IntegrationTestBase
             .data( "{}" )
             .build();
 
-        long id = auditRepository.save( audit );
-        assertEquals( 1, id );
+        auditRepository.save( audit );
+        assertEquals( 1, auditRepository.query( null ).size() );
     }
 
     @Test
@@ -80,7 +80,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
             Audit audit = Audit.builder()
                 .auditType( AuditType.CREATE )
                 .auditScope( AuditScope.AGGREGATE )
-                .createdAt( LocalDateTime.of( 2019, 5, 5, 12, 30 ) )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
                 .createdBy( "test-user" )
                 .klass( DataElement.class.getName() )
                 .uid( uid )
@@ -104,7 +104,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
         Audit audit = Audit.builder()
             .auditType( AuditType.CREATE )
             .auditScope( AuditScope.AGGREGATE )
-            .createdAt( LocalDateTime.of( 2019, 5, 5, 12, 30 ) )
+            .createdAt( LocalDateTime.of( 2019, 1, 1, 0, 0 ) )
             .createdBy( "test-user" )
             .klass( DataElement.class.getName() )
             .uid( uid )
