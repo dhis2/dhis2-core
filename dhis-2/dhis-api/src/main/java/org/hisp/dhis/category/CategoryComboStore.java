@@ -40,6 +40,4 @@ public interface CategoryComboStore
     extends IdentifiableObjectStore<CategoryCombo>
 {
     List<CategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType );
-
-    CategoryCombo getDefaultCc();
 }

@@ -31,7 +31,6 @@ package org.hisp.dhis.category.hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -42,9 +41,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Root;
 import java.util.List;
 
 /**
@@ -70,19 +66,5 @@ public class HibernateCategoryComboStore
         return getList( builder,  newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) ) );
-    }
-
-    @Override
-    public CategoryCombo getDefaultCc()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        CriteriaQuery<CategoryCombo> query = builder.createQuery( getClazz() );
-        Root<CategoryCombo> root = query.from( getClazz() );
-        root.fetch( "optionCombos", JoinType.INNER );
-        root.fetch( "categories", JoinType.INNER );
-        query.select( root );
-        query.where( builder.equal( root.get( "name" ), CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME ) );
-        return getSession().createQuery( query ).uniqueResult();
     }
 }

@@ -883,32 +883,4 @@ public class DefaultCategoryService
     {
         return categoryOptionGroupSetStore.getCategoryOptionGroupSetsNoAcl( DataDimensionType.ATTRIBUTE, true );
     }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Category getDefaultCaEagerFetch()
-    {
-        return categoryStore.getDefaultCat();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public CategoryOption getDefaultCoEagerFetch()
-    {
-        return categoryOptionStore.getDefaultCo();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public CategoryCombo getDefaultCcEagerFetch()
-    {
-        return categoryComboStore.getDefaultCc();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public CategoryOptionCombo getDefaultCoCEagerFetch()
-    {
-        return categoryOptionComboStore.getDefaultCoC();
-    }
 }

@@ -39,6 +39,4 @@ public interface CategoryOptionStore
     extends IdentifiableObjectStore<CategoryOption>
 {
     List<CategoryOption> getCategoryOptions( Category category );
-
-    CategoryOption getDefaultCo();
 }
