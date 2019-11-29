@@ -34,10 +34,10 @@
     <property name="operator" column="operator" type="org.hisp.dhis.expression.OperatorUserType" not-null="true" />
 
     <many-to-one name="leftSide" column="leftexpressionid" class="org.hisp.dhis.expression.Expression"
-                 cascade="all" foreign-key="fk_validationrule_leftexpressionid"/>
+                 cascade="all" foreign-key="fk_validationrule_leftexpressionid" not-null="true"/>
 
     <many-to-one name="rightSide" column="rightexpressionid" class="org.hisp.dhis.expression.Expression"
-                 cascade="all" foreign-key="fk_validationrule_rightexpressionid"/>
+                 cascade="all" foreign-key="fk_validationrule_rightexpressionid" not-null="true"/>
 
     <property name="skipFormValidation" />
 
