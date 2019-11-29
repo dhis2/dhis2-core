@@ -60,13 +60,12 @@ public class PredictorJob
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
-        throws Exception
     {
         PredictorJobParameters predictorJobParameters = ( PredictorJobParameters ) jobConfiguration.getJobParameters();
 
         if ( predictorJobParameters == null )
         {
-            throw new Exception( "No job parameters present in predictor job" );
+            throw new IllegalStateException( "No job parameters present in predictor job" );
         }
 
         predictionService.predictJob( predictorJobParameters, null );
