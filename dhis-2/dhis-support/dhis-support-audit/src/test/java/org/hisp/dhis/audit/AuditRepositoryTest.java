@@ -33,6 +33,8 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.util.Timer;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -505,6 +507,68 @@ public class AuditRepositoryTest extends IntegrationTestBase
             .build() );
 
         assertEquals( 50, audits );
+    }
+
+    @Test
+    @Ignore
+    public void testAuditInsert200k()
+    {
+        List<Audit> audits = new ArrayList<>();
+
+        IntStream.rangeClosed( 1, 200_000 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 2000, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            audits.add( audit );
+        } );
+
+        Timer timer = new Timer().start();
+        audits.forEach( audit -> auditRepository.save( audit ) );
+        System.err.println( "Single Insert: " + timer.getTimeInS() + "s" );
+
+        assertEquals( 200_000, auditRepository.count( AuditQuery.builder().build() ) );
+    }
+
+    @Test
+    @Ignore
+    public void testAuditInsertBatch200k()
+    {
+        List<Audit> audits = new ArrayList<>();
+
+        IntStream.rangeClosed( 1, 200_000 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 2000, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            audits.add( audit );
+        } );
+
+        Timer timer = new Timer().start();
+        auditRepository.save( audits );
+        System.err.println( "Batch Insert: " + timer.getTimeInS() + "s" );
+
+        assertEquals( 200_000, auditRepository.count( AuditQuery.builder().build() ) );
     }
 
     @Override
