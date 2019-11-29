@@ -57,6 +57,7 @@ public class JobConfigurationController
     extends AbstractCrudController<JobConfiguration>
 {
     private final JobConfigurationService jobConfigurationService;
+
     private final SchedulingManager schedulingManager;
 
     public JobConfigurationController( JobConfigurationService jobConfigurationService,

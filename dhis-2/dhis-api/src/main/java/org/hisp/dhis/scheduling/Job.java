@@ -43,8 +43,7 @@ public interface Job
 {
     JobType getJobType();
 
-    void execute( JobConfiguration jobConfiguration )
-        throws Exception;
+    void execute( JobConfiguration jobConfiguration );
 
-    ErrorReport validate( );
+    ErrorReport validate();
 }

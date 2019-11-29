@@ -79,7 +79,6 @@ public class DataSetNotificationJob
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
-        throws Exception
     {
         final Clock clock = new Clock().startClock();
 
