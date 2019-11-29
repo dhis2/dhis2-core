@@ -45,6 +45,8 @@ public class SqlHelper
 
     private boolean betweenInvoked = false;
 
+    private boolean andInvoked = false;
+
     public SqlHelper()
     {
     }
@@ -110,6 +112,15 @@ public class SqlHelper
         String str = betweenInvoked ? "and" : "between";
 
         betweenInvoked = true;
+
+        return includeSpaces ? " " + str + " " : str;
+    }
+
+    public String andOr()
+    {
+        final String str = andInvoked ? "or" : "and";
+
+        andInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }

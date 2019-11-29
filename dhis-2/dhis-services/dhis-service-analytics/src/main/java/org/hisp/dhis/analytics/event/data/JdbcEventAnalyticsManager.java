@@ -546,8 +546,8 @@ public class JdbcEventAnalyticsManager
      */
     String queryOnlyAllowedCategoryOptionEvents( final List<Category> programCategories )
     {
-        boolean andFlag = true;
         final StringBuilder query = new StringBuilder();
+        final SqlHelper sqlHelper = new SqlHelper(true);
 
         if ( isNotEmpty( programCategories ) )
         {
@@ -557,8 +557,7 @@ public class JdbcEventAnalyticsManager
 
                 if ( isNotEmpty( categoryOptions ) )
                 {
-                    query.append( andFlag ? " and " : " or " );
-                    andFlag = false;
+                    query.append( sqlHelper.andOr() );
                     query.append( buildInFilterForCategory( category, categoryOptions ) );
                 }
             }
