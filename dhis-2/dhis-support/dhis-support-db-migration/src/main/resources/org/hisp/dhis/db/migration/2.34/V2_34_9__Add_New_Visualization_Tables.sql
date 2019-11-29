@@ -54,7 +54,8 @@ CREATE TABLE public.visualization
   userorganisationunit boolean,
   userorganisationunitchildren boolean,
   userorganisationunitgrandchildren boolean,
-  visualizationperiod boolean,
+  reportingperiod boolean,
+  organisationunit boolean,
   parentorganisationunit boolean,
   grandparentorganisationunit boolean,
   rowtotals boolean,
@@ -425,7 +426,7 @@ ALTER TABLE public.visualization_yearlyseries
   OWNER TO dhis;
 
 
--- -- Table: public.interpretation
+-- Table: public.interpretation
 
 ALTER TABLE public.interpretation
    ADD COLUMN visualizationid bigint;
@@ -433,3 +434,11 @@ ALTER TABLE public.interpretation
 ALTER TABLE public.interpretation
   ADD CONSTRAINT fk_interpretation_visualizationid FOREIGN KEY (visualizationid) REFERENCES public.visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
+
+-- Table: public.report
+
+ALTER TABLE public.report
+   ADD COLUMN visualizationid bigint;
+
+ALTER TABLE public.report
+  ADD CONSTRAINT fk_report_visualizationid FOREIGN KEY (visualizationid) REFERENCES public.visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;

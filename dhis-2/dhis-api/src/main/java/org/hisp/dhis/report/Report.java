@@ -39,7 +39,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.reporttable.ReportParams;
-import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Lars Helge Overland
@@ -49,13 +49,11 @@ public class Report
     extends BaseIdentifiableObject
     implements Cacheable, MetadataObject
 {
-    public static final String TEMPLATE_DIR = "templates";
-
     private ReportType type;
 
     private String designContent;
 
-    private ReportTable reportTable;
+    private Visualization visualization;
 
     private RelativePeriods relatives;
 
@@ -71,12 +69,12 @@ public class Report
     {
     }
 
-    public Report( String name, ReportType type, String designContent, ReportTable reportTable )
+    public Report( String name, ReportType type, String designContent, Visualization visualization)
     {
         this.name = name;
         this.type = type;
         this.designContent = designContent;
-        this.reportTable = reportTable;
+        this.visualization = visualization;
     }
 
     public Report( String name, ReportType type, String designContent, RelativePeriods relatives, ReportParams reportParams )
@@ -107,9 +105,9 @@ public class Report
         return type != null && ReportType.HTML.equals( type );
     }
 
-    public boolean hasReportTable()
+    public boolean hasVisualization()
     {
-        return reportTable != null;
+        return visualization != null;
     }
 
     /**
@@ -159,14 +157,14 @@ public class Report
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ReportTable getReportTable()
+    public Visualization getVisualization()
     {
-        return reportTable;
+        return visualization;
     }
 
-    public void setReportTable( ReportTable reportTable )
+    public void setVisualization(Visualization visualization)
     {
-        this.reportTable = reportTable;
+        this.visualization = visualization;
     }
 
     @JsonProperty( "relativePeriods" )

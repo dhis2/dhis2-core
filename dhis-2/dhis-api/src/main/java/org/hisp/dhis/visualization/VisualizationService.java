@@ -29,6 +29,10 @@
 package org.hisp.dhis.visualization;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.user.User;
+
+import java.util.Date;
 
 public interface VisualizationService
     extends
@@ -43,4 +47,8 @@ public interface VisualizationService
     Visualization loadVisualization( String uid );
 
     void delete( Visualization visualization );
+
+    Grid getVisualizationGrid(String uid, Date reportingPeriod, String organisationUnitUid );
+
+    Grid getVisualizationGridByUser(String uid, Date reportingPeriod, String organisationUnitUid, User user );
 }

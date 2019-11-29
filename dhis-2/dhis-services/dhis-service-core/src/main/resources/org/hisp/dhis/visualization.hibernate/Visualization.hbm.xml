@@ -89,11 +89,12 @@
       <element type="string" column="dimension"/>
     </list>
 
-    <property name="visualizationPeriod"/>
-
-    <property name="grandParentOrganisationUnit"/>
-
-    <property name="parentOrganisationUnit"/>
+    <component name="reportingParams">
+      <property name="reportingPeriod" />
+      <property name="organisationUnit" />
+      <property name="parentOrganisationUnit" />
+      <property name="grandParentOrganisationUnit" />
+    </component>
 
     <property name="topLimit"/>
 

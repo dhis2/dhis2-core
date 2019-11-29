@@ -106,19 +106,9 @@ public class Visualization
     private VisualizationType type;
 
     /**
-     * Flag to indicate if there is a visualization period set or not.
+     * The object responsible to hold parameters related to reporting.
      */
-    private boolean visualizationPeriod;
-
-    /**
-     * Flag to indicate if there is a grandparent organisation unit set or not.
-     */
-    private boolean grandParentOrganisationUnit;
-
-    /**
-     * Flag to indicate if there is a parent organisation unit set or not.
-     */
-    private boolean parentOrganisationUnit;
+    private ReportingParams reportingParams;
 
     /**
      * Indicates the criteria to apply to data measures.
@@ -439,38 +429,14 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isVisualizationPeriod()
+    public ReportingParams getReportingParams()
     {
-        return visualizationPeriod;
+        return reportingParams;
     }
 
-    public void setVisualizationPeriod( boolean visualizationPeriod )
+    public void setReportingParams( ReportingParams reportingParams )
     {
-        this.visualizationPeriod = visualizationPeriod;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isGrandParentOrganisationUnit()
-    {
-        return grandParentOrganisationUnit;
-    }
-
-    public void setGrandParentOrganisationUnit( boolean grandParentOrganisationUnit )
-    {
-        this.grandParentOrganisationUnit = grandParentOrganisationUnit;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isParentOrganisationUnit()
-    {
-        return parentOrganisationUnit;
-    }
-
-    public void setParentOrganisationUnit( boolean parentOrganisationUnit )
-    {
-        this.parentOrganisationUnit = parentOrganisationUnit;
+        this.reportingParams = reportingParams;
     }
 
     @JsonProperty
@@ -1132,6 +1098,14 @@ public class Visualization
      * Display supportive methods
      ***************************************/
     /**
+     * Tests whether this visualization has reporting parameters.
+     */
+    public boolean hasReportingParams()
+    {
+        return reportingParams != null;
+    }
+
+    /**
      * Adds an empty list of DimensionalItemObjects to the given list if empty.
      */
     public static void addListIfEmpty( final List<List<DimensionalItemObject>> list )
@@ -1440,16 +1414,14 @@ public class Visualization
         if ( !super.equals( o ) )
             return false;
         final Visualization that = (Visualization) o;
-        return visualizationPeriod == that.visualizationPeriod
-            && grandParentOrganisationUnit == that.grandParentOrganisationUnit
-            && parentOrganisationUnit == that.parentOrganisationUnit && rowTotals == that.rowTotals
-            && colTotals == that.colTotals && rowSubTotals == that.rowSubTotals && colSubTotals == that.colSubTotals
-            && showData == that.showData && skipRounding == that.skipRounding && regression == that.regression
-            && cumulative == that.cumulative && cumulativeValues == that.cumulativeValues
-            && percentStackedValues == that.percentStackedValues && showHierarchy == that.showHierarchy
-            && showDimensionLabels == that.showDimensionLabels && hideEmptyRows == that.hideEmptyRows
-            && hideEmptyColumns == that.hideEmptyColumns && hideLegend == that.hideLegend
-            && noSpaceBetweenColumns == that.noSpaceBetweenColumns && type == that.type
+        return rowTotals == that.rowTotals && colTotals == that.colTotals && rowSubTotals == that.rowSubTotals
+            && colSubTotals == that.colSubTotals && showData == that.showData && skipRounding == that.skipRounding
+            && regression == that.regression && cumulative == that.cumulative
+            && cumulativeValues == that.cumulativeValues && percentStackedValues == that.percentStackedValues
+            && showHierarchy == that.showHierarchy && showDimensionLabels == that.showDimensionLabels
+            && hideEmptyRows == that.hideEmptyRows && hideEmptyColumns == that.hideEmptyColumns
+            && hideLegend == that.hideLegend && noSpaceBetweenColumns == that.noSpaceBetweenColumns && type == that.type
+            && Objects.equals( reportingParams, that.reportingParams )
             && Objects.equals( measureCriteria, that.measureCriteria )
             && Objects.equals( columnDimensions, that.columnDimensions )
             && Objects.equals( rowDimensions, that.rowDimensions )
@@ -1483,15 +1455,14 @@ public class Visualization
     @Override
     public int hashCode()
     {
-        return hash( super.hashCode(), type, visualizationPeriod, grandParentOrganisationUnit, parentOrganisationUnit,
-            measureCriteria, columnDimensions, rowDimensions, filterDimensions, rowTotals, colTotals, rowSubTotals,
-            colSubTotals, numberType, regressionType, hideEmptyRowItems, displayDensity, fontSize, legendDisplayStyle,
-            legendSet, legendDisplayStrategy, colorSet, targetLineValue, baseLineValue, baseLineLabel, targetLineLabel,
-            rangeAxisMaxValue, rangeAxisMinValue, rangeAxisSteps, rangeAxisDecimals, domainAxisLabel, rangeAxisLabel,
-            yearlySeries, showData, skipRounding, regression, cumulative, cumulativeValues, percentStackedValues,
-            showHierarchy, showDimensionLabels, hideEmptyRows, hideEmptyColumns, hideLegend, noSpaceBetweenColumns,
-            format, relativePeriodsList, relativeUser, organisationUnitsAtLevel, organisationUnitsInGroups,
-            visualizationPeriodName, parentGraphMap, columns, rows, filters, dataItemGrid, gridTitle, gridColumns,
-            gridRows );
+        return hash( super.hashCode(), type, reportingParams, measureCriteria, columnDimensions, rowDimensions,
+            filterDimensions, rowTotals, colTotals, rowSubTotals, colSubTotals, numberType, regressionType,
+            hideEmptyRowItems, displayDensity, fontSize, legendDisplayStyle, legendSet, legendDisplayStrategy, colorSet,
+            targetLineValue, baseLineValue, baseLineLabel, targetLineLabel, rangeAxisMaxValue, rangeAxisMinValue,
+            rangeAxisSteps, rangeAxisDecimals, domainAxisLabel, rangeAxisLabel, yearlySeries, showData, skipRounding,
+            regression, cumulative, cumulativeValues, percentStackedValues, showHierarchy, showDimensionLabels,
+            hideEmptyRows, hideEmptyColumns, hideLegend, noSpaceBetweenColumns, format, relativePeriodsList,
+            relativeUser, organisationUnitsAtLevel, organisationUnitsInGroups, visualizationPeriodName, parentGraphMap,
+            columns, rows, filters, dataItemGrid, gridTitle, gridColumns, gridRows );
     }
 }

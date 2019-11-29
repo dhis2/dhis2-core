@@ -169,7 +169,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     @RequestMapping( value = "/visualizations/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void postVisualizationInterpretation( @PathVariable( "uid" )
+    public void writeVisualizationInterpretation( @PathVariable( "uid" )
     final String visualizationUid, @RequestParam( value = "ou", required = false )
     final String orgUnitUid, @RequestBody
     final String text, final HttpServletResponse response, final HttpServletRequest request )
