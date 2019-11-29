@@ -31,14 +31,14 @@ package org.hisp.dhis.audit;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,23 +62,16 @@ public class JdbcAuditRepository implements AuditRepository
     @Override
     public long save( Audit audit )
     {
-        Map<String, Object> values = new HashMap<>();
-        values.put( "auditType", audit.getAuditType() );
-        values.put( "auditScope", audit.getAuditScope() );
-        values.put( "createdAt", audit.getCreatedAt() );
-        values.put( "createdBy", audit.getCreatedBy() );
-        values.put( "klass", audit.getKlass() );
-        values.put( "uid", audit.getUid() );
-        values.put( "code", audit.getCode() );
-        values.put( "data", audit.getData() );
-
-        return auditInsert.executeAndReturnKey( values ).longValue();
+        MapSqlParameterSource parameterSource = buildParameterSource( audit );
+        return auditInsert.executeAndReturnKey( parameterSource ).longValue();
     }
 
     @Override
     public void save( List<Audit> audits )
     {
-
+        List<MapSqlParameterSource> parameterSources = new ArrayList<>();
+        audits.forEach( audit -> parameterSources.add( buildParameterSource( audit ) ) );
+        auditInsert.executeBatch( parameterSources.toArray( new MapSqlParameterSource[0] ) );
     }
 
     @Override
@@ -156,6 +149,22 @@ public class JdbcAuditRepository implements AuditRepository
         return items.stream()
             .map( s -> "'" + s.toString() + "'" )
             .collect( Collectors.joining( ", " ) );
+    }
+
+    private MapSqlParameterSource buildParameterSource( Audit audit )
+    {
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+
+        parameters.addValue( "auditType", audit.getAuditType() );
+        parameters.addValue( "auditScope", audit.getAuditScope() );
+        parameters.addValue( "createdAt", audit.getCreatedAt() );
+        parameters.addValue( "createdBy", audit.getCreatedBy() );
+        parameters.addValue( "klass", audit.getKlass() );
+        parameters.addValue( "uid", audit.getUid() );
+        parameters.addValue( "code", audit.getCode() );
+        parameters.addValue( "data", audit.getData() );
+
+        return parameters;
     }
 
     private RowMapper<Audit> auditRowMapper = ( rs, rowNum ) -> {
