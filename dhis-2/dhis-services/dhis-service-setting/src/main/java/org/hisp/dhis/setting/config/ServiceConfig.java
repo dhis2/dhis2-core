@@ -190,7 +190,7 @@ public class ServiceConfig
         flags.add( "zanzibar" );
         flags.add( "zimbabwe" );
         flags.add( "who" );
-        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor, cacheProvider, environment,
-            flags );
+        return new DefaultSystemSettingManager( systemSettingStore, transactionTemplate, pbeStringEncryptor,
+            cacheProvider, environment, flags );
     }
 }

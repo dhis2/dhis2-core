@@ -49,6 +49,7 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.collect.Lists;
 
@@ -79,6 +80,8 @@ public class DefaultSystemSettingManager
 
     private SystemSettingStore systemSettingStore;
 
+    private TransactionTemplate transactionTemplate;
+
     private PBEStringEncryptor pbeStringEncryptor;
 
     private CacheProvider cacheProvider;
@@ -87,17 +90,19 @@ public class DefaultSystemSettingManager
 
     private List<String> flags;
 
-    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
+    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore, TransactionTemplate transactionTemplate,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
         Environment environment, List<String> flags )
     {
         checkNotNull( systemSettingStore );
+        checkNotNull( transactionTemplate );
         checkNotNull( pbeStringEncryptor );
         checkNotNull( cacheProvider );
         checkNotNull( environment );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
+        this.transactionTemplate = transactionTemplate;
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
@@ -169,7 +174,6 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional} on cache miss.
      */
     @Override
-    @Transactional
     public Serializable getSystemSetting( SettingKey key )
     {
         Optional<Serializable> value = settingCache.get( key.getName(),
@@ -183,7 +187,6 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional}.
      */
     @Override
-    @Transactional
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
         return getSystemSettingOptional( key.getName(), defaultValue ).orElse( null );
@@ -199,7 +202,7 @@ public class DefaultSystemSettingManager
      */
     private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( name ) );
 
         if ( setting != null && setting.hasValue() )
         {
