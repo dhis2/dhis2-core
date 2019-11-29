@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.visualization;
 
+import static java.util.Arrays.asList;
 import static java.util.Objects.hash;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -760,9 +761,10 @@ public class Visualization
         return gridColumns;
     }
 
-    public void setGridColumns( List<List<DimensionalItemObject>> gridColumns )
+    public Visualization setGridColumns( List<List<DimensionalItemObject>> gridColumns )
     {
         this.gridColumns = gridColumns;
+        return this;
     }
 
     @JsonIgnore
@@ -771,9 +773,10 @@ public class Visualization
         return gridRows;
     }
 
-    public void setGridRows( List<List<DimensionalItemObject>> gridRows )
+    public Visualization setGridRows( List<List<DimensionalItemObject>> gridRows )
     {
         this.gridRows = gridRows;
+        return this;
     }
 
     @JsonProperty
@@ -794,9 +797,10 @@ public class Visualization
         return gridTitle;
     }
 
-    public void setGridTitle( String gridTitle )
+    public Visualization setGridTitle( String gridTitle )
     {
         this.gridTitle = gridTitle;
+        return this;
     }
 
     @JsonProperty
@@ -1127,6 +1131,17 @@ public class Visualization
     /***************************************
      * Display supportive methods
      ***************************************/
+    /**
+     * Adds an empty list of DimensionalItemObjects to the given list if empty.
+     */
+    public static void addListIfEmpty( final List<List<DimensionalItemObject>> list )
+    {
+        if ( list != null && list.size() == 0 )
+        {
+            list.add( asList( new DimensionalItemObject[0] ) );
+        }
+    }
+
     /**
      * Generates a grid for this visualization based on the given aggregate value
      * map.
