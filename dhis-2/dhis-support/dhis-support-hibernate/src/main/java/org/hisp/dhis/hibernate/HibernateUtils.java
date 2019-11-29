@@ -118,7 +118,13 @@ public class HibernateUtils
                 try
                 {
                     PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
-                    Hibernate.initialize( pd.getReadMethod().invoke( proxy ) );
+
+                    Object persistentObject = pd.getReadMethod().invoke( proxy );
+
+                    if ( PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                    {
+                        Hibernate.initialize( persistentObject );
+                    }
                 }
                 catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
                 {
