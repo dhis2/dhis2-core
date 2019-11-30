@@ -177,12 +177,20 @@ public class AnalyticsTableAsserter
 
         public Builder addColumn( String name, ColumnDataType dataType, String alias )
         {
-            return addColumnUnquoted( quote( name ), dataType, alias );
+            return addColumnUnquoted( quote( name ), dataType, alias, null );
         }
 
-        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias )
+        public Builder addColumn( String name, ColumnDataType dataType, String alias, String indexType )
+        {
+            return addColumnUnquoted( quote( name ), dataType, alias, indexType );
+        }
+
+        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias, String indexType )
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
+            if (indexType != null ) {
+                col.withIndexType( indexType );
+            }
             this._columns.add( col );
 
             return this;

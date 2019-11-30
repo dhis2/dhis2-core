@@ -81,6 +81,7 @@ public abstract class AbstractEventJdbcTableManager
 
     protected final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
     protected final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+    protected static final String GEOMETRY_INDEX_TYPE = "GIST";
 
     @Override
     @Async
