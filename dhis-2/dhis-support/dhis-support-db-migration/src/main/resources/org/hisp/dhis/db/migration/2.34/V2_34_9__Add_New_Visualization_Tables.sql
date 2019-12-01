@@ -442,3 +442,11 @@ ALTER TABLE public.report
 
 ALTER TABLE public.report
   ADD CONSTRAINT fk_report_visualizationid FOREIGN KEY (visualizationid) REFERENCES public.visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+
+-- Table: public.dashboarditem
+
+ALTER TABLE public.dashboarditem ADD COLUMN visualizationid bigint;
+
+ALTER TABLE public.dashboarditem
+  ADD CONSTRAINT fk_dashboarditem_visualizationid FOREIGN KEY (visualizationid) REFERENCES public.visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;

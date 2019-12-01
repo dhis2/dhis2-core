@@ -44,6 +44,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -72,15 +73,6 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     }
 
     @Override
-    public int countChartDashboardItems( Chart chart )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
-        query.setParameter( "chart", chart );
-
-        return query.getSingleResult().intValue();
-    }
-
-    @Override
     public int countEventChartDashboardItems( EventChart eventChart )
     {
         Query<Long> query = getTypedQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
@@ -91,10 +83,10 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     }
 
     @Override
-    public int countReportTableDashboardItems( ReportTable reportTable )
+    public int countVisualizationDashboardItems( Visualization visualization )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
-        query.setParameter( "reportTable", reportTable );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.visualization=:visualization" );
+        query.setParameter( "visualization", visualization );
 
         return query.getSingleResult().intValue();
     }

@@ -354,10 +354,11 @@ public class DefaultPushAnalysisService
         {
             case MAP:
                 return generateMapHtml( item.getMap(), user );
-            case CHART:
-                return generateChartHtml( item.getChart(), user );
-            case REPORT_TABLE:
-                return generateReportTableHtml( item.getReportTable(), user );
+                // TODO: Maikel revisit it!
+//            case CHART:
+//                return generateChartHtml( item.getChart(), user );
+//            case REPORT_TABLE:
+//                return generateReportTableHtml( item.getReportTable(), user );
             case EVENT_CHART:
                 // TODO: Add support for EventCharts
                 return "";
@@ -380,11 +381,8 @@ public class DefaultPushAnalysisService
             case MAP:
                 result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
                 break;
-            case REPORT_TABLE:
-                result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
-                break;
-            case CHART:
-                result += "/dhis-web-visualizer/index.html?id=" + item.getChart().getUid();
+            case VISUALIZATION:
+                result += "/dhis-web-visualizer/index.html?id=" + item.getVisualization().getUid();
                 break;
             default:
                 break;

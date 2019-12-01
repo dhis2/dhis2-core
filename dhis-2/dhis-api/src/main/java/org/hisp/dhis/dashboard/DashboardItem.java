@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -44,7 +43,6 @@ import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -68,13 +66,9 @@ public class DashboardItem
 
     private Visualization visualization;
 
-    private Chart chart;
-
     private EventChart eventChart;
 
     private Map map;
-
-    private ReportTable reportTable;
 
     private EventReport eventReport;
 
@@ -126,10 +120,6 @@ public class DashboardItem
         {
             return DashboardItemType.VISUALIZATION;
         }
-        else if ( chart != null )
-        {
-            return DashboardItemType.CHART;
-        }
         else if ( eventChart != null )
         {
             return DashboardItemType.EVENT_CHART;
@@ -137,10 +127,6 @@ public class DashboardItem
         else if ( map != null )
         {
             return DashboardItemType.MAP;
-        }
-        else if ( reportTable != null )
-        {
-            return DashboardItemType.REPORT_TABLE;
         }
         else if ( eventReport != null )
         {
@@ -184,10 +170,6 @@ public class DashboardItem
         {
             return visualization;
         }
-        else if ( chart != null )
-        {
-            return chart;
-        }
         else if ( eventChart != null )
         {
             return eventChart;
@@ -195,10 +177,6 @@ public class DashboardItem
         else if ( map != null )
         {
             return map;
-        }
-        else if ( reportTable != null )
-        {
-            return reportTable;
         }
         else if ( eventReport != null )
         {
@@ -255,10 +233,8 @@ public class DashboardItem
     {
         int count = 0;
         count += visualization != null ? 1 : 0;
-        count += chart != null ? 1 : 0;
         count += eventChart != null ? 1 : 0;
         count += map != null ? 1 : 0;
-        count += reportTable != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
         count += text != null ? 1: 0;
         count += users.size();
@@ -315,25 +291,14 @@ public class DashboardItem
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Visualization getVisualization() {
+    public Visualization getVisualization()
+    {
         return visualization;
     }
 
-    public void setVisualization(Visualization visualization) {
+    public void setVisualization( Visualization visualization )
+    {
         this.visualization = visualization;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Chart getChart()
-    {
-        return chart;
-    }
-
-    public void setChart( Chart chart )
-    {
-        this.chart = chart;
     }
 
     @JsonProperty
@@ -360,19 +325,6 @@ public class DashboardItem
     public void setMap( Map map )
     {
         this.map = map;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ReportTable getReportTable()
-    {
-        return reportTable;
-    }
-
-    public void setReportTable( ReportTable reportTable )
-    {
-        this.reportTable = reportTable;
     }
 
     @JsonProperty

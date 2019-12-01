@@ -28,9 +28,14 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Nonnull;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
@@ -39,7 +44,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.SetMap;
@@ -90,7 +94,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.SystemInfo;
@@ -98,15 +101,13 @@ import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.Enums;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -735,16 +736,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleChart( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Chart chart )
-    {
-        if ( chart == null ) return metadata;
-        metadata.putValue( Chart.class, chart );
-        handleAttributes( metadata, chart );
-
-        return metadata;
-    }
-
-
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventChart( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, EventChart eventChart )
     {
         if ( eventChart == null ) return metadata;
@@ -783,11 +774,11 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleReportTable( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ReportTable reportTable )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleVisualization( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Visualization visualization )
     {
-        if ( reportTable == null ) return metadata;
-        metadata.putValue( ReportTable.class, reportTable );
-        handleAttributes( metadata, reportTable );
+        if ( visualization == null ) return metadata;
+        metadata.putValue( Visualization.class, visualization );
+        handleAttributes( metadata, visualization );
 
         return metadata;
     }
@@ -836,11 +827,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( dashboardItem == null ) return metadata;
         handleAttributes( metadata, dashboardItem );
 
-        handleChart( metadata, dashboardItem.getChart() );
+        handleVisualization( metadata, dashboardItem.getVisualization() );
         handleEventChart( metadata, dashboardItem.getEventChart() );
         handleEventReport( metadata, dashboardItem.getEventReport() );
         handleMap( metadata, dashboardItem.getMap() );
-        handleReportTable( metadata, dashboardItem.getReportTable() );
         handleEmbbedItem( metadata, dashboardItem.getEmbeddedItem() );
 
         dashboardItem.getReports().forEach( report -> handleReport( metadata, report ) );

@@ -29,7 +29,6 @@
 package org.hisp.dhis.visualization;
 
 import static java.util.Arrays.asList;
-import static java.util.Objects.hash;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -47,7 +46,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
@@ -333,6 +331,16 @@ public class Visualization
     private transient List<List<DimensionalItemObject>> gridColumns = new ArrayList<>();
 
     private transient List<List<DimensionalItemObject>> gridRows = new ArrayList<>();
+
+    public Visualization()
+    {
+    }
+
+    public Visualization( final String name )
+    {
+        this();
+        this.name = name;
+    }
 
     @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalObject.class )
@@ -1402,67 +1410,5 @@ public class Visualization
 
         grid.addHeaders( ouIdColumnIndex, headers );
         grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
-    }
-
-    @Override
-    public boolean equals( final Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        if ( !super.equals( o ) )
-            return false;
-        final Visualization that = (Visualization) o;
-        return rowTotals == that.rowTotals && colTotals == that.colTotals && rowSubTotals == that.rowSubTotals
-            && colSubTotals == that.colSubTotals && showData == that.showData && skipRounding == that.skipRounding
-            && regression == that.regression && cumulative == that.cumulative
-            && cumulativeValues == that.cumulativeValues && percentStackedValues == that.percentStackedValues
-            && showHierarchy == that.showHierarchy && showDimensionLabels == that.showDimensionLabels
-            && hideEmptyRows == that.hideEmptyRows && hideEmptyColumns == that.hideEmptyColumns
-            && hideLegend == that.hideLegend && noSpaceBetweenColumns == that.noSpaceBetweenColumns && type == that.type
-            && Objects.equals( reportingParams, that.reportingParams )
-            && Objects.equals( measureCriteria, that.measureCriteria )
-            && Objects.equals( columnDimensions, that.columnDimensions )
-            && Objects.equals( rowDimensions, that.rowDimensions )
-            && Objects.equals( filterDimensions, that.filterDimensions ) && numberType == that.numberType
-            && regressionType == that.regressionType && hideEmptyRowItems == that.hideEmptyRowItems
-            && displayDensity == that.displayDensity && fontSize == that.fontSize
-            && legendDisplayStyle == that.legendDisplayStyle && Objects.equals( legendSet, that.legendSet )
-            && legendDisplayStrategy == that.legendDisplayStrategy && Objects.equals( colorSet, that.colorSet )
-            && Objects.equals( targetLineValue, that.targetLineValue )
-            && Objects.equals( baseLineValue, that.baseLineValue )
-            && Objects.equals( baseLineLabel, that.baseLineLabel )
-            && Objects.equals( targetLineLabel, that.targetLineLabel )
-            && Objects.equals( rangeAxisMaxValue, that.rangeAxisMaxValue )
-            && Objects.equals( rangeAxisMinValue, that.rangeAxisMinValue )
-            && Objects.equals( rangeAxisSteps, that.rangeAxisSteps )
-            && Objects.equals( rangeAxisDecimals, that.rangeAxisDecimals )
-            && Objects.equals( domainAxisLabel, that.domainAxisLabel )
-            && Objects.equals( rangeAxisLabel, that.rangeAxisLabel )
-            && Objects.equals( yearlySeries, that.yearlySeries ) && Objects.equals( format, that.format )
-            && Objects.equals( relativePeriodsList, that.relativePeriodsList )
-            && Objects.equals( relativeUser, that.relativeUser )
-            && Objects.equals( organisationUnitsAtLevel, that.organisationUnitsAtLevel )
-            && Objects.equals( organisationUnitsInGroups, that.organisationUnitsInGroups )
-            && Objects.equals( visualizationPeriodName, that.visualizationPeriodName )
-            && Objects.equals( parentGraphMap, that.parentGraphMap ) && Objects.equals( columns, that.columns )
-            && Objects.equals( rows, that.rows ) && Objects.equals( filters, that.filters )
-            && Objects.equals( dataItemGrid, that.dataItemGrid ) && Objects.equals( gridTitle, that.gridTitle )
-            && Objects.equals( gridColumns, that.gridColumns ) && Objects.equals( gridRows, that.gridRows );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return hash( super.hashCode(), type, reportingParams, measureCriteria, columnDimensions, rowDimensions,
-            filterDimensions, rowTotals, colTotals, rowSubTotals, colSubTotals, numberType, regressionType,
-            hideEmptyRowItems, displayDensity, fontSize, legendDisplayStyle, legendSet, legendDisplayStrategy, colorSet,
-            targetLineValue, baseLineValue, baseLineLabel, targetLineLabel, rangeAxisMaxValue, rangeAxisMinValue,
-            rangeAxisSteps, rangeAxisDecimals, domainAxisLabel, rangeAxisLabel, yearlySeries, showData, skipRounding,
-            regression, cumulative, cumulativeValues, percentStackedValues, showHierarchy, showDimensionLabels,
-            hideEmptyRows, hideEmptyColumns, hideLegend, noSpaceBetweenColumns, format, relativePeriodsList,
-            relativeUser, organisationUnitsAtLevel, organisationUnitsInGroups, visualizationPeriodName, parentGraphMap,
-            columns, rows, filters, dataItemGrid, gridTitle, gridColumns, gridRows );
     }
 }

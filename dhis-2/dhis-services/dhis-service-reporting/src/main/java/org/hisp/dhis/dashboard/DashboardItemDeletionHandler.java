@@ -28,17 +28,16 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -67,21 +66,15 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     }
 
     @Override
-    public String allowDeleteChart( Chart chart )
-    {
-        return dashboardService.countChartDashboardItems( chart ) == 0 ? null : ERROR;
-    }
-
-    @Override
     public String allowDeleteEventChart( EventChart eventChart )
     {
         return dashboardService.countEventChartDashboardItems( eventChart ) == 0 ? null : ERROR;
     }
 
     @Override
-    public String allowDeleteReportTable( ReportTable reportTable )
+    public String allowDeleteVisualization( Visualization visualization )
     {
-        return dashboardService.countReportTableDashboardItems( reportTable ) == 0 ? null : ERROR;
+        return dashboardService.countVisualizationDashboardItems( visualization ) == 0 ? null : ERROR;
     }
 
     @Override

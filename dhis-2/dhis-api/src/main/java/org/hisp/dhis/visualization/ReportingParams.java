@@ -109,7 +109,7 @@ public class ReportingParams
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @JsonProperty( value = "paramReportingPeriod" )
+    @JsonProperty( value = "reportingPeriod" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isReportingPeriod()
     {

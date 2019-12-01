@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.document.Document;
@@ -40,8 +39,8 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -54,13 +53,11 @@ public class DashboardSearchResult
 {
     private List<User> users = new ArrayList<>();
 
-    private List<Chart> charts = new ArrayList<>();
+    private List<Visualization> visualizations = new ArrayList<>();
 
     private List<EventChart> eventCharts = new ArrayList<>();
 
     private List<Map> maps = new ArrayList<>();
-
-    private List<ReportTable> reportTables = new ArrayList<>();
 
     private List<EventReport> eventReports = new ArrayList<>();
 
@@ -87,10 +84,9 @@ public class DashboardSearchResult
     {
         int results = 0;
         results += users.size();
-        results += charts.size();
+        results += visualizations.size();
         results += eventCharts.size();
         results += maps.size();
-        results += reportTables.size();
         results += eventReports.size();
         results += reports.size();
         results += resources.size();
@@ -107,9 +103,9 @@ public class DashboardSearchResult
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getChartCount()
+    public int getVisualizationCount()
     {
-        return charts.size();
+        return visualizations.size();
     }
 
     @JsonProperty
@@ -124,13 +120,6 @@ public class DashboardSearchResult
     public int getMapCount()
     {
         return maps.size();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getReportTableCount()
-    {
-        return reportTables.size();
     }
 
     @JsonProperty
@@ -179,18 +168,18 @@ public class DashboardSearchResult
         this.users = users;
     }
 
-    @JsonProperty( value = "charts" )
+    @JsonProperty( value = "visualizations" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "charts", namespace = DxfNamespaces.DXF_2_0)
-    @JacksonXmlProperty( localName = "chart", namespace = DxfNamespaces.DXF_2_0)
-    public List<Chart> getCharts()
+    @JacksonXmlElementWrapper( localName = "visualizations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "visualization", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Visualization> getVisualizations()
     {
-        return charts;
+        return visualizations;
     }
 
-    public void setCharts( List<Chart> charts )
+    public void setVisualizations( final List<Visualization> visualizations )
     {
-        this.charts = charts;
+        this.visualizations = visualizations;
     }
 
     @JsonProperty( value = "eventCharts" )
@@ -219,20 +208,6 @@ public class DashboardSearchResult
     public void setMaps( List<Map> maps )
     {
         this.maps = maps;
-    }
-
-    @JsonProperty( value = "reportTables" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "reportTables", namespace = DxfNamespaces.DXF_2_0)
-    @JacksonXmlProperty( localName = "reportTable", namespace = DxfNamespaces.DXF_2_0)
-    public List<ReportTable> getReportTables()
-    {
-        return reportTables;
-    }
-
-    public void setReportTables( List<ReportTable> reportTables )
-    {
-        this.reportTables = reportTables;
     }
 
     @JsonProperty( value = "eventReports" )
