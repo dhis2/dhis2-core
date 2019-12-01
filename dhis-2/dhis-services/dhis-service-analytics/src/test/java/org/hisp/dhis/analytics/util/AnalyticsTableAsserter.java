@@ -188,9 +188,12 @@ public class AnalyticsTableAsserter
         public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias, String indexType )
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
-            if (indexType != null ) {
+            
+            if (indexType != null ) 
+            {
                 col.withIndexType( indexType );
             }
+            
             this._columns.add( col );
 
             return this;
