@@ -189,7 +189,7 @@ public class AnalyticsTableAsserter
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
             
-            if (indexType != null ) 
+            if ( indexType != null ) 
             {
                 col.withIndexType( indexType );
             }
