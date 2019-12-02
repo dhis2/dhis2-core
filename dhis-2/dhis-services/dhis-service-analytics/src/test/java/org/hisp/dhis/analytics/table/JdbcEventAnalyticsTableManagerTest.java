@@ -284,7 +284,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .addColumn( d5.getUid() + "_geom" , GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "GIST" ) // element d5 also creates a Geo column
+            .addColumn( d5.getUid() + "_geom" , GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element d5 also creates a Geo column
             .withDefaultColumns( subject.getFixedColumns() )
             .build().verify();
     }
