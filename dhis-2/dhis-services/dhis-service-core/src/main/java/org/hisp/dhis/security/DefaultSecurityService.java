@@ -173,7 +173,7 @@ public class DefaultSecurityService
     // SecurityService implementation
     // -------------------------------------------------------------------------
     @Override
-    public void registerRecoverAttempt( String username )
+    public void registerRecoveryAttempt( String username )
     {
         if ( !isBlockFailedLogins() || username == null )
         {
