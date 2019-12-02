@@ -510,6 +510,43 @@ public class AuditRepositoryTest extends IntegrationTestBase
     }
 
     @Test
+    public void testAuditQueryDateRange()
+    {
+        IntStream.rangeClosed( 1, 100 ).forEach( n -> {
+            String uid = CodeGenerator.generateUid();
+            String code = CodeGenerator.generateUid();
+
+            Audit audit = Audit.builder()
+                .auditType( AuditType.CREATE )
+                .auditScope( AuditScope.AGGREGATE )
+                .createdAt( LocalDateTime.of( 1999 + n, 1, 1, 0, 0 ) )
+                .createdBy( "test-user" )
+                .klass( DataElement.class.getName() )
+                .uid( uid )
+                .code( code )
+                .data( "{}" )
+                .build();
+
+            auditRepository.save( audit );
+        } );
+
+        int audits = auditRepository.count( AuditQuery.builder()
+            .range( AuditQuery.range( LocalDateTime.of( 2050, 1, 1, 0, 0, 0 ) ) )
+            .build() );
+
+        assertEquals( 50, audits );
+
+        audits = auditRepository.count( AuditQuery.builder()
+            .range( AuditQuery.range(
+                LocalDateTime.of( 2050, 1, 1, 0, 0, 0 ),
+                LocalDateTime.of( 2080, 1, 1, 0, 0, 0 )
+            ) )
+            .build() );
+
+        assertEquals( 31, audits );
+    }
+
+    @Test
     @Ignore
     public void testAuditInsert200k()
     {

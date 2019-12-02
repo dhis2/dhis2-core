@@ -141,6 +141,29 @@ public class JdbcAuditRepository implements AuditRepository
             sql.append( ")" );
         }
 
+        if ( query.getRange() != null )
+        {
+            AuditQuery.Range range = query.getRange();
+
+            if ( range.getFrom() != null )
+            {
+                sql.append( sqlHelper.whereAnd() )
+                    .append( "createdAt >= " )
+                    .append( "'" )
+                    .append( range.getFrom() )
+                    .append( "'" );
+            }
+
+            if ( range.getTo() != null )
+            {
+                sql.append( sqlHelper.whereAnd() )
+                    .append( "createdAt <= " )
+                    .append( "'" )
+                    .append( range.getTo() )
+                    .append( "'" );
+            }
+        }
+
         return sql.toString();
     }
 
