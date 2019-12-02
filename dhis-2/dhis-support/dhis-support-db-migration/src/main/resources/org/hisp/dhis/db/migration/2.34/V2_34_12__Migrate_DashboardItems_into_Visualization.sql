@@ -6,5 +6,5 @@ WHERE chartid IS NOT NULL;
 
 -- Update the column visualizationid of the public.dashboarditem table
 -- so it receives all the reporttableid's.
-UPDATE public.dashboarditem SET visualizationid = reporttableid
-WHERE reporttableid IS NOT NULL;
+UPDATE public.dashboarditem SET visualizationid = reporttable
+WHERE reporttable IS NOT NULL;
