@@ -41,13 +41,14 @@ import java.util.Date;
  * @author Henning Håkonsen
  */
 @Component( "org.hisp.dhis.scheduling.JobInstance" )
-public class DefaultJobInstance 
+public class DefaultJobInstance
     implements JobInstance
 {
     private static final Log log = LogFactory.getLog( DefaultJobInstance.class );
-    
+
     private static final String NOT_LEADER_SKIP_LOG = "Not a leader, skipping job with jobType:%s and name:%s";
-    
+
+    @Override
     public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
         MessageService messageService, LeaderManager leaderManager )
     {
@@ -55,15 +56,15 @@ public class DefaultJobInstance
         {
             return;
         }
-        
+
         if ( jobConfiguration.isLeaderOnlyJob() && !leaderManager.isLeader() )
         {
-            log.debug(
-                String.format( NOT_LEADER_SKIP_LOG, jobConfiguration.getJobType(), jobConfiguration.getName() ) );
+            log.debug( String.format( NOT_LEADER_SKIP_LOG, jobConfiguration.getJobType(), jobConfiguration.getName() ) );
             return;
         }
-        
+
         final Clock clock = new Clock().startClock();
+
         try
         {
             if ( jobConfiguration.isInMemoryJob() )
@@ -82,22 +83,19 @@ public class DefaultJobInstance
             }
             else
             {
-                log.error(
-                    "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() +
-                        "' is already running." );
-
-                messageService.sendSystemErrorNotification(
-                    "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() +
-                        "' is already running.",
-                    new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
+                String message = String.format( "Job failed: '%s', job type already running: '%s'",
+                    jobConfiguration.getName(), jobConfiguration.getJobType() );
+                log.error( message );
+                messageService.sendSystemErrorNotification( message, new RuntimeException( message ) );
 
                 jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
             }
         }
         catch ( Exception ex )
         {
-            messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
-            log.error( "Job '" + jobConfiguration.getName() + "' failed", ex );
+            String message = String.format( "Job failed: '%s'", jobConfiguration.getName() );
+            messageService.sendSystemErrorNotification( message, ex );
+            log.error( message, ex );
 
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
         }
@@ -148,14 +146,12 @@ public class DefaultJobInstance
      * @param clock refers to start time
      * @throws Exception if the job fails
      */
-    private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
-        Clock clock )
-        throws Exception
+    private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, Clock clock )
     {
-        log.debug( "Job '" + jobConfiguration.getName() + "' started" );
+        log.debug( String.format( "Job started: '%s'", jobConfiguration.getName() ) );
 
         schedulingManager.getJob( jobConfiguration.getJobType() ).execute( jobConfiguration );
 
-        log.debug( "Job '" + jobConfiguration.getName() + "' executed successfully. Time used: " + clock.time() );
+        log.debug( String.format( "Job executed successfully: '%s'. Time used: '%s'", jobConfiguration.getName(), clock.time() ) );
     }
 }

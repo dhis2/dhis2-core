@@ -1,4 +1,4 @@
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,38 +28,31 @@ package org.hisp.dhis.reservedvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Henning Håkonsen
+ * @author Enrico Colasante
  */
-@Component
-public class RemoveExpiredReservedValuesJob
-    extends AbstractJob
+
+public class ExpressionSchemaDescriptor
+    implements SchemaDescriptor
 {
-    private final ReservedValueService reservedValueService;
+    public static final String SINGULAR = "expression";
 
-    public RemoveExpiredReservedValuesJob( ReservedValueService reservedValueService )
-    {
-        checkNotNull( reservedValueService );
+    public static final String PLURAL = "expressions";
 
-        this.reservedValueService = reservedValueService;
-    }
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public JobType getJobType()
+    public Schema getSchema()
     {
-        return JobType.REMOVE_EXPIRED_RESERVED_VALUES;
-    }
+        Schema schema = new Schema( Expression.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1000 );
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
-    {
-        reservedValueService.removeExpiredReservations();
+        return schema;
     }
 }

@@ -83,4 +83,16 @@ public class SqlViewUtilsTest
 
         assertEquals( expected, actual );
     }
+
+    @Test
+    public void testSubsituteSqlVariable()
+    {
+        String sql = "select * from datavalue where level=${level} and id='${id}'";
+
+        String expected = "select * from datavalue where level=4 and id='${id}'";
+
+        String actual = SqlViewUtils.substituteSqlVariable( sql, "level", "4" );
+
+        assertEquals( expected, actual );
+    }
 }
