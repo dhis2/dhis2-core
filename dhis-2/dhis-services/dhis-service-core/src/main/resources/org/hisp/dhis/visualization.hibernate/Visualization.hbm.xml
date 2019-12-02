@@ -90,10 +90,10 @@
     </list>
 
     <component name="reportingParams">
-      <property name="reportingPeriod" />
-      <property name="organisationUnit" />
-      <property name="parentOrganisationUnit" />
-      <property name="grandParentOrganisationUnit" />
+      <property name="reportingPeriod" column="paramreportingperiod"/>
+      <property name="organisationUnit" column="paramorganisationunit"/>
+      <property name="parentOrganisationUnit" column="paramparentorganisationunit"/>
+      <property name="grandParentOrganisationUnit" column="paramgrandparentorganisationunit"/>
     </component>
 
     <property name="topLimit"/>
@@ -235,8 +235,6 @@
                  cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
 
     <property name="percentStackedValues"/>
-
-    <property name="cumulativeValues"/>
 
     <property name="rangeAxisMaxValue"/>
 

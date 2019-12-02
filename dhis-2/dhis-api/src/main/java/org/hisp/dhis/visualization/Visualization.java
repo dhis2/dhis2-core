@@ -239,14 +239,9 @@ public class Visualization
     private boolean regression;
 
     /**
-     * Indicates whether the visualization contains cumulative columns.
+     * Indicates whether the visualization contains cumulative values or columns.
      */
     private boolean cumulative;
-
-    /**
-     * Indicates whether the visualization should use cumulative values.
-     */
-    private boolean cumulativeValues;
 
     /**
      * User stacked values or not. Very likely to be applied for graphics/charts.
@@ -943,18 +938,6 @@ public class Visualization
     public void setPercentStackedValues( boolean percentStackedValues )
     {
         this.percentStackedValues = percentStackedValues;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isCumulativeValues()
-    {
-        return cumulativeValues;
-    }
-
-    public void setCumulativeValues( boolean cumulativeValues )
-    {
-        this.cumulativeValues = cumulativeValues;
     }
 
     @JsonProperty
