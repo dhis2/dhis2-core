@@ -52,8 +52,7 @@ public class AnalyticsColumnAsserter
         assertThat( "Column creation date does not match!", expected.getCreated(), is( actual.getCreated() ) );
         assertThat( expected.getDataType(), is( actual.getDataType() ) );
         assertThat( String.format( "Index type for column %s does not match!", expected.getName() ),
-                expected.getIndexType(), is( actual.getIndexType() ) );;
-        // assertThat(actual.getIndexColumns(), is(expected.getIndexColumns()));
+            expected.getIndexType(), is( actual.getIndexType() ) );
     }
 
     public static class Builder
