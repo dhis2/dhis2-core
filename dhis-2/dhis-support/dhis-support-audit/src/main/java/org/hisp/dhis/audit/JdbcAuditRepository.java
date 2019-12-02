@@ -100,48 +100,48 @@ public class JdbcAuditRepository implements AuditRepository
 
     private String buildQuery( AuditQuery query )
     {
-        StringBuilder sqlBuilder = new StringBuilder();
+        StringBuilder sql = new StringBuilder();
         SqlHelper sqlHelper = new SqlHelper( true );
 
         if ( !query.getAuditType().isEmpty() )
         {
-            sqlBuilder.append( sqlHelper.whereAnd() )
+            sql.append( sqlHelper.whereAnd() )
                 .append( "auditType in (" ).append( buildQuotedSet( query.getAuditType() ) ).append( ")" );
         }
 
         if ( !query.getAuditScope().isEmpty() )
         {
-            sqlBuilder.append( sqlHelper.whereAnd() )
+            sql.append( sqlHelper.whereAnd() )
                 .append( "auditScope in (" ).append( buildQuotedSet( query.getAuditScope() ) ).append( ")" );
         }
 
         if ( !query.getKlass().isEmpty() )
         {
-            sqlBuilder.append( sqlHelper.whereAnd() )
+            sql.append( sqlHelper.whereAnd() )
                 .append( "klass in (" ).append( buildQuotedSet( query.getKlass() ) ).append( ")" );
         }
 
         if ( !query.getUid().isEmpty() || !query.getCode().isEmpty() )
         {
-            sqlBuilder.append( sqlHelper.whereAnd() ).append( "(" );
+            sql.append( sqlHelper.whereAnd() ).append( "(" );
             SqlHelper innerSql = new SqlHelper( true );
 
             if ( !query.getUid().isEmpty() )
             {
-                sqlBuilder.append( innerSql.or() )
+                sql.append( innerSql.or() )
                     .append( "uid in (" ).append( buildQuotedSet( query.getUid() ) ).append( ")" );
             }
 
             if ( !query.getCode().isEmpty() )
             {
-                sqlBuilder.append( innerSql.or() )
+                sql.append( innerSql.or() )
                     .append( "code in (" ).append( buildQuotedSet( query.getCode() ) ).append( ")" );
             }
 
-            sqlBuilder.append( ")" );
+            sql.append( ")" );
         }
 
-        return sqlBuilder.toString();
+        return sql.toString();
     }
 
     private String buildQuotedSet( Set<?> items )
