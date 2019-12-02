@@ -324,7 +324,7 @@ public class DefaultSecurityService
         }
         else
         {
-            registerRecoverAttempt( credentials.getUsername() );
+            registerRecoveryAttempt( credentials.getUsername() );
         }
 
         RestoreType restoreType = restoreOptions.getRestoreType();

@@ -44,7 +44,7 @@ public interface SecurityService
      *
      * @param username the username of the user account.
      */
-    void registerRecoverAttempt( String username );
+    void registerRecoveryAttempt( String username );
 
     /**
      * Indicates whether the recovery of the user account is locked due
