@@ -1,9 +1,12 @@
 -- This script adds all new tables required by Visualization.
 -- See Feature DHIS2-7946
 
--- It also updates the table public.interpretation to add a new foreign key (visualizationid).
+-- It also updates:
+-- 1) the table public.interpretation to add a new foreign key (visualizationid);
+-- 2) the table public.report to add a new foreign key (visualizationid);
+-- 3) the table public.dashboarditem to add a new foreign key (visualizationid);
 
-CREATE TABLE public.visualization
+CREATE TABLE IF NOT EXISTS public.visualization
 (
   visualizationid bigint NOT NULL,
   uid character varying(11) NOT NULL,
@@ -47,17 +50,16 @@ CREATE TABLE public.visualization
   colorsetid bigint,
   hideemptyrowitems character varying(40),
   percentstackedvalues boolean,
-  cumulativevalues boolean,
   nospacebetweencolumns boolean,
   regression boolean,
   externalaccess boolean,
   userorganisationunit boolean,
   userorganisationunitchildren boolean,
   userorganisationunitgrandchildren boolean,
-  reportingperiod boolean,
-  organisationunit boolean,
-  parentorganisationunit boolean,
-  grandparentorganisationunit boolean,
+  paramreportingperiod boolean,
+  paramorganisationunit boolean,
+  paramparentorganisationunit boolean,
+  paramgrandparentorganisationunit boolean,
   rowtotals boolean,
   coltotals boolean,
   subtotals boolean,
@@ -111,7 +113,7 @@ ALTER TABLE public.visualization
 
 -- Table: public.visualization_categorydimensions
 
-CREATE TABLE public.visualization_categorydimensions
+CREATE TABLE IF NOT EXISTS public.visualization_categorydimensions
 (
   visualizationid bigint NOT NULL,
   categorydimensionid integer NOT NULL,
@@ -133,7 +135,7 @@ ALTER TABLE public.visualization_categorydimensions
 
 -- Table: public.visualization_categoryoptiongroupsetdimensions
 
-CREATE TABLE public.visualization_categoryoptiongroupsetdimensions
+CREATE TABLE IF NOT EXISTS public.visualization_categoryoptiongroupsetdimensions
 (
   visualizationid bigint NOT NULL,
   sort_order integer NOT NULL,
@@ -155,7 +157,7 @@ ALTER TABLE public.visualization_categoryoptiongroupsetdimensions
 
 -- Table: public.visualization_columns
 
-CREATE TABLE public.visualization_columns
+CREATE TABLE IF NOT EXISTS public.visualization_columns
 (
   visualizationid bigint NOT NULL,
   dimension character varying(255),
@@ -174,7 +176,7 @@ ALTER TABLE public.visualization_columns
 
 -- Table: public.visualization_datadimensionitems
 
-CREATE TABLE public.visualization_datadimensionitems
+CREATE TABLE IF NOT EXISTS public.visualization_datadimensionitems
 (
   visualizationid bigint NOT NULL,
   datadimensionitemid integer NOT NULL,
@@ -196,7 +198,7 @@ ALTER TABLE public.visualization_datadimensionitems
 
 -- Table: public.visualization_dataelementgroupsetdimensions
 
-CREATE TABLE public.visualization_dataelementgroupsetdimensions
+CREATE TABLE IF NOT EXISTS public.visualization_dataelementgroupsetdimensions
 (
   visualizationid bigint NOT NULL,
   sort_order integer NOT NULL,
@@ -218,7 +220,7 @@ ALTER TABLE public.visualization_dataelementgroupsetdimensions
 
 -- Table: public.visualization_filters
 
-CREATE TABLE public.visualization_filters
+CREATE TABLE IF NOT EXISTS public.visualization_filters
 (
   visualizationid bigint NOT NULL,
   dimension character varying(255),
@@ -237,7 +239,7 @@ ALTER TABLE public.visualization_filters
 
 -- Table: public.visualization_itemorgunitgroups
 
-CREATE TABLE public.visualization_itemorgunitgroups
+CREATE TABLE IF NOT EXISTS public.visualization_itemorgunitgroups
 (
   visualizationid bigint NOT NULL,
   orgunitgroupid bigint NOT NULL,
@@ -259,7 +261,7 @@ ALTER TABLE public.visualization_itemorgunitgroups
 
 -- Table: public.visualization_organisationunits
 
-CREATE TABLE public.visualization_organisationunits
+CREATE TABLE IF NOT EXISTS public.visualization_organisationunits
 (
   visualizationid bigint NOT NULL,
   organisationunitid bigint NOT NULL,
@@ -284,7 +286,7 @@ ALTER TABLE public.visualization_organisationunits
 
 -- Table: public.visualization_orgunitgroupsetdimensions
 
-CREATE TABLE public.visualization_orgunitgroupsetdimensions
+CREATE TABLE IF NOT EXISTS public.visualization_orgunitgroupsetdimensions
 (
   visualizationid bigint NOT NULL,
   sort_order integer NOT NULL,
@@ -306,7 +308,7 @@ ALTER TABLE public.visualization_orgunitgroupsetdimensions
 
 -- Table: public.visualization_orgunitlevels
 
-CREATE TABLE public.visualization_orgunitlevels
+CREATE TABLE IF NOT EXISTS public.visualization_orgunitlevels
 (
   visualizationid bigint NOT NULL,
   orgunitlevel integer,
@@ -325,7 +327,7 @@ ALTER TABLE public.visualization_orgunitlevels
 
 -- Table: public.visualization_periods
 
-CREATE TABLE public.visualization_periods
+CREATE TABLE IF NOT EXISTS public.visualization_periods
 (
   visualizationid bigint NOT NULL,
   periodid bigint NOT NULL,
@@ -347,7 +349,7 @@ ALTER TABLE public.visualization_periods
 
 -- Table: public.visualization_rows
 
-CREATE TABLE public.visualization_rows
+CREATE TABLE IF NOT EXISTS public.visualization_rows
 (
   visualizationid bigint NOT NULL,
   dimension character varying(255),
@@ -366,7 +368,7 @@ ALTER TABLE public.visualization_rows
 
 -- Table: public.visualization_useraccesses
 
-CREATE TABLE public.visualization_useraccesses
+CREATE TABLE IF NOT EXISTS public.visualization_useraccesses
 (
   visualizationid bigint NOT NULL,
   useraccessid integer NOT NULL,
@@ -387,7 +389,7 @@ ALTER TABLE public.visualization_useraccesses
 
 -- Table: public.visualization_usergroupaccesses
 
-CREATE TABLE public.visualization_usergroupaccesses
+CREATE TABLE IF NOT EXISTS public.visualization_usergroupaccesses
 (
   visualizationid bigint NOT NULL,
   usergroupaccessid integer NOT NULL,
@@ -409,7 +411,7 @@ ALTER TABLE public.visualization_usergroupaccesses
 
 -- Table: public.visualization_yearlyseries
 
-CREATE TABLE public.visualization_yearlyseries
+CREATE TABLE IF NOT EXISTS public.visualization_yearlyseries
 (
   visualizationid bigint NOT NULL,
   sort_order integer NOT NULL,
@@ -429,7 +431,7 @@ ALTER TABLE public.visualization_yearlyseries
 -- Table: public.interpretation
 
 ALTER TABLE public.interpretation
-   ADD COLUMN visualizationid bigint;
+   ADD COLUMN IF NOT EXISTS visualizationid bigint;
 
 ALTER TABLE public.interpretation
   ADD CONSTRAINT fk_interpretation_visualizationid FOREIGN KEY (visualizationid) REFERENCES public.visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;
@@ -438,7 +440,7 @@ ALTER TABLE public.interpretation
 -- Table: public.report
 
 ALTER TABLE public.report
-   ADD COLUMN visualizationid bigint;
+   ADD COLUMN IF NOT EXISTS visualizationid bigint;
 
 ALTER TABLE public.report
   ADD CONSTRAINT fk_report_visualizationid FOREIGN KEY (visualizationid) REFERENCES public.visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;
@@ -446,7 +448,8 @@ ALTER TABLE public.report
 
 -- Table: public.dashboarditem
 
-ALTER TABLE public.dashboarditem ADD COLUMN visualizationid bigint;
+ALTER TABLE public.dashboarditem
+  ADD COLUMN IF NOT EXISTS visualizationid bigint;
 
 ALTER TABLE public.dashboarditem
   ADD CONSTRAINT fk_dashboarditem_visualizationid FOREIGN KEY (visualizationid) REFERENCES public.visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;
