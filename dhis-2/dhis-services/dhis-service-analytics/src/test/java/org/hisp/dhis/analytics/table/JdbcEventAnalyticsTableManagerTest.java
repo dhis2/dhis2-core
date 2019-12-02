@@ -331,7 +331,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) )  // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) )  // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
-            .addColumn( tea1.getUid() + "_geom", GEOMETRY, String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "GIST" )
+            .addColumn( tea1.getUid() + "_geom", GEOMETRY, String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
             .withDefaultColumns( subject.getFixedColumns() )
             .build().verify();
     }
