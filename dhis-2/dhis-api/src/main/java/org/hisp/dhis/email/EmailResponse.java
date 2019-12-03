@@ -37,7 +37,8 @@ public enum EmailResponse
     SENT( "success" ),
     FAILED( "failed" ),
     ABORTED( "aborted" ),
-    NOT_CONFIGURED( "no configuration found" );
+    NOT_CONFIGURED( "no configuration found" ),
+    HOST_NOT_CONFIGURED( "Host configuration not found" );
 
     private String responseMessage;
 
@@ -49,10 +50,5 @@ public enum EmailResponse
     public String getResponseMessage()
     {
         return responseMessage;
-    }
-
-    public void setResponseMessage( String responseMessage )
-    {
-        this.responseMessage = responseMessage;
     }
 }

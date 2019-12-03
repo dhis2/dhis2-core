@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.email.Email;
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -76,6 +77,18 @@ public class EmailController
 
     @Autowired
     private WebMessageService webMessageService;
+
+    @RequestMapping( value = "/emailConfiguration", method = RequestMethod.GET )
+    public void isEmailConfigured( HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+    {
+        if ( emailService.emailConfigured() )
+        {
+            webMessageService.send( WebMessageUtils.ok( "Email configuration found" ), response, request );
+            return;
+        }
+
+        throw new WebMessageException( WebMessageUtils.conflict( "Email configuration not found" ) );
+    }
 
     @RequestMapping( value = "/test", method = RequestMethod.POST )
     public void sendTestEmail( HttpServletResponse response, HttpServletRequest request ) throws WebMessageException

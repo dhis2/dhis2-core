@@ -80,11 +80,11 @@ public class SmsMessageSender
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GatewayAdministrationService gatewayAdminService;
+    private final GatewayAdministrationService gatewayAdminService;
 
-    private List<SmsGateway> smsGateways;
+    private final List<SmsGateway> smsGateways;
 
-    private UserSettingService userSettingService;
+    private final UserSettingService userSettingService;
 
     public SmsMessageSender( GatewayAdministrationService gatewayAdminService, List<SmsGateway> smsGateways,
         UserSettingService userSettingService )
@@ -174,14 +174,14 @@ public class SmsMessageSender
     {
         if ( batch == null )
         {
-            return createMessageResponseSummary( BATCH_ABORTED, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, 0 );
+            return createMessageResponseSummary( BATCH_ABORTED, OutboundMessageBatchStatus.ABORTED, 0 );
         }
 
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
         if ( defaultGateway == null )
         {
-            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch.size() );
+            return createMessageResponseSummary( NO_CONFIG, OutboundMessageBatchStatus.FAILED, batch.size() );
         }
 
         batch.getMessages().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
@@ -198,7 +198,7 @@ public class SmsMessageSender
             }
         }
 
-        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, batch.size() );
+        return createMessageResponseSummary( NO_CONFIG, OutboundMessageBatchStatus.ABORTED, batch.size() );
     }
 
     @Override
@@ -363,10 +363,9 @@ public class SmsMessageSender
         return collection != null && !collection.isEmpty();
     }
 
-    private OutboundMessageResponseSummary createMessageResponseSummary( String responseMessage, DeliveryChannel channel,
-        OutboundMessageBatchStatus batchStatus, int total )
+    private OutboundMessageResponseSummary createMessageResponseSummary( String responseMessage,  OutboundMessageBatchStatus batchStatus, int total )
     {
-        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel, batchStatus );
+        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, DeliveryChannel.SMS, batchStatus );
         summary.setTotal( total );
 
         log.warn( responseMessage );

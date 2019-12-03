@@ -96,10 +96,5 @@ public enum GatewayResponse
     {
         return responseMessage;
     }
-
-    public String getResponseMessageDetail()
-    {
-        return responseMessageDetail;
-    }
 }
 
