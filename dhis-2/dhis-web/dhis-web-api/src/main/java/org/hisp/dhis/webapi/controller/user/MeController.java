@@ -356,10 +356,10 @@ public class MeController
         return null;
     }
 
-    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
+    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT, consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
-    public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException
+    public void changePassword( @RequestBody Map<String, String> body, HttpServletRequest request, HttpServletResponse response )
+        throws WebMessageException, NotAuthenticatedException, IOException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -387,6 +387,10 @@ public class MeController
         manager.update( currentUser );
 
         currentUserService.expireUserSessions();
+
+        String thisPage = "/dhis-web-user-profile/#/account";
+
+        response.sendRedirect( response.encodeRedirectURL( request.getContextPath() + thisPage ) );
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
