@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
     /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,12 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,6 +62,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private AclService aclService;
 
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
@@ -77,7 +84,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
         return errorReports;
     }
-
 
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
@@ -181,7 +187,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
         for ( IdentifiableObject identifiableObject : objects )
         {
-            identifiableObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
+            User user = (User) identifiableObject;
+            handleNoAccessRoles( user, bundle );
+
+            user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), user );
             Map<String, Object> userReferenceMap = userReferences.get( identifiableObject.getUid() );
 
             if ( userReferenceMap == null || userReferenceMap.isEmpty() )
@@ -189,7 +198,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            User user = (User) identifiableObject;
             UserCredentials userCredentials = user.getUserCredentials();
 
             if ( userCredentials == null )
@@ -215,5 +223,35 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             user.setUserCredentials( userCredentials );
             sessionFactory.getCurrentSession().update( user );
         }
+    }
+
+    /**
+     * If currentUser doesn't have read access to a UserRole
+     * and it is included in the payload
+     * then that UserRole should not be removed from updating User
+     * @param user updating User
+     * @param bundle ObjectBundle
+     */
+    private void handleNoAccessRoles( User user, ObjectBundle bundle )
+    {
+        Set<String> preHeatedRoles = bundle.getPreheat().get( PreheatIdentifier.UID, user )
+            .getUserCredentials().getUserAuthorityGroups().stream().map( role -> role.getUid() ).collect( Collectors.toSet() );
+
+        user.getUserCredentials().getUserAuthorityGroups().stream()
+            .filter( role -> !preHeatedRoles.contains( role.getUid() ) )
+            .forEach( role -> {
+                UserAuthorityGroup persistedRole = bundle.getPreheat().get( PreheatIdentifier.UID, role );
+
+                if ( persistedRole == null )
+                {
+                    persistedRole = manager.getNoAcl( UserAuthorityGroup.class, role.getUid() );
+                }
+
+                if ( !aclService.canRead( bundle.getUser(), persistedRole ) )
+                {
+                    bundle.getPreheat().get( PreheatIdentifier.UID, user ).getUserCredentials().getUserAuthorityGroups().add( persistedRole );
+                    bundle.getPreheat().put( PreheatIdentifier.UID, persistedRole );
+                }
+            } );
     }
 }
