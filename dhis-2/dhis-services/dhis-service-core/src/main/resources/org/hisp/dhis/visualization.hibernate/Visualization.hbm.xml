@@ -122,6 +122,14 @@
       </type>
     </property>
 
+    <list name="axes" table="visualization_axis" cascade="all, delete-orphan">
+      <cache usage="read-write" />
+      <key column="visualizationid" foreign-key="fk_visualization_axis_visualizationid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="axisid" class="org.hisp.dhis.visualization.Axis"
+        foreign-key="fk_visualization_axis_axisid" />
+    </list>
+
     <list name="yearlySeries" table="visualization_yearlyseries">
       <cache usage="read-write"/>
       <key column="visualizationid" foreign-key="fk_visualization_yearlyseries_visualizationid"/>

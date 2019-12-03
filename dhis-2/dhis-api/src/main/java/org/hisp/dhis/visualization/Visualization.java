@@ -176,6 +176,11 @@ public class Visualization
      */
     private FontSize fontSize;
 
+    /**
+     * The list of defined axes for this visualization.
+     */
+    private List<Axis> axes;
+
     /*
      * # Legend related attributes.
      */
@@ -596,6 +601,19 @@ public class Visualization
     public void setFontSize( FontSize fontSize )
     {
         this.fontSize = fontSize;
+    }
+
+    @JsonProperty( "axes" )
+    @JacksonXmlElementWrapper( localName = "axes", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "axis", namespace = DXF_2_0 )
+    public List<Axis> getAxes()
+    {
+        return axes;
+    }
+
+    public void setAxes( List<Axis> axes )
+    {
+        this.axes = axes;
     }
 
     @JsonProperty

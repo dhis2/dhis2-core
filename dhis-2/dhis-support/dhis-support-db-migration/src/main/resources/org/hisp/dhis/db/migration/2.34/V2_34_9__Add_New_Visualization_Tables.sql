@@ -429,6 +429,44 @@ ALTER TABLE public.visualization_yearlyseries
   OWNER TO dhis;
 
 
+-- Table: public.axis
+
+CREATE TABLE public.axis
+(
+  axisid bigint NOT NULL,
+  dimensionalitem character varying(255) NOT NULL,
+  axis integer NOT NULL,
+  CONSTRAINT axis_pkey PRIMARY KEY (axisid)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.axis
+  OWNER TO dhis;
+
+
+-- Table: public.visualization_axis
+
+CREATE TABLE public.visualization_axis
+(
+  visualizationid bigint NOT NULL,
+  sort_order integer NOT NULL,
+  axisid bigint NOT NULL,
+  CONSTRAINT visualization_axis_pkey PRIMARY KEY (visualizationid, sort_order),
+  CONSTRAINT fk_visualization_axis_visualizationid FOREIGN KEY (visualizationid)
+      REFERENCES public.visualization (visualizationid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_visualization_axis_axisid FOREIGN KEY (axisid)
+      REFERENCES public.axis (axisid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.visualization_axis
+  OWNER TO dhis;
+
+
 -- Table: public.interpretation
 
 ALTER TABLE public.interpretation
