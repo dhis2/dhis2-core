@@ -41,11 +41,11 @@ public class SqlHelper
 
     private boolean havingInvoked = false;
 
-    private boolean andInvoked = false;
-
     private boolean orInvoked = false;
 
     private boolean betweenInvoked = false;
+
+    private boolean andOrInvoked = false;
 
     private boolean andInvoked = false;
 
@@ -141,9 +141,9 @@ public class SqlHelper
      */
     public String andOr()
     {
-        final String str = andInvoked ? "or" : "and";
+        final String str = andOrInvoked ? "or" : "and";
 
-        andInvoked = true;
+        andOrInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }
