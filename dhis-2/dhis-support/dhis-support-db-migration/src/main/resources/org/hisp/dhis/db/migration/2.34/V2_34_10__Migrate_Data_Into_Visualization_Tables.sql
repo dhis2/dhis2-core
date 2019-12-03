@@ -640,6 +640,12 @@ UPDATE public.visualization SET hideemptyrows = FALSE WHERE hideemptyrows is NUL
 UPDATE public.visualization SET showhierarchy = FALSE WHERE showhierarchy is NULL;
 UPDATE public.visualization SET showdata = FALSE WHERE showdata is NULL;
 
+-- Add int defaults for null columns to avoid Hibernate parse errors.
+UPDATE public.visualization SET toplimit = 0 WHERE toplimit is NULL;
+UPDATE public.visualization SET rangeaxissteps = 0 WHERE rangeaxissteps is NULL;
+UPDATE public.visualization SET rangeaxisdecimals = 0 WHERE rangeaxisdecimals is NULL;
+
+
 -- Add default public access for null columns.
 UPDATE public.visualization SET publicaccess = '--------' WHERE COALESCE(publicaccess, '') = '' OR publicaccess IS NULL;
 
