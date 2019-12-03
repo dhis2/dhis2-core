@@ -116,16 +116,14 @@ public class EmailMessageSender
     public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
-        OutboundMessageResponse status = new OutboundMessageResponse();
+        OutboundMessageResponse status = checkEmailConfiguration( emailConfig );
 
-        String errorMessage = "No recipient found";
-
-        if ( emailConfig.getHostName() == null )
+        if ( !status.isOk() )
         {
-            status.setOk( false );
-            status.setResponseObject( EmailResponse.NOT_CONFIGURED );
             return status;
         }
+
+        String errorMessage = "No recipient found";
 
         String serverBaseUrl = configurationProvider.getServerBaseUrl();
         String plainContent = renderPlainContent( text, sender );
@@ -196,16 +194,14 @@ public class EmailMessageSender
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
-        OutboundMessageResponse status = new OutboundMessageResponse();
+        OutboundMessageResponse status = checkEmailConfiguration( emailConfig );
 
-        String errorMessage = "No recipient found";
-
-        if ( emailConfig.getHostName() == null )
+        if ( !status.isOk() )
         {
-            status.setOk( false );
-            status.setResponseObject( EmailResponse.NOT_CONFIGURED );
             return status;
         }
+
+        String errorMessage = "No recipient found";
 
         try
         {
@@ -285,6 +281,21 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private OutboundMessageResponse checkEmailConfiguration( EmailConfiguration emailConfig )
+    {
+        OutboundMessageResponse status = new OutboundMessageResponse();
+
+        if ( emailConfig.isOk() )
+        {
+            status.setOk( true );
+            return status;
+        }
+
+        status.setOk( false );
+        status.setResponseObject( EmailResponse.HOST_NOT_CONFIGURED );
+        return status;
+    }
 
     private HtmlEmail getHtmlEmail( String hostName, int port, String username, String password, boolean tls,
         String sender ) throws EmailException
