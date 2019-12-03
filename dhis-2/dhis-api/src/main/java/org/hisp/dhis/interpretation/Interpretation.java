@@ -28,10 +28,12 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.CHART;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.DATASET_REPORT;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_CHART;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_REPORT;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.MAP;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.REPORT_TABLE;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.VISUALIZATION;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
@@ -199,11 +201,11 @@ public class Interpretation
         }
         else if ( reportTable != null )
         {
-            return AnalyticsFavoriteType.REPORT_TABLE;
+            return REPORT_TABLE;
         }
         else if ( chart != null )
         {
-            return AnalyticsFavoriteType.CHART;
+            return CHART;
         }
         else if ( map != null )
         {

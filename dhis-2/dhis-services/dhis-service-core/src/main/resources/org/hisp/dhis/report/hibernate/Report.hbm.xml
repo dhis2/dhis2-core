@@ -29,6 +29,9 @@
 
     <property name="designContent" type="text" />
 
+    <many-to-one name="reportTable" class="org.hisp.dhis.reporttable.ReportTable" column="reporttableid"
+      foreign-key="fk_report_reporttableid" />
+
     <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid"
       foreign-key="fk_report_visualizationid" />
 

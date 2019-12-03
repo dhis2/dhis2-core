@@ -115,8 +115,8 @@ public class DashboardTest
         diC.setUid( "C" );
         
         diA.setVisualization( new Visualization ( "A" ) );
-        diB.getReports().add( new Report( "A", null, null, null ) );
-        diB.getReports().add( new Report( "B", null, null, null ) );
+        diB.getReports().add( new Report( "A", null, null, new Visualization() ) );
+        diB.getReports().add( new Report( "B", null, null, new Visualization() ) );
         diC.getResources().add( new Document( "A", null, false, null ) );
         diC.getResources().add( new Document( "B", null, false, null ) );
         diC.getResources().add( new Document( "C", null, false, null ) );

@@ -28,23 +28,26 @@ package org.hisp.dhis.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.reporttable.ReportParams;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.visualization.Visualization;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "report", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "report", namespace = DXF_2_0 )
 public class Report
     extends BaseIdentifiableObject
     implements Cacheable, MetadataObject
@@ -52,6 +55,8 @@ public class Report
     private ReportType type;
 
     private String designContent;
+
+    private ReportTable reportTable;
 
     private Visualization visualization;
 
@@ -67,6 +72,14 @@ public class Report
 
     public Report()
     {
+    }
+
+    public Report( String name, ReportType type, String designContent, ReportTable reportTable)
+    {
+        this.name = name;
+        this.type = type;
+        this.designContent = designContent;
+        this.reportTable = reportTable;
     }
 
     public Report( String name, ReportType type, String designContent, Visualization visualization)
@@ -110,6 +123,11 @@ public class Report
         return visualization != null;
     }
 
+    public boolean hasReportTable()
+    {
+        return reportTable != null;
+    }
+
     /**
      * Indicates whether this report has relative periods.
      */
@@ -131,7 +149,7 @@ public class Report
     // -------------------------------------------------------------------------
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public ReportType getType()
     {
         return type;
@@ -143,7 +161,7 @@ public class Report
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDesignContent()
     {
         return designContent;
@@ -156,7 +174,7 @@ public class Report
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Visualization getVisualization()
     {
         return visualization;
@@ -167,8 +185,21 @@ public class Report
         this.visualization = visualization;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public ReportTable getReportTable()
+    {
+        return reportTable;
+    }
+
+    public void setReportTable( ReportTable reportTable )
+    {
+        this.reportTable = reportTable;
+    }
+
     @JsonProperty( "relativePeriods" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public RelativePeriods getRelatives()
     {
         return relatives;
@@ -180,7 +211,7 @@ public class Report
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public ReportParams getReportParams()
     {
         return reportParams;
@@ -192,7 +223,7 @@ public class Report
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @Override
     public CacheStrategy getCacheStrategy()
     {

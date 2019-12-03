@@ -73,11 +73,29 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     }
 
     @Override
+    public int countChartDashboardItems( Chart chart )
+    {
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
+        query.setParameter( "chart", chart );
+
+        return query.getSingleResult().intValue();
+    }
+
+    @Override
     public int countEventChartDashboardItems( EventChart eventChart )
     {
         Query<Long> query = getTypedQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
-
         query.setParameter( "eventChart", eventChart );
+
+        return query.getSingleResult().intValue();
+    }
+
+    @Override
+    public int countReportTableDashboardItems( ReportTable reportTable )
+    {
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
+        query.setParameter( "reportTable", reportTable );
 
         return query.getSingleResult().intValue();
     }

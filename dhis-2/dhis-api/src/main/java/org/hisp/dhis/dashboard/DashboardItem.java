@@ -28,11 +28,13 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -43,14 +45,15 @@ import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Represents an item in the dashboard. An item can represent an embedded object
@@ -65,6 +68,10 @@ public class DashboardItem
     public static final int MAX_CONTENT = 8;
 
     private Visualization visualization;
+
+    private ReportTable reportTable;
+
+    private Chart chart;
 
     private EventChart eventChart;
 
@@ -120,6 +127,14 @@ public class DashboardItem
         {
             return DashboardItemType.VISUALIZATION;
         }
+        else if ( chart != null )
+        {
+            return DashboardItemType.CHART;
+        }
+        else if ( reportTable != null )
+        {
+            return DashboardItemType.REPORT_TABLE;
+        }
         else if ( eventChart != null )
         {
             return DashboardItemType.EVENT_CHART;
@@ -169,6 +184,14 @@ public class DashboardItem
         if ( visualization != null )
         {
             return visualization;
+        }
+        else if ( chart != null )
+        {
+            return chart;
+        }
+        else if ( reportTable != null )
+        {
+            return reportTable;
         }
         else if ( eventChart != null )
         {
@@ -233,8 +256,10 @@ public class DashboardItem
     {
         int count = 0;
         count += visualization != null ? 1 : 0;
+        count += chart != null ? 1 : 0;
         count += eventChart != null ? 1 : 0;
         count += map != null ? 1 : 0;
+        count += reportTable != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
         count += text != null ? 1: 0;
         count += users.size();
@@ -299,6 +324,32 @@ public class DashboardItem
     public void setVisualization( Visualization visualization )
     {
         this.visualization = visualization;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public Chart getChart()
+    {
+        return chart;
+    }
+
+    public void setChart( Chart chart )
+    {
+        this.chart = chart;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public ReportTable getReportTable()
+    {
+        return reportTable;
+    }
+
+    public void setReportTable( ReportTable reportTable )
+    {
+        this.reportTable = reportTable;
     }
 
     @JsonProperty

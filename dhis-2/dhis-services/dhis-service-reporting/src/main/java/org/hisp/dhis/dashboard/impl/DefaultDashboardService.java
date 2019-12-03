@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppType;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -46,6 +47,7 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -132,8 +134,10 @@ public class DefaultDashboardService
 
         result.setUsers( userService.getAllUsersBetweenByName( query, 0, getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
         result.setVisualizations( objectManager.getBetweenLikeName( Visualization.class, words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
+        result.setCharts( objectManager.getBetweenLikeName( Chart.class, words, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
         result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
+        result.setReportTables( objectManager.getBetweenLikeName( ReportTable.class, words, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes, count, maxCount ) ) );
         result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
@@ -149,8 +153,10 @@ public class DefaultDashboardService
         DashboardSearchResult result = new DashboardSearchResult();
 
         result.setVisualizations( objectManager.getBetweenSorted( Visualization.class, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
+        result.setCharts( objectManager.getBetweenSorted( Chart.class, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
         result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
+        result.setReportTables( objectManager.getBetweenSorted( ReportTable.class, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes, count, maxCount ) ) );
         result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
@@ -188,6 +194,11 @@ public class DefaultDashboardService
             item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
+        else if ( DashboardItemType.CHART.equals( type ) )
+        {
+            item.setChart( objectManager.get( Chart.class, contentUid ) );
+            dashboard.getItems().add( 0, item );
+        }
         else if ( DashboardItemType.EVENT_CHART.equals( type ) )
         {
             item.setEventChart( objectManager.get( EventChart.class, contentUid ) );
@@ -196,6 +207,11 @@ public class DefaultDashboardService
         else if ( DashboardItemType.MAP.equals( type ) )
         {
             item.setMap( objectManager.get( Map.class, contentUid ) );
+            dashboard.getItems().add( 0, item );
+        }
+        else if ( DashboardItemType.REPORT_TABLE.equals( type ) )
+        {
+            item.setReportTable( objectManager.get( ReportTable.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
         else if ( DashboardItemType.EVENT_REPORT.equals( type ) )
@@ -270,6 +286,11 @@ public class DefaultDashboardService
             item.setVisualization( objectManager.get( Visualization.class, item.getVisualization().getUid() ) );
         }
 
+        if ( item.getChart() != null )
+        {
+            item.setChart( objectManager.get( Chart.class, item.getChart().getUid() ) );
+        }
+
         if ( item.getEventChart() != null )
         {
             item.setEventChart( objectManager.get( EventChart.class, item.getEventChart().getUid() ) );
@@ -278,6 +299,11 @@ public class DefaultDashboardService
         if ( item.getMap() != null )
         {
             item.setMap( objectManager.get( Map.class, item.getMap().getUid() ) );
+        }
+
+        if ( item.getReportTable() != null )
+        {
+            item.setReportTable( objectManager.get( ReportTable.class, item.getReportTable().getUid() ) );
         }
 
         if ( item.getEventReport() != null )
@@ -377,6 +403,20 @@ public class DefaultDashboardService
     public void deleteDashboardItem( DashboardItem item )
     {
         dashboardItemStore.delete( item );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int countChartDashboardItems( Chart chart )
+    {
+        return dashboardItemStore.countChartDashboardItems( chart );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int countReportTableDashboardItems( ReportTable reportTable )
+    {
+        return dashboardItemStore.countReportTableDashboardItems( reportTable );
     }
 
     @Override
