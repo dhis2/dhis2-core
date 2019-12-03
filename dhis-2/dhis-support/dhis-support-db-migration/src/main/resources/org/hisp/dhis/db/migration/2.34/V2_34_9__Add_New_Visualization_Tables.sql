@@ -4,7 +4,8 @@
 -- It also updates:
 -- 1) the table public.interpretation to add a new foreign key (visualizationid);
 -- 2) the table public.report to add a new foreign key (visualizationid);
--- 3) the table public.dashboarditem to add a new foreign key (visualizationid);
+-- 3) the table public.dashboarditem to add a new foreign key (visualizationid).
+
 
 CREATE TABLE IF NOT EXISTS public.visualization
 (
