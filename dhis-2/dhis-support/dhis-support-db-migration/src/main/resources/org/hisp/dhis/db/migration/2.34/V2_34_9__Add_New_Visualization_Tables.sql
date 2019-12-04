@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS visualization
   created timestamp without time zone,
   startdate timestamp without time zone,
   enddate timestamp without time zone,
-  categorycomboid integer,
   sortorder integer,
   toplimit integer,
   userid bigint,
@@ -89,9 +88,6 @@ CREATE TABLE IF NOT EXISTS visualization
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT fk_visualization_relativeperiodsid FOREIGN KEY (relativeperiodsid)
       REFERENCES relativeperiods (relativeperiodsid) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fk_visualization_categorycombo FOREIGN KEY (categorycomboid)
-      REFERENCES categorycombo (categorycomboid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT fk_visualization_legendsetid FOREIGN KEY (legendsetid)
       REFERENCES maplegendset (maplegendsetid) MATCH SIMPLE
