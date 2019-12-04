@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS visualization
   CONSTRAINT fk_visualization_colorsetid FOREIGN KEY (colorsetid)
       REFERENCES colorset (colorsetid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS visualization_categorydimensions
   CONSTRAINT fk_visualization_categorydimensions_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS visualization_categoryoptiongroupsetdimensions
   CONSTRAINT fk_visualization_dimensions_catoptiongroupsetdimensionid FOREIGN KEY (categoryoptiongroupsetdimensionid)
       REFERENCES categoryoptiongroupsetdimension (categoryoptiongroupsetdimensionid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS visualization_columns
   CONSTRAINT fk_visualization_columns_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS visualization_datadimensionitems
   CONSTRAINT fk_visualization_datadimensionitems_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS visualization_dataelementgroupsetdimensions
   CONSTRAINT fk_visualization_dimensions_dataelementgroupsetdimensionid FOREIGN KEY (dataelementgroupsetdimensionid)
       REFERENCES dataelementgroupsetdimension (dataelementgroupsetdimensionid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS visualization_filters
   CONSTRAINT fk_visualization_filters_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS visualization_itemorgunitgroups
   CONSTRAINT fk_visualization_itemorgunitunitgroups_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS visualization_organisationunits
   CONSTRAINT fk_visualization_organisationunits_organisationunitid FOREIGN KEY (organisationunitid)
       REFERENCES organisationunit (organisationunitid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS visualization_orgunitgroupsetdimensions
   CONSTRAINT fk_visualization_orgunitgroupsetdimensions_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS visualization_orgunitlevels
   CONSTRAINT fk_visualization_orgunitlevels_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS visualization_periods
   CONSTRAINT fk_visualization_periods_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -312,7 +312,7 @@ CREATE TABLE IF NOT EXISTS visualization_rows
   CONSTRAINT fk_visualization_rows_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -329,7 +329,7 @@ CREATE TABLE IF NOT EXISTS visualization_useraccesses
   CONSTRAINT fk_visualization_useraccesses_useraccessid FOREIGN KEY (useraccessid)
       REFERENCES useraccess (useraccessid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -347,7 +347,7 @@ CREATE TABLE IF NOT EXISTS visualization_usergroupaccesses
       REFERENCES usergroupaccess (usergroupaccessid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT visualization_usergroupaccesses_usergroupaccessid_key UNIQUE (usergroupaccessid)
-)
+);
 
 
 
@@ -362,7 +362,7 @@ CREATE TABLE IF NOT EXISTS visualization_yearlyseries
   CONSTRAINT fk_visualization_yearlyseries_visualizationid FOREIGN KEY (visualizationid)
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
@@ -374,7 +374,7 @@ CREATE TABLE axis
   dimensionalitem character varying(255) NOT NULL,
   axis integer NOT NULL,
   CONSTRAINT axis_pkey PRIMARY KEY (axisid)
-)
+);
 
 
 
@@ -392,7 +392,7 @@ CREATE TABLE visualization_axis
   CONSTRAINT fk_visualization_axis_axisid FOREIGN KEY (axisid)
       REFERENCES axis (axisid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-)
+);
 
 
 
