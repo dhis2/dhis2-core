@@ -96,7 +96,7 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/default", method = RequestMethod.GET )
-    public void getDefault( HttpServletRequest request, HttpServletResponse response )
+    public void getDefault( HttpServletResponse response )
         throws WebMessageException, IOException
     {
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
@@ -111,8 +111,7 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json" )
-    public void getGatewayConfiguration( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
+    public void getGatewayConfiguration( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException, IOException
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );

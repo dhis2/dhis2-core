@@ -61,11 +61,11 @@ public class DefaultEmailService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MessageSender emailMessageSender;
+    private final MessageSender emailMessageSender;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
     public DefaultEmailService( MessageSender emailMessageSender, CurrentUserService currentUserService,
         SystemSettingManager systemSettingManager )

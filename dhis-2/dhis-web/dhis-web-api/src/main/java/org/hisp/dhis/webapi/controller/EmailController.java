@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.email.Email;
-import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -78,7 +77,7 @@ public class EmailController
     @Autowired
     private WebMessageService webMessageService;
 
-    @RequestMapping( value = "/emailConfiguration", method = RequestMethod.GET )
+    @RequestMapping( value = "/configuration", method = RequestMethod.GET )
     public void isEmailConfigured( HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         if ( emailService.emailConfigured() )
@@ -87,13 +86,13 @@ public class EmailController
             return;
         }
 
-        throw new WebMessageException( WebMessageUtils.conflict( "Email configuration not found" ) );
+        throw new WebMessageException( WebMessageUtils.conflict( SMTP_ERROR ) );
     }
 
     @RequestMapping( value = "/test", method = RequestMethod.POST )
     public void sendTestEmail( HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        checkEmailSettings();
+        checkEmailConfiguration();
 
         if ( !currentUserService.getCurrentUser().hasEmail() )
         {
@@ -109,7 +108,7 @@ public class EmailController
     public void sendSystemNotificationEmail( @RequestBody Email email,
         HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        checkEmailSettings();
+        checkEmailConfiguration();
 
         boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
 
@@ -129,7 +128,7 @@ public class EmailController
         @RequestParam ( defaultValue = "DHIS 2" ) String subject,
         HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
-        checkEmailSettings();
+        checkEmailConfiguration();
 
         OutboundMessageResponse emailResponse = emailService.sendEmail( subject, message, recipients );
 
@@ -153,7 +152,7 @@ public class EmailController
         }
     }
 
-    private void checkEmailSettings() throws WebMessageException
+    private void checkEmailConfiguration() throws WebMessageException
     {
         if ( !emailService.emailConfigured() )
         {
