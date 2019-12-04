@@ -119,6 +119,14 @@ public class JobConfigurationObjectBundleHook
         {
             tempJobConfiguration.getJobParameters().validate().ifPresent( errorReport -> errorReports.add( errorReport ) );
         }
+        else
+        {
+            // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
+            if ( tempJobConfiguration.getJobType().getJobParameters() != null )
+            {
+                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType().getKey() ) );
+            }
+        }
 
         validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );
 
