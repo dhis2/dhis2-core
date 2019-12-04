@@ -93,7 +93,6 @@ public class DefaultSchemaService
         add( new DocumentSchemaDescriptor() ).
         add( new EventChartSchemaDescriptor() ).
         add( new EventReportSchemaDescriptor() ).
-        add( new ExpressionSchemaDescriptor() ).
         add( new FileResourceSchemaDescriptor() ).
         add( new IconSchemaDescriptor() ).
         add( new IndicatorGroupSchemaDescriptor() ).

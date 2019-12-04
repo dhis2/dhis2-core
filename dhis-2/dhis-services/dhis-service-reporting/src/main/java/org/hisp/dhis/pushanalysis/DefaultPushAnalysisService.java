@@ -279,6 +279,12 @@ public class DefaultPushAnalysisService
     }
 
     @Override
+    public void runPushAnalysis( List<String> uids, JobConfiguration jobId )
+    {
+        uids.forEach( uid -> runPushAnalysis( uid, jobId ) );
+    }
+
+    @Override
     public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
         throws IOException
     {
