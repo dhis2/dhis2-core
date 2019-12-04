@@ -4,7 +4,8 @@
 -- It also updates:
 -- 1) the table interpretation to add a new foreign key (visualizationid);
 -- 2) the table report to add a new foreign key (visualizationid);
--- 3) the table dashboarditem to add a new foreign key (visualizationid).
+-- 3) the table dashboarditem to add a new foreign key (visualizationid);
+-- 4) the table datastatistics, adding new columns related to Visualization.
 
 
 CREATE TABLE IF NOT EXISTS visualization
@@ -492,3 +493,12 @@ ALTER TABLE dashboarditem
 
 ALTER TABLE dashboarditem
   ADD CONSTRAINT fk_dashboarditem_visualizationid FOREIGN KEY (visualizationid) REFERENCES visualization (visualizationid) ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+
+-- Table: statistics
+
+ALTER TABLE datastatistics
+  ADD COLUMN IF NOT EXISTS visualizationviews double precision;
+
+ALTER TABLE datastatistics
+  ADD COLUMN IF NOT EXISTS visualizations double precision;

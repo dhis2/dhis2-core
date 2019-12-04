@@ -1,5 +1,7 @@
+-- This script responsible for migrating required data to Visualization.
+-- See Feature DHIS2-7946
 
--- This script migrates:
+-- It migrates:
 -- 1) copy data from chart table into visualization;
 -- 2) copy data from reporttable table into visualization;
 -- 3) copy reporttable column into the visualizationid column in the dashboarditems table;
