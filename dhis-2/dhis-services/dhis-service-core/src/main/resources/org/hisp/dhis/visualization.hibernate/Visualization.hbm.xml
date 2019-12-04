@@ -122,7 +122,7 @@
       </type>
     </property>
 
-    <list name="axes" table="visualization_axis" cascade="all, delete-orphan">
+    <list name="optionalAxes" table="visualization_axis" cascade="all, delete-orphan">
       <cache usage="read-write" />
       <key column="visualizationid" foreign-key="fk_visualization_axis_visualizationid" />
       <list-index column="sort_order" base="0" />

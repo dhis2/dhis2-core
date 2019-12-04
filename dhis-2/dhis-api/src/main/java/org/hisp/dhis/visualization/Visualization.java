@@ -177,9 +177,9 @@ public class Visualization
     private FontSize fontSize;
 
     /**
-     * The list of defined axes for this visualization.
+     * The list of optional axes for this visualization.
      */
-    private List<Axis> axes;
+    private List<Axis> optionalAxes;
 
     /*
      * # Legend related attributes.
@@ -603,17 +603,17 @@ public class Visualization
         this.fontSize = fontSize;
     }
 
-    @JsonProperty( "axes" )
-    @JacksonXmlElementWrapper( localName = "axes", namespace = DXF_2_0 )
+    @JsonProperty( "optionalAxes" )
+    @JacksonXmlElementWrapper( localName = "optionalAxes", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "axis", namespace = DXF_2_0 )
-    public List<Axis> getAxes()
+    public List<Axis> getOptionalAxes()
     {
-        return axes;
+        return optionalAxes;
     }
 
-    public void setAxes( List<Axis> axes )
+    public void setOptionalAxes(List<Axis> optionalAxes)
     {
-        this.axes = axes;
+        this.optionalAxes = optionalAxes;
     }
 
     @JsonProperty
