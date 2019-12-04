@@ -106,11 +106,7 @@ CREATE TABLE IF NOT EXISTS visualization
       REFERENCES colorset (colorsetid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_categorydimensions
@@ -128,11 +124,7 @@ CREATE TABLE IF NOT EXISTS visualization_categorydimensions
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_categorydimensions
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_categoryoptiongroupsetdimensions
@@ -150,11 +142,7 @@ CREATE TABLE IF NOT EXISTS visualization_categoryoptiongroupsetdimensions
       REFERENCES categoryoptiongroupsetdimension (categoryoptiongroupsetdimensionid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_categoryoptiongroupsetdimensions
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_columns
@@ -169,11 +157,7 @@ CREATE TABLE IF NOT EXISTS visualization_columns
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_columns
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_datadimensionitems
@@ -191,11 +175,7 @@ CREATE TABLE IF NOT EXISTS visualization_datadimensionitems
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_datadimensionitems
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_dataelementgroupsetdimensions
@@ -213,11 +193,7 @@ CREATE TABLE IF NOT EXISTS visualization_dataelementgroupsetdimensions
       REFERENCES dataelementgroupsetdimension (dataelementgroupsetdimensionid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_dataelementgroupsetdimensions
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_filters
@@ -232,11 +208,7 @@ CREATE TABLE IF NOT EXISTS visualization_filters
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_filters
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_itemorgunitgroups
@@ -254,11 +226,7 @@ CREATE TABLE IF NOT EXISTS visualization_itemorgunitgroups
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_itemorgunitgroups
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_organisationunits
@@ -279,11 +247,7 @@ CREATE TABLE IF NOT EXISTS visualization_organisationunits
       REFERENCES organisationunit (organisationunitid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_organisationunits
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_orgunitgroupsetdimensions
@@ -301,11 +265,7 @@ CREATE TABLE IF NOT EXISTS visualization_orgunitgroupsetdimensions
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_orgunitgroupsetdimensions
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_orgunitlevels
@@ -320,11 +280,7 @@ CREATE TABLE IF NOT EXISTS visualization_orgunitlevels
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_orgunitlevels
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_periods
@@ -342,11 +298,7 @@ CREATE TABLE IF NOT EXISTS visualization_periods
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_periods
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_rows
@@ -361,11 +313,7 @@ CREATE TABLE IF NOT EXISTS visualization_rows
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_rows
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_useraccesses
@@ -382,11 +330,7 @@ CREATE TABLE IF NOT EXISTS visualization_useraccesses
       REFERENCES useraccess (useraccessid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_useraccesses
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_usergroupaccesses
@@ -404,11 +348,7 @@ CREATE TABLE IF NOT EXISTS visualization_usergroupaccesses
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT visualization_usergroupaccesses_usergroupaccessid_key UNIQUE (usergroupaccessid)
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_usergroupaccesses
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_yearlyseries
@@ -423,11 +363,7 @@ CREATE TABLE IF NOT EXISTS visualization_yearlyseries
       REFERENCES visualization (visualizationid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_yearlyseries
-  OWNER TO dhis;
+
 
 
 -- Table: axis
@@ -439,11 +375,7 @@ CREATE TABLE axis
   axis integer NOT NULL,
   CONSTRAINT axis_pkey PRIMARY KEY (axisid)
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE axis
-  OWNER TO dhis;
+
 
 
 -- Table: visualization_axis
@@ -461,11 +393,7 @@ CREATE TABLE visualization_axis
       REFERENCES axis (axisid) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE visualization_axis
-  OWNER TO dhis;
+
 
 
 -- Table: interpretation
