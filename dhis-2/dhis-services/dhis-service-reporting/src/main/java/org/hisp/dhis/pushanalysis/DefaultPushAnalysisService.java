@@ -355,8 +355,7 @@ public class DefaultPushAnalysisService
             case MAP:
                 return generateMapHtml( item.getMap(), user );
             case VISUALIZATION:
-                // TODO: Maikel revisit it!
-                // TODO: Add support for VISUALIZATION
+                // NOT SUPPORTED
                 return "";
             case CHART:
                 return generateChartHtml( item.getChart(), user );
