@@ -11,10 +11,10 @@
 
 
 -- Set any possible empty or null NAME to an empty space ' ', as name is mandatory.
-UPDATE public.chart SET name = ' ' WHERE COALESCE(name, '') = '' OR name IS NULL;
+UPDATE chart SET name = ' ' WHERE COALESCE(name, '') = '' OR name IS NULL;
 
 -- Migrate all chart table into the visualization table.
-INSERT INTO public.visualization
+INSERT INTO visualization
 (
   visualizationid,
   uid,
@@ -116,10 +116,10 @@ SELECT
   favorites,
   subscribers,
   translations
-FROM public.chart;
+FROM chart;
 
 -- Migrate all data from chart_categorydimensions into visualization_categorydimensions.
-INSERT INTO public.visualization_categorydimensions
+INSERT INTO visualization_categorydimensions
 (
   visualizationid,
   categorydimensionid,
@@ -129,10 +129,10 @@ SELECT
   chartid,
   categorydimensionid,
   sort_order
-FROM public.chart_categorydimensions;
+FROM chart_categorydimensions;
 
 -- Migrate all data from chart_categorydimensions into visualization_categorydimensions.
-INSERT INTO public.visualization_categoryoptiongroupsetdimensions
+INSERT INTO visualization_categoryoptiongroupsetdimensions
 (
   visualizationid,
   categoryoptiongroupsetdimensionid,
@@ -142,10 +142,10 @@ SELECT
   chart,
   categoryoptiongroupsetdimensionid,
   sort_order
-FROM public.chart_categoryoptiongroupsetdimensions;
+FROM chart_categoryoptiongroupsetdimensions;
 
 -- Migrate all data from chart_datadimensionitems into visualization_datadimensionitems.
-INSERT INTO public.visualization_datadimensionitems
+INSERT INTO visualization_datadimensionitems
 (
   visualizationid,
   datadimensionitemid,
@@ -155,10 +155,10 @@ SELECT
   chartid,
   datadimensionitemid,
   sort_order
-FROM public.chart_datadimensionitems;
+FROM chart_datadimensionitems;
 
 -- Migrate all data from chart_dataelementgroupsetdimensions into visualization_dataelementgroupsetdimensions.
-INSERT INTO public.visualization_dataelementgroupsetdimensions
+INSERT INTO visualization_dataelementgroupsetdimensions
 (
   visualizationid,
   dataelementgroupsetdimensionid,
@@ -168,10 +168,10 @@ SELECT
   chartid,
   dataelementgroupsetdimensionid,
   sort_order
-FROM public.chart_dataelementgroupsetdimensions;
+FROM chart_dataelementgroupsetdimensions;
 
 -- Migrate all data from chart_filters into visualization_filters.
-INSERT INTO public.visualization_filters
+INSERT INTO visualization_filters
 (
   visualizationid,
   dimension,
@@ -181,10 +181,10 @@ SELECT
   chartid,
   filter,
   sort_order
-FROM public.chart_filters;
+FROM chart_filters;
 
 -- Migrate all data from chart_itemorgunitgroups into visualization_itemorgunitgroups.
-INSERT INTO public.visualization_itemorgunitgroups
+INSERT INTO visualization_itemorgunitgroups
 (
   visualizationid,
   orgunitgroupid,
@@ -194,10 +194,10 @@ SELECT
   chartid,
   orgunitgroupid,
   sort_order
-FROM public.chart_itemorgunitgroups;
+FROM chart_itemorgunitgroups;
 
 -- Migrate all data from chart_organisationunits into visualization_organisationunits.
-INSERT INTO public.visualization_organisationunits
+INSERT INTO visualization_organisationunits
 (
   visualizationid,
   organisationunitid,
@@ -207,10 +207,10 @@ SELECT
   chartid,
   organisationunitid,
   sort_order
-FROM public.chart_organisationunits;
+FROM chart_organisationunits;
 
 -- Migrate all data from chart_orgunitgroupsetdimensions into visualization_orgunitgroupsetdimensions.
-INSERT INTO public.visualization_orgunitgroupsetdimensions
+INSERT INTO visualization_orgunitgroupsetdimensions
 (
   visualizationid,
   orgunitgroupsetdimensionid,
@@ -220,10 +220,10 @@ SELECT
   chartid,
   orgunitgroupsetdimensionid,
   sort_order
-FROM public.chart_orgunitgroupsetdimensions;
+FROM chart_orgunitgroupsetdimensions;
 
 -- Migrate all data from chart_orgunitlevels into visualization_orgunitlevels.
-INSERT INTO public.visualization_orgunitlevels
+INSERT INTO visualization_orgunitlevels
 (
   visualizationid,
   orgunitlevel,
@@ -233,10 +233,10 @@ SELECT
   chartid,
   orgunitlevel,
   sort_order
-FROM public.chart_orgunitlevels;
+FROM chart_orgunitlevels;
 
 -- Migrate all data from chart_periods into visualization_periods.
-INSERT INTO public.visualization_periods
+INSERT INTO visualization_periods
 (
   visualizationid,
   periodid,
@@ -246,10 +246,10 @@ SELECT
   chartid,
   periodid,
   sort_order
-FROM public.chart_periods;
+FROM chart_periods;
 
 -- Migrate all data from chart_yearlyseries into visualization_yearlyseries.
-INSERT INTO public.visualization_yearlyseries
+INSERT INTO visualization_yearlyseries
 (
   visualizationid,
   yearlyseries,
@@ -259,10 +259,10 @@ SELECT
   chartid,
   yearlyseries,
   sort_order
-FROM public.chart_yearlyseries;
+FROM chart_yearlyseries;
 
 -- Migrate all data from chartuseraccesses into visualization_useraccesses.
-INSERT INTO public.visualization_useraccesses
+INSERT INTO visualization_useraccesses
 (
   visualizationid,
   useraccessid
@@ -270,10 +270,10 @@ INSERT INTO public.visualization_useraccesses
 SELECT
   chartid,
   useraccessid
-FROM public.chartuseraccesses;
+FROM chartuseraccesses;
 
 -- Migrate all data from chartusergroupaccesses into visualization_usergroupaccesses.
-INSERT INTO public.visualization_usergroupaccesses
+INSERT INTO visualization_usergroupaccesses
 (
   visualizationid,
   usergroupaccessid
@@ -281,11 +281,11 @@ INSERT INTO public.visualization_usergroupaccesses
 SELECT
   chartid,
   usergroupaccessid
-FROM public.chartusergroupaccesses;
+FROM chartusergroupaccesses;
 
 -- DOUBLE CHECK THIS ONE!
 -- Migrate the 'series' column from the chart table into visualization_columns.
-INSERT INTO public.visualization_columns
+INSERT INTO visualization_columns
 (
   visualizationid,
   dimension,
@@ -295,11 +295,11 @@ SELECT
   chartid,
   series,
   sortorder
-FROM public.chart;
+FROM chart;
 
 -- TODO: Maikel, DOUBLE CHECK THIS ONE!
 -- Migrate the 'category' column from the chart table into visualization_rows.
-INSERT INTO public.visualization_rows
+INSERT INTO visualization_rows
 (
   visualizationid,
   dimension,
@@ -309,14 +309,14 @@ SELECT
   chartid,
   category,
   sortorder
-FROM public.chart;
+FROM chart;
 
 
 -- Set any possible empty or null NAME to an empty space ' '.
-UPDATE public.reporttable SET name = ' ' WHERE COALESCE(name, '') = '' OR name IS NULL;
+UPDATE reporttable SET name = ' ' WHERE COALESCE(name, '') = '' OR name IS NULL;
 
 -- Migrate all reporttable table into the visualization table.
-INSERT INTO public.visualization
+INSERT INTO visualization
 (
   visualizationid,
   uid,
@@ -432,10 +432,10 @@ SELECT
   favorites,
   subscribers,
   translations
-FROM public.reporttable;
+FROM reporttable;
 
 -- Migrate all data from reporttable_categorydimensions into visualization_categorydimensions.
-INSERT INTO public.visualization_categorydimensions
+INSERT INTO visualization_categorydimensions
 (
   visualizationid,
   categorydimensionid,
@@ -445,10 +445,10 @@ SELECT
   reporttableid,
   categorydimensionid,
   sort_order
-FROM public.reporttable_categorydimensions;
+FROM reporttable_categorydimensions;
 
 -- Migrate all data from reporttable_categoryoptiongroupsetdimensions into visualization_categoryoptiongroupsetdimensions.
-INSERT INTO public.visualization_categoryoptiongroupsetdimensions
+INSERT INTO visualization_categoryoptiongroupsetdimensions
 (
   visualizationid,
   categoryoptiongroupsetdimensionid,
@@ -458,10 +458,10 @@ SELECT
   reporttableid,
   categoryoptiongroupsetdimensionid,
   sort_order
-FROM public.reporttable_categoryoptiongroupsetdimensions;
+FROM reporttable_categoryoptiongroupsetdimensions;
 
 -- Migrate all data from reporttable_datadimensionitems into visualization_datadimensionitems.
-INSERT INTO public.visualization_datadimensionitems
+INSERT INTO visualization_datadimensionitems
 (
   visualizationid,
   datadimensionitemid,
@@ -471,10 +471,10 @@ SELECT
   reporttableid,
   datadimensionitemid,
   sort_order
-FROM public.reporttable_datadimensionitems;
+FROM reporttable_datadimensionitems;
 
 -- Migrate all data from reporttable_dataelementgroupsetdimensions into visualization_dataelementgroupsetdimensions.
-INSERT INTO public.visualization_dataelementgroupsetdimensions
+INSERT INTO visualization_dataelementgroupsetdimensions
 (
   visualizationid,
   dataelementgroupsetdimensionid,
@@ -484,10 +484,10 @@ SELECT
   reporttableid,
   dataelementgroupsetdimensionid,
   sort_order
-FROM public.reporttable_dataelementgroupsetdimensions;
+FROM reporttable_dataelementgroupsetdimensions;
 
 -- Migrate all data from reporttable_filters into visualization_filters.
-INSERT INTO public.visualization_filters
+INSERT INTO visualization_filters
 (
   visualizationid,
   dimension,
@@ -497,10 +497,10 @@ SELECT
   reporttableid,
   dimension,
   sort_order
-FROM public.reporttable_filters;
+FROM reporttable_filters;
 
 -- Migrate all data from reporttable_itemorgunitgroups into visualization_itemorgunitgroups.
-INSERT INTO public.visualization_itemorgunitgroups
+INSERT INTO visualization_itemorgunitgroups
 (
   visualizationid,
   orgunitgroupid,
@@ -510,10 +510,10 @@ SELECT
   reporttableid,
   orgunitgroupid,
   sort_order
-FROM public.reporttable_itemorgunitgroups;
+FROM reporttable_itemorgunitgroups;
 
 -- Migrate all data from reporttable_organisationunits into visualization_organisationunits.
-INSERT INTO public.visualization_organisationunits
+INSERT INTO visualization_organisationunits
 (
   visualizationid,
   organisationunitid,
@@ -523,10 +523,10 @@ SELECT
   reporttableid,
   organisationunitid,
   sort_order
-FROM public.reporttable_organisationunits;
+FROM reporttable_organisationunits;
 
 -- Migrate all data from reporttable_orgunitgroupsetdimensions into visualization_orgunitgroupsetdimensions.
-INSERT INTO public.visualization_orgunitgroupsetdimensions
+INSERT INTO visualization_orgunitgroupsetdimensions
 (
   visualizationid,
   orgunitgroupsetdimensionid,
@@ -536,10 +536,10 @@ SELECT
   reporttableid,
   orgunitgroupsetdimensionid,
   sort_order
-FROM public.reporttable_orgunitgroupsetdimensions;
+FROM reporttable_orgunitgroupsetdimensions;
 
 -- Migrate all data from reporttable_orgunitlevels into visualization_orgunitlevels.
-INSERT INTO public.visualization_orgunitlevels
+INSERT INTO visualization_orgunitlevels
 (
   visualizationid,
   orgunitlevel,
@@ -549,10 +549,10 @@ SELECT
   reporttableid,
   orgunitlevel,
   sort_order
-FROM public.reporttable_orgunitlevels;
+FROM reporttable_orgunitlevels;
 
 -- Migrate all data from reporttable_periods into visualization_periods.
-INSERT INTO public.visualization_periods
+INSERT INTO visualization_periods
 (
   visualizationid,
   periodid,
@@ -562,10 +562,10 @@ SELECT
   reporttableid,
   periodid,
   sort_order
-FROM public.reporttable_periods;
+FROM reporttable_periods;
 
 -- Migrate all data from reporttableuseraccesses into visualization_useraccesses.
-INSERT INTO public.visualization_useraccesses
+INSERT INTO visualization_useraccesses
 (
   visualizationid,
   useraccessid
@@ -573,10 +573,10 @@ INSERT INTO public.visualization_useraccesses
 SELECT
   reporttableid,
   useraccessid
-FROM public.reporttableuseraccesses;
+FROM reporttableuseraccesses;
 
 -- Migrate all data from reporttableusergroupaccesses into visualization_usergroupaccesses.
-INSERT INTO public.visualization_usergroupaccesses
+INSERT INTO visualization_usergroupaccesses
 (
   visualizationid,
   usergroupaccessid
@@ -584,10 +584,10 @@ INSERT INTO public.visualization_usergroupaccesses
 SELECT
   reporttableid,
   usergroupaccessid
-FROM public.reporttableusergroupaccesses;
+FROM reporttableusergroupaccesses;
 
 -- Migrate the reporttable_columns table into visualization_columns.
-INSERT INTO public.visualization_columns
+INSERT INTO visualization_columns
 (
   visualizationid,
   dimension,
@@ -597,10 +597,10 @@ SELECT
   reporttableid,
   dimension,
   sort_order
-FROM public.reporttable_columns;
+FROM reporttable_columns;
 
 -- Migrate the reporttable_rows table into visualization_rows.
-INSERT INTO public.visualization_rows
+INSERT INTO visualization_rows
 (
   visualizationid,
   dimension,
@@ -610,10 +610,10 @@ SELECT
   reporttableid,
   dimension,
   sort_order
-FROM public.reporttable_rows;
+FROM reporttable_rows;
 
 -- Migrate the series table into the axis table.
-INSERT INTO public.axis
+INSERT INTO axis
 (
   axisid,
   dimensionalitem,
@@ -623,10 +623,10 @@ SELECT
   seriesid,
   series,
   axis
-FROM public.series;
+FROM series;
 
 -- Migrate the chart_seriesitems table into the visualization_axis table.
-INSERT INTO public.visualization_axis
+INSERT INTO visualization_axis
 (
   visualizationid,
   sort_order,
@@ -636,60 +636,60 @@ SELECT
   chartid,
   sort_order,
   seriesid
-FROM public.chart_seriesitems;
+FROM chart_seriesitems;
 
 -- Add boolean defaults for null columns to avoid Hibernate parse errors.
-UPDATE public.visualization SET percentstackedvalues = FALSE WHERE percentstackedvalues is NULL;
-UPDATE public.visualization SET nospacebetweencolumns = FALSE WHERE nospacebetweencolumns is NULL;
-UPDATE public.visualization SET regression = FALSE WHERE regression is NULL;
-UPDATE public.visualization SET externalaccess = FALSE WHERE externalaccess is NULL;
-UPDATE public.visualization SET userorganisationunit = FALSE WHERE userorganisationunit is NULL;
-UPDATE public.visualization SET userorganisationunitchildren = FALSE WHERE userorganisationunitchildren is NULL;
-UPDATE public.visualization SET userorganisationunitgrandchildren = FALSE WHERE userorganisationunitgrandchildren is NULL;
-UPDATE public.visualization SET paramreportingperiod = FALSE WHERE paramreportingperiod is NULL;
-UPDATE public.visualization SET paramorganisationunit = FALSE WHERE paramorganisationunit is NULL;
-UPDATE public.visualization SET paramparentorganisationunit = FALSE WHERE paramparentorganisationunit is NULL;
-UPDATE public.visualization SET paramgrandparentorganisationunit = FALSE WHERE paramgrandparentorganisationunit is NULL;
-UPDATE public.visualization SET rowtotals = FALSE WHERE rowtotals is NULL;
-UPDATE public.visualization SET coltotals = FALSE WHERE coltotals is NULL;
-UPDATE public.visualization SET subtotals = FALSE WHERE subtotals is NULL;
-UPDATE public.visualization SET cumulative = FALSE WHERE cumulative is NULL;
-UPDATE public.visualization SET rowsubtotals = FALSE WHERE rowsubtotals is NULL;
-UPDATE public.visualization SET colsubtotals = FALSE WHERE colsubtotals is NULL;
-UPDATE public.visualization SET completedonly = FALSE WHERE completedonly is NULL;
-UPDATE public.visualization SET skiprounding = FALSE WHERE skiprounding is NULL;
-UPDATE public.visualization SET showdimensionlabels = FALSE WHERE showdimensionlabels is NULL;
-UPDATE public.visualization SET hidetitle = FALSE WHERE hidetitle is NULL;
-UPDATE public.visualization SET hidesubtitle = FALSE WHERE hidesubtitle is NULL;
-UPDATE public.visualization SET hidelegend = FALSE WHERE hidelegend is NULL;
-UPDATE public.visualization SET hideemptycolumns = FALSE WHERE hideemptycolumns is NULL;
-UPDATE public.visualization SET hideemptyrows = FALSE WHERE hideemptyrows is NULL;
-UPDATE public.visualization SET showhierarchy = FALSE WHERE showhierarchy is NULL;
-UPDATE public.visualization SET showdata = FALSE WHERE showdata is NULL;
+UPDATE visualization SET percentstackedvalues = FALSE WHERE percentstackedvalues is NULL;
+UPDATE visualization SET nospacebetweencolumns = FALSE WHERE nospacebetweencolumns is NULL;
+UPDATE visualization SET regression = FALSE WHERE regression is NULL;
+UPDATE visualization SET externalaccess = FALSE WHERE externalaccess is NULL;
+UPDATE visualization SET userorganisationunit = FALSE WHERE userorganisationunit is NULL;
+UPDATE visualization SET userorganisationunitchildren = FALSE WHERE userorganisationunitchildren is NULL;
+UPDATE visualization SET userorganisationunitgrandchildren = FALSE WHERE userorganisationunitgrandchildren is NULL;
+UPDATE visualization SET paramreportingperiod = FALSE WHERE paramreportingperiod is NULL;
+UPDATE visualization SET paramorganisationunit = FALSE WHERE paramorganisationunit is NULL;
+UPDATE visualization SET paramparentorganisationunit = FALSE WHERE paramparentorganisationunit is NULL;
+UPDATE visualization SET paramgrandparentorganisationunit = FALSE WHERE paramgrandparentorganisationunit is NULL;
+UPDATE visualization SET rowtotals = FALSE WHERE rowtotals is NULL;
+UPDATE visualization SET coltotals = FALSE WHERE coltotals is NULL;
+UPDATE visualization SET subtotals = FALSE WHERE subtotals is NULL;
+UPDATE visualization SET cumulative = FALSE WHERE cumulative is NULL;
+UPDATE visualization SET rowsubtotals = FALSE WHERE rowsubtotals is NULL;
+UPDATE visualization SET colsubtotals = FALSE WHERE colsubtotals is NULL;
+UPDATE visualization SET completedonly = FALSE WHERE completedonly is NULL;
+UPDATE visualization SET skiprounding = FALSE WHERE skiprounding is NULL;
+UPDATE visualization SET showdimensionlabels = FALSE WHERE showdimensionlabels is NULL;
+UPDATE visualization SET hidetitle = FALSE WHERE hidetitle is NULL;
+UPDATE visualization SET hidesubtitle = FALSE WHERE hidesubtitle is NULL;
+UPDATE visualization SET hidelegend = FALSE WHERE hidelegend is NULL;
+UPDATE visualization SET hideemptycolumns = FALSE WHERE hideemptycolumns is NULL;
+UPDATE visualization SET hideemptyrows = FALSE WHERE hideemptyrows is NULL;
+UPDATE visualization SET showhierarchy = FALSE WHERE showhierarchy is NULL;
+UPDATE visualization SET showdata = FALSE WHERE showdata is NULL;
 
 
 -- Add int defaults for null columns to avoid Hibernate parse errors.
-UPDATE public.visualization SET toplimit = 0 WHERE toplimit is NULL;
-UPDATE public.visualization SET rangeaxissteps = 0 WHERE rangeaxissteps is NULL;
-UPDATE public.visualization SET rangeaxisdecimals = 0 WHERE rangeaxisdecimals is NULL;
+UPDATE visualization SET toplimit = 0 WHERE toplimit is NULL;
+UPDATE visualization SET rangeaxissteps = 0 WHERE rangeaxissteps is NULL;
+UPDATE visualization SET rangeaxisdecimals = 0 WHERE rangeaxisdecimals is NULL;
 
 
 -- Add default public access for null columns.
-UPDATE public.visualization SET publicaccess = '--------' WHERE COALESCE(publicaccess, '') = '' OR publicaccess IS NULL;
+UPDATE visualization SET publicaccess = '--------' WHERE COALESCE(publicaccess, '') = '' OR publicaccess IS NULL;
 
 
--- Update the column visualizationid of the public.dashboarditem table
+-- Update the column visualizationid of the dashboarditem table
 -- so it receives all the chartid's.
-UPDATE public.dashboarditem SET visualizationid = chartid
+UPDATE dashboarditem SET visualizationid = chartid
 WHERE chartid IS NOT NULL;
 
 
--- Update the column visualizationid of the public.dashboarditem table
+-- Update the column visualizationid of the dashboarditem table
 -- so it receives all the reporttableid's.
-UPDATE public.dashboarditem SET visualizationid = reporttable
+UPDATE dashboarditem SET visualizationid = reporttable
 WHERE reporttable IS NOT NULL;
 
 
--- Update the column visualizationid of the public.report table
+-- Update the column visualizationid of the report table
 -- so it receives all the reporttableid's.
-UPDATE public.report SET visualizationid = reporttableid;
+UPDATE report SET visualizationid = reporttableid;
