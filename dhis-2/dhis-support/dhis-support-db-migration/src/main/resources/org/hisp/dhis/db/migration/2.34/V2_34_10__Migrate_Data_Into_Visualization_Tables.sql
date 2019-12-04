@@ -1,11 +1,13 @@
--- chart_seriesitems is not migrated yet! -- TODO: Maikel migrate it
 
 -- This script migrates:
--- 1) data from chart table into visualization;
--- 2) data from reporttable table into visualization;
+-- 1) copy data from chart table into visualization;
+-- 2) copy data from reporttable table into visualization;
 -- 3) copy reporttable column into the visualizationid column in the dashboarditems table;
 -- 4) copy chartid column into the visualizationid column in the dashboarditems table;
--- 5) copy the reporttableid column into the visualizationid column in the report table.
+-- 5) copy the reporttableid column into the visualizationid column in the report table;
+-- 6) copy data from series table into axis table;
+-- 7) copy data from chart_seriesitems table into visualization_axis table;
+-- 8) set default values for NULL (Java primitive) columns.
 
 
 -- Set any possible empty or null NAME to an empty space ' ', as name is mandatory.
@@ -610,6 +612,31 @@ SELECT
   sort_order
 FROM public.reporttable_rows;
 
+-- Migrate the series table into the axis table.
+INSERT INTO public.axis
+(
+  axisid,
+  dimensionalitem,
+  axis
+)
+SELECT
+  seriesid,
+  series,
+  axis
+FROM public.series;
+
+-- Migrate the chart_seriesitems table into the visualization_axis table.
+INSERT INTO public.visualization_axis
+(
+  visualizationid,
+  sort_order,
+  axisid
+)
+SELECT
+  chartid,
+  sort_order,
+  seriesid
+FROM public.chart_seriesitems;
 
 -- Add boolean defaults for null columns to avoid Hibernate parse errors.
 UPDATE public.visualization SET percentstackedvalues = FALSE WHERE percentstackedvalues is NULL;
@@ -639,6 +666,7 @@ UPDATE public.visualization SET hideemptycolumns = FALSE WHERE hideemptycolumns 
 UPDATE public.visualization SET hideemptyrows = FALSE WHERE hideemptyrows is NULL;
 UPDATE public.visualization SET showhierarchy = FALSE WHERE showhierarchy is NULL;
 UPDATE public.visualization SET showdata = FALSE WHERE showdata is NULL;
+
 
 -- Add int defaults for null columns to avoid Hibernate parse errors.
 UPDATE public.visualization SET toplimit = 0 WHERE toplimit is NULL;
