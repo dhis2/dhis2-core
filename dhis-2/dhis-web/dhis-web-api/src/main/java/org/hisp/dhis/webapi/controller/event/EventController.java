@@ -687,7 +687,7 @@ public class EventController
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) Boolean skipEventId,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
-        @RequestParam Map<String, String> parameters, Model model )
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model )
         throws WebMessageException
     {
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
@@ -697,7 +697,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null,
             null, null, null, eventStatus, attributeOptionCombo,
-            null, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
             null, true, null, skipEventId, null, null, null,
             null, false, includeDeleted );
 
