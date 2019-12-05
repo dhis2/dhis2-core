@@ -339,7 +339,6 @@ INSERT INTO visualization
   displaydensity,
   fontsize,
   relativeperiodsid,
-  numberformatting,
   digitgroupseparator,
   legendsetid,
   legenddisplaystyle,
@@ -359,7 +358,6 @@ INSERT INTO visualization
   paramgrandparentorganisationunit,
   rowtotals,
   coltotals,
-  subtotals,
   rowsubtotals,
   colsubtotals,
   completedonly,
@@ -396,7 +394,6 @@ SELECT
   displaydensity,
   fontsize,
   relativeperiodsid,
-  numberformatting,
   digitgroupseparator,
   legendsetid,
   legenddisplaystyle,
@@ -416,7 +413,6 @@ SELECT
   paramgrandparentorganisationunit,
   rowtotals,
   coltotals,
-  subtotals,
   rowsubtotals,
   colsubtotals,
   completedonly,
@@ -652,7 +648,6 @@ UPDATE visualization SET paramparentorganisationunit = FALSE WHERE paramparentor
 UPDATE visualization SET paramgrandparentorganisationunit = FALSE WHERE paramgrandparentorganisationunit is NULL;
 UPDATE visualization SET rowtotals = FALSE WHERE rowtotals is NULL;
 UPDATE visualization SET coltotals = FALSE WHERE coltotals is NULL;
-UPDATE visualization SET subtotals = FALSE WHERE subtotals is NULL;
 UPDATE visualization SET cumulative = FALSE WHERE cumulative is NULL;
 UPDATE visualization SET rowsubtotals = FALSE WHERE rowsubtotals is NULL;
 UPDATE visualization SET colsubtotals = FALSE WHERE colsubtotals is NULL;
