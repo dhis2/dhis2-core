@@ -179,7 +179,7 @@ public class Visualization
     /**
      * The list of optional axes for this visualization.
      */
-    private List<Axis> optionalAxes;
+    private List<Axis> optionalAxes = new ArrayList<>();
 
     /*
      * # Legend related attributes.
