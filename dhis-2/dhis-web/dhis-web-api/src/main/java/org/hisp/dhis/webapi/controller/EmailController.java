@@ -28,27 +28,30 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.email.Email;
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -132,11 +135,15 @@ public class EmailController
     {
         if ( emailResponse.isOk() )
         {
-            webMessageService.send( WebMessageUtils.ok( "Email sent" ), response, request );
+            String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ?
+                emailResponse.getDescription() : EmailResponse.SENT.getResponseMessage();
+            webMessageService.send( WebMessageUtils.ok( msg ), response, request );
         }
         else
         {
-            webMessageService.send( WebMessageUtils.error( "Email sending failed" ), response, request );
+            String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ?
+                emailResponse.getDescription() : EmailResponse.FAILED.getResponseMessage();
+            webMessageService.send( WebMessageUtils.error( msg ), response, request );
         }
     }
 
