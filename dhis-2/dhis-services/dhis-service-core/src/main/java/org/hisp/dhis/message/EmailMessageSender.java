@@ -123,8 +123,8 @@ public class EmailMessageSender
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
-            status.setDescription( "Email host configuration not found" );
-            status.setResponseObject( EmailResponse.NOT_CONFIGURED );
+            status.setDescription( EmailResponse.HOST_CONFIG_NOT_FOUND.getResponseMessage() );
+            status.setResponseObject( EmailResponse.HOST_CONFIG_NOT_FOUND );
             return status;
         }
 
@@ -204,8 +204,8 @@ public class EmailMessageSender
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
-            status.setDescription( "Email host configuration not found" );
-            status.setResponseObject( EmailResponse.NOT_CONFIGURED );
+            status.setDescription( EmailResponse.HOST_CONFIG_NOT_FOUND.getResponseMessage() );
+            status.setResponseObject( EmailResponse.HOST_CONFIG_NOT_FOUND );
             return status;
         }
 

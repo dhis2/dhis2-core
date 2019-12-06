@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.email.Email;
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -135,15 +136,13 @@ public class EmailController
         if ( emailResponse.isOk() )
         {
             String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ?
-                emailResponse.getDescription() :
-                "Email sent";
+                emailResponse.getDescription() : EmailResponse.SENT.getResponseMessage();
             webMessageService.send( WebMessageUtils.ok( msg ), response, request );
         }
         else
         {
             String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ?
-                emailResponse.getDescription() :
-                "Email sending failed";
+                emailResponse.getDescription() : EmailResponse.FAILED.getResponseMessage();
             webMessageService.send( WebMessageUtils.error( msg ), response, request );
         }
     }
