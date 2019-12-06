@@ -28,6 +28,8 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,13 +65,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -293,7 +293,7 @@ public class EmailMessageSender
         }
 
         status.setOk( false );
-        status.setResponseObject( EmailResponse.HOST_NOT_CONFIGURED );
+        status.setResponseObject( EmailResponse.HOST_CONFIG_NOT_FOUND );
         return status;
     }
 
