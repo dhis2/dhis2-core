@@ -50,6 +50,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
@@ -109,7 +110,7 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             Map<Integer, JobParameters> updatedJobParameters = new HashMap<>();
 
             ObjectMapper mapper = new ObjectMapper();
-            mapper.enableDefaultTyping();
+            mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
             mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
             JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
