@@ -95,6 +95,8 @@ public class PredictorServiceTest
     private Expression expressionB;
     private Expression expressionC;
 
+    private Expression expressionD;
+
     private PeriodType periodTypeMonthly;
 
     private Predictor predictorA;
@@ -164,17 +166,14 @@ public class PredictorServiceTest
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
         expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
         expressionC = new Expression( "135.79", "descriptionC" );
-
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionC );
+        expressionD = new Expression( "34.98", "descriptionD" );
     }
 
     private void setUpPredictorGroups()
     {
         predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionB, expressionD,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         predictorService.addPredictor( predictorA );
@@ -283,7 +282,7 @@ public class PredictorServiceTest
     {
         predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         long idA = predictorService.addPredictor( predictorA );
@@ -308,7 +307,7 @@ public class PredictorServiceTest
     {
         predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         predictorService.addPredictor( predictorA );

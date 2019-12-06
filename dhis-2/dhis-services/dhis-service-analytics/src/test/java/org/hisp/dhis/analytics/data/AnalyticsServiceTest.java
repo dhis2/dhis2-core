@@ -396,8 +396,6 @@ public class AnalyticsServiceTest
 
         Expression expressionVRA = new Expression( "expressionA", "descriptionA" );
         Expression expressionVRB = new Expression( "expressionB", "descriptionB" );
-        expressionService.addExpression( expressionVRA );
-        expressionService.addExpression( expressionVRB );
 
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
