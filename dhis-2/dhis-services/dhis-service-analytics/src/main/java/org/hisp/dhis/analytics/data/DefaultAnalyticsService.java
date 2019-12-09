@@ -412,7 +412,6 @@ public class DefaultAnalyticsService
      * Adds headers to the given grid based on the given data query parameters.
      *
      * @param params the {@link DataQueryParams}.
-     * @return the grid.
      */
     private void addHeaders( DataQueryParams params, Grid grid )
     {
@@ -894,7 +893,7 @@ public class DefaultAnalyticsService
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
-                if ( !dimensionItems.keySet().contains( dim.getDimension() ) )
+                if ( !dimensionItems.containsKey( dim.getDimension() ) )
                 {
                     dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
@@ -1315,8 +1314,6 @@ public class DefaultAnalyticsService
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
-        indicators.forEach( params::removeResolvedExpressionItem );
-
         Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );
 
         return DataQueryParams.getPermutationDimensionalItemValueMap( valueMap );
@@ -1335,9 +1332,8 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        indicators.forEach( params::addResolvedExpressionItem );
-
-        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
+        List<DimensionalItemObject> items = Lists
+                .newArrayList( expressionService.getIndicatorDimensionalItemObjects( preprocessIndicators( indicators ) ) );
 
         if ( items.isEmpty() )
         {
@@ -1348,13 +1344,13 @@ public class DefaultAnalyticsService
 
         DimensionalObject dimension = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
-        DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
+        DataQueryParams dataSourceParams = DataQueryParams
+            .newBuilder( params )
             .replaceDimension( dimension )
             .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withResolvedExpressionItems( items )
             .withSkipMeta( true ).build();
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );

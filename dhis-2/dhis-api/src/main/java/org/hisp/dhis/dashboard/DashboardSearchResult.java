@@ -53,17 +53,17 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class DashboardSearchResult
 {
     private List<User> users = new ArrayList<>();
-    
+
     private List<Chart> charts = new ArrayList<>();
-    
+
     private List<EventChart> eventCharts = new ArrayList<>();
-    
+
     private List<Map> maps = new ArrayList<>();
 
     private List<ReportTable> reportTables = new ArrayList<>();
-    
+
     private List<EventReport> eventReports = new ArrayList<>();
-    
+
     private List<Report> reports = new ArrayList<>();
 
     private List<Document> resources = new ArrayList<>();
@@ -99,59 +99,68 @@ public class DashboardSearchResult
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getUserCount()
     {
         return users.size();
     }
-    
+
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getChartCount()
     {
         return charts.size();
     }
-    
+
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getEventChartCount()
     {
         return eventCharts.size();
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMapCount()
     {
         return maps.size();
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getReportTableCount()
     {
         return reportTables.size();
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getEventReportCount()
     {
         return eventReports.size();
     }
-    
+
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getReportCount()
     {
         return reports.size();
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getResourceCount()
     {
         return resources.size();
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getAppCount()
     {
         return apps.size();
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -192,12 +201,12 @@ public class DashboardSearchResult
     {
         return eventCharts;
     }
-    
+
     public void setEventCharts( List<EventChart> eventCharts )
     {
         this.eventCharts = eventCharts;
     }
-    
+
     @JsonProperty( value = "maps" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "maps", namespace = DxfNamespaces.DXF_2_0)

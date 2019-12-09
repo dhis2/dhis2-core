@@ -75,7 +75,7 @@ public class UserDisableTest
         ApiResponse preChangeResponse = userActions.get( userId );
         preChangeResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( false ) );
 
-        ApiResponse response = userActions.post( userId + "/disable" );
+        ApiResponse response = userActions.post( userId + "/disabled", new Object(), null );
         response.validate().statusCode( 204 );
 
         ApiResponse getResponse = userActions.get( userId );
@@ -88,11 +88,24 @@ public class UserDisableTest
     @Test
     public void shouldEnableUser()
     {
-        shouldDisableUser();
+        loginActions.loginAsUser( userName, password );
+        loginActions.loginAsSuperUser();
+
+        ApiResponse preChangeResponse = userActions.get( userId );
+        preChangeResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( false ) );
+
+        ApiResponse response = userActions.post( userId + "/disabled", new Object(), null );
+        response.validate().statusCode( 204 );
+
+        ApiResponse getResponse = userActions.get( userId );
+        getResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( true ) );
+
+        loginActions.addAuthenticationHeader( userName, password );
+        loginActions.getLoggedInUserInfo().validate().statusCode( 401 );
 
         loginActions.loginAsSuperUser();
 
-        ApiResponse enableResponse = userActions.post( userId + "/enable" );
+        ApiResponse enableResponse = userActions.post( userId + "/enabled", new Object(), null );
         enableResponse.validate().statusCode( 204 );
 
         ApiResponse getAfterEnabled = userActions.get( userId );

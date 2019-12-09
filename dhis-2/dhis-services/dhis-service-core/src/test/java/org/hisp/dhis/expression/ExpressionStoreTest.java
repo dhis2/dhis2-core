@@ -29,16 +29,16 @@ package org.hisp.dhis.expression;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.annotation.Resource;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +52,8 @@ import static org.junit.Assert.*;
 public class ExpressionStoreTest
     extends DhisSpringTest
 {
-    @Resource( name = "org.hisp.dhis.expression.ExpressionStore" )
+    @Autowired
+    @Qualifier( "org.hisp.dhis.expression.ExpressionStore" )
     private GenericStore<Expression> expressionStore;
 
     @Autowired

@@ -61,6 +61,15 @@ public final class NodeUtils
         return rootNode;
     }
 
+    public static RootNode createEvents()
+    {
+        RootNode rootNode = new RootNode( "events" );
+        rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
+        rootNode.setNamespace( DxfNamespaces.DXF_2_0 );
+
+        return rootNode;
+    }
+
     public static RootNode createMetadata()
     {
         RootNode rootNode = new RootNode( "metadata" );

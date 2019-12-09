@@ -29,7 +29,8 @@
 package org.hisp.dhis.analytics.resolver;
 
 /**
- * A component that can analyze and resolve analytics expressions so that they
+ * A component that can analyze analytics expressions so that each expression
+ * can be resolved to its final "shape".
  *
  * @author Luciano Fiandesio
  */

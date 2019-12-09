@@ -95,7 +95,7 @@ import com.google.common.collect.Sets;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( DefaultCompleteDataSetRegistrationExchangeService.class )
-@PowerMockIgnore("javax.management.*")
+@PowerMockIgnore({ "javax.management.*","javax.xml.*"})
 public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
 

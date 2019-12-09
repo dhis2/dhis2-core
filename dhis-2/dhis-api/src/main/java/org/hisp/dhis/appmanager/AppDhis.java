@@ -29,11 +29,17 @@ package org.hisp.dhis.appmanager;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import java.io.Serializable;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Saptarshi
  */
+@JacksonXmlRootElement( localName = "appDhis", namespace = DxfNamespaces.DXF_2_0 )
 public class AppDhis
     implements Serializable
 {
@@ -43,9 +49,11 @@ public class AppDhis
     private static final long serialVersionUID = -8854371580010728182L;
 
     @JsonProperty( "href" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String href;
 
     @JsonProperty( "namespace" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String namespace;
 
     public String getHref()
