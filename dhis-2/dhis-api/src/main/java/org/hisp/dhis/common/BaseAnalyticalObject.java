@@ -764,7 +764,7 @@ public abstract class BaseAnalyticalObject
         userOrganisationUnitGrandChildren = false;
     }
     
-    private void clearIfNotNull(final Collection collection )
+    private void clearIfNotNull(final Collection<?> collection )
     {
         if ( collection != null )
         {

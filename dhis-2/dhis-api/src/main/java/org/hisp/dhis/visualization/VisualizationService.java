@@ -28,27 +28,71 @@
 
 package org.hisp.dhis.visualization;
 
+import java.util.Date;
+
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
 
-import java.util.Date;
-
+/**
+ * Interface responsible for providing CRUD and business methods related to a
+ * Visualization object.
+ */
 public interface VisualizationService
     extends
     AnalyticalObjectService<Visualization>
 {
-    String ID = VisualizationService.class.getName();
-
+    /**
+     * Saves a Visualization.
+     *
+     * @param visualization the Visualization to save.
+     * @return the generated identifier.
+     */
     long save( Visualization visualization );
 
+    /**
+     * Retrieves the Visualization with the given id.
+     *
+     * @param id the id of the Visualization to retrieve.
+     * @return the Visualization.
+     */
     Visualization loadVisualization( long id );
 
+    /**
+     * Retrieves the Visualization with the given uid.
+     *
+     * @param uid the uid of the Visualization to retrieve.
+     * @return the Visualization.
+     */
     Visualization loadVisualization( String uid );
 
+    /**
+     * Deletes a Visualization.
+     *
+     * @param visualization the Visualization to delete.
+     */
     void delete( Visualization visualization );
 
-    Grid getVisualizationGrid(String uid, Date reportingPeriod, String organisationUnitUid );
+    /**
+     * Instantiates and populates a Grid populated with data from the Visualization
+     * with the given identifier.
+     *
+     * @param uid the Visualization unique identifier.
+     * @param relativePeriodDate the visualization date.
+     * @param organisationUnitUid the organisation unit uid.
+     * @return a Grid.
+     */
+    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid );
 
-    Grid getVisualizationGridByUser(String uid, Date reportingPeriod, String organisationUnitUid, User user );
+    /**
+     * Instantiates and populates a Grid populated with data from the Visualization
+     * with the given identifier.
+     *
+     * @param uid the Visualization unique identifier.
+     * @param relativePeriodDate the visualization date.
+     * @param organisationUnitUid the organisation unit uid.
+     * @param user the current user.
+     * @return a Grid.
+     */
+    Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
 }

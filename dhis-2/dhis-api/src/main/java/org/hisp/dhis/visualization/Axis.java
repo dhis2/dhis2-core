@@ -79,7 +79,7 @@ public class Axis
         return dimensionalItem;
     }
 
-    public void setDimensionalItem(String dimensionalItem)
+    public void setDimensionalItem( String dimensionalItem )
     {
         this.dimensionalItem = dimensionalItem;
     }

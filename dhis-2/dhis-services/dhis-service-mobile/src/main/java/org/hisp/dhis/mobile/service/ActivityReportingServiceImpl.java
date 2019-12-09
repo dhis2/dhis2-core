@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.api.mobile.ActivityReportingService;
 import org.hisp.dhis.api.mobile.model.Interpretation;
@@ -249,15 +250,11 @@ public class ActivityReportingServiceImpl
         org.hisp.dhis.interpretation.Interpretation interpretationCore = interpretationService
             .getInterpretationByVisualization( visualization.getId() );
 
-        Collection<InterpretationComment> interComments = new HashSet<>();
-
-        for ( org.hisp.dhis.interpretation.InterpretationComment interCommentsCore : interpretationCore.getComments() )
-        {
-
+        Collection<InterpretationComment> interComments = interpretationCore.getComments().stream().map( i -> {
             InterpretationComment interComment = new InterpretationComment();
-            interComment.setText( interCommentsCore.getText() );
-            interComments.add( interComment );
-        }
+            interComment.setText( i.getText() );
+            return interComment;
+        } ).collect( Collectors.toList() );
 
         Interpretation interpretation = new Interpretation();
         interpretation.setId( interpretationCore.getId() );

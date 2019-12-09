@@ -136,9 +136,8 @@ public class HibernateInterpretationStore
     {
         String hql = "from Interpretation i where i.visualization.id = " + id;
 
-        Query query = getSession().createQuery( hql )
-            .setCacheable( cacheable );
+        Query<Interpretation> query = getSession().createQuery( hql, Interpretation.class ).setCacheable( cacheable );
 
-        return (Interpretation) query.uniqueResult();
+        return query.uniqueResult();
     }
 }

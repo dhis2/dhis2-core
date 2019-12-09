@@ -128,15 +128,15 @@ public class DefaultVisualizationService
 
     @Override
     @Transactional( readOnly = true )
-    public Grid getVisualizationGrid( final String uid, final Date reportingPeriod, final String organisationUnitUid )
+    public Grid getVisualizationGrid( final String uid, final Date relativePeriodDate, final String organisationUnitUid )
     {
-        return getVisualizationGridByUser( uid, reportingPeriod, organisationUnitUid,
+        return getVisualizationGridByUser( uid, relativePeriodDate, organisationUnitUid,
             currentUserService.getCurrentUser() );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public Grid getVisualizationGridByUser( final String uid, final Date reportingPeriod,
+    public Grid getVisualizationGridByUser( final String uid, final Date relativePeriodDate,
         final String organisationUnitUid, final User user )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -160,7 +160,7 @@ public class DefaultVisualizationService
                 visualization.getItemOrganisationUnitGroups(), visualization.getOrganisationUnits() ) );
         }
 
-        visualization.init( user, reportingPeriod, organisationUnit, atLevels, inGroups, format );
+        visualization.init( user, relativePeriodDate, organisationUnit, atLevels, inGroups, format );
 
         Map<String, Object> valueMap = analyticsService.getAggregatedDataValueMapping( visualization );
 
