@@ -44,7 +44,6 @@ public class DefaultAclStore
     implements
     AclStore
 {
-
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private final static String USER_SQL_PARAM_NAME = "userId";
