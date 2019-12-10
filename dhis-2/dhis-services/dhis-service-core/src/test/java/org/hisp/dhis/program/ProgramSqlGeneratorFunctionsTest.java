@@ -475,7 +475,7 @@ public class ProgramSqlGeneratorFunctionsTest
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantService.getCompleteConstantMap() )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )

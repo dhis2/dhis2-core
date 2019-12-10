@@ -91,6 +91,7 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -477,7 +478,7 @@ public class DefaultAnalyticsService
 
             List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
 
-            Map<String, Double> constantMap = constantService.getConstantMap();
+            Map<String, Constant> constantMap = constantService.getCompleteConstantMap();
 
             // -----------------------------------------------------------------
             // Get indicator values

@@ -347,7 +347,6 @@ public class  DefaultProgramIndicatorService
         visitor.setReportingStartDate( startDate );
         visitor.setReportingEndDate( endDate );
         visitor.setDataElementAndAttributeIdentifiers( uids );
-        visitor.setConstantMap( constantService.getConstantMap() );
 
         String sql =  castString( Parser.visit( expression, visitor ) );
         return (tableAlias != null ? sql.replaceAll( ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\." ) : sql);
@@ -444,7 +443,7 @@ public class  DefaultProgramIndicatorService
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantService.getCompleteConstantMap() )
             .withProgramIndicatorService( this )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )

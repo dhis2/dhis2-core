@@ -355,7 +355,7 @@ public class ProgramSqlGeneratorVariablesTest
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( FUNCTION_GET_SQL )
             .withItemMethod( ITEM_GET_SQL )
-            .withConstantService( constantService )
+            .withConstantMap( constantService.getCompleteConstantMap() )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )
