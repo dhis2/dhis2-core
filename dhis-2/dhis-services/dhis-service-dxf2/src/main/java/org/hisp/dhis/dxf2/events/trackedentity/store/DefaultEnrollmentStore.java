@@ -51,7 +51,6 @@ public class DefaultEnrollmentStore
     implements
     EnrollmentStore
 {
-
     private final static String GET_ENROLLMENT_SQL_BY_TEI = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, "
         + "       pi.created, pi.createdatclient, pi.lastupdated, pi.lastupdatedatclient, pi.status, "
         + "       pi.enrollmentdate, pi.incidentdate, pi.followup, pi.enddate, pi.completedby, "
