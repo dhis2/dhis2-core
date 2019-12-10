@@ -87,7 +87,7 @@ public class JdbcEnrollmentAnalyticsManager
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
-    public JdbcEnrollmentAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
                                           ProgramIndicatorService programIndicatorService,
                                           DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
