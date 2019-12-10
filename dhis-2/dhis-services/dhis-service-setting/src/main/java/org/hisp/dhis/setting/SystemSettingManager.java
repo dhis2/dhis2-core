@@ -56,7 +56,7 @@ public interface SystemSettingManager
 
     /**
      * Returns the system setting value for the given key. If no value exists, returns
-     * the default value as defined by {@link SettingKey#defaultValue}. If not,
+     * the default value held by {@link SettingKey#getDefaultValue()}. If not,
      * returns null.
      *
      * @param key the system setting key.

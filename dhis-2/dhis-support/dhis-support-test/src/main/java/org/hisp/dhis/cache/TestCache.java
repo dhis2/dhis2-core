@@ -34,9 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static java.lang.System.currentTimeMillis;
-import static org.springframework.util.Assert.hasText;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -85,7 +82,7 @@ public class TestCache<V>
     }
 
     @Override
-    public void put( String key, V value, long ttl )
+    public void put( String key, V value, long ttlInSeconds)
     {
         // Ignoring ttl for this testing cache
         mapCache.put( key, value );

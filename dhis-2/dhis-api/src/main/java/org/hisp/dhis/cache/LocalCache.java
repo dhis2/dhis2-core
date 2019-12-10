@@ -28,18 +28,16 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
+import static java.lang.System.currentTimeMillis;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.springframework.util.Assert.hasText;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.cache2k.Cache2kBuilder;
-import org.springframework.util.Assert;
-
-import static java.lang.System.currentTimeMillis;
-import static org.springframework.util.Assert.hasText;
 
 /**
  * Local cache implementation of {@link Cache}. This implementation is backed by
@@ -71,11 +69,11 @@ public class LocalCache<V> implements Cache<V>
             {
                 // TODO https://github.com/cache2k/cache2k/issues/39 is still
                 // Open. Once the issue is resolved it can be updated here
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
+                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
             }
             else
             {
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
+                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
             }
         }
         else
@@ -142,10 +140,11 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
-    public void put( String key, V value, long ttl )
+    public void put( String key, V value, long ttlInSeconds )
     {
-        hasText(key, "Value cannot be null");
-        cache2kInstance.invoke( key, e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + ttl ) );
+        hasText( key, "Value cannot be null" );
+        cache2kInstance.invoke( key,
+            e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + SECONDS.toMillis( ttlInSeconds ) ) );
     }
 
     @Override

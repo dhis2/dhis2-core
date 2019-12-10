@@ -103,10 +103,10 @@ public interface Cache<V>
      *
      * @param key the key for the value
      * @param value value to be mapped to the key
-     * @param ttl the time to live for the key, in milliseconds
+     * @param ttlInSeconds the time to live for the key, in seconds
      * @throws IllegalArgumentException if the specified value is null
      */
-    void put( String key, V value, long ttl );
+    void put( String key, V value, long ttlInSeconds );
 
     /**
      * Discards any cached value for the {@code key}. The behavior of this

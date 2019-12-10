@@ -33,51 +33,48 @@ import static java.time.LocalDateTime.ofInstant;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.YEARS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMilliseconds.FIFTEEN_MINUTES;
-import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMilliseconds.FIVE_MINUTES;
-import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMilliseconds.FORTY_MINUTES;
-import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMilliseconds.SIXTY_MINUTES;
-import static org.hisp.dhis.analytics.cache.TimeToLive.IntervalOfMilliseconds.TWO_MINUTES;
 import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.MONTHLY;
 import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.QUARTERLY;
 import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.SIX_MONTHS;
 import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.WEEKLY;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.YEARLY;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS;
 import static org.springframework.util.Assert.notNull;
 
 import java.time.Instant;
-import java.util.Map;
 
 import org.hisp.dhis.analytics.DataQueryParams;
-
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 
 public class TimeToLive
     implements
     Computable
 {
 
+    static final long DEFAULT_TO_30_SECONDS = 30;
+
     private final DataQueryParams params;
 
-    static final Map<Periods, IntervalOfMilliseconds> EXPIRATION_TIME_TABLE = ImmutableMap.of(
-        WEEKLY, TWO_MINUTES,
-        MONTHLY, FIVE_MINUTES,
-        QUARTERLY, FIFTEEN_MINUTES,
-        SIX_MONTHS, FORTY_MINUTES,
-        YEARLY, SIXTY_MINUTES );
+    private SystemSettingManager systemSettingManager;
 
-    public TimeToLive( final DataQueryParams params )
+    public TimeToLive( final DataQueryParams params, final SystemSettingManager systemSettingManager )
     {
+        notNull( params, "Object params must not be null" );
         notNull( params.getEarliestStartDate(), "Object params.getEarliestStartDate() must not be null" );
         notNull( params.getLatestEndDate(), "Object params.getLatestEndDate() must not be null" );
+        notNull( systemSettingManager, "Object systemSettingManager must not be null" );
         this.params = params;
+        this.systemSettingManager = systemSettingManager;
     }
 
     /**
      * Calculates the time to live based on specific internal rules.
      *
-     * @return the computed TTL value in MILLISECONDS.
+     * @return the computed TTL value in SECONDS.
      */
     @Override
     public long compute()
@@ -95,7 +92,7 @@ public class TimeToLive
      * @param daysDiff the difference of days between the oldest and most recent
      *        date in the period.
      * @param mostRecentDate the most recent date of the period.
-     * @return a time to live value in MILLISECONDS.
+     * @return a time to live value in SECONDS.
      */
     long calculationFor( final long daysDiff, final Instant mostRecentDate )
     {
@@ -104,30 +101,38 @@ public class TimeToLive
          * the current year, so we increment the multiplier by 1 (one) avoiding
          * multiplying by 0 (zero).
          */
-        final int ttlMultiplierOrOne = (int) YEARS.between( ofInstant( mostRecentDate, UTC ), now() ) + 1;
-        final IntervalOfMilliseconds ttlInMilliseconds;
+        final long ttlMultiplierOrOne = YEARS.between( ofInstant( mostRecentDate, UTC ), now() ) + 1;
+        final long ttlInSeconds;
 
         if ( daysDiff <= WEEKLY.value() )
         {
-            ttlInMilliseconds = EXPIRATION_TIME_TABLE.get( WEEKLY );
+            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS);
         }
         else if ( daysDiff <= MONTHLY.value() )
         {
-            ttlInMilliseconds = EXPIRATION_TIME_TABLE.get( MONTHLY );
+            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS);
         }
         else if ( daysDiff <= QUARTERLY.value() )
         {
-            ttlInMilliseconds = EXPIRATION_TIME_TABLE.get( QUARTERLY );
+            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS);
         }
         else if ( daysDiff <= SIX_MONTHS.value() )
         {
-            ttlInMilliseconds = EXPIRATION_TIME_TABLE.get( SIX_MONTHS );
+            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS);
         }
         else
         {
-            ttlInMilliseconds = EXPIRATION_TIME_TABLE.get( YEARLY );
+            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS);
         }
-        return ttlInMilliseconds.value() * ttlMultiplierOrOne;
+        return ttlInSeconds * ttlMultiplierOrOne;
+    }
+
+    private Long preDefinedTtlValueForKey( final SettingKey ttlSettingKey )
+    {
+        final Long ttlInSeconds = (Long) systemSettingManager.getSystemSetting( ttlSettingKey );
+        final boolean ttlNotNullAndPositive = ttlInSeconds != null && ttlInSeconds > 0;
+
+        return ttlNotNullAndPositive ? ttlInSeconds : DEFAULT_TO_30_SECONDS;
     }
 
     enum Periods
@@ -136,7 +141,7 @@ public class TimeToLive
 
         final int days;
 
-        Periods( int days )
+        Periods( final int days )
         {
             this.days = days;
         }
@@ -144,27 +149,6 @@ public class TimeToLive
         int value()
         {
             return days;
-        }
-    }
-
-    enum IntervalOfMilliseconds
-    {
-        TWO_MINUTES( MINUTES.toMillis( 2 ) ),
-        FIVE_MINUTES( MINUTES.toMillis( 5 ) ),
-        FIFTEEN_MINUTES( MINUTES.toMillis( 15 ) ),
-        FORTY_MINUTES( MINUTES.toMillis( 40 ) ),
-        SIXTY_MINUTES( MINUTES.toMillis( 60 ) );
-
-        final long milliseconds;
-
-        IntervalOfMilliseconds(long milliseconds )
-        {
-            this.milliseconds = milliseconds;
-        }
-
-        long value()
-        {
-            return milliseconds;
         }
     }
 }

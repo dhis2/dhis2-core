@@ -34,7 +34,6 @@ import java.util.function.Function;
 
 import com.google.common.collect.Sets;
 
-import static java.lang.System.currentTimeMillis;
 import static org.springframework.util.Assert.hasText;
 
 /**
@@ -92,9 +91,9 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
-    public void put( String key, V value, long ttl )
+    public void put( String key, V value, long ttlInSeconds)
     {
-        hasText(key, "Value cannot be null");
+        hasText( key, "Value cannot be null" );
         // No operation
     }
 

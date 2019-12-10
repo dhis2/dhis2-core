@@ -82,9 +82,9 @@ public class AnalyticsCacheWrapper
         return queryCache.get( key );
     }
 
-    public void put( final String key, final Grid grid, final long ttl )
+    public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
-        queryCache.put( key, grid, ttl );
+        queryCache.put( key, grid, ttlInSeconds );
     }
 
     public void invalidateAll()
