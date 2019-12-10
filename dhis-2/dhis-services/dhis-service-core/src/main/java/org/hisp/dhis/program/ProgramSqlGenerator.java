@@ -224,8 +224,10 @@ public class ProgramSqlGenerator
 
             case V_EXECUTION_DATE:
             case V_EVENT_DATE:
-                return "executiondate";
-
+                return statementBuilder.getProgramIndicatorEventColumnSql( 
+                    null, "executiondate", reportingStartDate, reportingEndDate, 
+                    programIndicator );
+                    
             case V_INCIDENT_DATE:
                 return "incidentdate";
 
