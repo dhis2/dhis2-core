@@ -65,7 +65,7 @@ public class DefaultEventStore
             "psi.lastupdated, " +
             "psi.lastupdatedatclient, " +
             "psi.deleted, " +
-            "psi.geometry, " +
+            "ST_AsBinary(psi.geometry)    as geometry, " +
             "pi.uid                       as enruid, " +
             "pi.followup                  as enrfollowup, " +
             "pi.status                    as enrstatus, " +

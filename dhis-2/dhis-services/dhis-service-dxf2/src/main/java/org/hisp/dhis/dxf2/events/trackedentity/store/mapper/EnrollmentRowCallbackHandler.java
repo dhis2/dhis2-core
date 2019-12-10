@@ -30,7 +30,11 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.WKTReader;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -70,14 +74,15 @@ public class EnrollmentRowCallbackHandler
         // enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
         // enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
 
-        PGobject geometry = (PGobject) rs.getObject( "geometry" );
-        if ( geometry != null )
+
+        Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( "geometry" ) );
+        if ( geo.isPresent() )
         {
-            // enrollment.setGeometry( geometry ); TODO
+            enrollment.setGeometry( geo.get() );
             if ( rs.getString( "program_feature_type" ).equalsIgnoreCase( FeatureType.POINT.value() ) )
             {
-                // com.vividsolutions.jts.geom.Coordinate co = geometry . getCoordinate ?;
-                // enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
+                com.vividsolutions.jts.geom.Coordinate co = enrollment.getGeometry().getCoordinate();
+                enrollment.setCoordinate( new org.hisp.dhis.dxf2.events.event.Coordinate( co.x, co.y ) );
             }
         }
 

@@ -32,9 +32,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Multimap;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -53,13 +57,11 @@ public class TrackedEntityInstanceRowCallbackHandler
         this.items = new HashMap<>();
     }
 
-    private TrackedEntityInstance getTei(ResultSet rs )
+    private TrackedEntityInstance getTei( ResultSet rs )
         throws SQLException
     {
 
         TrackedEntityInstance tei = new TrackedEntityInstance();
-
-        PGobject geometry = (PGobject) rs.getObject( "geometry" );
 
         tei.setTrackedEntityInstance( rs.getString( "teiuid" ) );
         tei.setOrgUnit( rs.getString( "ou_uid" ) );
@@ -71,13 +73,12 @@ public class TrackedEntityInstanceRowCallbackHandler
         tei.setInactive( rs.getBoolean( "inactive" ) );
         tei.setDeleted( rs.getBoolean( "deleted" ) );
 
-        if ( geometry != null )
+        Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( "geometry" ) );
+        if ( geo.isPresent() )
         {
-            // TODO how to convert PGobject to Geometry
-            // tei.setGeometry( geometry );
-            // tei.setFeatureType( FeatureType.getTypeFromName( geometry.getGeometryType() )
-            // );
-            // tei.setCoordinates( GeoUtils.getCoordinatesFromGeometry( geometry ) );
+            tei.setGeometry( geo.get() );
+            tei.setFeatureType( FeatureType.getTypeFromName( geo.get().getGeometryType() ) );
+            tei.setCoordinates(GeoUtils.getCoordinatesFromGeometry( geo.get() ));
         }
 
         return tei;

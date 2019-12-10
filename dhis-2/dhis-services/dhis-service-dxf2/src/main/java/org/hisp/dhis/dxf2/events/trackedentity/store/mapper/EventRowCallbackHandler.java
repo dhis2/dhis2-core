@@ -30,13 +30,19 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.util.DateUtils;
+import org.postgresql.util.PGobject;
+
+import static org.hisp.dhis.dxf2.events.trackedentity.store.mapper.MapperGeoUtils.resolveGeometry;
 
 /**
  * @author Luciano Fiandesio
@@ -77,7 +83,9 @@ public class EventRowCallbackHandler
         event.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "createdatclient" ) ) );
         event.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( "lastupdated" ) ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getDate( "lastupdatedatclient" ) ) );
-        // event.setGeometry( programStageInstance.getGeometry() ); // TODO
+
+        resolveGeometry( rs.getBytes( "geometry" ) ).ifPresent( event::setGeometry );
+
         event.setDeleted( rs.getBoolean( "deleted" ) );
 
         event.setProgram( rs.getString("prguid") );

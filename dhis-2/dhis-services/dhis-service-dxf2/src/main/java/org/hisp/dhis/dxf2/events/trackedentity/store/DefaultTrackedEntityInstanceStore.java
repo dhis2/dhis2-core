@@ -56,11 +56,10 @@ public class DefaultTrackedEntityInstanceStore
 {
     private final static String GET_TEIS_SQL = "SELECT tei.uid as teiuid"
         + ", tei.created, " + "tei.createdatclient, tei.lastupdated, tei.lastupdatedatclient, tei.inactive, "
-        + "       tei.deleted, tei.geometry, tet.uid as type_uid, o.uid   as ou_uid "
+        + "       tei.deleted, ST_AsBinary(tei.geometry) as geometry, tet.uid as type_uid, o.uid as ou_uid "
         + "FROM trackedentityinstance tei "
         + "         join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
         + "         join organisationunit o on tei.organisationunitid = o.organisationunitid where tei.trackedentityinstanceid in (:ids)";
-
 
     private final static String GET_TEI_ATTRIBUTES = "select tei.uid as teiuid"
         + ", teav.trackedentityinstanceid as id, teav.created, teav.lastupdated, "
