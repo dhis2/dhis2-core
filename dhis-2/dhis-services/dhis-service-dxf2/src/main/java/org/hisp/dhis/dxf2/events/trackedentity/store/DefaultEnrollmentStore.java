@@ -55,7 +55,7 @@ public class DefaultEnrollmentStore
     private final static String GET_ENROLLMENT_SQL_BY_TEI = "select tei.uid as teiuid,  pi.programinstanceid, pi.uid, "
         + "       pi.created, pi.createdatclient, pi.lastupdated, pi.lastupdatedatclient, pi.status, "
         + "       pi.enrollmentdate, pi.incidentdate, pi.followup, pi.enddate, pi.completedby, "
-        + "       pi.storedby, pi.deleted, pi.geometry, p.uid as program_uid, "
+        + "       pi.storedby, pi.deleted, ST_AsBinary(pi.geometry) as geometry, p.uid as program_uid, "
         + "       p.featuretype as program_feature_type from programinstance pi "
         + "         join program p on pi.programid = p.programid "
         + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "

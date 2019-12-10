@@ -28,13 +28,15 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.springframework.jdbc.core.RowCallbackHandler;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.jdbc.core.RowCallbackHandler;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Luciano Fiandesio
@@ -43,7 +45,6 @@ public abstract class AbstractMapper<T>
     implements
     RowCallbackHandler
 {
-
     Multimap<String, T> items;
 
     public AbstractMapper()
@@ -67,5 +68,4 @@ public abstract class AbstractMapper<T>
     }
 
     abstract String getKeyColumn();
-
 }

@@ -30,16 +30,11 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.commons.collections.MultiMap;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.util.DateUtils;
-import org.postgresql.util.PGobject;
-import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
  * @author Luciano Fiandesio
@@ -48,7 +43,6 @@ public class RelationshipRowCallbackHandler
     extends
     AbstractMapper<Relationship>
 {
-
     @Override
     public void processRow( ResultSet rs )
         throws SQLException

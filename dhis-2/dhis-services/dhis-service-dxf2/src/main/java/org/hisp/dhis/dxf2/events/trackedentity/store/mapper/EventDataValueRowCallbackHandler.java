@@ -32,7 +32,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectReader;
 import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.util.DateUtils;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -47,6 +51,8 @@ public class EventDataValueRowCallbackHandler implements
 
 {
     private Map<String, List<DataValue>> dataValues;
+
+    private static final Gson gson = new Gson();
 
     public EventDataValueRowCallbackHandler()
     {
@@ -65,24 +71,21 @@ public class EventDataValueRowCallbackHandler implements
     {
         // TODO not sure this is the most efficient way to handle JSONB -> java
         List<DataValue> dataValues = new ArrayList<>();
-        // PGobject
-        PGobject values = (PGobject) rs.getObject( "eventdatavalues" );
-        Gson gson = new Gson();
-        Map json = gson.fromJson( values.getValue(), Map.class  );
 
-        for ( Object o : json.keySet() )
+        PGobject values = (PGobject) rs.getObject( "eventdatavalues" );
+        Map<String, ?> eventDataValuesJson = gson.fromJson( values.getValue(), Map.class  );
+
+        for ( String dataElementUid : eventDataValuesJson.keySet() )
         {
-            Map m = (Map) json.get( o );
-            DataValue value = new DataValue();
-            System.out.println( "created: " + m.get( "created" ) );
-            System.out.println( "lastUpdated: " + m.get( "lastUpdated" ) ); // TODO
-            // value.setCreated( DateUtils.getIso8601NoTz( (Date) m.get( "created" ) ) );
-            // value.setLastUpdated( DateUtils.getIso8601NoTz( (Date) m.get( "lastUpdated" )
-            // ) );
-            value.setValue( (String) m.get( "value" ) );
-            value.setStoredBy( (String) m.get( "storedBy" ) );
-            value.setDataElement( (String) m.get( "dataElement" ) );
-            value.setProvidedElsewhere( (Boolean) m.get( "providedElsewhere" ) );
+            Map jsonValues = (Map) eventDataValuesJson.get( dataElementUid );
+            DataValue value = new DataValue( dataElementUid,
+                (String) jsonValues.get( "value" ) );
+
+            value.setCreated( (String) jsonValues.get( "created" ) );
+            value.setLastUpdated( (String) jsonValues.get( "lastUpdated" ) );
+            value.setStoredBy( (String) jsonValues.get( "storedBy" ) );
+            value.setProvidedElsewhere( (Boolean) jsonValues.get( "providedElsewhere" ) );
+
             dataValues.add( value );
         }
 

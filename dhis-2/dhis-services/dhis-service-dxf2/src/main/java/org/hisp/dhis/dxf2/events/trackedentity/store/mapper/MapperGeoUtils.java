@@ -28,42 +28,37 @@
 
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKBReader;
+import com.vividsolutions.jts.io.WKTReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.util.StringUtils;
 
-import org.hisp.dhis.dxf2.events.event.Note;
-import org.hisp.dhis.util.DateUtils;
+import java.util.Optional;
 
 /**
  * @author Luciano Fiandesio
  */
-public class NoteRowCallbackHandler
-    extends
-    AbstractMapper<Note>
+public class MapperGeoUtils
 {
-    @Override
-    Note getItem( ResultSet rs )
-        throws SQLException
+    private static final Log log = LogFactory.getLog( MapperGeoUtils.class );
+
+    public static Optional<Geometry> resolveGeometry( byte[] geometry )
     {
-        return getNote( rs );
-    }
-
-    @Override
-    String getKeyColumn()
-    {
-        return "key";
-    }
-
-    private Note getNote( ResultSet rs )
-        throws SQLException
-    {
-        Note note = new Note();
-
-        note.setNote( rs.getString( "uid" ) );
-        note.setValue( rs.getString( "commenttext" ) );
-        note.setStoredBy( rs.getString( "creator" ) );
-        note.setStoredDate( DateUtils.getIso8601NoTz( rs.getDate( "created" ) ) );
-
-        return note;
+        if ( StringUtils.isEmpty( geometry ) )
+        {
+            return Optional.empty();
+        }
+        try
+        {
+            return Optional.of( new WKBReader().read( geometry ) );
+        }
+        catch ( ParseException e )
+        {
+            log.error( "An error occurred parsing a geometry field", e );
+        }
+        return Optional.empty();
     }
 }
