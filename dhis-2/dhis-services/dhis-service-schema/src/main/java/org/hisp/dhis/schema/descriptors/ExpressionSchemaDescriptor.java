@@ -1,4 +1,4 @@
-package org.hisp.dhis.email;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,32 +28,31 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Enrico Colasante
  */
 
-public enum EmailResponse
+public class ExpressionSchemaDescriptor
+    implements SchemaDescriptor
 {
-    SENT( "Email sent" ),
-    FAILED( "Failed to send emal" ),
-    ABORTED( "Sending email aborted" ),
-    NOT_CONFIGURED( "Configuration not found" ),
-    HOST_CONFIG_NOT_FOUND( "Host configuration not found" );
+    public static final String SINGULAR = "expression";
 
-    private String responseMessage;
+    public static final String PLURAL = "expressions";
 
-    EmailResponse( String responseMessage )
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        this.responseMessage = responseMessage;
-    }
+        Schema schema = new Schema( Expression.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1000 );
 
-    public String getResponseMessage()
-    {
-        return responseMessage;
-    }
-
-    public void setResponseMessage( String responseMessage )
-    {
-        this.responseMessage = responseMessage;
+        return schema;
     }
 }
