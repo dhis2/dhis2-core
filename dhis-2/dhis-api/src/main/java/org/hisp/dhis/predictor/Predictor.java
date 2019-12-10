@@ -192,6 +192,7 @@ public class Predictor
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE, value = PropertyType.COMPLEX )
     public Expression getGenerator()
     {
         return generator;
