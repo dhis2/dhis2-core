@@ -144,6 +144,7 @@ public class PredictionServiceTest
     private Expression expressionE;
     private Expression expressionF;
     private Expression expressionG;
+    private Expression expressionH;
 
     private PeriodType periodTypeMonthly;
 
@@ -251,11 +252,6 @@ public class PredictionServiceTest
         expressionE = new Expression( "SUM(#{" + dataElementA.getUid() + "})+#{" + dataElementB.getUid() + "}", "descriptionE" );
         expressionF = new Expression( "#{" + dataElementB.getUid() + "}", "descriptionF" );
         expressionG = new Expression( "SUM(#{" + dataElementA.getUid() + "}+#{" + dataElementB.getUid() + "})", "descriptionG" );
-
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionC );
-        expressionService.addExpression( expressionD );
 
         summary = new PredictionSummary();
 
@@ -869,9 +865,6 @@ public class PredictionServiceTest
         Expression expressionX = new Expression( "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionY", MissingValueStrategy.NEVER_SKIP );
         Expression expressionY = new Expression( "10 + SUM( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.NEVER_SKIP );
 
-        expressionService.addExpression( expressionX );
-        expressionService.addExpression( expressionY );
-
         Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictNeverSkipX",
             expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
@@ -927,9 +920,6 @@ public class PredictionServiceTest
         Expression expressionX = new Expression( "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionY", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
         Expression expressionY = new Expression( "10 + SUM( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
 
-        expressionService.addExpression( expressionX );
-        expressionService.addExpression( expressionY );
-
         Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictNeverSkipX",
             expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
@@ -966,9 +956,6 @@ public class PredictionServiceTest
 
         Expression expressionX = new Expression( "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionY", MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING );
         Expression expressionY = new Expression( "10 + SUM( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING );
-
-        expressionService.addExpression( expressionX );
-        expressionService.addExpression( expressionY );
 
         Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictSkipIfAnyValueMissingX",
             expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
@@ -1086,7 +1073,6 @@ public class PredictionServiceTest
         dataValueBatchHandler.flush();
 
         Expression expressionM = new Expression("median(#{" + dataElementA.getUid() + "})", "median" );
-        expressionService.addExpression( expressionM );
 
         Predictor predictorM = createPredictor( dataElementY, defaultCombo, "M", expressionM, null,
             periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );
@@ -1120,11 +1106,6 @@ public class PredictionServiceTest
         Expression expression20 = new Expression("percentileCont(.2,#{" + dataElementA.getUid() + "})", "expression20" );
         Expression expression50 = new Expression("percentileCont(.5,#{" + dataElementA.getUid() + "})", "expression50" );
         Expression expression100 = new Expression("percentileCont(1,#{" + dataElementA.getUid() + "})", "expression100" );
-
-        expressionService.addExpression( expression0 );
-        expressionService.addExpression( expression20 );
-        expressionService.addExpression( expression50 );
-        expressionService.addExpression( expression100 );
 
         Predictor predictor0 = createPredictor( dataElementY, defaultCombo, "0", expression0, null,
             periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );

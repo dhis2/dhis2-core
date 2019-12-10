@@ -64,7 +64,18 @@ public class DefaultSchemaValidator implements SchemaValidator
     }
 
     @Override
+    public List<ErrorReport> validateEmbeddedObject( Object object, Class<?> parentClass )
+    {
+        return validate( object, true, parentClass );
+    }
+
+    @Override
     public List<ErrorReport> validate( Object object, boolean persisted )
+    {
+        return validate( object, persisted, object.getClass() );
+    }
+
+    public List<ErrorReport> validate( Object object, boolean persisted, Class<?> mainErrorClass )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
@@ -80,8 +91,6 @@ public class DefaultSchemaValidator implements SchemaValidator
             return errorReports;
         }
 
-        Class<?> klass = object.getClass();
-
         for ( Property property : schema.getProperties() )
         {
             if ( persisted && !property.isPersisted() )
@@ -95,18 +104,18 @@ public class DefaultSchemaValidator implements SchemaValidator
             {
                 if ( property.isRequired() && !Preheat.isDefaultClass( property.getKlass() ) )
                 {
-                    errorReports.add( new ErrorReport( klass, ErrorCode.E4000, property.getName() )
+                    errorReports.add( new ErrorReport( mainErrorClass, ErrorCode.E4000, property.getName() )
                         .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
                 }
 
                 continue;
             }
 
-            errorReports.addAll( validateString( klass, value, property ) );
-            errorReports.addAll( validateCollection( klass, value, property ) );
-            errorReports.addAll( validateInteger( klass, value, property ) );
-            errorReports.addAll( validateFloat( klass, value, property ) );
-            errorReports.addAll( validateDouble( klass, value, property ) );
+            errorReports.addAll( validateString( mainErrorClass, value, property ) );
+            errorReports.addAll( validateCollection( mainErrorClass, value, property ) );
+            errorReports.addAll( validateInteger( mainErrorClass, value, property ) );
+            errorReports.addAll( validateFloat( mainErrorClass, value, property ) );
+            errorReports.addAll( validateDouble( mainErrorClass, value, property ) );
         }
 
         if ( User.class.isInstance( object ) )
