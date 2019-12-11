@@ -38,7 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * This class represents the axi number associated with any given element.
+ * This class represents the axis number associated with any given element.
  */
 @JacksonXmlRootElement( localName = "axis", namespace = DXF_2_0 )
 public class Axis
