@@ -1,4 +1,4 @@
-package org.hisp.dhis.db.migration.v34;
+package org.hisp.dhis.db.migration.v33;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,9 +49,9 @@ import java.sql.Statement;
 /**
  * @Author Zubair Asghar.
  */
-public class V2_34_6__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
+public class V2_33_21__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_34_6__Convert_push_analysis_job_parameters_into_list_of_string.class );
+    private static final Log log = LogFactory.getLog( V2_33_21__Convert_push_analysis_job_parameters_into_list_of_string.class );
 
     @Override
     public void migrate( Context context ) throws Exception
@@ -74,7 +73,7 @@ public class V2_34_6__Convert_push_analysis_job_parameters_into_list_of_string e
         if ( pushAnalysisUid != null )
         {
             ObjectMapper mapper = new ObjectMapper();
-            mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
+            mapper.enableDefaultTyping();
             mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
             JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
