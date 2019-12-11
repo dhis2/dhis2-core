@@ -29,6 +29,7 @@ package org.hisp.dhis;
  */
 
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
@@ -42,6 +43,10 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.EncodedResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.ActiveProfiles;
@@ -63,6 +68,11 @@ public abstract class IntegrationTestBase
     @Autowired
     protected DbmsManager dbmsManager;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public static boolean dataInit = false;
+
     protected ApplicationContext webApplicationContext;
 
     @Before
@@ -72,6 +82,20 @@ public abstract class IntegrationTestBase
         bindSession();
         executeStartupRoutines();
         setUpTest();
+
+        /*
+        Initialize the database if the test is annotated with @IntegrationTestData
+         */
+        if ( !dataInit )
+        {
+            IntegrationTestData annotation = this.getClass().getAnnotation( IntegrationTestData.class );
+            if ( annotation != null )
+            {
+                ScriptUtils.executeSqlScript( jdbcTemplate.getDataSource().getConnection(),
+                        new EncodedResource( new ClassPathResource( annotation.path() ), StandardCharsets.UTF_8 ) );
+                dataInit = true;
+            }
+        }
     }
 
     @After
