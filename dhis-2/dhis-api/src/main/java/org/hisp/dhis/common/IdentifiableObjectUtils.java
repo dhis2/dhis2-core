@@ -53,6 +53,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.category.CategoryOption.EXTENDED_COMPARISON;
+
 /**
  * @author Lars Helge Overland
  */
@@ -62,7 +64,6 @@ public class IdentifiableObjectUtils
     public static final String SEPARATOR_JOIN = ", ";
 
     public static final DateTimeFormatter LONG_DATE_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss" );
-    public static final DateTimeFormatter MEDIUM_DATE_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd" );
 
     public static final Map<String, String> CLASS_ALIAS = ImmutableMap.<String, String>builder().
         put( "CategoryOption", CategoryOption.class.getSimpleName() ).
@@ -425,5 +426,16 @@ public class IdentifiableObjectUtils
         }
 
         return null;
+    }
+
+    /**
+     * Simply checks if the given object allows extended comparison.
+     *
+     * @param identifiableObject
+     * @return true if extended comparison is allowed, false otherwise.
+     */
+    public static boolean allowExtendedComparison( final IdentifiableObject identifiableObject )
+    {
+        return identifiableObject != null && EXTENDED_COMPARISON.equalsIgnoreCase( identifiableObject.getName() );
     }
 }

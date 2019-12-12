@@ -48,6 +48,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.hisp.dhis.common.DimensionItemType.STATIC;
+
 /**
  * @author Abyot Asalefew
  */
@@ -56,6 +58,7 @@ public class CategoryOption
     extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
+    public static final String EXTENDED_COMPARISON = "EXTENDED_COMPARISON";
 
     private Date startDate;
 
@@ -171,6 +174,13 @@ public class CategoryOption
         }
 
         return false;
+    }
+    
+    public CategoryOption withExtendedComparison()
+    {
+        setName( EXTENDED_COMPARISON );
+        setUid( EXTENDED_COMPARISON );
+        return this;
     }
 
     // -------------------------------------------------------------------------

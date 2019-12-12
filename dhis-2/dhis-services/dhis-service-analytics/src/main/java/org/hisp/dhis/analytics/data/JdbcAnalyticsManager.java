@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -45,6 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.allowExtendedComparison;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
@@ -407,11 +409,20 @@ public class JdbcAnalyticsManager
 
         for ( DimensionalObject dim : params.getDimensions() )
         {
-            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
+            if ( isNotEmpty( dim.getItems() ) && !dim.isFixed() )
             {
                 String col = quoteAlias( dim.getDimensionName() );
 
-                sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+                if ( !includeNullComparison( dim ) )
+                {
+                    sql += sqlHelper.whereAnd() + " " + col + " in ("
+                        + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+                }
+                else
+                {
+                    sql += sqlHelper.whereAnd() + " (" + col + " in ("
+                        + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") or " + col + " is NULL) ";
+                }
             }
         }
 
@@ -513,6 +524,20 @@ public class JdbcAnalyticsManager
         }
 
         return sql;
+    }
+
+    /**
+     * Will check if any dimensional item, related to the given dimensional object, allows
+     * extended comparison.
+     * The only extended comparison supported is a "null" comparison, hence this method handles
+     * this particular case.
+     *
+     * @param dimensionalObject
+     * @return true if the null comparison is enabled, false otherwise.
+     */
+    private boolean includeNullComparison( final DimensionalObject dimensionalObject )
+    {
+        return dimensionalObject.getItems().removeIf( item -> allowExtendedComparison( item ) );
     }
 
     /**

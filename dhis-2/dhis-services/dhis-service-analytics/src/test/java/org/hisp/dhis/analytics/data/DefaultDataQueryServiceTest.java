@@ -30,12 +30,18 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_COMBO;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.allowExtendedComparison;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +56,7 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -65,6 +72,7 @@ import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -529,11 +537,89 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
+    public void getDimensionWithExtendedComparison()
+    {
+        // Given
+        final OrganisationUnit orgUnit1 = new OrganisationUnit( "orgUnit1" );
+        final OrganisationUnit orgUnit2 = new OrganisationUnit( "orgUnit2" );
+        final List<OrganisationUnit> anyOrganisationUnits = Lists.newArrayList( orgUnit1, orgUnit2 );
+        final List<String> anyItemsWithExtendedComparison = Lists.newArrayList( "item1", "item2",
+            "EXTENDED_COMPARISON" );
+        final String anyDynamicDimension = "erqwWErt";
+        final Date anyRelativePeriod = new Date();
+        final I18nFormat i18nFormatStub = new I18nFormat();
+        final boolean allowNull = false;
+        final boolean allowAllPeriodItems = false;
+        final IdScheme anyIdScheme = UID;
+        final DimensionalObject anyDimensionalObject = new BaseDimensionalObject( ITEM_DIM_ID,
+            CATEGORY_OPTION_COMBO, Collections.EMPTY_LIST );
+        final List<IdentifiableObject> dimensionalObjectsStub = createDimensionalObjectList();
+
+        // When
+        when( idObjectManager.get( DataQueryParams.DYNAMIC_DIM_CLASSES, anyIdScheme,
+                anyDynamicDimension ) )
+            .thenReturn( anyDimensionalObject );
+        when( idObjectManager.getByUidOrdered( ArgumentMatchers.any(), anyList() ) )
+            .thenReturn( dimensionalObjectsStub );
+        final DimensionalObject actualDimensionalObject = target.getDimension( anyDynamicDimension,
+            anyItemsWithExtendedComparison, anyRelativePeriod, anyOrganisationUnits, i18nFormatStub, allowNull,
+            allowAllPeriodItems, anyIdScheme );
+
+        // Then
+        assertThat( actualDimensionalObject.getItems(), hasSize( 3 ) );
+        assertThat( actualDimensionalObject.getItems().removeIf( item -> allowExtendedComparison( item ) ),
+            is( true ) );
+    }
+
+    @Test
+    public void getDimensionWithoutExtendedComparison()
+    {
+        // Given
+        final OrganisationUnit orgUnit1 = new OrganisationUnit( "orgUnit1" );
+        final OrganisationUnit orgUnit2 = new OrganisationUnit( "orgUnit2" );
+        final List<OrganisationUnit> anyOrganisationUnits = Lists.newArrayList( orgUnit1, orgUnit2 );
+        final List<String> anyItemsWithExtendedComparison = Lists.newArrayList( "item1", "item2" );
+        final String anyDynamicDimension = "erqwWErt";
+        final Date anyRelativePeriod = new Date();
+        final I18nFormat i18nFormatStub = new I18nFormat();
+        final boolean allowNull = false;
+        final boolean allowAllPeriodItems = false;
+        final IdScheme anyIdScheme = UID;
+        final DimensionalObject anyDimensionalObject = new BaseDimensionalObject( ITEM_DIM_ID,
+            CATEGORY_OPTION_COMBO, Collections.EMPTY_LIST );
+        final List<IdentifiableObject> dimensionalObjectsStub = createDimensionalObjectList();
+
+        // When
+        when( idObjectManager.get( DataQueryParams.DYNAMIC_DIM_CLASSES, anyIdScheme,
+                anyDynamicDimension ) )
+            .thenReturn( anyDimensionalObject );
+        when( idObjectManager.getByUidOrdered( ArgumentMatchers.any(), anyList() ) )
+            .thenReturn( dimensionalObjectsStub );
+        final DimensionalObject actualDimensionalObject = target.getDimension( anyDynamicDimension,
+            anyItemsWithExtendedComparison, anyRelativePeriod, anyOrganisationUnits, i18nFormatStub, allowNull,
+            allowAllPeriodItems, anyIdScheme );
+
+        // Then
+        assertThat( actualDimensionalObject.getItems(), hasSize( 2 ) );
+        assertThat( actualDimensionalObject.getItems().removeIf( item -> allowExtendedComparison( item ) ),
+            is( false ) );
+    }
+
+    @Test
     public void verifyGetOrgUnitsBasedOnUserOrgUnitType()
     {
         testGetUserOrgUnits( UserOrgUnitType.DATA_CAPTURE );
         testGetUserOrgUnits( UserOrgUnitType.TEI_SEARCH );
         testGetUserOrgUnits( UserOrgUnitType.DATA_OUTPUT );
+    }
+
+    private List<IdentifiableObject> createDimensionalObjectList()
+    {
+        final DimensionalItemObject dimensionalItemObject1 = new BaseDimensionalItemObject( "anyUid1" );
+
+        final DimensionalItemObject dimensionalItemObject2 = new BaseDimensionalItemObject( "anyUid2" );
+
+        return Lists.newArrayList( dimensionalItemObject1, dimensionalItemObject2 );
     }
 
     private void testGetUserOrgUnits( UserOrgUnitType userOrgUnitType )

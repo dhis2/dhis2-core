@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
+import static org.hisp.dhis.category.CategoryOption.EXTENDED_COMPARISON;
+import static org.hisp.dhis.common.DimensionItemType.STATIC;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifier;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -519,6 +522,8 @@ public class DefaultDataQueryService
                     ? asList( idObjectManager.getByUidOrdered( itemClass, items ) )
                     : getCanReadItems( user, dimObject );
 
+                enableExtendedComparisonIfPresent( items, dimItems );
+
                 return new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(),
                     dimItems, allItems );
             }
@@ -530,6 +535,23 @@ public class DefaultDataQueryService
         }
 
         throw new IllegalQueryException( "Dimension identifier does not reference any dimension: " + dimension );
+    }
+
+    /**
+     * This method will just add a new "hard-coded" CategoryOption in order to flag
+     * that an extended comparison will be allowed during the query, ONLY IF the
+     * EXTENDED_COMPARISON is present in the list of the given "items".
+     * 
+     * @param items the category option items
+     * @param dimItems the list of current dimensional item objects
+     */
+    private void enableExtendedComparisonIfPresent( final List<String> items,
+        final List<DimensionalItemObject> dimItems )
+    {
+        if ( items != null && items.contains( EXTENDED_COMPARISON ) )
+        {
+            dimItems.add( new CategoryOption().withExtendedComparison() );
+        }
     }
 
     @Override

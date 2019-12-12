@@ -29,16 +29,23 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.analytics.AggregationType.LAST_AVERAGE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
+import static org.hisp.dhis.category.CategoryOption.EXTENDED_COMPARISON;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,6 +62,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.List;
 
 /**
  * @author Luciano Fiandesio
@@ -103,7 +112,7 @@ public class JdbcAnalyticsManagerTest
     {
         DataQueryParams params = createParams( AggregationType.LAST );
 
-        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+        subject.getAggregatedDataValues( params, DATA_VALUE, 20000 );
 
         assertExpectedSql("desc");
     }
@@ -111,17 +120,72 @@ public class JdbcAnalyticsManagerTest
     @Test
     public void verifyQueryGeneratedWhenDataElementHasLastAvgOrgUnitAggregationType()
     {
-        DataQueryParams params = createParams( AggregationType.LAST_AVERAGE_ORG_UNIT );
+        DataQueryParams params = createParams( LAST_AVERAGE_ORG_UNIT );
 
-        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+        subject.getAggregatedDataValues( params, DATA_VALUE, 20000 );
 
         assertExpectedSql("desc");
+    }
+
+    @Test
+    public void verifyQueryGeneratedWhenNullComparisonIsEnabled()
+    {
+        // Given
+        final String aDimension = "adbgfRtz";
+        final DataQueryParams theDataQueryParams = createParamsWithExtendedComparisonFor( aDimension,
+            EXTENDED_COMPARISON );
+
+        // When
+        subject.getAggregatedDataValues( theDataQueryParams, DATA_VALUE, 20000 );
+
+        // Then
+        assertThat( sql.getValue(), containsString(
+            "(ax.\"" + aDimension + "\" in ('anyUid1', 'anyUid2') or ax.\"" + aDimension + "\" is NULL)" ) );
+    }
+
+    @Test
+    public void verifyQueryGeneratedWhenNullComparisonIsNotEnabled()
+    {
+        // Given
+        final String aDimension = "adbgfRtz";
+        final DataQueryParams theDataQueryParams = createParamsWithExtendedComparisonFor( aDimension,
+            "anyUid3" );
+
+        // When
+        subject.getAggregatedDataValues( theDataQueryParams, DATA_VALUE, 20000 );
+
+        // Then
+        assertThat( sql.getValue(), not( containsString(
+            "(ax.\"" + aDimension + "\" in ('anyUid1', 'anyUid2') or ax.\"" + aDimension + "\" is NULL)" ) ) );
+        assertThat( sql.getValue(), containsString(
+            "ax.\"" + aDimension + "\" in ('anyUid1', 'anyUid2', 'anyUid3')" ) );
     }
 
     private void mockRowSet()
     {
         // Simulate no rows
         when( rowSet.next() ).thenReturn( false );
+    }
+
+    private List<? extends DimensionalItemObject> createDimensionalObjectListIncluding( final String dimensionItemName )
+    {
+        final DimensionalItemObject dimensionalItemObject1 = new BaseDimensionalItemObject( "anyUid1" );
+
+        final DimensionalItemObject dimensionalItemObject2 = new BaseDimensionalItemObject( "anyUid2" );
+
+        final DimensionalItemObject dimensionalItemObject3 = new BaseDimensionalItemObject( dimensionItemName );
+
+        return Lists.newArrayList( dimensionalItemObject1, dimensionalItemObject2, dimensionalItemObject3 );
+    }
+
+    private DataQueryParams createParamsWithExtendedComparisonFor( final String dimensionObjectName, final String dimensionItemName )
+    {
+        DataQueryParams dataQueryParams = createParams( LAST_AVERAGE_ORG_UNIT );
+        dataQueryParams = DataQueryParams.newBuilder( dataQueryParams )
+            .addDimension( new BaseDimensionalObject( dimensionObjectName, DimensionType.DATA_X,
+                createDimensionalObjectListIncluding( dimensionItemName ) ) )
+            .build();
+        return dataQueryParams;
     }
 
     private DataQueryParams createParams(AggregationType aggregationType) {
