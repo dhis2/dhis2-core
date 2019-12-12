@@ -92,13 +92,14 @@ build () {
         "$DIR"
 }
 
-build_debian_containers () {
+build_default_container () {
     build "$CORE_IMAGE" "$DEFAULT_TOMCAT_TAG" "debian"
+}
 
+build_debian_containers () {
     for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
         build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "debian"
     done
-
 }
 
 build_alpine_containers () {
@@ -108,8 +109,13 @@ build_alpine_containers () {
 }
 
 main () {
-    build_debian_containers
-    build_alpine_containers
+    build_default_container
+
+    # checks if ONLY_DEFAULT is unset
+    if [ -z ${ONLY_DEFAULT+x} ]; then
+        build_debian_containers
+        build_alpine_containers
+    fi
 }
 
 
