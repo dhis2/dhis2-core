@@ -292,7 +292,7 @@ public class DefaultValidationService
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
             .withOrgUnits( orgUnits )
             .withPeriodTypeXs( new ArrayList<>( periodTypeXMap.values() ) )
-            .withConstantMap( constantService.getCompleteConstantMap() )
+            .withConstantMap( constantService.getConstantMap() )
             .withInitialResults( validationResultService
                 .getValidationResults( parameterOrgUnit,
                     parameters.isIncludeOrgUnitDescendants(), parameters.getRules(), parameters.getPeriods()) )

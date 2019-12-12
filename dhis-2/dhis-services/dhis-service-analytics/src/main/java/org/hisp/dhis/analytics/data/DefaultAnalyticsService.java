@@ -478,7 +478,7 @@ public class DefaultAnalyticsService
 
             List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
 
-            Map<String, Constant> constantMap = constantService.getCompleteConstantMap();
+            Map<String, Constant> constantMap = constantService.getConstantMap();
 
             // -----------------------------------------------------------------
             // Get indicator values

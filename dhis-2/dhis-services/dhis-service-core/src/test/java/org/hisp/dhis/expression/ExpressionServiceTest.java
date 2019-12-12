@@ -461,7 +461,7 @@ public class ExpressionServiceTest
         constantService.saveConstant( constantA );
         constantService.saveConstant( constantB );
 
-        constantMap = constantService.getCompleteConstantMap();
+        constantMap = constantService.getConstantMap();
 
         valueMap = new ImmutableMap.Builder<DimensionalItemObject, Double>()
 

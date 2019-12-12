@@ -274,7 +274,7 @@ public class ExpressionService2Test
         expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() +
             ".REPORTING_RATE}";
 
-        when( constantService.getCompleteConstantMap() ).thenReturn(
+        when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Constant>builder()
                 .put( constantA.getUid(), constantA )
                 .put( constantB.getUid(), constantB )

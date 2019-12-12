@@ -107,24 +107,10 @@ public class DefaultConstantService
     {
         return constantStore.getAll();
     }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Map<String, Double> getConstantMap()
-    {
-        Map<String, Double> map = new HashMap<>();
-
-        for ( Constant constant : getAllConstants() )
-        {
-            map.put( constant.getUid(), constant.getValue() );
-        }
-
-        return map;
-    }
 
     @Override
     @Transactional( readOnly = true )
-    public Map<String, Constant> getCompleteConstantMap()
+    public Map<String, Constant> getConstantMap()
     {
         Map<String, Constant> map = new HashMap<>();
 

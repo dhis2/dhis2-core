@@ -284,7 +284,7 @@ public class DefaultPredictionService
         {
             expressionService.getExpressionDimensionalItemObjects( skipTest.getExpression(), PREDICTOR_SKIP_TEST, sampleItems, new HashSet<>() );
         }
-        Map<String, Constant> constantMap = constantService.getCompleteConstantMap();
+        Map<String, Constant> constantMap = constantService.getConstantMap();
         Set<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );

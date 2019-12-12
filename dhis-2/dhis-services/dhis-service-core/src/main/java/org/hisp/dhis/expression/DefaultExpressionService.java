@@ -302,7 +302,7 @@ public class DefaultExpressionService
     {
         if ( indicators != null && !indicators.isEmpty() )
         {
-            Map<String, Constant> constantMap = constantService.getCompleteConstantMap();
+            Map<String, Constant> constantMap = constantService.getConstantMap();
 
             Map<String, Integer> orgUnitCountMap = getIndicatorOrgUnitGroups( indicators ).stream()
                 .collect(
@@ -348,7 +348,7 @@ public class DefaultExpressionService
 
         CommonExpressionVisitor visitor = newVisitor( parseType,
             FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS, DEFAULT_SAMPLE_PERIODS,
-            constantService.getCompleteConstantMap() );
+            constantService.getConstantMap() );
 
         visit( expression, parseType.getDataType(), visitor, false );
 
@@ -458,7 +458,7 @@ public class DefaultExpressionService
 
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION,
             FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS, DEFAULT_SAMPLE_PERIODS,
-            constantService.getCompleteConstantMap() );
+            constantService.getConstantMap() );
 
         visit( expression, parseType.getDataType(), visitor, true );
 
@@ -606,7 +606,7 @@ public class DefaultExpressionService
 
         CommonExpressionVisitor visitor = newVisitor( parseType,
             FUNCTION_GET_IDS, ITEM_GET_IDS, DEFAULT_SAMPLE_PERIODS,
-            constantService.getCompleteConstantMap() );
+            constantService.getConstantMap() );
 
         visitor.setItemIds( itemIds );
         visitor.setSampleItemIds( sampleItemIds );
