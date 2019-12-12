@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -74,7 +73,7 @@ public class V2_32_28__Convert_push_analysis_job_parameters_into_list_of_string 
         if ( pushAnalysisUid != null )
         {
             ObjectMapper mapper = new ObjectMapper();
-            mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
+            mapper.enableDefaultTyping();
             mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
             JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
