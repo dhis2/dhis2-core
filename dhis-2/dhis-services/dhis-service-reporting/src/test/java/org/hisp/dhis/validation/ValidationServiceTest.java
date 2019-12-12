@@ -29,6 +29,7 @@ package org.hisp.dhis.validation;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -1164,25 +1165,28 @@ public class ValidationServiceTest
     {
         useDataValue( dataElementA, periodB, sourceA, "1" );
 
-        useDataValue( dataElementA, periodC, sourceA, "2" );
-        useDataValue( dataElementB, periodC, sourceA, "3" );
+        useDataValue( dataElementA, periodY, sourceA, "2" );
+        useDataValue( dataElementB, periodY, sourceA, "3" );
 
-        Expression expressionLeft = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft", NEVER_SKIP );
-        Expression expressionRight = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight", NEVER_SKIP );
+        Expression expressionLeft = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft", NEVER_SKIP );
+        Expression expressionRight = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight", NEVER_SKIP );
 
-        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight,
+            periodTypeMonthly );
 
         validationRuleService.saveValidationRule( validationRule );
 
         Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder(
-            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
+            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodY ) )
             .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
         reference.add( new ValidationResult( validationRule, periodA, sourceA, defaultCombo, 0.0, 0.0, dayInPeriodA ) );
         reference.add( new ValidationResult( validationRule, periodB, sourceA, defaultCombo, 1.0, 1.0, dayInPeriodB ) );
-        reference.add( new ValidationResult( validationRule, periodC, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodC ) );
+        reference.add( new ValidationResult( validationRule, periodY, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodY ) );
 
         assertResultsEquals( reference, results );
     }
@@ -1192,24 +1196,29 @@ public class ValidationServiceTest
     {
         useDataValue( dataElementA, periodB, sourceA, "1" );
 
-        useDataValue( dataElementA, periodC, sourceA, "2" );
-        useDataValue( dataElementB, periodC, sourceA, "3" );
+        useDataValue( dataElementA, periodY, sourceA, "2" );
+        useDataValue( dataElementB, periodY, sourceA, "3" );
 
-        Expression expressionLeft = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft", SKIP_IF_ALL_VALUES_MISSING );
-        Expression expressionRight = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight", SKIP_IF_ALL_VALUES_MISSING );
+        Expression expressionLeft = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft",
+            SKIP_IF_ALL_VALUES_MISSING );
+        Expression expressionRight = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight",
+            SKIP_IF_ALL_VALUES_MISSING );
 
-        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight,
+            periodTypeMonthly );
 
         validationRuleService.saveValidationRule( validationRule );
 
         Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder(
-            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
+            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodY ) )
             .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
         reference.add( new ValidationResult( validationRule, periodB, sourceA, defaultCombo, 1.0, 1.0, dayInPeriodB ) );
-        reference.add( new ValidationResult( validationRule, periodC, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodC ) );
+        reference.add( new ValidationResult( validationRule, periodY, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodY ) );
 
         assertResultsEquals( reference, results );
     }
@@ -1219,23 +1228,28 @@ public class ValidationServiceTest
     {
         useDataValue( dataElementA, periodB, sourceA, "1" );
 
-        useDataValue( dataElementA, periodC, sourceA, "2" );
-        useDataValue( dataElementB, periodC, sourceA, "3" );
+        useDataValue( dataElementA, periodY, sourceA, "2" );
+        useDataValue( dataElementB, periodY, sourceA, "3" );
 
-        Expression expressionLeft = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft", SKIP_IF_ANY_VALUE_MISSING );
-        Expression expressionRight = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight", SKIP_IF_ANY_VALUE_MISSING );
+        Expression expressionLeft = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft",
+            SKIP_IF_ANY_VALUE_MISSING );
+        Expression expressionRight = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight",
+            SKIP_IF_ANY_VALUE_MISSING );
 
-        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight,
+            periodTypeMonthly );
 
         validationRuleService.saveValidationRule( validationRule );
 
         Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder(
-            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
+            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodY ) )
             .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( new ValidationResult( validationRule, periodC, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodC ) );
+        reference.add( new ValidationResult( validationRule, periodY, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodY ) );
 
         assertResultsEquals( reference, results );
     }
