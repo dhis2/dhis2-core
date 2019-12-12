@@ -542,15 +542,21 @@ public class DefaultDataQueryService
      * that an extended comparison will be allowed during the query, ONLY IF the
      * EXTENDED_COMPARISON is present in the list of the given "items".
      * 
+     * IMPORTANT: This method will only trigger if the
+     * {@link SettingKey#SUPPORT_EXTENDED_CATEGORY_OPTION} is enabled.
+     * 
      * @param items the category option items
      * @param dimItems the list of current dimensional item objects
      */
     private void enableExtendedComparisonIfPresent( final List<String> items,
         final List<DimensionalItemObject> dimItems )
     {
-        if ( items != null && items.contains( EXTENDED_COMPARISON ) )
+        if ( systemSettingManager.isExtendedCategoryOptionEnabled() )
         {
-            dimItems.add( new CategoryOption().withExtendedComparison() );
+            if ( items != null && items.contains( EXTENDED_COMPARISON ) )
+            {
+                dimItems.add( new CategoryOption().withExtendedComparison() );
+            }
         }
     }
 

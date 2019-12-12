@@ -561,6 +561,7 @@ public class DefaultDataQueryServiceTest
             .thenReturn( anyDimensionalObject );
         when( idObjectManager.getByUidOrdered( ArgumentMatchers.any(), anyList() ) )
             .thenReturn( dimensionalObjectsStub );
+        when( systemSettingManager.isExtendedCategoryOptionEnabled() ).thenReturn( true );
         final DimensionalObject actualDimensionalObject = target.getDimension( anyDynamicDimension,
             anyItemsWithExtendedComparison, anyRelativePeriod, anyOrganisationUnits, i18nFormatStub, allowNull,
             allowAllPeriodItems, anyIdScheme );
@@ -595,6 +596,7 @@ public class DefaultDataQueryServiceTest
             .thenReturn( anyDimensionalObject );
         when( idObjectManager.getByUidOrdered( ArgumentMatchers.any(), anyList() ) )
             .thenReturn( dimensionalObjectsStub );
+        when( systemSettingManager.isExtendedCategoryOptionEnabled() ).thenReturn( true );
         final DimensionalObject actualDimensionalObject = target.getDimension( anyDynamicDimension,
             anyItemsWithExtendedComparison, anyRelativePeriod, anyOrganisationUnits, i18nFormatStub, allowNull,
             allowAllPeriodItems, anyIdScheme );

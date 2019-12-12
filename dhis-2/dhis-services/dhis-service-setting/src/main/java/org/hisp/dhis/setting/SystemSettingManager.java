@@ -137,4 +137,6 @@ public interface SystemSettingManager
     Integer credentialsExpires();
 
     boolean isConfidential( String name );
+
+    boolean isExtendedCategoryOptionEnabled ();
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.setting;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.setting.SettingKey.SUPPORT_EXTENDED_CATEGORY_OPTION;
 
 import java.io.Serializable;
 import java.util.*;
@@ -403,5 +404,11 @@ public class DefaultSystemSettingManager
     public boolean isConfidential( String name )
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+    }
+
+    @Override
+    public boolean isExtendedCategoryOptionEnabled()
+    {
+        return (Boolean) getSystemSetting( SUPPORT_EXTENDED_CATEGORY_OPTION );
     }
 }
