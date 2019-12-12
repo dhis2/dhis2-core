@@ -172,11 +172,14 @@ public class ValidationUtilsTest
         de.setValueType( ValueType.BOOLEAN );
 
         assertNull( dataValueIsValid( "true", de ) );
+        assertNull( dataValueIsValid( "false", de ) );
+        assertNull( dataValueIsValid( "FALSE", de ) );
         assertNotNull( dataValueIsValid( "yes", de ) );
 
         de.setValueType( ValueType.TRUE_ONLY );
 
         assertNull( dataValueIsValid( "true", de ) );
+        assertNull( dataValueIsValid( "TRUE", de ) );
         assertNotNull( dataValueIsValid( "false", de ) );
 
         de.setValueType( ValueType.DATE );
@@ -224,6 +227,7 @@ public class ValidationUtilsTest
         assertEquals( "true", normalizeBoolean( "1", ValueType.BOOLEAN ) );
         assertEquals( "true", normalizeBoolean( "T", ValueType.BOOLEAN ) );
         assertEquals( "true", normalizeBoolean( "true", ValueType.BOOLEAN ) );
+        assertEquals( "true", normalizeBoolean( "TRUE", ValueType.BOOLEAN ) );
         assertEquals( "true", normalizeBoolean( "t", ValueType.BOOLEAN ) );
 
         assertEquals( "test", normalizeBoolean( "test", ValueType.TEXT ) );
@@ -231,6 +235,7 @@ public class ValidationUtilsTest
         assertEquals( "false", normalizeBoolean( "0", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "f", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "False", ValueType.BOOLEAN ) );
+        assertEquals( "false", normalizeBoolean( "FALSE", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "F", ValueType.BOOLEAN ) );
     }
 }

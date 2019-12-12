@@ -78,7 +78,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -264,10 +263,6 @@ public class AnalyticsValidationServiceTest
         expressionASliding.setSlidingWindow( true );
         expressionDSliding.setSlidingWindow( true );
         expressionISliding.setSlidingWindow( true );
-
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionD );
-        expressionService.addExpression( expressionI );
 
         validationRuleA = createValidationRule( "A", not_equal_to, expressionA, expressionA, periodTypeMonthly ); // A - ProgramTrackedEntityAttribute
         validationRuleD = createValidationRule( "D", not_equal_to, expressionD, expressionD, periodTypeMonthly ); // D - ProgramDataElement

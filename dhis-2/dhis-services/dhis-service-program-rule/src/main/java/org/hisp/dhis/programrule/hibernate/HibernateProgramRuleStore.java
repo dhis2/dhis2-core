@@ -30,7 +30,6 @@ package org.hisp.dhis.programrule.hibernate;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;

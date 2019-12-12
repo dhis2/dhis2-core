@@ -57,7 +57,7 @@ public abstract class VectorFunction
     {
         // ItemIds in all but last expr (if any) are from current period.
 
-        for ( int i = 0; i < ctx.expr().size() - 2; i++ )
+        for ( int i = 0; i < ctx.expr().size() - 1; i++ )
         {
             visitor.visitExpr( ctx.expr().get( i ) );
         }
@@ -81,7 +81,7 @@ public abstract class VectorFunction
 
         // All but last expr (if any) are from current period.
 
-        for ( int i = 0; i < ctx.expr().size() - 2; i++ )
+        for ( int i = 0; i < ctx.expr().size() - 1; i++ )
         {
             args.add( castDouble( visitor.visitExpr( ctx.expr().get( i ) ) ) );
         }

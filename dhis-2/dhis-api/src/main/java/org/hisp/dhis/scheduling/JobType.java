@@ -29,6 +29,9 @@ package org.hisp.dhis.scheduling;
  */
 
 import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
+
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
@@ -49,43 +52,35 @@ import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJob
  */
 public enum JobType
 {
-    DATA_STATISTICS( "dataStatisticsJob", false, null, null ),
-    DATA_INTEGRITY( "dataIntegrityJob", true, null, null ),
-    RESOURCE_TABLE( "resourceTableJob", true, null, null ),
+    DATA_STATISTICS( "dataStatisticsJob", false ),
+    DATA_INTEGRITY( "dataIntegrityJob", true ),
+    RESOURCE_TABLE( "resourceTableJob", true ),
     ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, ImmutableMap.of(
-        "skipTableTypes", "/api/analytics/tableTypes"
-    ) ),
-    DATA_SYNC( "dataSyncJob", true, null, null ),
-    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true,
-        TrackerProgramsDataSynchronizationJobParameters.class, null ),
-    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true,
-        EventProgramsDataSynchronizationJobParameters.class, null ),
-    FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false, null, null ),
-    IMAGE_PROCESSING( "imageProcessingJob", false, null, null ),
+        "skipTableTypes", "/api/analytics/tableTypes"  ) ),
+    DATA_SYNC( "dataSyncJob", true ),
+    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, TrackerProgramsDataSynchronizationJobParameters.class, null ),
+    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, EventProgramsDataSynchronizationJobParameters.class, null ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false ),
+    IMAGE_PROCESSING( "imageProcessingJob", false ),
     META_DATA_SYNC( "metadataSyncJob", true, MetadataSyncJobParameters.class, null ),
     SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),
-    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
-    PROGRAM_NOTIFICATIONS( "programNotificationsJob", true, null, null ),
-    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false, null, null ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false, null, null ),
+    SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true ),
+    PROGRAM_NOTIFICATIONS( "programNotificationsJob", true ),
+    VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false ),
     MONITORING( "monitoringJob", true, MonitoringJobParameters.class, ImmutableMap.of(
-        "relativePeriods", "/api/periodTypes/relativePeriodTypes",
-        "validationRuleGroups", "/api/validationRuleGroups"
-    ) ),
+        "relativePeriods", "/api/periodTypes/relativePeriodTypes", "validationRuleGroups", "/api/validationRuleGroups" ) ),
     PUSH_ANALYSIS( "pushAnalysisJob", true, PushAnalysisJobParameters.class, ImmutableMap.of(
-        "pushAnalysis", "/api/pushAnalysis"
-    ) ),
+        "pushAnalysis", "/api/pushAnalysis"  ) ),
     PREDICTOR( "predictorJob", true, PredictorJobParameters.class, ImmutableMap.of(
-        "predictors", "/api/predictors",
-        "predictorGroups", "/api/predictorGroups"
-    ) ),
-    DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
-    REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
+        "predictors", "/api/predictors", "predictorGroups", "/api/predictorGroups" ) ),
+    DATA_SET_NOTIFICATION( "dataSetNotificationJob", false ),
+    REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false ),
 
-    // For tests
+    // Testing purposes
     MOCK( "mockJob", false, MockJobParameters.class, null ),
 
-    // To satifisfy code that used the old enum TaskCategory
+    // Deprecated, present to satisfy code using the old enumeration TaskCategory
     DATAVALUE_IMPORT( null, false, null, null ),
     ANALYTICSTABLE_UPDATE( null, false, null, null ),
     METADATA_IMPORT( null, false, null, null ),
@@ -100,18 +95,23 @@ public enum JobType
 
     private final String key;
 
-    private final Class<? extends JobParameters> jobParameters;
-
     private final boolean configurable;
 
-    ImmutableMap<String, String> relativeApiElements;
+    private final Class<? extends JobParameters> jobParameters;
+
+    private final Map<String, String> relativeApiElements;
+
+    JobType( String key, boolean configurable )
+    {
+        this( key, configurable, null, null );
+    }
 
     JobType( String key, boolean configurable, Class<? extends JobParameters> jobParameters,
-        ImmutableMap<String, String> relativeApiElements )
+        Map<String, String> relativeApiElements )
     {
         this.key = key;
-        this.jobParameters = jobParameters;
         this.configurable = configurable;
+        this.jobParameters = jobParameters;
         this.relativeApiElements = relativeApiElements;
     }
 
@@ -130,7 +130,7 @@ public enum JobType
         return configurable;
     }
 
-    public ImmutableMap<String, String> getRelativeApiElements()
+    public Map<String, String> getRelativeApiElements()
     {
         return relativeApiElements;
     }

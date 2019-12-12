@@ -200,8 +200,6 @@ public abstract class AbstractTrackedEntityInstanceService
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
-        List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
-
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeRepository.getTrackedEntityAttributesByTrackedEntityTypes();
 
         Map<Program, Set<TrackedEntityAttribute>> teaByProgram = trackedEntityAttributeRepository.getTrackedEntityAttributesByProgram();
@@ -1259,17 +1257,18 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             if ( StringUtils.isNotEmpty( attribute.getValue() ) )
             {
-                //Cache was populated in prepareCaches, so I should hit the cache
+                // Cache was populated in prepareCaches, so I should hit the cache
                 TrackedEntityAttribute daoEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
                     attribute.getAttribute() );
-                TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
-                    .get( daoEntityAttribute.getUid() );
 
                 if ( daoEntityAttribute == null )
                 {
                     importConflicts.add( new ImportConflict( "Attribute.attribute", "Invalid attribute " + attribute.getAttribute() ) );
                     continue;
                 }
+
+                TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
+                    .get( daoEntityAttribute.getUid() );
 
                 if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
                 {
@@ -1441,8 +1440,6 @@ public abstract class AbstractTrackedEntityInstanceService
             return null;
         }
 
-        Set<TrackedEntityAttribute> readableAttributesCopy = new HashSet<>( readableAttributes );
-
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( daoTrackedEntityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( daoTrackedEntityInstance.getOrganisationUnit().getUid() );
@@ -1502,17 +1499,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         }
 
-        if ( params.isDataSynchronizationQuery() )
-        {
-            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( Enrollment::getProgram ).collect( Collectors.toList() );
-
-            IdSchemes idSchemes = new IdSchemes();
-            for ( String programUid : programs )
-            {
-                Program program = getProgram( idSchemes, programUid );
-                readableAttributesCopy.addAll( program.getTrackedEntityAttributes() );
-            }
-        }
+        Set<TrackedEntityAttribute> readableAttributesCopy = filterOutSkipSyncAttributesIfApplies( params,
+            trackedEntityInstance, readableAttributes );
 
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {
@@ -1535,5 +1523,39 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return trackedEntityInstance;
+    }
+
+    private Set<TrackedEntityAttribute> filterOutSkipSyncAttributesIfApplies( TrackedEntityInstanceParams params,
+        TrackedEntityInstance trackedEntityInstance, Set<TrackedEntityAttribute> readableAttributes )
+    {
+        Set<TrackedEntityAttribute> readableAttributesCopy;
+
+        if ( params.isDataSynchronizationQuery() )
+        {
+            List<String> programs = trackedEntityInstance.getEnrollments().stream()
+                .map( Enrollment::getProgram )
+                .collect( Collectors.toList() );
+
+            readableAttributesCopy = readableAttributes.stream()
+                .filter( att -> !att.getSkipSynchronization() )
+                .collect( Collectors.toSet() ) ;
+
+            IdSchemes idSchemes = new IdSchemes();
+            for ( String programUid : programs )
+            {
+                Program program = getProgram( idSchemes, programUid );
+
+                readableAttributesCopy.addAll(
+                    program.getTrackedEntityAttributes().stream()
+                        .filter( att -> !att.getSkipSynchronization() )
+                        .collect( Collectors.toSet() ) );
+            }
+        }
+        else
+        {
+            readableAttributesCopy = new HashSet<>( readableAttributes );
+        }
+
+        return readableAttributesCopy;
     }
 }

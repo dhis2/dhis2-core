@@ -31,10 +31,25 @@ package org.hisp.dhis.analytics.data;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
-import org.hisp.dhis.category.*;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -49,7 +64,11 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -62,11 +81,15 @@ import org.hisp.dhis.validation.ValidationRuleStore;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.junit.Assert.assertEquals;
@@ -138,7 +161,8 @@ public class AnalyticsServiceTest
     @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    @Resource( name = "readOnlyJdbcTemplate" )
+    @Autowired
+    @Qualifier( "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
     // Database (value, data element, period)
@@ -372,34 +396,38 @@ public class AnalyticsServiceTest
 
         Expression expressionVRA = new Expression( "expressionA", "descriptionA" );
         Expression expressionVRB = new Expression( "expressionB", "descriptionB" );
+        Expression expressionVRC = new Expression( "expressionC", "descriptionC" );
+        Expression expressionVRD = new Expression( "expressionD", "descriptionD" );
         expressionService.addExpression( expressionVRA );
         expressionService.addExpression( expressionVRB );
+        expressionService.addExpression( expressionVRC );
+        expressionService.addExpression( expressionVRD );
 
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionVRA, expressionVRB, periodType );
         validationRuleA.setUid( "a234567vruA" );
 
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRA, expressionVRB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRC, expressionVRD, periodType );
         validationRuleB.setUid( "a234567vruB" );
         validationRuleStore.save( validationRuleA );
         validationRuleStore.save( validationRuleB );
 
         Date today = new Date();
-        ValidationResult validationResultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0,2.0, 3 );
-        validationResultBA.setCreated(today);
-        ValidationResult validationResultBB = new ValidationResult( validationRuleA, peJan, ouB, optionComboB, 1.0,2.0, 3 );
-        validationResultBB.setCreated(today);
-        ValidationResult validationResultAA = new ValidationResult( validationRuleA, peJan, ouA, optionComboA, 1.0,2.0, 3 );
-        validationResultAA.setCreated(today);
-        ValidationResult validationResultAB = new ValidationResult( validationRuleA, peJan, ouA, optionComboB, 1.0,2.0, 3 );
-        validationResultAB.setCreated(today);
+        ValidationResult validationResultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0, 2.0, 3 );
+        validationResultBA.setCreated( today );
+        ValidationResult validationResultBB = new ValidationResult( validationRuleA, peJan, ouB, optionComboB, 1.0, 2.0, 3 );
+        validationResultBB.setCreated( today );
+        ValidationResult validationResultAA = new ValidationResult( validationRuleA, peJan, ouA, optionComboA, 1.0, 2.0, 3 );
+        validationResultAA.setCreated( today );
+        ValidationResult validationResultAB = new ValidationResult( validationRuleA, peJan, ouA, optionComboB, 1.0, 2.0, 3 );
+        validationResultAB.setCreated( today );
 
-        ValidationResult validationResultBAB = new ValidationResult( validationRuleB, peJan, ouA, optionComboB, 1.0,2.0, 3 );
-        validationResultBAB.setCreated(today);
-        ValidationResult validationResultBBB = new ValidationResult( validationRuleB, peFeb, ouB, optionComboB, 1.0,2.0, 3 );
-        validationResultBBB.setCreated(today);
-        ValidationResult validationResultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0,2.0, 3 );
+        ValidationResult validationResultBAB = new ValidationResult( validationRuleB, peJan, ouA, optionComboB, 1.0, 2.0, 3 );
+        validationResultBAB.setCreated( today );
+        ValidationResult validationResultBBB = new ValidationResult( validationRuleB, peFeb, ouB, optionComboB, 1.0, 2.0, 3 );
+        validationResultBBB.setCreated( today );
+        ValidationResult validationResultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0, 2.0, 3 );
 
         validationResultStore.save( validationResultAA );
         validationResultStore.save( validationResultAB );
@@ -624,7 +652,7 @@ public class AnalyticsServiceTest
         inE_deA_reRateA_2017_Q01_keyValue.put( "inabcdefghE-ouabcdefghD-2017Q1", 99.6 );
 
         Map<String, Double> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
-        inF_deA_reRateB_2017_Q01_keyValue.put( "inabcdefghF-ouabcdefghD-2017Q1" , 199.4 );
+        inF_deA_reRateB_2017_Q01_keyValue.put( "inabcdefghF-ouabcdefghD-2017Q1", 199.4 );
 
         Map<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
         deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233.0 );
@@ -695,7 +723,7 @@ public class AnalyticsServiceTest
     {
         List<Map<String, Object>> resultMap = jdbcTemplate.queryForList( "select * from analytics_validationresult_2017;" );
 
-        assertEquals(7, resultMap.size());
+        assertEquals( 7, resultMap.size() );
     }
 
     @Test
@@ -767,7 +795,7 @@ public class AnalyticsServiceTest
      */
     private void parseDataValues( List<String[]> lines )
     {
-        for( String[] line : lines)
+        for ( String[] line : lines )
         {
             DataElement dataElement = dataElementService.getDataElement( line[0] );
             Period period = periodService.getPeriod( line[1] );

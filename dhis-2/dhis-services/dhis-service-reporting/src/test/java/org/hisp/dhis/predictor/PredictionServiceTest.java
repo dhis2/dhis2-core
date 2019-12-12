@@ -262,11 +262,6 @@ public class PredictionServiceTest
         expressionF = new Expression( "#{" + dataElementB.getUid() + "}", "descriptionF" );
         expressionG = new Expression( "sum(#{" + dataElementA.getUid() + "}+#{" + dataElementB.getUid() + "})", "descriptionG" );
 
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionC );
-        expressionService.addExpression( expressionD );
-
         summary = new PredictionSummary();
 
         dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
@@ -932,10 +927,6 @@ public class PredictionServiceTest
         Expression expressionY = new Expression( "10 + sum( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionY", MissingValueStrategy.NEVER_SKIP );
         Expression expressionZ = new Expression( "10 + sum( #{" + dataElementA.getUid() + "} + firstNonNull(#{" + dataElementB.getUid() + "},0) )", "descriptionZ", MissingValueStrategy.NEVER_SKIP );
 
-        expressionService.addExpression( expressionX );
-        expressionService.addExpression( expressionY );
-        expressionService.addExpression( expressionZ );
-
         Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictNeverSkipX",
             expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
@@ -1012,10 +1003,6 @@ public class PredictionServiceTest
         Expression expressionY = new Expression( "10 + sum( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
         Expression expressionZ = new Expression( "10 + sum( #{" + dataElementA.getUid() + "} + firstNonNull(#{" + dataElementB.getUid() + "},0) )", "descriptionZ", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
 
-        expressionService.addExpression( expressionX );
-        expressionService.addExpression( expressionY );
-        expressionService.addExpression( expressionZ );
-
         Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictNeverSkipX",
             expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
 
@@ -1063,10 +1050,6 @@ public class PredictionServiceTest
         Expression expressionX = new Expression( "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionY", MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING );
         Expression expressionY = new Expression( "10 + sum( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING );
         Expression expressionZ = new Expression( "10 + sum( #{" + dataElementA.getUid() + "} + firstNonNull(#{" + dataElementB.getUid() + "},0) )", "descriptionZ", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
-
-        expressionService.addExpression( expressionX );
-        expressionService.addExpression( expressionY );
-        expressionService.addExpression( expressionZ );
 
         Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictSkipIfAnyValueMissingX",
             expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
@@ -1193,7 +1176,6 @@ public class PredictionServiceTest
         dataValueBatchHandler.flush();
 
         Expression expressionM = new Expression("median(#{" + dataElementA.getUid() + "})", "median" );
-        expressionService.addExpression( expressionM );
 
         Predictor predictorM = createPredictor( dataElementY, defaultCombo, "M", expressionM, null,
             periodTypeMonthly, orgUnitLevel1, 5, 0, 0 );
@@ -1209,6 +1191,42 @@ public class PredictionServiceTest
         assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
         assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
         assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
+    }
+
+    @Test
+    public void testPredictPercentileCont()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 1 ), sourceA, 10 );
+        useDataValue( dataElementA, makeMonth( 2001, 2 ), sourceA, 30 );
+        useDataValue( dataElementA, makeMonth( 2001, 3 ), sourceA, 20 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expressionP25 = new Expression("percentileCont(.25, #{" + dataElementA.getUid() + "})", "percentileCont25" );
+        Expression expressionP50 = new Expression("percentileCont(.50, #{" + dataElementA.getUid() + "})", "percentileCont20" );
+
+        Predictor predictorP25 = createPredictor( dataElementY, defaultCombo, "2", expressionP25, null,
+            periodTypeMonthly, orgUnitLevel1, 3, 0, 0 );
+
+        Predictor predictorP50 = createPredictor( dataElementZ, defaultCombo, "5", expressionP50, null,
+            periodTypeMonthly, orgUnitLevel1, 3, 0, 0 );
+
+        predictorService.addPredictor( predictorP25 );
+        predictorService.addPredictor( predictorP50 );
+
+        predictionService.predict( predictorP25, monthStart( 2001, 4 ), monthStart( 2001, 6 ), summary );
+
+        assertEquals( "Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "15", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 25th percentile of 10, 20, 30
+        assertEquals( "23", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 25th percentile of 20, 30
+
+        predictionService.predict( predictorP50, monthStart( 2001, 4 ), monthStart( 2001, 6 ), summary );
+
+        assertEquals( "Pred 2 Ins 4 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "20", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 50th percentile of 10, 20, 30
+        assertEquals( "25", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 50th percentile of 20, 30
     }
 
     @Test

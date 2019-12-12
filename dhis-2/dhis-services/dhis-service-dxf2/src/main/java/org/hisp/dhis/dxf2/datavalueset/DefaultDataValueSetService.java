@@ -853,7 +853,7 @@ public class DefaultDataValueSetService
 
         if ( dataSet == null && strictDataElements )
         {
-            summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid datset is required" ) );
+            summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid dataset is required" ) );
             summary.setStatus( ImportStatus.ERROR );
         }
 

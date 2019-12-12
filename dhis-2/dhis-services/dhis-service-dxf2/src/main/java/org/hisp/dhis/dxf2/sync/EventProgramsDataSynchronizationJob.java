@@ -77,7 +77,7 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration ) throws Exception
+    public void execute( JobConfiguration jobConfiguration )
     {
         try
         {

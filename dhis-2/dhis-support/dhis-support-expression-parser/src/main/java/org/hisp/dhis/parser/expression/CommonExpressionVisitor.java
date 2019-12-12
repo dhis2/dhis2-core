@@ -43,7 +43,6 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
-import org.hisp.dhis.parser.expression.function.FunctionIf;
 import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;

@@ -34,10 +34,11 @@ package org.hisp.dhis.email;
 
 public enum EmailResponse
 {
-    SENT( "success" ),
-    FAILED( "failed" ),
-    ABORTED( "aborted" ),
-    NOT_CONFIGURED( "no configuration found" );
+    SENT( "Email sent" ),
+    FAILED( "Failed to send emal" ),
+    ABORTED( "Sending email aborted" ),
+    NOT_CONFIGURED( "Configuration not found" ),
+    HOST_CONFIG_NOT_FOUND( "Host configuration not found" );
 
     private String responseMessage;
 

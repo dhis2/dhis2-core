@@ -44,10 +44,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryValidator;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -69,11 +66,15 @@ public class DefaultQueryValidator
 
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
+    private final NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
+
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager, NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
     {
         checkNotNull( systemSettingManager );
+        checkNotNull( nestedIndicatorCyclicDependencyInspector );
 
         this.systemSettingManager = systemSettingManager;
+        this.nestedIndicatorCyclicDependencyInspector = nestedIndicatorCyclicDependencyInspector;
     }
 
     // -------------------------------------------------------------------------
@@ -173,6 +174,18 @@ public class DefaultQueryValidator
         if ( !nonAggDataElements.isEmpty() )
         {
             violation = "Data elements must be of a value and aggregation type that allow aggregation: " + getUids( nonAggDataElements );
+        }
+
+        if ( !params.getIndicators().isEmpty() )
+        {
+            try
+            {
+                nestedIndicatorCyclicDependencyInspector.inspect( params.getIndicators() );
+            }
+            catch ( CyclicReferenceException cre )
+            {
+                violation = cre.getMessage();
+            }
         }
 
         if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )

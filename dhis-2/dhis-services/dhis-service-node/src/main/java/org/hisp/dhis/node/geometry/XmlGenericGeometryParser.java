@@ -1,4 +1,4 @@
-package org.hisp.dhis.period;
+package org.hisp.dhis.node.geometry;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,30 +28,41 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections4.Predicate;
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import java.util.Calendar;
-import java.util.Date;
-
-public class PastPeriodPredicate
-    implements Predicate
+/**
+ * @author Enrico Colasante
+ */
+public class XmlGenericGeometryParser
+    extends BaseParser
+    implements GeometryParser<Geometry>
 {
-    private Date date;
+    private final static Log log = LogFactory.getLog( XmlGenericGeometryParser.class );
 
-    protected PastPeriodPredicate()
+    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
     {
+        super( geometryFactory );
     }
 
-    public PastPeriodPredicate( Date d )
+    public Geometry geometryFromJson( JsonNode node )
     {
-        Calendar cal = PeriodType.createCalendarInstance( d );
-        cal.set( Calendar.DAY_OF_MONTH, cal.getActualMaximum( Calendar.DAY_OF_MONTH ) );
-        this.date = cal.getTime();
-    }
-
-    @Override
-    public boolean evaluate( Object o )
-    {
-        return ((Period) o).getEndDate().compareTo( date ) <= 0;
+        WKTReader wktR = new WKTReader();
+        try
+        {
+            return wktR.read( node.asText() );
+        }
+        catch ( ParseException e )
+        {
+            log.error( "Error reading WKT of geometry", e );
+            return null;
+        }
     }
 }
