@@ -49,9 +49,9 @@ import java.sql.Statement;
 /**
  * @Author Zubair Asghar.
  */
-public class V2_31_17__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
+public class V2_31_19__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_31_17__Convert_push_analysis_job_parameters_into_list_of_string.class );
+    private static final Log log = LogFactory.getLog( V2_31_19__Convert_push_analysis_job_parameters_into_list_of_string.class );
 
     @Override
     public void migrate( Context context ) throws Exception
