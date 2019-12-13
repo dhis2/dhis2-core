@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,40 +28,31 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Markus Bekken
+ * @author Enrico Colasante
  */
-public interface EnrollmentAnalyticsManager
+
+public class ExpressionSchemaDescriptor
+    implements SchemaDescriptor
 {
-    /**
-     * Retrieves aggregated data based on enrollments.
-     * 
-     * @param params the query to retrieve aggregated data for.
-     * @param grid the grid to insert data into.
-     * @param maxLimit the max number of records to retrieve.
-     * @return a grid with data.
-     */
-    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
+    public static final String SINGULAR = "expression";
 
-     /**
-     * Retrieves aggregated data based on enrollments.
-     *
-     * @param params the query to retrieve enrollments for.
-     * @param grid the grid to insert data into.
-     * @param maxLimit the max number of records to retrieve.
-     * @return a grid with data.
-     */
-    void getEnrollments( EventQueryParams params, Grid grid, int maxLimit );
+    public static final String PLURAL = "expressions";
 
-    /**
-     * Retreives count of enrollments based on params.
-     * 
-     * @param params the qyery to count enrollments for,
-     * 
-     * @return number of enrollments macting the parameter criteria.
-     */
-    long getEnrollmentCount( EventQueryParams params );
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( Expression.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1000 );
+
+        return schema;
+    }
 }
-
