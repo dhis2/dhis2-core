@@ -37,6 +37,7 @@ import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.reporttable.ReportParams;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.visualization.ReportingParams;
 import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -56,13 +57,11 @@ public class Report
 
     private String designContent;
 
-    private ReportTable reportTable;
-
     private Visualization visualization;
 
     private RelativePeriods relatives;
 
-    private ReportParams reportParams;
+    private ReportingParams reportingParams;
 
     private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
 
@@ -74,15 +73,7 @@ public class Report
     {
     }
 
-    public Report( String name, ReportType type, String designContent, ReportTable reportTable)
-    {
-        this.name = name;
-        this.type = type;
-        this.designContent = designContent;
-        this.reportTable = reportTable;
-    }
-
-    public Report( String name, ReportType type, String designContent, Visualization visualization)
+    public Report( String name, ReportType type, String designContent, Visualization visualization )
     {
         this.name = name;
         this.type = type;
@@ -90,13 +81,13 @@ public class Report
         this.visualization = visualization;
     }
 
-    public Report( String name, ReportType type, String designContent, RelativePeriods relatives, ReportParams reportParams )
+    public Report(String name, ReportType type, String designContent, RelativePeriods relatives, ReportingParams reportingParams )
     {
         this.name = name;
         this.type = type;
         this.designContent = designContent;
         this.relatives = relatives;
-        this.reportParams = reportParams;
+        this.reportingParams = reportingParams;
     }
 
     // -------------------------------------------------------------------------
@@ -123,11 +114,6 @@ public class Report
         return visualization != null;
     }
 
-    public boolean hasReportTable()
-    {
-        return reportTable != null;
-    }
-
     /**
      * Indicates whether this report has relative periods.
      */
@@ -137,11 +123,11 @@ public class Report
     }
 
     /**
-     * Indicates whether this report has report parameters set.
+     * Indicates whether this report has specific report parameters set.
      */
-    public boolean hasReportParams()
+    public boolean hasReportingParams()
     {
-        return reportParams != null && reportParams.isSet();
+        return reportingParams != null && reportingParams.isSet();
     }
 
     // -------------------------------------------------------------------------
@@ -185,19 +171,6 @@ public class Report
         this.visualization = visualization;
     }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ReportTable getReportTable()
-    {
-        return reportTable;
-    }
-
-    public void setReportTable( ReportTable reportTable )
-    {
-        this.reportTable = reportTable;
-    }
-
     @JsonProperty( "relativePeriods" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public RelativePeriods getRelatives()
@@ -212,14 +185,14 @@ public class Report
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ReportParams getReportParams()
+    public ReportingParams getReportingParams()
     {
-        return reportParams;
+        return reportingParams;
     }
 
-    public void setReportParams( ReportParams reportParams )
+    public void setReportingParams(ReportingParams reportingParams )
     {
-        this.reportParams = reportParams;
+        this.reportingParams = reportingParams;
     }
 
     @JsonProperty

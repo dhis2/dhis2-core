@@ -10,6 +10,9 @@
 -- 6) copy data from series table into axis table;
 -- 7) copy data from chart_seriesitems table into visualization_axis table;
 -- 8) set default values for NULL (Java primitive) columns.
+-- 9) update the column visualizationid of the dashboarditem table, so it receives all the chartid's.
+-- 10) update the column visualizationid of the dashboarditem table, so it receives all the reporttableid's.
+-- 11) update the column visualizationid of the report table, so it receives all the reporttableid's.
 
 
 -- Set any possible empty or null NAME to an empty space ' ', as name is mandatory.
