@@ -7,5 +7,5 @@ CREATE TABLE audit (
     klass TEXT,
     uid TEXT,
     code TEXT,
-    data TEXT
+    data BYTEA
 );

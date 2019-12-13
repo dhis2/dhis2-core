@@ -88,10 +88,7 @@ public class Audit implements Serializable
     private String code;
 
     /**
-     * Payload to be saved a long with audit. Generally will be JSON.
-     * <p>
-     * TODO should we allow anything here? if we are using JSONB field, it must be JSON compatible, but what about other strings? gzip?
+     * GZipped payload.
      */
-    @JsonProperty
-    private final String data;
+    private final byte[] data;
 }
