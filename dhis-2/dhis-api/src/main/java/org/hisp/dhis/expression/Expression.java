@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.io.Serializable;
 
@@ -54,7 +56,7 @@ import java.io.Serializable;
  */
 @JacksonXmlRootElement( localName = "expression", namespace = DxfNamespaces.DXF_2_0 )
 public class Expression
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
