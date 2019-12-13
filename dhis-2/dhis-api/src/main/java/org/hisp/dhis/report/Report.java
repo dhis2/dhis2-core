@@ -125,7 +125,7 @@ public class Report
     /**
      * Indicates whether this report has specific report parameters set.
      */
-    public boolean hasReportingParams()
+    public boolean hasReportParams()
     {
         return reportingParams != null && reportingParams.isSet();
     }
@@ -185,12 +185,12 @@ public class Report
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ReportingParams getReportingParams()
+    public ReportingParams getReportParams()
     {
         return reportingParams;
     }
 
-    public void setReportingParams(ReportingParams reportingParams )
+    public void setReportParams(ReportingParams reportingParams )
     {
         this.reportingParams = reportingParams;
     }

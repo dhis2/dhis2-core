@@ -208,7 +208,7 @@ public class DefaultReportService
                     params.put( PARAM_RELATIVE_ISO_PERIODS, isoPeriodString );
                 }
 
-                if ( report.hasReportingParams() && report.getReportingParams().isOrganisationUnit() && orgUnit != null )
+                if ( report.hasReportParams() && report.getReportParams().isOrganisationUnit() && orgUnit != null )
                 {
                     params.put( PARAM_ORG_UNITS, String.valueOf( orgUnit.getId() ) );
                     params.put( PARAM_ORG_UNITS_UID, String.valueOf( orgUnit.getUid() ) );
