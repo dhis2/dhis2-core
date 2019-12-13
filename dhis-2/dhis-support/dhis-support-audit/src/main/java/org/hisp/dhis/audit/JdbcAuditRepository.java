@@ -202,7 +202,7 @@ public class JdbcAuditRepository implements AuditRepository
             .klass( rs.getString( "klass" ) )
             .uid( rs.getString( "uid" ) )
             .code( rs.getString( "code" ) )
-            .data( rs.getString( "data" ) )
+            .data( rs.getBytes( "data" ) )
             .build();
     };
 }
