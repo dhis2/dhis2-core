@@ -90,6 +90,7 @@ public enum ErrorCode
 
     E4027( "Value `{0}` is not a valid for property `{1}`"),
     E4028( "OptionSet `{0}` already contains Option `{1}`" ),
+    E4029( "JobParameters cannot be null for JobType {0}" ),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),

@@ -127,18 +127,18 @@ public class JobConfigurationObjectBundleHook
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        JobConfiguration persitedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
-        if ( persitedJobConfiguration != null && !persitedJobConfiguration.isConfigurable() )
+        JobConfiguration persistedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
+        if ( persistedJobConfiguration != null && !persistedJobConfiguration.isConfigurable() )
         {
-            if ( persitedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
+            if ( persistedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
             {
                 errorReports
                     .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
             }
             else
             {
-                persitedJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
-                jobConfiguration = persitedJobConfiguration;
+                persistedJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
+                jobConfiguration = persistedJobConfiguration;
             }
         }
 
@@ -162,11 +162,22 @@ public class JobConfigurationObjectBundleHook
         errorReports.addAll( validateCronForJobType( jobConfiguration ) );
 
         // Validate parameters
-        ErrorReport parameterValidation =
-            jobConfiguration.getJobParameters() != null ? jobConfiguration.getJobParameters().validate() : null;
-        if ( !Objects.isNull( parameterValidation ) )
+        if ( jobConfiguration.getJobParameters() != null )
         {
-            errorReports.add( parameterValidation );
+            ErrorReport parameterError = jobConfiguration.getJobParameters().validate();
+
+            if ( parameterError != null )
+            {
+                errorReports.add( parameterError );
+            }
+        }
+        else
+        {
+            // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
+            if ( jobConfiguration.getJobType().getJobParameters() != null )
+            {
+                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, jobConfiguration.getJobType().getKey() ) );
+            }
         }
 
         Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
@@ -176,7 +187,7 @@ public class JobConfigurationObjectBundleHook
             // If the error is caused by the environment and the job is a non configurable job
             // that exists already, then the error can be ignored. Job has the issue with and
             // without updating it.
-            if ( jobValidation.getErrorCode() != ErrorCode.E7010 || persitedJobConfiguration == null || jobConfiguration.isConfigurable() )
+            if ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() )
             {
                 errorReports.add( jobValidation );
             }

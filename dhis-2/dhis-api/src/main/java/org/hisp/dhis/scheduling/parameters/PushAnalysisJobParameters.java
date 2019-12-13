@@ -29,9 +29,14 @@ package org.hisp.dhis.scheduling.parameters;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Henning Håkonsen
@@ -42,7 +47,7 @@ public class PushAnalysisJobParameters
     private static final long serialVersionUID = -1848833906375595488L;
 
     @JsonProperty( required = true )
-    private String pushAnalysis;
+    private List<String> pushAnalysis = new ArrayList<>();
 
     public PushAnalysisJobParameters()
     {
@@ -50,18 +55,30 @@ public class PushAnalysisJobParameters
 
     public PushAnalysisJobParameters( String pushAnalysis )
     {
+        this.pushAnalysis.add( pushAnalysis );
+    }
+
+    public PushAnalysisJobParameters( List<String> pushAnalysis )
+    {
         this.pushAnalysis = pushAnalysis;
     }
 
-    public String getPushAnalysis()
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getPushAnalysis()
     {
         return pushAnalysis;
+    }
+
+    public void setPushAnalysis( List<String> pushAnalysis )
+    {
+        this.pushAnalysis = pushAnalysis;
     }
 
     @Override
     public ErrorReport validate()
     {
-        if ( pushAnalysis == null )
+        if ( pushAnalysis == null || pushAnalysis.isEmpty() )
         {
             return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
         }
