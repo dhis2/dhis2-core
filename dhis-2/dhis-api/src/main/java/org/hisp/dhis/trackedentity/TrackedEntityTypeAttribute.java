@@ -80,21 +80,6 @@ public class TrackedEntityTypeAttribute
         this.mandatory = mandatory;
     }
 
-    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute, boolean displayInList,
-        Boolean mandatory, Integer sortOrder )
-    {
-        this( trackedEntityType, attribute );
-        this.displayInList = displayInList;
-        this.mandatory = mandatory;
-    }
-
-    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute, boolean displayInList,
-        Boolean mandatory, Boolean allowFutureDate )
-    {
-        this( trackedEntityType, attribute, displayInList, mandatory );
-    }
-    
-
     @Override
     public String getName()
     {

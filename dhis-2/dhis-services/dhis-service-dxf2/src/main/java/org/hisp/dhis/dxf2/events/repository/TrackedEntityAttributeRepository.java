@@ -29,12 +29,14 @@
 package org.hisp.dhis.dxf2.events.repository;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
@@ -65,7 +67,11 @@ public class TrackedEntityAttributeRepository
         Query query = sessionFactory.getCurrentSession()
             .createQuery( "select tet.trackedEntityTypeAttributes from TrackedEntityType tet" );
 
-        return new HashSet<>( query.list() );
+        Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>( query.list() );
+
+        return trackedEntityTypeAttributes.stream()
+            .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
+            .collect( Collectors.toSet() );
     }
 
 
