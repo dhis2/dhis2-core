@@ -68,8 +68,7 @@ public class OptionObjectBundleHook
                     break;
                 }
 
-                if ( persistedOption.getName().equals( option.getName() ) && persistedOption.getCode().equals( option.getCode() ) &&
-                    !optionSet.getUid().equals( persistedOption.getOptionSet().getUid() ) )
+                if ( persistedOption.getName().equals( option.getName() ) && persistedOption.getCode().equals( option.getCode() ) )
                 {
                     errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
                 }
