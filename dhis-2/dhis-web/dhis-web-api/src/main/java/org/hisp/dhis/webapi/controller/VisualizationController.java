@@ -46,10 +46,7 @@ import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -59,18 +56,19 @@ public class VisualizationController
     extends
     AbstractCrudController<Visualization>
 {
-    @Autowired
-    @Qualifier( "org.hisp.dhis.visualization.VisualizationService" )
-    private VisualizationService visualizationService;
+    private final LegendSetService legendSetService;
 
-    @Autowired
-    private LegendSetService legendSetService;
+    private final DimensionService dimensionService;
 
-    @Autowired
-    private DimensionService dimensionService;
+    private final I18nManager i18nManager;
 
-    @Autowired
-    private I18nManager i18nManager;
+    public VisualizationController( LegendSetService legendSetService, final DimensionService dimensionService,
+        final I18nManager i18nManager )
+    {
+        this.legendSetService = legendSetService;
+        this.dimensionService = dimensionService;
+        this.i18nManager = i18nManager;
+    }
 
     @Override
     protected Visualization deserializeJsonEntity( final HttpServletRequest request,
