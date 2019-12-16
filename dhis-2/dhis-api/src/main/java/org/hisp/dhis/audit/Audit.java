@@ -90,5 +90,5 @@ public class Audit implements Serializable
     /**
      * GZipped payload.
      */
-    private final byte[] data;
+    private final String data;
 }

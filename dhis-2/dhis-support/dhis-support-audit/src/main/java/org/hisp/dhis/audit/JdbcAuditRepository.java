@@ -28,6 +28,7 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -35,12 +36,18 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -185,7 +192,7 @@ public class JdbcAuditRepository implements AuditRepository
         parameters.addValue( "klass", audit.getKlass() );
         parameters.addValue( "uid", audit.getUid() );
         parameters.addValue( "code", audit.getCode() );
-        parameters.addValue( "data", audit.getData() );
+        parameters.addValue( "data", compress( audit.getData() ) );
 
         return parameters;
     }
@@ -202,7 +209,40 @@ public class JdbcAuditRepository implements AuditRepository
             .klass( rs.getString( "klass" ) )
             .uid( rs.getString( "uid" ) )
             .code( rs.getString( "code" ) )
-            .data( rs.getBytes( "data" ) )
+            .data( decompress( rs.getBytes( "data" ) ) )
             .build();
     };
+
+    private static byte[] compress( String data )
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() );
+        byte[] result = data.getBytes( StandardCharsets.UTF_8 );
+
+        try ( GZIPOutputStream gzip = new GZIPOutputStream( bos ) )
+        {
+            gzip.write( result );
+        }
+        catch ( Exception ignored )
+        {
+        }
+
+        return result;
+    }
+
+    private static String decompress( byte[] data )
+    {
+        ByteArrayInputStream bin = new ByteArrayInputStream( data );
+        String result = null;
+
+        try ( GZIPInputStream gzip = new GZIPInputStream( bin ) )
+        {
+            byte[] bytes = IOUtils.toByteArray( gzip );
+            result = new String( bytes, StandardCharsets.UTF_8 );
+        }
+        catch ( IOException ignored )
+        {
+        }
+
+        return result;
+    }
 }

@@ -69,7 +69,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
             .klass( DataElement.class.getName() )
             .uid( uid )
             .code( code )
-            .data( "{}".getBytes() )
+            .data( "{}" )
             .build();
 
         auditRepository.save( audit );
@@ -90,7 +90,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
             .klass( DataElement.class.getName() )
             .uid( uid )
             .code( code )
-            .data( "{}".getBytes() )
+            .data( "{}" )
             .build();
 
         long id = auditRepository.save( audit );
@@ -118,7 +118,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -144,7 +144,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -172,7 +172,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -200,7 +200,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -228,7 +228,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -256,7 +256,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -284,7 +284,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -312,7 +312,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -340,7 +340,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -372,7 +372,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -404,7 +404,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -432,7 +432,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -464,7 +464,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -496,7 +496,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -524,7 +524,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             auditRepository.save( audit );
@@ -564,7 +564,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             audits.add( audit );
@@ -595,7 +595,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
                 .klass( DataElement.class.getName() )
                 .uid( uid )
                 .code( code )
-                .data( "{}".getBytes() )
+                .data( "{}" )
                 .build();
 
             audits.add( audit );

@@ -57,7 +57,7 @@ public class AuditTest
             .klass( DataElement.class.getName() )
             .uid( uid )
             .code( code )
-            .data( "{}".getBytes() )
+            .data( "{}" )
             .build();
 
         assertEquals( AuditType.CREATE, audit.getAuditType() );
