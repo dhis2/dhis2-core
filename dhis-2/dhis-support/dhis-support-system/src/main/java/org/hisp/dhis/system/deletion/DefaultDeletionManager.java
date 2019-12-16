@@ -66,17 +66,29 @@ public class DefaultDeletionManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
+    public void executeNoRollback( Object object )
+    {
+        deletionCheck( object );
+    }
+
+    @Override
     @Transactional
     public void execute( Object object )
+    {
+        deletionCheck( object );
+    }
+
+    private void deletionCheck( Object object )
     {
         if ( deletionHandlers == null || deletionHandlers.isEmpty() )
         {
             log.info( "No deletion handlers registered, aborting deletion handling" );
             return;
         }
-        
+
         log.debug( "Deletion handlers detected: " + deletionHandlers.size() );
-        
+
         Class<?> clazz = getClazz( object );
 
         String className = clazz.getSimpleName();
@@ -109,7 +121,7 @@ public class DefaultDeletionManager
                         handler.getClassName() + ( hint.isEmpty() ? hint : ( " (" + hint + ")" ) );
 
                     log.info( "Delete was not allowed by " + currentHandler + ": " + message );
-                    
+
                     throw new DeleteNotAllowedException( DeleteNotAllowedException.ERROR_ASSOCIATED_BY_OTHER_OBJECTS, message );
                 }
             }
