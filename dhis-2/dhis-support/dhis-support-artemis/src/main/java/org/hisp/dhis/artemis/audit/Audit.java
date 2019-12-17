@@ -39,7 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -52,7 +52,7 @@ public class Audit implements Message
 
     private AuditScope auditScope;
 
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     private String createdBy;
 
@@ -68,7 +68,7 @@ public class Audit implements Message
     {
     }
 
-    public Audit( AuditType auditType, AuditScope auditScope, Date createdAt, String createdBy )
+    public Audit( AuditType auditType, AuditScope auditScope, LocalDateTime createdAt, String createdBy )
     {
         this.auditType = auditType;
         this.auditScope = auditScope;
@@ -103,7 +103,7 @@ public class Audit implements Message
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getCreatedAt()
+    public LocalDateTime getCreatedAt()
     {
         return createdAt;
     }
@@ -169,7 +169,7 @@ public class Audit implements Message
 
         private AuditScope auditScope;
 
-        private Date createdAt = new Date();
+        private LocalDateTime createdAt = LocalDateTime.now();
 
         private String createdBy;
 
@@ -197,7 +197,7 @@ public class Audit implements Message
             return this;
         }
 
-        public AuditBuilder withCreatedAt( Date createdAt )
+        public AuditBuilder withCreatedAt( LocalDateTime createdAt )
         {
             this.createdAt = createdAt;
             return this;
@@ -280,7 +280,9 @@ public class Audit implements Message
         {
             return false;
         }
+
         Audit audit = (Audit) o;
+
         return auditType == audit.auditType && auditScope == audit.auditScope
             && Objects.equals( createdAt, audit.createdAt ) && Objects.equals( createdBy, audit.createdBy )
             && Objects.equals( klass, audit.klass ) && Objects.equals( uid, audit.uid )
