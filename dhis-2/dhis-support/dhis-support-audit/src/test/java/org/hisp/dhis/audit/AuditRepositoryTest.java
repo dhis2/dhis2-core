@@ -547,6 +547,30 @@ public class AuditRepositoryTest extends IntegrationTestBase
     }
 
     @Test
+    public void testCompressDecompress()
+    {
+        String uid = CodeGenerator.generateUid();
+        String code = CodeGenerator.generateUid();
+
+        Audit audit = Audit.builder()
+            .auditType( AuditType.CREATE )
+            .auditScope( AuditScope.AGGREGATE )
+            .createdAt( LocalDateTime.of( 2019, 1, 1, 0, 0 ) )
+            .createdBy( "test-user" )
+            .klass( DataElement.class.getName() )
+            .uid( uid )
+            .code( code )
+            .data( "This is a message" )
+            .build();
+
+        auditRepository.save( audit );
+        List<Audit> query = auditRepository.query( AuditQuery.builder().build() );
+        assertEquals( 1, query.size() );
+
+        assertEquals( "This is a message", query.get( 0 ).getData() );
+    }
+
+    @Test
     @Ignore
     public void testAuditInsert200k()
     {
