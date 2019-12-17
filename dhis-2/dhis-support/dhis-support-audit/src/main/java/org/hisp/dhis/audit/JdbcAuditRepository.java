@@ -215,14 +215,17 @@ public class JdbcAuditRepository implements AuditRepository
 
     private static byte[] compress( String data )
     {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() );
         byte[] result = data.getBytes( StandardCharsets.UTF_8 );
 
-        try ( GZIPOutputStream gzip = new GZIPOutputStream( bos ) )
+        try ( ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() ) )
         {
-            gzip.write( result );
+            GZIPOutputStream gzip = new GZIPOutputStream( bos );
+            gzip.write( data.getBytes( StandardCharsets.UTF_8 ) );
+            gzip.close();
+
+            result = bos.toByteArray();
         }
-        catch ( Exception ignored )
+        catch ( IOException ignored )
         {
         }
 
@@ -231,12 +234,14 @@ public class JdbcAuditRepository implements AuditRepository
 
     private static String decompress( byte[] data )
     {
-        ByteArrayInputStream bin = new ByteArrayInputStream( data );
         String result = null;
 
-        try ( GZIPInputStream gzip = new GZIPInputStream( bin ) )
+        try ( ByteArrayInputStream bin = new ByteArrayInputStream( data ) )
         {
+            GZIPInputStream gzip = new GZIPInputStream( bin );
             byte[] bytes = IOUtils.toByteArray( gzip );
+            gzip.close();
+
             result = new String( bytes, StandardCharsets.UTF_8 );
         }
         catch ( IOException ignored )
