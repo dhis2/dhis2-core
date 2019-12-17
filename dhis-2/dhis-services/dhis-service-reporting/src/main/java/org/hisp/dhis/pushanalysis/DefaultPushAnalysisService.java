@@ -390,7 +390,7 @@ public class DefaultPushAnalysisService
                 result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
                 break;
             case CHART:
-                result += "/dhis-web-visualizer/index.html?id=" + item.getChart().getUid();
+                result += "/dhis-web-data-visualizer/index.html?id=" + item.getChart().getUid();
                 break;
             default:
                 break;
