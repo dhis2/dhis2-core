@@ -34,12 +34,14 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -53,8 +55,14 @@ public class DefaultCategoryManager
 
     private static final Log log = LogFactory.getLog( DefaultCategoryManager.class );
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public DefaultCategoryManager( CategoryService categoryService )
+    {
+        checkNotNull( categoryService );
+
+        this.categoryService = categoryService;
+    }
 
     // -------------------------------------------------------------------------
     // CategoryOptionCombo
@@ -75,6 +83,48 @@ public class DefaultCategoryManager
 
         boolean modified = false;
 
+
+        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            CategoryOptionCombo persistedOptionCombo = iterator.next();
+
+            boolean isDelete = true;
+
+            for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
+            {
+                if ( optionCombo.equals( persistedOptionCombo ) || persistedOptionCombo.getUid().equals( optionCombo.getUid() ) )
+                {
+                    isDelete = false;
+                    if ( !optionCombo.getName().equals( persistedOptionCombo.getName() ) )
+                    {
+                        persistedOptionCombo.setName( optionCombo.getName() );
+                        modified = true;
+                    }
+                }
+            }
+
+            if ( isDelete )
+            {
+                try
+                {
+                    categoryService.deleteCategoryOptionComboNoRollback( persistedOptionCombo );
+                }
+                catch ( DeleteNotAllowedException ex )
+                {
+                    log.warn( "Could not delete category option combo: " + persistedOptionCombo );
+                    continue;
+                }
+
+                iterator.remove();
+                categoryCombo.getOptionCombos().remove( persistedOptionCombo );
+
+                log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: " + categoryCombo.getName() );
+                modified = true;
+            }
+        }
+
         for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
         {
             if ( !persistedOptionCombos.contains( optionCombo ) )
@@ -87,32 +137,6 @@ public class DefaultCategoryManager
             }
         }
 
-        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            CategoryOptionCombo optionCombo = iterator.next();
-
-            if ( !generatedOptionCombos.contains( optionCombo ) )
-            {
-                try
-                {
-                    categoryService.deleteCategoryOptionComboNoRollback( optionCombo );
-                }
-                catch ( DeleteNotAllowedException ex )
-                {
-                    log.warn( "Could not delete category option combo: " + optionCombo );
-                    continue;
-                }
-
-                iterator.remove();
-                categoryCombo.getOptionCombos().remove( optionCombo );
-                categoryService.deleteCategoryOptionCombo( optionCombo );
-
-                log.info( "Deleted obsolete category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
 
         if ( modified )
         {
