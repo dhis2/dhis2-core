@@ -347,7 +347,7 @@ public class DefaultPushAnalysisService
     //--------------------------------------------------------------------------
 
     /**
-     * Finds the dashboardItem's type and calls the associated method for generating the resource (either URL og HTML)
+     * Finds the dashboardItem's type and calls the associated method for generating the resource (either URL or HTML)
      *
      * @param item   to generate resource
      * @param user   to generate for
