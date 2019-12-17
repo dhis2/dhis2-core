@@ -37,7 +37,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.SystemActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
@@ -305,7 +304,7 @@ public class MetadataImportTest
     {
         JsonObject metadata = generateMetadataObjectWithInvalidSharing();
 
-        ApiResponse response =  new MetadataActions().post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ));
+        ApiResponse response =  metadataActions.post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ));
 
         response.validate().statusCode( 200 )
             .body( "status", isOneOf( "SUCCESS", "OK" ) )
