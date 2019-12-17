@@ -53,7 +53,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 public interface SchedulingManager
 {
     /**
-     * Check if this jobconfiguration is currently running
+     * Check if this job configuration is currently running
      *
      * @param jobConfiguration the job to check
      * @return true/false
@@ -70,11 +70,11 @@ public interface SchedulingManager
     /**
      * Set up default behavior for a finished job.
      * <p>
-     * A special case is if a job is disabled when running, but the job does not stop. The job wil run normally one last time and
-     * try to set finished status. Since the job is disabled we manually set these parameters in this method so that the
-     * job is not automatically rescheduled.
+     * A special case is if a job is disabled when running, but the job does not stop. The job will run normally one last
+     * time and try to set finished status. Since the job is disabled we manually set these parameters in this method so
+     * that the job is not automatically rescheduled.
      * <p>
-     * Also we dont want to update a job configuration of the job is deleted.
+     * Also we don't want to update a job configuration if the job is deleted.
      *
      * @param jobConfiguration the job which started
      */
@@ -113,10 +113,10 @@ public interface SchedulingManager
      * @param job The job to be executed
      */
     void executeJob( Runnable job );
-    
+
     /**
      * Schedule a job with a start time.
-     * 
+     *
      * @param jobConfiguration The jobConfiguration with job details to be scheduled
      * @param startTime The time at which the job should start
      */
@@ -126,7 +126,7 @@ public interface SchedulingManager
      * Execute the given job immediately and return a ListenableFuture.
      *
      * @param callable the job to execute.
-     * @param <T>      return type of the supplied callable.
+     * @param <T> return type of the supplied {@link Callable}.
      * @return a ListenableFuture representing the result of the job.
      */
     <T> ListenableFuture<T> executeJob( Callable<T> callable );

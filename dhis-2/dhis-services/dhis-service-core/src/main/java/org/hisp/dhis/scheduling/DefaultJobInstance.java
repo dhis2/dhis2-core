@@ -35,6 +35,8 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Preconditions;
+
 import java.util.Date;
 
 /**
@@ -48,9 +50,30 @@ public class DefaultJobInstance
 
     private static final String NOT_LEADER_SKIP_LOG = "Not a leader, skipping job with jobType:%s and name:%s";
 
+    private SchedulingManager schedulingManager;
+
+    private MessageService messageService;
+
+    private LeaderManager leaderManager;
+
+    @SuppressWarnings("unused")
+    private DefaultJobInstance()
+    {
+    }
+
+    public DefaultJobInstance( SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager )
+    {
+        this.schedulingManager = schedulingManager;
+        this.messageService = messageService;
+        this.leaderManager = leaderManager;
+
+        Preconditions.checkNotNull( schedulingManager );
+        Preconditions.checkNotNull( messageService );
+        Preconditions.checkNotNull( leaderManager );
+    }
+
     @Override
-    public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
-        MessageService messageService, LeaderManager leaderManager )
+    public void execute( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isEnabled() )
         {
@@ -69,7 +92,7 @@ public class DefaultJobInstance
         {
             if ( jobConfiguration.isInMemoryJob() )
             {
-                executeJob( jobConfiguration, schedulingManager, clock );
+                executeJob( jobConfiguration, clock );
             }
             else if ( !schedulingManager.isJobConfigurationRunning( jobConfiguration ) )
             {
@@ -77,7 +100,7 @@ public class DefaultJobInstance
                 schedulingManager.jobConfigurationStarted( jobConfiguration );
                 jobConfiguration.setNextExecutionTime( null );
 
-                executeJob( jobConfiguration, schedulingManager, clock );
+                executeJob( jobConfiguration, clock );
 
                 jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
             }
@@ -101,7 +124,7 @@ public class DefaultJobInstance
         }
         finally
         {
-            setFinishingStatus( clock, schedulingManager, jobConfiguration );
+            setFinishingStatus( clock, jobConfiguration );
         }
     }
 
@@ -109,11 +132,10 @@ public class DefaultJobInstance
      * Set status properties of job after finish. If the job was executed manually and the job is disabled we want
      * to set the status back to DISABLED.
      *
-     * @param clock Clock for keeping track of time usage
-     * @param schedulingManager reference to scheduling manager
-     * @param jobConfiguration the job configuration
+     * @param clock Clock for keeping track of time usage.
+     * @param jobConfiguration the job configuration.
      */
-    private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    private void setFinishingStatus( Clock clock, JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isInMemoryJob() )
         {
@@ -138,15 +160,13 @@ public class DefaultJobInstance
     }
 
     /**
-     * Method which calls the execute method in the job. The job will run in this thread and finish, either with success
-     * or with an exception.
+     * Method which calls the execute method in the job. The job will run in this thread and finish,
+     * either with success or with an exception.
      *
-     * @param jobConfiguration the configuration to execute
-     * @param schedulingManager a reference to the scheduling manager
-     * @param clock refers to start time
-     * @throws Exception if the job fails
+     * @param jobConfiguration the configuration to execute.
+     * @param clock refers to start time.
      */
-    private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, Clock clock )
+    private void executeJob( JobConfiguration jobConfiguration, Clock clock )
     {
         log.debug( String.format( "Job started: '%s'", jobConfiguration.getName() ) );
 

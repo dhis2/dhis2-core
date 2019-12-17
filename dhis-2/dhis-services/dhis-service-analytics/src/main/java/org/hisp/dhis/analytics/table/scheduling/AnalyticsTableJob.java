@@ -52,7 +52,6 @@ public class AnalyticsTableJob
 
     public AnalyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator )
     {
-
         checkNotNull( analyticsTableGenerator );
 
         this.analyticsTableGenerator = analyticsTableGenerator;
