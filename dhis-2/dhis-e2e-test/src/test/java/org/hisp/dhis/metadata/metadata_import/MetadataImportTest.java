@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.metadata.metadata_import;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -36,11 +37,13 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.SystemActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -283,6 +286,55 @@ public class MetadataImportTest
             .body( "stats", notNullValue() )
             .body( "stats.total", everyItem( greaterThan( 0 ) ) )
             .body( "objectReports", hasSize( greaterThan( 0 ) ) );
+    }
+
+    @Test
+    public void shouldNotSkipSharing() {
+        JsonObject object = generateMetadataObjectWithInvalidSharing();
+
+        ApiResponse response = metadataActions.post( object, new QueryParamsBuilder().add( "skipSharing=false" ) );
+
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "stats.created", equalTo( 0) )
+            .body( "typeReports[0].objectReports[0].errorReports[0].message", stringContainsInOrder( "Invalid reference", "for association `userGroupAccesses`" ) );
+    }
+
+    @Test
+    public void shouldSkipSharing()
+    {
+        JsonObject metadata = generateMetadataObjectWithInvalidSharing();
+
+        ApiResponse response =  new MetadataActions().post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ));
+
+        response.validate().statusCode( 200 )
+            .body( "status", isOneOf( "SUCCESS", "OK" ) )
+            .body( "stats.created", equalTo( 1 ) );
+
+    }
+
+    private JsonObject generateMetadataObjectWithInvalidSharing() {
+        JsonObject dataElementGroup = DataGenerator.generateObjectForEndpoint( "/dataElementGroup" );
+        dataElementGroup.addProperty( "publicAccess", "rw------" );
+
+        JsonArray userGroupAccesses = new JsonArray(  );
+        JsonObject userGroupAccess = new JsonObject();
+        userGroupAccess.addProperty( "access", "rwrw----" );
+        userGroupAccess.addProperty( "userGroupUid", "non-existing-id " );
+        userGroupAccess.addProperty( "id", "non-existing-id" );
+
+        userGroupAccesses.add( userGroupAccess );
+
+        dataElementGroup.add( "userGroupAccesses", userGroupAccesses );
+
+        JsonArray array = new JsonArray(  );
+
+        array.add( dataElementGroup );
+
+        JsonObject metadata = new JsonObject();
+        metadata.add( "dataElementGroups", array );
+
+        return metadata;
     }
 
     private List<ObjectReport> getObjectReports( List<TypeReport> typeReports )
