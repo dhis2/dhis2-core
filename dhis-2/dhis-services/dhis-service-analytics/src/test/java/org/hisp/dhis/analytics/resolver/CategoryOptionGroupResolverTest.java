@@ -102,7 +102,6 @@ public class CategoryOptionGroupResolverTest
     /**
      * case: #{DEUID.COGUID.AOCUID} resolves to: #{DEUID.COCUID1.AOCUID} +
      * #{DEUID.COCUID2.AOCUID} + #{DEUID.COCUID3.AOCUID}
-     *
      */
     @Test
     public void verifySecondElementIsCogThirdElementIsAoc()

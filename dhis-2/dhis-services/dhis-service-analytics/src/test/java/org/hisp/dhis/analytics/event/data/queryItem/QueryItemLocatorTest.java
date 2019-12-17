@@ -245,7 +245,7 @@ public class QueryItemLocatorTest
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
         when( legendSetService.getLegendSet( legendSetUid ) ).thenReturn( legendSetA );
         when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
-        
+
         // programStageUid.dimensionUid-legendSetUid
         QueryItem queryItem = subject.getQueryItemFromDimension(
             programStageUid + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA, EventOutputType.ENROLLMENT );
@@ -255,11 +255,11 @@ public class QueryItemLocatorTest
         assertThat( queryItem.getProgram(), is( programA ) );
         assertThat( queryItem.getProgramStage(), is( programStageA ) );
         assertThat( queryItem.getLegendSet(), is( legendSetA ) );
-        
+
         verifyNoMoreInteractions( attributeService );
         verifyNoMoreInteractions( programIndicatorService );
     }
-    
+
     @Test
     public void verifyDimensionReturnsTrackedEntityAttribute()
     {
@@ -341,9 +341,7 @@ public class QueryItemLocatorTest
         exception.expectMessage(
                 "Item identifier does not reference any data element, attribute or indicator part of the program" );
 
-        subject.getQueryItemFromDimension(
-                dimension, programA, EventOutputType.ENROLLMENT );
-
+        subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
     }
 
     @Test
@@ -366,7 +364,7 @@ public class QueryItemLocatorTest
         assertThat( queryItem.getLegendSet(), is( nullValue() ) );
         assertThat( queryItem.getRelationshipType(), is( relationshipType ) );
     }
-    
+
     private RelationshipType createRelationshipType()
     {
         RelationshipType relationshipType = new RelationshipType();
