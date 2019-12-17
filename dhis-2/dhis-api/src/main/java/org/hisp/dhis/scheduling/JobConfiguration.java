@@ -119,24 +119,11 @@ public class JobConfiguration
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled )
     {
-        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
+        this( name, jobType, cronExpression, jobParameters, continuousExecution, enabled, false );
     }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled, boolean inMemoryJob )
-    {
-        this.inMemoryJob = inMemoryJob;
-        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
-    }
-
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean leaderOnlyJob)
-    {
-        this.leaderOnlyJob = leaderOnlyJob;
-        constructor( name, jobType, cronExpression, jobParameters, false, true );
-    }
-
-    private void constructor( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled )
     {
         this.name = name;
         this.cronExpression = cronExpression;
@@ -144,6 +131,7 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
         this.continuousExecution = continuousExecution;
         this.enabled = enabled;
+        this.inMemoryJob = inMemoryJob;
         setJobStatus( enabled ? SCHEDULED : DISABLED );
         init();
     }

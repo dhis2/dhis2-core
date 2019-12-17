@@ -180,17 +180,16 @@ public class DefaultSchedulingManager
             {
                 log.info( String.format( "Scheduling job: %s", jobConfiguration ) );
 
-                ScheduledFuture<?> future = jobScheduler
-                    .schedule( () -> {
-                        try
-                        {
-                            jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
-                        }
-                        catch ( Exception e )
-                        {
-                            log.error( DebugUtils.getStackTrace( e ) );
-                        }
-                    }, new CronTrigger( jobConfiguration.getCronExpression() ) );
+                ScheduledFuture<?> future = jobScheduler.schedule( () -> {
+                    try
+                    {
+                        jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
+                    }
+                    catch ( Exception e )
+                    {
+                        log.error( DebugUtils.getStackTrace( e ) );
+                    }
+                }, new CronTrigger( jobConfiguration.getCronExpression() ) );
 
                 futures.put( jobConfiguration.getUid(), future );
 
@@ -240,17 +239,16 @@ public class DefaultSchedulingManager
 
             if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
             {
-                ScheduledFuture<?> future = jobScheduler
-                    .schedule( () -> {
-                        try
-                        {
-                            jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
-                        }
-                        catch ( Exception e )
-                        {
-                            log.error( DebugUtils.getStackTrace( e ) );
-                        }
-                    }, startTime );
+                ScheduledFuture<?> future = jobScheduler.schedule( () -> {
+                    try
+                    {
+                        jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
+                    }
+                    catch ( Exception e )
+                    {
+                        log.error( DebugUtils.getStackTrace( e ) );
+                    }
+                }, startTime );
 
                 futures.put( jobConfiguration.getUid(), future );
 
@@ -299,6 +297,7 @@ public class DefaultSchedulingManager
                 log.error( DebugUtils.getStackTrace( e ) );
             }
         } );
+
         currentTasks.put( jobConfiguration.getUid(), future );
 
         log.info( String.format( "Scheduler initiated execution of job: %s", jobConfiguration ) );
