@@ -38,7 +38,7 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author Luciano Fiandesio
@@ -63,7 +63,7 @@ public class PostInsertAuditListener
             auditManager.send( Audit.builder()
                 .withAuditType( AuditType.CREATE )
                 .withAuditScope( auditable.scope() )
-                .withCreatedAt( new Date() )
+                .withCreatedAt( LocalDateTime.now() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
                 .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
