@@ -130,9 +130,9 @@ public class DefaultSchedulingManager
             return false;
         }
 
-        return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(
-            jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) &&
-                !jobConfig.isContinuousExecution() );
+        return !jobConfiguration.isContinuousExecution() &&
+            runningJobConfigurations.stream().anyMatch(
+                jc -> jc.getJobType().equals( jobConfiguration.getJobType() ) && !jc.isContinuousExecution() );
     }
 
     @Override
@@ -174,7 +174,7 @@ public class DefaultSchedulingManager
     {
         if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
         {
-            JobInstance jobInstance = new DefaultJobInstance();
+            JobInstance jobInstance = new DefaultJobInstance( this, messageService, leaderManager );
 
             if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
             {
@@ -183,7 +183,7 @@ public class DefaultSchedulingManager
                 ScheduledFuture<?> future = jobScheduler.schedule( () -> {
                     try
                     {
-                        jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
+                        jobInstance.execute( jobConfiguration );
                     }
                     catch ( Exception e )
                     {
@@ -235,14 +235,14 @@ public class DefaultSchedulingManager
     {
         if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
         {
-            JobInstance jobInstance = new DefaultJobInstance();
+            JobInstance jobInstance = new DefaultJobInstance( this, messageService, leaderManager );
 
             if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
             {
                 ScheduledFuture<?> future = jobScheduler.schedule( () -> {
                     try
                     {
-                        jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
+                        jobInstance.execute( jobConfiguration );
                     }
                     catch ( Exception e )
                     {
@@ -285,12 +285,12 @@ public class DefaultSchedulingManager
 
     private void internalExecuteJobConfiguration( JobConfiguration jobConfiguration )
     {
-        JobInstance jobInstance = new DefaultJobInstance();
+        JobInstance jobInstance = new DefaultJobInstance( this, messageService, leaderManager );
 
         ListenableFuture<?> future = jobExecutor.submitListenable( () -> {
             try
             {
-                jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
+                jobInstance.execute( jobConfiguration );
             }
             catch ( Exception e )
             {
@@ -311,7 +311,7 @@ public class DefaultSchedulingManager
 
             if ( future == null )
             {
-                log.info( String.format( "Tried to stop job but job was not found with key '%s'", uid ) );
+                log.info( String.format( "Tried to stop job but job was not found with key: '%s'", uid ) );
 
                 return true;
             }
