@@ -138,6 +138,8 @@ public class DefaultEventAnalyticsService
 
     private final EventAnalyticsManager eventAnalyticsManager;
 
+    private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
+
     private final EventDataQueryService eventDataQueryService;
 
     private final EventQueryPlanner queryPlanner;
@@ -154,7 +156,8 @@ public class DefaultEventAnalyticsService
         TrackedEntityAttributeService trackedEntityAttributeService, EventAnalyticsManager eventAnalyticsManager,
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
-        DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment )
+        DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment,
+        EnrollmentAnalyticsManager enrollmentAnalyticsManager )
     {
         super( securityManager, queryValidator );
 
@@ -177,6 +180,7 @@ public class DefaultEventAnalyticsService
         this.dhisConfig = dhisConfig;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
+        this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
     }
 
     // -------------------------------------------------------------------------
@@ -515,7 +519,15 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
-                eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                //Each query might be either an enrollment or event indicator:
+                if( query.hasEnrollmentProgramIndicatorDimension() ) 
+                {
+                    enrollmentAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
+                }
+                else
+                {
+                    eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                }
             }
 
             timer.getTime( "Got aggregated events" );

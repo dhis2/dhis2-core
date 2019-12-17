@@ -75,12 +75,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1129,7 +1124,7 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    public void testUpdateMetadataWithInvalidExpressionValidationRules()
+    public void testCreateMetadataWithInvalidExpressionValidationRules()
         throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
@@ -1146,6 +1141,26 @@ public class ObjectBundleServiceTest
         assertFalse( validate.getErrorReports().isEmpty() );
         assertEquals( "leftSide.description", validate.getErrorReports().get( 0 ).getErrorProperty() );
         assertEquals( ErrorCode.E4001, validate.getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void testUpdateMetadataWithMissingExpressionValidationRules()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_missing_expression.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "rightSide", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4000, validate.getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test

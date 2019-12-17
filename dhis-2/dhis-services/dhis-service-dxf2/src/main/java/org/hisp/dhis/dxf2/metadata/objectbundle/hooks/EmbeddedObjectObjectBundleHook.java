@@ -152,7 +152,7 @@ public class EmbeddedObjectObjectBundleHook
             }
             else
             {
-                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), ( Object ) null );
+                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), (Object) null );
             }
         }
     }
