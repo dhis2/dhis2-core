@@ -81,7 +81,10 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.jfree.chart.JFreeChart;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,6 +124,8 @@ public class DefaultPushAnalysisService
     private final MapGenerationService mapGenerationService;
 
     private final ChartService chartService;
+    
+    private final VisualizationService visualizationService;
 
     private final I18nManager i18nManager;
 
@@ -132,8 +137,9 @@ public class DefaultPushAnalysisService
         DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
         FileResourceService fileResourceService, CurrentUserService currentUserService,
         ReportTableService reportTableService, MapGenerationService mapGenerationService, ChartService chartService,
-        I18nManager i18nManager, @Qualifier( "emailMessageSender" ) MessageSender messageSender,
-        @Qualifier("org.hisp.dhis.pushanalysis.PushAnalysisStore") IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
+        VisualizationService visualizationService, I18nManager i18nManager,
+        @Qualifier( "emailMessageSender" ) MessageSender messageSender,
+        @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" ) IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         checkNotNull( notifier );
         checkNotNull( systemSettingManager );
@@ -144,6 +150,7 @@ public class DefaultPushAnalysisService
         checkNotNull( reportTableService );
         checkNotNull( mapGenerationService );
         checkNotNull( chartService );
+        checkNotNull( visualizationService );
         checkNotNull( i18nManager );
         checkNotNull( messageSender );
         checkNotNull( pushAnalysisStore );
@@ -157,6 +164,7 @@ public class DefaultPushAnalysisService
         this.reportTableService = reportTableService;
         this.mapGenerationService = mapGenerationService;
         this.chartService = chartService;
+        this.visualizationService = visualizationService;
         this.i18nManager = i18nManager;
         this.messageSender = messageSender;
         this.pushAnalysisStore = pushAnalysisStore;
@@ -286,8 +294,7 @@ public class DefaultPushAnalysisService
 
     @Override
     public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
-        throws IOException
-    {
+        throws IOException {
         if ( jobId == null )
         {
             jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid(), true );
@@ -354,19 +361,13 @@ public class DefaultPushAnalysisService
      * @param jobId for logging
      */
     private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
-        throws IOException
-    {
+        throws IOException {
         switch ( item.getType() )
         {
             case MAP:
                 return generateMapHtml( item.getMap(), user );
             case VISUALIZATION:
-                // NOT SUPPORTED
-                return "";
-            case CHART:
-                return generateChartHtml( item.getChart(), user );
-            case REPORT_TABLE:
-                return generateReportTableHtml( item.getReportTable(), user );
+                return generateVisualizationHtml( item.getVisualization(), user );
             case EVENT_CHART:
                 // TODO: Add support for EventCharts
                 return "";
@@ -435,7 +436,7 @@ public class DefaultPushAnalysisService
      * @param user  user to generate chart for
      * @return absolute URL to uploaded image
      */
-    private String generateChartHtml( Chart chart, User user )
+    private String generateChartHtml( final Chart chart, User user )
         throws IOException
     {
         JFreeChart jFreechart = chartService
@@ -445,22 +446,53 @@ public class DefaultPushAnalysisService
     }
 
     /**
-     * Builds a HTML table representing the ReportTable input
+     * Returns an absolute URL to an image representing the given Visualization.
      *
-     * @param reportTable reportTable to generate HTML for
-     * @param user        user to generate reportTable data for
-     * @return a HTML representation of the reportTable
+     * @param visualization the visualization to be rendered and uploaded.
+     * @param user the user generate the Visualization.
+     * @return absolute URL to the uploaded image.
      */
-    private String generateReportTableHtml( ReportTable reportTable, User user )
+    private String generateVisualizationHtml( final Visualization visualization, final User user )
+        throws IOException
+    {
+        switch ( visualization.getType() )
+        {
+        case PIVOT_TABLE:
+            return generateReportTableHtml( visualization, user );
+        default:
+            return generateChartHtml( visualization, user );
+        }
+    }
+
+    /**
+     * Returns an absolute URL to an image representing the chart input
+     *
+     * @param visualization chart to render and upload
+     * @param user  user to generate chart for
+     * @return absolute URL to uploaded image
+     */
+    private String generateChartHtml( final Visualization visualization, User user )
+        throws IOException
+    {
+        JFreeChart jFreechart = visualizationService
+            .getJFreeChart( visualization, new Date(), null, i18nManager.getI18nFormat(), user );
+
+        return uploadImage( visualization.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 578, 440 ) );
+    }
+
+    /**
+     * Builds a HTML table representing a Pivot table.
+     *
+     * @param visualization the input Visualization to generate the HTML from.
+     * @param user user generating the Pivot.
+     * @return a HTML representation of the Pivot table.
+     */
+    private String generateReportTableHtml( final Visualization visualization, User user )
     {
         StringWriter stringWriter = new StringWriter();
 
-        GridUtils.toHtmlInlineCss(
-            reportTableService
-                .getReportTableGridByUser( reportTable.getUid(), new Date(),
-                    user.getOrganisationUnit().getUid(), user ),
-            stringWriter
-        );
+        GridUtils.toHtmlInlineCss( visualizationService.getVisualizationGridByUser( visualization.getUid(), new Date(),
+            user.getOrganisationUnit().getUid(), user ), stringWriter );
 
         return stringWriter.toString().replaceAll( "\\R", "" );
     }

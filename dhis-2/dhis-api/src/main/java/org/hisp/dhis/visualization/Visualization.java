@@ -29,6 +29,7 @@
 package org.hisp.dhis.visualization;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -49,6 +50,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
+import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -1115,6 +1117,27 @@ public class Visualization
     }
 
     /**
+     * Simply checks if the given type matches the current object instance.
+     *
+     * @param type the VisualizationType.
+     * @return true if the type matches, false otherwise.
+     */
+    public boolean isType( final VisualizationType type )
+    {
+        return this.type != null && this.type.equals( type );
+    }
+
+    public boolean isTargetLine()
+    {
+        return targetLineValue != null;
+    }
+
+    public boolean isBaseLine()
+    {
+        return baseLineValue != null;
+    }
+
+    /**
      * Adds an empty list of DimensionalItemObjects to the given list if empty.
      */
     public static void addListIfEmpty( final List<List<DimensionalItemObject>> list )
@@ -1411,5 +1434,34 @@ public class Visualization
 
         grid.addHeaders( ouIdColumnIndex, headers );
         grid.addAndPopulateColumnsBefore( ouIdColumnIndex, ancestorMap, newColumns );
+    }
+
+    public String generateTitle()
+    {
+        List<String> titleItems = new ArrayList<>();
+
+        for ( String filter : filterDimensions )
+        {
+            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
+                organisationUnitsAtLevel, organisationUnitsInGroups, format );
+
+            if ( object != null )
+            {
+                String item = IdentifiableObjectUtils.join( object.getItems() );
+                String filt = DimensionalObjectUtils.getPrettyFilter( object.getFilter() );
+
+                if ( item != null )
+                {
+                    titleItems.add( item );
+                }
+
+                if ( filt != null )
+                {
+                    titleItems.add( filt );
+                }
+            }
+        }
+
+        return join( titleItems, DimensionalObjectUtils.TITLE_ITEM_SEP );
     }
 }
