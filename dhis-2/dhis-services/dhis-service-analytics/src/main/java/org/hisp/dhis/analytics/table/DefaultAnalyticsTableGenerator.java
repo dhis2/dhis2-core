@@ -198,6 +198,12 @@ public class DefaultAnalyticsTableGenerator
         }
     }
 
+    @Override
+    public Date getLastSuccessfulAnalyticsTableUpdate()
+    {
+        return (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

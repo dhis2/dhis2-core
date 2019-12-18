@@ -55,47 +55,51 @@ public enum JobType
     DATA_STATISTICS( "dataStatisticsJob", false ),
     DATA_INTEGRITY( "dataIntegrityJob", true ),
     RESOURCE_TABLE( "resourceTableJob", true ),
-    ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, ImmutableMap.of(
+    ANALYTICS_TABLE( "analyticsTableJob", true, SchedulingType.CRON, AnalyticsJobParameters.class, ImmutableMap.of(
+        "skipTableTypes", "/api/analytics/tableTypes"  ) ),
+    CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY, AnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes"  ) ),
     DATA_SYNC( "dataSyncJob", true ),
-    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, TrackerProgramsDataSynchronizationJobParameters.class, null ),
-    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, EventProgramsDataSynchronizationJobParameters.class, null ),
+    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, SchedulingType.CRON, TrackerProgramsDataSynchronizationJobParameters.class, null ),
+    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, SchedulingType.CRON, EventProgramsDataSynchronizationJobParameters.class, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false ),
     IMAGE_PROCESSING( "imageProcessingJob", false ),
-    META_DATA_SYNC( "metadataSyncJob", true, MetadataSyncJobParameters.class, null ),
-    SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),
+    META_DATA_SYNC( "metadataSyncJob", true, SchedulingType.CRON, MetadataSyncJobParameters.class, null ),
+    SMS_SEND( "sendSmsJob", false, SchedulingType.CRON, SmsJobParameters.class, null ),
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true ),
     PROGRAM_NOTIFICATIONS( "programNotificationsJob", true ),
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false ),
-    MONITORING( "monitoringJob", true, MonitoringJobParameters.class, ImmutableMap.of(
+    MONITORING( "monitoringJob", true, SchedulingType.CRON, MonitoringJobParameters.class, ImmutableMap.of(
         "relativePeriods", "/api/periodTypes/relativePeriodTypes", "validationRuleGroups", "/api/validationRuleGroups" ) ),
-    PUSH_ANALYSIS( "pushAnalysisJob", true, PushAnalysisJobParameters.class, ImmutableMap.of(
+    PUSH_ANALYSIS( "pushAnalysisJob", true, SchedulingType.CRON, PushAnalysisJobParameters.class, ImmutableMap.of(
         "pushAnalysis", "/api/pushAnalysis"  ) ),
-    PREDICTOR( "predictorJob", true, PredictorJobParameters.class, ImmutableMap.of(
+    PREDICTOR( "predictorJob", true, SchedulingType.CRON, PredictorJobParameters.class, ImmutableMap.of(
         "predictors", "/api/predictors", "predictorGroups", "/api/predictorGroups" ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false ),
 
     // Testing purposes
-    MOCK( "mockJob", false, MockJobParameters.class, null ),
+    MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),
 
     // Deprecated, present to satisfy code using the old enumeration TaskCategory
-    DATAVALUE_IMPORT( null, false, null, null ),
-    ANALYTICSTABLE_UPDATE( null, false, null, null ),
-    METADATA_IMPORT( null, false, null, null ),
-    GML_IMPORT( null, false, null, null ),
-    DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
-    EVENT_IMPORT( null, false, null, null ),
-    ENROLLMENT_IMPORT( null, false, null, null ),
-    TEI_IMPORT( null, false, null, null ),
-    LEADER_ELECTION( "leaderElectionJob", false, null, null ),
-    LEADER_RENEWAL( "leaderRenewalJob", false, null, null ),
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false, null, null );
+    DATAVALUE_IMPORT( null, false ),
+    ANALYTICSTABLE_UPDATE( null, false ),
+    METADATA_IMPORT( null, false ),
+    GML_IMPORT( null, false ),
+    DATAVALUE_IMPORT_INTERNAL( null, false ),
+    EVENT_IMPORT( null, false ),
+    ENROLLMENT_IMPORT( null, false ),
+    TEI_IMPORT( null, false ),
+    LEADER_ELECTION( "leaderElectionJob", false ),
+    LEADER_RENEWAL( "leaderRenewalJob", false ),
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false );
 
     private final String key;
 
     private final boolean configurable;
+
+    private final SchedulingType schedulingType;
 
     private final Class<? extends JobParameters> jobParameters;
 
@@ -103,14 +107,15 @@ public enum JobType
 
     JobType( String key, boolean configurable )
     {
-        this( key, configurable, null, null );
+        this( key, configurable, SchedulingType.CRON, null, null );
     }
 
-    JobType( String key, boolean configurable, Class<? extends JobParameters> jobParameters,
+    JobType( String key, boolean configurable, SchedulingType schedulingType, Class<? extends JobParameters> jobParameters,
         Map<String, String> relativeApiElements )
     {
         this.key = key;
         this.configurable = configurable;
+        this.schedulingType = schedulingType;
         this.jobParameters = jobParameters;
         this.relativeApiElements = relativeApiElements;
     }
@@ -128,6 +133,11 @@ public enum JobType
     public boolean isConfigurable()
     {
         return configurable;
+    }
+
+    public SchedulingType getSchedulingType()
+    {
+        return schedulingType;
     }
 
     public Map<String, String> getRelativeApiElements()

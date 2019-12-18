@@ -1,5 +1,7 @@
 package org.hisp.dhis.dataintegrity.jobs;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -37,14 +39,12 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.stereotype.Service;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Service
+@Component("dataIntegrityJob")
 public class DataIntegrityJob
     extends AbstractJob
 {

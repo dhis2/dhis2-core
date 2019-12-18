@@ -32,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -179,9 +181,18 @@ public class DefaultSchedulingManager
             {
                 log.info( String.format( "Scheduling job: %s", jobConfiguration ) );
 
-                ScheduledFuture<?> future = jobScheduler.schedule( () ->
-                    jobInstance.execute( jobConfiguration ),
-                    new CronTrigger( jobConfiguration.getCronExpression() ) );
+                ScheduledFuture<?> future = null;
+
+                if ( jobConfiguration.getSchedulingType() == SchedulingType.CRON )
+                {
+                    future = jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ),
+                        new CronTrigger( jobConfiguration.getCronExpression() ) );
+                }
+                else if ( jobConfiguration.getSchedulingType() == SchedulingType.FIXED_DELAY )
+                {
+                    future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
+                        Duration.of( jobConfiguration.getDelay(), ChronoUnit.SECONDS ) );
+                }
 
                 futures.put( jobConfiguration.getUid(), future );
 
@@ -199,9 +210,8 @@ public class DefaultSchedulingManager
 
             if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
             {
-                ScheduledFuture<?> future = jobScheduler.schedule( () ->
-                    jobInstance.execute( jobConfiguration ),
-                    startTime );
+                ScheduledFuture<?> future = jobScheduler.schedule(
+                    () -> jobInstance.execute( jobConfiguration ), startTime );
 
                 futures.put( jobConfiguration.getUid(), future );
 

@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 
+import java.util.Date;
+
 import javax.annotation.Nullable;
 
 /**
@@ -58,4 +60,6 @@ public interface AnalyticsTableGenerator
      * @param jobId the job identifier, can be null.
      */
     void generateResourceTables( @Nullable JobConfiguration jobId );
+
+    Date getLastSuccessfulAnalyticsTableUpdate();
 }

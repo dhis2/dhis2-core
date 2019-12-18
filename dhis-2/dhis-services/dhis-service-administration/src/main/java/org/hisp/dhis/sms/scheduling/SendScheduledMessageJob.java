@@ -41,7 +41,7 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
@@ -52,16 +52,16 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 /**
  * @author Chau Thu Tran
  */
-@Service( "sendScheduledMessageJob" )
+@Component( "sendScheduledMessageJob" )
 public class SendScheduledMessageJob
     extends AbstractJob
 {
     private final OutboundSmsService outboundSmsService;
-    
+
     private final MessageSender smsSender;
 
     private final Notifier notifier;
-    
+
     public SendScheduledMessageJob( OutboundSmsService outboundSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, Notifier notifier )
     {
