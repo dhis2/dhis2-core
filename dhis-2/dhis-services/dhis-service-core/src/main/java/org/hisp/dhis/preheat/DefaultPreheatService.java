@@ -518,9 +518,11 @@ public class DefaultPreheatService implements PreheatService
                 if ( schema.isIdentifiableObject() )
                 {
                     IdentifiableObject identifiableObject = (IdentifiableObject) object;
-                    if (identifiableObject == null) {
+                    if (identifiableObject == null)
+                    {
                         continue;
                     }
+
                     identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                     identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
                     identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
@@ -714,41 +716,58 @@ public class DefaultPreheatService implements PreheatService
             Map<String, Map<String, Object>> refMap = new HashMap<>();
             map.put( objectClass, refMap );
 
-            for ( IdentifiableObject object : identifiableObjects ) {
-                if (object != null) {
-                    refMap.put(object.getUid(), new HashMap<>());
+            for ( IdentifiableObject object : identifiableObjects )
+            {
+                if ( object != null )
+                {
+                    refMap.put( object.getUid(), new HashMap<>() );
 
-                    properties.forEach(p ->
-                    {
-                        if (!p.isCollection()) {
-                            IdentifiableObject reference = ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                    properties.forEach( p -> {
+                        if ( !p.isCollection() )
+                        {
+                            IdentifiableObject reference = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
 
-                            if (reference != null) {
-                                try {
-                                    IdentifiableObject identifiableObject = (IdentifiableObject) p.getKlass().newInstance();
-                                    mergeService.merge(new MergeParams<>(reference, identifiableObject));
-                                    refMap.get(object.getUid()).put(p.getName(), identifiableObject);
-                                } catch (InstantiationException | IllegalAccessException ignored) {
+                            if ( reference != null )
+                            {
+                                try
+                                {
+                                    IdentifiableObject identifiableObject = (IdentifiableObject) p.getKlass()
+                                        .newInstance();
+                                    mergeService.merge( new MergeParams<>( reference, identifiableObject ) );
+                                    refMap.get( object.getUid() ).put( p.getName(), identifiableObject );
+                                }
+                                catch ( InstantiationException | IllegalAccessException ignored )
+                                {
                                 }
                             }
-                        } else {
-                            Collection<IdentifiableObject> refObjects = ReflectionUtils.newCollectionInstance(p.getKlass());
-                            Collection<IdentifiableObject> references = ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                        }
+                        else
+                        {
+                            Collection<IdentifiableObject> refObjects = ReflectionUtils
+                                .newCollectionInstance( p.getKlass() );
+                            Collection<IdentifiableObject> references = ReflectionUtils.invokeMethod( object,
+                                p.getGetterMethod() );
 
-                            if (references != null) {
-                                for (IdentifiableObject reference : references) {
-                                    try {
-                                        IdentifiableObject identifiableObject = (IdentifiableObject) p.getItemKlass().newInstance();
-                                        mergeService.merge(new MergeParams<>(reference, identifiableObject));
-                                        refObjects.add(identifiableObject);
-                                    } catch (InstantiationException | IllegalAccessException ignored) {
+                            if ( references != null )
+                            {
+                                for ( IdentifiableObject reference : references )
+                                {
+                                    try
+                                    {
+                                        IdentifiableObject identifiableObject = (IdentifiableObject) p.getItemKlass()
+                                            .newInstance();
+                                        mergeService.merge( new MergeParams<>( reference, identifiableObject ) );
+                                        refObjects.add( identifiableObject );
+                                    }
+                                    catch ( InstantiationException | IllegalAccessException ignored )
+                                    {
                                     }
                                 }
                             }
 
-                            refMap.get(object.getUid()).put(p.getCollectionName(), refObjects);
+                            refMap.get( object.getUid() ).put( p.getCollectionName(), refObjects );
                         }
-                    });
+                    } );
                 }
             }
         }
