@@ -28,12 +28,8 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -101,25 +97,7 @@ public class SmsGatewayController
     @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
     public void getGateways( HttpServletResponse response ) throws IOException
     {
-        ObjectMapper jsonMapper = new ObjectMapper();
-        jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
-        jsonMapper.writerWithView( SmsConfigurationViews.Public.class )
-                  .writeValue( response.getOutputStream(), smsConfigurationManager.getSmsConfiguration() );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/default", method = RequestMethod.GET )
-    public void getDefault( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
-    {
-        SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
-
-        if ( defaultGateway == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "No default gateway found" ) );
-        }
-
-        renderService.toJson( response.getOutputStream(), defaultGateway );
+        generateOuput( response, smsConfigurationManager.getSmsConfiguration() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
@@ -135,7 +113,7 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
         }
 
-        renderService.toJson( response.getOutputStream(), gateway );
+        generateOuput( response, gateway );
     }
 
     // -------------------------------------------------------------------------
@@ -223,9 +201,7 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
         }
 
-        Class<? extends SmsGatewayConfig> gatewayType = gatewayAdminService.getGatewayType( config );
-
-        SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), gatewayType );
+        SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
 
         if ( gatewayAdminService.hasDefaultGateway() && updatedConfig.isDefault() )
         {
@@ -272,5 +248,13 @@ public class SmsGatewayController
         gatewayAdminService.removeGatewayByUid( uid );
 
         webMessageService.send( WebMessageUtils.ok( "Gateway removed successfully" ), response, request );
+    }
+
+    private void generateOuput( HttpServletResponse response, SmsConfiguration value ) throws IOException
+    {
+        ObjectMapper jsonMapper = new ObjectMapper();
+        jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
+        jsonMapper.writerWithView( SmsConfigurationViews.Public.class )
+                .writeValue( response.getOutputStream(), value );
     }
 }
