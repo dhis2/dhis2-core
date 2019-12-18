@@ -221,18 +221,20 @@ public class DashboardSearchResult
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "reportTables", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "reportTable", namespace = DXF_2_0 )
-    public List<ReportTable> getReportTables() {
+    public List<ReportTable> getReportTables()
+    {
         return reportTables;
     }
 
-    public void setReportTables(List<ReportTable> reportTables) {
+    public void setReportTables( List<ReportTable> reportTables )
+    {
         this.reportTables = reportTables;
     }
 
     @JsonProperty( value = "eventCharts" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "eventCharts", namespace = DXF_2_0)
-    @JacksonXmlProperty( localName = "eventChart", namespace = DXF_2_0)
+    @JacksonXmlElementWrapper( localName = "eventCharts", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "eventChart", namespace = DXF_2_0 )
     public List<EventChart> getEventCharts()
     {
         return eventCharts;
