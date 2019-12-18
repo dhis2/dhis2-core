@@ -69,24 +69,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization
-    extends
-    BaseAnalyticalObject
-    implements
-    MetadataObject
+    extends BaseAnalyticalObject
+        implements MetadataObject
 {
-
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
-
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
-
     public static final String ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME = "organisation_unit_is_parent";
-
     public static final String SPACE = " ";
-
     public static final String TOTAL_COLUMN_NAME = "total";
-
     public static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
-
     public static final String EMPTY = "";
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
@@ -95,9 +86,10 @@ public class Visualization
         CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo", PERIOD_DIM_ID, "period", ORGUNIT_DIM_ID,
         "organisationunit" );
 
-    /************************************************
-     * Common attributes
-     ************************************************/
+    // -------------------------------------------------------------------------
+    // Common attributes
+    // -------------------------------------------------------------------------
+
     /**
      * The type of this visualization object.
      */
@@ -158,9 +150,10 @@ public class Visualization
      */
     private RegressionType regressionType = RegressionType.NONE;
 
-    /************************************************
-     * Display definitions
-     ************************************************/
+    // -------------------------------------------------------------------------
+    // Display definitions
+    // -------------------------------------------------------------------------
+
     /*
      * # The display strategy for empty row items.
      */
@@ -192,9 +185,10 @@ public class Visualization
 
     private ColorSet colorSet;
 
-    /************************************************
-     * Display items for graphics/charts.
-     ************************************************/
+    // -------------------------------------------------------------------------
+    // Display items for graphics/charts
+    // -------------------------------------------------------------------------
+
     /*
      * # Settings more likely to be applied to graphics or charts.
      */
@@ -224,9 +218,10 @@ public class Visualization
      */
     private List<String> yearlySeries = new ArrayList<>();
 
-    /*************************************************
-     * General boolean flags
-     *************************************************/
+    // -------------------------------------------------------------------------
+    // Flags
+    // -------------------------------------------------------------------------
+
     /**
      * Used by charts to hide or not data/values within the rendered model.
      */
@@ -283,10 +278,10 @@ public class Visualization
      */
     private boolean noSpaceBetweenColumns;
 
-    /*************************************************
-     * Non-persisted attributes. Used for internal operation or in the rendering
-     * phase.
-     *************************************************/
+    // -------------------------------------------------------------------------
+    // Non-persisted attributes, used for internal operation/rendering phase
+    // -------------------------------------------------------------------------
+
     private transient I18nFormat format;
 
     private transient List<Period> relativePeriodsList = new ArrayList<>();
@@ -305,7 +300,7 @@ public class Visualization
     private transient Map<String, String> parentGraphMap = new HashMap<>();
 
     /*
-     * # Common transient collections used to return the respective values to the
+     * Common transient collections used to return the respective values to the
      * client. They are the main attributes for any kind of visualization.
      */
     private transient List<DimensionalObject> columns = new ArrayList<>();
@@ -325,8 +320,7 @@ public class Visualization
     private transient String gridTitle;
 
     /*
-     * # Collections mostly used for analytics tabulated data, like pivots or
-     * reports.
+     * Collections mostly used for analytics tabulated data, like pivots or reports.
      */
     private transient List<List<DimensionalItemObject>> gridColumns = new ArrayList<>();
 
@@ -342,6 +336,7 @@ public class Visualization
         this.name = name;
     }
 
+    @Override
     @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalObject.class )
     @JacksonXmlElementWrapper( localName = "columns", namespace = DXF_2_0 )
@@ -351,11 +346,13 @@ public class Visualization
         return columns;
     }
 
+    @Override
     public void setColumns( List<DimensionalObject> columns )
     {
         this.columns = columns;
     }
 
+    @Override
     @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalObject.class )
     @JacksonXmlElementWrapper( localName = "rows", namespace = DXF_2_0 )
@@ -365,11 +362,13 @@ public class Visualization
         return rows;
     }
 
+    @Override
     public void setRows( List<DimensionalObject> rows )
     {
         this.rows = rows;
     }
 
+    @Override
     @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalObject.class )
     @JacksonXmlElementWrapper( localName = "filters", namespace = DXF_2_0 )
@@ -379,11 +378,13 @@ public class Visualization
         return filters;
     }
 
+    @Override
     public void setFilters( List<DimensionalObject> filters )
     {
         this.filters = filters;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public Map<String, String> getParentGraphMap()
@@ -391,6 +392,7 @@ public class Visualization
         return parentGraphMap;
     }
 
+    @Override
     public void setParentGraphMap( Map<String, String> parentGraphMap )
     {
         this.parentGraphMap = parentGraphMap;
@@ -1071,9 +1073,10 @@ public class Visualization
         gridRows = new ArrayList<>();
     }
 
-    /***************************************
-     * Business methods
-     ***************************************/
+    // -------------------------------------------------------------------------
+    // Business logic
+    // -------------------------------------------------------------------------
+
     public List<OrganisationUnit> getAllOrganisationUnits()
     {
         if ( transientOrganisationUnits != null && !transientOrganisationUnits.isEmpty() )
@@ -1103,9 +1106,10 @@ public class Visualization
         return list;
     }
 
-    /***************************************
-     * Display supportive methods
-     ***************************************/
+    // -------------------------------------------------------------------------
+    // Display supportive methods
+    // -------------------------------------------------------------------------
+
     /**
      * Tests whether this visualization has reporting parameters.
      */
