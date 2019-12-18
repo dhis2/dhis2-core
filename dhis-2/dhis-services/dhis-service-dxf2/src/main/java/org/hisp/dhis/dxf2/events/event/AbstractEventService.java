@@ -1179,7 +1179,7 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
         }
 
-        Date executionDate = new Date();
+        Date executionDate;
 
         if ( event.getEventDate() != null )
         {
@@ -1960,8 +1960,7 @@ public abstract class AbstractEventService
             else
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
-                    executionDate, event.getStatus().getValue(), completedBy,
-                    programStageInstance, aoc, importOptions );
+                    executionDate, event.getStatus().getValue(), completedBy, storedBy, programStageInstance, aoc );
             }
 
             if ( !importOptions.isSkipLastUpdated() )
@@ -2130,15 +2129,14 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storeBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-            status, completedBy, programStageInstance, aoc, importOptions );
+            status, storeBy, completedBy, programStageInstance, aoc );
 
         return programStageInstance;
     }
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
-        String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
-        ImportOptions importOptions )
+        String completedBy, String storedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc)
     {
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setProgramStage( programStage );
@@ -2152,7 +2150,7 @@ public abstract class AbstractEventService
 
         programStageInstance.setStatus( EventStatus.fromInt( status ) );
 
-        saveTrackedEntityComment( programStageInstance, event, event.getStoredBy() );
+        saveTrackedEntityComment( programStageInstance, event, storedBy );
 
         if ( programStageInstance.isCompleted() )
         {
@@ -2187,7 +2185,7 @@ public abstract class AbstractEventService
                 TrackedEntityComment comment = new TrackedEntityComment();
                 comment.setUid( noteUid );
                 comment.setCommentText( note.getValue() );
-                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? User.getSafeUsername( storedBy ) : note.getStoredBy() );
+                comment.setCreator( getValidUsername( note.getStoredBy(), null, storedBy ) );
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
                 comment.setCreated( created );
@@ -2377,9 +2375,8 @@ public abstract class AbstractEventService
 
     private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
     {
-        return activeProgramInstanceCache.get( key, () -> {
-            return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
-        } );
+        return activeProgramInstanceCache.get( key,
+            () -> programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ) );
     }
 
     private IdentifiableObject getDefaultObject( Class<? extends IdentifiableObject> key )
