@@ -101,7 +101,7 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
@@ -274,7 +274,7 @@ public class JdbcEventAnalyticsTableManager
     @Override
     public List<AnalyticsTableColumn> getFixedColumns()
     {
-        return this.FIXED_COLS;
+        return FIXED_COLS;
     }
 
     @Override

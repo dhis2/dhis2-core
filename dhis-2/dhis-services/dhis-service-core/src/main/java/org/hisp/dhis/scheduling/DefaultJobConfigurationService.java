@@ -66,8 +66,7 @@ public class DefaultJobConfigurationService
 
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
-    public DefaultJobConfigurationService(
-        @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
+    public DefaultJobConfigurationService( @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
     {
         checkNotNull( jobConfigurationStore );
 
