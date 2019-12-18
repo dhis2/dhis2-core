@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.NumberingPlanIndicator;
 import org.jsmpp.bean.TypeOfNumber;
@@ -36,6 +37,7 @@ import org.jsmpp.bean.TypeOfNumber;
 /**
  * @author Zubair Asghar
  */
+@JsonTypeName( "smpp" )
 public class SMPPGatewayConfig extends SmsGatewayConfig
 {
     private String systemType;

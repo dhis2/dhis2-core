@@ -29,11 +29,13 @@ package org.hisp.dhis.sms.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 
+@JsonTypeName( "bulksms" )
 public class BulkSmsGatewayConfig
     extends SmsGatewayConfig
 {

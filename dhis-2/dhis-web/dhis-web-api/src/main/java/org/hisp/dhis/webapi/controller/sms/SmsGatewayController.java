@@ -46,7 +46,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -168,10 +167,10 @@ public class SmsGatewayController
     public void addOrUpdateGenericConfiguration( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        GenericHttpGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
-            GenericHttpGatewayConfig.class );
+        SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
+                SmsGatewayConfig.class );
 
-        if ( gatewayAdminService.addOrUpdateGateway( payLoad, GenericHttpGatewayConfig.class ) )
+        if ( gatewayAdminService.addGateway( payLoad ) )
         {
             webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
         }
@@ -226,20 +225,17 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.POST )
-    public void addGateway( @RequestParam String type, HttpServletRequest request, HttpServletResponse response )
-        throws IOException, WebMessageException
+    public void addGateway( HttpServletRequest request, HttpServletResponse response )
+            throws IOException, WebMessageException
     {
-        Class<? extends SmsGatewayConfig> gatewayType = TYPE_MAPPER.getOrDefault( type, null );
+        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(),  SmsGatewayConfig.class );
 
-        if ( gatewayType == null )
+        if ( config == null )
         {
-            throw new WebMessageException(WebMessageUtils.notFound( String.format( "No gateway of type: %s is supported ", type ) ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Cannot de-serialize SMS configurations" ) );
         }
 
-        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(),  gatewayType );
-
         gatewayAdminService.addGateway( config );
-
         webMessageService.send( WebMessageUtils.ok( "Gateway configuration added" ), response, request );
     }
 

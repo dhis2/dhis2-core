@@ -250,10 +250,11 @@ function updateInputType( rowId, type )
 
 function saveSettings ()
 {
-	var url = "../api/gateways/generichttp";
+	var url = "../api/gateways?type=http";
 	var httpFields = jQuery('#genericHTTPFields');
 	var data = {
 		name: httpFields.find("#name")[0].value,
+		type: "http",
 		messageParameter: httpFields.find("#messageParameter")[0].value,
 		recipientParameter: httpFields.find("#recipientParameter")[0].value,
 		urlTemplate: httpFields.find("#urlTemplate")[0].value

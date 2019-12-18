@@ -31,6 +31,8 @@ package org.hisp.dhis.sms.config;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -42,6 +44,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
+@JsonSubTypes( { @JsonSubTypes.Type( value = BulkSmsGatewayConfig.class, name = "bulksms" ),
+                 @JsonSubTypes.Type( value = GenericHttpGatewayConfig.class, name = "http" ),
+                 @JsonSubTypes.Type( value = ClickatellGatewayConfig.class, name = "clickatell" ),
+                 @JsonSubTypes.Type( value = SMPPGatewayConfig.class, name = "smpp" ) } )
 public abstract class SmsGatewayConfig
     implements Serializable
 {

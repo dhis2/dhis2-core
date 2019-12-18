@@ -31,8 +31,10 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.collect.Lists;
 
+@JsonTypeName( "http" )
 public class GenericHttpGatewayConfig
     extends SmsGatewayConfig
 {
