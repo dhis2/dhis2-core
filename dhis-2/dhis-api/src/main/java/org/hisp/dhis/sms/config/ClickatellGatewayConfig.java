@@ -47,11 +47,6 @@ public class ClickatellGatewayConfig
     @JsonProperty
     public String getAuthToken()
     {
-        return "";
-    }
-
-    public String getAuthTokenValue()
-    {
         return authToken;
     }
 

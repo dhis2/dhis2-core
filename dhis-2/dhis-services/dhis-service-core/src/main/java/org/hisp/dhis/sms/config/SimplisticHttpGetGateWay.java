@@ -146,17 +146,17 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValueForKey() ) );
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
                 continue;
             }
 
             if ( parameter.isEncode() )
             {
-                valueStore.put( parameter.getKey(), encodeUrl( parameter.getValueForKey() ) );
+                valueStore.put( parameter.getKey(), encodeUrl( parameter.getValue() ) );
                 continue;
             }
 
-            valueStore.put( parameter.getKey(), parameter.getValueForKey() );
+            valueStore.put( parameter.getKey(), parameter.getValue() );
         }
 
         valueStore.put( KEY_TEXT, text );

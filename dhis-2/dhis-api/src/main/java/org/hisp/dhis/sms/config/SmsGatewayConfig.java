@@ -112,17 +112,12 @@ public abstract class SmsGatewayConfig
     @JsonProperty
     public String getPassword()
     {
-        return "";
+        return password;
     }
 
     public void setPassword( String password )
     {
         this.password = password;
-    }
-
-    public String getPasswordValue()
-    {
-        return password;
     }
 
     @JsonProperty

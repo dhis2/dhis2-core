@@ -100,7 +100,7 @@ public class ClickatellHttpGateway
         headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.set( PROTOCOL_VERSION, "1" );
-        headers.set( HttpHeaders.AUTHORIZATION, clickatellConfiguration.getAuthTokenValue() );
+        headers.set( HttpHeaders.AUTHORIZATION, clickatellConfiguration.getAuthToken() );
 
         return headers;
     }

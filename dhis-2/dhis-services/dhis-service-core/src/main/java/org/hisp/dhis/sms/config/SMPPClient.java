@@ -211,7 +211,7 @@ public class SMPPClient
 
     private BindParameter getBindParameters( SMPPGatewayConfig config )
     {
-       return new BindParameter( config.getBindType(), config.getUsername(), config.getPasswordValue(), config.getSystemType(),
+       return new BindParameter( config.getBindType(), config.getUsername(), config.getPassword(), config.getSystemType(),
             config.getTypeOfNumber(), config.getNumberPlanIndicator(), null );
     }
 

@@ -64,11 +64,6 @@ public class GenericGatewayParameter
     @JsonProperty( value = "value" )
     public String getValue()
     {
-        return confidential ? "" : value;
-    }
-
-    public String getValueForKey()
-    {
         return value;
     }
 
