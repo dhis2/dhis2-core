@@ -81,24 +81,33 @@ public interface SchedulingManager
     void jobConfigurationFinished( JobConfiguration jobConfiguration );
 
     /**
-     * Get a job based on the job type.
-     *
-     * @param jobType the job type for the job we want to collect
-     * @return the job
-     */
-    Job getJob( JobType jobType );
-
-    /**
-     * Schedules a job with the given job configuration.
+     * Schedules a job with the given job configuration. The job will be scheduled
+     * based on the {@link JobConfiguration#cronExpression} property.
      *
      * @param jobConfiguration the job to schedule.
      */
     void scheduleJob( JobConfiguration jobConfiguration );
 
     /**
+     * Schedule a job with the given start time.
+     *
+     * @param jobConfiguration The jobConfiguration with job details to be scheduled
+     * @param startTime The time at which the job should start
+     */
+    void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
+
+    /**
      * Stops one job.
      */
     void stopJob( JobConfiguration jobConfiguration );
+
+    /**
+     * Get a job based on the job type.
+     *
+     * @param jobType the job type for the job we want to collect
+     * @return the job
+     */
+    Job getJob( JobType jobType );
 
     /**
      * Execute the job.
@@ -113,14 +122,6 @@ public interface SchedulingManager
      * @param job The job to be executed
      */
     void executeJob( Runnable job );
-
-    /**
-     * Schedule a job with a start time.
-     *
-     * @param jobConfiguration The jobConfiguration with job details to be scheduled
-     * @param startTime The time at which the job should start
-     */
-    void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
 
     /**
      * Execute the given job immediately and return a ListenableFuture.

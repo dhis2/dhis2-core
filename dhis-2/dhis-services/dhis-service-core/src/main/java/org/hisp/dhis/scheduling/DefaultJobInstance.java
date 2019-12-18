@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
@@ -119,6 +120,7 @@ public class DefaultJobInstance
             String message = String.format( "Job failed: '%s'", jobConfiguration.getName() );
             messageService.sendSystemErrorNotification( message, ex );
             log.error( message, ex );
+            log.error( DebugUtils.getStackTrace( ex ) );
 
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
         }
