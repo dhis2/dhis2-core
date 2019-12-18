@@ -518,9 +518,6 @@ public class DefaultPreheatService implements PreheatService
                 if ( schema.isIdentifiableObject() )
                 {
                     IdentifiableObject identifiableObject = (IdentifiableObject) object;
-                    if (identifiableObject == null) {
-                        continue;
-                    }
                     identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                     identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
                     identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
@@ -548,18 +545,16 @@ public class DefaultPreheatService implements PreheatService
                     else
                     {
                         Collection<IdentifiableObject> reference = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
-                        if ( reference != null )
-                        {
-                            reference.forEach( identifiableObject -> addIdentifiers( map, identifiableObject ) );
+                        reference.forEach( identifiableObject -> addIdentifiers( map, identifiableObject ) );
 
-                            if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
+                        if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
+                        {
+                            CollectionUtils.nullSafeForEach( reference, identifiableObject ->
                             {
-                                CollectionUtils.nullSafeForEach( reference, identifiableObject -> {
-                                    DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
-                                    addIdentifiers( map, dataElementOperand.getDataElement() );
-                                    addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
-                                } );
-                            }
+                                DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
+                                addIdentifiers( map, dataElementOperand.getDataElement() );
+                                addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
+                            } );
                         }
                     }
                 } );
@@ -714,42 +709,53 @@ public class DefaultPreheatService implements PreheatService
             Map<String, Map<String, Object>> refMap = new HashMap<>();
             map.put( objectClass, refMap );
 
-            for ( IdentifiableObject object : identifiableObjects ) {
-                if (object != null) {
-                    refMap.put(object.getUid(), new HashMap<>());
+            for ( IdentifiableObject object : identifiableObjects )
+            {
+                refMap.put( object.getUid(), new HashMap<>() );
 
-                    properties.forEach(p ->
+                properties.forEach( p ->
+                {
+                    if ( !p.isCollection() )
                     {
-                        if (!p.isCollection()) {
-                            IdentifiableObject reference = ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                        IdentifiableObject reference = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
 
-                            if (reference != null) {
-                                try {
-                                    IdentifiableObject identifiableObject = (IdentifiableObject) p.getKlass().newInstance();
-                                    mergeService.merge(new MergeParams<>(reference, identifiableObject));
-                                    refMap.get(object.getUid()).put(p.getName(), identifiableObject);
-                                } catch (InstantiationException | IllegalAccessException ignored) {
-                                }
+                        if ( reference != null )
+                        {
+                            try
+                            {
+                                IdentifiableObject identifiableObject = (IdentifiableObject) p.getKlass().newInstance();
+                                mergeService.merge( new MergeParams<>( reference, identifiableObject ) );
+                                refMap.get( object.getUid() ).put( p.getName(), identifiableObject );
                             }
-                        } else {
-                            Collection<IdentifiableObject> refObjects = ReflectionUtils.newCollectionInstance(p.getKlass());
-                            Collection<IdentifiableObject> references = ReflectionUtils.invokeMethod(object, p.getGetterMethod());
-
-                            if (references != null) {
-                                for (IdentifiableObject reference : references) {
-                                    try {
-                                        IdentifiableObject identifiableObject = (IdentifiableObject) p.getItemKlass().newInstance();
-                                        mergeService.merge(new MergeParams<>(reference, identifiableObject));
-                                        refObjects.add(identifiableObject);
-                                    } catch (InstantiationException | IllegalAccessException ignored) {
-                                    }
-                                }
+                            catch ( InstantiationException | IllegalAccessException ignored )
+                            {
                             }
-
-                            refMap.get(object.getUid()).put(p.getCollectionName(), refObjects);
                         }
-                    });
-                }
+                    }
+                    else
+                    {
+                        Collection<IdentifiableObject> refObjects = ReflectionUtils.newCollectionInstance( p.getKlass() );
+                        Collection<IdentifiableObject> references = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
+
+                        if ( references != null )
+                        {
+                            for ( IdentifiableObject reference : references )
+                            {
+                                try
+                                {
+                                    IdentifiableObject identifiableObject = (IdentifiableObject) p.getItemKlass().newInstance();
+                                    mergeService.merge( new MergeParams<>( reference, identifiableObject ) );
+                                    refObjects.add( identifiableObject );
+                                }
+                                catch ( InstantiationException | IllegalAccessException ignored )
+                                {
+                                }
+                            }
+                        }
+
+                        refMap.get( object.getUid() ).put( p.getCollectionName(), refObjects );
+                    }
+                } );
             }
         }
 
@@ -880,17 +886,13 @@ public class DefaultPreheatService implements PreheatService
                 Collection<IdentifiableObject> objects = ReflectionUtils.newCollectionInstance( property.getKlass() );
                 Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
-                if ( refObjects != null )
+                for ( IdentifiableObject refObject : refObjects )
                 {
-                    for ( IdentifiableObject refObject : refObjects )
-                    {
-                        IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
-                        if ( ref != null && ref.getId() != 0 )
-                            objects.add( ref );
-                    }
-
-                    ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
+                    IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
+                    if ( ref != null && ref.getId() != 0 ) objects.add( ref );
                 }
+
+                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
             }
         }
     }

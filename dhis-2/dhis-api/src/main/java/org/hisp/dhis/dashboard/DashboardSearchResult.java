@@ -209,11 +209,13 @@ public class DashboardSearchResult
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "charts", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "chart", namespace = DXF_2_0 )
-    public List<Chart> getCharts() {
+    public List<Chart> getCharts()
+    {
         return charts;
     }
 
-    public void setCharts(List<Chart> charts) {
+    public void setCharts( List<Chart> charts )
+    {
         this.charts = charts;
     }
 
@@ -221,18 +223,20 @@ public class DashboardSearchResult
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "reportTables", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "reportTable", namespace = DXF_2_0 )
-    public List<ReportTable> getReportTables() {
+    public List<ReportTable> getReportTables()
+    {
         return reportTables;
     }
 
-    public void setReportTables(List<ReportTable> reportTables) {
+    public void setReportTables( List<ReportTable> reportTables )
+    {
         this.reportTables = reportTables;
     }
 
     @JsonProperty( value = "eventCharts" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "eventCharts", namespace = DXF_2_0)
-    @JacksonXmlProperty( localName = "eventChart", namespace = DXF_2_0)
+    @JacksonXmlElementWrapper( localName = "eventCharts", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "eventChart", namespace = DXF_2_0 )
     public List<EventChart> getEventCharts()
     {
         return eventCharts;
