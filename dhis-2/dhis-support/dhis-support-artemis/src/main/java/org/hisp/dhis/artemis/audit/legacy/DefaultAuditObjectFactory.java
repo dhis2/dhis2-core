@@ -44,11 +44,11 @@ import java.util.Date;
  * @author Luciano Fiandesio
  */
 @Component
-public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory
+public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
     private final RenderService renderService;
 
-    public DefaultAuditLegacyObjectFactory( RenderService renderService )
+    public DefaultAuditObjectFactory( RenderService renderService )
     {
         this.renderService = renderService;
     }
