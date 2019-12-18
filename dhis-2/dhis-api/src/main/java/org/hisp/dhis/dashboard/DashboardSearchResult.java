@@ -209,11 +209,13 @@ public class DashboardSearchResult
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "charts", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "chart", namespace = DXF_2_0 )
-    public List<Chart> getCharts() {
+    public List<Chart> getCharts()
+    {
         return charts;
     }
 
-    public void setCharts(List<Chart> charts) {
+    public void setCharts( List<Chart> charts )
+    {
         this.charts = charts;
     }
 
