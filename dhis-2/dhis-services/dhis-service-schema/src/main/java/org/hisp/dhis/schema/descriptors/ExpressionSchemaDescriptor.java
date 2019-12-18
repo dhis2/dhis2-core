@@ -1,7 +1,7 @@
-package org.hisp.dhis.schema.validation;
+package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,40 +28,31 @@ package org.hisp.dhis.schema.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.ErrorReport;
-
-import java.util.List;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-public interface SchemaValidator
+
+public class ExpressionSchemaDescriptor
+    implements SchemaDescriptor
 {
-    /**
-     * Validate embedded object against its schema, the object is required to be non-null and have a schema associated with it.
-     *
-     * @param object      Object to validate
-     * @param parentClass Only include persisted properties
-     * @return WebMessage   containing validation response
-     */
-    List<ErrorReport> validateEmbeddedObject( Object object, Class<?> parentClass );
+    public static final String SINGULAR = "expression";
 
-    /**
-     * Validate object against its schema, the object is required to be non-null and have a schema associated with it.
-     *
-     * @param object    Object to validate
-     * @param persisted Only include persisted properties
-     * @return WebMessage containing validation response
-     */
-    List<ErrorReport> validate( Object object, boolean persisted );
+    public static final String PLURAL = "expressions";
 
-    /**
-     * Validate object against its schema, the object is required to be non-null and have a schema associated with it.
-     * <p>
-     * Only persisted values will be checked.
-     *
-     * @param object Object to validate
-     * @return WebMessage containing validation response
-     */
-    List<ErrorReport> validate( Object object );
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( Expression.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1000 );
+
+        return schema;
+    }
 }

@@ -370,15 +370,19 @@ public class AnalyticsServiceTest
 
         Expression expressionVRA = new Expression( "expressionA", "descriptionA" );
         Expression expressionVRB = new Expression( "expressionB", "descriptionB" );
+        Expression expressionVRC = new Expression( "expressionC", "descriptionC" );
+        Expression expressionVRD = new Expression( "expressionD", "descriptionD" );
         expressionService.addExpression( expressionVRA );
         expressionService.addExpression( expressionVRB );
+        expressionService.addExpression( expressionVRC );
+        expressionService.addExpression( expressionVRD );
 
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionVRA, expressionVRB, periodType );
         validationRuleA.setUid( "a234567vruA" );
 
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRA, expressionVRB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRC, expressionVRD, periodType );
         validationRuleB.setUid( "a234567vruB" );
         validationRuleStore.save( validationRuleA );
         validationRuleStore.save( validationRuleB );

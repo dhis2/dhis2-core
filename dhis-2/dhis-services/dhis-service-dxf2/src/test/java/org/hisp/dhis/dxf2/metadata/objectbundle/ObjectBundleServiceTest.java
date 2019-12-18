@@ -1123,6 +1123,46 @@ public class ObjectBundleServiceTest
     }
 
     @Test
+    public void testCreateMetadataWithInvalidExpressionValidationRules()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_invalid_expression.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "leftSide.description", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4001, validate.getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void testUpdateMetadataWithMissingExpressionValidationRules()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_missing_expression.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "rightSide", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4000, validate.getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
     public void testCreateAndUpdateMetadata1() throws IOException
     {
         defaultSetup();

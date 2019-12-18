@@ -264,10 +264,6 @@ public class EventValidationServiceTest
         expressionDSliding.setSlidingWindow( true );
         expressionISliding.setSlidingWindow( true );
 
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionD );
-        expressionService.addExpression( expressionI );
-
         validationRuleA = createValidationRule( "A", not_equal_to, expressionA, expressionA, periodTypeMonthly ); // A - ProgramTrackedEntityAttribute
         validationRuleD = createValidationRule( "D", not_equal_to, expressionD, expressionD, periodTypeMonthly ); // D - ProgramDataElement
         validationRuleI = createValidationRule( "I", not_equal_to, expressionI, expressionI, periodTypeMonthly ); // I - ProgramIndicator

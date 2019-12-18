@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.validation;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -58,7 +59,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.expression.Operator.*;
 
 /**
@@ -111,8 +112,6 @@ public class ValidationServiceTest
 
     private CategoryOptionCombo optionCombo;
 
-    Expression expressionL;
-
     private DataSet dataSetWeekly;
 
     private DataSet dataSetMonthly;
@@ -121,10 +120,17 @@ public class ValidationServiceTest
 
     private Period periodA;
     private Period periodB;
+
+    private Period periodC;
+
     private Period periodY;
 
     private int dayInPeriodA;
+
     private int dayInPeriodB;
+
+    private int dayInPeriodC;
+
     private int dayInPeriodY;
 
     private OrganisationUnit sourceA;
@@ -209,46 +215,55 @@ public class ValidationServiceTest
 
         Expression expressionA = new Expression(
             "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA" );
+        Expression expressionA2 = new Expression(
+            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA2" );
+        Expression expressionA3 = new Expression(
+            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA3" );
+        Expression expressionA4 = new Expression(
+            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA4" );
+        Expression expressionA5 = new Expression(
+            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA5" );
         Expression expressionB = new Expression(
             "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB" );
+        Expression expressionB2 = new Expression(
+            "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB2" );
+        Expression expressionB3 = new Expression(
+            "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB3" );
         Expression expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC" );
+        Expression expressionC2 = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC2" );
+        Expression expressionC3 = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC3" );
         Expression expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD" );
         Expression expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE" );
         Expression expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF" );
         Expression expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})", "expressionG" );
         Expression expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})", "expressionH" );
         Expression expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI" );
+        Expression expressionI2 = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI2" );
+        Expression expressionI3 = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI3" );
         Expression expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ" );
+        Expression expressionJ2 = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ2" );
         Expression expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", NEVER_SKIP );
-        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", NEVER_SKIP );
+        Expression expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", NEVER_SKIP );
         Expression expressionP = new Expression( SYMBOL_DAYS, "expressionP", NEVER_SKIP );
+        Expression expressionP2 = new Expression( SYMBOL_DAYS, "expressionP2", NEVER_SKIP );
         Expression expressionQ = new Expression( "#{" + dataElementE.getUid() + "}", "expressionQ", NEVER_SKIP );
         Expression expressionR = new Expression( "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionR" );
         Expression expressionS = new Expression( "#{" + dataElementA.getUid() + suffixX + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
-        Expression expressionT = new Expression( "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionS" );
-        Expression expressionU = new Expression( "1000", "expressionT" );
-
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionC );
-        expressionService.addExpression( expressionD );
-        expressionService.addExpression( expressionE );
-        expressionService.addExpression( expressionF );
-        expressionService.addExpression( expressionG );
-        expressionService.addExpression( expressionH );
-        expressionService.addExpression( expressionI );
-        expressionService.addExpression( expressionJ );
-        expressionService.addExpression( expressionK );
-        expressionService.addExpression( expressionL );
-        expressionService.addExpression( expressionP );
-        expressionService.addExpression( expressionQ );
+        Expression expressionT = new Expression(
+            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffixX + "}", "expressionT" );
+        Expression expressionU = new Expression( "1000", "expressionU" );
+        Expression expressionU2 = new Expression( "1000", "expressionU2" );
+        Expression expressionU3 = new Expression( "1000", "expressionU3" );
+        Expression expressionU4 = new Expression( "1000", "expressionU4" );
 
         periodA = createPeriod( periodTypeMonthly, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( periodTypeMonthly, getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
+        periodC = createPeriod( periodTypeMonthly, getDate( 2000, 5, 1 ), getDate( 2000, 5, 31 ) );
         periodY = createPeriod( periodTypeYearly, getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) );
 
         dayInPeriodA = periodService.getDayInPeriod( periodA, new Date() );
         dayInPeriodB = periodService.getDayInPeriod( periodB, new Date() );
+        dayInPeriodC = periodService.getDayInPeriod( periodC, new Date() );
         dayInPeriodY = periodService.getDayInPeriod( periodY, new Date() );
 
         dataSetWeekly = createDataSet( 'W', periodTypeWeekly );
@@ -319,19 +334,29 @@ public class ValidationServiceTest
         dataElementService.updateDataElement( dataElementE );
 
         validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly ); // deA + deB = deC - deD
-        validationRuleB = createValidationRule( "B", greater_than, expressionB, expressionC, periodTypeMonthly ); // deC - deD > deB * 2
-        validationRuleC = createValidationRule( "C", less_than_or_equal_to, expressionB, expressionA, periodTypeMonthly ); // deC - deD <= deA + deB
-        validationRuleD = createValidationRule( "D", less_than, expressionA, expressionC, periodTypeMonthly ); // deA + deB < deB * 2
+        validationRuleB = createValidationRule( "B", greater_than, expressionB2, expressionC,
+            periodTypeMonthly ); // deC - deD > deB * 2
+        validationRuleC = createValidationRule( "C", less_than_or_equal_to, expressionB3, expressionA2,
+            periodTypeMonthly ); // deC - deD <= deA + deB
+        validationRuleD = createValidationRule( "D", less_than, expressionA3, expressionC2,
+            periodTypeMonthly ); // deA + deB < deB * 2
         validationRuleE = createValidationRule( "E", compulsory_pair, expressionI, expressionJ, periodTypeMonthly ); // deA [Compulsory pair] deB
-        validationRuleF = createValidationRule( "F", exclusive_pair, expressionI, expressionJ, periodTypeMonthly ); // deA [Exclusive pair] deB
+        validationRuleF = createValidationRule( "F", exclusive_pair, expressionI2, expressionJ2,
+            periodTypeMonthly ); // deA [Exclusive pair] deB
         validationRuleG = createValidationRule( "G", equal_to, expressionK, expressionL, periodTypeMonthly ); // deC = deD
-        validationRuleP = createValidationRule( "P", equal_to, expressionI, expressionP, periodTypeMonthly ); // deA = [days]
-        validationRuleQ = createValidationRule( "Q", equal_to, expressionQ, expressionP, periodTypeYearly ); // deE = [days]
+        validationRuleP = createValidationRule( "P", equal_to, expressionI3, expressionP,
+            periodTypeMonthly ); // deA = [days]
+        validationRuleQ = createValidationRule( "Q", equal_to, expressionQ, expressionP2,
+            periodTypeYearly ); // deE = [days]
         validationRuleR = createValidationRule( "R", equal_to, expressionR, expressionU, periodTypeMonthly ); // deA(sum) + deB(sum) = 1000
-        validationRuleS = createValidationRule( "S", equal_to, expressionS, expressionU, periodTypeMonthly ); // deA.optionComboX + deB.optionComboX = 1000
-        validationRuleT = createValidationRule( "T", equal_to, expressionT, expressionU, periodTypeMonthly ); // deA.default + deB.optionComboX = 1000
-        validationRuleU = createValidationRule( "U", equal_to, expressionA, expressionU, periodTypeMonthly ); // deA.default + deB.default = 1000
-        validationRuleX = createValidationRule( "X", equal_to, expressionA, expressionC, periodTypeMonthly ); // deA + deB = deB * 2
+        validationRuleS = createValidationRule( "S", equal_to, expressionS, expressionU2,
+            periodTypeMonthly ); // deA.optionComboX + deB.optionComboX = 1000
+        validationRuleT = createValidationRule( "T", equal_to, expressionT, expressionU3,
+            periodTypeMonthly ); // deA.default + deB.optionComboX = 1000
+        validationRuleU = createValidationRule( "U", equal_to, expressionA4, expressionU4,
+            periodTypeMonthly ); // deA.default + deB.default = 1000
+        validationRuleX = createValidationRule( "X", equal_to, expressionA5, expressionC3,
+            periodTypeMonthly ); // deA + deB = deB * 2
         group = createValidationRuleGroup( 'A' );
 
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
@@ -1002,10 +1027,10 @@ public class ValidationServiceTest
         Expression expressionZ = new Expression( "#{" + dataElementD.getUid() + "." + optionComboA.getUid() + "} * 2"
             + " + #{" + dataElementD.getUid() + "." + optionComboB.getUid() + "}",
             "expressionZ", NEVER_SKIP );
+        Expression expressionV = new Expression( "#{" + dataElementD.getUid() + "}", "expressionV", NEVER_SKIP );
 
-        expressionService.addExpression( expressionZ );
-
-        ValidationRule validationRuleZ = createValidationRule( "Z", equal_to, expressionL, expressionZ, periodTypeMonthly );
+        ValidationRule validationRuleZ = createValidationRule( "Z", equal_to, expressionV, expressionZ,
+            periodTypeMonthly );
 
         validationRuleService.saveValidationRule( validationRuleZ ); // deD[all] = deD.optionComboA * 2 + deD.optionComboB
 
@@ -1142,5 +1167,112 @@ public class ValidationServiceTest
             .build() );
 
         assertResultsEmpty( results );
+    }
+
+    @Test
+    public void testValidateSkipIfAllValuesAreMissing()
+    {
+        useDataValue( dataElementA, periodB, sourceA, "1" );
+
+        useDataValue( dataElementA, periodC, sourceA, "2" );
+        useDataValue( dataElementB, periodC, sourceA, "3" );
+
+        Expression expressionLeft = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft",
+            SKIP_IF_ALL_VALUES_MISSING );
+        Expression expressionRight = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight",
+            SKIP_IF_ALL_VALUES_MISSING );
+
+        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight,
+            periodTypeMonthly );
+
+        validationRuleService.saveValidationRule( validationRule );
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder(
+            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
+            .build() );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRule, periodB, sourceA, defaultCombo, 1.0, 1.0, dayInPeriodB ) );
+        reference.add( new ValidationResult( validationRule, periodC, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodC ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidateSkipIfAnyValueIsMissing()
+    {
+        useDataValue( dataElementA, periodB, sourceA, "1" );
+
+        useDataValue( dataElementA, periodC, sourceA, "2" );
+        useDataValue( dataElementB, periodC, sourceA, "3" );
+
+        Expression expressionLeft = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionLeft",
+            SKIP_IF_ANY_VALUE_MISSING );
+        Expression expressionRight = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "expressionRight",
+            SKIP_IF_ANY_VALUE_MISSING );
+
+        ValidationRule validationRule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight,
+            periodTypeMonthly );
+
+        validationRuleService.saveValidationRule( validationRule );
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder(
+            Sets.newHashSet( validationRule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
+            .build() );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRule, periodC, sourceA, defaultCombo, 5.0, 5.0, dayInPeriodC ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidateWithIf()
+    {
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+
+        Expression expressionLeft = new Expression( "if(#{" + dataElementA.getUid() + "}==1,5,6)", "expressionLeft" );
+        Expression expressionRight = new Expression( "if(#{" + dataElementA.getUid() + "}==2,7,8)", "expressionRight" );
+
+        ValidationRule validationRule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+
+        validationRuleService.saveValidationRule( validationRule );
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRule, periodA, sourceA, defaultCombo, 5.0, 8.0, dayInPeriodA ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidateWithIsNull()
+    {
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+
+        Expression expressionLeft = new Expression( "if(isNull(#{" + dataElementA.getUid() + "}),5,6)", "expressionLeft" );
+        Expression expressionRight = new Expression( "if(isNull(#{" + dataElementB.getUid() + "}),7,8)", "expressionRight" );
+
+        ValidationRule validationRule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+
+        validationRuleService.saveValidationRule( validationRule );
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRule, periodA, sourceA, defaultCombo, 6.0, 7.0, dayInPeriodA ) );
+
+        assertResultsEquals( reference, results );
     }
 }
