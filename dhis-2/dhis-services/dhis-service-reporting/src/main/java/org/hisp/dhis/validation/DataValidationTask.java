@@ -189,18 +189,19 @@ public class DataValidationTask
                 {
                     orgUnit = ou;
                     orgUnitId = ou.getId();
-
-                    for ( ValidationRuleExtended r : periodTypeX.getRuleXs() )
+                    if ( dataMap.containsKey( orgUnitId ) )
                     {
-                        ruleX = r;
+                        for (ValidationRuleExtended r : periodTypeX.getRuleXs()) {
+                            ruleX = r;
 
-                        if ( context.isAnalysisComplete() )
-                        {
-                            break loop;
+                            if ( context.isAnalysisComplete() )
+                            {
+                                break loop;
+                            }
+                            validationResults = new HashSet<>();
+                            validateRule();
+                            addValidationResultsToContext();
                         }
-                        validationResults = new HashSet<>();
-                        validateRule();
-                        addValidationResultsToContext();
                     }
                 }
             }
@@ -326,7 +327,6 @@ public class DataValidationTask
         String test = leftSide
             + ruleX.getRule().getOperator().getMathematicalOperator()
             + rightSide;
-
         return ! (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST );
     }
 

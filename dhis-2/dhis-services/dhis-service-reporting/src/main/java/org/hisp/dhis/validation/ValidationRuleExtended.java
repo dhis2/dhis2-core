@@ -42,7 +42,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * overhead of having to compute them during the processing of every
  * organisation unit. For some of these properties this is also important
  * because they should be copied from Hibernate lazy collections before the
- * multithreaded part of the run starts, otherwise the threads may not be able
+ * multi-threaded part of the run starts, otherwise the threads may not be able
  * to access these values.
  * 
  * @author Jim Grace
