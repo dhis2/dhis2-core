@@ -102,9 +102,9 @@ public class SmsGatewayController
     public void getGateways( HttpServletResponse response ) throws IOException
     {
         ObjectMapper jsonMapper = new ObjectMapper();
-        jsonMapper.writerWithView( SmsConfigurationViews.Public.class );
         jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
-        jsonMapper.writeValue( response.getOutputStream(), smsConfigurationManager.getSmsConfiguration() );
+        jsonMapper.writerWithView( SmsConfigurationViews.Public.class )
+                  .writeValue( response.getOutputStream(), smsConfigurationManager.getSmsConfiguration() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
