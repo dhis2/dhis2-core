@@ -34,7 +34,7 @@ import org.hisp.dhis.audit.AuditType;
 /**
  * @author Luciano Fiandesio
  */
-public interface AuditLegacyObjectFactory
+public interface AuditObjectFactory
 {
     Object create( AuditScope auditScope, AuditType auditType, Object object, String user );
 }

@@ -33,7 +33,7 @@ import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
@@ -49,10 +49,10 @@ public class PostDeleteAuditListener
 {
     public PostDeleteAuditListener(
         AuditManager auditManager,
-        AuditLegacyObjectFactory auditLegacyObjectFactory,
+        AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
-        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier );
     }
 
     @Override
