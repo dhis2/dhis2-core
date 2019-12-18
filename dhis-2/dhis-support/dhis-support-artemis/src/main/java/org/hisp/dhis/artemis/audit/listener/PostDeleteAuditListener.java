@@ -73,7 +73,7 @@ public class PostDeleteAuditListener
                 .withCreatedAt( LocalDateTime.now() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.DELETE, entity, getCreatedBy() ) )
+                .withData( this.objectFactory.create( auditable.scope(), AuditType.DELETE, entity, getCreatedBy() ) )
                 .build() );
         } );
     }

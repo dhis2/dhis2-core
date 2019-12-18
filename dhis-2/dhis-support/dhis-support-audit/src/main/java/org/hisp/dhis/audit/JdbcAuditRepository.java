@@ -164,7 +164,7 @@ public class JdbcAuditRepository implements AuditRepository
             if ( range.getTo() != null )
             {
                 sql.append( sqlHelper.whereAnd() )
-                    .append( "createdAt <= " )
+                    .append( "createdAt < " )
                     .append( "'" )
                     .append( range.getTo() )
                     .append( "'" );

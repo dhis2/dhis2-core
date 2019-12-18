@@ -34,17 +34,15 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
+import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.audit.MetadataAudit;
-import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import javax.jms.TextMessage;
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.Objects;
 
 /**
@@ -58,19 +56,20 @@ public class MetadataAuditConsumer implements AuditConsumer
     private static final Log log = LogFactory.getLog( MetadataAuditConsumer.class );
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final MetadataAuditService metadataAuditService;
+    private final AuditService auditService;
     private final RenderService renderService;
     private final boolean metadataAuditLog;
     private final boolean metadataAuditPersist;
 
     public MetadataAuditConsumer(
-        MetadataAuditService metadataAuditService,
+        AuditService auditService,
         RenderService renderService,
         DhisConfigurationProvider dhisConfig )
     {
-        this.metadataAuditService = metadataAuditService;
+        this.auditService = auditService;
         this.renderService = renderService;
 
+        // TODO remove and replace with Audit Configuration Grid (ACG)
         this.metadataAuditPersist = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
         this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
     }
@@ -83,7 +82,9 @@ public class MetadataAuditConsumer implements AuditConsumer
             String payload = message.getText();
 
             Audit auditMessage = renderService.fromJson( payload, Audit.class );
-            MetadataAudit audit = toMetadataAudit( auditMessage.getData() );
+            auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
+
+            org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
 
             if ( metadataAuditLog )
             {
@@ -92,7 +93,7 @@ public class MetadataAuditConsumer implements AuditConsumer
 
             if ( metadataAuditPersist )
             {
-                metadataAuditService.addMetadataAudit( audit );
+                auditService.addAudit( audit );
             }
         }
         catch ( IOException e )
@@ -105,16 +106,5 @@ public class MetadataAuditConsumer implements AuditConsumer
         {
             log.error( "An error occurred persisting an Audit message of type 'METADATA'", e );
         }
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private MetadataAudit toMetadataAudit( Object map )
-    {
-        if ( map instanceof LinkedHashMap && ((LinkedHashMap) map).containsKey( "value" ) )
-        {
-            ((LinkedHashMap) map).put( "value", renderService.toJsonAsString( ((LinkedHashMap) map).get( "value" ) ) );
-        }
-
-        return mapper.convertValue( map, MetadataAudit.class );
     }
 }

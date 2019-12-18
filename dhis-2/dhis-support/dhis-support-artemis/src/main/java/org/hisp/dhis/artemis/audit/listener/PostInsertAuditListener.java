@@ -66,7 +66,7 @@ public class PostInsertAuditListener
                 .withCreatedAt( LocalDateTime.now() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
+                .withData( this.objectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
                 .build() );
         } );
     }
