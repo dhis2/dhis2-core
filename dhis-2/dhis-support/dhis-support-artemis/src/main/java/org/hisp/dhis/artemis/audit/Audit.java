@@ -76,6 +76,7 @@ public class Audit implements Message
         this.createdBy = createdBy;
     }
 
+    // TODO use lombok @Builder
     public static AuditBuilder builder()
     {
         return new AuditBuilder();
@@ -94,11 +95,21 @@ public class Audit implements Message
         return auditType;
     }
 
+    public void setAuditType( AuditType auditType )
+    {
+        this.auditType = auditType;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AuditScope getAuditScope()
     {
         return auditScope;
+    }
+
+    public void setAuditScope( AuditScope auditScope )
+    {
+        this.auditScope = auditScope;
     }
 
     @JsonProperty
@@ -108,11 +119,21 @@ public class Audit implements Message
         return createdAt;
     }
 
+    public void setCreatedAt( LocalDateTime createdAt )
+    {
+        this.createdAt = createdAt;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCreatedBy()
     {
         return createdBy;
+    }
+
+    public void setCreatedBy( String createdBy )
+    {
+        this.createdBy = createdBy;
     }
 
     @JsonProperty
@@ -308,5 +329,32 @@ public class Audit implements Message
             ", code='" + code + '\'' +
             ", data=" + data +
             '}';
+    }
+
+    /**
+     * Converts the AMQP Audit object to a DAO Audit object.
+     * The data property will only be set if data == string.
+     * <p>
+     * TODO should we just do .toString() if its not a string objects?
+     *
+     * @return DAO Audit object with data (if data is string).
+     */
+    public org.hisp.dhis.audit.Audit toAudit()
+    {
+        org.hisp.dhis.audit.Audit.AuditBuilder auditBuilder = org.hisp.dhis.audit.Audit.builder()
+            .auditType( auditType )
+            .auditScope( auditScope )
+            .createdAt( createdAt )
+            .createdBy( createdBy )
+            .klass( klass )
+            .uid( uid )
+            .code( this.code );
+
+        if ( data instanceof String )
+        {
+            auditBuilder.data( (String) data );
+        }
+
+        return auditBuilder.build();
     }
 }

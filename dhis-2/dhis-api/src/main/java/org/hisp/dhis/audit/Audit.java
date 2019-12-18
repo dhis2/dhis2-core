@@ -29,6 +29,7 @@ package org.hisp.dhis.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.Builder;
 import lombok.Data;
 
@@ -88,7 +89,8 @@ public class Audit implements Serializable
     private String code;
 
     /**
-     * GZipped payload.
+     * GZipped payload. Exposed as raw json, make sure that the payload is decompressed first.
      */
+    @JsonRawValue
     private final String data;
 }

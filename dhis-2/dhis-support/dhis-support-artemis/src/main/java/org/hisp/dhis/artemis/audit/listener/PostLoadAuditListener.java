@@ -66,7 +66,7 @@ public class PostLoadAuditListener
                 .withCreatedAt( LocalDateTime.now() )
                 .withCreatedBy( getCreatedBy() )
                 .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
+                .withData( this.objectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
                 .build() );
         } );
     }

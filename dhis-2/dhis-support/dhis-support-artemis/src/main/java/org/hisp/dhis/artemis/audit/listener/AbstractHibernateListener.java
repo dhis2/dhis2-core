@@ -43,16 +43,16 @@ import java.util.Optional;
 public abstract class AbstractHibernateListener
 {
     final AuditManager auditManager;
-    final AuditObjectFactory legacyObjectFactory;
+    final AuditObjectFactory objectFactory;
     private final UsernameSupplier usernameSupplier;
 
     public AbstractHibernateListener(
         AuditManager auditManager,
-        AuditObjectFactory legacyObjectFactory,
+        AuditObjectFactory objectFactory,
         UsernameSupplier usernameSupplier )
     {
         this.auditManager = auditManager;
-        this.legacyObjectFactory = legacyObjectFactory;
+        this.objectFactory = objectFactory;
         this.usernameSupplier = usernameSupplier;
     }
 

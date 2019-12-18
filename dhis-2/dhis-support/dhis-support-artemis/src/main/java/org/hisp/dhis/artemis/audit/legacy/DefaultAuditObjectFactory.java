@@ -32,14 +32,11 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-
 /**
- * A factory for constructing "legacy" Auditing objects. For legacy, it is intended objects that contains foreign keys
- * to other objects and are eventually going to be replaced by a key-less Audit object.
+ * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself
+ * (as is the case for metadata), or it can be a wrapper object collecting the parts wanted.
  *
  * @author Luciano Fiandesio
  */
@@ -86,34 +83,6 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
             return null;
         }
 
-        IdentifiableObject identifiableObject = (IdentifiableObject) object;
-
-        return new MetadataAudit()
-            .setType( mapAuditType( auditType ) )
-            .setCreatedAt( new Date() )
-            .setCreatedBy( user ) // TODO was bundle.getUsername()
-            .setKlass( identifiableObject.getClass().getName() )
-            .setUid( identifiableObject.getUid() )
-            .setCode( identifiableObject.getCode() )
-            .setValue( renderService.toJsonAsString( identifiableObject ) );
-    }
-
-    private org.hisp.dhis.common.AuditType mapAuditType( AuditType auditType )
-    {
-        switch ( auditType )
-        {
-            case READ:
-                return org.hisp.dhis.common.AuditType.READ;
-            case CREATE:
-                return org.hisp.dhis.common.AuditType.CREATE;
-            case UPDATE:
-                return org.hisp.dhis.common.AuditType.UPDATE;
-            case SEARCH:
-                return org.hisp.dhis.common.AuditType.SEARCH;
-            case DELETE:
-                return org.hisp.dhis.common.AuditType.DELETE;
-            default:
-                throw new IllegalArgumentException( "Invalid Audit Type" );
-        }
+        return object;
     }
 }
