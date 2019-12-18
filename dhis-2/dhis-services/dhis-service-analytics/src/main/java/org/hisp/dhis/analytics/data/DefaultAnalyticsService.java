@@ -554,11 +554,11 @@ public class DefaultAnalyticsService
             return true;
         }
 
-        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+        Number indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
 
         return !params.getMeasureCriteria().entrySet().stream()
             .anyMatch( measureValue -> !measureValue.getKey()
-                .measureIsValid( indicatorRoundedValue, measureValue.getValue() ) );
+                .measureIsValid( indicatorRoundedValue.doubleValue(), measureValue.getValue() ) );
     }
 
     /**

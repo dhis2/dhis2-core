@@ -206,7 +206,7 @@ public class AnalyticsUtils
      * @param value the value.
      * @return a double.
      */
-    public static Double getRoundedValue( DataQueryParams params, Integer decimals, Double value )
+    public static Number getRoundedValue( DataQueryParams params, Integer decimals, Double value )
     {
         if ( value == null )
         {
@@ -222,7 +222,7 @@ public class AnalyticsUtils
         }
         else
         {
-            return MathUtils.getRounded( value );
+            return new Integer( (int) Precision.round( value, 0 ) );
         }
     }
 
