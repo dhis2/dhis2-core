@@ -28,6 +28,12 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -37,7 +43,10 @@ import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
+import org.hisp.dhis.sms.config.SmsConfiguration;
+import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -81,16 +90,21 @@ public class SmsGatewayController
     @Autowired
     private GatewayAdministrationService gatewayAdminService;
 
+    @Autowired
+    private SmsConfigurationManager smsConfigurationManager;
+
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
-    public void getGateways( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+    public void getGateways( HttpServletResponse response ) throws IOException
     {
-        renderService.toJson( response.getOutputStream(), gatewayAdminService.getGatewayConfigurationMap() );
+        ObjectMapper jsonMapper = new ObjectMapper();
+        jsonMapper.writerWithView( SmsConfigurationViews.Public.class );
+        jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
+        jsonMapper.writeValue( response.getOutputStream(), smsConfigurationManager.getSmsConfiguration() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
