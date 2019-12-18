@@ -302,10 +302,6 @@ public class EventPredictionServiceTest
         Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicators" );
         Expression expressionT = new Expression( EXPRESSION_T, "Two things" );
 
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionD );
-        expressionService.addExpression( expressionI );
-
         OrganisationUnitLevel orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
 

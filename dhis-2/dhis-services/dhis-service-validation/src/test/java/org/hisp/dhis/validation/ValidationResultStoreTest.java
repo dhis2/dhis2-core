@@ -299,8 +299,6 @@ public class ValidationResultStoreTest
 
         expressionA = new Expression( "expressionA", "descriptionA" );
         expressionB = new Expression( "expressionB", "descriptionB" );
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionA );
 
         validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         validationRuleB = createValidationRule( 'B', equal_to, expressionB, expressionA, periodType );
