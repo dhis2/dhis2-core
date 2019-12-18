@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -110,16 +109,20 @@ public abstract class SmsGatewayConfig
         this.uid = uid;
     }
 
-    @JsonIgnore
+    @JsonProperty
     public String getPassword()
     {
-        return password;
+        return "";
     }
 
-    @JsonProperty
     public void setPassword( String password )
     {
         this.password = password;
+    }
+
+    public String getPasswordValue()
+    {
+        return password;
     }
 
     @JsonProperty

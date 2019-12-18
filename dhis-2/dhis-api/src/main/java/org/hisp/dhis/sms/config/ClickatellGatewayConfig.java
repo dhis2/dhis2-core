@@ -44,13 +44,17 @@ public class ClickatellGatewayConfig
 
     private String authToken;
 
-    @JsonIgnore()
+    @JsonProperty
     public String getAuthToken()
+    {
+        return "";
+    }
+
+    public String getAuthTokenValue()
     {
         return authToken;
     }
 
-    @JsonProperty( "authToken" )
     public void setAuthToken( String authToken )
     {
         this.authToken = authToken;
