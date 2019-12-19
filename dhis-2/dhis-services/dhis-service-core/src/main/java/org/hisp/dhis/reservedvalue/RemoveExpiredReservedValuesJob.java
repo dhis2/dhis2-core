@@ -38,7 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Henning Håkonsen
  */
-@Component
+@Component( "removeExpiredReservedValuesJob" )
 public class RemoveExpiredReservedValuesJob
     extends AbstractJob
 {

@@ -28,7 +28,9 @@ package org.hisp.dhis.sms.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.SystemUtils;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
@@ -41,27 +43,21 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author Chau Thu Tran
- */
-@Service( "sendScheduledMessageJob" )
+@Component( "sendScheduledMessageJob" )
 public class SendScheduledMessageJob
     extends AbstractJob
 {
     private final OutboundSmsService outboundSmsService;
-    
+
     private final MessageSender smsSender;
 
     private final Notifier notifier;
-    
+
     public SendScheduledMessageJob( OutboundSmsService outboundSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, Notifier notifier )
     {
@@ -87,10 +83,7 @@ public class SendScheduledMessageJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        final int cpuCores = SystemUtils.getCpuCores();
-
-        Clock clock = new Clock().startClock().logTime(
-            "Aggregate process started, number of CPU cores: " + cpuCores + ", " + SystemUtils.getMemoryString() );
+        Clock clock = new Clock().startClock();
 
         clock.logTime( "Starting to send messages in outbound" );
         notifier.notify( jobConfiguration, INFO, "Start to send messages in outbound", true );
