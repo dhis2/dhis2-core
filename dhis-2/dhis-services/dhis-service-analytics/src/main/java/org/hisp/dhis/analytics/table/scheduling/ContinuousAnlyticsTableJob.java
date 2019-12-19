@@ -30,7 +30,10 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import java.util.Date;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -40,6 +43,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 /**
  * @author Lars Helge Overland
  */
@@ -47,6 +52,8 @@ import org.springframework.stereotype.Component;
 public class ContinuousAnlyticsTableJob
     extends AbstractJob
 {
+    private static final Log log = LogFactory.getLog( ContinuousAnlyticsTableJob.class );
+
     private final AnalyticsTableGenerator analyticsTableGenerator;
 
     private final SystemSettingManager systemSettingManager;
@@ -63,29 +70,63 @@ public class ContinuousAnlyticsTableJob
         return JobType.CONTINUOUS_ANALYTICS_TABLE;
     }
 
+    /**
+     * Performs analytics table update on a schedule where the full analytics table update
+     * is done once per day, and the latest analytics partition update is done with a fixed
+     * delay.
+     * <p>
+     * When to run the full update is determined by {@link ContinuousAnalyticsJobParameters#getHourOfDay()},
+     * which specifies the hour of day to run the full update. The next scheduled full analytics table
+     * update time is persisted using a system setting. A full analytics table update is performed
+     * when the current time is after the next scheduled full update time. Otherwise, a partial
+     * update of the latest analytics partition table is performed.
+     */
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
         ContinuousAnalyticsJobParameters parameters = (ContinuousAnalyticsJobParameters) jobConfiguration.getJobParameters();
 
-        Date nextUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE );
-        Date now = new Date();
         Integer hourOfDay = parameters.getHourOfDay();
 
-        if ( now.after( nextUpdate ) )
+        Date now = new Date();
+        Date defaultNextFullUpdate = DateUtils.getNextDate( hourOfDay, now );
+        Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, defaultNextFullUpdate );
+
+        if ( now.after( nextFullUpdate ) )
         {
-            // Do full update
+            log.info( String.format(
+                "Performing full analytics table update, current time: %s, next full update was: %s",
+                getMediumDateString( now ), getMediumDateString( nextFullUpdate ) ) );
+
+            AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+                .withLastYears( parameters.getLastYears() )
+                .withSkipResourceTables( false )
+                .withSkipTableTypes( parameters.getSkipTableTypes() )
+                .withJobId( jobConfiguration )
+                .withStartTime( new Date() )
+                .build();
+
+            analyticsTableGenerator.generateTables( params );
 
             Date update = DateUtils.getNextDate( hourOfDay, now );
 
             systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, update );
+
+            log.info( String.format( "Next analytics table update: %s", getMediumDateString( update ) ) );
         }
         else
         {
-            // Do partial update
+            log.info( "Performing latest analytics table partition update" );
+
+            AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+                .withLatestPartition()
+                .withSkipResourceTables( true )
+                .withSkipTableTypes( parameters.getSkipTableTypes() )
+                .withJobId( jobConfiguration )
+                .withStartTime( new Date() )
+                .build();
+
+            analyticsTableGenerator.generateTables( params );
         }
-
-
-        // TODO
     }
 }

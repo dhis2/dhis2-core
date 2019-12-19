@@ -74,9 +74,9 @@ public class AnalyticsTableJob
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .withLastYears( parameters.getLastYears() )
-            .withJobId( jobConfiguration )
-            .withSkipTableTypes( parameters.getSkipTableTypes() )
             .withSkipResourceTables( parameters.isSkipResourceTables() )
+            .withSkipTableTypes( parameters.getSkipTableTypes() )
+            .withJobId( jobConfiguration )
             .withStartTime( new Date() )
             .build();
 
