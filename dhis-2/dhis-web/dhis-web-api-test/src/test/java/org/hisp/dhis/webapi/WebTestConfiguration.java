@@ -31,15 +31,17 @@ package org.hisp.dhis.webapi;
 
 import org.hisp.dhis.TestDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
 @ImportResource( locations ={"classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml"} )
+@ComponentScan( basePackages = { "org.hisp.dhis.security" }, useDefaultFilters = false, includeFilters = {
+    @ComponentScan.Filter( type = FilterType.ANNOTATION, value = Component.class ),
+}, excludeFilters = @ComponentScan.Filter( Configuration.class ) )
 public class WebTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )
