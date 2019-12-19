@@ -554,18 +554,19 @@ public class DefaultAnalyticsService
             return true;
         }
 
-        Number indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+        final Number indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+        final Double roundedDoubleValue = indicatorRoundedValue != null ? indicatorRoundedValue.doubleValue() : null;
 
         return !params.getMeasureCriteria().entrySet().stream()
             .anyMatch( measureValue -> !measureValue.getKey()
-                .measureIsValid( indicatorRoundedValue.doubleValue(), measureValue.getValue() ) );
+                .measureIsValid( roundedDoubleValue, measureValue.getValue() ) );
     }
 
     /**
      * Adds data element values to the given grid based on the given data query
      * parameters.
      *
-     * @param params the {@link DataQueryParams}.
+     * @param params the {@link DataQueryParams}.indicatorRoundedValue.doubleValue(), measureValue.getValue()
      * @param grid the grid.
      */
     private void addDataElementValues( DataQueryParams params, Grid grid )
