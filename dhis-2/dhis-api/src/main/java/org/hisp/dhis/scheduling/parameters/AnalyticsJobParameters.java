@@ -112,5 +112,4 @@ public class AnalyticsJobParameters
     {
         return Optional.empty();
     }
-
 }

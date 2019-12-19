@@ -45,7 +45,8 @@ import java.util.Optional;
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = MetadataSyncJobParametersDeserializer.class )
-public class MetadataSyncJobParameters implements JobParameters
+public class MetadataSyncJobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 332495511301532169L;
 
