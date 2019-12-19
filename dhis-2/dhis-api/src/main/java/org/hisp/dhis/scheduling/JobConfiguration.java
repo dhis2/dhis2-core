@@ -129,15 +129,14 @@ public class JobConfiguration
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled )
     {
-        this( name, jobType, cronExpression, null, jobParameters, continuousExecution, enabled, false );
+        this( name, jobType, cronExpression, jobParameters, continuousExecution, enabled, false );
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, Integer delay, JobParameters jobParameters,
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled, boolean inMemoryJob )
     {
         this.name = name;
         this.cronExpression = cronExpression;
-        this.delay = delay;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
         this.continuousExecution = continuousExecution;

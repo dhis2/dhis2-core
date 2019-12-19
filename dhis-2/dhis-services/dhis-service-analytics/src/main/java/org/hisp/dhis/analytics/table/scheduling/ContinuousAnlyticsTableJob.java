@@ -52,6 +52,8 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 public class ContinuousAnlyticsTableJob
     extends AbstractJob
 {
+    //TODO upgrade routine
+
     private static final Log log = LogFactory.getLog( ContinuousAnlyticsTableJob.class );
 
     private final AnalyticsTableGenerator analyticsTableGenerator;
