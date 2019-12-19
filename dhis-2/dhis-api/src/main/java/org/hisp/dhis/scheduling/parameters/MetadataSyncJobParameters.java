@@ -1,4 +1,5 @@
 package org.hisp.dhis.scheduling.parameters;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -46,7 +47,6 @@ import java.util.Optional;
 @JsonDeserialize( using = MetadataSyncJobParametersDeserializer.class )
 public class MetadataSyncJobParameters implements JobParameters
 {
-
     private static final long serialVersionUID = 332495511301532169L;
 
     private static final int DATA_VALUES_PAGE_SIZE_MIN = 50;
@@ -55,6 +55,10 @@ public class MetadataSyncJobParameters implements JobParameters
     private int trackerProgramPageSize = 20;
     private int eventProgramPageSize = 60;
     private int dataValuesPageSize = 10000;
+
+    public MetadataSyncJobParameters()
+    {
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
