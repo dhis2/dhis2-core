@@ -30,16 +30,12 @@ package org.hisp.dhis.webapi.controller.sms;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
-import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
-import org.hisp.dhis.sms.config.SMPPGatewayConfig;
-import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
@@ -66,13 +62,6 @@ import java.io.IOException;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsGatewayController
 {
-    private static final ImmutableMap<String, Class<? extends SmsGatewayConfig>> TYPE_MAPPER = new
-        ImmutableMap.Builder<String, Class<? extends SmsGatewayConfig>>()
-        .put( "http", GenericHttpGatewayConfig.class  )
-        .put( "bulksms", BulkSmsGatewayConfig.class  )
-        .put( "clickatell", ClickatellGatewayConfig.class  )
-        .put( "smpp", SMPPGatewayConfig.class  )
-        .build();
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -97,13 +86,12 @@ public class SmsGatewayController
     @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
     public void getGateways( HttpServletResponse response ) throws IOException
     {
-        generateOuput( response, smsConfigurationManager.getSmsConfiguration() );
+        generateOutput( response, smsConfigurationManager.getSmsConfiguration() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json" )
-    public void getGatewayConfiguration( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
+    public void getGatewayConfiguration( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException, IOException
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
@@ -113,7 +101,7 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
         }
 
-        generateOuput( response, gateway );
+        generateOutput( response, gateway );
     }
 
     // -------------------------------------------------------------------------
@@ -250,7 +238,7 @@ public class SmsGatewayController
         webMessageService.send( WebMessageUtils.ok( "Gateway removed successfully" ), response, request );
     }
 
-    private void generateOuput( HttpServletResponse response, SmsConfiguration value ) throws IOException
+    private void generateOutput( HttpServletResponse response, Object value ) throws IOException
     {
         ObjectMapper jsonMapper = new ObjectMapper();
         jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
