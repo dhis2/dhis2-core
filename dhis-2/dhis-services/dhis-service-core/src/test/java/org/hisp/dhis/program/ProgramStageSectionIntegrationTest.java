@@ -79,7 +79,7 @@ public class ProgramStageSectionIntegrationTest
     @Override
     public boolean emptyDatabaseAfterTest()
     {
-        return false;
+        return true;
     }
 
     @Override
