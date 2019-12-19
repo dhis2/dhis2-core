@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.audit.payloads;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo

@@ -28,15 +28,13 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
+import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
@@ -53,16 +51,13 @@ public class TrackerAuditConsumer implements AuditConsumer
 {
     private static final Log log = LogFactory.getLog( TrackerAuditConsumer.class );
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private final AuditService auditService;
     private final RenderService renderService;
 
     public TrackerAuditConsumer(
-        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
-        RenderService renderService )
+        AuditService auditService, RenderService renderService )
     {
-        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
+        this.auditService = auditService;
         this.renderService = renderService;
     }
 
@@ -74,9 +69,9 @@ public class TrackerAuditConsumer implements AuditConsumer
             String payload = message.getText();
 
             Audit auditMessage = renderService.fromJson( payload, Audit.class );
+            auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
 
-            TrackedEntityInstanceAudit audit = toTrackedEntityInstanceAudit( (String) auditMessage.getData() );
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( audit );
+            auditService.addAudit( auditMessage.toAudit() );
         }
         catch ( IOException e )
         {
@@ -88,10 +83,5 @@ public class TrackerAuditConsumer implements AuditConsumer
         {
             log.error( "An error occurred persisting an Audit message of type 'TRACKER'", e );
         }
-    }
-
-    private TrackedEntityInstanceAudit toTrackedEntityInstanceAudit( String payload ) throws IOException
-    {
-        return renderService.fromJson( payload, TrackedEntityInstanceAudit.class );
     }
 }
