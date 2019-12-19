@@ -31,14 +31,14 @@ package org.hisp.dhis.leader.election;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Job that attempts to elect the current instance as the leader of the cluster.
- * 
+ *
  * @author Ameen Mohamed
  */
-@Service
+@Component
 public class LeaderRenewalJob extends AbstractJob
 {
     private LeaderManager leaderManager;
