@@ -96,5 +96,4 @@ public class DataIntegrityJob
                 .addJobSummary( jobConfiguration, report, FlattenedDataIntegrityReport.class );
         }
     }
-
 }
