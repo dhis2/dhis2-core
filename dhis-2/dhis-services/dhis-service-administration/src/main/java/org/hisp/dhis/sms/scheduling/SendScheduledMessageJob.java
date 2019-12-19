@@ -48,9 +48,6 @@ import org.springframework.stereotype.Component;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author Chau Thu Tran
- */
 @Component( "sendScheduledMessageJob" )
 public class SendScheduledMessageJob
     extends AbstractJob

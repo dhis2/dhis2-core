@@ -44,7 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Component("dataIntegrityJob")
+@Component( "dataIntegrityJob" )
 public class DataIntegrityJob
     extends AbstractJob
 {
