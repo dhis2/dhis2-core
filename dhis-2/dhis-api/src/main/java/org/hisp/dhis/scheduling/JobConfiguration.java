@@ -109,9 +109,9 @@ public class JobConfiguration
 
     private boolean inMemoryJob = false;
 
-    private boolean leaderOnlyJob = false;
-
     private String userUid;
+
+    private boolean leaderOnlyJob = false;
 
     public JobConfiguration()
     {
@@ -129,14 +129,15 @@ public class JobConfiguration
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled )
     {
-        this( name, jobType, cronExpression, jobParameters, continuousExecution, enabled, false );
+        this( name, jobType, cronExpression, null, jobParameters, continuousExecution, enabled, false );
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
+    public JobConfiguration( String name, JobType jobType, String cronExpression, Integer delay, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled, boolean inMemoryJob )
     {
         this.name = name;
         this.cronExpression = cronExpression;
+        this.delay = delay;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
         this.continuousExecution = continuousExecution;
@@ -155,26 +156,6 @@ public class JobConfiguration
         if ( inMemoryJob )
         {
             setAutoFields();
-        }
-    }
-
-    /**
-     * Only set next execution time if the job is not continuous.
-     */
-    public void setNextExecutionTime( Date nextExecutionTime )
-    {
-        if ( cronExpression == null || cronExpression.equals( "" ) || cronExpression.equals( "* * * * * ?" ) )
-        {
-            return;
-        }
-
-        if ( nextExecutionTime != null )
-        {
-            this.nextExecutionTime = nextExecutionTime;
-        }
-        else
-        {
-            this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
         }
     }
 
@@ -207,9 +188,11 @@ public class JobConfiguration
         return enabled != jobConfiguration.isEnabled();
     }
 
-    public SchedulingType getSchedulingType()
+    @JacksonXmlProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    public boolean isConfigurable()
     {
-        return jobType.getSchedulingType();
+        return jobType.isConfigurable();
     }
 
     @Override
@@ -218,9 +201,9 @@ public class JobConfiguration
         return "JobConfiguration{" +
             "uid='" + uid + '\'' +
             ", displayName='" + displayName + '\'' +
+            ", jobType=" + jobType +
             ", cronExpression='" + cronExpression + '\'' +
             ", delay='" + delay + '\'' +
-            ", jobType=" + jobType +
             ", jobParameters=" + jobParameters +
             ", enabled=" + enabled +
             ", continuousExecution=" + continuousExecution +
@@ -265,6 +248,7 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
+    @JsonTypeId
     public Integer getDelay()
     {
         return delay;
@@ -292,6 +276,26 @@ public class JobConfiguration
     public Date getNextExecutionTime()
     {
         return nextExecutionTime;
+    }
+
+    /**
+     * Only set next execution time if the job is not continuous.
+     */
+    public void setNextExecutionTime( Date nextExecutionTime )
+    {
+        if ( cronExpression == null || cronExpression.equals( "" ) || cronExpression.equals( "* * * * * ?" ) )
+        {
+            return;
+        }
+
+        if ( nextExecutionTime != null )
+        {
+            this.nextExecutionTime = nextExecutionTime;
+        }
+        else
+        {
+            this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
+        }
     }
 
     @JacksonXmlProperty
@@ -378,16 +382,6 @@ public class JobConfiguration
         this.enabled = enabled;
     }
 
-    public boolean isInMemoryJob()
-    {
-        return inMemoryJob;
-    }
-
-    public void setInMemoryJob( boolean inMemoryJob )
-    {
-        this.inMemoryJob = inMemoryJob;
-    }
-
     @JacksonXmlProperty
     @JsonProperty
     public boolean isLeaderOnlyJob()
@@ -400,21 +394,25 @@ public class JobConfiguration
         this.leaderOnlyJob = leaderOnlyJob;
     }
 
+    public boolean isInMemoryJob()
+    {
+        return inMemoryJob;
+    }
+
+    public void setInMemoryJob( boolean inMemoryJob )
+    {
+        this.inMemoryJob = inMemoryJob;
+    }
+
     @JacksonXmlProperty
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public String getUserUid()
     {
         return userUid;
     }
+
     public void setUserUid( String userUid )
     {
         this.userUid = userUid;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
-    public boolean isConfigurable()
-    {
-        return jobType.isConfigurable();
     }
 }
