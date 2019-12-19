@@ -28,16 +28,12 @@ package org.hisp.dhis.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -46,9 +42,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.audit.MetadataAudit;
-import org.hisp.dhis.schema.audit.MetadataAuditService;
-import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -57,10 +50,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -77,8 +72,6 @@ public class DefaultPatchService implements PatchService
 
     private final QueryService queryService;
 
-    private final MetadataAuditService metadataAuditService;
-
     private final CurrentUserService currentUserService;
 
     private final RenderService renderService;
@@ -86,19 +79,21 @@ public class DefaultPatchService implements PatchService
     private final SystemService systemService;
 
     @Autowired
-    public DefaultPatchService( SchemaService schemaService, QueryService queryService, MetadataAuditService metadataAuditService,
-        CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
+    public DefaultPatchService(
+        SchemaService schemaService,
+        QueryService queryService,
+        CurrentUserService currentUserService,
+        RenderService renderService,
+        SystemService systemService )
     {
         checkNotNull( schemaService );
         checkNotNull( queryService );
-        checkNotNull( metadataAuditService );
         checkNotNull( currentUserService );
         checkNotNull( renderService );
         checkNotNull( systemService );
 
         this.schemaService = schemaService;
         this.queryService = queryService;
-        this.metadataAuditService = metadataAuditService;
         this.currentUserService = currentUserService;
         this.renderService = renderService;
         this.systemService = systemService;
@@ -131,11 +126,6 @@ public class DefaultPatchService implements PatchService
         }
 
         patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
-
-        if ( !patch.getMutations().isEmpty() )
-        {
-            logAudit( patch, target, schema );
-        }
     }
 
     private Patch diff( Object source, Object target, boolean ignoreTransient )
@@ -212,13 +202,13 @@ public class DefaultPatchService implements PatchService
         {
             Collection<Object> addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
-            Collection<Object> sourceCollection = ( (Collection<Object>) sourceValue ).stream()
+            Collection<Object> sourceCollection = ((Collection<Object>) sourceValue).stream()
                 .filter( Objects::nonNull )
-                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
 
             Collection<Object> targetCollection = ((Collection<Object>) targetValue).stream()
                 .filter( Objects::nonNull )
-                .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
+                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
 
             for ( Object o : targetCollection )
             {
@@ -422,7 +412,7 @@ public class DefaultPatchService implements PatchService
 
                 if ( property.isIdentifiableObject() && !property.isEmbeddedObject() )
                 {
-                    if ( !(object instanceof String))
+                    if ( !(object instanceof String) )
                     {
                         return;
                     }
@@ -580,43 +570,5 @@ public class DefaultPatchService implements PatchService
         }
 
         return null;
-    }
-
-    private void logAudit( Patch patch, Object target, Schema schema )
-    {
-        SystemInfo systemInfo = systemService.getSystemInfo();
-
-        MetadataAudit audit = new MetadataAudit();
-        audit.setCreatedAt( new Date() );
-        audit.setCreatedBy( currentUserService.getCurrentUsername() );
-        audit.setKlass( schema.getKlass().getName() );
-
-        if ( IdentifiableObject.class.isInstance( target ) )
-        {
-            audit.setUid( ((IdentifiableObject) target).getUid() );
-            audit.setCode( ((IdentifiableObject) target).getCode() );
-        }
-
-        audit.setType( AuditType.UPDATE );
-
-        if ( systemInfo.getMetadataAudit().isAudit() )
-        {
-            if ( audit.getValue() == null )
-            {
-                audit.setValue( renderService.toJsonAsString( patch ) );
-            }
-
-            String auditJson = renderService.toJsonAsString( audit );
-
-            if ( systemInfo.getMetadataAudit().isLog() )
-            {
-                log.info( "MetadataAuditEvent: " + auditJson );
-            }
-
-            if ( systemInfo.getMetadataAudit().isPersist() )
-            {
-                metadataAuditService.addMetadataAudit( audit );
-            }
-        }
     }
 }

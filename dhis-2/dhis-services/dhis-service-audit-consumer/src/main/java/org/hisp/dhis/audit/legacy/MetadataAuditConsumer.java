@@ -28,7 +28,6 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.Topics;
@@ -55,7 +54,6 @@ public class MetadataAuditConsumer implements AuditConsumer
 {
     private static final Log log = LogFactory.getLog( MetadataAuditConsumer.class );
 
-    private final ObjectMapper mapper = new ObjectMapper();
     private final AuditService auditService;
     private final RenderService renderService;
     private final boolean metadataAuditLog;
