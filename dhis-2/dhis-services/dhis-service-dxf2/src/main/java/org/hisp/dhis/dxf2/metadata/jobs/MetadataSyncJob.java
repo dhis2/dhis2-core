@@ -64,7 +64,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author anilkumk
  */
-@Component
+@Component( "metadataSyncJob" )
 public class MetadataSyncJob
     extends AbstractJob
 {

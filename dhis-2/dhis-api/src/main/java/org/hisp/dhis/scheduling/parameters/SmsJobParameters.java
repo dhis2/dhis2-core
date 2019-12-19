@@ -111,5 +111,4 @@ public class SmsJobParameters
     {
         return Optional.empty();
     }
-
 }

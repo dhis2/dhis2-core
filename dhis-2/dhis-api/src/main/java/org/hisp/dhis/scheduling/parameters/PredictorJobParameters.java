@@ -127,5 +127,4 @@ public class PredictorJobParameters
     {
         return Optional.empty();
     }
-
 }

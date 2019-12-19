@@ -55,7 +55,6 @@ public class EventProgramsDataSynchronizationJobParameters implements JobParamet
 
     public EventProgramsDataSynchronizationJobParameters()
     {
-
     }
 
     public EventProgramsDataSynchronizationJobParameters( final int pageSize )

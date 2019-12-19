@@ -77,6 +77,11 @@ public class AnalyticsJobParameters
         return lastYears;
     }
 
+    public void setLastYears( Integer lastYears )
+    {
+        this.lastYears = lastYears;
+    }
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "skipTableTypes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "skipTableType", namespace = DxfNamespaces.DXF_2_0 )
@@ -85,21 +90,16 @@ public class AnalyticsJobParameters
         return skipTableTypes;
     }
 
+    public void setSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
+    {
+        this.skipTableTypes = skipTableTypes;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipResourceTables()
     {
         return skipResourceTables;
-    }
-
-    public void setLastYears( Integer lastYears )
-    {
-        this.lastYears = lastYears;
-    }
-
-    public void setSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
-    {
-        this.skipTableTypes = skipTableTypes;
     }
 
     public void setSkipResourceTables( boolean skipResourceTables )

@@ -44,7 +44,7 @@ import java.util.Date;
 /**
  * @author Lars Helge Overland
  */
-@Component
+@Component( "analyticsTableJob" )
 public class AnalyticsTableJob
     extends AbstractJob
 {
