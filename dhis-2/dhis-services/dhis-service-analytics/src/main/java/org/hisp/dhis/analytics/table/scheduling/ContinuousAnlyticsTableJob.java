@@ -34,7 +34,10 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,9 +49,12 @@ public class ContinuousAnlyticsTableJob
 {
     private final AnalyticsTableGenerator analyticsTableGenerator;
 
-    public ContinuousAnlyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator )
+    private final SystemSettingManager systemSettingManager;
+
+    public ContinuousAnlyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator, SystemSettingManager systemSettingManager )
     {
         this.analyticsTableGenerator = analyticsTableGenerator;
+        this.systemSettingManager = systemSettingManager;
     }
 
     @Override
@@ -60,9 +66,25 @@ public class ContinuousAnlyticsTableJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        AnalyticsJobParameters parameters = (AnalyticsJobParameters) jobConfiguration.getJobParameters();
+        ContinuousAnalyticsJobParameters parameters = (ContinuousAnalyticsJobParameters) jobConfiguration.getJobParameters();
 
-        Date lastSuccessfulUpdate = analyticsTableGenerator.getLastSuccessfulAnalyticsTableUpdate();
+        Date nextUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE );
+        Date now = new Date();
+        Integer hourOfDay = parameters.getHourOfDay();
+
+        if ( now.after( nextUpdate ) )
+        {
+            // Do full update
+
+            Date update = DateUtils.getNextDate( hourOfDay, now );
+
+            systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, update );
+        }
+        else
+        {
+            // Do partial update
+        }
+
 
         // TODO
     }
