@@ -1,4 +1,5 @@
 package org.hisp.dhis.scheduling.parameters;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.

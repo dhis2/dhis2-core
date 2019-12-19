@@ -31,7 +31,6 @@ package org.hisp.dhis.sms.job;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
-
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.AbstractJob;

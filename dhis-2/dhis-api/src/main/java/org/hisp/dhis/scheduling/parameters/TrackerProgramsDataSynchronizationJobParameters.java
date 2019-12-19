@@ -55,7 +55,6 @@ public class TrackerProgramsDataSynchronizationJobParameters implements JobParam
 
     public TrackerProgramsDataSynchronizationJobParameters()
     {
-
     }
 
     public TrackerProgramsDataSynchronizationJobParameters( final int pageSize )
