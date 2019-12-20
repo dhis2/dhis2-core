@@ -44,8 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -552,6 +551,9 @@ public class AuditRepositoryTest extends IntegrationTestBase
         String uid = CodeGenerator.generateUid();
         String code = CodeGenerator.generateUid();
 
+        AuditAttributes attributes = new AuditAttributes();
+        attributes.put( "path", "a.b.c" );
+
         Audit audit = Audit.builder()
             .auditType( AuditType.CREATE )
             .auditScope( AuditScope.AGGREGATE )
@@ -560,6 +562,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
             .klass( DataElement.class.getName() )
             .uid( uid )
             .code( code )
+            .attributes( attributes )
             .data( "This is a message" )
             .build();
 
@@ -572,6 +575,9 @@ public class AuditRepositoryTest extends IntegrationTestBase
         assertEquals( uid, persistedAudit.getUid() );
         assertEquals( code, persistedAudit.getCode() );
         assertEquals( "This is a message", persistedAudit.getData() );
+
+        assertNotNull( persistedAudit.getAttributes() );
+        assertEquals( "a.b.c", persistedAudit.getAttributes().get( "path" ) );
     }
 
     @Test

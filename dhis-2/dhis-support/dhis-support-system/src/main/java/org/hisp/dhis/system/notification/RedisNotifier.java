@@ -40,9 +40,9 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
-import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
+import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.data.redis.core.RedisTemplate;

@@ -28,6 +28,8 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,10 +59,15 @@ public class JdbcAuditRepository implements AuditRepository
 {
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert auditInsert;
+    private ObjectMapper jsonMapper;
 
-    public JdbcAuditRepository( JdbcTemplate jdbcTemplate )
+    public JdbcAuditRepository(
+        JdbcTemplate jdbcTemplate,
+        ObjectMapper jsonMapper )
     {
         this.jdbcTemplate = jdbcTemplate;
+        this.jsonMapper = jsonMapper;
+
         this.auditInsert = new SimpleJdbcInsert( jdbcTemplate )
             .withTableName( "audit" )
             .usingGeneratedKeyColumns( "auditid" );
@@ -194,13 +201,21 @@ public class JdbcAuditRepository implements AuditRepository
         parameters.addValue( "code", audit.getCode() );
         parameters.addValue( "data", compress( audit.getData() ) );
 
+        try
+        {
+            parameters.addValue( "attributes", jsonMapper.writeValueAsString( audit.getAttributes() ) );
+        }
+        catch ( JsonProcessingException ignored )
+        {
+        }
+
         return parameters;
     }
 
     private RowMapper<Audit> auditRowMapper = ( rs, rowNum ) -> {
         Date createdAt = rs.getDate( "createdAt" );
 
-        return Audit.builder()
+        Audit.AuditBuilder auditBuilder = Audit.builder()
             .id( rs.getLong( "auditId" ) )
             .auditType( AuditType.valueOf( rs.getString( "auditType" ) ) )
             .auditScope( AuditScope.valueOf( rs.getString( "auditScope" ) ) )
@@ -209,8 +224,18 @@ public class JdbcAuditRepository implements AuditRepository
             .klass( rs.getString( "klass" ) )
             .uid( rs.getString( "uid" ) )
             .code( rs.getString( "code" ) )
-            .data( decompress( rs.getBytes( "data" ) ) )
-            .build();
+            .data( decompress( rs.getBytes( "data" ) ) );
+
+        try
+        {
+            AuditAttributes attributes = jsonMapper.readValue( rs.getString( "attributes" ), AuditAttributes.class );
+            auditBuilder.attributes( attributes );
+        }
+        catch ( JsonProcessingException ignored )
+        {
+        }
+
+        return auditBuilder.build();
     };
 
     private static byte[] compress( String data )

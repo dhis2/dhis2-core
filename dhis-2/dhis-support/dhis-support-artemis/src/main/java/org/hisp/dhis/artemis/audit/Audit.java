@@ -33,6 +33,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -68,6 +69,9 @@ public class Audit implements Message
     private String code;
 
     @JsonProperty
+    private AuditAttributes attributes;
+
+    @JsonProperty
     private Object data;
 
     @Override
@@ -93,7 +97,8 @@ public class Audit implements Message
             .createdBy( createdBy )
             .klass( klass )
             .uid( uid )
-            .code( this.code );
+            .code( code )
+            .attributes( attributes );
 
         if ( data instanceof String )
         {

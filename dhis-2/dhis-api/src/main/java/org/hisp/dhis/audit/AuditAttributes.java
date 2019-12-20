@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.objectmapper;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,28 +28,11 @@ package org.hisp.dhis.hibernate.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
+import java.util.LinkedHashMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
+public class AuditAttributes extends LinkedHashMap<String, Object>
 {
-    @Override
-    public String deserialize( JsonParser parser, DeserializationContext context ) throws IOException
-    {
-        String result = parser.getValueAsString();
-
-        if ( StringUtils.isEmpty( result ) )
-        {
-            return null;
-        }
-
-        return result;
-    }
 }
