@@ -33,7 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AuditType;
@@ -327,8 +327,12 @@ public class DefaultTrackedEntityInstanceService
 
             if ( te != null && te.isAllowAuditLog() && accessedBy != null )
             {
-                TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( entity.get( TRACKED_ENTITY_INSTANCE_ID ), accessedBy, AuditType.SEARCH );
-                sendAuditEvent( trackedEntityInstanceAudit );
+                TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
+                    .trackedEntityInstance( entity.get( TRACKED_ENTITY_INSTANCE_ID ) )
+                    .accessedBy( accessedBy )
+                    .build();
+
+                sendAuditEvent( AuditType.SEARCH, auditPayload );
             }
 
             for ( QueryItem item : params.getAttributes() )
@@ -1004,21 +1008,25 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
-            TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, auditType );
-            sendAuditEvent( trackedEntityInstanceAudit );
+            TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
+                .trackedEntityInstance( trackedEntityInstance.getUid() )
+                .accessedBy( user )
+                .build();
+
+            sendAuditEvent( auditType, auditPayload );
         }
     }
 
-    private void sendAuditEvent( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    private void sendAuditEvent( AuditType auditType, TrackedEntityAuditPayload auditPayload )
     {
         auditManager.send( Audit.builder()
-            .withAuditType( mapAuditType( trackedEntityInstanceAudit.getAuditType() ) )
+            .withAuditType( mapAuditType( auditType ) )
             .withAuditScope( AuditScope.TRACKER )
             .withCreatedAt( LocalDateTime.now() )
-            .withCreatedBy( trackedEntityInstanceAudit.getAccessedBy() )
+            .withCreatedBy( auditPayload.getAccessedBy() )
             .withClass( TrackedEntityInstance.class )
-            .withUid( trackedEntityInstanceAudit.getTrackedEntityInstance() )
-            .withData( renderService.toJsonAsString( trackedEntityInstanceAudit ) )
+            .withUid( auditPayload.getTrackedEntityInstance() )
+            .withData( auditPayload )
             .build() );
     }
 

@@ -543,7 +543,7 @@ public class AuditRepositoryTest extends IntegrationTestBase
             ) )
             .build() );
 
-        assertEquals( 31, audits );
+        assertEquals( 30, audits );
     }
 
     @Test

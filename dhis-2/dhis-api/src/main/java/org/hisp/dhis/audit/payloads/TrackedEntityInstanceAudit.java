@@ -40,6 +40,7 @@ import java.util.Objects;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
+ * @deprecated Will be removed soon.
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstanceAudit
@@ -52,21 +53,21 @@ public class TrackedEntityInstanceAudit
     private String trackedEntityInstance;
 
     private String comment;
-    
+
     private Date created;
 
-    private String accessedBy;   
+    private String accessedBy;
 
     private AuditType auditType;
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-    
+
     public TrackedEntityInstanceAudit()
     {
     }
-    
+
     public TrackedEntityInstanceAudit( String trackedEntityInstance, String accessedBy, AuditType auditType )
     {
         this.trackedEntityInstance = trackedEntityInstance;
@@ -74,13 +75,13 @@ public class TrackedEntityInstanceAudit
         this.created = new Date();
         this.auditType = auditType;
     }
-    
+
     @Override
     public int hashCode()
     {
         return Objects.hash( trackedEntityInstance, comment, created, accessedBy, auditType );
     }
-    
+
     @Override
     public boolean equals( Object obj )
     {
@@ -88,21 +89,21 @@ public class TrackedEntityInstanceAudit
         {
             return true;
         }
-        
+
         if ( obj == null || getClass() != obj.getClass() )
         {
             return false;
         }
-        
+
         final TrackedEntityInstanceAudit other = (TrackedEntityInstanceAudit) obj;
-        
-        return Objects.equals( this.trackedEntityInstance,  other.trackedEntityInstance )
+
+        return Objects.equals( this.trackedEntityInstance, other.trackedEntityInstance )
             && Objects.equals( this.comment, other.comment )
             && Objects.equals( this.created, other.created )
             && Objects.equals( this.accessedBy, other.accessedBy )
             && Objects.equals( this.auditType, other.auditType );
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
