@@ -124,7 +124,6 @@ public class DataGenerator
 
             if ( prop.getPropertyType() == PropertyType.REFERENCE )
             {
-
                 List<SchemaProperty> referenceProperties = schemasActions.getRequiredPropertiesByKlassName( prop.getKlass() );
 
                 JsonObject referenceObject = generateObjectMatchingSchema( referenceProperties );
@@ -137,7 +136,6 @@ public class DataGenerator
             {
                 if ( !StringUtils.containsAny( prop.getName(), "id", "uid", "code" ) )
                 {
-
                     Schema schema = schemasActions.getSchema( prop.getName() );
                     JsonObject referenceObject = generateObjectMatchingSchema( schema.getRequiredProperties() );
                     String uid = new RestApiActions( schema.getPlural() ).post( referenceObject ).extractUid();
@@ -150,7 +148,8 @@ public class DataGenerator
                 }
             }
 
-            else if ( prop.getPropertyType() == PropertyType.COMPLEX) {
+            else if ( prop.getPropertyType() == PropertyType.COMPLEX )
+            {
                 List<SchemaProperty> properties = schemasActions.getAllPropertiesByKlassName( prop.getKlass() );
 
                 JsonObject object = generateObjectMatchingSchema( properties );
