@@ -31,7 +31,6 @@ package org.hisp.dhis.user;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Assert;
