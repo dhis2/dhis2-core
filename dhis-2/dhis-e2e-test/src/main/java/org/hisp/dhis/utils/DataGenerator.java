@@ -115,6 +115,7 @@ public class DataGenerator
     public static JsonObject generateObjectMatchingSchema( List<SchemaProperty> schemaProperties )
     {
         JsonObject objectBody = new JsonObject();
+        SchemasActions schemasActions = new SchemasActions();
 
         for ( SchemaProperty prop : schemaProperties
         )
@@ -123,7 +124,8 @@ public class DataGenerator
 
             if ( prop.getPropertyType() == PropertyType.REFERENCE )
             {
-                List<SchemaProperty> referenceProperties = new SchemasActions().getRequiredProperties( prop.getName() );
+
+                List<SchemaProperty> referenceProperties = schemasActions.getRequiredPropertiesByKlassName( prop.getKlass() );
 
                 JsonObject referenceObject = generateObjectMatchingSchema( referenceProperties );
                 String uid = new RestApiActions( prop.getRelativeApiEndpoint() ).post( referenceObject ).extractUid();
@@ -136,7 +138,7 @@ public class DataGenerator
                 if ( !StringUtils.containsAny( prop.getName(), "id", "uid", "code" ) )
                 {
 
-                    Schema schema = new SchemasActions().getSchema( prop.getName() );
+                    Schema schema = schemasActions.getSchema( prop.getName() );
                     JsonObject referenceObject = generateObjectMatchingSchema( schema.getRequiredProperties() );
                     String uid = new RestApiActions( schema.getPlural() ).post( referenceObject ).extractUid();
 
@@ -148,6 +150,14 @@ public class DataGenerator
                 }
             }
 
+            else if ( prop.getPropertyType() == PropertyType.COMPLEX) {
+                List<SchemaProperty> properties = schemasActions.getAllPropertiesByKlassName( prop.getKlass() );
+
+                JsonObject object = generateObjectMatchingSchema( properties );
+
+                element = object;
+
+            }
             else
             {
                 element = generateRandomValueMatchingSchema( prop );
@@ -175,7 +185,8 @@ public class DataGenerator
 
         case "cronExpression":
             return "* * * * * *";
-
+        case "expression":
+            return "1";
         case "periodType":
             List<String> periodTypes = new RestApiActions( "/periodTypes" ).get().extractList( "periodTypes.name" );
             return periodTypes.get( faker.number().numberBetween( 0, periodTypes.size() - 1 ) );

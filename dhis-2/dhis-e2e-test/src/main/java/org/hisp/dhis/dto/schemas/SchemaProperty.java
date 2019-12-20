@@ -54,6 +54,8 @@ public class SchemaProperty
 
     private PropertyType propertyType;
 
+    private String klass;
+
     public String getName()
     {
         return name;
@@ -132,5 +134,15 @@ public class SchemaProperty
     public void setLength( long length )
     {
         this.length = length;
+    }
+
+    public String getKlass()
+    {
+        return klass;
+    }
+
+    public void setKlass( String klass )
+    {
+        this.klass = klass;
     }
 }

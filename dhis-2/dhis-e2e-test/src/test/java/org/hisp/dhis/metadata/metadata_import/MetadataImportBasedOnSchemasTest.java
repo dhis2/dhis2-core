@@ -107,9 +107,6 @@ public class MetadataImportBasedOnSchemasTest
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 
         Assumptions.assumeFalse( blacklistedEndpoints.contains( endpoint ), "N/A test case - blacklisted endpoint." );
-        Assumptions.assumeFalse(
-            schemaProperties.stream().anyMatch( schemaProperty -> schemaProperty.getPropertyType() == PropertyType.COMPLEX ),
-            "N/A test case - body would require COMPLEX objects." );
 
         // post
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );

@@ -49,11 +49,29 @@ public class SchemasActions
 
     public List<SchemaProperty> getRequiredProperties( String resource )
     {
-        List<SchemaProperty> list = get( resource ).extractList( "properties", SchemaProperty.class );
+        List<SchemaProperty> list = getProperties( resource );
 
         return list.stream()
             .filter( (schemaProperty -> schemaProperty.isRequired()) )
             .collect( Collectors.toList() );
+    }
+
+    public List<SchemaProperty> getProperties( String resource) {
+        List<SchemaProperty> list = get( resource ).extractList( "properties", SchemaProperty.class );
+
+        return list;
+    }
+
+    public List<SchemaProperty> getRequiredPropertiesByKlassName(String klass) {
+        String schemasEndpoint = findSchemaPropertyByKlassName( klass, "singular" );
+
+        return getRequiredProperties(schemasEndpoint);
+    }
+
+    public List<SchemaProperty> getAllPropertiesByKlassName(String klass) {
+        String schemasEndpoint = findSchemaPropertyByKlassName( klass, "singular" );
+
+        return getProperties( schemasEndpoint );
     }
 
     public Schema getSchema( String resource )
