@@ -36,6 +36,7 @@ import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -55,6 +56,7 @@ public class PostLoadAuditListener
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void onPostLoad( PostLoadEvent postLoadEvent )
     {
         Object entity = postLoadEvent.getEntity();
