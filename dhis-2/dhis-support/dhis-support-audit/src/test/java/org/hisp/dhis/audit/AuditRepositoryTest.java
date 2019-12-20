@@ -567,7 +567,11 @@ public class AuditRepositoryTest extends IntegrationTestBase
         List<Audit> query = auditRepository.query( AuditQuery.builder().build() );
         assertEquals( 1, query.size() );
 
-        assertEquals( "This is a message", query.get( 0 ).getData() );
+        Audit persistedAudit = query.get( 0 );
+
+        assertEquals( uid, persistedAudit.getUid() );
+        assertEquals( code, persistedAudit.getCode() );
+        assertEquals( "This is a message", persistedAudit.getData() );
     }
 
     @Test

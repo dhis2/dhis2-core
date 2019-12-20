@@ -68,12 +68,12 @@ public class PostDeleteAuditListener
 
         getAuditable( entity, "delete" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.DELETE )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( LocalDateTime.now() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.objectFactory.create( auditable.scope(), AuditType.DELETE, entity, getCreatedBy() ) )
+                .auditType( AuditType.DELETE )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .data( this.objectFactory.create( auditable.scope(), AuditType.DELETE, entity, getCreatedBy() ) )
                 .build() );
         } );
     }

@@ -63,12 +63,12 @@ public class PostLoadAuditListener
 
         getAuditable( entity, "read" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.READ )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( LocalDateTime.now() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.objectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
+                .auditType( AuditType.READ )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .data( this.objectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
                 .build() );
         } );
     }
