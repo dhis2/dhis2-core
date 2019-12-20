@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.objectmapper;
+package org.hisp.dhis.commons.config.jackson;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,14 +28,13 @@ package org.hisp.dhis.hibernate.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.hisp.dhis.util.DateUtils;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.hisp.dhis.util.DateUtils;
+
+import java.io.IOException;
+import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

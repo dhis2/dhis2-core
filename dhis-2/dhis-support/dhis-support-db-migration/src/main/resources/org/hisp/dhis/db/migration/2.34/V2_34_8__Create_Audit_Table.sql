@@ -7,5 +7,6 @@ CREATE TABLE audit (
     klass TEXT,
     uid TEXT,
     code TEXT,
+    attributes JSONB default '{}',
     data BYTEA
 );
