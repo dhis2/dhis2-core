@@ -1020,13 +1020,13 @@ public class DefaultTrackedEntityInstanceService
     private void sendAuditEvent( AuditType auditType, TrackedEntityAuditPayload auditPayload )
     {
         auditManager.send( Audit.builder()
-            .withAuditType( mapAuditType( auditType ) )
-            .withAuditScope( AuditScope.TRACKER )
-            .withCreatedAt( LocalDateTime.now() )
-            .withCreatedBy( auditPayload.getAccessedBy() )
-            .withClass( TrackedEntityInstance.class )
-            .withUid( auditPayload.getTrackedEntityInstance() )
-            .withData( auditPayload )
+            .auditType( mapAuditType( auditType ) )
+            .auditScope( AuditScope.TRACKER )
+            .createdAt( LocalDateTime.now() )
+            .createdBy( auditPayload.getAccessedBy() )
+            .klass( TrackedEntityInstance.class.getName() )
+            .uid( auditPayload.getTrackedEntityInstance() )
+            .data( auditPayload )
             .build() );
     }
 

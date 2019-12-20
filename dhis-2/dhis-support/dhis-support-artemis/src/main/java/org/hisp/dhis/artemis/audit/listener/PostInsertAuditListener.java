@@ -61,12 +61,12 @@ public class PostInsertAuditListener
 
         getAuditable( entity, "create" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.CREATE )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( LocalDateTime.now() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.objectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
+                .auditType( AuditType.CREATE )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .data( this.objectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
                 .build() );
         } );
     }
