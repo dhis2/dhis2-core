@@ -84,8 +84,8 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
             return null;
         }
 
-        return MetadataAuditPayload.builder()
+        return renderService.toJsonAsString( MetadataAuditPayload.builder()
             .identifiableObject( (IdentifiableObject) object )
-            .build();
+            .build() );
     }
 }

@@ -80,7 +80,11 @@ public class MetadataAuditConsumer implements AuditConsumer
             String payload = message.getText();
 
             Audit auditMessage = renderService.fromJson( payload, Audit.class );
-            auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
+
+            if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
+            {
+                auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
+            }
 
             org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
 
