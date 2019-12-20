@@ -93,7 +93,7 @@ public class JdbcCompletenessTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
         new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
 

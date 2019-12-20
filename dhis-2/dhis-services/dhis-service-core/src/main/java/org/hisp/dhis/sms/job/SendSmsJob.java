@@ -39,15 +39,13 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-@Component
-@Scope( value = "prototype" )
+@Component( "sendSmsJob" )
 public class SendSmsJob
     extends AbstractJob
 {

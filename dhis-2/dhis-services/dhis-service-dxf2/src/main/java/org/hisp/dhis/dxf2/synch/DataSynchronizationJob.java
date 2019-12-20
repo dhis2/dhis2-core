@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( value = "dataSyncJob" )
+@Component( "dataSyncJob" )
 public class DataSynchronizationJob
     extends AbstractJob
 {

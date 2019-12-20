@@ -44,7 +44,8 @@ import java.util.Optional;
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = TrackerProgramsDataSynchronizationJobParametersDeserializer.class )
-public class TrackerProgramsDataSynchronizationJobParameters implements JobParameters
+public class TrackerProgramsDataSynchronizationJobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 368325562301563469L;
 
@@ -55,7 +56,6 @@ public class TrackerProgramsDataSynchronizationJobParameters implements JobParam
 
     public TrackerProgramsDataSynchronizationJobParameters()
     {
-
     }
 
     public TrackerProgramsDataSynchronizationJobParameters( final int pageSize )
