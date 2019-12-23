@@ -93,6 +93,7 @@ public class DataValidationTaskTest
     private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
     private DataValidationTask subject;
     private DataElement deA;
+    private DataElement deB;
     private List<OrganisationUnit> organisationUnits;
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
@@ -108,6 +109,7 @@ public class DataValidationTaskTest
         subject = new DataValidationTask( expressionService, dataValueService, categoryService, periodService );
 
         deA = createDataElement('A');
+        deB = createDataElement('B');
 
         organisationUnits = new ArrayList<>();
 
@@ -130,7 +132,6 @@ public class DataValidationTaskTest
         constantMap = new HashMap<>();
         constantMap.put( "Gfd3ppDfq8E", new Constant( "a", 5.0 ) );
         constantMap.put( "bCqvfPR02Im", new Constant( "pi", 3.14 ) );
-
     }
 
     /**
@@ -183,31 +184,18 @@ public class DataValidationTaskTest
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }
 
-    /**
-     * This test is for DHIS-7966
-     *
-     * The test creates 2 rules for one period type (composed of 3 months)
-     * and verifies that the rules are only executed on data that is related to the
-     * selected org units
-     */
     @Test
-    public void verifySimpleValidation_twoRules_noErrors()
+    public void verifyValidationSkippedOnNoData()
     {
-        Expression leftExpression1 = createExpression( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}", MissingValueStrategy.NEVER_SKIP );
-        Expression rightExpression1 = createExpression( 'B', "-10", MissingValueStrategy.NEVER_SKIP );
+        Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
+        Expression rightExpression = createExpression2( 'B', "-10" );
 
-        Expression leftExpression2 = createExpression( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}", MissingValueStrategy.NEVER_SKIP );
-        Expression rightExpression2 = createExpression( 'B', "5", MissingValueStrategy.NEVER_SKIP );
-
-        ValidationRuleExtended vre1 = createValidationRuleExtended( leftExpression1, rightExpression1, Operator.not_equal_to );
-        ValidationRuleExtended vre2 = createValidationRuleExtended( leftExpression2, rightExpression2, Operator.greater_than );
+        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression, Operator.not_equal_to );
 
         List<PeriodTypeExtended> periodTypes = new ArrayList<>();
-        PeriodTypeExtended periodType1 = createPeriodTypeExtended( vre1, vre2 );
-
-        periodType1.addDataElement( deA );
-
-        periodTypes.add( periodType1 );
+        PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
+        periodType.addDataElement( deA );
+        periodTypes.add( periodType );
 
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( 'A', 'B' );
 
@@ -221,35 +209,17 @@ public class DataValidationTaskTest
 
         List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
 
-        DataValue dv1 = createDataValue(deA, createPeriod("201901"), ouA, "12.4", createCategoryOptionCombo('B', 'C'));
-        // this data value should be ignored, because it's outside the list of OUs
-        DataValue dv2 = createDataValue(deA, createPeriod("201901"), ouZ, "42.4", createCategoryOptionCombo('B', 'C'));
-
-        deflatedDataValues.add( new DeflatedDataValue( dv1 ) );
-        deflatedDataValues.add( new DeflatedDataValue( dv2 ) );
-
+        // Return no values!
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
                 .thenReturn( deflatedDataValues );
-
-        Map<DimensionalItemObject, Double> vals = new HashMap<>();
-        vals.put( deA, 12.4 );
-
-        mockExpressionService(leftExpression1, vals, ctx, 8.4);
-        mockExpressionService(leftExpression2, vals, ctx, 8.4);
-
-        mockExpressionService(rightExpression1, vals, ctx, -10.0);
-        mockExpressionService(rightExpression2, vals, ctx, 5.0);
-
-        when( expressionService.getExpressionValue( "8.4!=-10.0", SIMPLE_TEST ) ).thenReturn( true );
-        when( expressionService.getExpressionValue( "8.4>5.0", SIMPLE_TEST ) ).thenReturn( true );
-        when( expressionService.getExpressionValue( "0.0!=0.0", SIMPLE_TEST ) ).thenReturn( false );
-        when( expressionService.getExpressionValue( "0.0>0.0", SIMPLE_TEST ) ).thenReturn( false );
 
         subject.init( organisationUnits, ctx, analyticsService );
         subject.run();
 
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }
+
+
 
     private void mockExpressionService(Expression expression, Map<DimensionalItemObject, Double> vals, ValidationRunContext ctx, Double val) {
 
@@ -261,11 +231,11 @@ public class DataValidationTaskTest
 
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
                 ctx.getConstantMap(), null, p3.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
-
     }
     
     
-    private ValidationRuleExtended createValidationRuleExtended(Expression left, Expression right, Operator op ) {
+    private ValidationRuleExtended createValidationRuleExtended( Expression left, Expression right, Operator op )
+    {
         return new ValidationRuleExtended( createValidationRule( 'A', op, left, right, MONTHLY ) );
     }
 

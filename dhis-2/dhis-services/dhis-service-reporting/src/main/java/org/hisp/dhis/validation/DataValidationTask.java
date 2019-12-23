@@ -189,19 +189,18 @@ public class DataValidationTask
                 {
                     orgUnit = ou;
                     orgUnitId = ou.getId();
-                    if ( dataMap.containsKey( orgUnitId ) )
-                    {
-                        for (ValidationRuleExtended r : periodTypeX.getRuleXs()) {
-                            ruleX = r;
 
-                            if ( context.isAnalysisComplete() )
-                            {
-                                break loop;
-                            }
-                            validationResults = new HashSet<>();
-                            validateRule();
-                            addValidationResultsToContext();
+                    for ( ValidationRuleExtended r : periodTypeX.getRuleXs() )
+                    {
+                        ruleX = r;
+
+                        if ( context.isAnalysisComplete() )
+                        {
+                            break loop;
                         }
+                        validationResults = new HashSet<>();
+                        validateRule();
+                        addValidationResultsToContext();
                     }
                 }
             }
@@ -228,17 +227,11 @@ public class DataValidationTask
 
         Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
-        if ( attributeOptionCombos.isEmpty() )
-        {
-            attributeOptionCombos = Sets.newHashSet( context.getDefaultAttributeCombo().getUid() );
-        }
-
-        loop:
         for ( String optionCombo : attributeOptionCombos )
         {
             if ( context.isAnalysisComplete() )
             {
-                break loop;
+                break;
             }
 
             if ( NON_AOC.compareTo( optionCombo ) == 0 )
