@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.visualization.VisualizationType.PIE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,7 +51,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -1037,16 +1037,18 @@ public class Visualization
     }
 
     @Override
-    public void populateAnalyticalProperties()
-    {
-        for ( String column : columnDimensions )
-        {
-            columns.add( getDimensionalObject( column ) );
+    public void populateAnalyticalProperties() {
+        for (String column : columnDimensions) {
+            columns.add(getDimensionalObject(column));
         }
 
-        for ( String row : rowDimensions )
+        // PIE does not have rows.
+        if ( type != PIE )
         {
-            rows.add( getDimensionalObject( row ) );
+            for ( String row : rowDimensions )
+            {
+                rows.add( getDimensionalObject( row ) );
+            }
         }
 
         for ( String filter : filterDimensions )

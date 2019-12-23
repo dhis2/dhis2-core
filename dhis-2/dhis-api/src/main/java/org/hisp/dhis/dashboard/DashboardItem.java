@@ -127,14 +127,6 @@ public class DashboardItem
         {
             return DashboardItemType.VISUALIZATION;
         }
-        else if ( chart != null )
-        {
-            return DashboardItemType.CHART;
-        }
-        else if ( reportTable != null )
-        {
-            return DashboardItemType.REPORT_TABLE;
-        }
         else if ( eventChart != null )
         {
             return DashboardItemType.EVENT_CHART;
@@ -184,14 +176,6 @@ public class DashboardItem
         if ( visualization != null )
         {
             return visualization;
-        }
-        else if ( chart != null )
-        {
-            return chart;
-        }
-        else if ( reportTable != null )
-        {
-            return reportTable;
         }
         else if ( eventChart != null )
         {

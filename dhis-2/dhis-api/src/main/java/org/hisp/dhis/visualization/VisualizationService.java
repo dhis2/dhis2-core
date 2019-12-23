@@ -30,17 +30,9 @@ package org.hisp.dhis.visualization;
 
 import java.util.Date;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.chart.BaseChart;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
-import org.jfree.chart.JFreeChart;
 
 /**
  * Interface responsible for providing CRUD and business methods related to a
@@ -82,46 +74,23 @@ public interface VisualizationService
     void delete( Visualization visualization );
 
     /**
-     * Instantiates and populates a Grid populated with data from the Visualization
-     * with the given identifier.
+     * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param uid the Visualization unique identifier.
+     * @param visualization the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @return a Grid.
      */
-    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid );
+    Grid getVisualizationGrid( Visualization visualization, Date relativePeriodDate, String organisationUnitUid );
 
     /**
-     * Instantiates and populates a Grid populated with data from the Visualization
-     * with the given identifier.
+     * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param uid the Visualization unique identifier.
+     * @param visualization the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @param user the current user.
      * @return a Grid.
      */
-    Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
-    
-    
-    
-    
-    JFreeChart getJFreeChart( Visualization visualization, I18nFormat format );
-
-    /**
-     * Generates a JFreeChart.
-     *
-     * @param visualization the chart to use as basis for the JFreeChart generation.
-     * @param date the date to use as basis for relative periods, can be null.
-     * @param organisationUnit the org unit to use as basis for relative units, will
-     *        override the current user org unit if set, can be null.
-     * @param format the i18n format.
-     * @return a JFreeChart object.
-     */
-    JFreeChart getJFreeChart( Visualization visualization, Date date, OrganisationUnit organisationUnit, I18nFormat format );
-
-    JFreeChart getJFreeChart( Visualization visualization, Date date, OrganisationUnit organisationUnit, I18nFormat format,
-        User currentUser );
-
+    Grid getVisualizationGridByUser( Visualization visualization, Date relativePeriodDate, String organisationUnitUid, User user );
 }
