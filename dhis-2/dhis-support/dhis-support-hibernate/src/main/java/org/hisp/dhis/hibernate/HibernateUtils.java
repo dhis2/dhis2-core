@@ -33,7 +33,14 @@ import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.SerializableProxy;
+import org.hisp.dhis.commons.util.DebugUtils;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
@@ -85,6 +92,45 @@ public class HibernateUtils
 
             return (T) persistentCollection.getStoredSnapshot();
         }
+
+        return proxy;
+    }
+
+    /**
+     * Eager fetch all its collections
+     *
+     * @param proxy Object to check and unwrap
+     * @return fully initialized object
+     */
+    public static <T> T initializeProxy( T proxy )
+    {
+        if ( !Hibernate.isInitialized( proxy ) )
+        {
+            Hibernate.initialize( proxy );
+        }
+
+        Field[] fields = proxy.getClass().getDeclaredFields();
+
+        Arrays.stream( fields )
+                .filter( f -> Collection.class.isAssignableFrom( f.getType() ) )
+                .forEach( f ->
+                {
+                    try
+                    {
+                        PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
+
+                        Object persistentObject = pd.getReadMethod().invoke( proxy );
+
+                        if ( PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                        {
+                            Hibernate.initialize( persistentObject );
+                        }
+                    }
+                    catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
+                    {
+                        DebugUtils.getStackTrace( e );
+                    }
+                });
 
         return proxy;
     }
