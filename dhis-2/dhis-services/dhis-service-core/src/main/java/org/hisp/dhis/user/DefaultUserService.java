@@ -45,6 +45,9 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -116,6 +119,14 @@ public class DefaultUserService
     public void setPasswordManager( PasswordManager passwordManager )
     {
         this.passwordManager = passwordManager;
+    }
+
+    private SessionRegistry sessionRegistry;
+
+    @Autowired
+    public void setSessionRegistry( SessionRegistry sessionRegistry )
+    {
+        this.sessionRegistry = sessionRegistry;
     }
 
     // -------------------------------------------------------------------------
@@ -692,5 +703,13 @@ public class DefaultUserService
         user.getUserCredentials().setTwoFA( twoFa );
 
         updateUser( user );
+    }
+
+    @Override
+    public void expireActiveSessions( UserCredentials credentials )
+    {
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions( credentials, false );
+
+        sessions.forEach( SessionInformation::expireNow );
     }
 }

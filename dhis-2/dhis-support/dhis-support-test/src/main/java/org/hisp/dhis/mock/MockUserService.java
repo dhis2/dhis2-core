@@ -315,4 +315,9 @@ public class MockUserService implements UserService
     public void set2FA( User user, Boolean twoFA )
     {
     }
+
+    @Override
+    public void expireActiveSessions( UserCredentials credentials )
+    {
+    }
 }

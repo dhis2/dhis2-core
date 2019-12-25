@@ -73,6 +73,9 @@ public class CategoryServiceTest
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private CategoryManager categoryManager;
     
     // -------------------------------------------------------------------------
     // Fixture
@@ -365,5 +368,37 @@ public class CategoryServiceTest
 
         assertEquals( 1, categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true ).size() );
 
+    }
+
+    @Test
+    public void testAddAndPruneAllCategoryCombos()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
+
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+
+        ccA = createCategoryCombo( 'A', categoryA, categoryB );
+
+        categoryService.addCategoryCombo( ccA );
+
+        categoryManager.addAndPruneAllOptionCombos();
+
+        assertEquals( 3, categoryService.getAllCategoryOptionCombos().size() );
+
+        CategoryOption categoryOption = categoryService.getCategoryOption( categoryOptionB.getUid() );
+
+        categoryOption.setName( "UpdateOption" );
+
+        categoryService.updateCategoryOption( categoryOption );
+
+        categoryManager.addAndPruneAllOptionCombos();
+
+        List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
+
+        assertEquals( 3, cocs.size() );
+
+        assertTrue( cocs.stream().anyMatch( coc -> coc.getName().contains( "UpdateOption" ) ) );
     }
 }

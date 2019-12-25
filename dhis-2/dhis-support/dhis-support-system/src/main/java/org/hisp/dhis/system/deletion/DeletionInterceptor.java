@@ -51,7 +51,15 @@ public class DeletionInterceptor
     {
         if ( joinPoint.getArgs() != null && joinPoint.getArgs().length > 0 )
         {
-            deletionManager.execute( joinPoint.getArgs()[0] );
+            if ( joinPoint.getSignature().getName().matches( "^.*NoRollback" ) )
+            {
+                deletionManager.executeNoRollback( joinPoint.getArgs()[0] );
+            }
+            else
+            {
+                deletionManager.execute( joinPoint.getArgs()[0] );
+
+            }
         }
     }
 }

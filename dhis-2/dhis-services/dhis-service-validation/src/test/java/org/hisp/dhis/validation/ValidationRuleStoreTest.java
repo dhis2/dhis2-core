@@ -87,6 +87,10 @@ public class ValidationRuleStoreTest
 
     private Expression expressionB;
 
+    private Expression expressionC;
+
+    private Expression expressionD;
+
     private PeriodType periodType;
 
     // -------------------------------------------------------------------------
@@ -122,9 +126,8 @@ public class ValidationRuleStoreTest
 
         expressionA = new Expression( "expressionA", "descriptionA" );
         expressionB = new Expression( "expressionB", "descriptionB" );
-
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionA );
+        expressionC = new Expression( "expressionC", "descriptionC" );
+        expressionD = new Expression( "expressionD", "descriptionD" );
 
         periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
     }
@@ -182,7 +185,7 @@ public class ValidationRuleStoreTest
     public void testDeleteValidationRule()
     {
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
 
         validationRuleStore.save( validationRuleA );
         long idA = validationRuleA.getId();
@@ -211,7 +214,7 @@ public class ValidationRuleStoreTest
     public void testGetAllValidationRules()
     {
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
 
         validationRuleStore.save( validationRuleA );
         validationRuleStore.save( validationRuleB );
@@ -227,7 +230,7 @@ public class ValidationRuleStoreTest
     public void testGetAllFormValidationRules()
     {
         ValidationRule validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodType, true );
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
 
         validationRuleStore.save( validationRuleA );
         validationRuleStore.save( validationRuleB );
@@ -242,7 +245,7 @@ public class ValidationRuleStoreTest
     public void testGetValidationRuleByName()
     {
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
 
         validationRuleStore.save( validationRuleA );
         long id = validationRuleA.getId();
@@ -272,14 +275,13 @@ public class ValidationRuleStoreTest
         Expression expression1 = new Expression( "Expression1", "Expression1" );
         Expression expression2 = new Expression( "Expression2", "Expression2" );
         Expression expression3 = new Expression( "Expression3", "Expression3" );
+        Expression expression4 = new Expression( "Expression4", "Expression4" );
+        Expression expression5 = new Expression( "Expression5", "Expression5" );
+        Expression expression6 = new Expression( "Expression6", "Expression6" );
 
-        expressionService.addExpression( expression1 );
-        expressionService.addExpression( expression2 );
-        expressionService.addExpression( expression3 );
-
-        ValidationRule ruleA = createValidationRule( 'A', equal_to, expression1, expression3, periodType );
-        ValidationRule ruleB = createValidationRule( 'B', equal_to, expression2, expression3, periodType );
-        ValidationRule ruleC = createValidationRule( 'C', equal_to, expression3, expression3, periodType );
+        ValidationRule ruleA = createValidationRule( 'A', equal_to, expression1, expression2, periodType );
+        ValidationRule ruleB = createValidationRule( 'B', equal_to, expression3, expression4, periodType );
+        ValidationRule ruleC = createValidationRule( 'C', equal_to, expression5, expression6, periodType );
 
         validationRuleStore.save( ruleA );
         validationRuleStore.save( ruleB );
@@ -294,7 +296,7 @@ public class ValidationRuleStoreTest
     {
         // Setup
         ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
 
         validationRuleStore.save( validationRuleA );
         validationRuleStore.save( validationRuleB );
