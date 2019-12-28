@@ -28,7 +28,6 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 
@@ -45,15 +44,11 @@ public class DefaultSmsConfigurationManager
 {
     private final SystemSettingManager systemSettingManager;
 
-    private final RenderService renderService;
-
-    public DefaultSmsConfigurationManager( SystemSettingManager systemSettingManager, RenderService renderService )
+    public DefaultSmsConfigurationManager( SystemSettingManager systemSettingManager )
     {
         checkNotNull( systemSettingManager );
-        checkNotNull( renderService );
 
         this.systemSettingManager = systemSettingManager;
-        this.renderService = renderService;
     }
 
     @Override
