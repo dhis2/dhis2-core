@@ -1,7 +1,7 @@
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.sms.config.views;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +28,20 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonView;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ *
+ * Json view to keep confidential parameters from exposing through API and make sure their availability
+ * while de-serialisation.
+ *
+ * @Author Zubair Asghar.
  */
-
-@JsonTypeName( "bulksms" )
-public class BulkSmsGatewayConfig
-    extends SmsGatewayConfig
+public class SmsConfigurationViews
 {
-    private static final long serialVersionUID = 5249703354480948250L;
-
-    private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
-
-    @Override
-    @JsonProperty( value = "urlTemplate" )
-    @JsonView( SmsConfigurationViews.Public.class )
-    public String getUrlTemplate()
+    public static class Public
     {
-        return this.JSON_API_URL;
+    }
+
+    public static class Internal extends Public
+    {
     }
 }

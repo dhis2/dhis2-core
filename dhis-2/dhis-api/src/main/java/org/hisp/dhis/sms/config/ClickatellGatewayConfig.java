@@ -1,6 +1,10 @@
 package org.hisp.dhis.sms.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -33,14 +37,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+
+@JsonTypeName( "clickatell" )
 public class ClickatellGatewayConfig
     extends SmsGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
 
+    @JsonView( SmsConfigurationViews.Internal.class )
     private String authToken;
 
-    @JsonProperty( value = "authtoken" )
     public String getAuthToken()
     {
         return authToken;
