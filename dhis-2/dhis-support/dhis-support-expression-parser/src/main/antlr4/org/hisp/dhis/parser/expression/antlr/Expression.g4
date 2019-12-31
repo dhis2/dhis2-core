@@ -72,32 +72,54 @@ expr
     |   'V{' fun='tei_count' '}'
     |   'V{' fun='value_count' '}'
     |   'V{' fun='zero_pos_value_count' '}'
+    |   'V{' fun='event_status' '}'
+    |   'V{' fun='environment' '}'
 
     //  Program functions (alphabetical)
-
+    |   fun='d2:ceil(' expr ')'
+    |   fun='d2:floor(' expr ')'
+    |   fun='d2:addDays(' expr ',' expr ')'
+    |   fun='d2:concatenate(' expr ',' expr * ')'
+    |   fun='d2:countIfZeroPos(' expr ')'
+    |   fun='d2:substring(' expr ',' expr ',' expr ')'
+    |   fun='d2:length(' expr ')'
+    |   fun='d2:left(' expr ',' expr ')'
+    |   fun='d2:right(' expr ',' expr ')'
+    |   fun='d2:modulus(' expr ',' expr ')'
+    |   fun='d2:round(' expr ')'
     |   fun='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
-    |   fun='d2:count(' WS* stageDataElement WS* ')'
+    |   fun='d2:zScoreHFA(' expr ',' expr ',' expr ')'
+    |   fun='d2:zScoreWFA(' expr ',' expr ',' expr ')'
+    |   fun='d2:zScoreWFH(' expr ',' expr ',' expr ')'
+    |   fun='d2:split(' expr ',' expr ',' expr ')'
+    |   fun='d2:count(' ( WS* stageDataElement WS* | expr ) ')'
     |   fun='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
-    |   fun='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
+    |   fun='d2:countIfValue(' ( WS* stageDataElement WS* | expr ) ',' ( WS* numStringLiteral WS* | expr ) ')'
     |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:hasValue(' item ')'
-    |   fun='d2:maxValue(' ( item | compareDate ) ')'
+    |   fun='d2:hasValue(' ( WS* item WS* | expr ) ')'
+    |   fun='d2:maxValue(' ( item | expr | compareDate ) ')'
     |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:minValue(' ( item | compareDate ) ')'
+    |   fun='d2:minValue(' ( item | expr | compareDate ) ')'
     |   fun='d2:monthsBetween(' compareDate ',' compareDate ')'
     |   fun='d2:oizp(' expr ')'
     |   fun='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
     |   fun='d2:weeksBetween(' compareDate ',' compareDate ')'
     |   fun='d2:yearsBetween(' compareDate ',' compareDate ')'
     |   fun='d2:zing(' expr ')'
-    |   fun='d2:zpvc(' item (',' item )* ')'
+    |   fun='d2:zpvc(' ( WS* item WS* | expr) (',' ( WS* item WS* | expr ) )* ')'
+    |   fun='d2:validatePattern(' expr ',' expr ')'
+    |   fun='d2:hasUserRole(' expr ')'
+    |   fun='d2:inOrgUnitGroup(' expr ')'
+    |   fun='d2:lastEventDate(' expr ')'
 
     //  Other
 
     |   item
+    |   variable
     |   numericLiteral
     |   stringLiteral
     |   booleanLiteral
+    |   empty
     ;
 
 item
@@ -116,6 +138,10 @@ item
     |   it='R{' uid0=UID '.' REPORTING_RATE_TYPE '}'
     |   it='[days]'
     ;
+
+variable
+    : var='X{' string=variableName '}'
+    | var='C{' string=variableName '}';
 
 stageDataElement
     :   '#{' uid0=UID '.' uid1=UID '}'
@@ -149,9 +175,17 @@ stringLiteral
     |   QUOTED_UID // Resolve that quoted UID can also be a string literal
     ;
 
+variableName
+    : UID
+    | IDENTIFIER
+    | UNQUOTED_STRING;
+
 booleanLiteral
     :   BOOLEAN_LITERAL
     ;
+
+empty
+    : EMPTY;
 
 // -----------------------------------------------------------------------------
 // Assign token names to parser symbols
@@ -223,25 +257,47 @@ V_SYNC_DATE             : 'sync_date';
 V_TEI_COUNT             : 'tei_count';
 V_VALUE_COUNT           : 'value_count';
 V_ZERO_POS_VALUE_COUNT  : 'zero_pos_value_count';
+V_EVENT_STATUS          : 'event_status';
+V_ENVIRONMENT           : 'environment';
 
 // Program functions (alphabetical)
 
-D2_CONDITION            : 'd2:condition(';
-D2_COUNT                : 'd2:count(';
-D2_COUNT_IF_CONDITION   : 'd2:countIfCondition(';
-D2_COUNT_IF_VALUE       : 'd2:countIfValue(';
-D2_DAYS_BETWEEN         : 'd2:daysBetween(';
-D2_HAS_VALUE            : 'd2:hasValue(';
-D2_MAX_VALUE            : 'd2:maxValue(';
-D2_MINUTES_BETWEEN      : 'd2:minutesBetween(';
-D2_MIN_VALUE            : 'd2:minValue(';
-D2_MONTHS_BETWEEN       : 'd2:monthsBetween(';
-D2_OIZP                 : 'd2:oizp(';
-D2_RELATIONSHIP_COUNT   : 'd2:relationshipCount(';
-D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
+D2_CEIL                 : 'd2:ceil(';
+D2_FLOOR                : 'd2:floor(';
+D2_ADD_DAYS             : 'd2:addDays(';
+D2_CONCATENATE          : 'd2:concatenate(';
+D2_COUNT_IF_ZERO_POS    : 'd2:countIfZeroPos(';
+D2_SUBSTRING            : 'd2:substring(';
+D2_LENGTH               : 'd2:length(';
+D2_LEFT                 : 'd2:left(';
+D2_RIGHT                : 'd2:right(';
+D2_MODULUS              : 'd2:modulus(';
+D2_ROUND                : 'd2:round(';
 D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
+D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
+D2_MONTHS_BETWEEN       : 'd2:monthsBetween(';
+D2_DAYS_BETWEEN         : 'd2:daysBetween(';
+D2_ZSCOREWFH            : 'd2:zScoreWFH(';
+D2_ZSCOREWFA            : 'd2:zScoreWFA(';
+D2_ZSCOREHFA            : 'd2:zScoreHFA(';
+D2_SPLIT                : 'd2:split(';
+D2_OIZP                 : 'd2:oizp(';
 D2_ZING                 : 'd2:zing(';
+D2_VALIDATE_PATTERN     : 'd2:validatePattern(';
+D2_MAX_VALUE            : 'd2:maxValue(';
+D2_MIN_VALUE            : 'd2:minValue(';
 D2_ZPVC                 : 'd2:zpvc(';
+D2_COUNT                : 'd2:count(';
+D2_COUNT_IF_VALUE       : 'd2:countIfValue(';
+D2_HAS_USER_ROLE        : 'd2:hasUserRole(';
+D2_HAS_VALUE            : 'd2:hasValue(';
+D2_IN_ORG_UNIT_GROUP    : 'd2:inOrgUnitGroup(';
+D2_LAST_EVENT_DATE      : 'd2:lastEventDate(';
+D2_CONDITION            : 'd2:condition(';
+D2_COUNT_IF_CONDITION   : 'd2:countIfCondition(';
+D2_MINUTES_BETWEEN      : 'd2:minutesBetween(';
+D2_RELATIONSHIP_COUNT   : 'd2:relationshipCount(';
+
 
 // Items (alphabetical by symbol)
 
@@ -309,6 +365,12 @@ UID :   Alpha
 IDENTIFIER
     : [a-zA-Z]+
     ;
+
+EMPTY
+    : EOF;
+
+UNQUOTED_STRING
+    :   [a-zA-Z_]+;
 
 WS  :   [ \t\n\r]+
     ;
