@@ -111,7 +111,7 @@ public class JdbcEventAnalyticsTableManagerTest
     private JdbcEventAnalyticsTableManager subject;
 
     private BeanRandomizer rnd = new BeanRandomizer();
-    private int currentYear = getCurrentYear();
+    private int currentYear;
     private static final Date START_TIME = new DateTime( getCurrentYear(), 8, 1, 0, 0 ).toDate();
     private final static String TABLE_PREFIX = "analytics_event_";
     private static final String FROM_CLAUSE = "from programstageinstance where programstageinstanceid=psi.programstageinstanceid";
@@ -124,6 +124,8 @@ public class JdbcEventAnalyticsTableManagerTest
     @Before
     public void setUp()
     {
+        currentYear = getCurrentYear();
+
         statementBuilder = new PostgreSQLStatementBuilder();
 
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
@@ -551,19 +553,11 @@ public class JdbcEventAnalyticsTableManagerTest
         program.setCategoryCombo( categoryCombo );
     }
 
-    private String getYearsQuery( Program p, AnalyticsTableUpdateParams params )
-    {
-        return "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join " +
-            "programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = " + p.getId() +
-            " and psi.executiondate is not null and psi.deleted is false " + (params.getFromDate() != null
-                ? "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'" : "" );
-    }
-
-    private String getYearQueryForCurrentYear( Program p, boolean withExecutionDate )
+    private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
         String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
             + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
-            + currentYear + "-08-01T00:00:00' and pi.programid = " + p.getId()
+            + currentYear + "-08-01T00:00:00' and pi.programid = " + program.getId()
             + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
 
         if ( withExecutionDate )
