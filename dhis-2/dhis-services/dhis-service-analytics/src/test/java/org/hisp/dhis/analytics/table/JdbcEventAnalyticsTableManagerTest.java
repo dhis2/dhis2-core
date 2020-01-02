@@ -1,9 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
-import com.google.common.collect.ImmutableMap;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +28,21 @@ import com.google.common.collect.ImmutableMap;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
@@ -59,7 +70,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,23 +80,9 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.Date;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.analytics.ColumnDataType.*;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
@@ -120,8 +116,12 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private BeanRandomizer rnd = new BeanRandomizer();
 
+    private Date today;
+
     private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
+
     private final static String TABLE_PREFIX = "analytics_event_";
+
     private static final String FROM_CLAUSE = "from programstageinstance where programstageinstanceid=psi.programstageinstanceid";
 
     private List<AnalyticsTableColumn> periodColumns = PeriodType.getAvailablePeriodTypes().stream().map( pt -> {
@@ -133,16 +133,14 @@ public class JdbcEventAnalyticsTableManagerTest
     public void setUp()
     {
         statementBuilder = new PostgreSQLStatementBuilder();
+
+        today = Date.from( LocalDate.of( 2019, 7, 6 ).atStartOfDay( ZoneId.systemDefault() ).toInstant() );
+
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
-            mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
+            mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo,
+            jdbcTemplate );
 
-        when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01'",
-            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
-        when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ",
-            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
     }
 
     @Test
@@ -162,16 +160,16 @@ public class JdbcEventAnalyticsTableManagerTest
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
         Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime( startTime )
-            .withLatestPartition()
-            .build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( startTime )
+            .withLatestPartition().build();
 
         List<Map<String, Object>> queryResp = Lists.newArrayList();
         queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
 
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( lastFullTableUpdate );
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
+            .thenReturn( lastFullTableUpdate );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
+            .thenReturn( lastLatestPartitionUpdate );
         when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( programs );
 
@@ -214,22 +212,22 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
+        when( jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear( program, true),
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
-        when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
-            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) ).withTableType( AnalyticsTableType.EVENT )
-            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
-            .withColumnSize( 41 ).withDefaultColumns( subject.getFixedColumns() )
-            .addColumns( periodColumns )
+            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withColumnSize( 41 )
+            .withDefaultColumns( subject.getFixedColumns() ).addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
-            .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() )
-            .build().verify();
+            .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() ).build().verify();
     }
 
     @Test
@@ -238,13 +236,13 @@ public class JdbcEventAnalyticsTableManagerTest
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program program = createProgram( 'A' );
 
-        DataElement d1 = createDataElement( 'Z', ValueType.TEXT, AggregationType.SUM);
-        DataElement d2 = createDataElement( 'P', ValueType.PERCENTAGE, AggregationType.SUM);
-        DataElement d3 = createDataElement( 'Y', ValueType.BOOLEAN, AggregationType.NONE);
-        DataElement d4 = createDataElement( 'W', ValueType.DATE, AggregationType.LAST);
-        DataElement d5 = createDataElement( 'G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
-        DataElement d6 = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM);
-        DataElement d7 = createDataElement( 'U', ValueType.COORDINATE, AggregationType.NONE);
+        DataElement d1 = createDataElement( 'Z', ValueType.TEXT, AggregationType.SUM );
+        DataElement d2 = createDataElement( 'P', ValueType.PERCENTAGE, AggregationType.SUM );
+        DataElement d3 = createDataElement( 'Y', ValueType.BOOLEAN, AggregationType.NONE );
+        DataElement d4 = createDataElement( 'W', ValueType.DATE, AggregationType.LAST );
+        DataElement d5 = createDataElement( 'G', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
+        DataElement d6 = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
+        DataElement d7 = createDataElement( 'U', ValueType.COORDINATE, AggregationType.NONE );
 
         ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d1, d2, d3, d4, d5, d6, d7 ) );
 
@@ -253,40 +251,48 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
         String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
-        String aliasD2 = "(select cast(eventdatavalues #>> '{%s, value}' as " + statementBuilder.getDoubleColumnType() + ") "+ FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch() + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
-        String aliasD3 = "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end " + FROM_CLAUSE + " ) as \"%s\"";
-        String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch() + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$') as \"%s\"";
+        String aliasD2 = "(select cast(eventdatavalues #>> '{%s, value}' as " + statementBuilder.getDoubleColumnType()
+            + ") " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
+            + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        String aliasD3 = "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end "
+            + FROM_CLAUSE + " ) as \"%s\"";
+        String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE
+            + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
+            + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$') as \"%s\"";
         String aliasD5 = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
-        String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch() + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE
+            + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
+            + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
         String aliasD5_geo = "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
-            + d5.getUid() +", value}' " + FROM_CLAUSE + " )) as \"" +  d5.getUid() + "\"";
+            + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
 
-        when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
-            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        when( jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear( program, true),
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
-            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
-            .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 47 )
-            .addColumns( periodColumns )
-            .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) )  // ValueType.TEXT
+            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
+            .withColumnSize( 47 ).addColumns( periodColumns )
+            .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
             .addColumn( d3.getUid(), INTEGER, toAlias( aliasD3, d3.getUid() ) ) // ValueType.BOOLEAN
             .addColumn( d4.getUid(), TIMESTAMP, toAlias( aliasD4, d4.getUid() ) ) // ValueType.DATE
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .addColumn( d5.getUid() + "_geom" , GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element d5 also creates a Geo column
-            .withDefaultColumns( subject.getFixedColumns() )
-            .build().verify();
+            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element d5
+                                                                                                       // also creates a
+                                                                                                       // Geo column
+            .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
     @Test
@@ -311,29 +317,31 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
         String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
-        String aliasTea1 = "(select %s from organisationunit ou where ou.uid = (select value from " +
-            "trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
-            "trackedentityattributeid=%d)) as \"%s\"";
+        String aliasTea1 = "(select %s from organisationunit ou where ou.uid = (select value from "
+            + "trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributeid=%d)) as \"%s\"";
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
-        when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
-            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
+
+        when( jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear( program, true),
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
-            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
-            .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 42 )
-            .addColumns( periodColumns )
-            .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) )  // ValueType.TEXT
-            .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) )  // ValueType.ORGANISATION_UNIT
+            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
+            .withColumnSize( 42 ).addColumns( periodColumns )
+            .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
+            .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
-            .addColumn( tea1.getUid() + "_geom", GEOMETRY, String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
-            .withDefaultColumns( subject.getFixedColumns() )
-            .build().verify();
+            .addColumn( tea1.getUid() + "_geom", GEOMETRY,
+                String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
+            .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
     @Test
@@ -343,7 +351,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program programA = createProgram( 'A' );
 
-        DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+        DataElement d5 = createDataElement( 'G', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
 
         ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d5 ) );
 
@@ -351,18 +359,20 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
 
-        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
-            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        when( jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear( programA, true ),
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{" +
-            d5.getUid() + ", value}' from programstageinstance where " +
-            "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+            + d5.getUid() + ", value}' from programstageinstance where "
+            + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
@@ -377,24 +387,28 @@ public class JdbcEventAnalyticsTableManagerTest
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
         tea.setId( 9999 );
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, tea );
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
+            tea );
 
         programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
 
-        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
-            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        when( jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear( programA, true ),
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
-        subject.populateTable( params, PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+        subject.populateTable( params,
+            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
-            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
-            "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
+            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
@@ -408,24 +422,23 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
+        when( jdbcTemplate.queryForList(
+            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ",
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
-        when( jdbcTemplate.queryForList( getYearsQuery( programA, params), Integer.class ) )
-            .thenReturn( Collections.singletonList( 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
 
-        new AnalyticsTableAsserter.Builder( tables.get(0) )
-            .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() )
-            .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( subject.getFixedColumns().size()
-                    + PeriodType.getAvailablePeriodTypes().size() + ouLevels.size() + ( programA.isRegistration() ? 2 : 0 ) )
-            .addColumns( periodColumns )
-            .withDefaultColumns( subject.getFixedColumns() )
-            .addColumn( quote( "uidlevel" + ouLevels.get(0).getLevel() ), col -> match( ouLevels.get( 0 ), col ) )
-            .addColumn( quote( "uidlevel" + ouLevels.get(1).getLevel() ), col -> match( ouLevels.get( 1 ), col ) )
+        new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
+            .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
+            .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
+                + ouLevels.size() + (programA.isRegistration() ? 2 : 0) )
+            .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
+            .addColumn( quote( "uidlevel" + ouLevels.get( 0 ).getLevel() ), col -> match( ouLevels.get( 0 ), col ) )
+            .addColumn( quote( "uidlevel" + ouLevels.get( 1 ).getLevel() ), col -> match( ouLevels.get( 1 ), col ) )
             .build().verify();
     }
 
@@ -440,23 +453,21 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ) ).thenReturn( ouGroupSet );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
-        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
-            .thenReturn( Collections.singletonList( 2019 ) );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false ), Integer.class ) )
+            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
-            .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() )
-            .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( subject.getFixedColumns().size()
-                + PeriodType.getAvailablePeriodTypes().size() + ouGroupSet.size() + ( programA.isRegistration() ? 2 : 0 ) )
-            .addColumns( periodColumns )
-            .withDefaultColumns( subject.getFixedColumns() )
-            .addColumn( quote( ouGroupSet.get( 0 ).getUid() ), col -> match( ouGroupSet.get(0), col ) )
-            .addColumn( quote( ouGroupSet.get( 1 ).getUid() ), col -> match( ouGroupSet.get(1), col ) )
-            .build().verify();
+            .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
+            .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
+                + ouGroupSet.size() + (programA.isRegistration() ? 2 : 0) )
+            .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
+            .addColumn( quote( ouGroupSet.get( 0 ).getUid() ), col -> match( ouGroupSet.get( 0 ), col ) )
+            .addColumn( quote( ouGroupSet.get( 1 ).getUid() ), col -> match( ouGroupSet.get( 1 ), col ) ).build()
+            .verify();
     }
 
     @Test
@@ -468,25 +479,22 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl() ).thenReturn( cogs );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false ), Integer.class ) )
+            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
-        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
-                .thenReturn( Collections.singletonList( 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
 
-        new AnalyticsTableAsserter.Builder( tables.get(0) )
-            .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() )
-            .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( subject.getFixedColumns().size()
-                + PeriodType.getAvailablePeriodTypes().size() + cogs.size() + (programA.isRegistration() ? 2 : 0) )
-            .addColumns( periodColumns )
-            .withDefaultColumns( subject.getFixedColumns() )
-            .addColumn( quote( cogs.get( 0  ).getUid() ), col -> match( cogs.get( 0 ), col))
-            .addColumn( quote( cogs.get( 1 ).getUid()), col -> match( cogs.get( 1 ), col))
-            .build().verify();
+        new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
+            .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
+            .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
+                + cogs.size() + (programA.isRegistration() ? 2 : 0) )
+            .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
+            .addColumn( quote( cogs.get( 0 ).getUid() ), col -> match( cogs.get( 0 ), col ) )
+            .addColumn( quote( cogs.get( 1 ).getUid() ), col -> match( cogs.get( 1 ), col ) ).build().verify();
     }
 
     private void match( OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col )
@@ -510,7 +518,7 @@ public class JdbcEventAnalyticsTableManagerTest
         String name = quote( cog.getUid() );
         assertNotNull( col );
         assertThat( col.getAlias(), is( "acs." + name ) );
-        match( col) ;
+        match( col );
     }
 
     private void match( AnalyticsTableColumn col )
@@ -537,22 +545,28 @@ public class JdbcEventAnalyticsTableManagerTest
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
         tea.setId( 9999 );
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, tea );
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
+            tea );
 
         programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
+        when( jdbcTemplate.queryForList(
+            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01'",
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
 
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
-            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
-            "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
+            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
@@ -567,11 +581,18 @@ public class JdbcEventAnalyticsTableManagerTest
         program.setCategoryCombo( categoryCombo );
     }
 
-    private String getYearsQuery( Program p, AnalyticsTableUpdateParams params )
+    private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
-        return "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join " +
-            "programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = " + p.getId() +
-            " and psi.executiondate is not null and psi.deleted is false " + (params.getFromDate() != null
-                ? "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'" : "" );
+        String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
+                + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
+                + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
+                + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
+
+        if ( withExecutionDate )
+        {
+            sql += "and psi.executiondate >= '2018-01-01'";
+        }
+
+        return sql;
     }
 }

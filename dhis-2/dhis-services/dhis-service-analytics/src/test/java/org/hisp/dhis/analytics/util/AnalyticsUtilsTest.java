@@ -191,7 +191,7 @@ public class AnalyticsUtilsTest
         assertEquals( 3.123, AnalyticsUtils.getRoundedValue( paramsB, 3, 3.123 ).doubleValue(), 0.01 );
         assertEquals( 3l, AnalyticsUtils.getRoundedValue( paramsB, 0, 3.123 ).longValue() );
         assertEquals( 12l, AnalyticsUtils.getRoundedValue( paramsB, 0, 12.34 ).longValue() );
-        assertEquals( 14l, AnalyticsUtils.getRoundedValue( paramsB, 0, 13.871 ).longValue() );
+        assertEquals( 13l, AnalyticsUtils.getRoundedValue( paramsB, 0, 13.999 ).longValue() );
     }
 
     @Test
