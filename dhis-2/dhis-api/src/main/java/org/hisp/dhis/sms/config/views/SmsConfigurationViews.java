@@ -1,6 +1,7 @@
-package org.hisp.dhis.dxf2.csv;
+package org.hisp.dhis.sms.config.views;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +29,19 @@ package org.hisp.dhis.dxf2.csv;
  */
 
 /**
- * @author Stian Sandvold
+ *
+ * Json view to keep confidential parameters from exposing through API and make sure their availability
+ * while de-serialisation.
+ *
+ * @Author Zubair Asghar.
  */
-public enum CsvImportClass
+public class SmsConfigurationViews
 {
-    ORGANISATION_UNIT_GROUP_MEMBERSHIP,
-    DATA_ELEMENT_GROUP_MEMBERSHIP,
-    INDICATOR_GROUP_MEMBERSHIP,
-    DATA_ELEMENT,
-    DATA_ELEMENT_GROUP,
-    CATEGORY_OPTION,
-    CATEGORY,
-    CATEGORY_COMBO,
-    CATEGORY_OPTION_GROUP,
-    ORGANISATION_UNIT,
-    ORGANISATION_UNIT_GROUP,
-    VALIDATION_RULE,
-    OPTION_SET,
-    OPTION_GROUP,
-    OPTION_GROUP_SET,
-    OPTION_GROUP_SET_MEMBERSHIP;
-
-    public static boolean classExists( String classKey )
+    public static class Public
     {
-        try
-        {
-            valueOf( classKey );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            return false;
-        }
+    }
 
-        return true;
+    public static class Internal extends Public
+    {
     }
 }

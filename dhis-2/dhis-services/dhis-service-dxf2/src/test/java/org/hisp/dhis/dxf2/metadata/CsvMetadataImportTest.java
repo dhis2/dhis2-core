@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -36,6 +37,8 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -51,6 +54,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -72,6 +76,9 @@ public class CsvMetadataImportTest
 
     @Autowired
     private SchemaService schemaService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     private InputStream input;
 
@@ -244,5 +251,89 @@ public class CsvMetadataImportTest
 
         // 3 old Options are replaced by 2 new added Options
         assertEquals( 2, optionSet.getOptions().size() );
+    }
+
+    @Test
+    public void testImportOptionGroupSet()
+        throws IOException
+    {
+        input = new ClassPathResource( "metadata/option_set.csv" ).getInputStream();
+        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
+            .setImportClass( CsvImportClass.OPTION_SET )
+            .setFirstRowIsHeader( true ) );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+
+        ImportReport importReport = importService.importMetadata( params );
+
+        assertEquals( 5, importReport.getStats().getCreated() );
+
+        OptionSet optionSetA = manager.get( OptionSet.class, "xmRubJIhmaK" );
+        assertNotNull( optionSetA );
+        assertEquals( 2, optionSetA.getOptions().size() );
+
+        OptionSet optionSetB = manager.get( OptionSet.class, "QYDAByFgTr1" );
+        assertNotNull( optionSetB );
+        assertEquals( 1, optionSetB.getOptions().size() );
+
+        input = new ClassPathResource( "metadata/option_groups.csv" ).getInputStream();
+        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
+            .setImportClass( CsvImportClass.OPTION_GROUP )
+            .setFirstRowIsHeader( true ) );
+
+        params = new MetadataImportParams();
+        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+
+        importReport = importService.importMetadata( params );
+
+        assertEquals( 2, importReport.getStats().getCreated() );
+
+        OptionGroup optionGroupA = manager.get( OptionGroup.class, "UeHtizvXbx6" );
+        assertNotNull( optionGroupA );
+        assertEquals( 2, optionGroupA.getMembers().size() );
+
+        OptionGroup optionGroupB = manager.get( OptionGroup.class, "EVYjFX6Ez0a" );
+        assertNotNull( optionGroupB );
+        assertEquals( 1, optionGroupB.getMembers().size() );
+
+        input = new ClassPathResource( "metadata/option_group_set.csv" ).getInputStream();
+        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
+            .setImportClass( CsvImportClass.OPTION_GROUP_SET )
+            .setFirstRowIsHeader( true ) );
+
+        params = new MetadataImportParams();
+        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+
+        importReport = importService.importMetadata( params );
+
+        assertEquals( 2, importReport.getStats().getCreated() );
+
+        OptionGroupSet optionGroupSetA = manager.get( OptionGroupSet.class, "FB9i0Jl2R80" );
+        assertNotNull( optionGroupSetA );
+
+        OptionGroupSet optionGroupSetB = manager.get( OptionGroupSet.class, "K30djctzUtN" );
+        assertNotNull( optionGroupSetB );
+
+        input = new ClassPathResource( "metadata/option_group_set_members.csv" ).getInputStream();
+        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
+            .setImportClass( CsvImportClass.OPTION_GROUP_SET_MEMBERSHIP )
+            .setFirstRowIsHeader( true ) );
+
+        params = new MetadataImportParams();
+        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+
+        importReport = importService.importMetadata( params );
+
+        assertEquals( 2, importReport.getStats().getUpdated() );
+
+        OptionGroupSet ogsA = optionService.getOptionGroupSet( "FB9i0Jl2R80" );
+        OptionGroupSet ogsB = optionService.getOptionGroupSet( "K30djctzUtN" );
+
+        assertEquals( 1, ogsA.getMembers().size() );
+        assertEquals( 1, ogsB.getMembers().size() );
+
+        assertEquals( 2, ogsA.getMembers().get( 0 ).getMembers().size() );
+
     }
 }
