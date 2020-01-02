@@ -303,8 +303,7 @@ public class JdbcEventAnalyticsTableManagerTest
             "trackedentityattributeid=%d)) as \"%s\"";
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
-        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( program, true ), Integer.class ) )
-                .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( program, true ), Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
