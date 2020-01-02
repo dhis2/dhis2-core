@@ -53,7 +53,6 @@ public class RedisLeaderManager implements LeaderManager
 
     private static final String CLUSTER_LEADER_RENEWAL = "Cluster leader renewal";
 
-
     private String nodeId;
 
     private Long timeToLiveSeconds;

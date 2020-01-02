@@ -1,9 +1,5 @@
 package org.hisp.dhis.sms.config;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonView;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -32,10 +28,13 @@ import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 @JsonTypeName( "clickatell" )
 public class ClickatellGatewayConfig
     extends SmsGatewayConfig
