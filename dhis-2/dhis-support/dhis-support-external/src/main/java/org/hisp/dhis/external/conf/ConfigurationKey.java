@@ -90,7 +90,7 @@ public enum ConfigurationKey
     LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
     LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
-    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
+    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
     SERVER_HTTPS( "server.https", "off" );
 
