@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,28 +35,41 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
 import java.util.Iterator;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Order( 0 )
-public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
+public class IdentifiableObjectBundleHook
+    extends AbstractObjectBundleHook
 {
+    private final AclService aclService;
+
+    public IdentifiableObjectBundleHook( AclService aclService )
+    {
+        checkNotNull( aclService );
+        this.aclService = aclService;
+    }
+
     @Override
     public void preCreate( IdentifiableObject identifiableObject, ObjectBundle bundle )
     {
-        ( ( BaseIdentifiableObject ) identifiableObject ).setAutoFields();
+        ((BaseIdentifiableObject) identifiableObject).setAutoFields();
 
-        BaseIdentifiableObject identifableObject = ( BaseIdentifiableObject ) identifiableObject;
+        BaseIdentifiableObject identifableObject = (BaseIdentifiableObject) identifiableObject;
         identifableObject.setAutoFields();
         identifableObject.setLastUpdatedBy( bundle.getUser() );
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
         handleAttributeValues( identifiableObject, bundle, schema );
+        handleSkipSharing( identifiableObject, bundle );
     }
 
     @Override
@@ -67,14 +80,21 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         identifiableObject.setLastUpdatedBy( bundle.getUser() );
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
-        handleAttributeValues( object, bundle, schema );
+        handleAttributeValuesNoDuplicates( object, bundle, schema );
     }
 
     private void handleAttributeValues( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
+        handleAttributeValuesNoDuplicates( identifiableObject, bundle, schema );
+    }
+
+    private void handleAttributeValuesNoDuplicates( IdentifiableObject identifiableObject,
+        ObjectBundle bundle, Schema schema )
+    {
         Session session = sessionFactory.getCurrentSession();
 
-        if ( !schema.havePersistedProperty( "attributeValues" ) ) return;
+        if ( !schema.havePersistedProperty( "attributeValues" ) )
+            return;
 
         Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
 
@@ -89,7 +109,8 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
+            Attribute attribute = bundle.getPreheat()
+                .get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
 
             if ( attribute == null )
             {
@@ -100,5 +121,13 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             attributeValue.setAttribute( attribute );
             session.save( attributeValue );
         }
+    }
+
+    private void handleSkipSharing( IdentifiableObject identifiableObject, ObjectBundle bundle )
+    {
+        if ( !bundle.isSkipSharing() )
+            return;
+
+        aclService.clearSharing( identifiableObject, bundle.getUser() );
     }
 }

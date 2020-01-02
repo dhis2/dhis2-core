@@ -68,17 +68,4 @@ public class MapDeletionHandler
             }
         }
     }
-
-    @Override
-    public void deleteMap( Map map )
-    {
-        Iterator<MapView> views = map.getMapViews().iterator();
-
-        while ( views.hasNext() )
-        {
-            MapView view = views.next();
-            views.remove();
-            mappingService.deleteMapView( view );
-        }
-    }
 }

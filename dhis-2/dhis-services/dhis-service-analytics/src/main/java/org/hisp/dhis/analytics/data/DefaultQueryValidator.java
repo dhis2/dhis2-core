@@ -87,19 +87,19 @@ public class DefaultQueryValidator
         params.getProgramDataElements().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
         final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
 
-        if ( params.getDimensions().isEmpty() )
+        if ( !params.isSkipDataDimensionValidation() )
         {
-            violation = "At least one dimension must be specified";
-        }
+            if (params.getDimensions().isEmpty()) {
+                violation = "At least one dimension must be specified";
+            }
 
-        if ( !params.isSkipData() && params.getDataDimensionAndFilterOptions().isEmpty() && params.getAllDataElementGroups().isEmpty() )
-        {
-            violation = "At least one data dimension item or data element group set dimension item must be specified";
-        }
+            if (!params.isSkipData() && params.getDataDimensionAndFilterOptions().isEmpty() && params.getAllDataElementGroups().isEmpty()) {
+                violation = "At least one data dimension item or data element group set dimension item must be specified";
+            }
 
-        if ( !params.getDimensionsAsFilters().isEmpty() )
-        {
-            violation = "Dimensions cannot be specified as dimension and filter simultaneously: " + params.getDimensionsAsFilters();
+            if (!params.getDimensionsAsFilters().isEmpty()) {
+                violation = "Dimensions cannot be specified as dimension and filter simultaneously: " + params.getDimensionsAsFilters();
+            }
         }
 
         if ( !params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate() )

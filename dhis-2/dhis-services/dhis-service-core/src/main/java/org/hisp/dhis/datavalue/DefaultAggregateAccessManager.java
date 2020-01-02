@@ -38,9 +38,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
@@ -50,22 +49,27 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
-    private static Cache<String, List<String>> CAN_DATA_WRITE_COC_CACHE;
+    private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
 
     private final AclService aclService;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
-    public DefaultAggregateAccessManager( AclService aclService )
+    public DefaultAggregateAccessManager( AclService aclService, Environment env )
     {
+        checkNotNull( aclService );
+        checkNotNull( env );
+
         this.aclService = aclService;
+        this.env = env;
     }
 
     // ---------------------------------------------------------------------
@@ -75,10 +79,12 @@ public class DefaultAggregateAccessManager
     @PostConstruct
     public void init()
     {
-        CAN_DATA_WRITE_COC_CACHE = Caffeine.newBuilder()
+        CAN_DATA_WRITE_COC_CACHE = new SimpleCacheBuilder<List<String>>().forRegion( "canDataWriteCocCache" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     @Override
@@ -181,7 +187,7 @@ public class DefaultAggregateAccessManager
     {
         String cacheKey = user.getUid() + "-" + optionCombo.getUid();
 
-        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) );
+        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) ).orElse( null );
     }
 
     @Override

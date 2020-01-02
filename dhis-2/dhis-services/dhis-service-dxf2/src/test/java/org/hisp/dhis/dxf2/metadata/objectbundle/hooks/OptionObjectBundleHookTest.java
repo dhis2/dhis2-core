@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.preheat.Preheat;
@@ -38,6 +40,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Unit test of {@link OptionObjectBundleHook}.
@@ -89,5 +92,38 @@ public class OptionObjectBundleHookTest
         hook.preCreate( option, bundle );
 
         Assert.assertEquals( 0, persistedOptionSet.getOptions().size() );
+    }
+
+    @Test
+    public void validate()
+    {
+        OptionSet optionSet = new OptionSet();
+        optionSet.setUid( "optionSet1" );
+
+        Option option = new Option();
+        option.setName( "optionName" );
+        option.setCode( "optionCode" );
+        optionSet.addOption( option );
+
+        OptionSet persistedOptionSet = new OptionSet();
+        persistedOptionSet.setUid( "optionSet1" );
+
+        Option persistedOption = new Option();
+        persistedOption.setName( "optionName" );
+        persistedOption.setCode( "optionCode" );
+        persistedOptionSet.addOption( persistedOption );
+
+        preheat.put( PreheatIdentifier.UID, persistedOptionSet );
+
+        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+        objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
+        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat,
+            Collections.singletonMap( OptionSet.class, Collections.singletonList( persistedOptionSet ) ) );
+
+        List<ErrorReport> errors = hook.validate( option, bundle );
+
+        Assert.assertNotNull( errors );
+        Assert.assertEquals( 1, errors.size() );
+        Assert.assertEquals( ErrorCode.E4028, errors.get( 0 ).getErrorCode() );
     }
 }

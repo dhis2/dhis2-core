@@ -38,6 +38,7 @@ import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -55,6 +56,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.MILLISECOND;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.Date;
@@ -96,6 +99,10 @@ public class DataStatisticsController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Start date is after end date" ) );
         }
+
+        // The endDate is arriving as: "2019-09-28". After the conversion below it will become: "2019-09-28 23:59:59.999"
+        endDate = DateUtils.calculateDateFrom( endDate, 1, DATE );
+        endDate = DateUtils.calculateDateFrom( endDate, -1, MILLISECOND );
 
         setNoStore( response );
         return dataStatisticsService.getReports( startDate, endDate, interval );

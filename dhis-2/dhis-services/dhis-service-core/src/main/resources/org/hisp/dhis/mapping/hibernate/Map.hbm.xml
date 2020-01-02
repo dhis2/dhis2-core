@@ -31,7 +31,7 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <list name="mapViews" table="mapmapviews" cascade="all">
+    <list name="mapViews" table="mapmapviews" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="mapid" foreign-key="fk_mapmapview_mapid" />
       <list-index column="sort_order" base="0" />

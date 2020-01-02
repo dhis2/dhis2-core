@@ -371,6 +371,16 @@ public interface CategoryService
         Set<CategoryOption> categoryOptions );
 
     /**
+     * Retrieves the CategoryOptionCombo with the given uid and
+     * {@see IdentifiableProperty}.
+     *
+     * @param id the id of the CategoryOptionCombo.
+     * @param property the type of id to use
+     * @return the CategoryOptionCombo.
+     */
+    CategoryOptionCombo getCategoryOptionCombo( IdentifiableProperty property, String id );
+
+    /**
      * Retrieves all CategoryOptionCombos.
      *
      * @return a list of CategoryOptionCombos.

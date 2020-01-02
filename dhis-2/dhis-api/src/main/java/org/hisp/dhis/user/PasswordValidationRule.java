@@ -34,6 +34,9 @@ package org.hisp.dhis.user;
  */
 public interface PasswordValidationRule
 {
+    String MANDATORY_PARAMETER_MISSING = "Username or password is missing";
+    String I18_MANDATORY_PARAMETER_MISSING = "mandatory_parameter_missing";
+
     /**
      * Validates user password to make sure it comply with requirements related to
      * password strength.

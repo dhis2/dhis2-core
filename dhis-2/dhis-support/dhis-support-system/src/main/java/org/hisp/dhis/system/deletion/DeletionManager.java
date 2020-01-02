@@ -34,6 +34,8 @@ package org.hisp.dhis.system.deletion;
 public interface DeletionManager
 {
     String ID = DeletionManager.class.getName();
-    
+
+    void executeNoRollback( Object object );
+
     void execute( Object object );
 }

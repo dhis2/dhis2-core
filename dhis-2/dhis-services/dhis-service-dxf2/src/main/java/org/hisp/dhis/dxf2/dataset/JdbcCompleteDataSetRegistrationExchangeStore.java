@@ -90,6 +90,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     private static final String P_STORED_BY = "storedby";
 
     private static final String P_PERIOD_START = "pe_start";
+    
+    private static final String P_COMPLETED = "completed";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -195,7 +197,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
             cdsr.setAttributeOptionCombo( rs.getString( P_ATTR_OPT_COMBO ) );
             cdsr.setDate( removeTime( rs.getString( P_DATE ) ) );
             cdsr.setStoredBy( rs.getString( P_STORED_BY ) );
-
+            cdsr.setCompleted( rs.getBoolean( P_COMPLETED ) );
             cdsr.close();
         } );
 
@@ -213,7 +215,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
         String sql =
             "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
-                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created, cdsr.completed AS completed " +
                 "FROM completedatasetregistration cdsr " +
                 "INNER JOIN dataset ds ON ( cdsr.datasetid=ds.datasetid ) " +
                 "INNER JOIN period pe ON ( cdsr.periodid=pe.periodid ) " +

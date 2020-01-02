@@ -178,6 +178,26 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
         }
 
+        CredentialsInfo credentialsInfo;
+        User user = credentials.getUserInfo();
+
+        // if user is null then something is internally wrong and request should be terminated.
+        if ( user == null )
+        {
+            throw new WebMessageException( WebMessageUtils.error( String.format( "No user found for username: %s", username ) ) );
+        }
+        else
+        {
+            credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "", false );
+        }
+
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+
+        if ( !result.isValid() )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( result.getErrorMessage() ) );
+        }
+
         boolean restore = securityService.restore( credentials, token, password, RestoreType.RECOVER_PASSWORD );
 
         if ( !restore )
@@ -477,7 +497,42 @@ public class AccountController
     }
 
     @RequestMapping( value = "/username", method = RequestMethod.GET )
-    public void validateUserName( @RequestParam String username, HttpServletResponse response ) throws IOException
+    public void validateUserNameGet( @RequestParam String username, HttpServletResponse response ) throws IOException
+    {
+        Map<String, String> result = validateUserName( username );
+
+        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+    }
+
+    @RequestMapping( value = "/validateUsername", method = RequestMethod.POST )
+    public void validateUserNamePost( @RequestParam String username, HttpServletResponse response ) throws IOException
+    {
+        Map<String, String> result = validateUserName( username );
+
+        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+    }
+
+    @RequestMapping( value = "/password", method = RequestMethod.GET )
+    public void validatePasswordGet( @RequestParam String password, HttpServletResponse response ) throws IOException
+    {
+        Map<String, String> result = validatePassword( password );
+
+        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+    }
+
+    @RequestMapping( value = "/validatePassword", method = RequestMethod.POST )
+    public void validatePasswordPost( @RequestParam String password, HttpServletResponse response ) throws IOException
+    {
+        Map<String, String> result = validatePassword( password );
+
+        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+    }
+
+    // ---------------------------------------------------------------------
+    // Supportive methods
+    // ---------------------------------------------------------------------
+
+    private Map<String, String> validateUserName( String username )
     {
         boolean valid = username != null && userService.getUserCredentialsByUsername( username ) == null;
 
@@ -488,11 +543,10 @@ public class AccountController
         result.put( "response", valid ? "success" : "error" );
         result.put( "message", valid ? "" : "Username is already taken" );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        return result;
     }
 
-    @RequestMapping( value = "/password", method = RequestMethod.GET )
-    public void validatePassword( @RequestParam String password, HttpServletResponse response ) throws IOException
+    private Map<String, String> validatePassword( String password )
     {
         CredentialsInfo credentialsInfo = new CredentialsInfo( password, true );
 
@@ -505,12 +559,8 @@ public class AccountController
         result.put( "response", passwordValidationResult.isValid() ? "success" : "error" );
         result.put( "message", passwordValidationResult.isValid() ? "" : passwordValidationResult.getErrorMessage() );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        return result;
     }
-
-    // ---------------------------------------------------------------------
-    // Supportive methods
-    // ---------------------------------------------------------------------
 
     private void authenticate( String username, String rawPassword, Collection<GrantedAuthority> authorities, HttpServletRequest request )
     {

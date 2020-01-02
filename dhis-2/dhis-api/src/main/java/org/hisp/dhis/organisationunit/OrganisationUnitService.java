@@ -388,6 +388,50 @@ public interface OrganisationUnitService
      * @return true if the organisation unit with the given uid is part of the hierarchy.
      */
     boolean isInUserHierarchy( String uid, Set<OrganisationUnit> organisationUnits );
+    
+    /**
+     * Equal to {@link OrganisationUnitService#isInUserHierarchy(User,OrganisationUnit)}
+     * except adds a caching layer on top. Use this method when performance is
+     * imperative and the risk of a stale result is tolerable.
+     *
+     * @param user the user to check for.
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the hierarchy.
+     */
+    boolean isInUserHierarchyCached( User user, OrganisationUnit organisationUnit );
+    
+
+    /**
+     * Indicates whether the given organisation unit is part of the search hierarchy
+     * of the organisation units of the current user.
+     *
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the search hierarchy.
+     */
+    boolean isInUserSearchHierarchy( OrganisationUnit organisationUnit );
+
+    /**
+     * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(OrganisationUnit)}
+     * except adds a caching layer on top. Use this method when performance is
+     * imperative and the risk of a stale result is tolerable.
+     *
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the hierarchy.
+     */
+    boolean isInUserSearchHierarchyCached( OrganisationUnit organisationUnit );
+
+    /**
+     * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User,OrganisationUnit)}
+     * except adds a caching layer on top. Use this method when performance is
+     * imperative and the risk of a stale result is tolerable.
+     *
+     * @param user the user to check for.
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the hierarchy.
+     */
+    boolean isInUserSearchHierarchyCached( User user, OrganisationUnit organisationUnit );
+
+    boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit );
 
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy

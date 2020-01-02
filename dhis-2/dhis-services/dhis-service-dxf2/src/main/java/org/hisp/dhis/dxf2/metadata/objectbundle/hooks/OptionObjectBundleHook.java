@@ -30,29 +30,70 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Volker Schmidt
  */
+
 public class OptionObjectBundleHook
     extends AbstractObjectBundleHook
 {
     @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( !(object instanceof Option) ) return new ArrayList<>();
+
+        final Option option = (Option) object;
+
+        if ( option.getOptionSet() != null )
+        {
+            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+
+            List<Option> persistedOptions = optionSet.getOptions();
+
+            for ( Option persistedOption : persistedOptions )
+            {
+                if ( persistedOption == null || persistedOption.getName() == null || persistedOption.getCode() == null )
+                {
+                    break;
+                }
+
+                if ( persistedOption.getName().equals( option.getName() ) && persistedOption.getCode().equals( option.getCode() ) )
+                {
+                    errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
+                }
+            }
+        }
+
+        return errors;
+    }
+
+
+    @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !( object instanceof Option ) )
+        if ( !(object instanceof Option) )
         {
             return;
         }
 
         final Option option = (Option) object;
+
         // if the bundle contains also the option set there is no need to add the option here
         // (will be done automatically later and option set may contain raw value already)
         if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
         {
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+
             if ( optionSet != null )
             {
                 optionSet.addOption( option );

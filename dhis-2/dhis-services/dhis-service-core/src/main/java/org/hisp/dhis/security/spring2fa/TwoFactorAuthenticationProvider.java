@@ -103,7 +103,7 @@ public class TwoFactorAuthenticationProvider
             String ip = authDetails.getIp();
             String code = StringUtils.deleteWhitespace( authDetails.getCode() );
 
-            if ( securityService.isLocked( ip ) )
+            if ( securityService.isLocked( username ) )
             {
                 log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
 

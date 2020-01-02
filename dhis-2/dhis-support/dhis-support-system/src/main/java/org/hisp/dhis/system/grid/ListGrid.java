@@ -291,6 +291,13 @@ public class ListGrid
 
     @Override
     @JsonProperty
+    public int getHeaderWidth()
+    {
+        return headers.size();
+    }
+
+    @Override
+    @JsonProperty
     public Map<String, Object> getMetaData()
     {
         return metaData;
@@ -866,6 +873,25 @@ public class ListGrid
             if ( metaValue != null )
             {
                 grid.get( rowIndex ).set( targetColumnIndex, metaValue );
+            }
+        }
+
+        return this;
+    }
+
+    @Override
+    public Grid substituteValues( Map<String, String> uidToNameMap )
+    {
+        for ( List<Object> columns : grid )
+        {
+            for ( int col = 0; col < columns.size(); col++ )
+            {
+                Object column = columns.get( col );
+                if ( column != null && !MathUtils.isNumeric( String.valueOf( column ) )
+                        && uidToNameMap.containsKey( String.valueOf( column ) ) )
+                {
+                    columns.set( col, uidToNameMap.get( String.valueOf( column ) ) );
+                }
             }
         }
 

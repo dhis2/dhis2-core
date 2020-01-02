@@ -28,8 +28,8 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -50,9 +50,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class Parser
 {
-    private static Cache<String, ParseTree> EXPRESSION_PARSE_TREES = Caffeine.newBuilder()
-        .expireAfterAccess( 10, TimeUnit.MINUTES ).initialCapacity( 10000 )
-        .maximumSize( 50000 ).build();
+    private static Cache<ParseTree> EXPRESSION_PARSE_TREES = new SimpleCacheBuilder<ParseTree>().forRegion( "expressionParseTrees" )
+        .expireAfterAccess( 10, TimeUnit.MINUTES )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     // -------------------------------------------------------------------------
     // Logic
@@ -102,7 +104,7 @@ public class Parser
      */
     private static ParseTree getParseTree( String expr )
     {
-        return EXPRESSION_PARSE_TREES.get( expr, e -> createParseTree( e ) );
+        return EXPRESSION_PARSE_TREES.get( expr, e -> createParseTree( e ) ).orElse( null );
     }
 
     /**

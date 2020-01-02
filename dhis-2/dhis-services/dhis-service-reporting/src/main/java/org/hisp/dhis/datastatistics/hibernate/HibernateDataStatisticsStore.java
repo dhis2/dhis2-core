@@ -244,7 +244,7 @@ public class HibernateDataStatisticsStore
             "cast(round(cast(sum(indicators) as numeric),0) as int) as savedIndicators," +
             "cast(round(cast(sum(datavalues) as numeric),0) as int) as savedDataValues," +
             "max(users) as users from datastatistics " +
-            "where created >= '" + DateUtils.getMediumDateString( start ) + "' " +
-            "and created <= '" + DateUtils.getMediumDateString( end ) + "' ";
+            "where created >= '" + DateUtils.getLongDateString( start ) + "' " +
+            "and created <= '" + DateUtils.getLongDateString( end ) + "' ";
     }
 }

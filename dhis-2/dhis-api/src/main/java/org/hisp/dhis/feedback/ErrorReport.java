@@ -28,11 +28,13 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,6 +64,14 @@ public class ErrorReport
     {
         this.mainKlass = mainKlass;
         this.message = message;
+    }
+    
+    @JsonCreator
+    public ErrorReport( @JsonProperty( "message" ) String message, @JsonProperty( "mainKlass" ) Class<?> mainKlass,
+        @JsonProperty( "errorCode" ) ErrorCode errorCode )
+    {
+        this.mainKlass = mainKlass;
+        this.message = new ErrorMessage( message, errorCode );
     }
 
     @JsonProperty

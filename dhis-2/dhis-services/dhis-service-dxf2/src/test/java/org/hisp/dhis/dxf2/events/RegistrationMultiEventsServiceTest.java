@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
@@ -63,8 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Date;
 import java.util.HashSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -243,6 +243,38 @@ public class RegistrationMultiEventsServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         assertEquals( 3, eventService.getEvents( params ).getEvents().size() );
+    }
+
+    @Test
+    public void testDeleteEnrollmentWithEvents()
+    {
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
+        eventService.addEvent( event, null, false );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        enrollment.setEvents( Lists.newArrayList( event ) );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        Enrollment retrievedEnrlollment = enrollmentService
+            .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() );
+
+        EventSearchParams params = new EventSearchParams();
+        params.setProgram( programA );
+        params.setOrgUnit( organisationUnitA );
+        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.SELECTED );
+
+        Event retrievedEvent = enrollment.getEvents().get( 0 );
+
+        assertNotNull( retrievedEnrlollment );
+        assertNotNull( retrievedEvent );
+
+        enrollmentService.deleteEnrollment( retrievedEnrlollment.getEnrollment() );
+
+        assertNull( enrollmentService.getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() ) );
+        assertEquals( 0, eventService.getEvents( params ).getEvents().size() );
     }
 
     @Test

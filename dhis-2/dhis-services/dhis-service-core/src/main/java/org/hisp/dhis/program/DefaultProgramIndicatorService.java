@@ -33,8 +33,11 @@ import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -76,6 +79,11 @@ public class DefaultProgramIndicatorService
 
     private RelationshipTypeService relationshipTypeService;
 
+    private static Cache<String> ANALYTICS_SQL_CACHE = new SimpleCacheBuilder<String>().forRegion( "analyticsSql" )
+        .expireAfterAccess( 10, TimeUnit.HOURS )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
@@ -221,6 +229,21 @@ public class DefaultProgramIndicatorService
             return null;
         }
 
+        String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate );
+
+        return ANALYTICS_SQL_CACHE.get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate ) ).orElse( null );
+    }
+
+    private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
+    {
+        return expression
+            + "|" + programIndicator.getUid()
+            + "|" + startDate.getTime()
+            + "|" + endDate.getTime();
+    }
+
+    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
+    {
         Set<String> dataElementAndAttributeIdentifiers = getDataElementAndAttributeIdentifiers(
             expression, programIndicator.getAnalyticsType() );
 

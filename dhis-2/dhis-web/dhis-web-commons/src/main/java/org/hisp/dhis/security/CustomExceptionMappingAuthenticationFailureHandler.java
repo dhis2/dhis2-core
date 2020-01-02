@@ -64,7 +64,7 @@ public class CustomExceptionMappingAuthenticationFailureHandler
 
         I18n i18n = i18nManager.getI18n();
 
-        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class )  != -1)
+        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class ) != -1)
         {
             request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.locked" ) );
         }

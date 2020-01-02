@@ -53,6 +53,11 @@ public class PasswordDictionaryValidationRule
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
         for ( String reserved : DICTIONARY )
         {
             if ( StringUtils.containsIgnoreCase( credentialsInfo.getPassword(), reserved ) )

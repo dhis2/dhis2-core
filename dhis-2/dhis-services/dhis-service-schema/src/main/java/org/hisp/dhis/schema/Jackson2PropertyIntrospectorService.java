@@ -37,6 +37,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.NameableObject;
@@ -195,6 +196,7 @@ public class Jackson2PropertyIntrospectorService
                     property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( klass ) );
                     property.setNameableObject( NameableObject.class.isAssignableFrom( klass ) );
                     property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
+                    property.setAnalyticalObject( AnalyticalObject.class.isAssignableFrom( klass ) );
                 }
             }
             else

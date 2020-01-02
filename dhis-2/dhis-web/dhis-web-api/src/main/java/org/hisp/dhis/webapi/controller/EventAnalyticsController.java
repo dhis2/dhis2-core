@@ -28,13 +28,11 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.event.EventStatus;
@@ -618,7 +616,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
         Grid grid = analyticsService.getEvents( params );
-        GridUtils.toXls( grid, response.getOutputStream() );
+        GridUtils.toXls( substituteValues ( grid ), response.getOutputStream() );
     }
 
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.csv", method = RequestMethod.GET )
@@ -751,5 +749,19 @@ public class EventAnalyticsController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getEvents( params );
         GridUtils.toHtmlCss( grid, response.getWriter() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Grid substituteValues(Grid grid )
+    {
+        if ( grid.getMetaData() != null && grid.getMetaData().containsKey( AnalyticsMetaDataKey.ITEMS.getKey() ) )
+        {
+            grid.substituteValues( AnalyticsUtils.getMetadataItemCache( grid ) );
+        }
+
+        return grid;
     }
 }

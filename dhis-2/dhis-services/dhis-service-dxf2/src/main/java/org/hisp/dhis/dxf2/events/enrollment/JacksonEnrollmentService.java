@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -120,7 +121,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
 
         JSON_MAPPER.registerModule( module );
         JSON_MAPPER.registerModule( new JtsModule() );
-        
+
         XML_MAPPER.registerModule( module );
         XML_MAPPER.registerModule( new JtsModule() );
     }
@@ -163,16 +164,19 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
 
-    private List<Enrollment> parseJsonEnrollments ( String input ) throws IOException {
+    private List<Enrollment> parseJsonEnrollments( String input ) throws IOException
+    {
         List<Enrollment> enrollments = new ArrayList<>();
 
         JsonNode root = JSON_MAPPER.readTree( input );
 
-        if ( root.get( "enrollments" ) != null ) {
+        if ( root.get( "enrollments" ) != null )
+        {
             Enrollments fromJson = fromJson( input, Enrollments.class );
             enrollments.addAll( fromJson.getEnrollments() );
         }
-        else {
+        else
+        {
             Enrollment fromJson = fromJson( input, Enrollment.class );
             enrollments.add( fromJson );
         }
@@ -180,14 +184,17 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         return enrollments;
     }
 
-    private List<Enrollment> parseXmlEnrollments ( String input ) throws IOException {
+    private List<Enrollment> parseXmlEnrollments( String input ) throws IOException
+    {
         List<Enrollment> enrollments = new ArrayList<>();
 
-        try {
+        try
+        {
             Enrollments fromXml = fromXml( input, Enrollments.class );
             enrollments.addAll( fromXml.getEnrollments() );
         }
-        catch ( JsonMappingException ex ) {
+        catch ( JsonMappingException ex )
+        {
             Enrollment fromXml = fromXml( input, Enrollment.class );
             enrollments.add( fromXml );
         }
@@ -195,7 +202,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         return enrollments;
     }
 
-    private ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
+    @Override
+    public ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
@@ -210,10 +218,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
         else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
         {
-            for ( Enrollment enrollment : enrollments )
-            {
-                sortCreatesAndUpdates( enrollment, create, update );
-            }
+            sortCreatesAndUpdates( enrollments, create, update );
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
         {
@@ -248,6 +253,24 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
 
         return importSummaries;
+    }
+
+    private void sortCreatesAndUpdates( List<Enrollment> enrollments, List<Enrollment> create, List<Enrollment> update )
+    {
+        List<String> ids = enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() );
+        List<String> existingUids = programInstanceService.getProgramInstancesUidsIncludingDeleted( ids );
+
+        for ( Enrollment enrollment : enrollments )
+        {
+            if ( StringUtils.isEmpty( enrollment.getEnrollment() ) || !existingUids.contains( enrollment.getEnrollment() ) )
+            {
+                create.add( enrollment );
+            }
+            else
+            {
+                update.add( enrollment );
+            }
+        }
     }
 
     private void sortCreatesAndUpdates( Enrollment enrollment, List<Enrollment> create, List<Enrollment> update )

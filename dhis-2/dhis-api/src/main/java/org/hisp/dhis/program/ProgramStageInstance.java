@@ -333,6 +333,11 @@ public class ProgramStageInstance
         this.assignedUser = assignedUser;
     }
 
+    public boolean isCreatableInSearchScope()
+    {
+        return this.getStatus() == EventStatus.SCHEDULE && this.getEventDataValues().isEmpty() && this.getExecutionDate() == null;
+    }
+
     @Override public String toString()
     {
         return "ProgramStageInstance{" +

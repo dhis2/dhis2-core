@@ -38,6 +38,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
@@ -75,23 +76,27 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
 
     private final ProgramOwnershipHistoryService programOwnershipHistoryService;
+    
+    private final OrganisationUnitService organisationUnitService;
 
     public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
         TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
         ProgramTempOwnershipAuditService programTempOwnershipAuditService,
-        ProgramOwnershipHistoryService programOwnershipHistoryService )
+        ProgramOwnershipHistoryService programOwnershipHistoryService, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( currentUserService );
         checkNotNull( trackedEntityProgramOwnerService );
         checkNotNull( cacheProvider );
         checkNotNull( programTempOwnershipAuditService );
         checkNotNull( programOwnershipHistoryService );
+        checkNotNull( organisationUnitService );
 
         this.currentUserService = currentUserService;
         this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
         this.cacheProvider = cacheProvider;
         this.programTempOwnershipAuditService = programTempOwnershipAuditService;
         this.programOwnershipHistoryService = programOwnershipHistoryService;
+        this.organisationUnitService = organisationUnitService;
     }
 
     /**
@@ -226,11 +231,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         OrganisationUnit ou = getOwner( entityInstance, program );
         if ( program.isOpen() || program.isAudited() )
         {
-            return isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() );
+            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
         }
         else
         {
-            return isInHierarchy( ou, user.getOrganisationUnits() ) || hasTemporaryAccess( entityInstance, program, user );
+            return organisationUnitService.isInUserHierarchyCached( user, ou ) || hasTemporaryAccess( entityInstance, program, user );
         }
     }
 
@@ -250,11 +255,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         if ( program.isOpen() || program.isAudited() )
         {
-            return isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() );
+            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
         }
         else
         {
-            return isInHierarchy( ou, user.getOrganisationUnits() ) || hasTemporaryAccess( entityInstance, program, user );
+            return organisationUnitService.isInUserHierarchyCached( user, ou ) || hasTemporaryAccess( entityInstance, program, user );
         }
     }
 
@@ -315,20 +320,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             return true;
         }
         return temporaryTrackerOwnershipCache.get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).orElse( false );
-    }
-
-    /**
-     * Check whether the specified organisation unit is part of any descendants
-     * of the given set of org units.
-     *
-     * @param organisationUnit The OU to be searched in the hierarchy.
-     * @param organisationUnits The set of candidate ous which represents the
-     *        hierarchy,
-     * @return true if the ou is in the hierarchy, false otherwise.
-     */
-    private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
-    {
-        return organisationUnit != null && organisationUnits != null && organisationUnit.isDescendant( organisationUnits );
     }
 
     /**

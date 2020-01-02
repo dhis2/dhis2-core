@@ -129,6 +129,11 @@ public class ObjectBundle implements ObjectIndexProvider
     private final boolean skipValidation;
 
     /**
+     * Is this import request from MetadataSync service;
+     */
+    private final boolean metadataSyncImport;
+
+    /**
      * Job id to use for threaded imports.
      */
     private JobConfiguration jobId;
@@ -180,6 +185,7 @@ public class ObjectBundle implements ObjectIndexProvider
         this.skipValidation = params.isSkipValidation();
         this.jobId = params.getJobId();
         this.preheat = preheat;
+        this.metadataSyncImport = params.isMetadataSyncImport();
 
         addObject( objectMap );
     }
@@ -257,6 +263,11 @@ public class ObjectBundle implements ObjectIndexProvider
     public boolean isSkipValidation()
     {
         return skipValidation;
+    }
+
+    public boolean isMetadataSyncImport()
+    {
+        return metadataSyncImport;
     }
 
     public JobConfiguration getJobId()

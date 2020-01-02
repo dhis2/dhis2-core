@@ -44,32 +44,36 @@ public interface AggregateAccessManager
 {
     /**
      * Check if given User has DATA_READ access for given DataValue
-     * @param user
-     * @param dataValue
+     * 
+     * @param user a {@see User} to check permission for
+     * @param dataValue a {@see DataValue} object
      * @return List of errors
      */
     List<String> canRead( User user, DataValue dataValue );
 
     /**
      * Check if given user has DATA_WRITE
-     * @param user
-     * @param dataSet
+     * 
+     * @param user a {@see User} to check permission for
+     * @param dataSet a {@see DataSet} object
      * @return List of errors
      */
     List<String> canWrite( User user, DataSet dataSet );
 
     /**
      * Check if given User has DATA_READ access for given DataSet
-     * @param user
-     * @param dataSet
+     * 
+     * @param user a {@see User} to check permission for
+     * @param dataSet a {@see DataValue} object
      * @return List of errors
      */
     List<String> canRead( User user, DataSet dataSet );
 
     /**
      * Check if given User has DATA_WRITE access for given CategoryOptionCombo
-     * @param user
-     * @param categoryOption
+     * 
+     * @param user a {@see User} to check permission for
+     * @param categoryOption a {@see CategoryOptionCombo} object
      * @return List of errors
      */
     List<String> canWrite( User user, CategoryOptionCombo categoryOption );
@@ -78,24 +82,26 @@ public interface AggregateAccessManager
      * Check if given User has DATA_WRITE access for given CategoryOptionCombo,
      * result is cached.
      *
-     * @param user
-     * @param categoryOption
+     * @param user a {@see User} to check permission for
+     * @param categoryOptionCombo a {@see CategoryOptionCombo} object
      * @return List of errors
      */
     List<String> canWriteCached( User user, CategoryOptionCombo categoryOptionCombo );
 
     /**
      * Check if given User has DATA_READ access for given CategoryOptionCombo
-     * @param user
-     * @param categoryOption
-     * @return
+     * 
+     * @param user a {@see User} to check permission for
+     * @param categoryOption a {@see CategoryOptionCombo} object
+     * @return List of errors
      */
     List<String> canRead( User user, CategoryOptionCombo categoryOption );
 
     /**
      * Check if given User has DATA_WRITE access for give DataElementOperand
-     * @param user
-     * @param dataElementOperand
+     * 
+     * @param user a {@see User} to check permission for
+     * @param dataElementOperand a {@see DataElementOperand} object
      * @return List of errors
      */
     List<String> canWrite( User user, DataElementOperand dataElementOperand );

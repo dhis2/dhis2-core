@@ -303,8 +303,7 @@ public class OrganisationUnitController
         generator.writeStringField( "id", organisationUnit.getUid() );
 
         generator.writeObjectFieldStart( "geometry" );
-        generator.writeObjectField( "type",
-            FeatureType.getTypeFromName( organisationUnit.getGeometry().getGeometryType() ) );
+        generator.writeObjectField( "type", organisationUnit.getGeometry().getGeometryType() );
 
         generator.writeFieldName( "coordinates" );
         generator.writeRawValue( getCoordinatesFromGeometry( organisationUnit.getGeometry() ) );

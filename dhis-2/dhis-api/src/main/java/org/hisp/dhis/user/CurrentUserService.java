@@ -90,4 +90,9 @@ public interface CurrentUserService
      * Indicates whether the current user has been granted the given authority.
      */
     boolean currentUserIsAuthorized( String auth );
+
+    /**
+     * Expire all the sessions associated with current user.
+     */
+    void expireUserSessions();
 }

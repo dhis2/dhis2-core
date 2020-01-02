@@ -55,7 +55,7 @@ pipeline {
                     DOCKER_IMAGE_FULL_NAME = "${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}"
                     echo "Will tag image as ${DOCKER_IMAGE_FULL_NAME}"
 
-                    sh "docker build -t ${DOCKER_IMAGE_FULL_NAME} ."
+                    sh "docker build -t ${DOCKER_IMAGE_FULL_NAME} --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG}  ."
                 }
             }
         }
@@ -79,6 +79,17 @@ pipeline {
                     }
                 }
             }
+
+            post {
+                failure {
+                    script {
+                        dir("dhis-2/dhis-e2e-test") {
+                            sh "docker-compose -p ${COMPOSE_PARAMETER} logs web > logs.txt"
+                            archiveArtifacts artifacts: 'logs.txt'
+                        }
+                    }
+                }
+            }
         }
 
         stage('Publish image') {
@@ -95,7 +106,7 @@ pipeline {
             dir("dhis-2/dhis-e2e-test") {
                 sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} down --rmi all --remove-orphans"
                 sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down --rmi all --remove-orphans"
-                sh "docker image prune --force --filter 'until=20m' --filter label=stage=intermediate"
+                sh "docker image prune --force --filter label=stage=intermediate --filter label=identifier=${DOCKER_IMAGE_TAG}"
             }
         }
 
@@ -104,7 +115,7 @@ pipeline {
                 color: '#ff0000',
                 message: 'Publishing of docker image for branch ' + env.BRANCH_NAME + ' failed. Visit ' + env.BUILD_URL + ' for more information',
                 channel: 'jenkins'
-             )
-         }
+            )
+        }
     }
 }

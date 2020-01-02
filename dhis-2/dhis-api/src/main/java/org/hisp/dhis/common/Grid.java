@@ -159,9 +159,14 @@ public interface Grid
     int getHeight();
 
     /**
-     * Returns the current width / number of columns in the grid.
+     * Returns the current width based on the number of columns in the grid.
      */
     int getWidth();
+
+    /**
+     * Returns the current width based on the number of headers in the grid.
+     */
+    int getHeaderWidth();
 
     /**
      * Returns the current width / number of visible columns in the grid.
@@ -420,6 +425,16 @@ public interface Grid
      * @param metaDataMap       meta-data map of keys and substitutions.
      */
     Grid substituteMetaData( int sourceColumnIndex, int targetColumnIndex, Map<?, ?> metaDataMap );
+
+    /**
+     * Substitutes the grid values based on the supplied UID <--> NAME mapping. It
+     * replaces the UID with the name found in the supplied map. Values are left
+     * unchanged when there is not match in the given meta data map.
+     *
+     * @param uidToNameMap a metadata map containing the mapping between UID and
+     *        actual Name
+     */
+    Grid substituteValues( Map<String, String> uidToNameMap );
 
     /**
      * Returns indexes of the meta grid headers.

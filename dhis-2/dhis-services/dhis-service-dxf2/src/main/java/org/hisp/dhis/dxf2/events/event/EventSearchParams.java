@@ -121,7 +121,7 @@ public class EventSearchParams
 
     private CategoryOptionCombo categoryOptionCombo;
 
-    private IdSchemes idSchemes;
+    private IdSchemes idSchemes = new IdSchemes();
 
     private Integer page;
 

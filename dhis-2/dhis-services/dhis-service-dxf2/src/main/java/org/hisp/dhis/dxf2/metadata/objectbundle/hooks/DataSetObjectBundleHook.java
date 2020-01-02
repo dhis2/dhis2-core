@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
@@ -39,6 +40,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -48,12 +50,12 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
+        List<ErrorReport> errors = new ArrayList<>();
+
         if ( object == null || !object.getClass().isAssignableFrom( DataSet.class ) )
         {
-            return new ArrayList<>();
+            return errors;
         }
-
-        List<ErrorReport> errors = new ArrayList<>();
 
         DataSet dataSet = (DataSet) object;
 
@@ -70,5 +72,26 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
             }
         }
         return errors;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    {
+        if ( object == null || !object.getClass().isAssignableFrom( DataSet.class ) ) return;
+
+        deleteRemovedSection( ( DataSet ) persistedObject, ( DataSet ) object, bundle );
+    }
+
+    private void deleteRemovedSection( DataSet persistedDataSet, DataSet importDataSet, ObjectBundle bundle )
+    {
+        if ( !bundle.isMetadataSyncImport() ) return;
+
+        Session session = sessionFactory.getCurrentSession();
+
+        List<String> importIds = importDataSet.getSections().stream().map( section ->  section.getUid() ).collect( Collectors.toList() );
+
+        persistedDataSet.getSections().stream()
+                .filter( section -> !importIds.contains( section.getUid() ) )
+                .forEach( section -> session.delete( section ) );
     }
 }

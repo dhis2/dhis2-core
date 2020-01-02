@@ -30,6 +30,9 @@ package org.hisp.dhis.feedback;
 
 import java.text.MessageFormat;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -38,11 +41,22 @@ public class ErrorMessage
     private final ErrorCode errorCode;
 
     private final Object[] args;
+    
+    private final String message;
 
     public ErrorMessage( ErrorCode errorCode, Object... args )
     {
         this.errorCode = errorCode;
         this.args = args;
+        this.message = MessageFormat.format( errorCode.getMessage(), this.args );
+    }
+
+    @JsonCreator
+    public ErrorMessage( @JsonProperty( "message" ) String message, @JsonProperty( "errorCode" ) ErrorCode errorCode )
+    {
+        this.errorCode = errorCode;
+        this.args = null;
+        this.message = message;
     }
 
     public ErrorCode getErrorCode()
@@ -52,6 +66,6 @@ public class ErrorMessage
 
     public String getMessage()
     {
-        return MessageFormat.format( errorCode.getMessage(), args );
+        return message;
     }
 }

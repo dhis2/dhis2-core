@@ -76,6 +76,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsUtils;
@@ -157,6 +158,9 @@ public class DefaultEventAnalyticsService
 
     @Autowired
     private EventAnalyticsManager eventAnalyticsManager;
+
+    @Autowired
+    private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
     @Autowired
     private EventDataQueryService eventDataQueryService;
@@ -518,7 +522,15 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
-                eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                //Each query might be either an enrollment or event indicator:
+                if( query.hasEnrollmentProgramIndicatorDimension() ) 
+                {
+                    enrollmentAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
+                }
+                else
+                {
+                    eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                }
             }
 
             timer.getTime( "Got aggregated events" );

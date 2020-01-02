@@ -142,9 +142,7 @@ public class FileResourceController
                 "There was an exception when trying to fetch the file from the storage backend. " +
                     "Depending on the provider the root cause could be network or file system related." ) );
         }
-
     }
-
 
     @PostMapping
     public WebMessage saveAnyFileResource(

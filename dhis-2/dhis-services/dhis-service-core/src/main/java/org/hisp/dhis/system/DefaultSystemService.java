@@ -104,7 +104,7 @@ public class DefaultSystemService
         systemInfo = getFixedSystemInfo();
 
         List<String> info = ImmutableList.<String>builder()
-            .add( "Version: " + systemInfo.getVersion() )
+            .add( "DHIS 2 Version: " + systemInfo.getVersion() )
             .add( "Revision: " + systemInfo.getRevision() )
             .add( "Build date: " + systemInfo.getBuildTime() )
             .add( "Database name: " + systemInfo.getDatabaseInfo().getName() )

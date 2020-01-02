@@ -67,6 +67,8 @@ public interface TrackedEntityInstanceStore
      */
     boolean existsIncludingDeleted( String uid );
 
+    List<String> getUidsIncludingDeleted( List<String> uids );
+
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided TEIs
      *

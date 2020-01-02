@@ -30,9 +30,23 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -41,6 +55,31 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProgramStageObjectBundleHook
     extends AbstractObjectBundleHook
 {
+    private final AclService aclService;
+
+    public ProgramStageObjectBundleHook( AclService aclService )
+    {
+        checkNotNull( aclService );
+        this.aclService = aclService;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
+        {
+            return new ArrayList<>();
+        }
+
+        ProgramStage programStage = ( ProgramStage ) object;
+
+        List<ErrorReport> errors = new ArrayList<>();
+
+        errors.addAll( validateProgramStageDataElementsAcl( programStage, bundle ) );
+
+        return errors;
+    }
+
     @Override
     public <T extends IdentifiableObject> void postCreate( T object, ObjectBundle bundle )
     {
@@ -69,5 +108,30 @@ public class ProgramStageObjectBundleHook
             });
 
         session.update( programStage );
+    }
+
+    private List<ErrorReport> validateProgramStageDataElementsAcl( ProgramStage programStage, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( programStage.getProgramStageDataElements().isEmpty() )
+        {
+            return errors;
+        }
+
+        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+        programStage.getProgramStageDataElements().forEach( de -> {
+
+            DataElement dataElement = bundle.getPreheat().get( identifier, de.getDataElement() );
+
+            if ( dataElement == null || !aclService.canRead( bundle.getUser(), de ) )
+            {
+                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                    identifier.getIdentifiersWithName( de ) ) );
+            }
+        } );
+
+        return errors;
     }
 }

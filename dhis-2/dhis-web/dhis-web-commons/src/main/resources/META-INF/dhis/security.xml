@@ -128,9 +128,13 @@
     <sec:csrf disabled="true" />
 
     <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint" />
-    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
+    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
+
+    <sec:session-management>
+      <sec:concurrency-control max-sessions="10" expired-url="/dhis-web-commons-security/logout.action" session-registry-ref="sessionRegistry" />
+    </sec:session-management>
 
     <!-- Account recovery -->
 
@@ -138,6 +142,8 @@
     <sec:intercept-url pattern="/api/account/recovery" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/validatePassword" method="POST" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/validateUsername" method="POST" access="permitAll()" />
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
@@ -148,6 +154,7 @@
 
     <!-- Apps -->
 
+    <sec:intercept-url pattern="/dhis-web-dashboard/**" access="hasAnyRole('ALL,M_dhis-web-dashboard')" />
     <sec:intercept-url pattern="/dhis-web-pivot/**" access="hasAnyRole('ALL,M_dhis-web-pivot')" />
     <sec:intercept-url pattern="/dhis-web-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-visualizer')" />
     <sec:intercept-url pattern="/dhis-web-data-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-data-visualizer')" />
@@ -155,6 +162,7 @@
     <sec:intercept-url pattern="/dhis-web-maps/**" access="hasAnyRole('ALL,M_dhis-web-maps')" />
     <sec:intercept-url pattern="/dhis-web-event-reports/**" access="hasAnyRole('ALL,M_dhis-web-event-reports')" />
     <sec:intercept-url pattern="/dhis-web-event-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-event-visualizer')" />
+    <sec:intercept-url pattern="/dhis-web-interpretation/**" access="hasAnyRole('ALL,M_dhis-web-interpretation')" />
     <sec:intercept-url pattern="/dhis-web-settings/**" access="hasAnyRole('ALL,M_dhis-web-settings')" />
     <sec:intercept-url pattern="/dhis-web-maintenance/**" access="hasAnyRole('ALL,M_dhis-web-maintenance')" />
     <sec:intercept-url pattern="/dhis-web-app-management/**" access="hasAnyRole('ALL,M_dhis-web-app-management')" />
@@ -163,7 +171,11 @@
     <sec:intercept-url pattern="/dhis-web-tracker-capture/**" access="hasAnyRole('ALL,M_dhis-web-tracker-capture')" />
     <sec:intercept-url pattern="/dhis-web-cache-cleaner/**" access="hasAnyRole('ALL,M_dhis-web-cache-cleaner')" />
     <sec:intercept-url pattern="/dhis-web-data-administration/**" access="hasAnyRole('ALL,M_dhis-web-data-administration')" />
-    <sec:intercept-url pattern="/dhis-web-data-quality/**" access="hasAnyRole('ALL,F_PERFORM_MAINTENANCE')" />
+    <sec:intercept-url pattern="/dhis-web-data-quality/**" access="hasAnyRole('ALL,M_dhis-web-data-quality')" />
+    <sec:intercept-url pattern="/dhis-web-messaging/**" access="hasAnyRole('ALL,M_dhis-web-messaging')" />
+    <sec:intercept-url pattern="/dhis-web-datastore/**" access="hasAnyRole('ALL,M_dhis-web-datastore')" />
+    <sec:intercept-url pattern="/dhis-web-scheduler/**" access="hasAnyRole('ALL,M_dhis-web-scheduler')" />
+    <sec:intercept-url pattern="/dhis-web-user/**" access="hasAnyRole('ALL,M_dhis-web-user')" />
 
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
@@ -466,4 +478,5 @@
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
   <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener" />
+
 </beans>

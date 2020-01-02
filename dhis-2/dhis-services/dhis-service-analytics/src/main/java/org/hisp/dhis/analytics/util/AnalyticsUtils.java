@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -47,6 +48,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Strings;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
@@ -347,6 +349,32 @@ public class AnalyticsUtils
     }
 
     /**
+     * Generates a mapping between the metadata item UID and the metadata name
+     *
+     * @param grid the grid.
+     * @return a mapping between metadata items UID and names
+     */
+    @SuppressWarnings( "unchecked" )
+    public static Map<String, String> getMetadataItemCache( Grid grid )
+    {
+        Map<String, String> metadataItemCache = new HashMap<>();
+
+        if ( grid.getMetaData().containsKey( ITEMS.getKey() ) )
+        {
+            Map<String, MetadataItem> items = (Map<String, MetadataItem>) grid.getMetaData().get( ITEMS.getKey() );
+
+            for ( String key : items.keySet() )
+            {
+                MetadataItem item = items.get( key );
+                // if the MetaDataItem has a code, use the code as map key. Otherwise use the original UID as key
+                metadataItemCache.put( Strings.isNullOrEmpty( item.getCode() ) ? key : item.getCode(),
+                        items.get( key ).getName() );
+            }
+        }
+        return metadataItemCache;
+    }
+
+    /**
      * Generates a data value set based on the given grid with aggregated data.
      * Sets the created and last updated fields to the current date.
      *
@@ -361,7 +389,7 @@ public class AnalyticsUtils
         int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
         int coInx = grid.getIndexOfHeader( CATEGORYOPTIONCOMBO_DIM_ID );
         int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
-        int vlInx = grid.getWidth() - 1;
+        int vlInx = grid.getHeaderWidth() - 1;
 
         Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
         Assert.isTrue( peInx >= 0, "Period dimension index must be greater than or equal to zero" );
@@ -429,7 +457,7 @@ public class AnalyticsUtils
         List<Object> aocCol = Lists.newArrayList();
 
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
-        int vlInx = grid.getWidth() - 1;
+        int vlInx = grid.getHeaderWidth() - 1;
 
         Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
         Assert.isTrue( vlInx >= 0, "Value index must be greater than or equal to zero" );

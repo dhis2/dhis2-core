@@ -29,7 +29,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import com.google.common.collect.Lists;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.*;
@@ -50,7 +49,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**

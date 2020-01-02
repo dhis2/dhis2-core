@@ -294,6 +294,31 @@ public class AnalyticsUtilsTest
     }
 
     @Test
+    public void testHandleGridForDataValueSetEmpty()
+    {
+        Grid grid = new ListGrid();
+
+        DataQueryParams params = DataQueryParams.newBuilder().
+            addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList() ) )
+            .build();
+
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+
+        assertEquals( 4, grid.getHeaders().size() );
+        assertEquals( 0, grid.getWidth() );
+        assertEquals( 0, grid.getHeight() );
+
+        AnalyticsUtils.handleGridForDataValueSet( params, grid );
+
+        assertEquals( 6, grid.getHeaders().size() );
+        assertEquals( 0, grid.getWidth() );
+        assertEquals( 0, grid.getHeight() );
+    }
+
+    @Test
     public void testHandleGridForDataValueSet()
     {
         IndicatorType itA = new IndicatorType();
@@ -321,8 +346,8 @@ public class AnalyticsUtilsTest
         DataElementOperand dxE = new DataElementOperand( dxA, ocA );
         DataElementOperand dxF = new DataElementOperand( dxB, ocA );
 
-        DataQueryParams params = DataQueryParams.newBuilder().
-            addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( dxA, dxB, dxC, dxD, dxE, dxF ) ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( dxA, dxB, dxC, dxD, dxE, dxF ) ) )
             .build();
 
         Grid grid = new ListGrid();
@@ -376,6 +401,25 @@ public class AnalyticsUtilsTest
         assertEquals( "ceabcdefghA", grid.getRow( 5 ).get( 3 ) );
         assertNull( grid.getRow( 5 ).get( 4 ) );
         assertEquals( 6d, (Double) grid.getRow( 5 ).get( 5 ), 0.01 );
+    }
+
+    @Test
+    public void testGetDataValueSetFromGridEmpty()
+    {
+        Grid grid = new ListGrid();
+
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+
+        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( DataQueryParams.newBuilder().build(), grid );
+
+        assertNotNull( dvs );
+        assertNotNull( dvs.getDataValues() );
+        assertEquals( 0, dvs.getDataValues().size() );
     }
 
     @Test
@@ -532,7 +576,7 @@ public class AnalyticsUtilsTest
     }
 
     @Test
-    public void testCalculateYearlyWeightedAverage() 
+    public void testCalculateYearlyWeightedAverage()
     {
         double avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, 20D, 9D );
         assertEquals( 17.5, avg, 0 );
@@ -542,7 +586,7 @@ public class AnalyticsUtilsTest
     }
 
     @Test
-    public void testGetBaseMonth() 
+    public void testGetBaseMonth()
     {
         assertEquals( 3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0 );
         assertEquals( 6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0 );

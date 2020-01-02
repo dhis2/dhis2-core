@@ -49,16 +49,8 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ListMapMap;
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -245,6 +237,7 @@ public class DefaultPredictionService
         Map<String, Double> constantMap = constantService.getConstantMap();
         Set<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
+        outputPeriods = new HashSet<>( periodService.reloadPeriods( new ArrayList<>( outputPeriods ) ) );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
         Set<Period> existingSamplePeriods = getExistingPeriods( allSamplePeriods );
@@ -255,6 +248,7 @@ public class DefaultPredictionService
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> emptyMap4 = new Map4<>();
         MapMapMap<Period, String, DimensionalItemObject, Double> emptyMapMapMap = new MapMapMap<>();
         boolean usingAttributeOptions = hasAttributeOptions( aggregateDimensionItems ) || hasAttributeOptions( nonAggregateDimensionItems );
+        CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
 
         CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
             categoryService.getDefaultCategoryOptionCombo() : predictor.getOutputCombo();
@@ -346,8 +340,8 @@ public class DefaultPredictionService
                                     Double.toString( MathUtils.roundFraction( value, 4 ) );
 
                                 predictions.add( new DataValue( outputDataElement,
-                                    periodService.reloadPeriod( period ), orgUnit,
-                                    outputOptionCombo, categoryService.getCategoryOptionCombo( aoc ),
+                                    period, orgUnit, outputOptionCombo,
+                                    cocMap.get( aoc, () -> categoryService.getCategoryOptionCombo( aoc ) ),
                                     valueString, storedBy, now, null ) );
                             }
                         }
@@ -355,7 +349,7 @@ public class DefaultPredictionService
                 }
 
                 writePredictions( predictions, outputDataElement, outputOptionCombo,
-                    outputPeriods, orgUnits, storedBy, predictionSummary );
+                    outputPeriods, existingOutputPeriods, orgUnits, storedBy, predictionSummary );
             }
         }
     }
@@ -848,18 +842,18 @@ public class DefaultPredictionService
      * @param outputDataElement Predictor output data elmeent.
      * @param outputOptionCombo Predictor output category option commbo.
      * @param periods Periods to predict for.
+     * @param existingPeriods Those periods to predict for already in DB.
      * @param orgUnits Organisation units to predict for.
      * @param summary Prediction summary to update.
      */
     private void writePredictions( List<DataValue> predictions, DataElement outputDataElement,
-        CategoryOptionCombo outputOptionCombo, Set<Period> periods, List<OrganisationUnit> orgUnits,
-        String storedBy, PredictionSummary summary )
+        CategoryOptionCombo outputOptionCombo, Set<Period> periods, Set<Period> existingPeriods,
+        List<OrganisationUnit> orgUnits, String storedBy, PredictionSummary summary )
     {
         DataExportParams params = new DataExportParams();
         params.setDataElementOperands( Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
-        params.setPeriods( new HashSet<>( periodService.reloadPeriods( new ArrayList<>( periods ) ) ) );
+        params.setPeriods( periods );
         params.setOrganisationUnits( new HashSet<>( orgUnits ) );
-        params.setReturnParentOrgUnit( true );
 
         List<DeflatedDataValue> oldValueList = dataValueService.getDeflatedDataValues( params );
 
@@ -886,13 +880,19 @@ public class DefaultPredictionService
                 summary.incrementInserted();
 
                 /*
-                 * NOTE: BatchHandler is not used for inserts. When run under
-                 * the scheduler, this code needs this to be @Transactional,
-                 * but the new data value might be in a new period (just added
-                 * to the database within this transaction). In this case
-                 * BatchHandler would not see the new period.
+                 * Note: BatchHandler can be used for inserts only when the
+                 * period previously existed. To insert values into new periods
+                 * (just added to the database within this transaction), the
+                 * dataValueService must be used.
                  */
-                dataValueService.addDataValue( newValue );
+                if ( existingPeriods.contains( newValue.getPeriod() ) )
+                {
+                    dataValueBatchHandler.addObject( newValue );
+                }
+                else
+                {
+                    dataValueService.addDataValue( newValue );
+                }
             }
             else
             {

@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -241,7 +242,7 @@ public class JdbcEventAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
-                dataClause + ") as " + quote( dataElement.getUid() );
+                dataClause + ")" + addClosingParentheses( select )  + " as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
@@ -278,8 +279,10 @@ public class JdbcEventAnalyticsTableManager
             String select = getSelectClause( attribute.getValueType(), "value" );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
-            String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
+            String sql = "(select " + select
+                + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+                + "and trackedentityattributeid=" + attribute.getId() + dataClause + ")"
+                + addClosingParentheses( select ) + " as " + quote( attribute.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }

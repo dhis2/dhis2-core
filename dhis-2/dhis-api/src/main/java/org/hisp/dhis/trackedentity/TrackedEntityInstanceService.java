@@ -264,6 +264,8 @@ public interface TrackedEntityInstanceService
      */
     boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
 
+    List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids );
+
     /**
      * Register a new entityInstance
      *

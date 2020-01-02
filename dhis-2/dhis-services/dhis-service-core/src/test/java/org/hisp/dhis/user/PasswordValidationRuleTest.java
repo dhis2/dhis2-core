@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -99,6 +100,25 @@ public class PasswordValidationRuleTest
         upperCasePatternValidationRule = new UpperCasePatternValidationRule();
         parameterValidationRule = new UserParameterValidationRule();
         historyValidationRule = new PasswordHistoryValidationRule( passwordEncoder, userService, currentUserService );
+    }
+
+    @Test
+    public void testWhenPasswordIsNullOrEmpty()
+    {
+        CredentialsInfo credentialsInfoNoPassword = new CredentialsInfo( USERNAME, "", EMAIL, true );
+
+        assertThat( specialCharValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
+        assertThat( digitValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
+        assertThat( dictionaryValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
+        assertThat( lengthValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
+        assertThat( upperCasePatternValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
+        assertThat( parameterValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
+        assertThat( historyValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
+
+        assertThat( parameterValidationRule.validate( new CredentialsInfo( USERNAME, STRONG_PASSWORD, "", true ) ).isValid(), is( true ) );
+        assertThat( parameterValidationRule.validate( new CredentialsInfo( USERNAME, "", "", true ) ).isValid(), is( false ) );
+        assertThat( parameterValidationRule.validate( new CredentialsInfo( "", STRONG_PASSWORD, "", false ) ).isValid(), is( false ) );
+        assertThat( parameterValidationRule.validate( credentialsInfoNoPassword ).getErrorMessage(), is( "Username or password is missing" ) );
     }
 
     @Test
