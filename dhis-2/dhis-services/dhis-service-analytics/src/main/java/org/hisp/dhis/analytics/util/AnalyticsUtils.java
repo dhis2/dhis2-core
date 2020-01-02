@@ -196,17 +196,18 @@ public class AnalyticsUtils
 
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
-     * returned unchanged. If the given number of decimals is specified, the
-     * value is rounded to the given decimals. If skip rounding is specified
-     * in the given data query parameters, 10 decimals is used. Otherwise,
-     * default rounding is used.
+     * rounded to {@link AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the
+     * given number of decimals is specified, the value is rounded to the given
+     * decimals. Otherwise, default rounding is used. If 0 decimals is explicitly
+     * specified, this method returns a long value. Otherwise, a double value is
+     * returned.
      *
      * @param params the query parameters.
      * @param decimals the number of decimals.
      * @param value the value.
      * @return a double.
      */
-    public static Double getRoundedValue( DataQueryParams params, Integer decimals, Double value )
+    public static Number getRoundedValue( DataQueryParams params, Integer decimals, Double value )
     {
         if ( value == null )
         {
@@ -219,6 +220,10 @@ public class AnalyticsUtils
         else if ( decimals != null && decimals > 0 )
         {
             return Precision.round( value, decimals );
+        }
+        else if ( decimals != null && decimals == 0 )
+        {
+            return Math.round( value );
         }
         else
         {
