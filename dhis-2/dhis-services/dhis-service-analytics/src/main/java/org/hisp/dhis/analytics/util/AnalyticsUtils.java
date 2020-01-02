@@ -198,7 +198,9 @@ public class AnalyticsUtils
      * Rounds a value. If the given parameters has skip rounding, the value is
      * rounded to {@link AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the
      * given number of decimals is specified, the value is rounded to the given
-     * decimals. Otherwise, default rounding is used.
+     * decimals. Otherwise, default rounding is used. If 0 decimals is explicitly
+     * specified, this method returns a long value. Otherwise, a double value is
+     * returned.
      *
      * @param params the query parameters.
      * @param decimals the number of decimals.
@@ -219,9 +221,13 @@ public class AnalyticsUtils
         {
             return Precision.round( value, decimals );
         }
+        else if ( decimals != null && decimals == 0 )
+        {
+            return Math.round( value );
+        }
         else
         {
-            return new Integer( (int) Precision.round( value, 0 ) );
+            return MathUtils.getRounded( value );
         }
     }
 

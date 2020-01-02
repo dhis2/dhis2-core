@@ -550,17 +550,16 @@ public class DefaultAnalyticsService
      */
     private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
     {
-        if ( !params.hasMeasureCriteria() )
+        if ( !params.hasMeasureCriteria() || value == null )
         {
             return true;
         }
 
-        final Number indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
-        final Double roundedDoubleValue = indicatorRoundedValue != null ? indicatorRoundedValue.doubleValue() : null;
+        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() ).doubleValue();
 
         return !params.getMeasureCriteria().entrySet().stream()
             .anyMatch( measureValue -> !measureValue.getKey()
-                .measureIsValid( roundedDoubleValue, measureValue.getValue() ) );
+                .measureIsValid( indicatorRoundedValue, measureValue.getValue() ) );
     }
 
     /**
