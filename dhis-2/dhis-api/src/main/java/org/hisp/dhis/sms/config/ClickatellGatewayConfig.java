@@ -1,7 +1,5 @@
 package org.hisp.dhis.sms.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
