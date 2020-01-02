@@ -1,6 +1,56 @@
 package org.hisp.dhis.analytics.table;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.DateUtils;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -29,64 +79,6 @@ import com.google.common.collect.ImmutableMap;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.joda.time.DateTime;
-import org.hisp.dhis.util.DateUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.Date;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.analytics.ColumnDataType.*;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Luciano Fiandesio
@@ -119,8 +111,8 @@ public class JdbcEventAnalyticsTableManagerTest
     private JdbcEventAnalyticsTableManager subject;
 
     private BeanRandomizer rnd = new BeanRandomizer();
-
-    private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
+    private int currentYear = getCurrentYear();
+    private static final Date START_TIME = new DateTime( getCurrentYear(), 8, 1, 0, 0 ).toDate();
     private final static String TABLE_PREFIX = "analytics_event_";
     private static final String FROM_CLAUSE = "from programstageinstance where programstageinstanceid=psi.programstageinstanceid";
 
@@ -133,16 +125,14 @@ public class JdbcEventAnalyticsTableManagerTest
     public void setUp()
     {
         statementBuilder = new PostgreSQLStatementBuilder();
+
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
-
-        when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01'",
-            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
-        when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ",
-            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        
+//        when( jdbcTemplate.queryForList(
+//            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"+ currentYear + "-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '" + (currentYear - 1) + "-01-01'",
+//            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
     }
 
     @Test
@@ -214,6 +204,8 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( program, true ), Integer.class ) )
+                .thenReturn( Lists.newArrayList( 2018, 2019 ) );
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
@@ -265,6 +257,8 @@ public class JdbcEventAnalyticsTableManagerTest
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( program, true ), Integer.class ) )
+                .thenReturn( Lists.newArrayList( 2018, 2019 ) );
         when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
             .thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
@@ -318,7 +312,9 @@ public class JdbcEventAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
             .thenReturn( Lists.newArrayList( 2018, 2019 ) );
-
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( program, true ), Integer.class ) )
+                .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
@@ -355,6 +351,8 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
             .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, true ), Integer.class ) )
+                .thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
@@ -383,10 +381,10 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
-
-        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, true ), Integer.class ) )
             .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         subject.populateTable( params, PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
@@ -408,6 +406,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false ), Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearsQuery( programA, params), Integer.class ) )
@@ -438,6 +437,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ) ).thenReturn( ouGroupSet );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false ), Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
@@ -468,6 +468,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl() ).thenReturn( cogs );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false ), Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
@@ -542,6 +543,8 @@ public class JdbcEventAnalyticsTableManagerTest
         programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, true ), Integer.class ) )
+                .thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
@@ -573,5 +576,25 @@ public class JdbcEventAnalyticsTableManagerTest
             "programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = " + p.getId() +
             " and psi.executiondate is not null and psi.deleted is false " + (params.getFromDate() != null
                 ? "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'" : "" );
+    }
+
+    private String getYearQueryForCurrentYear( Program p, boolean withExecutionDate )
+    {
+        String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
+            + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
+            + currentYear + "-08-01T00:00:00' and pi.programid = " + p.getId()
+            + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
+
+        if ( withExecutionDate )
+        {
+            sql += "and psi.executiondate >= '" + (currentYear - 1) + "-01-01'";
+        }
+
+        return sql;
+    }
+
+    private static int getCurrentYear()
+    {
+        return Calendar.getInstance().get( Calendar.YEAR );
     }
 }
