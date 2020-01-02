@@ -23,7 +23,7 @@
 
     <property name="style" type="jbObjectStyle" column="style" />
 
-    <property name="renderType" type="jbRenderType" column="rendertype" />
+    <property name="renderType" type="jbSectionRenderType" column="rendertype" />
 
     <property name="translations" type="jblTranslations"/>
 
