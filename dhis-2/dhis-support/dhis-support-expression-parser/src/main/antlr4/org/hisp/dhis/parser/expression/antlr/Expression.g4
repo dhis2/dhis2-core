@@ -60,20 +60,25 @@ expr
     |   'V{' fun='due_date' '}'
     |   'V{' fun='enrollment_count' '}'
     |   'V{' fun='enrollment_date' '}'
+    |   'V{' fun='enrollment_id' '}'
     |   'V{' fun='enrollment_status' '}'
+    |   'V{' fun='environment' '}'
     |   'V{' fun='event_count' '}'
     |   'V{' fun='event_date' '}'
+    |   'V{' fun='event_id' '}'
+    |   'V{' fun='event_status' '}'
     |   'V{' fun='execution_date' '}'
     |   'V{' fun='incident_date' '}'
     |   'V{' fun='org_unit_count' '}'
+    |   'V{' fun='org_unit' '}'
+    |   'V{' fun='orgunit_code' '}'
+    |   'V{' fun='program_name' '}'
     |   'V{' fun='program_stage_id' '}'
     |   'V{' fun='program_stage_name' '}'
     |   'V{' fun='sync_date' '}'
     |   'V{' fun='tei_count' '}'
     |   'V{' fun='value_count' '}'
     |   'V{' fun='zero_pos_value_count' '}'
-    |   'V{' fun='event_status' '}'
-    |   'V{' fun='environment' '}'
 
     //  Program functions (alphabetical)
     |   fun='d2:ceil(' expr ')'
@@ -115,7 +120,7 @@ expr
     //  Other
 
     |   item
-    |   variable
+    |   programRuleVariable
     |   numericLiteral
     |   stringLiteral
     |   booleanLiteral
@@ -139,7 +144,7 @@ item
     |   it='[days]'
     ;
 
-variable
+programRuleVariable
     : var='X{' string=variableName '}'
     | var='C{' string=variableName '}';
 
@@ -245,58 +250,64 @@ V_CURRENT_DATE          : 'current_date';
 V_DUE_DATE              : 'due_date';
 V_ENROLLMENT_COUNT      : 'enrollment_count';
 V_ENROLLMENT_DATE       : 'enrollment_date';
+V_ENROLLMENT_ID         : 'enrollment_id';
 V_ENROLLMENT_STATUS     : 'enrollment_status';
+V_ENVIRONMENT           : 'environment';
 V_EVENT_COUNT           : 'event_count';
 V_EVENT_DATE            : 'event_date';
+V_EVENT_ID              : 'event_id';
+V_EVENT_STATUS          : 'event_status';
 V_EXECUTION_DATE        : 'execution_date';
 V_INCIDENT_DATE         : 'incident_date';
 V_ORG_UNIT_COUNT        : 'org_unit_count';
+V_OU                    : 'org_unit';
+V_OU_CODE               : 'orgunit_code';
+V_PROGRAM_NAME          : 'program_name';
 V_PROGRAM_STAGE_ID      : 'program_stage_id';
 V_PROGRAM_STAGE_NAME    : 'program_stage_name';
 V_SYNC_DATE             : 'sync_date';
 V_TEI_COUNT             : 'tei_count';
 V_VALUE_COUNT           : 'value_count';
 V_ZERO_POS_VALUE_COUNT  : 'zero_pos_value_count';
-V_EVENT_STATUS          : 'event_status';
-V_ENVIRONMENT           : 'environment';
 
 // Program functions (alphabetical)
 
-D2_CEIL                 : 'd2:ceil(';
-D2_FLOOR                : 'd2:floor(';
 D2_ADD_DAYS             : 'd2:addDays(';
+D2_CEIL                 : 'd2:ceil(';
 D2_CONCATENATE          : 'd2:concatenate(';
-D2_COUNT_IF_ZERO_POS    : 'd2:countIfZeroPos(';
-D2_SUBSTRING            : 'd2:substring(';
-D2_LENGTH               : 'd2:length(';
-D2_LEFT                 : 'd2:left(';
-D2_RIGHT                : 'd2:right(';
-D2_MODULUS              : 'd2:modulus(';
-D2_ROUND                : 'd2:round(';
-D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
-D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
-D2_MONTHS_BETWEEN       : 'd2:monthsBetween(';
-D2_DAYS_BETWEEN         : 'd2:daysBetween(';
-D2_ZSCOREWFH            : 'd2:zScoreWFH(';
-D2_ZSCOREWFA            : 'd2:zScoreWFA(';
-D2_ZSCOREHFA            : 'd2:zScoreHFA(';
-D2_SPLIT                : 'd2:split(';
-D2_OIZP                 : 'd2:oizp(';
-D2_ZING                 : 'd2:zing(';
-D2_VALIDATE_PATTERN     : 'd2:validatePattern(';
-D2_MAX_VALUE            : 'd2:maxValue(';
-D2_MIN_VALUE            : 'd2:minValue(';
-D2_ZPVC                 : 'd2:zpvc(';
+D2_CONDITION            : 'd2:condition(';
 D2_COUNT                : 'd2:count(';
+D2_COUNT_IF_CONDITION   : 'd2:countIfCondition(';
 D2_COUNT_IF_VALUE       : 'd2:countIfValue(';
+D2_COUNT_IF_ZERO_POS    : 'd2:countIfZeroPos(';
+D2_DAYS_BETWEEN         : 'd2:daysBetween(';
+D2_FLOOR                : 'd2:floor(';
 D2_HAS_USER_ROLE        : 'd2:hasUserRole(';
 D2_HAS_VALUE            : 'd2:hasValue(';
 D2_IN_ORG_UNIT_GROUP    : 'd2:inOrgUnitGroup(';
 D2_LAST_EVENT_DATE      : 'd2:lastEventDate(';
-D2_CONDITION            : 'd2:condition(';
-D2_COUNT_IF_CONDITION   : 'd2:countIfCondition(';
+D2_LEFT                 : 'd2:left(';
+D2_LENGTH               : 'd2:length(';
+D2_MAX_VALUE            : 'd2:maxValue(';
 D2_MINUTES_BETWEEN      : 'd2:minutesBetween(';
+D2_MIN_VALUE            : 'd2:minValue(';
+D2_MODULUS              : 'd2:modulus(';
+D2_MONTHS_BETWEEN       : 'd2:monthsBetween(';
+D2_OIZP                 : 'd2:oizp(';
 D2_RELATIONSHIP_COUNT   : 'd2:relationshipCount(';
+D2_RIGHT                : 'd2:right(';
+D2_ROUND                : 'd2:round(';
+D2_SPLIT                : 'd2:split(';
+D2_SUBSTRING            : 'd2:substring(';
+D2_VALIDATE_PATTERN     : 'd2:validatePattern(';
+D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
+D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
+D2_ZING                 : 'd2:zing(';
+D2_ZPVC                 : 'd2:zpvc(';
+D2_ZSCOREHFA            : 'd2:zScoreHFA(';
+D2_ZSCOREWFA            : 'd2:zScoreWFA(';
+D2_ZSCOREWFH            : 'd2:zScoreWFH(';
+
 
 
 // Items (alphabetical by symbol)
