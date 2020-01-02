@@ -31,6 +31,7 @@ package org.hisp.dhis.expression;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
@@ -138,7 +139,7 @@ public interface ExpressionService
      * @return the calculated value as a double.
      */
     IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap );
 
     /**
@@ -283,7 +284,7 @@ public interface ExpressionService
      * @return the calculated value as a double.
      */
     Double getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy );
 
@@ -303,7 +304,7 @@ public interface ExpressionService
      * @return the calculated value.
      */
     Object getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy, List<Period> samplePeriods,
         MapMap<Period, DimensionalItemObject, Double> periodValueMap );

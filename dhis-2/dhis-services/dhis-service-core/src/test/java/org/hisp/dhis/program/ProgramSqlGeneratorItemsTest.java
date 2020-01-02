@@ -81,7 +81,7 @@ public class ProgramSqlGeneratorItemsTest
 
     private Constant constantA;
 
-    private Map<String, Double> constantMap;
+    private Map<String, Constant> constantMap;
 
     private Date startDate = getDate( 2020, 1, 1 );
 
@@ -126,8 +126,8 @@ public class ProgramSqlGeneratorItemsTest
         constantA = new Constant( "Constant A", 123.456 );
         constantA.setUid( "constant00A" );
 
-        constantMap = new ImmutableMap.Builder<String, Double>()
-            .put( "constant00A", 123.456 )
+        constantMap = new ImmutableMap.Builder<String, Constant>()
+            .put( "constant00A", new Constant( "constant", 123.456 ) )
             .build();
 
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
@@ -238,7 +238,7 @@ public class ProgramSqlGeneratorItemsTest
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantMap )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )
@@ -253,7 +253,6 @@ public class ProgramSqlGeneratorItemsTest
         visitor.setProgramIndicator( programIndicator );
         visitor.setReportingStartDate( startDate );
         visitor.setReportingEndDate( endDate );
-        visitor.setConstantMap( constantMap );
         visitor.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
         return Parser.visit( expression, visitor );

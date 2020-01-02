@@ -86,8 +86,8 @@ public class HibernateTrackedEntityAttributeValueAuditStore
             .orderBy( builder.desc( root.get( "created" ) ) );
 
         return sessionFactory.getCurrentSession()
-                            .createQuery( query )
-                            .getResultList();
+            .createQuery( query )
+            .getResultList();
     }
 
     @Override
@@ -106,9 +106,9 @@ public class HibernateTrackedEntityAttributeValueAuditStore
             .orderBy( builder.desc( root.get( "created" ) ) );
 
         return sessionFactory.getCurrentSession()
-                .createQuery( query )
-                .setFirstResult( first )
-                .setMaxResults( max ).getResultList();
+            .createQuery( query )
+            .setFirstResult( first )
+            .setMaxResults( max ).getResultList();
     }
 
     @Override
@@ -128,8 +128,8 @@ public class HibernateTrackedEntityAttributeValueAuditStore
              .orderBy( builder.desc( root.get( "created" ) ) );
 
         return ( sessionFactory.getCurrentSession()
-                                .createQuery( query )
-                                .uniqueResult() ).intValue();
+            .createQuery( query )
+            .uniqueResult() ).intValue();
     }
 
     @Override
@@ -140,7 +140,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
         query.setParameter( "entityInstance", entityInstance );
         query.executeUpdate();
     }
-    
+
     private List<Predicate> getTrackedEntityAttributeValueAuditCriteria( CriteriaBuilder builder, Root<TrackedEntityAttributeValueAudit> root, List<TrackedEntityAttribute> trackedEntityAttributes, List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
         List<Predicate> predicates = new ArrayList<>();

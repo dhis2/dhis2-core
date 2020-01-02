@@ -44,7 +44,8 @@ import java.util.Optional;
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = EventProgramsDataSynchronizationJobParametersDeserializer.class )
-public class EventProgramsDataSynchronizationJobParameters implements JobParameters
+public class EventProgramsDataSynchronizationJobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 168332662397563659L;
 
@@ -55,7 +56,6 @@ public class EventProgramsDataSynchronizationJobParameters implements JobParamet
 
     public EventProgramsDataSynchronizationJobParameters()
     {
-
     }
 
     public EventProgramsDataSynchronizationJobParameters( final int pageSize )
