@@ -746,30 +746,22 @@ public abstract class BaseAnalyticalObject
      */
     public void clear()
     {
-        clearIfNotNull( dataDimensionItems );
-        clearIfNotNull( periods );
-        clearIfNotNull( organisationUnits );
-        clearIfNotNull( dataElementGroupSetDimensions );
-        clearIfNotNull( organisationUnitGroupSetDimensions );
-        clearIfNotNull( organisationUnitLevels );
-        clearIfNotNull( categoryDimensions );
-        clearIfNotNull( categoryOptionGroupSetDimensions );
-        clearIfNotNull( attributeDimensions );
-        clearIfNotNull( dataElementDimensions );
-        clearIfNotNull( programIndicatorDimensions );
-        clearIfNotNull( itemOrganisationUnitGroups );
+        dataDimensionItems.clear();
+        periods.clear();
+        organisationUnits.clear();
+        dataElementGroupSetDimensions.clear();
+        organisationUnitGroupSetDimensions.clear();
+        organisationUnitLevels.clear();
+        categoryDimensions.clear();
+        categoryOptionGroupSetDimensions.clear();
+        attributeDimensions.clear();
+        dataElementDimensions.clear();
+        programIndicatorDimensions.clear();
+        itemOrganisationUnitGroups.clear();
         relatives = null;
         userOrganisationUnit = false;
         userOrganisationUnitChildren = false;
         userOrganisationUnitGrandChildren = false;
-    }
-    
-    private void clearIfNotNull(final Collection<?> collection )
-    {
-        if ( collection != null )
-        {
-            collection.clear();
-        }
     }
 
     // -------------------------------------------------------------------------

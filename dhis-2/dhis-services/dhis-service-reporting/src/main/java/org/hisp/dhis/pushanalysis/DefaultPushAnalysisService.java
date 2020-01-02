@@ -394,6 +394,7 @@ public class DefaultPushAnalysisService
                 break;
             case CHART:
                 result += "/dhis-web-data-visualizer/index.html?id=" + item.getChart().getUid();
+                break;
             case VISUALIZATION:
                 result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
                 break;
