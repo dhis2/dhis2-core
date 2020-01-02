@@ -33,7 +33,6 @@ import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
@@ -48,7 +47,7 @@ import org.apache.commons.logging.LogFactory;
 public class HttpRedirectFilter
     implements Filter
 {
-    public static final String REDIRECT_PATH_KEY = "redirectPath";
+    private static final String REDIRECT_PATH_KEY = "redirectPath";
 
     private static final Log log = LogFactory.getLog( HttpRedirectFilter.class );
     
@@ -60,15 +59,13 @@ public class HttpRedirectFilter
 
     @Override
     public void init( FilterConfig config )
-        throws ServletException
     {
         redirectPath = config.getInitParameter( REDIRECT_PATH_KEY );
     }
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )
-        throws IOException, ServletException
-    {
+        throws IOException {
         log.debug( "Redirecting to: " + redirectPath );
         
         HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -87,7 +84,6 @@ public class HttpRedirectFilter
 
         httpResponse.sendRedirect( redirectPath );
 
-        return;
     }
 
     @Override
