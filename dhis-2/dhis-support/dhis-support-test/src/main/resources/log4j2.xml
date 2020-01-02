@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Appenders>
+
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout  pattern="* %-5p %d{ABSOLUTE} %m (%F [%t])%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.hisp.dhis" level="warn" additivity="true"/>
+        <Logger name="com.hazelcast" level="warn" additivity="true"/>
+        <Logger name="org.testcontainers" level="warn" additivity="true"/>
+        <Logger name="org.springframework.web" level="warn" additivity="true"/>
+        <Logger name="org.springframework.test" level="warn" additivity="true"/>
+
+        <Root level="ERROR">
+            <AppenderRef ref="console"/>
+        </Root>
+    </Loggers>
+</Configuration>

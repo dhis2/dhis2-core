@@ -42,6 +42,7 @@ public class AuthFilter
     implements io.restassured.spi.AuthFilter
 {
     private String lastLoggedInUser = "";
+    private String lastLoggedInUserPsw= "";
 
     @Override
     public Response filter( FilterableRequestSpecification requestSpec, FilterableResponseSpecification responseSpec,
@@ -55,10 +56,12 @@ public class AuthFilter
             }
 
             lastLoggedInUser = "";
+            lastLoggedInUserPsw = "";
         }
 
-        if ( requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme &&
-            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName() != lastLoggedInUser )
+        if ( requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme && (
+            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName() != lastLoggedInUser ||
+            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword() != lastLoggedInUserPsw ) )
         {
             if ( hasSessionCookie( requestSpec ) )
             {
@@ -66,6 +69,7 @@ public class AuthFilter
             }
 
             lastLoggedInUser = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName();
+            lastLoggedInUserPsw = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword();
         }
 
         final Response response = ctx.next( requestSpec, responseSpec );
