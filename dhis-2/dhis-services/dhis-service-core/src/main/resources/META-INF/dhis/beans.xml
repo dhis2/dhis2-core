@@ -1387,8 +1387,8 @@
   <bean id="org.hisp.dhis.sms.listener.SimpleEventSMSListener" 
   	class="org.hisp.dhis.sms.listener.SimpleEventSMSListener" />  	
 
-  <bean id="org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" 
-  	class="org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" />
+  <bean id="org.hisp.dhis.sms.listener.AggregateDataSetSMSListener" 
+  	class="org.hisp.dhis.sms.listener.AggregateDataSetSMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.DeleteEventSMSListener" 
   	class="org.hisp.dhis.sms.listener.DeleteEventSMSListener" />
