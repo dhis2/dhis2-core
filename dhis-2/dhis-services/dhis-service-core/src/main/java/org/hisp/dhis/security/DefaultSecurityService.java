@@ -348,7 +348,7 @@ public class DefaultSecurityService
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
         vars.put( "token", result[0] );
-        vars.put( "username", CodecUtils.utf8URLEncode( credentials.getUsername() ) );
+        vars.put( "username", CodecUtils.utf8UrlEncode( credentials.getUsername() ) );
         vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
         User user = credentials.getUserInfo();
