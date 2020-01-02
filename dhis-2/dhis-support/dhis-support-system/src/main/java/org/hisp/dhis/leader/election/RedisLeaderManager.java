@@ -42,7 +42,7 @@ import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * Takes care of the leader election implementation backed by redis.
- * 
+ *
  * @author Ameen Mohamed
  */
 public class RedisLeaderManager implements LeaderManager
@@ -50,9 +50,8 @@ public class RedisLeaderManager implements LeaderManager
     private static final String key = "dhis2:leader";
 
     private static final Log log = LogFactory.getLog( RedisLeaderManager.class );
-    
-    private static final String CLUSTER_LEADER_RENEWAL = "Cluster leader renewal";
 
+    private static final String CLUSTER_LEADER_RENEWAL = "Cluster leader renewal";
 
     private String nodeId;
 
