@@ -39,9 +39,15 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.builder.api.*;
-import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy;
+import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -56,8 +62,8 @@ import com.google.common.collect.Lists;
 public class Log4JLogConfigInitializer
     implements LogConfigInitializer
 {
-    private static final String PATTERN_LAYOUT = "* %-5p %d{ISO8601} %m (%F [%t])%n";
-    private static final Level DEFAULT_ROLLINGFILEAPPENDER_LEVEL = Level.INFO;
+    private PatternLayout PATTERN_LAYOUT = PatternLayout.newBuilder().withPattern( "* %-5p %d{ISO8601} %m (%F [%t])%n").build();
+
     private static final String LOG_DIR = "logs";
     private static final String ANALYTICS_TABLE_LOGGER_FILENAME = "dhis-analytics-table.log";
     private static final String DATA_EXCHANGE_LOGGER_FILENAME = "dhis-data-exchange.log";
@@ -85,8 +91,6 @@ public class Log4JLogConfigInitializer
     @Override
     public void initConfig()
     {
-        ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationBuilderFactory.newConfigurationBuilder();
-
         if ( !locationManager.externalDirectorySet() )
         {
             log.warn( "Could not initialize additional log configuration, external home directory not set" );
@@ -105,38 +109,62 @@ public class Log4JLogConfigInitializer
 
         locationManager.buildDirectory( LOG_DIR );
 
-        configureLoggers( builder, ANALYTICS_TABLE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.resourcetable", "org.hisp.dhis.analytics.table" ) );
+        configureLoggers( ANALYTICS_TABLE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.resourcetable", "org.hisp.dhis.analytics.table" ) );
 
-        configureLoggers( builder, DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2" ) );
+        configureLoggers( DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2" ) );
 
-        configureLoggers( builder, DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.synch" ) );
+        configureLoggers( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.synch" ) );
 
-        configureLoggers( builder, METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.metadata" ) );
+        configureLoggers( METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.metadata" ) );
 
-        configureLoggers( builder, PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
+        configureLoggers( PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
 
-        configureRootLogger( builder, GENERAL_LOGGER_FILENAME );
+        configureRootLogger( GENERAL_LOGGER_FILENAME );
 
-        Configurator.initialize( builder.build() );
+        final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
+        ctx.updateLoggers();
     }
 
-    private void configureLoggers( ConfigurationBuilder<BuiltConfiguration> builder, String filename,
-        List<String> loggers )
+    /**
+     * Configures rolling file loggers.
+     *
+     * @param filename the filename to output logging to.
+     * @param loggers the logger names.
+     */
+    private void configureLoggers( String filename, List<String> loggers )
     {
         String file = getLogFile( filename );
-        String appenderName = filename.substring( 0, filename.lastIndexOf( "." ) );
 
-        createRollingFileAppender( builder, appenderName, file );
+        RollingFileAppender appender = getRollingFileAppender( file );
+
+        getLogConfiguration().addAppender( appender );
+
+        AppenderRef[] refs = createAppenderRef( "Ref_" + filename );
 
         for ( String loggerName : loggers )
         {
-            LoggerComponentBuilder logger = builder.newLogger( loggerName );
-            logger.add( builder.newAppenderRef( appenderName ).addAttribute( "level", DEFAULT_ROLLINGFILEAPPENDER_LEVEL ) );
-            logger.addAttribute( "additivity", true );
-            builder.add( logger );
+            LoggerConfig loggerConfig = LoggerConfig.createLogger( false, Level.INFO, loggerName, "true", refs, null,
+                getLogConfiguration(), null );
+
+            loggerConfig.addAppender(appender, null, null);
+
+            getLogConfiguration().addLogger(loggerName, loggerConfig);
 
             log.info( "Added logger: " + loggerName + " using file: " + file );
         }
+    }
+
+    private AppenderRef[] createAppenderRef( String refName )
+    {
+        AppenderRef ref = AppenderRef.createAppenderRef( refName, Level.INFO, null );
+        return new AppenderRef[] { ref };
+    }
+
+    private Configuration getLogConfiguration()
+    {
+
+        final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
+        return ctx.getConfiguration();
     }
 
     /**
@@ -144,46 +172,39 @@ public class Log4JLogConfigInitializer
      *
      * @param filename the filename to output logging to.
      */
-    private void configureRootLogger( ConfigurationBuilder<BuiltConfiguration> builder, String filename )
+    private void configureRootLogger( String filename )
     {
         String file = getLogFile( filename );
 
-        createRollingFileAppender( builder, "rootAppender", file );
+        RollingFileAppender appender = getRollingFileAppender( file );
 
-        builder.newRootLogger().add(builder.newAppenderRef( "rootAppender") );
+        getLogConfiguration().addAppender( appender );
+
+        getLogConfiguration().getRootLogger().addAppender( getLogConfiguration().getAppender( appender.getName() ),
+            Level.INFO, null );
 
         log.info( "Added root logger using file: " + file );
     }
 
     /**
+     * Returns a rolling file appender.
      *
-     * @param builder a Log4J ConfigurationBuilder
-     * @param appenderName the name of the Appender
      * @param file the file to output to, including path and filename.
      */
-    private void createRollingFileAppender(ConfigurationBuilder<BuiltConfiguration> builder, String appenderName, String file )
+    private RollingFileAppender getRollingFileAppender( String file )
     {
-        @SuppressWarnings("rawtypes")
-        ComponentBuilder triggeringPolicy = builder.newComponent( "Policies" )
-            .addComponent( builder.newComponent( "SizeBasedTriggeringPolicy" ).addAttribute( "size",
-                config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ) ) );
+        RollingFileAppender appender = RollingFileAppender.newBuilder().withFileName( file )
+            .setName("appender_" + file)
+            .withFilePattern( file + "%i")
+            .setLayout( PATTERN_LAYOUT )
+            .withPolicy(
+                SizeBasedTriggeringPolicy.createPolicy( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ) ) )
+            .withStrategy( DefaultRolloverStrategy.newBuilder()
+                .withMax( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES ) ).build() )
+            .build();
 
-        LayoutComponentBuilder layoutBuilder = builder.newLayout("PatternLayout")
-                .addAttribute("pattern", PATTERN_LAYOUT);
-
-        // DefaultRolloverStrategy Component
-        @SuppressWarnings("rawtypes")
-        ComponentBuilder defaultRolloverStrategy = builder.newComponent("DefaultRolloverStrategy")
-                .addAttribute("max", config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES ));
-
-        AppenderComponentBuilder rollingFile = builder.newAppender(appenderName, "RollingFile")
-            .addAttribute( "fileName", file )
-            .addAttribute( "filePattern", file + "%i")
-            .addComponent( triggeringPolicy )
-            .addComponent( defaultRolloverStrategy )
-            .add( layoutBuilder );
-
-        builder.add( rollingFile );
+        appender.start();
+        return appender;
     }
 
     /**
