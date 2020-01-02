@@ -28,18 +28,21 @@ package org.hisp.dhis.webapi;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 import org.hisp.dhis.H2DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ImportResource( locations ={"classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml"} )
+@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml" } )
+@ComponentScan( basePackages = { "org.hisp.dhis.security" }, useDefaultFilters = false, includeFilters = {
+@ComponentScan.Filter( type = FilterType.ANNOTATION, value = Component.class ),
+}, excludeFilters = @ComponentScan.Filter( Configuration.class ) )
 public class WebTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )
