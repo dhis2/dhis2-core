@@ -60,11 +60,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class AggregateDatasetSMSListener
+public class AggregateDataSetSMSListener
     extends
     NewSMSListener
 {
-    private static final Log log = LogFactory.getLog( AggregateDatasetSMSListener.class );
+    private static final Log log = LogFactory.getLog( AggregateDataSetSMSListener.class );
 
     @Autowired
     private OrganisationUnitService organisationUnitService;

@@ -31,6 +31,7 @@ package org.hisp.dhis.sms.listener;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -172,8 +173,11 @@ public class NewSMSListenerTest
     @Mock
     private IncomingSmsService incomingSmsService;
 
+    @Mock
+    private IdentifiableObjectManager identifiableObjectManager;
+
     @InjectMocks
-    private AggregateDatasetSMSListener aggregateDatasetSMSListener;
+    private AggregateDataSetSMSListener aggregateDatasetSMSListener;
 
     @InjectMocks
     private DeleteEventSMSListener deleteEventSMSListener;

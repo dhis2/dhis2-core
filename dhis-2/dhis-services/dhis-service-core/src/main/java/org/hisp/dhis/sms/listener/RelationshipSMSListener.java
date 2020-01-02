@@ -105,7 +105,6 @@ public class RelationshipSMSListener
         rel.setCreated( new Date() );
         rel.setLastUpdated( new Date() );
         // TODO: Are there values we need to account for in relationships?
-//		rel.setAttributeValues(attributeValues);
 
         relationshipService.addRelationship( rel );
 
