@@ -43,7 +43,8 @@ import java.util.stream.Collectors;
  * @author Kristian Nordal
  */
 public class DefaultDataElementService
-    implements DataElementService
+    implements
+    DataElementService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -65,7 +66,8 @@ public class DefaultDataElementService
 
     private GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
 
-    public void setDataElementGroupSetStore( GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
+    public void setDataElementGroupSetStore(
+        GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
     {
         this.dataElementGroupSetStore = dataElementGroupSetStore;
     }
@@ -105,84 +107,86 @@ public class DefaultDataElementService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataElement getDataElement( String uid )
     {
         return dataElementStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataElement getDataElementByCode( String code )
     {
         return dataElementStore.getByCode( code );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getAllDataElements()
     {
         return dataElementStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getAllDataElementsByValueType( ValueType valueType )
     {
         return dataElementStore.getDataElementsByValueType( valueType );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant )
     {
         return dataElementStore.getDataElementsByZeroIsSignificant( zeroIsSignificant );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementsByPeriodType( final PeriodType periodType )
     {
-        return getAllDataElements().stream().filter( p -> p.getPeriodType() != null && p.getPeriodType().equals( periodType ) ).collect( Collectors.toList() );
+        return getAllDataElements().stream()
+            .filter( p -> p.getPeriodType() != null && p.getPeriodType().equals( periodType ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementsByDomainType( DataElementDomain domainType )
     {
         return dataElementStore.getDataElementsByDomainType( domainType );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo )
     {
         return dataElementStore.getDataElementByCategoryCombo( categoryCombo );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementsWithoutGroups()
     {
         return dataElementStore.getDataElementsWithoutGroups();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementsWithoutDataSets()
     {
         return dataElementStore.getDataElementsWithoutDataSets();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementsWithDataSets()
     {
         return dataElementStore.getDataElementsWithDataSets();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel )
     {
         return dataElementStore.getDataElementsByAggregationLevel( aggregationLevel );
@@ -223,28 +227,28 @@ public class DefaultDataElementService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElementGroup> getDataElementGroupsByUid( Collection<String> uids )
     {
         return dataElementGroupStore.getByUid( uids );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataElementGroup getDataElementGroup( String uid )
     {
         return dataElementGroupStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElementGroup> getAllDataElementGroups()
     {
         return dataElementGroupStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataElementGroup getDataElementGroupByName( String name )
     {
         List<DataElementGroup> dataElementGroups = dataElementGroupStore.getAllEqName( name );
@@ -280,21 +284,21 @@ public class DefaultDataElementService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataElementGroupSet getDataElementGroupSet( long id )
     {
         return dataElementGroupSetStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataElementGroupSet getDataElementGroupSet( String uid )
     {
         return dataElementGroupSetStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataElementGroupSet getDataElementGroupSetByName( String name )
     {
         List<DataElementGroupSet> dataElementGroupSets = dataElementGroupSetStore.getAllEqName( name );
@@ -303,7 +307,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElementGroupSet> getAllDataElementGroupSets()
     {
         return dataElementGroupSetStore.getAll();

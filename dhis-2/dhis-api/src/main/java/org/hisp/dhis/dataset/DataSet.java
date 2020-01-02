@@ -307,6 +307,11 @@ public class DataSet
         sources.addAll( updates );
     }
 
+    public boolean hasOrganisationUnit( OrganisationUnit unit )
+    {
+        return sources.contains( unit );
+    }
+    
     public boolean addDataInputPeriod( DataInputPeriod dataInputPeriod )
     {
         return dataInputPeriods.add( dataInputPeriod );

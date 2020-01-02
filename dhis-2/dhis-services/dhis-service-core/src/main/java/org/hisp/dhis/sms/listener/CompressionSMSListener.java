@@ -32,18 +32,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -59,9 +57,7 @@ import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
 import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,18 +70,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 @Transactional
-public abstract class NewSMSListener
+public abstract class CompressionSMSListener
     extends
     BaseSMSListener
 {
-    private static final Log log = LogFactory.getLog( NewSMSListener.class );
+    private static final Log log = LogFactory.getLog( CompressionSMSListener.class );
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
@@ -102,22 +97,10 @@ public abstract class NewSMSListener
     private UserService userService;
 
     @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Autowired
-    private ProgramService programService;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
     private DataElementService dataElementService;
+
+    @Autowired
+    private IdentifiableObjectManager identifiableObjectManager;
 
     @Override
     public boolean accept( IncomingSms sms )
@@ -164,7 +147,7 @@ public abstract class NewSMSListener
 
         // TODO: Can be removed - debugging line to check SMS submissions
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
+        log.info( String.format( "New received SMS submission decoded as: %s", gson.toJson( subm ) ) );
 
         SMSResponse resp = null;
         try
@@ -179,7 +162,7 @@ public abstract class NewSMSListener
             return;
         }
 
-        log.info( "SMS Response: " + resp.toString() );
+        log.info( String.format( "SMS Response: %s", resp.toString() ) );
         sendSMSResponse( resp, sms, header.getSubmissionID() );
     }
 
@@ -213,84 +196,21 @@ public abstract class NewSMSListener
     private SMSMetadata getMetadata( Date lastSyncDate )
     {
         SMSMetadata meta = new SMSMetadata();
-        meta.dataElements = getAllDataElements( lastSyncDate );
-        meta.categoryOptionCombos = getAllCatOptionCombos( lastSyncDate );
-        meta.users = getAllUserIds( lastSyncDate );
-        meta.trackedEntityTypes = getAllTrackedEntityTypeIds( lastSyncDate );
-        meta.trackedEntityAttributes = getAllTrackedEntityAttributeIds( lastSyncDate );
-        meta.programs = getAllProgramIds( lastSyncDate );
-        meta.organisationUnits = getAllOrgUnitIds( lastSyncDate );
+        meta.dataElements = getTypeUidsBefore( DataElement.class, lastSyncDate );
+        meta.categoryOptionCombos = getTypeUidsBefore( CategoryOptionCombo.class, lastSyncDate );
+        meta.users = getTypeUidsBefore( User.class, lastSyncDate );
+        meta.trackedEntityTypes = getTypeUidsBefore( TrackedEntityType.class, lastSyncDate );
+        meta.trackedEntityAttributes = getTypeUidsBefore( TrackedEntityAttribute.class, lastSyncDate );
+        meta.programs = getTypeUidsBefore( Program.class, lastSyncDate );
+        meta.organisationUnits = getTypeUidsBefore( OrganisationUnit.class, lastSyncDate );
 
         return meta;
     }
 
-    private List<SMSMetadata.ID> getAllUserIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getTypeUidsBefore( Class<? extends IdentifiableObject> klass, Date lastSyncDate )
     {
-        List<User> users = userService.getAllUsers();
-
-        return users.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllTrackedEntityTypeIds( Date lastSyncDate )
-    {
-        List<TrackedEntityType> teTypes = trackedEntityTypeService.getAllTrackedEntityType();
-
-        return teTypes.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllTrackedEntityAttributeIds( Date lastSyncDate )
-    {
-        List<TrackedEntityAttribute> teiAttributes = trackedEntityAttributeService.getAllTrackedEntityAttributes();
-
-        return teiAttributes.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllProgramIds( Date lastSyncDate )
-    {
-        List<Program> programs = programService.getAllPrograms();
-
-        return programs.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllOrgUnitIds( Date lastSyncDate )
-    {
-        List<OrganisationUnit> orgUnits = organisationUnitService.getAllOrganisationUnits();
-
-        return orgUnits.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllDataElements( Date lastSyncDate )
-    {
-        List<DataElement> dataElements = dataElementService.getAllDataElements();
-
-        return dataElements.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllCatOptionCombos( Date lastSyncDate )
-    {
-        List<CategoryOptionCombo> catOptionCombos = categoryService.getAllCategoryOptionCombos();
-
-        return catOptionCombos.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private SMSMetadata.ID getIdFromMetadata( IdentifiableObject obj, Date lastSyncDate )
-    {
-        if ( obj.getCreated().after( lastSyncDate ) )
-        {
-            return null;
-        }
-        else
-        {
-            SMSMetadata.ID id = new SMSMetadata.ID( obj.getUid() );
-            return id;
-        }
+        return identifiableObjectManager.getUidsCreatedBefore( klass, lastSyncDate ).stream()
+            .map( o -> new SMSMetadata.ID( o ) ).collect( Collectors.toList() );
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
@@ -302,7 +222,9 @@ public abstract class NewSMSListener
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         // If we aren't given a UID for the event, it will be auto-generated
         if ( eventUid != null )
+        {
             programStageInstance.setUid( eventUid );
+        }
         programStageInstance.setOrganisationUnit( orgUnit );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setProgramInstance( programInstance );
@@ -328,13 +250,15 @@ public abstract class NewSMSListener
             // TODO: Is this the correct way of handling errors here?
             if ( de == null )
             {
-                log.warn( "Given data element [" + deid + "] could not be found. Continuing with submission..." );
+                log.warn( String.format( "Given data element [%s] could not be found. Continuing with submission...",
+                    deid ) );
                 errorUIDs.add( deid );
                 continue;
             }
             else if ( val == null || StringUtils.isEmpty( val ) )
             {
-                log.warn( "Value for atttribute [" + deid + "] is null or empty. Continuing with submission..." );
+                log.warn( String.format( "Value for atttribute [%s] is null or empty. Continuing with submission...",
+                    deid ) );
                 continue;
             }
 
