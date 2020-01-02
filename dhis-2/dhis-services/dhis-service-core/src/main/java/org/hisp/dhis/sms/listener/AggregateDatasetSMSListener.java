@@ -119,9 +119,7 @@ public class AggregateDatasetSMSListener
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
         }
 
-        // TODO: This seems a bit backwards, why is there no
-        // dataSet.hasOrganisationUnit?
-        if ( !orgUnit.getDataSets().contains( dataSet ) )
+        if ( !dataSet.hasOrganisationUnit( orgUnit ) )
         {
             throw new SMSProcessingException( SMSResponse.OU_NOTIN_DATASET.set( ouid, dsid ) );
         }
