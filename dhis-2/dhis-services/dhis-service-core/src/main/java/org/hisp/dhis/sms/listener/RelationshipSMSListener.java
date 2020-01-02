@@ -52,7 +52,7 @@ import java.util.Date;
 
 public class RelationshipSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
 
     private enum RelationshipDir

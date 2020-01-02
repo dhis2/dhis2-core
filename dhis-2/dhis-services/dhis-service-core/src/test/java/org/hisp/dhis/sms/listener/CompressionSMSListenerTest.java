@@ -106,7 +106,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class NewSMSListenerTest
+public class CompressionSMSListenerTest
     extends
     DhisConvenienceTest
 {

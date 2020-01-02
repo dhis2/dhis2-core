@@ -76,11 +76,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 @Transactional
-public abstract class NewSMSListener
+public abstract class CompressionSMSListener
     extends
     BaseSMSListener
 {
-    private static final Log log = LogFactory.getLog( NewSMSListener.class );
+    private static final Log log = LogFactory.getLog( CompressionSMSListener.class );
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;

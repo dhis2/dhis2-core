@@ -52,7 +52,7 @@ import java.util.List;
 @Transactional
 public class TrackerEventSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
 
     @Autowired

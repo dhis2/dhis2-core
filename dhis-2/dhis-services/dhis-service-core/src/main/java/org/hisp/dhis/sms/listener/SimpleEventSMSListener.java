@@ -55,7 +55,7 @@ import java.util.Set;
 
 public class SimpleEventSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
 
     @Autowired

@@ -62,7 +62,7 @@ import java.util.List;
 
 public class AggregateDataSetSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
     private static final Log log = LogFactory.getLog( AggregateDataSetSMSListener.class );
 
