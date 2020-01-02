@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Halvdan Hoem Grelland
  */
-@Component
+@Component( "fileResourceCleanUpJob" )
 public class FileResourceCleanUpJob
     extends AbstractJob
 {

@@ -32,10 +32,9 @@ import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
@@ -60,8 +59,7 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupService;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.option.*;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -94,6 +92,9 @@ public class DefaultCsvImportService
 
     @Autowired
     private IndicatorGroupService indicatorGroupService;
+
+    @Autowired
+    private OptionService optionService;
 
     private static final String JSON_GEOM_TEMPL = "{\"type\":\"%s\", \"coordinates\":%s}";
 
@@ -157,6 +158,15 @@ public class DefaultCsvImportService
                 break;
             case OPTION_SET:
                 setOptionSetsFromCsv( reader, metadata );
+                break;
+            case OPTION_GROUP:
+                setOptionGroupsFromCsv( reader, metadata );
+                break;
+            case OPTION_GROUP_SET:
+                metadata.setOptionGroupSets( setOptionGroupSetFromCsv( reader ) );
+                break;
+            case OPTION_GROUP_SET_MEMBERSHIP:
+                metadata.setOptionGroupSets( optionGroupSetMembersFromCsv( reader ) );
                 break;
             default:
                 break;
@@ -630,6 +640,228 @@ public class DefaultCsvImportService
 
             metadata.getOptionSets().add( optionSet );
         }
+    }
+
+    /**
+     * Option group format:
+     * <p>
+     * <ul>
+     * <li>option group name</li>
+     * <li>option group uid</li>
+     * <li>option group code</li>
+     * <li>option group short name</li>
+     * <li>option set uid</li>
+     * <li>option uid</li>
+     * </ul>
+     * @param reader
+     * @param metadata
+     * @throws IOException
+     */
+    private void setOptionGroupsFromCsv( CsvReader reader, Metadata metadata )
+        throws IOException
+    {
+        ListMap<String, Option> nameOptionMap = new ListMap<>();
+        Map<String, OptionGroup> nameOptionGroupMap = new HashMap<>();
+        CachingMap<String, OptionSet> mapOptionSet = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                OptionGroup optionGroup = new OptionGroup();
+                setIdentifiableObject( optionGroup, values );
+                optionGroup.setShortName( getSafe( values, 3, null, 50 ) );
+                optionGroup.setAutoFields();
+
+                if ( optionGroup.getName() == null || optionGroup.getShortName() == null )
+                {
+                    continue;
+                }
+
+                OptionSet optionSet = new OptionSet();
+                optionSet.setUid( getSafe( values, 4, null, 11  ) );
+
+                if ( optionSet.getUid() == null )
+                {
+                    continue;
+                }
+
+                OptionSet persistedOptionSet =  optionSet.getUid() != null ?
+                    mapOptionSet.get( optionSet.getUid(), () -> {
+                        OptionSet persistedOS = optionService.getOptionSet( optionSet.getUid() );
+                        persistedOS.getOptions();
+                        return persistedOS;
+                    } ) :
+                    mapOptionSet.get( optionSet.getCode(), () -> {
+                        OptionSet persistedOS = optionService.getOptionSetByCode( optionSet.getUid() );
+                        persistedOS.getOptions();
+                        return persistedOS;
+                    }
+                 );
+
+                if ( persistedOptionSet == null )
+                {
+                    continue;
+                }
+
+                optionGroup.setOptionSet( optionSet );
+
+                Option option = new Option();
+                option.setUid( getSafe( values, 5, null, 11 ) );
+                option.setCode( getSafe( values, 6, null, 50 ) );
+
+                if ( option.getCode() == null && option.getUid() == null )
+                {
+                    continue;
+                }
+
+                Optional<Option> isOptionExisted = persistedOptionSet.getOptions().stream().filter( persistedOption -> {
+                    if ( option.getUid() != null )
+                    {
+                        return persistedOption.getUid().equals( option.getUid() );
+                    }
+                    else
+                    {
+                        return persistedOption.getCode().equals( option.getCode() );
+                    }
+                } ).findFirst();
+
+                if ( !isOptionExisted.isPresent() )
+                {
+                    continue;
+                }
+
+                nameOptionGroupMap.put( optionGroup.getName(), optionGroup );
+
+                nameOptionMap.putValue( optionGroup.getName(), isOptionExisted.get() );
+            }
+        }
+
+        // Read option groups from map and set in meta data
+
+        for ( String optionGroupName : nameOptionGroupMap.keySet() )
+        {
+            OptionGroup optionGroup = nameOptionGroupMap.get( optionGroupName );
+
+            Set<Option> options = new HashSet<>( nameOptionMap.get( optionGroupName ) );
+
+            optionGroup.setMembers( options );
+
+            metadata.getOptionGroups().add( optionGroup );
+        }
+    }
+
+    /**
+     * Option group set format:
+     * <p>
+     * <ul>
+     * <li>option group set name</li>
+     * <li>option group set uid</li>
+     * <li>option group set code</li>
+     * <li>option group set description</li>
+     * <li>data dimension</li>
+     * <li>option set uid</li>
+     * <li>option set code</li>
+     * </ul>
+     * @param reader
+     * @return
+     * @throws IOException
+     */
+    private List<OptionGroupSet> setOptionGroupSetFromCsv( CsvReader reader )
+        throws IOException
+    {
+        List<OptionGroupSet> optionGroupSets = new ArrayList<>();
+        CachingMap<String, OptionSet> mapOptionSet = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                OptionGroupSet optionGroupSet = new OptionGroupSet();
+                setIdentifiableObject( optionGroupSet, values );
+                optionGroupSet.setDescription( getSafe( values, 4, null, null ) );
+                optionGroupSet.setDataDimension( Boolean.valueOf( getSafe( values, 3,  Boolean.FALSE.toString(), 40 ) ) ); // boolean
+
+                OptionSet optionSet = new OptionSet();
+                optionSet.setUid( getSafe( values, 5, null, 11  ) );
+                optionSet.setCode( getSafe( values, 6, null, 50  ) );
+
+                if ( optionSet.getUid() == null && optionSet.getCode() == null )
+                {
+                    continue;
+                }
+
+                OptionSet persistedOptionSet =  optionSet.getUid() != null ?
+                    mapOptionSet.get( optionSet.getUid(), () -> optionService.getOptionSet( optionSet.getUid() ) ) :
+                    mapOptionSet.get( optionSet.getCode(), () -> optionService.getOptionSetByCode( optionSet.getCode() )
+                    );
+
+                if ( persistedOptionSet == null )
+                {
+                    continue;
+                }
+
+                optionGroupSet.setOptionSet( optionSet );
+
+                optionGroupSets.add( optionGroupSet );
+            }
+        }
+        return optionGroupSets;
+    }
+
+    /**
+     * Option Group Set Members format
+     * <ul>
+     *     <li>option group set uid</li>
+     *     <li>option group uid</li>
+     * </ul>
+     * @param reader
+     * @return
+     * @throws IOException
+     */
+    public List<OptionGroupSet> optionGroupSetMembersFromCsv( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>();
+        CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>();
+
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupSetUid = getSafe( values, 0, null, 11 );
+                String groupUid = getSafe( values, 1, null, 11 );
+                if ( groupSetUid == null || groupUid == null )
+                {
+                    continue;
+                }
+
+                OptionGroupSet persistedGroupSet = persistedGroupSetMap.get( groupSetUid, () -> optionService.getOptionGroupSet( groupSetUid ) );
+
+                if ( persistedGroupSet != null )
+                {
+                    OptionGroupSet optionSetGroup = uidMap.get( groupSetUid, () -> {
+                        OptionGroupSet nonPersistedGroup = new OptionGroupSet();
+                        nonPersistedGroup.setUid( persistedGroupSet.getUid() );
+                        nonPersistedGroup.setName( persistedGroupSet.getName() );
+                        return nonPersistedGroup;
+                    } );
+
+                    OptionGroup member = new OptionGroup();
+                    member.setUid( groupUid );
+                    optionSetGroup.addOptionGroup( member );
+                }
+            }
+        }
+
+        return new ArrayList<>( uidMap.values() );
     }
 
     // -------------------------------------------------------------------------

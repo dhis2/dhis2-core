@@ -1,7 +1,7 @@
-package org.hisp.dhis.leader.election;
+package org.hisp.dhis.sms.config.views;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,20 @@ package org.hisp.dhis.leader.election;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
-
 /**
- * Job that attempts to elect the current instance as the leader of the cluster.
  *
- * @author Ameen Mohamed
+ * Json view to keep confidential parameters from exposing through API and make sure their availability
+ * while de-serialisation.
+ *
+ * @Author Zubair Asghar.
  */
-@Component
-public class LeaderElectionJob extends AbstractJob
+public class SmsConfigurationViews
 {
-    private LeaderManager leaderManager;
-
-    public LeaderElectionJob( LeaderManager leaderManager )
+    public static class Public
     {
-        this.leaderManager = leaderManager;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public JobType getJobType()
+    public static class Internal extends Public
     {
-        return JobType.LEADER_ELECTION;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
-    {
-        leaderManager.electLeader();
     }
 }

@@ -37,14 +37,14 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Service
+@Component( "dataIntegrityJob" )
 public class DataIntegrityJob
     extends AbstractJob
 {
@@ -96,5 +96,4 @@ public class DataIntegrityJob
                 .addJobSummary( jobConfiguration, report, FlattenedDataIntegrityReport.class );
         }
     }
-
 }

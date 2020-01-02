@@ -44,7 +44,7 @@ import java.util.Date;
 /**
  * @author Lars Helge Overland
  */
-@Component
+@Component( "analyticsTableJob" )
 public class AnalyticsTableJob
     extends AbstractJob
 {
@@ -52,7 +52,6 @@ public class AnalyticsTableJob
 
     public AnalyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator )
     {
-
         checkNotNull( analyticsTableGenerator );
 
         this.analyticsTableGenerator = analyticsTableGenerator;

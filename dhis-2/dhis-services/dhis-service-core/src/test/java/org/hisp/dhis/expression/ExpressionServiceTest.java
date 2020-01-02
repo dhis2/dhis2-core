@@ -188,7 +188,7 @@ public class ExpressionServiceTest
 
     private Map<DimensionalItemObject, Double> valueMap;
 
-    private Map<String, Double> constantMap;
+    private Map<String, Constant> constantMap;
 
     private static final Map<String, Integer> ORG_UNIT_COUNT_MAP =
         new ImmutableMap.Builder<String, Integer>()

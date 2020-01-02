@@ -28,9 +28,6 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
-
 /**
  * This interface is an abstraction for the actual execution of jobs based on a job configuration.
  *
@@ -39,13 +36,11 @@ import org.hisp.dhis.message.MessageService;
 public interface JobInstance
 {
     /**
-     * This method will try to execute the actual job.
-     * It will verify a set of parameters, such as no other jobs of the same JobType is running.
-     * <p>
-     * If the JobConfiguration is disabled it will not run.
+     * This method will try to execute the actual job. It will verify a set of
+     * parameters, such as no other jobs of the same JobType is running. If the
+     * JobConfiguration is disabled it will not run.
      *
-     * @param jobConfiguration  the configuration of the job
-     * @param schedulingManager manager of scheduling
+     * @param jobConfiguration  the configuration of the job.
      */
-    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager  );
+    void execute( JobConfiguration jobConfiguration );
 }
