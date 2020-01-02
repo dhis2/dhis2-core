@@ -121,6 +121,7 @@ expr
 
     |   item
     |   programRuleVariable
+    |   constantValue
     |   numericLiteral
     |   stringLiteral
     |   booleanLiteral
@@ -145,8 +146,10 @@ item
     ;
 
 programRuleVariable
-    : var='X{' string=variableName '}'
-    | var='C{' string=variableName '}';
+    : var='X{' string=variableName '}';
+
+constantValue
+    : var='C{' string=variableName '}';
 
 stageDataElement
     :   '#{' uid0=UID '.' uid1=UID '}'
@@ -320,6 +323,7 @@ I_BRACE     : 'I{';
 N_BRACE     : 'N{';
 OUG_BRACE   : 'OUG{';
 R_BRACE     : 'R{';
+X_BRACE     : 'X{';
 DAYS        : '[days]';
 
 // -----------------------------------------------------------------------------
