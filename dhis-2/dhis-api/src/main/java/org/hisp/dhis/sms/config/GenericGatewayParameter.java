@@ -41,8 +41,6 @@ public class GenericGatewayParameter
 {
     private static final long serialVersionUID = -863990758156009672L;
 
-    private String displayValue;
-
     @JsonView( SmsConfigurationViews.Public.class )
     private String key;
 
