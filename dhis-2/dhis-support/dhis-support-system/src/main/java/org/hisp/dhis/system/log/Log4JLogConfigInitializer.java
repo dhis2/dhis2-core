@@ -56,6 +56,12 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 
 /**
+ * This class adds new Logger(s) and RollingFileAppender(s) to the XML-based, default Log4J configuration.
+ * The goal is to create a number of scoped log files, each for different areas of the application. The scope
+ * is defined by package name.
+ *
+ * Additionally this class also attach a RollingFileAppender to the Root logger.
+ *
  * @author Lars Helge Overland
  */
 @Component( "logInitializer" )
