@@ -184,7 +184,7 @@ public class AnalyticsUtilsTest
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
 
         assertEquals( null, AnalyticsUtils.getRoundedValue( paramsA, null, null ) );
-        assertEquals( 3d, AnalyticsUtils.getRoundedValue( paramsA, null, 3d ), 0.01 );
+        assertEquals( 3d, AnalyticsUtils.getRoundedValue( paramsA, null, 3d ).doubleValue(), 0.01 );
         assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, null, 3.123 ), 0.01 );
         assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, 1, 3.123 ), 0.01 );
         assertEquals( 3.12, AnalyticsUtils.getRoundedValue( paramsA, 2, 3.123 ), 0.01 );
