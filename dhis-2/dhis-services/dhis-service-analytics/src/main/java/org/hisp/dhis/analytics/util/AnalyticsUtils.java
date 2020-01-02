@@ -196,10 +196,9 @@ public class AnalyticsUtils
 
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
-     * returned unchanged. If the given number of decimals is specified, the
-     * value is rounded to the given decimals. If skip rounding is specified
-     * in the given data query parameters, 10 decimals is used. Otherwise,
-     * default rounding is used.
+     * rounded to {@link AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the
+     * given number of decimals is specified, the value is rounded to the given
+     * decimals. Otherwise, default rounding is used.
      *
      * @param params the query parameters.
      * @param decimals the number of decimals.
