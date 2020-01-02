@@ -58,7 +58,8 @@ public class DataGenerator
         return RandomStringUtils.randomAlphabetic( 6 );
     }
 
-    public static String randomString(int count) {
+    public static String randomString( int count ) 
+    {
         return RandomStringUtils.randomAlphabetic( count );
     }
 
