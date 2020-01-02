@@ -567,7 +567,7 @@ public class DefaultAnalyticsService
      * Adds data element values to the given grid based on the given data query
      * parameters.
      *
-     * @param params the {@link DataQueryParams}.indicatorRoundedValue.doubleValue(), measureValue.getValue()
+     * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
     private void addDataElementValues( DataQueryParams params, Grid grid )
