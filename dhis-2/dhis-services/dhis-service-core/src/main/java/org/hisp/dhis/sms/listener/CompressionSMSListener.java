@@ -147,7 +147,7 @@ public abstract class CompressionSMSListener
 
         // TODO: Can be removed - debugging line to check SMS submissions
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
+        log.info( String.format( "New received SMS submission decoded as: %s", gson.toJson( subm ) ) );
 
         SMSResponse resp = null;
         try
@@ -162,7 +162,7 @@ public abstract class CompressionSMSListener
             return;
         }
 
-        log.info( "SMS Response: " + resp.toString() );
+        log.info( String.format( "SMS Response: %s", resp.toString() ) );
         sendSMSResponse( resp, sms, header.getSubmissionID() );
     }
 
@@ -250,13 +250,15 @@ public abstract class CompressionSMSListener
             // TODO: Is this the correct way of handling errors here?
             if ( de == null )
             {
-                log.warn( "Given data element [" + deid + "] could not be found. Continuing with submission..." );
+                log.warn( String.format( "Given data element [%s] could not be found. Continuing with submission...",
+                    deid ) );
                 errorUIDs.add( deid );
                 continue;
             }
             else if ( val == null || StringUtils.isEmpty( val ) )
             {
-                log.warn( "Value for atttribute [" + deid + "] is null or empty. Continuing with submission..." );
+                log.warn( String.format( "Value for atttribute [%s] is null or empty. Continuing with submission...",
+                    deid ) );
                 continue;
             }
 

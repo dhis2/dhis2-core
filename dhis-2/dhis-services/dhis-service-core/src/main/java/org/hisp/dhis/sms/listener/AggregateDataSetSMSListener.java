@@ -173,7 +173,7 @@ public class AggregateDataSetSMSListener
             DataElement de = dataElementService.getDataElement( deid.uid );
             if ( de == null )
             {
-                log.warn( "Data element [" + deid + "] does not exist. Continuing with submission..." );
+                log.warn( String.format( "Data element [%s] does not exist. Continuing with submission...", deid ) );
                 errorElems.add( combid );
                 continue;
             }
@@ -181,7 +181,8 @@ public class AggregateDataSetSMSListener
             CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.uid );
             if ( coc == null )
             {
-                log.warn( "Category Option Combo [" + cocid + "] does not exist. Continuing with submission..." );
+                log.warn( String.format( "Category Option Combo [%s] does not exist. Continuing with submission...",
+                    cocid ) );
                 errorElems.add( combid );
                 continue;
             }
@@ -189,7 +190,7 @@ public class AggregateDataSetSMSListener
             String val = smsdv.getValue();
             if ( val == null || StringUtils.isEmpty( val ) )
             {
-                log.warn( "Value for [" + combid + "]  is null or empty. Continuing with submission..." );
+                log.warn( String.format( "Value for [%s]  is null or empty. Continuing with submission...", combid ) );
                 continue;
             }
 
@@ -216,7 +217,8 @@ public class AggregateDataSetSMSListener
                 boolean addedDataValue = dataValueService.addDataValue( dv );
                 if ( !addedDataValue )
                 {
-                    log.warn( "Failed to submit data value [" + combid + "]. Continuing with submission..." );
+                    log.warn(
+                        String.format( "Failed to submit data value [%s]. Continuing with submission...", combid ) );
                     errorElems.add( combid );
                 }
             }

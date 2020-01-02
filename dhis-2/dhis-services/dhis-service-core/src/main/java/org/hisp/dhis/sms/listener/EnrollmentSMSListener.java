@@ -117,12 +117,12 @@ public class EnrollmentSMSListener
 
         if ( existsOnServer )
         {
-            log.info( "Given TEI (" + teiUID + ") exists. Updating..." );
+            log.info( String.format( "Given TEI [%s] exists. Updating...", teiUID ) );
             entityInstance = teiService.getTrackedEntityInstance( teiUID.uid );
         }
         else
         {
-            log.info( "Given TEI (" + teiUID + ") does not exist. Creating..." );
+            log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUID ) );
             entityInstance = new TrackedEntityInstance();
             entityInstance.setUid( teiUID.uid );
             entityInstance.setOrganisationUnit( orgUnit );

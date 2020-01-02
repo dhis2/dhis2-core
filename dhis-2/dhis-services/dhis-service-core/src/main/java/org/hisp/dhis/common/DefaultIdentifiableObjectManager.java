@@ -1,5 +1,13 @@
 package org.hisp.dhis.common;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,14 +38,6 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -55,6 +55,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,6 +66,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import com.google.common.collect.ImmutableMap;
 
 import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
@@ -1064,6 +1067,10 @@ public class DefaultIdentifiableObjectManager
     public List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
         return store.getUidsCreatedBefore( date );
     }
 
