@@ -1,5 +1,8 @@
 package org.hisp.dhis.system.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /*
@@ -74,5 +77,22 @@ public class CodecUtils
         String string = username + ":" + password;
         
         return "Basic " + Base64.getEncoder().encodeToString( string.getBytes() );
-    }    
+    }
+
+    /**
+     * Encode the given string using URLEncoder and UTF-8 scheme
+     * @param string
+     * @return encoded string
+     */
+    public static String utf8UrlEncode( String string )
+    {
+        try
+        {
+            return URLEncoder.encode( string, StandardCharsets.UTF_8.name() );
+        }
+        catch ( UnsupportedEncodingException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
 }
