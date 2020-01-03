@@ -274,11 +274,6 @@ public class ExpressionService2Test
         expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() +
             ".REPORTING_RATE}";
 
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant>builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
     }
 
     private DimensionalItemId getId( DimensionalItemObject o )
@@ -488,6 +483,11 @@ public class ExpressionService2Test
     @Test
     public void testExpressionIsValid()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
         when( dimensionService.getDataDimensionalItemObject( getId( deA ) ) ).thenReturn( deA );
         when( dimensionService.getDataDimensionalItemObject( getId( deE ) ) ).thenReturn( deE );
         when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
@@ -547,6 +547,11 @@ public class ExpressionService2Test
     @Test
     public void testGetExpressionDescription()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
         when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
         when( dimensionService.getDataDimensionalItemObject( getId( opB ) ) ).thenReturn( opB );
 
@@ -654,6 +659,11 @@ public class ExpressionService2Test
     @Test
     public void testSubstituteIndicatorExpressions()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
         String expressionZ = "if(\"A\" < 'B' and true,C{notFound123},OUG{notFound456})";
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
