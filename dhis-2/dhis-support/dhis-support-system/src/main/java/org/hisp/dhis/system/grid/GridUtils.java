@@ -207,13 +207,16 @@ public class GridUtils
     {
         Workbook workbook = new HSSFWorkbook();
 
+        CellStyle headerCellStyle = createHeaderCellStyle( workbook );
+        CellStyle cellStyle = createCellStyle( workbook );
+
         for ( int i = 0; i < grids.size(); i++ )
         {
             Grid grid = grids.get( i );
 
             String sheetName = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), XLS_SHEET_PREFIX + (i + 1) ) );
 
-            toXlsInternal( grid,  workbook.createSheet( sheetName ), createHeaderCellStyle( workbook ), createCellStyle( workbook ) );
+            toXlsInternal( grid,  workbook.createSheet( sheetName ),headerCellStyle, cellStyle );
         }
 
         workbook.write( out );

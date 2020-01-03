@@ -1133,17 +1133,6 @@
         <artifactId>htmllexer</artifactId>
         <version>2.1</version>
       </dependency>
-      <dependency>
-        <groupId>net.sourceforge.jexcelapi</groupId>
-        <artifactId>jxl</artifactId>
-        <version>2.6.12</version>
-        <exclusions>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
 
       <!-- GIS -->
       <dependency>
@@ -1554,5 +1543,6 @@
     <artemis.version>2.6.4</artemis.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+
   </properties>
 </project>
