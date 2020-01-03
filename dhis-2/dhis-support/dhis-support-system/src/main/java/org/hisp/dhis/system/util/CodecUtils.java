@@ -84,7 +84,7 @@ public class CodecUtils
      * @param string
      * @return encoded string
      */
-    public static String utf8UrLEncode( String string )
+    public static String utf8UrlEncode( String string )
     {
         try
         {
