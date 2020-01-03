@@ -96,8 +96,6 @@ public class FileResourceServiceTest
     {
         subject = new DefaultFileResourceService( fileResourceStore, sessionFactory, fileResourceContentStore,
             imageProcessingService, fileEventPublisher );
-
-        when( sessionFactory.getCurrentSession() ).thenReturn( session );
     }
 
     @Test
@@ -109,6 +107,8 @@ public class FileResourceServiceTest
         fileResource.setUid( "fileRes1" );
 
         File file = new File( "" );
+
+        when( sessionFactory.getCurrentSession() ).thenReturn( session );
 
         subject.saveFileResource( fileResource, file );
 
@@ -134,6 +134,8 @@ public class FileResourceServiceTest
         Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
 
         when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
+
+        when( sessionFactory.getCurrentSession() ).thenReturn( session );
 
         fileResource.setUid( "imageUid1" );
 
