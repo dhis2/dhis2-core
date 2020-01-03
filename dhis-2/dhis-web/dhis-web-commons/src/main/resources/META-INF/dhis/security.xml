@@ -101,6 +101,7 @@
     <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
   </bean>
 
+  <bean id="httpBasicWebAuthenticationDetailsSource" class="org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource"/>
   <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.security.BasicAuthenticationEntryPoint"/>
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
