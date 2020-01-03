@@ -104,6 +104,8 @@ public class EnrollmentSMSListener
         UID progid = subm.getTrackerProgram();
         UID tetid = subm.getTrackedEntityType();
         UID ouid = subm.getOrgUnit();
+        UID enrollmentUid = subm.getEnrollment();
+
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
 
         Program program = programService.getProgram( progid.uid );
@@ -158,7 +160,7 @@ public class EnrollmentSMSListener
         // TODO: Should we check if the TEI is already enrolled? If so do we
         // skip this?
         ProgramInstance enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate,
-            submissionTimestamp, orgUnit );
+            submissionTimestamp, orgUnit, enrollmentUid.uid );
         if ( enrollment == null )
         {
             throw new SMSProcessingException( SMSResponse.ENROLL_FAILED.set( teiUID, progid ) );
