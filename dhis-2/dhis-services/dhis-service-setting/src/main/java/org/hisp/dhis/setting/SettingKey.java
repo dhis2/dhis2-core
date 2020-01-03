@@ -159,7 +159,6 @@ public enum SettingKey
     MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncMaxRemoteServerAvailabilityCheckAttempts", 3, Integer.class ),
     MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
     DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class ),
-    KEY_SCHED_TASKS( "keySchedTasks" ),
     LAST_SUCCESSFUL_DATA_STATISTICS( "lastSuccessfulDataStatistics", Date.class ),
     ANALYTICS_HIDE_DAILY_PERIODS( "keyHideDailyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
