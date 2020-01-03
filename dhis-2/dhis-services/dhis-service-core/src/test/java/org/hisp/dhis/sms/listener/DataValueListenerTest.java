@@ -64,6 +64,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -181,9 +182,21 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         setUpInstances();
 
+        // Mock for smsSender
+        Mockito.lenient().when( smsSender.isConfigured() ).thenReturn( smsConfigured );
+
+        Mockito.lenient().when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
+            message = invocation.getArgument(1);
+            return response;
+        });
+    }
+
+
+    private void mock()
+    {
         // Mock for registrationService
         when( registrationService.getCompleteDataSetRegistration( any(), any(), any(), any() ) )
-            .thenReturn( fetchedCompleteDataSetRegistration );
+                .thenReturn( fetchedCompleteDataSetRegistration );
 
         doAnswer( invocation -> {
             deletedCompleteDataSetRegistration = (CompleteDataSetRegistration) invocation.getArguments()[0];
@@ -192,8 +205,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         // Mock for dataValueService
         when( dataValueService.getDataValue( any(), any(), any(), any() ) )
-            .thenReturn( fetchedDataValue );
-
+                .thenReturn( fetchedDataValue );
 
         doAnswer( invocation -> {
             updatedDataValue = (DataValue) invocation.getArguments()[0];
@@ -206,7 +218,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         // Mock for dataElementCategoryService
         when( dataElementCategoryService.getDefaultCategoryOptionCombo() ).thenReturn( defaultCategoryOptionCombo );
 
-        when ( dataElementCategoryService.getCategoryOptionCombo( anyInt() ) ).thenReturn( categoryOptionCombo );
+        Mockito.lenient().when ( dataElementCategoryService.getCategoryOptionCombo( anyInt() ) ).thenReturn( categoryOptionCombo );
 
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
@@ -219,20 +231,16 @@ public class DataValueListenerTest extends DhisConvenienceTest
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
             return updatedIncomingSms;
         }).when( incomingSmsService ).update( any() );
-
-        // Mock for smsSender
-        when( smsSender.isConfigured() ).thenReturn( smsConfigured );
-
-        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
-            message = invocation.getArgument(1);
-            return response;
-        });
     }
 
     @Test
     public void testAccept()
     {
+        // Mock for smsCommandService
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+
         incomingSms.setUser( user );
+
         boolean result = subject.accept( incomingSms );
 
         assertTrue( result );
@@ -245,6 +253,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testReceive()
     {
+        mock();
         incomingSms.setUser( user );
         subject.receive( incomingSms );
 
@@ -256,6 +265,15 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test( expected = SMSParserException.class )
     public void testIfDataSetIsLocked()
     {
+        // Mock for userService
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+
+        // Mock for dataElementCategoryService
+        when( dataElementCategoryService.getDefaultCategoryOptionCombo() ).thenReturn( defaultCategoryOptionCombo );
+
+        // Mock for smsCommandService
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+
         incomingSms.setUser( user );
         when( dataSetService.isLocked( any(), any(DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
         subject.receive( incomingSms );
@@ -268,8 +286,15 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testIfUserHasNoOu()
     {
+        // Mock for userService
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+
+        // Mock for smsCommandService
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+
         incomingSms.setUser( userWithNoOu );
         when( userService.getUser( anyString() ) ).thenReturn( userWithNoOu );
+
         subject.receive( incomingSms );
 
         assertEquals( message, SMSCommand.NO_USER_MESSAGE );
@@ -280,6 +305,12 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testIfUserHasMultipleOUs()
     {
+        // Mock for userService
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+
+        // Mock for smsCommandService
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+
         incomingSms.setUser( userwithMultipleOu );
 
         when( userService.getUser( anyString() ) ).thenReturn( userwithMultipleOu );
@@ -292,6 +323,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
 
         keyValueCommand.setMoreThanOneOrgUnitMessage( MORE_THAN_ONE_OU );
+
         subject.receive( incomingSms );
 
         // system will use custom message
@@ -301,6 +333,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testIfDiffUsersHasSameOU()
     {
+        mock();
         incomingSms.setUser( user );
 
         when( userService.getUser( anyString() ) ).thenReturn( user );
@@ -322,6 +355,9 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testIfCommandHasCorrectFormat()
     {
+        // Mock for smsCommandService
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+
         subject.receive( incomingSmsForCustomSeparator );
 
         assertEquals( message, SMSCommand.WRONG_FORMAT_MESSAGE );
@@ -338,6 +374,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testIfMandatoryParameterMissing()
     {
+        mock();
         keyValueCommand.getCodes().add( smsCodeForcompulsory );
         keyValueCommand.setSeparator( null );
         keyValueCommand.setCodeValueSeparator( null );
@@ -363,6 +400,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testDefaultSeparator()
     {
+        mock();
         keyValueCommand.setSeparator( null );
         keyValueCommand.setCodeValueSeparator( null );
 
@@ -377,6 +415,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     @Test
     public void testCustomSeparator()
     {
+        mock();
         keyValueCommand.setSeparator( "." );
         keyValueCommand.setCodeValueSeparator( "." );
         keyValueCommand.setWrongFormatMessage( null );
