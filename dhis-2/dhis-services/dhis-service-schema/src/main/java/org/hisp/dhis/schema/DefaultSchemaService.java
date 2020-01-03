@@ -174,6 +174,7 @@ public class DefaultSchemaService
         add( new ProgramStageInstanceSchemaDescriptor() ).
         add( new ProgramInstanceSchemaDescriptor() ).
         add( new ProgramStageInstanceFilterSchemaDescriptor() ).
+        add( new VisualizationSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

@@ -29,13 +29,13 @@ package org.hisp.dhis.dashboard;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 
 /**
@@ -114,9 +114,9 @@ public class DashboardTest
         diB.setUid( "B" );
         diC.setUid( "C" );
         
-        diA.setChart( new Chart( "A" ) );
-        diB.getReports().add( new Report( "A", null, null, null ) );
-        diB.getReports().add( new Report( "B", null, null, null ) );
+        diA.setVisualization( new Visualization ( "A" ) );
+        diB.getReports().add( new Report( "A", null, null, new Visualization() ) );
+        diB.getReports().add( new Report( "B", null, null, new Visualization() ) );
         diC.getResources().add( new Document( "A", null, false, null ) );
         diC.getResources().add( new Document( "B", null, false, null ) );
         diC.getResources().add( new Document( "C", null, false, null ) );

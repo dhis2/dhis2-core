@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+    [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+    >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.visualization.Axis" table="axis">
+
+    <cache usage="read-write"/>
+
+    <id name="id" column="axisid">
+      <generator class="native"/>
+    </id>
+
+    <property name="dimensionalItem" not-null="true" length="255"/>
+
+    <property name="axis" column="axis" not-null="true"/>
+
+  </class>
+</hibernate-mapping>

@@ -195,8 +195,8 @@ public class ReportController
             throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
         }
 
-        if ( organisationUnitUid == null && report.hasReportTable() && report.getReportTable().hasReportParams()
-            && report.getReportTable().getReportParams().isOrganisationUnitSet() )
+        if ( organisationUnitUid == null && report.hasVisualization() && report.getVisualization().hasReportingParams()
+            && report.getVisualization().getReportingParams().isOrganisationUnitSet() )
         {
             List<OrganisationUnit> rootUnits = organisationUnitService.getRootOrganisationUnits();
 
