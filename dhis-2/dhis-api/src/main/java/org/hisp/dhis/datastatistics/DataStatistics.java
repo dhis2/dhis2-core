@@ -42,6 +42,7 @@ public class DataStatistics
     private Double mapViews;
     private Double chartViews;
     private Double reportTableViews;
+    private Double visualizationViews;
     private Double eventReportViews;
     private Double eventChartViews;
     private Double dashboardViews;
@@ -50,6 +51,7 @@ public class DataStatistics
     private Double savedMaps;
     private Double savedCharts;
     private Double savedReportTables;
+    private Double savedVisualizations;
     private Double savedEventReports;
     private Double savedEventCharts;
     private Double savedDashboards;
@@ -62,14 +64,16 @@ public class DataStatistics
     {
     }
 
-    public DataStatistics( Double mapViews, Double chartViews, Double reportTableViews, Double eventReportViews,
-        Double eventChartViews, Double dashboardViews, Double dataSetReportViews, Double totalViews, Double savedMaps,
-        Double savedCharts, Double savedReportTables, Double savedEventReports, Double savedEventCharts, Double savedDashboards,
-        Double savedIndicators, Double savedDataValues, Integer activeUsers, Integer users )
+    public DataStatistics( Double mapViews, Double chartViews, Double reportTableViews, Double visualizationViews,
+        Double eventReportViews, Double eventChartViews, Double dashboardViews, Double dataSetReportViews,
+        Double totalViews, Double savedMaps, Double savedCharts, Double savedReportTables, Double savedVisualizations,
+        Double savedEventReports, Double savedEventCharts, Double savedDashboards, Double savedIndicators,
+        Double savedDataValues, Integer activeUsers, Integer users )
     {
         this.mapViews = mapViews;
         this.chartViews = chartViews;
         this.reportTableViews = reportTableViews;
+        this.visualizationViews = visualizationViews;
         this.eventReportViews = eventReportViews;
         this.eventChartViews = eventChartViews;
         this.dashboardViews = dashboardViews;
@@ -78,6 +82,7 @@ public class DataStatistics
         this.savedMaps = savedMaps;
         this.savedCharts = savedCharts;
         this.savedReportTables = savedReportTables;
+        this.savedVisualizations = savedVisualizations;
         this.savedEventReports = savedEventReports;
         this.savedEventCharts = savedEventCharts;
         this.savedDashboards = savedDashboards;
@@ -129,6 +134,17 @@ public class DataStatistics
     public void setReportTableViews( Double reportTableViews )
     {
         this.reportTableViews = reportTableViews;
+    }
+
+    @JsonProperty
+    public Double getVisualizationViews()
+    {
+        return visualizationViews;
+    }
+
+    public void setVisualizationViews( Double visualizationViews )
+    {
+        this.visualizationViews = visualizationViews;
     }
 
     @JsonProperty
@@ -220,6 +236,17 @@ public class DataStatistics
     }
 
     @JsonProperty
+    public Double getSavedVisualizations()
+    {
+        return savedVisualizations;
+    }
+
+    public void setSavedVisualizations( Double savedVisualizations )
+    {
+        this.savedVisualizations = savedVisualizations;
+    }
+
+    @JsonProperty
     public Double getSavedEventReports()
     {
         return savedEventReports;
@@ -292,6 +319,7 @@ public class DataStatistics
             "mapViews=" + mapViews +
             ", chartViews=" + chartViews +
             ", reportTableViews=" + reportTableViews +
+            ", visualizationViews=" + visualizationViews +
             ", eventReportViews=" + eventReportViews +
             ", eventChartViews=" + eventChartViews +
             ", dashboardViews=" + dashboardViews +
@@ -299,6 +327,7 @@ public class DataStatistics
             ", savedMaps=" + savedMaps +
             ", savedCharts=" + savedCharts +
             ", savedReportTables=" + savedReportTables +
+            ", savedVisualizations=" + savedVisualizations +
             ", savedEventReports=" + savedEventReports +
             ", savedEventCharts=" + savedEventCharts +
             ", savedDashboards=" + savedDashboards +

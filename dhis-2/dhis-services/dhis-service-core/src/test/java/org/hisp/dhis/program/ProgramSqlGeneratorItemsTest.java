@@ -144,16 +144,14 @@ public class ProgramSqlGeneratorItemsTest
         programIndicator = new ProgramIndicator();
         programIndicator.setProgram( programA );
         programIndicator.setAnalyticsType( AnalyticsType.EVENT );
-
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
-        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
-        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
     }
 
     @Test
     public void testDataElement()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         String sql = test( "#{ProgrmStagA.DataElmentA}" );
         assertThat( sql, is( "coalesce(\"DataElmentA\"::numeric,0)" ) );
     }
@@ -161,6 +159,9 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testDataElementAllowingNulls()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         String sql = test( "d2:oizp(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "coalesce(case when \"DataElmentA\" >= 0 then 1 else 0 end, 0)" ) );
     }
@@ -168,6 +169,10 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testDataElementNotFound()
     {
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         thrown.expect( ParserException.class );
         test( "#{ProgrmStagA.NotElementA}" );
     }
@@ -175,6 +180,8 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testAttribute()
     {
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+
         String sql = test( "A{Attribute0A}" );
         assertThat( sql, is( "coalesce(\"Attribute0A\"::numeric,0)" ) );
     }
@@ -182,6 +189,8 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testAttributeAllowingNulls()
     {
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+
         String sql = test( "d2:oizp(A{Attribute0A})" );
         assertThat( sql, is( "coalesce(case when \"Attribute0A\" >= 0 then 1 else 0 end, 0)" ) );
     }

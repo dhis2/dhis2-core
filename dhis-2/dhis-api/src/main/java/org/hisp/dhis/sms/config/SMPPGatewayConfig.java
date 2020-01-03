@@ -29,6 +29,9 @@ package org.hisp.dhis.sms.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.NumberingPlanIndicator;
 import org.jsmpp.bean.TypeOfNumber;
@@ -36,13 +39,25 @@ import org.jsmpp.bean.TypeOfNumber;
 /**
  * @author Zubair Asghar
  */
+@JsonTypeName( "smpp" )
 public class SMPPGatewayConfig extends SmsGatewayConfig
 {
+    @JsonView( SmsConfigurationViews.Public.class )
     private String systemType;
+
+    @JsonView( SmsConfigurationViews.Public.class )
     private NumberingPlanIndicator numberPlanIndicator = NumberingPlanIndicator.UNKNOWN;
+
+    @JsonView( SmsConfigurationViews.Public.class )
     private TypeOfNumber typeOfNumber = TypeOfNumber.UNKNOWN;
+
+    @JsonView( SmsConfigurationViews.Public.class )
     private BindType bindType = BindType.BIND_TX;
+
+    @JsonView( SmsConfigurationViews.Public.class )
     private int port;
+
+    @JsonView( SmsConfigurationViews.Public.class )
     private boolean compressed;
 
     @Override
@@ -59,7 +74,6 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
         return super.getUsername();
     }
 
-    @JsonProperty
     public int getPort()
     {
         return port;
@@ -70,7 +84,6 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
         this.port = port;
     }
 
-    @JsonProperty
     public String getSystemType()
     {
         return systemType;
@@ -81,7 +94,6 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
         this.systemType = systemType;
     }
 
-    @JsonProperty
     public NumberingPlanIndicator getNumberPlanIndicator()
     {
         return numberPlanIndicator;
@@ -92,7 +104,6 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
         this.numberPlanIndicator = numberPlanIndicator;
     }
 
-    @JsonProperty
     public TypeOfNumber getTypeOfNumber()
     {
         return typeOfNumber;
@@ -103,7 +114,6 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
         this.typeOfNumber = typeOfNumber;
     }
 
-    @JsonProperty
     public BindType getBindType()
     {
         return bindType;
@@ -114,7 +124,6 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
         this.bindType = bindType;
     }
 
-    @JsonProperty
     public boolean isCompressed()
     {
         return compressed;

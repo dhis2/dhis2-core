@@ -62,8 +62,7 @@ public class Validator
     public static Collection<ValidationResult> validate( ValidationRunContext context,
         ApplicationContext applicationContext, AnalyticsService analyticsService )
     {
-        CategoryService categoryService = (CategoryService)
-            applicationContext.getBean( CategoryService.class );
+        CategoryService categoryService = applicationContext.getBean( CategoryService.class );
                 
         int threadPoolSize = getThreadPoolSize( context );
 

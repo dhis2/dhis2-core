@@ -29,27 +29,27 @@
     <property name="repeatable" column="repeatable" not-null="true" />
 
     <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
-      <key column="programstageid" />
-      <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
+      <key column="programstageid"/>
+      <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement"/>
     </set>
 
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
-      column="dataentryformid" foreign-key="fk_programstage_dataentryform" />
+                 column="dataentryformid" foreign-key="fk_programstage_dataentryform"/>
 
-    <property name="standardInterval" />
+    <property name="standardInterval"/>
 
-    <set name="programStageSections" order-by="sortOrder">
-      <key column="programstageid" />
-      <one-to-many class="org.hisp.dhis.program.ProgramStageSection" />
+    <set name="programStageSections" order-by="sortOrder" cascade="delete-orphan">
+      <key column="programstageid"/>
+      <one-to-many class="org.hisp.dhis.program.ProgramStageSection"/>
     </set>
 
-    <property name="executionDateLabel" column="executiondatelabel" />
+    <property name="executionDateLabel" column="executiondatelabel"/>
 
-    <property name="dueDateLabel" column="duedatelabel" />
+    <property name="dueDateLabel" column="duedatelabel"/>
 
     <set name="notificationTemplates">
-      <key column="programstageid" />
-      <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
+      <key column="programstageid"/>
+      <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate"/>
     </set>
 
     <property name="autoGenerateEvent" />

@@ -29,9 +29,12 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -66,4 +69,20 @@ public interface TrackedEntityAttributeStore
      * @return Optional of TrackedEntityInstance UID or empty Optional.
      */
     Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
+
+    /**
+     * Fetches all {@see TrackedEntityAttribute} linked to all
+     * {@see TrackedEntityType} present in the system
+     *
+     * @return a Set of {@see TrackedEntityAttribute}
+     */
+    Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
+
+    /**
+     * Fetches all {@see TrackedEntityAttribute} and groups them by {@see Program}
+     *
+     * @return a Map, where the key is the {@see Program} and the values is a Set of {@see TrackedEntityAttribute} associated
+     * to the {@see Program} in the key
+     */
+    Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
 }
