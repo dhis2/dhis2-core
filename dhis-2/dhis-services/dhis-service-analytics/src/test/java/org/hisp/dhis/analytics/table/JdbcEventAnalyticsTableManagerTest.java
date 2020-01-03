@@ -140,7 +140,6 @@ public class JdbcEventAnalyticsTableManagerTest
             systemSettingManager, mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo,
             jdbcTemplate );
-
     }
 
     @Test
