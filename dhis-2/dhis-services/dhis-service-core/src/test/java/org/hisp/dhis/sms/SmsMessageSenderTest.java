@@ -121,17 +121,6 @@ public class SmsMessageSenderTest
         smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService );
     }
 
-    private void mockServices()
-    {
-        // stub for GateAdministrationService
-        when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
-        when( gatewayAdministrationService.getGatewayConfigurationMap() ).thenReturn( configMap );
-
-        // stub for UserSettingService
-        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.TRUE );
-
-    }
-
     private void mockGateway()
     {
         // stub for SmsGateways
