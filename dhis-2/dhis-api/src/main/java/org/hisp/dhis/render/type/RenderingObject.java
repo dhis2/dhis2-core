@@ -1,4 +1,4 @@
-package org.hisp.dhis.render;
+package org.hisp.dhis.render.type;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,17 +28,13 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.LinkedHashMap;
-
-/**
- * This class represents the relationship between a RenderingType and a RenderDevice. A RenderDevice can have one RenderType.
- * @param <T> an object wrapping an enum representing options for rendering a specific object
- */
-@JacksonXmlRootElement(localName = "renderType", namespace = DxfNamespaces.DXF_2_0 )
-public class DeviceRenderTypeMap<T>
-    extends LinkedHashMap<RenderDevice, T>
+public interface RenderingObject<T extends Enum>
 {
+    String _TYPE = "type";
+
+    T getType();
+
+    void setType( T type );
+
+    Class<T> getRenderTypeClass();
 }
