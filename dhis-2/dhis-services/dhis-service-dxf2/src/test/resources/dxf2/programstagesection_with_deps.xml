@@ -1,0 +1,156 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<metadata xmlns="http://dhis2.org/schema/dxf/2.0" date="2019-11-09T05:50:11.625">
+    <categoryOptionCombos>
+        <categoryOptionCombo code="default" created="2011-12-24T12:24:25.319" lastUpdated="2011-12-24T12:24:25.319"
+                             name="default" id="HllvX50cXC0">
+            <ignoreApproval>false</ignoreApproval>
+            <categoryCombo id="bjDvmb4bfuf"/>
+            <categoryOptions>
+                <categoryOption id="xYerKDKCefk"/>
+            </categoryOptions>
+        </categoryOptionCombo>
+    </categoryOptionCombos>
+    <dataElements>
+        <dataElement lastUpdated="2018-08-28T12:22:38.814" id="lWLkpWMHqEq" created="2018-08-28T12:22:38.814"
+                     name="XX MAL RDT TRK - Diagnosis Method" shortName="XX MAL RDT - Diagnosis Method">
+            <aggregationType>SUM</aggregationType>
+            <domainType>TRACKER</domainType>
+            <valueType>TEXT</valueType>
+            <zeroIsSignificant>false</zeroIsSignificant>
+            <categoryCombo id="bjDvmb4bfuf"/>
+        </dataElement>
+    </dataElements>
+    <programStageSections>
+        <programStageSection created="2018-05-28T16:37:54.025" lastUpdated="2018-08-28T12:22:43.674" name="Referral"
+                             id="e99B1JXVMMQ">
+            <sortOrder>9</sortOrder>
+            <renderType>
+                <MOBILE type="SEQUENTIAL"/>
+                <DESKTOP type="LISTING"/>
+            </renderType>
+            <programStage id="Ge7Eo3FNnbl"/>
+            <dataElements>
+                <dataElement id="lWLkpWMHqEq"/>
+            </dataElements>
+        </programStageSection>
+    </programStageSections>
+    <categoryOptions>
+        <categoryOption code="default" created="2011-12-24T12:24:24.149" lastUpdated="2016-04-12T20:37:48.414"
+                        name="default" id="xYerKDKCefk" shortName="default">
+            <translations>
+                <translations property="NAME" locale="en_GB" value="default"/>
+            </translations>
+        </categoryOption>
+    </categoryOptions>
+    <programStages>
+        <programStage lastUpdated="2018-08-28T12:22:42.522" id="Ge7Eo3FNnbl" created="2018-08-28T12:22:42.522"
+                      name="XX MAL RDT - Case Registration">
+            <allowGenerateNextVisit>false</allowGenerateNextVisit>
+            <preGenerateUID>false</preGenerateUID>
+            <openAfterEnrollment>false</openAfterEnrollment>
+            <repeatable>false</repeatable>
+            <featureType>NONE</featureType>
+            <remindCompleted>false</remindCompleted>
+            <displayGenerateEventBox>true</displayGenerateEventBox>
+            <generatedByEnrollmentDate>false</generatedByEnrollmentDate>
+            <validationStrategy>ON_UPDATE_AND_INSERT</validationStrategy>
+            <autoGenerateEvent>true</autoGenerateEvent>
+            <sortOrder>1</sortOrder>
+            <hideDueDate>false</hideDueDate>
+            <blockEntryForm>false</blockEntryForm>
+            <enableUserAssignment>false</enableUserAssignment>
+            <minDaysFromStart>0</minDaysFromStart>
+            <program id="MoUd5BTQ3lY"/>
+            <programStageDataElements>
+                <programStageDataElement lastUpdated="2018-08-28T12:22:42.533" id="mQ7M65AagEV"
+                                         created="2018-08-28T12:22:42.533">
+                    <displayInReports>true</displayInReports>
+                    <skipSynchronization>false</skipSynchronization>
+                    <externalAccess>false</externalAccess>
+                    <renderOptionsAsRadio>false</renderOptionsAsRadio>
+                    <allowFutureDate>false</allowFutureDate>
+                    <compulsory>true</compulsory>
+                    <allowProvidedElsewhere>false</allowProvidedElsewhere>
+                    <sortOrder>0</sortOrder>
+                    <favorite>false</favorite>
+                    <access>
+                        <read>true</read>
+                        <update>true</update>
+                        <externalize>true</externalize>
+                        <delete>true</delete>
+                        <write>true</write>
+                        <manage>true</manage>
+                    </access>
+                    <programStage id="Ge7Eo3FNnbl"/>
+                    <dataElement id="lWLkpWMHqEq"/>
+                </programStageDataElement>
+            </programStageDataElements>
+            <programStageSections>
+                <programStageSection id="e99B1JXVMMQ"/>
+            </programStageSections>
+        </programStage>
+    </programStages>
+    <programs>
+        <program lastUpdated="2018-08-28T12:22:43.057" id="MoUd5BTQ3lY" created="2018-08-28T12:22:43.057"
+                 name="XX MAL RDT - Case Registration" shortName="XX MAL RDT - Case Registration">
+            <ignoreOverdueEvents>false</ignoreOverdueEvents>
+            <skipOffline>false</skipOffline>
+            <onlyEnrollOnce>false</onlyEnrollOnce>
+            <version>1</version>
+            <maxTeiCountToReturn>0</maxTeiCountToReturn>
+            <selectIncidentDatesInFuture>false</selectIncidentDatesInFuture>
+            <selectEnrollmentDatesInFuture>false</selectEnrollmentDatesInFuture>
+            <useFirstStageDuringRegistration>false</useFirstStageDuringRegistration>
+            <completeEventsExpiryDays>0</completeEventsExpiryDays>
+            <featureType>NONE</featureType>
+            <minAttributesRequiredToSearch>1</minAttributesRequiredToSearch>
+            <displayFrontPageList>false</displayFrontPageList>
+            <programType>WITHOUT_REGISTRATION</programType>
+            <accessLevel>OPEN</accessLevel>
+            <displayIncidentDate>true</displayIncidentDate>
+            <expiryDays>0</expiryDays>
+            <categoryCombo id="bjDvmb4bfuf"/>
+            <style>
+                <color>#FF2233</color>
+                <icon>mosquito_positive</icon>
+            </style>
+            <programStages>
+                <programStage id="Ge7Eo3FNnbl"/>
+            </programStages>
+        </program>
+    </programs>
+    <programStageDataElements>
+        <programStageDataElement created="2018-08-28T12:22:42.533" lastUpdated="2018-08-28T12:22:42.533"
+                                 id="mQ7M65AagEV">
+            <displayInReports>true</displayInReports>
+            <skipSynchronization>false</skipSynchronization>
+            <renderOptionsAsRadio>false</renderOptionsAsRadio>
+            <compulsory>true</compulsory>
+            <allowProvidedElsewhere>false</allowProvidedElsewhere>
+            <sortOrder>0</sortOrder>
+            <allowFutureDate>false</allowFutureDate>
+            <programStage id="Ge7Eo3FNnbl"/>
+            <dataElement id="lWLkpWMHqEq"/>
+        </programStageDataElement>
+    </programStageDataElements>
+    <categoryCombos>
+        <categoryCombo code="default" created="2011-12-24T12:24:25.203" lastUpdated="2016-04-12T20:37:49.126"
+                       name="default" id="bjDvmb4bfuf">
+            <dataDimensionType>DISAGGREGATION</dataDimensionType>
+            <skipTotal>false</skipTotal>
+            <categories>
+                <category id="GLevLNI9wkl"/>
+            </categories>
+        </categoryCombo>
+    </categoryCombos>
+    <categories>
+        <category code="default" created="2012-11-21T12:15:18.537" lastUpdated="2019-11-09T03:02:38.232" name="default"
+                  id="GLevLNI9wkl">
+            <dataDimensionType>DISAGGREGATION</dataDimensionType>
+            <dataDimension>false</dataDimension>
+            <categoryOptions>
+                <categoryOption id="xYerKDKCefk"/>
+            </categoryOptions>
+        </category>
+    </categories>
+</metadata>

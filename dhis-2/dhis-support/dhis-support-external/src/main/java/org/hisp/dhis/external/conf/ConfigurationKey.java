@@ -85,7 +85,7 @@ public enum ConfigurationKey
     ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", "false" ),
     ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", "false" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
-    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
+    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
     SERVER_HTTPS( "server.https", "off" ),
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
