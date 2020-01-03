@@ -422,7 +422,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataElementOperand( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementOperand dataElementOperand )
     {
         if ( dataElementOperand == null ) return metadata;
-
         handleCategoryOptionCombo( metadata, dataElementOperand.getCategoryOptionCombo() );
         handleLegendSet( metadata, dataElementOperand.getLegendSets() );
         handleDataElement( metadata, dataElementOperand.getDataElement() );

@@ -1037,8 +1037,9 @@ public class Visualization
     }
 
     @Override
-    public void populateAnalyticalProperties() {
-        for (String column : columnDimensions) {
+    public void populateAnalyticalProperties()
+    {
+        for ( String column : columnDimensions ) {
             columns.add(getDimensionalObject(column));
         }
 

@@ -36,11 +36,11 @@ import java.util.List;
 public interface OptionService
 {
     String ID = OptionService.class.getName();
-   
+
     // -------------------------------------------------------------------------
     // OptionSet
     // -------------------------------------------------------------------------
-  
+
     long saveOptionSet( OptionSet optionSet );
 
     void updateOptionSet( OptionSet optionSet );
@@ -58,19 +58,19 @@ public interface OptionService
     List<OptionSet> getAllOptionSets();
 
     List<Option> getOptions( long optionSetId, String name, Integer max );
-    
+
     // -------------------------------------------------------------------------
     // Option
     // -------------------------------------------------------------------------
 
     void updateOption( Option option );
-    
+
     Option getOption( long id );
-    
+
     Option getOptionByCode( String code );
-        
+
     void deleteOption( Option option  );
-    
+
     // -------------------------------------------------------------------------
     // OptionGroup
     // -------------------------------------------------------------------------

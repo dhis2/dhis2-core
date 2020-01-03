@@ -104,7 +104,6 @@ public class ProgramStageObjectBundleHookTest
         ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections
             .singletonMap( OptionSet.class, Collections.singletonList( programStage ) ) );
 
-        Mockito.when( aclService.canRead( user, programStage ) ).thenReturn( false );
 
         List<ErrorReport> errors = subject.validate( programStage, bundle );
         Assert.assertEquals( 1, errors.size() );

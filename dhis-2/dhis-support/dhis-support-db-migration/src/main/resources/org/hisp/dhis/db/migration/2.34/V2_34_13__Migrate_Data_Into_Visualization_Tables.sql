@@ -288,7 +288,6 @@ SELECT
   usergroupaccessid
 FROM chartusergroupaccesses;
 
--- DOUBLE CHECK THIS ONE!
 -- Migrate the 'series' column from the chart table into visualization_columns.
 INSERT INTO visualization_columns
 (
@@ -302,7 +301,6 @@ SELECT
   sortorder
 FROM chart;
 
--- TODO: Maikel, DOUBLE CHECK THIS ONE!
 -- Migrate the 'category' column from the chart table into visualization_rows.
 INSERT INTO visualization_rows
 (
@@ -315,7 +313,6 @@ SELECT
   category,
   sortorder
 FROM chart;
-
 
 -- Set any possible empty or null NAME to an empty space ' '.
 UPDATE reporttable SET name = ' ' WHERE COALESCE(name, '') = '' OR name IS NULL;
@@ -668,8 +665,6 @@ UPDATE visualization SET showdata = FALSE WHERE showdata is NULL;
 
 -- Add int defaults for null columns to avoid Hibernate parse errors.
 UPDATE visualization SET toplimit = 0 WHERE toplimit is NULL;
-UPDATE visualization SET rangeaxissteps = 0 WHERE rangeaxissteps is NULL;
-UPDATE visualization SET rangeaxisdecimals = 0 WHERE rangeaxisdecimals is NULL;
 
 
 -- Add default public access for null columns.

@@ -92,8 +92,8 @@ public class StoreConfig
     @Bean( "org.hisp.dhis.indicator.IndicatorTypeStore" )
     public HibernateIdentifiableObjectStore<IndicatorType> indicatorTypeStore()
     {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, IndicatorType.class, currentUserService, deletedObjectService, aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            IndicatorType.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.indicator.IndicatorGroupStore" )
@@ -106,9 +106,8 @@ public class StoreConfig
     @Bean( "org.hisp.dhis.indicator.IndicatorGroupSetStore" )
     public HibernateIdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
-            sessionFactory, jdbcTemplate, publisher, IndicatorGroupSet.class, currentUserService, deletedObjectService,
-            aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            IndicatorGroupSet.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.predictor.PredictorGroupStore" )
@@ -156,8 +155,8 @@ public class StoreConfig
     @Bean( "org.hisp.dhis.constant.ConstantStore" )
     public HibernateIdentifiableObjectStore<Constant> constantStore()
     {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, Constant.class, currentUserService, deletedObjectService, aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            Constant.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.scheduling.JobConfigurationStore" )
@@ -171,23 +170,22 @@ public class StoreConfig
     @Bean( "org.hisp.dhis.option.OptionSetStore" )
     public HibernateIdentifiableObjectStore<OptionSet> optionSetStore()
     {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, OptionSet.class, currentUserService, deletedObjectService, aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            OptionSet.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.legend.LegendSetStore" )
     public HibernateIdentifiableObjectStore<LegendSet> legendSetStore()
     {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, LegendSet.class, currentUserService, deletedObjectService, aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            LegendSet.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.program.ProgramIndicatorGroupStore" )
     public HibernateIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
-            sessionFactory, jdbcTemplate, publisher, ProgramIndicatorGroup.class, currentUserService, deletedObjectService,
-            aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            ProgramIndicatorGroup.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.report.ReportStore" )
@@ -257,16 +255,14 @@ public class StoreConfig
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     public HibernateIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
-            sessionFactory, jdbcTemplate, publisher, ProgramNotificationTemplate.class, currentUserService, deletedObjectService,
-            aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            ProgramNotificationTemplate.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
     public HibernateIdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
-            sessionFactory, jdbcTemplate, publisher, ProgramNotificationInstance.class, currentUserService, deletedObjectService,
-            aclService, true );
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            ProgramNotificationInstance.class, currentUserService, deletedObjectService, aclService, true );
     }
 }

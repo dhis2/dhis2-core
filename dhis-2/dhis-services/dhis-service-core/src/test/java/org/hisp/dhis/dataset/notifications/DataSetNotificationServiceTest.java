@@ -69,7 +69,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class DataSetNotificationServiceTest extends DhisConvenienceTest
 {
@@ -198,9 +198,6 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
         summary.setChannel( DeliveryChannel.SMS );
         successStatus = new BatchResponseStatus( Arrays.asList( summary ) );
 
-        when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( templates );
-        when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) ).thenReturn( notificationMessage );
-        when( externalMessageService.sendMessages( anyList() ) ).thenReturn( successStatus );
     }
 
     @Test
@@ -225,6 +222,8 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     @Test
     public void testSendCompletionSMSNotification()
     {
+        when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+        when( externalMessageService.sendMessages( anyList() ) ).thenReturn( successStatus );
         when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( templates );
 
         subject.sendCompleteDataSetNotifications( registrationA );

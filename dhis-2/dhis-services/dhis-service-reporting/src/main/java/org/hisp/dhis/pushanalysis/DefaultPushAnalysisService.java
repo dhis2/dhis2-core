@@ -124,7 +124,7 @@ public class DefaultPushAnalysisService
     private final I18nManager i18nManager;
 
     private final MessageSender messageSender;
-    
+
     private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
     public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
@@ -286,7 +286,8 @@ public class DefaultPushAnalysisService
 
     @Override
     public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
-        throws IOException {
+        throws IOException
+    {
         if ( jobId == null )
         {
             jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid(), true );
@@ -353,7 +354,8 @@ public class DefaultPushAnalysisService
      * @param jobId for logging
      */
     private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
-        throws IOException {
+        throws IOException
+    {
         switch ( item.getType() )
         {
             case MAP:

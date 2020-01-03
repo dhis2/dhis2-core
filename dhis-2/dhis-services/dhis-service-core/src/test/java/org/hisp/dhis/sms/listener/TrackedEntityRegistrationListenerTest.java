@@ -138,13 +138,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( teiRegistrationCommand );
 
-        // Mock for trackedEntityInstanceService
-        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
-
-        // Mock for programInstanceService
-        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any() ) ).thenReturn( programInstance );
-
         // Mock for userService
         when( userService.getUser( anyString() ) ).thenReturn( user );
 
@@ -156,16 +149,22 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
             return response;
         });
 
-        // Mock for incomingSmsService
-        doAnswer( invocation -> {
-            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
-            return updatedIncomingSms;
-        }).when( incomingSmsService ).update( any() );
+
     }
 
     @Test
     public void testTeiRegistration()
     {
+        // Mock for trackedEntityInstanceService
+        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
+
+        // Mock for incomingSmsService
+        doAnswer( invocation -> {
+            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+            return updatedIncomingSms;
+        }).when( incomingSmsService ).update( any() );
+
         subject.receive( incomingSms );
 
         assertNotNull( updatedIncomingSms );
