@@ -41,6 +41,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
@@ -62,6 +63,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -156,9 +158,14 @@ public class EnrollmentSMSListener
 
         TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID.uid );
 
+        // return response if an ACTIVE enrollment exists
+        if ( enrollmentExists( tei, program ) )
+        {
+            return SMSResponse.ENROLL_EXIST;
+        }
+
         Date enrollmentDate = new Date();
-        // TODO: Should we check if the TEI is already enrolled? If so do we
-        // skip this?
+
         ProgramInstance enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate,
             submissionTimestamp, orgUnit, enrollmentUid != null ? enrollmentUid.uid : "" );
         if ( enrollment == null )
@@ -188,26 +195,33 @@ public class EnrollmentSMSListener
             .collect( Collectors.toSet() );
     }
 
-    protected TrackedEntityAttributeValue createTrackedEntityValue( SMSAttributeValue SMSAttributeValue,
+    private TrackedEntityAttributeValue createTrackedEntityValue( SMSAttributeValue SMSAttributeValue,
         TrackedEntityInstance tei )
     {
-        UID attribUID = SMSAttributeValue.getAttribute();
+        UID attributeUID = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();
 
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribUID.uid );
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attributeUID.uid );
         if ( attribute == null )
         {
-            throw new SMSProcessingException( SMSResponse.INVALID_ATTRIB.set( attribUID ) );
+            throw new SMSProcessingException( SMSResponse.INVALID_ATTRIB.set( attributeUID ) );
         }
         else if ( val == null )
         {
             // TODO: Is this an error we can't recover from?
-            throw new SMSProcessingException( SMSResponse.NULL_ATTRIBVAL.set( attribUID ) );
+            throw new SMSProcessingException( SMSResponse.NULL_ATTRIBVAL.set( attributeUID ) );
         }
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( attribute );
         trackedEntityAttributeValue.setEntityInstance( tei );
         trackedEntityAttributeValue.setValue( val );
         return trackedEntityAttributeValue;
+    }
+
+    private boolean enrollmentExists( TrackedEntityInstance tei, Program program )
+    {
+        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( tei, program, ProgramStatus.ACTIVE );
+
+        return !programInstances.isEmpty();
     }
 }
