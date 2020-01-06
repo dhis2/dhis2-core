@@ -1707,23 +1707,6 @@ public class DataQueryParams
         {
             resolvedExpressionItems.add(item);
         }
-        else
-        {
-            checkForIndicatorCyclicReference(item);
-        }
-    }
-
-    private void checkForIndicatorCyclicReference( final DimensionalItemObject item )
-    {
-        final boolean isNestedIndicator = item instanceof Indicator
-            && (((Indicator) item).getNumerator().contains( NESTED_INDICATOR_PREFIX )
-                || ((Indicator) item).getDenominator().contains( NESTED_INDICATOR_PREFIX ));
-        if ( isNestedIndicator )
-        {
-            throw new CyclicReferenceException(
-                String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item.",
-                    item.getDimensionItemType().name(), item.getUid() ) );
-        }
     }
 
     private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )

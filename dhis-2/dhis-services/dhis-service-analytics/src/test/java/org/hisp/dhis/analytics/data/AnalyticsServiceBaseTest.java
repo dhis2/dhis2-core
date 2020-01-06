@@ -93,12 +93,15 @@ public abstract class AnalyticsServiceBaseTest {
     @Mock
     private Environment environment;
 
+    @Mock
+    private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
+
     AnalyticsService target;
 
     @Before
     public void baseSetUp()
     {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager, nestedIndicatorCyclicDependencyInspector );
 
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
