@@ -100,58 +100,23 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
-
-    @Autowired
     protected TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Autowired
     protected RelationshipService _relationshipService;
-
-    @Autowired
-    org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
-
-    @Autowired
+    protected org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
     protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    @Autowired
     protected IdentifiableObjectManager manager;
-
-    @Autowired
     protected UserService userService;
-
-    @Autowired
     protected DbmsManager dbmsManager;
-
-    @Autowired
     protected EnrollmentService enrollmentService;
-
-    @Autowired
     protected ProgramInstanceService programInstanceService;
-
-    @Autowired
     protected CurrentUserService currentUserService;
-
-    @Autowired
     protected SchemaService schemaService;
-
-    @Autowired
     protected QueryService queryService;
-
-    @Autowired
     protected ReservedValueService reservedValueService;
-
-    @Autowired
     protected TrackerAccessManager trackerAccessManager;
-
-    @Autowired
     protected FileResourceService fileResourceService;
-
-    @Autowired
     protected TrackerOwnershipManager trackerOwnershipAccessManager;
-
-    @Autowired
     protected Notifier notifier;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
