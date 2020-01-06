@@ -28,7 +28,14 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -38,16 +45,12 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import com.google.common.base.MoreObjects;
+import com.google.common.primitives.Booleans;
 
 /**
  * Class representing query parameters for retrieving event data from the
@@ -500,6 +503,33 @@ public class EventQueryParams
             return true;
         }
 
+        if ( program != null )
+        {
+            return validateProgramHasOrgUnitField( program );
+        }
+
+        if ( !itemProgramIndicators.isEmpty() )
+        {
+            boolean[] isValidated = new boolean[itemProgramIndicators.size()];
+
+            for ( int i = 0; i < itemProgramIndicators.size(); i++ )
+            {
+                ProgramIndicator itemProgramIndicator = itemProgramIndicators.get( i );
+                Program program = itemProgramIndicator.getProgram();
+
+                isValidated[i] = validateProgramHasOrgUnitField( program );
+
+            }
+            // if at least one Program Indicator doesn't validate, fail the validation
+            return !Booleans.contains( isValidated, false );
+        }
+
+        return false;
+    }
+
+    private boolean validateProgramHasOrgUnitField( Program program )
+    {
+
         if ( program.getTrackedEntityAttributes().stream()
             .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
         {
@@ -514,7 +544,7 @@ public class EventQueryParams
 
         return false;
     }
-
+    
     /**
      * Gets program status
      */
