@@ -51,6 +51,8 @@ import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.external.util.LogOnceLogger;
+import org.slf4j.event.Level;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -67,7 +69,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Profile("!test")
 @Component( "dhisConfigurationProvider" )
-public class DefaultDhisConfigurationProvider
+public class DefaultDhisConfigurationProvider extends LogOnceLogger
     implements DhisConfigurationProvider
 {
     private static final Log log = LogFactory.getLog( DefaultDhisConfigurationProvider.class );
@@ -123,11 +125,11 @@ public class DefaultDhisConfigurationProvider
         }
         catch ( LocationManagerException ex )
         {
-            log.info( "Could not find dhis-google-auth.json" );
+            log( log, Level.INFO, "Could not find dhis-google-auth.json" );
         }
         catch ( IOException ex )
         {
-            log.warn( "Could not load credential from dhis-google-auth.json", ex );
+            warn( log, "Could not load credential from dhis-google-auth.json", ex );
         }
 
         // ---------------------------------------------------------------------
@@ -142,15 +144,15 @@ public class DefaultDhisConfigurationProvider
 
             this.googleCredential = Optional.of( credential );
 
-            log.info( "Loaded dhis-google-auth.json authentication file" );
+            log( log, Level.INFO, "Loaded dhis-google-auth.json authentication file" );
         }
         catch ( LocationManagerException ex )
         {
-            log.info( "Could not find dhis-google-auth.json" );
+            log( log, Level.INFO, "Could not find dhis-google-auth.json" );
         }
         catch ( IOException ex )
         {
-            log.warn( "Could not load credential from dhis-google-auth.json", ex );
+            warn( log, "Could not load credential from dhis-google-auth.json", ex );
         }
     }
 

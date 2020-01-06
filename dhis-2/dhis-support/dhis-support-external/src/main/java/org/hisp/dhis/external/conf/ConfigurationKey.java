@@ -85,7 +85,7 @@ public enum ConfigurationKey
     ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", "false" ),
     ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", "false" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
-    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
+    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
     SERVER_HTTPS( "server.https", "off" ),
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
@@ -95,6 +95,9 @@ public enum ConfigurationKey
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
     MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false ),
+    MONITORING_LOG_REQUESTID_ENABLED( "monitoring.requestidlog.enabled", "off", false ),
+    MONITORING_LOG_REQUESTID_HASHALGO( "monitoring.requestidlog.hash", "SHA-256", false ),
+    MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
     APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
     APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false );
 

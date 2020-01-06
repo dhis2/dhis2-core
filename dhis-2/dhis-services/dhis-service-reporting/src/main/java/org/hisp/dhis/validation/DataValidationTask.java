@@ -227,17 +227,11 @@ public class DataValidationTask
 
         Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
-        if ( attributeOptionCombos.isEmpty() )
-        {
-            attributeOptionCombos = Sets.newHashSet( context.getDefaultAttributeCombo().getUid() );
-        }
-
-        loop:
         for ( String optionCombo : attributeOptionCombos )
         {
             if ( context.isAnalysisComplete() )
             {
-                break loop;
+                break;
             }
 
             if ( NON_AOC.compareTo( optionCombo ) == 0 )
@@ -326,7 +320,6 @@ public class DataValidationTask
         String test = leftSide
             + ruleX.getRule().getOperator().getMathematicalOperator()
             + rightSide;
-
         return ! (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST );
     }
 

@@ -50,7 +50,6 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.repository.TrackedEntityAttributeRepository;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -155,8 +154,6 @@ public abstract class AbstractTrackedEntityInstanceService
     @Autowired
     protected Notifier notifier;
 
-    @Autowired
-    protected TrackedEntityAttributeRepository trackedEntityAttributeRepository;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -200,9 +197,9 @@ public abstract class AbstractTrackedEntityInstanceService
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeRepository.getTrackedEntityAttributesByTrackedEntityTypes();
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes();
 
-        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = trackedEntityAttributeRepository.getTrackedEntityAttributesByProgram();
+        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService.getTrackedEntityAttributesByProgram();
 
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {

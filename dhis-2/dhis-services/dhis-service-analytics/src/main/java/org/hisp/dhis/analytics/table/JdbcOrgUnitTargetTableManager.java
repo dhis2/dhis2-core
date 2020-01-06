@@ -87,8 +87,8 @@ public class JdbcOrgUnitTargetTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> FIXED_COLS = Lists
-        .newArrayList( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
+    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+        new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()

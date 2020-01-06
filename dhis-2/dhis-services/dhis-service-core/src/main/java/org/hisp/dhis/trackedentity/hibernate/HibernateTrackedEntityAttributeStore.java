@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.QueryFilter;
@@ -38,6 +39,8 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
@@ -48,9 +51,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -151,5 +152,39 @@ public class HibernateTrackedEntityAttributeStore
         }
 
         return Optional.empty();
+    }
+
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
+    {
+        Query query = sessionFactory.getCurrentSession()
+                .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
+
+        return new HashSet<>( query.list() );
+    }
+
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
+    {
+        Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
+
+        Query query = sessionFactory.getCurrentSession().createQuery( "select p.programAttributes from Program p" );
+
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = (List<ProgramTrackedEntityAttribute>) query.list();
+
+        for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : programTrackedEntityAttributes )
+        {
+            if ( !result.containsKey( programTrackedEntityAttribute.getProgram() ) )
+            {
+                result.put( programTrackedEntityAttribute.getProgram(), Sets.newHashSet( programTrackedEntityAttribute.getAttribute() ) );
+            }
+            else
+            {
+                result.get( programTrackedEntityAttribute.getProgram() ).add( programTrackedEntityAttribute.getAttribute() );
+            }
+        }
+        return result;
     }
 }

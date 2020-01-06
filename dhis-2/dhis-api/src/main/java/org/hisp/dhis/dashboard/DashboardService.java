@@ -35,6 +35,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 
 import java.util.Set;
 
@@ -94,6 +95,8 @@ public interface DashboardService
     int countEventChartDashboardItems( EventChart eventChart );
 
     int countReportTableDashboardItems( ReportTable reportTable );
+
+    int countVisualizationDashboardItems( Visualization visualization );
 
     int countReportDashboardItems( Report report );
 

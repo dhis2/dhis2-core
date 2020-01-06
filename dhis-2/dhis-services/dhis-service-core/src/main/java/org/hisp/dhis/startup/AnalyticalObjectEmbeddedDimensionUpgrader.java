@@ -54,6 +54,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
@@ -107,6 +108,10 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
 
         try
         {
+            upgradeGrupSetDimensions( "visualization", "orgunitgroupset", "orgunitgroup", Visualization.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
+            upgradeGrupSetDimensions( "visualization", "dataelementgroupset", "dataelementgroup", Visualization.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
+            upgradeGrupSetDimensions( "visualization", "categoryoptiongroupset", "categoryoptiongroup", Visualization.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );
+
             upgradeGrupSetDimensions( "reporttable", "orgunitgroupset", "orgunitgroup", ReportTable.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
             upgradeGrupSetDimensions( "reporttable", "dataelementgroupset", "dataelementgroup", ReportTable.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
             upgradeGrupSetDimensions( "reporttable", "categoryoptiongroupset", "categoryoptiongroup", ReportTable.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );

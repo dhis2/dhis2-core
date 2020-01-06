@@ -70,7 +70,7 @@ import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
-import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
+import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -128,6 +128,7 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -141,13 +142,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -508,7 +509,7 @@ public class DefaultAnalyticsService
 
             List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
 
-            Map<String, Double> constantMap = constantService.getConstantMap();
+            Map<String, Constant> constantMap = constantService.getConstantMap();
 
             // -----------------------------------------------------------------
             // Get indicator values
@@ -580,12 +581,12 @@ public class DefaultAnalyticsService
      */
     private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
     {
-        if ( !params.hasMeasureCriteria() )
+        if ( !params.hasMeasureCriteria() || value == null )
         {
             return true;
         }
 
-        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() ).doubleValue();
 
         return !params.getMeasureCriteria().entrySet().stream()
             .anyMatch( measureValue -> !measureValue.getKey()
@@ -1024,7 +1025,7 @@ public class DefaultAnalyticsService
 
         queryValidator.validateTableLayout( params, columns, rows );
 
-        ReportTable reportTable = new ReportTable();
+        final Visualization visualization = new Visualization();
 
         List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
         List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
@@ -1033,7 +1034,7 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : columns )
             {
-                reportTable.getColumnDimensions().add( dimension );
+                visualization.getColumnDimensions().add( dimension );
                 tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
         }
@@ -1042,26 +1043,26 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : rows )
             {
-                reportTable.getRowDimensions().add( dimension );
+                visualization.getRowDimensions().add( dimension );
                 tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
         }
 
-        reportTable
+        visualization
             .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
             .setGridColumns( CombinationGenerator.newInstance( tableColumns ).getCombinations() )
             .setGridRows( CombinationGenerator.newInstance( tableRows ).getCombinations() );
 
-        addListIfEmpty( reportTable.getGridColumns() );
-        addListIfEmpty( reportTable.getGridRows() );
+        addListIfEmpty( visualization.getGridColumns() );
+        addListIfEmpty( visualization.getGridRows() );
 
-        reportTable.setHideEmptyRows( params.isHideEmptyRows() );
-        reportTable.setHideEmptyColumns( params.isHideEmptyColumns() );
-        reportTable.setShowHierarchy( params.isShowHierarchy() );
+        visualization.setHideEmptyRows( params.isHideEmptyRows() );
+        visualization.setHideEmptyColumns( params.isHideEmptyColumns() );
+        visualization.setShowHierarchy( params.isShowHierarchy() );
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
 
-        return reportTable.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false );
+        return visualization.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false );
     }
 
     // -------------------------------------------------------------------------
