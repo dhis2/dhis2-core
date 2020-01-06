@@ -45,6 +45,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -161,7 +162,11 @@ public class HibernateTrackedEntityAttributeStore
         Query query = sessionFactory.getCurrentSession()
                 .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
 
-        return new HashSet<>( query.list() );
+        Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>( query.list() );
+
+        return trackedEntityTypeAttributes.stream()
+            .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
+            .collect( Collectors.toSet() );
     }
 
 
