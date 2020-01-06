@@ -59,7 +59,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -133,13 +132,6 @@ public class DataQueryParams
 
     public static final int DX_INDEX = 0;
     public static final int NUMERATOR_DENOMINATOR_PROPERTIES_COUNT = 5;
-
-    /**
-     * @see {@link org.hisp.dhis.expression.ExpressionService}
-     * @see "/dhis-2/dhis-support/dhis-support-expression-parser/src/main/antlr4/org/hisp
-     *          /dhis/parser/expression/antlr/Expression.g4"
-     */
-    private static final String NESTED_INDICATOR_PREFIX = "N{";
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of(
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, Category.class );
@@ -412,12 +404,6 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
-    /**
-     * Holds a list of {@see DimensionalItemObject} resolved during expression evaluation.
-     * The Set is used to detect cyclic dependency between items
-     */
-    protected transient Set<DimensionalItemObject> resolvedExpressionItems = new HashSet<>();
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -507,7 +493,6 @@ public class DataQueryParams
         params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
-        params.resolvedExpressionItems = this.resolvedExpressionItems;
         return params;
     }
 
@@ -1699,24 +1684,6 @@ public class DataQueryParams
             dimension.getItems().removeAll( existing );
             dimension.getItems().addAll( options );
         }
-    }
-
-    public void addResolvedExpressionItem( DimensionalItemObject item)
-    {
-        if ( !resolvedExpressionItems.contains(item) )
-        {
-            resolvedExpressionItems.add(item);
-        }
-    }
-
-    private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )
-    {
-        dimensionalItemObjectList.forEach( this::addResolvedExpressionItem );
-    }
-
-    public void removeResolvedExpressionItem( DimensionalItemObject item )
-    {
-        this.resolvedExpressionItems.remove( item );
     }
 
     // -------------------------------------------------------------------------
@@ -2943,12 +2910,6 @@ public class DataQueryParams
         public Builder withPeriodDimensionWithoutOptions()
         {
             this.params.setPeriodDimensionWithoutOptions();
-            return this;
-        }
-
-        public Builder withResolvedExpressionItems( List<DimensionalItemObject> items )
-        {
-            this.params.addResolvedExpressionItems( items );
             return this;
         }
 
