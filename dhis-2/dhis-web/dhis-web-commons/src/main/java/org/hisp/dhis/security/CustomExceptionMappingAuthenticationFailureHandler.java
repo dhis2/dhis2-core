@@ -48,9 +48,6 @@ public class CustomExceptionMappingAuthenticationFailureHandler
     extends ExceptionMappingAuthenticationFailureHandler
 {
     @Autowired
-    private SecurityService securityService;
-
-    @Autowired
     private I18nManager i18nManager;
 
     @Override

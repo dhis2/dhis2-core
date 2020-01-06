@@ -83,10 +83,10 @@ public class RequestIdentifierFilter
     {
         this.dhisConfig = dhisConfig;
 
-        this.HASH_ALGO = dhisConfig.getProperty( MONITORING_LOG_REQUESTID_HASHALGO );
-        this.MAX_SIZE = Integer.parseInt( dhisConfig.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) );
+        this.HASH_ALGO = this.dhisConfig.getProperty( MONITORING_LOG_REQUESTID_HASHALGO );
+        this.MAX_SIZE = Integer.parseInt( this.dhisConfig.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) );
 
-        this.enabled = dhisConfig.isEnabled( MONITORING_LOG_REQUESTID_ENABLED );
+        this.enabled = this.dhisConfig.isEnabled( MONITORING_LOG_REQUESTID_ENABLED );
     }
 
     @Override
