@@ -1407,6 +1407,11 @@
         <artifactId>random-beans</artifactId>
         <version>3.7.0</version>
       </dependency>
+      <dependency>
+        <groupId>com.scalified</groupId>
+        <artifactId>tree</artifactId>
+        <version>0.2.5</version>
+      </dependency>
 
       <!-- application monitoring -->
       <dependency>
