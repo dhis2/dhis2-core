@@ -37,6 +37,9 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
+ * Class for Audit message persistence, meant to be a complete replacement for
+ * our existing audit hibernate classes.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
