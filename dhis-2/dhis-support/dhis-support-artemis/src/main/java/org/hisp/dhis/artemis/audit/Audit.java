@@ -41,10 +41,13 @@ import org.hisp.dhis.common.IdentifiableObject;
 import java.time.LocalDateTime;
 
 /**
+ * Class for Audit messages, mostly compatible with {@link org.hisp.dhis.audit.Audit}
+ * but has some additions relevant only to Artemis messages.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@Builder( builderClassName = "AuditBuilder", toBuilder = true )
+@Builder( builderClassName = "AuditBuilder" )
 public class Audit implements Message
 {
     @JsonProperty
