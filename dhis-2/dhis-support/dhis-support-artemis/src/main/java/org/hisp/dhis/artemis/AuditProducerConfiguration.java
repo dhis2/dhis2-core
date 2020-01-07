@@ -28,47 +28,19 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.Builder;
+import lombok.Value;
+
 /**
  * @author Luciano Fiandesio
  */
-public class ProducerConfiguration
+@Value
+@Builder
+public class AuditProducerConfiguration
 {
-    private boolean useQueue = false;
-
-    private ProducerConfiguration( boolean useQueue )
-    {
-        this.useQueue = useQueue;
-    }
-
-    public boolean isUseQueue()
-    {
-        return useQueue;
-    }
-
-    public static final class ProducerConfigurationBuilder
-    {
-        private boolean useQueue;
-
-        private int queueSize;
-
-        private ProducerConfigurationBuilder()
-        {
-        }
-
-        public static ProducerConfigurationBuilder aProducerConfiguration()
-        {
-            return new ProducerConfigurationBuilder();
-        }
-
-        public ProducerConfigurationBuilder withUseQueue( boolean useQueue )
-        {
-            this.useQueue = useQueue;
-            return this;
-        }
-
-        public ProducerConfiguration build()
-        {
-            return new ProducerConfiguration( useQueue );
-        }
-    }
+    /**
+     * if true, every Audit message is placed into an in-memory queue
+     * before being dispatched to the Message Broker
+     */
+    private boolean useQueue;
 }

@@ -28,9 +28,7 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.artemis.ProducerConfiguration;
+import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -41,16 +39,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component
 public class AuditManager
 {
-    private static final Log log = LogFactory.getLog( AuditManager.class );
-
     private final AuditProducerSupplier auditProducerSupplier;
-    private final ProducerConfiguration config;
+    private final AuditProducerConfiguration config;
     private final AuditScheduler auditScheduler;
 
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
         AuditScheduler auditScheduler,
-        ProducerConfiguration config )
+        AuditProducerConfiguration config )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
