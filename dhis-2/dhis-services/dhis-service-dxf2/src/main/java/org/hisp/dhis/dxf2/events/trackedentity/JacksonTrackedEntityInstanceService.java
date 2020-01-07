@@ -37,13 +37,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -58,6 +74,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -66,6 +84,55 @@ import java.util.stream.Collectors;
 @Transactional
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService
 {
+    public JacksonTrackedEntityInstanceService( org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
+        TrackedEntityAttributeService trackedEntityAttributeService, RelationshipService _relationshipService,
+        org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService, IdentifiableObjectManager manager,
+        UserService userService, DbmsManager dbmsManager, EnrollmentService enrollmentService,
+        ProgramInstanceService programInstanceService, CurrentUserService currentUserService,
+        SchemaService schemaService, QueryService queryService, ReservedValueService reservedValueService,
+        TrackerAccessManager trackerAccessManager, FileResourceService fileResourceService,
+        TrackerOwnershipManager trackerOwnershipAccessManager, Notifier notifier )
+    {
+        checkNotNull( teiService );
+        checkNotNull( trackedEntityAttributeService );
+        checkNotNull( _relationshipService );
+        checkNotNull( relationshipService );
+        checkNotNull( trackedEntityAttributeValueService );
+        checkNotNull( manager );
+        checkNotNull( userService );
+        checkNotNull( dbmsManager );
+        checkNotNull( enrollmentService );
+        checkNotNull( programInstanceService );
+        checkNotNull( currentUserService );
+        checkNotNull( schemaService );
+        checkNotNull( queryService );
+        checkNotNull( reservedValueService );
+        checkNotNull( trackerAccessManager );
+        checkNotNull( fileResourceService );
+        checkNotNull( trackerOwnershipAccessManager );
+        checkNotNull( notifier );
+
+        this.teiService = teiService;
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
+        this._relationshipService = _relationshipService;
+        this.relationshipService = relationshipService;
+        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+        this.manager = manager;
+        this.userService = userService;
+        this.dbmsManager = dbmsManager;
+        this.enrollmentService = enrollmentService;
+        this.programInstanceService = programInstanceService;
+        this.currentUserService = currentUserService;
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+        this.reservedValueService = reservedValueService;
+        this.trackerAccessManager = trackerAccessManager;
+        this.fileResourceService = fileResourceService;
+        this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+        this.notifier = notifier;
+    }
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
