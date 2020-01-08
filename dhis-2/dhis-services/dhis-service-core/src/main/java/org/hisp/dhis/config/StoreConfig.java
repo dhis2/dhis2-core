@@ -58,6 +58,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -133,14 +134,14 @@ public class StoreConfig
     @Bean( "org.hisp.dhis.user.UserGroupAccessStore" )
     public HibernateGenericStore<UserGroupAccess> userGroupAccessStore()
     {
-        return new HibernateGenericStore<UserGroupAccess>( sessionFactory, jdbcTemplate, publisher,
+        return new HibernateGenericStore<>( sessionFactory, jdbcTemplate, publisher,
             UserGroupAccess.class, true );
     }
 
     @Bean( "org.hisp.dhis.user.UserAccessStore" )
     public HibernateGenericStore<UserAccess> userAccessStore()
     {
-        return new HibernateGenericStore<UserAccess>( sessionFactory, jdbcTemplate, publisher,
+        return new HibernateGenericStore<>( sessionFactory, jdbcTemplate, publisher,
             UserAccess.class, true );
     }
 
@@ -204,8 +205,16 @@ public class StoreConfig
     @Bean( "org.hisp.dhis.reporttable.ReportTableStore" )
     public HibernateAnalyticalObjectStore<ReportTable> reportTableStore()
     {
-        return new HibernateAnalyticalObjectStore<ReportTable>( sessionFactory,
+        return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, ReportTable.class, currentUserService, deletedObjectService, aclService, true );
+    }
+
+    @Bean( "org.hisp.dhis.visualization.VisualizationStore" )
+    public HibernateAnalyticalObjectStore<Visualization> visualizationStore()
+    {
+        return new HibernateAnalyticalObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            Visualization.class, currentUserService, deletedObjectService, aclService,
+            true );
     }
 
     @Bean( "org.hisp.dhis.dashboard.DashboardStore" )

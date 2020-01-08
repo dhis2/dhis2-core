@@ -600,24 +600,29 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     Collection<IdentifiableObject> objects = ReflectionUtils.newCollectionInstance( p.getKlass() );
                     Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
 
-                    for ( IdentifiableObject refObject : refObjects )
+                    if ( refObjects != null )
                     {
-                        if ( preheat.isDefault( refObject ) ) continue;
-
-                        IdentifiableObject ref = preheat.get( identifier, refObject );
-
-                        if ( ref == null && refObject != null )
+                        for ( IdentifiableObject refObject : refObjects )
                         {
-                            preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
-                                identifier.getIdentifiersWithName( refObject ), identifier.getIdentifiersWithName( object ), p.getCollectionName() ) );
+                            if ( preheat.isDefault( refObject ) )
+                                continue;
+
+                            IdentifiableObject ref = preheat.get( identifier, refObject );
+
+                            if ( ref == null && refObject != null )
+                            {
+                                preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
+                                    ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
+                                    identifier.getIdentifiersWithName( object ), p.getCollectionName() ) );
+                            }
+                            else
+                            {
+                                objects.add( refObject );
+                            }
                         }
-                        else
-                        {
-                            objects.add( refObject );
-                        }
+
+                        ReflectionUtils.invokeMethod( object, p.getSetterMethod(), objects );
                     }
-
-                    ReflectionUtils.invokeMethod( object, p.getSetterMethod(), objects );
                 }
             } );
 

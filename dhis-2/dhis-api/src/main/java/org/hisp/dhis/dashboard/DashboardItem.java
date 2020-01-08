@@ -28,14 +28,14 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
@@ -47,10 +47,13 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Represents an item in the dashboard. An item can represent an embedded object
@@ -58,19 +61,21 @@ import java.util.List;
  *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "dashboardItem", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "dashboardItem", namespace = DXF_2_0 )
 public class DashboardItem
     extends BaseIdentifiableObject implements EmbeddedObject
 {
     public static final int MAX_CONTENT = 8;
+
+    private Visualization visualization;
+
+    private ReportTable reportTable;
 
     private Chart chart;
 
     private EventChart eventChart;
 
     private Map map;
-
-    private ReportTable reportTable;
 
     private EventReport eventReport;
 
@@ -115,12 +120,20 @@ public class DashboardItem
     // -------------------------------------------------------------------------
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public DashboardItemType getType()
     {
-        if ( chart != null )
+        if ( visualization != null )
+        {
+            return DashboardItemType.VISUALIZATION;
+        }
+        else if ( chart != null )
         {
             return DashboardItemType.CHART;
+        }
+        else if ( reportTable != null )
+        {
+            return DashboardItemType.REPORT_TABLE;
         }
         else if ( eventChart != null )
         {
@@ -129,10 +142,6 @@ public class DashboardItem
         else if ( map != null )
         {
             return DashboardItemType.MAP;
-        }
-        else if ( reportTable != null )
-        {
-            return DashboardItemType.REPORT_TABLE;
         }
         else if ( eventReport != null )
         {
@@ -172,9 +181,17 @@ public class DashboardItem
      */
     public InterpretableObject getEmbeddedItem()
     {
-        if ( chart != null )
+        if ( visualization != null )
+        {
+            return visualization;
+        }
+        else if ( chart != null )
         {
             return chart;
+        }
+        else if ( reportTable != null )
+        {
+            return reportTable;
         }
         else if ( eventChart != null )
         {
@@ -183,10 +200,6 @@ public class DashboardItem
         else if ( map != null )
         {
             return map;
-        }
-        else if ( reportTable != null )
-        {
-            return reportTable;
         }
         else if ( eventReport != null )
         {
@@ -197,7 +210,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public int getInterpretationCount()
     {
         InterpretableObject object = getEmbeddedItem();
@@ -206,7 +219,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public int getInterpretationLikeCount()
     {
         InterpretableObject object = getEmbeddedItem();
@@ -238,10 +251,11 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public int getContentCount()
     {
         int count = 0;
+        count += visualization != null ? 1 : 0;
         count += chart != null ? 1 : 0;
         count += eventChart != null ? 1 : 0;
         count += map != null ? 1 : 0;
@@ -301,7 +315,20 @@ public class DashboardItem
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public Visualization getVisualization()
+    {
+        return visualization;
+    }
+
+    public void setVisualization( Visualization visualization )
+    {
+        this.visualization = visualization;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Chart getChart()
     {
         return chart;
@@ -314,33 +341,7 @@ public class DashboardItem
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventChart getEventChart()
-    {
-        return eventChart;
-    }
-
-    public void setEventChart( EventChart eventChart )
-    {
-        this.eventChart = eventChart;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Map getMap()
-    {
-        return map;
-    }
-
-    public void setMap( Map map )
-    {
-        this.map = map;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public ReportTable getReportTable()
     {
         return reportTable;
@@ -353,7 +354,33 @@ public class DashboardItem
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public EventChart getEventChart()
+    {
+        return eventChart;
+    }
+
+    public void setEventChart( EventChart eventChart )
+    {
+        this.eventChart = eventChart;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public Map getMap()
+    {
+        return map;
+    }
+
+    public void setMap( Map map )
+    {
+        this.map = map;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public EventReport getEventReport()
     {
         return eventReport;
@@ -365,7 +392,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getText()
     {
         return text;
@@ -378,8 +405,8 @@ public class DashboardItem
 
     @JsonProperty( "users" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "users", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "users", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "user", namespace = DXF_2_0 )
     public List<User> getUsers()
     {
         return users;
@@ -392,8 +419,8 @@ public class DashboardItem
 
     @JsonProperty( "reports" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "reports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "report", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "reports", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "report", namespace = DXF_2_0 )
     public List<Report> getReports()
     {
         return reports;
@@ -406,8 +433,8 @@ public class DashboardItem
 
     @JsonProperty( "resources" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "resources", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "resource", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "resources", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "resource", namespace = DXF_2_0 )
     public List<Document> getResources()
     {
         return resources;
@@ -419,7 +446,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Boolean getMessages()
     {
         return messages;
@@ -431,7 +458,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getAppKey()
     {
         return appKey;
@@ -443,7 +470,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public DashboardItemShape getShape()
     {
         return shape;
@@ -455,7 +482,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getX()
     {
         return x;
@@ -467,7 +494,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getY()
     {
         return y;
@@ -479,7 +506,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getHeight()
     {
         return height;
@@ -491,7 +518,7 @@ public class DashboardItem
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getWidth()
     {
         return width;

@@ -37,6 +37,7 @@ package org.hisp.dhis.datastatistics;
 public enum DataStatisticsEventType
 {
     REPORT_TABLE_VIEW( "reporttable" ),
+    VISUALIZATION_VIEW( "visualization" ),
     CHART_VIEW( "chart" ),
     MAP_VIEW( "map" ),
     EVENT_REPORT_VIEW( "eventreport" ),
