@@ -28,6 +28,7 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -38,7 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
  * The min, max, step and decimal properties in this class does not represent the data validation, it only serves as
  * a guideline on how form elements should be defined (IE: Sliders, spinners, etc)
  */
-public class ValueTypeRenderingObject
+public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRenderingType>
 {
     /**
      * The renderingType
@@ -67,10 +68,23 @@ public class ValueTypeRenderingObject
      */
     private Integer decimalPoints;
 
+    //------------------------------------------
+    // Constructors
+    //------------------------------------------
+
     public ValueTypeRenderingObject()
     {
         this.type = ValueTypeRenderingType.DEFAULT;
     }
+
+    public ValueTypeRenderingObject( ValueTypeRenderingType type )
+    {
+        this.type =  type;
+    }
+
+    //------------------------------------------
+    // Getters & Setters
+    //------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -130,5 +144,12 @@ public class ValueTypeRenderingObject
     public void setType( ValueTypeRenderingType renderingType )
     {
         this.type = renderingType;
+    }
+
+    @Override
+    @JsonIgnore
+    public Class getRenderTypeClass()
+    {
+        return ValueTypeRenderingType.class;
     }
 }
