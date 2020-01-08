@@ -510,18 +510,8 @@ public class EventQueryParams
 
         if ( !itemProgramIndicators.isEmpty() )
         {
-            boolean[] isValidated = new boolean[itemProgramIndicators.size()];
-
-            for ( int i = 0; i < itemProgramIndicators.size(); i++ )
-            {
-                ProgramIndicator itemProgramIndicator = itemProgramIndicators.get( i );
-                Program program = itemProgramIndicator.getProgram();
-
-                isValidated[i] = validateProgramHasOrgUnitField( program );
-
-            }
             // if at least one Program Indicator doesn't validate, fail the validation
-            return !Booleans.contains( isValidated, false );
+            return !itemProgramIndicators.stream().anyMatch( pi -> !validateProgramHasOrgUnitField( pi.getProgram() ) );
         }
 
         return false;
