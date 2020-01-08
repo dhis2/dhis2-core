@@ -27,6 +27,13 @@ package org.hisp.dhis.db.migration.v33;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
@@ -35,22 +42,12 @@ import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.util.SerializationUtils;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * @author David Katuscak
+ * @author David Katuscak (katuscak.d@gmail.com)
  */
 public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJavaMigration
 {
     private static final Log log = LogFactory.getLog( V2_33_1__Job_configuration_job_type_column_to_varchar.class );
-
-    private static final String CHECK_COLUMN_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE " +
-        "table_name = 'jobconfiguration' AND column_name = 'jobtype';";
 
     @Override
     public void migrate( final Context context ) throws Exception
@@ -58,9 +55,11 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
         //1. Check whether migration is needed at all. Maybe it was already applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
-        try (Statement stmt = context.getConnection().createStatement())
+        String sql = "SELECT data_type FROM information_schema.columns " +
+            "WHERE table_name = 'jobconfiguration' AND column_name = 'jobtype';";
+        try ( Statement stmt = context.getConnection().createStatement();
+              ResultSet rs = stmt.executeQuery( sql ); )
         {
-            ResultSet rs = stmt.executeQuery( CHECK_COLUMN_DATA_TYPE_SQL );
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ))
             {
                 continueWithMigration = true;
@@ -77,15 +76,13 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
 
             //3. Move existing jobtype from bytearray column into varchar column
             Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();
-            try ( Statement stmt = context.getConnection().createStatement() )
+            sql = "SELECT jobconfigurationid, jobtype FROM jobconfiguration WHERE jobtype IS NOT NULL";
+            try ( Statement stmt = context.getConnection().createStatement();
+                  ResultSet rs = stmt.executeQuery( sql ); )
             {
-                try ( ResultSet rows = stmt.executeQuery(
-                    "SELECT jobconfigurationid, jobtype FROM jobconfiguration WHERE jobtype IS NOT NULL" ) )
+                while ( rs.next() )
                 {
-                    while ( rows.next() )
-                    {
-                        jobTypeByteMap.put( rows.getInt( "jobconfigurationid" ), rows.getBytes( "jobtype" ) );
-                    }
+                    jobTypeByteMap.put( rs.getInt( "jobconfigurationid" ), rs.getBytes( "jobtype" ) );
                 }
             }
 

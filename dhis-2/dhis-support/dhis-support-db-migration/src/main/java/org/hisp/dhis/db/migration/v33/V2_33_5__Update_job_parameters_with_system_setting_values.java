@@ -27,12 +27,12 @@ package org.hisp.dhis.db.migration.v33;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
@@ -45,14 +45,15 @@ import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJob
 import org.postgresql.util.PGobject;
 import org.springframework.util.SerializationUtils;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak (katuscak.d@gmail.com)
  */
 public class V2_33_5__Update_job_parameters_with_system_setting_values extends BaseJavaMigration
 {
@@ -70,28 +71,31 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
         int eventPageSize = 0;
         int dataValuesPageSize = 0;
 
-        try ( Statement stmt = context.getConnection().createStatement())
+        String sql = "SELECT value FROM systemsetting WHERE name = '" + TRACKER_PROGRAM_SYNC_PAGE_SIZE +"';";
+        try ( Statement stmt = context.getConnection().createStatement();
+              ResultSet rs = stmt.executeQuery( sql ); )
         {
-            ResultSet rs = stmt.executeQuery( "SELECT value FROM systemsetting WHERE name = '" + TRACKER_PROGRAM_SYNC_PAGE_SIZE +"';" );
-            if ( rs.next())
+            if ( rs.next() )
             {
                 trackerPageSize = (Integer) SerializationUtils.deserialize( rs.getBytes( "value" ) );
             }
         }
 
-        try ( Statement stmt = context.getConnection().createStatement())
+        sql = "SELECT value FROM systemsetting WHERE name = '" + EVENT_PROGRAM_SYNC_PAGE_SIZE +"';";
+        try ( Statement stmt = context.getConnection().createStatement();
+              ResultSet rs = stmt.executeQuery( sql ); )
         {
-            ResultSet rs = stmt.executeQuery( "SELECT value FROM systemsetting WHERE name = '" + EVENT_PROGRAM_SYNC_PAGE_SIZE +"';" );
-            if ( rs.next())
+            if ( rs.next() )
             {
                 eventPageSize = (Integer) SerializationUtils.deserialize( rs.getBytes( "value" ) );
             }
         }
 
-        try ( Statement stmt = context.getConnection().createStatement())
+        sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE +"';";
+        try ( Statement stmt = context.getConnection().createStatement();
+              ResultSet rs = stmt.executeQuery( sql ); )
         {
-            ResultSet rs = stmt.executeQuery( "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE +"';" );
-            if ( rs.next())
+            if ( rs.next() )
             {
                 dataValuesPageSize = (Integer) SerializationUtils.deserialize( rs.getBytes( "value" ) );
             }
@@ -115,10 +119,11 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
 
             if ( trackerPageSize > 0 )
             {
-                try ( Statement stmt = context.getConnection().createStatement())
+                sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
+                    "WHERE jobtype = '" + JobType.TRACKER_PROGRAMS_DATA_SYNC.name() + "';";
+                try ( Statement stmt = context.getConnection().createStatement();
+                      ResultSet rs = stmt.executeQuery( sql ); )
                 {
-                    ResultSet rs = stmt.executeQuery( "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration WHERE jobtype = '" +
-                        JobType.TRACKER_PROGRAMS_DATA_SYNC.name() + "';" );
                     while ( rs.next())
                     {
                         TrackerProgramsDataSynchronizationJobParameters jobparams = reader
@@ -132,10 +137,11 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
 
             if ( eventPageSize > 0 )
             {
-                try ( Statement stmt = context.getConnection().createStatement())
+                sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
+                    "WHERE jobtype = '" + JobType.EVENT_PROGRAMS_DATA_SYNC.name() + "';";
+                try ( Statement stmt = context.getConnection().createStatement();
+                      ResultSet rs = stmt.executeQuery( sql ); )
                 {
-                    ResultSet rs = stmt.executeQuery( "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration WHERE jobtype = '" +
-                        JobType.EVENT_PROGRAMS_DATA_SYNC.name() + "';" );
                     while ( rs.next())
                     {
                         EventProgramsDataSynchronizationJobParameters jobparams = reader
@@ -147,10 +153,11 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
                 }
             }
 
-            try ( Statement stmt = context.getConnection().createStatement())
+            sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
+                "WHERE jobtype = '" + JobType.META_DATA_SYNC.name() + "';";
+            try ( Statement stmt = context.getConnection().createStatement();
+                  ResultSet rs = stmt.executeQuery( sql ); )
             {
-                ResultSet rs = stmt.executeQuery( "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration WHERE jobtype = '" +
-                    JobType.META_DATA_SYNC.name() + "';" );
                 while ( rs.next())
                 {
                     MetadataSyncJobParameters jobparams = reader
