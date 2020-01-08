@@ -179,38 +179,43 @@ public class EmbeddedObjectObjectBundleHook
             }
         }
     }
-    
-    private void handleProperty( Object o, ObjectBundle bundle, Property property )
+
+    private void handleProperty( Object object, ObjectBundle bundle, Property property )
     {
-        if ( o != null && bundle != null && property != null )
+        if ( object == null || bundle == null || property == null )
         {
-            if ( property.isIdentifiableObject() )
-            {
-                ((BaseIdentifiableObject) o).setAutoFields();
-            }
+            return;
+        }
 
-            Schema embeddedSchema = schemaService.getDynamicSchema( o.getClass() );
-            for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
+        if ( property.isIdentifiableObject() )
+        {
+            ((BaseIdentifiableObject) object).setAutoFields();
+        }
+
+        Schema embeddedSchema = schemaService.getDynamicSchema( object.getClass() );
+        for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
+        {
+            if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
             {
-                if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
+                PeriodType periodType = ReflectionUtils.invokeMethod( object, embeddedProperty.getGetterMethod() );
+
+                if ( periodType != null )
                 {
-                    PeriodType periodType = ReflectionUtils.invokeMethod( o, embeddedProperty.getGetterMethod() );
-
-                    if ( periodType != null )
-                    {
-                        periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
-                        ReflectionUtils.invokeMethod( o, embeddedProperty.getSetterMethod(), periodType );
-                    }
+                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
+                    ReflectionUtils.invokeMethod( object, embeddedProperty.getSetterMethod(), periodType );
                 }
             }
-
-            preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         }
+
+        preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
     }
 
     private void handleEmbeddedAnalyticalProperty(Object identifiableObject, ObjectBundle bundle, Property property )
     {
-        if ( identifiableObject == null || !property.isAnalyticalObject() ) return;
+        if ( identifiableObject == null || !property.isAnalyticalObject() )
+        {
+            return;
+        }
 
         Session session = sessionFactory.getCurrentSession();
 
