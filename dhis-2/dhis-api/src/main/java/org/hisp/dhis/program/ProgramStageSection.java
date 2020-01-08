@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -37,6 +38,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
+import org.hisp.dhis.common.adapter.SectionRenderTypeDeserialize;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
@@ -198,13 +201,14 @@ public class ProgramStageSection
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonDeserialize( using = SectionRenderTypeDeserialize.class )
+    @JsonSerialize( using = DeviceRenderTypeMapSerializer.class )
     public DeviceRenderTypeMap<SectionRenderingObject> getRenderType()
     {
         return renderType;
     }
 
-    public void setRenderType(
-        DeviceRenderTypeMap<SectionRenderingObject> renderType )
+    public void setRenderType( DeviceRenderTypeMap<SectionRenderingObject> renderType )
     {
         this.renderType = renderType;
     }
