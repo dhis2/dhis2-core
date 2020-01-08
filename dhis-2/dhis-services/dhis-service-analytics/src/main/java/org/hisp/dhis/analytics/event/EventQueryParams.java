@@ -510,7 +510,8 @@ public class EventQueryParams
 
         if ( !itemProgramIndicators.isEmpty() )
         {
-            // if at least one Program Indicator doesn't validate, fail the validation
+            // Fail validation if at least one program indicator is invalid
+            
             return !itemProgramIndicators.stream().anyMatch( pi -> !validateProgramHasOrgUnitField( pi.getProgram() ) );
         }
 
