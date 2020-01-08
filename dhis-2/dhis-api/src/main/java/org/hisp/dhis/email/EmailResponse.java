@@ -34,7 +34,7 @@ package org.hisp.dhis.email;
 
 public enum EmailResponse
 {
-    SENT( "Email sent" ),
+    SENT( "Email sent successfully" ),
     FAILED( "Failed to send emal" ),
     ABORTED( "Sending email aborted" ),
     NOT_CONFIGURED( "Configuration not found" ),
