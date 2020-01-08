@@ -210,9 +210,9 @@ public class EmbeddedObjectObjectBundleHook
         preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
     }
 
-    private void handleEmbeddedAnalyticalProperty(Object identifiableObject, ObjectBundle bundle, Property property )
+    private void handleEmbeddedAnalyticalProperty( Object identifiableObject, ObjectBundle bundle, Property property )
     {
-        if ( identifiableObject == null || !property.isAnalyticalObject() )
+        if ( identifiableObject == null || property == null || !property.isAnalyticalObject() )
         {
             return;
         }
