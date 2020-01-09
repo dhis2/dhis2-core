@@ -77,6 +77,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class JobConfiguration
     extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
+    // -------------------------------------------------------------------------
+    // Externally configurable properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * The type of job.
+     */
     private JobType jobType;
 
     /**
@@ -91,6 +98,25 @@ public class JobConfiguration
      */
     private Integer delay;
 
+    /**
+     * Indicates this job should be triggered continuously.
+     */
+    private boolean continuousExecution = false;
+
+    /**
+     * Parameters of the job. Jobs can use their own implementation of the {@link JobParameters} class.
+     */
+    private JobParameters jobParameters;
+
+    /**
+     * Indicates whether this job is currently enabled or disabled.
+     */
+    private boolean enabled = true;
+
+    // -------------------------------------------------------------------------
+    // Internally managed properties
+    // -------------------------------------------------------------------------
+
     private JobStatus jobStatus;
 
     private Date nextExecutionTime;
@@ -100,12 +126,6 @@ public class JobConfiguration
     private Date lastExecuted;
 
     private String lastRuntimeExecution;
-
-    private JobParameters jobParameters;
-
-    private boolean continuousExecution = false;
-
-    private boolean enabled = true;
 
     private boolean inMemoryJob = false;
 
@@ -258,6 +278,54 @@ public class JobConfiguration
     }
 
     @JacksonXmlProperty
+    @JsonProperty
+    public boolean isContinuousExecution()
+    {
+        return continuousExecution;
+    }
+
+    public void setContinuousExecution( boolean continuousExecution )
+    {
+        this.continuousExecution = continuousExecution;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    @Property( required = FALSE )
+    @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
+    @JsonSubTypes( value = {
+        @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
+        @JsonSubTypes.Type( value = MonitoringJobParameters.class, name = "MONITORING" ),
+        @JsonSubTypes.Type( value = PredictorJobParameters.class, name = "PREDICTOR" ),
+        @JsonSubTypes.Type( value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS" ),
+        @JsonSubTypes.Type( value = SmsJobParameters.class, name = "SMS_SEND" ),
+        @JsonSubTypes.Type( value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC" ),
+        @JsonSubTypes.Type( value = EventProgramsDataSynchronizationJobParameters.class, name = "EVENT_PROGRAMS_DATA_SYNC" ),
+        @JsonSubTypes.Type( value = TrackerProgramsDataSynchronizationJobParameters.class, name = "TRACKER_PROGRAMS_DATA_SYNC" ),
+    } )
+    public JobParameters getJobParameters()
+    {
+        return jobParameters;
+    }
+
+    public void setJobParameters( JobParameters jobParameters )
+    {
+        this.jobParameters = jobParameters;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
+    }
+
+    @JacksonXmlProperty
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public JobStatus getJobStatus()
     {
@@ -330,54 +398,6 @@ public class JobConfiguration
     public void setLastRuntimeExecution( String lastRuntimeExecution )
     {
         this.lastRuntimeExecution = lastRuntimeExecution;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    @Property( required = FALSE )
-    @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
-    @JsonSubTypes( value = {
-        @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
-        @JsonSubTypes.Type( value = MonitoringJobParameters.class, name = "MONITORING" ),
-        @JsonSubTypes.Type( value = PredictorJobParameters.class, name = "PREDICTOR" ),
-        @JsonSubTypes.Type( value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS" ),
-        @JsonSubTypes.Type( value = SmsJobParameters.class, name = "SMS_SEND" ),
-        @JsonSubTypes.Type( value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC" ),
-        @JsonSubTypes.Type( value = EventProgramsDataSynchronizationJobParameters.class, name = "EVENT_PROGRAMS_DATA_SYNC" ),
-        @JsonSubTypes.Type( value = TrackerProgramsDataSynchronizationJobParameters.class, name = "TRACKER_PROGRAMS_DATA_SYNC" ),
-    } )
-    public JobParameters getJobParameters()
-    {
-        return jobParameters;
-    }
-
-    public void setJobParameters( JobParameters jobParameters )
-    {
-        this.jobParameters = jobParameters;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public boolean isContinuousExecution()
-    {
-        return continuousExecution;
-    }
-
-    public void setContinuousExecution( boolean continuousExecution )
-    {
-        this.continuousExecution = continuousExecution;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public boolean isEnabled()
-    {
-        return enabled;
-    }
-
-    public void setEnabled( boolean enabled )
-    {
-        this.enabled = enabled;
     }
 
     @JacksonXmlProperty
