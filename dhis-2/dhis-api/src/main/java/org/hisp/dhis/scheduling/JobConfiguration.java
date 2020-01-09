@@ -216,6 +216,11 @@ public class JobConfiguration
         return jobType.isConfigurable();
     }
 
+    public boolean hasCronExpression()
+    {
+        return cronExpression != null && !cronExpression.isEmpty();
+    }
+
     @Override
     public String toString()
     {

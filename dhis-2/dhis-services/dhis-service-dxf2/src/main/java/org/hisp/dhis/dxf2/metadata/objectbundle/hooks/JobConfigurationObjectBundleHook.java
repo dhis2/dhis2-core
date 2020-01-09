@@ -214,7 +214,7 @@ public class JobConfigurationObjectBundleHook
             }
             else
             {
-                if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
+                if ( jobConfig.hasCronExpression() && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
                 {
                     errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
                 }
