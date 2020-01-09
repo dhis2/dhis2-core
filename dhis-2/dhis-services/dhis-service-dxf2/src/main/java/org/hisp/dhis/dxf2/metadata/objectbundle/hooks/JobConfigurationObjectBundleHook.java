@@ -222,7 +222,7 @@ public class JobConfigurationObjectBundleHook
         }
     }
 
-    private List<ErrorReport> validateInternal( final JobConfiguration jobConfiguration )
+    private List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
@@ -281,7 +281,7 @@ public class JobConfigurationObjectBundleHook
     {
         if ( !jobConfiguration.isContinuousExecution() )
         {
-            if ( jobConfiguration.getCronExpression() == null )
+            if ( jobConfiguration.getCronExpression() == null && jobConfiguration.getDelay() == null )
             {
                 errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
             }
