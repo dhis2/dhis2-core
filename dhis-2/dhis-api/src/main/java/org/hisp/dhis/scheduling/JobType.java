@@ -81,17 +81,17 @@ public enum JobType
     MOCK( "mockJob", false, MockJobParameters.class, null ),
 
     // Deprecated, present to satisfy code using the old enumeration TaskCategory
-    DATAVALUE_IMPORT( null, false, null, null ),
-    ANALYTICSTABLE_UPDATE( null, false, null, null ),
-    METADATA_IMPORT( null, false, null, null ),
-    GML_IMPORT( null, false, null, null ),
-    DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
-    EVENT_IMPORT( null, false, null, null ),
-    ENROLLMENT_IMPORT( null, false, null, null ),
-    TEI_IMPORT( null, false, null, null ),
-    LEADER_ELECTION( "leaderElectionJob", false, null, null ),
-    LEADER_RENEWAL( "leaderRenewalJob", false, null, null ),
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false, null, null );
+    DATAVALUE_IMPORT( null, false ),
+    ANALYTICSTABLE_UPDATE( null, false ),
+    METADATA_IMPORT( null, false ),
+    GML_IMPORT( null, false ),
+    DATAVALUE_IMPORT_INTERNAL( null, false ),
+    EVENT_IMPORT( null, false ),
+    ENROLLMENT_IMPORT( null, false ),
+    TEI_IMPORT( null, false ),
+    LEADER_ELECTION( "leaderElectionJob", false ),
+    LEADER_RENEWAL( "leaderRenewalJob", false ),
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false );
 
     private final String key;
 

@@ -68,8 +68,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * <p>
  * The class uses a custom deserializer to handle several potential {@link JobParameters}.
  *
- * The configurable property in the configurable property in the method based on the job type we are adding.
- *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
