@@ -48,6 +48,7 @@ public class JobConfigurationSanitizer extends StdConverter<JobConfiguration, Jo
 
         final JobConfiguration jobConfiguration = new JobConfiguration( value.getName(), value.getJobType(),
             value.getCronExpression(), value.getJobParameters(), value.isContinuousExecution(), value.isEnabled() );
+        jobConfiguration.setDelay( value.getDelay() );
         jobConfiguration.setLeaderOnlyJob( value.isLeaderOnlyJob() );
         jobConfiguration.setUid( value.getUid() );
         return jobConfiguration;

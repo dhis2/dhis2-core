@@ -69,6 +69,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * <p>
  * The class uses a custom deserializer to handle several potential {@link JobParameters}.
  *
+ * Note that this class uses {@link JobConfigurationSanitizer} for serialization which needs to be update when new
+ * properties are added.
+ *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
