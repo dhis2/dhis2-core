@@ -113,7 +113,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
     private Program program;
-    private ProgramInstance programInstance;
 
     private OrganisationUnit organisationUnit;
     private User user;
@@ -148,8 +147,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
             message = (String) invocation.getArguments()[1];
             return response;
         });
-
-
     }
 
     @Test
