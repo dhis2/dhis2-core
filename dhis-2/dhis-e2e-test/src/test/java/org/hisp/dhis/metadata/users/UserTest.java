@@ -101,7 +101,7 @@ public class UserTest extends ApiTest
 
         ApiResponse response = meActions.update( "/changePassword", payload  );
 
-        response.validate().statusCode( 202 );
+        response.validate().statusCode( 302 );
 
         // should login with new credentials
         loginActions.addAuthenticationHeader( username, newPassword );
