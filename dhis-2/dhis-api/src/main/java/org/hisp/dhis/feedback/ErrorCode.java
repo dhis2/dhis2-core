@@ -101,9 +101,10 @@ public enum ErrorCode
     E7001( "Failed to add/update job configuration - Trying to add job with continuous execution while there already is a job with continuous exectution of the same job type." ),
     E7002( "Failed to add/update job configuration - Uid does not exist" ),
     E7003( "Failed to add/update job configuration - Only interval can be configured for non configurable job type `{0}`" ),
-    E7004( "Failed to add/update job configuration - Cron expression or delay must be not null " ),
+    E7004( "Failed to add/update job configuration - Cron expression must be not null for jobs with scheduling type CRON" ),
     E7005( "Failed to add/update job configuration - Failed to validate cron expression: `{0}` " ),
     E7006( "Failed to execute job `{0}`." ),
+    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY" ),
 
     /* Job specific scheduling errors */
     E7010( "Failed to validate job runtime - `{0}`" ),

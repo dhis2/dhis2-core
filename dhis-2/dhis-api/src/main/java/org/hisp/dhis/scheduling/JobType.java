@@ -120,6 +120,16 @@ public enum JobType
         this.relativeApiElements = relativeApiElements;
     }
 
+    public boolean isCronSchedulingType()
+    {
+        return getSchedulingType() == SchedulingType.CRON;
+    }
+
+    public boolean isFixedDelaySchedulingType()
+    {
+        return getSchedulingType() == SchedulingType.FIXED_DELAY;
+    }
+
     public String getKey()
     {
         return key;

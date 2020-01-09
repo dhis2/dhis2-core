@@ -218,7 +218,7 @@ public class JobConfiguration
     {
         return "JobConfiguration{" +
             "uid='" + uid + '\'' +
-            ", displayName='" + displayName + '\'' +
+            ", name='" + name + '\'' +
             ", jobType=" + jobType +
             ", cronExpression='" + cronExpression + '\'' +
             ", delay='" + delay + '\'' +

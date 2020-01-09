@@ -86,6 +86,8 @@ public class JobConfigurationObjectBundleHook
         }
 
         JobConfiguration jobConfiguration = (JobConfiguration) object;
+        System.out.println( "-- job config hook --" );
+        System.out.println( jobConfiguration );
         List<ErrorReport> errorReports = new ArrayList<>( validateInternal( jobConfiguration ) );
 
         if ( errorReports.size() == 0 )
@@ -279,9 +281,9 @@ public class JobConfigurationObjectBundleHook
     private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
         JobConfiguration jobConfiguration )
     {
-        if ( !jobConfiguration.isContinuousExecution() )
+        if ( !jobConfiguration.isContinuousExecution() && jobConfiguration.getJobType().isCronSchedulingType()  )
         {
-            if ( jobConfiguration.getCronExpression() == null && jobConfiguration.getDelay() == null )
+            if ( jobConfiguration.getCronExpression() == null )
             {
                 errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
             }
