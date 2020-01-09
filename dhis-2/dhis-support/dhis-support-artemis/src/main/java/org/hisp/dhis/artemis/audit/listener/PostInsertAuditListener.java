@@ -55,20 +55,25 @@ public class PostInsertAuditListener
     }
 
     @Override
+    AuditType getAuditType()
+    {
+        return AuditType.CREATE;
+    }
+
+    @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
         Object entity = postInsertEvent.getEntity();
 
-        getAuditable( entity, "create" ).ifPresent( auditable -> {
-            auditManager.send( Audit.builder()
-                .auditType( AuditType.CREATE )
-                .auditScope( auditable.scope() )
-                .createdAt( LocalDateTime.now() )
-                .createdBy( getCreatedBy() )
-                .object( entity )
-                .data( this.objectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
-                .build() );
-        } );
+        getAuditable( entity, "create" ).ifPresent( auditable ->
+            auditManager.send(Audit.builder()
+                .auditType(getAuditType())
+                .auditScope(auditable.scope())
+                .createdAt(LocalDateTime.now())
+                .createdBy(getCreatedBy())
+                .object(entity)
+                .data( () -> this.objectFactory.create(auditable.scope(), getAuditType(), entity, getCreatedBy()))
+                .build()));
     }
 
     @Override

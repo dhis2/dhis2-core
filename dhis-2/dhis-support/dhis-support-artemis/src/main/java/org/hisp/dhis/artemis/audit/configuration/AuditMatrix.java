@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,53 +26,46 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.artemis.AuditProducerConfiguration;
-import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
+package org.hisp.dhis.artemis.audit.configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ImmutableMap;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
 @Component
-public class AuditManager
+public class AuditMatrix
 {
-    private final AuditProducerSupplier auditProducerSupplier;
-    private final AuditProducerConfiguration config;
-    private final AuditScheduler auditScheduler;
-    private final AuditMatrix auditMatrix;
+    private static final Map<AuditType, Boolean> ALL_ENABLED = ImmutableMap.<AuditType, Boolean> builder()
+        .put( AuditType.CREATE, true ).put( AuditType.UPDATE, true ).put( AuditType.READ, true )
+        .put( AuditType.SEARCH, true ).build();
 
-    public AuditManager(
-        AuditProducerSupplier auditProducerSupplier,
-        AuditScheduler auditScheduler,
-        AuditProducerConfiguration config,
-        AuditMatrix auditMatrix)
+    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+
+    public AuditMatrix()
     {
-        checkNotNull( auditProducerSupplier );
-        checkNotNull( config );
-        checkNotNull( auditMatrix );
+        // TODO initialize this matrix with real configuration data
+        matrix = new HashMap<>();
 
-        this.auditProducerSupplier = auditProducerSupplier;
-        this.config = config;
-        this.auditScheduler = auditScheduler;
-        this.auditMatrix = auditMatrix;
+        matrix.put( AuditScope.METADATA, ALL_ENABLED );
     }
 
-    public void send( Audit audit )
+    public boolean isEnabled( Audit audit )
     {
-        if ( auditMatrix.isEnabled( audit ) )
-        {
-            audit.serialize();
-
-            if ( config.isUseQueue() )
-            {
-                auditScheduler.addAuditItem( audit );
-            }
-            else
-            {
-                auditProducerSupplier.publish( audit );
-            }
-        }
+        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), true );
     }
+
+    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
+    {
+        return matrix.get( auditScope ).getOrDefault( auditType, true );
+    }
+
 }

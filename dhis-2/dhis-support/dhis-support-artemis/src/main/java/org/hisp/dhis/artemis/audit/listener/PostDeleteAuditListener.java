@@ -28,6 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.time.LocalDateTime;
+
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
@@ -38,8 +40,6 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -47,9 +47,7 @@ import java.time.LocalDateTime;
 public class PostDeleteAuditListener
     extends AbstractHibernateListener implements PostDeleteEventListener
 {
-    public PostDeleteAuditListener(
-        AuditManager auditManager,
-        AuditObjectFactory auditObjectFactory,
+    public PostDeleteAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
         super( auditManager, auditObjectFactory, userNameSupplier );
@@ -65,16 +63,20 @@ public class PostDeleteAuditListener
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
         Object entity = postDeleteEvent.getEntity();
-
-        getAuditable( entity, "delete" ).ifPresent( auditable -> {
+        getAuditable( entity, "delete" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
-                .auditType( AuditType.DELETE )
+                .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .data( this.objectFactory.create( auditable.scope(), AuditType.DELETE, entity, getCreatedBy() ) )
-                .build() );
-        } );
+                .data( () -> this.objectFactory.create( auditable.scope(), getAuditType(), entity, getCreatedBy() ) )
+                .build() ));
+    }
+
+    @Override
+    AuditType getAuditType()
+    {
+        return AuditType.DELETE;
     }
 }

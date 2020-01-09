@@ -39,6 +39,7 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 
 import java.time.LocalDateTime;
+import java.util.function.Supplier;
 
 /**
  * Class for Audit messages, mostly compatible with {@link org.hisp.dhis.audit.Audit}
@@ -75,7 +76,9 @@ public class Audit implements Message
     private AuditAttributes attributes;
 
     @JsonProperty
-    private Object data;
+    private Supplier<Object> data;
+
+    private Object serializedData;
 
     @Override
     public MessageType getMessageType()
@@ -103,9 +106,9 @@ public class Audit implements Message
             .code( code )
             .attributes( attributes );
 
-        if ( data instanceof String )
+        if ( serializedData instanceof String )
         {
-            auditBuilder.data( (String) data );
+            auditBuilder.data( (String) serializedData );
         }
 
         return auditBuilder.build();
@@ -134,5 +137,10 @@ public class Audit implements Message
 
             return this;
         }
+    }
+    
+    void serialize()
+    {
+        this.serializedData = data.get();
     }
 }

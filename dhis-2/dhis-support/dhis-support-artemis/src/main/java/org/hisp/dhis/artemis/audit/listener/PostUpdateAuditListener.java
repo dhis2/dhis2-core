@@ -56,20 +56,25 @@ public class PostUpdateAuditListener
     }
 
     @Override
+    AuditType getAuditType()
+    {
+        return AuditType.UPDATE;
+    }
+
+    @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
         Object entity = postUpdateEvent.getEntity();
 
-        getAuditable( entity, "update" ).ifPresent( auditable -> {
+        getAuditable( entity, "update" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( AuditType.UPDATE )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .data( this.objectFactory.create( auditable.scope(), AuditType.UPDATE, entity, getCreatedBy() ) )
-                .build() );
-        } );
+                .data( () -> this.objectFactory.create( auditable.scope(), getAuditType(), entity, getCreatedBy() ) )
+                .build() ));
     }
 
     @Override

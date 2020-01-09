@@ -35,6 +35,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Component;
 
+import java.util.function.Supplier;
+
 /**
  * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself
  * (as is the case for metadata), or it can be a wrapper object collecting the parts wanted.
@@ -67,7 +69,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         return null;
     }
 
-    private Object handleTracker( AuditType auditType, Object object, String user )
+    private Object handleTracker(AuditType auditType, Object object, String user )
     {
         return null;
     }

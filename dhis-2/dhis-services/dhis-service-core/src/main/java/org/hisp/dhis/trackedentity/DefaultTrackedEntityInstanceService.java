@@ -28,32 +28,27 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -66,21 +61,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -117,8 +97,6 @@ public class DefaultTrackedEntityInstanceService
 
     private final AuditManager auditManager;
 
-    private final RenderService renderService;
-
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -126,7 +104,7 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
         TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager, RenderService renderService )
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager )
     {
         checkNotNull( trackedEntityInstanceStore );
         checkNotNull( attributeValueService );
@@ -139,7 +117,6 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( auditManager );
-        checkNotNull( renderService );
 
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.attributeValueService = attributeValueService;
@@ -152,7 +129,6 @@ public class DefaultTrackedEntityInstanceService
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;
-        this.renderService = renderService;
     }
 
     // -------------------------------------------------------------------------
@@ -809,7 +785,7 @@ public class DefaultTrackedEntityInstanceService
     {
         String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
 
-        if ( split == null || (split.length % 2 != 1) )
+        if ( split.length % 2 != 1 )
         {
             throw new IllegalQueryException( "Query item or filter is invalid: " + item );
         }
@@ -860,7 +836,7 @@ public class DefaultTrackedEntityInstanceService
         {
             String[] split = query.split( DimensionalObject.DIMENSION_NAME_SEP );
 
-            if ( split == null || split.length != 2 )
+            if ( split.length != 2 )
             {
                 throw new IllegalQueryException( "Query has invalid format: " + query );
             }
@@ -1026,7 +1002,7 @@ public class DefaultTrackedEntityInstanceService
             .createdBy( auditPayload.getAccessedBy() )
             .klass( TrackedEntityInstance.class.getName() )
             .uid( auditPayload.getTrackedEntityInstance() )
-            .data( auditPayload )
+            .data( () -> auditPayload )
             .build() );
     }
 
