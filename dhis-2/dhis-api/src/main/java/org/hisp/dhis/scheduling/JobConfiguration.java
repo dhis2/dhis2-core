@@ -241,6 +241,7 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
+    @JsonTypeId
     public JobType getJobType()
     {
         return jobType;
@@ -265,7 +266,6 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    @JsonTypeId
     public Integer getDelay()
     {
         return delay;
