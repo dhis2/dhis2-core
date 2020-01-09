@@ -31,11 +31,16 @@ package org.hisp.dhis.artemis.audit.listener;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
+
+import static com.cronutils.utils.Preconditions.checkNotNull;
 
 /**
  * @author Luciano Fiandesio
@@ -51,6 +56,10 @@ public abstract class AbstractHibernateListener
         AuditObjectFactory objectFactory,
         UsernameSupplier usernameSupplier )
     {
+        checkNotNull( auditManager );
+        checkNotNull( objectFactory );
+        checkNotNull( usernameSupplier );
+
         this.auditManager = auditManager;
         this.objectFactory = objectFactory;
         this.usernameSupplier = usernameSupplier;
@@ -78,4 +87,6 @@ public abstract class AbstractHibernateListener
     {
         return usernameSupplier.get();
     }
+
+    abstract AuditType getAuditType();
 }

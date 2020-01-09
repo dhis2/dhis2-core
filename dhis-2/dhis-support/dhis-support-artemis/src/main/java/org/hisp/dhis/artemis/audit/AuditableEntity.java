@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit.legacy;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +26,17 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
+package org.hisp.dhis.artemis.audit;
 
-import java.util.function.Supplier;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
 /**
  * @author Luciano Fiandesio
  */
-public interface AuditObjectFactory
-{
-    Object create( AuditScope auditScope, AuditType auditType, Object object, String user );
+@Value
+@AllArgsConstructor
+public class AuditableEntity {
+
+    private Object entity;
 }

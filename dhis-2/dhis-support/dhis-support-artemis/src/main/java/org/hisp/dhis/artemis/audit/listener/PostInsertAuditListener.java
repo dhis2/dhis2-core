@@ -33,6 +33,7 @@ import org.hibernate.event.spi.PostInsertEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
@@ -55,20 +56,25 @@ public class PostInsertAuditListener
     }
 
     @Override
+    AuditType getAuditType()
+    {
+        return AuditType.CREATE;
+    }
+
+    @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
         Object entity = postInsertEvent.getEntity();
 
-        getAuditable( entity, "create" ).ifPresent( auditable -> {
-            auditManager.send( Audit.builder()
-                .auditType( AuditType.CREATE )
+        getAuditable( entity, "create" ).ifPresent( auditable ->
+            auditManager.send(Audit.builder()
+                .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .data( this.objectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
-                .build() );
-        } );
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() ) );
     }
 
     @Override

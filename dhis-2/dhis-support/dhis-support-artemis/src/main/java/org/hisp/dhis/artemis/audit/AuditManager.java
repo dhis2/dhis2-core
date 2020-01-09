@@ -28,7 +28,10 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -37,34 +40,54 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
+@Slf4j
 public class AuditManager
 {
     private final AuditProducerSupplier auditProducerSupplier;
     private final AuditProducerConfiguration config;
     private final AuditScheduler auditScheduler;
+    private final AuditMatrix auditMatrix;
+
+    private final AuditObjectFactory objectFactory;
 
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
         AuditScheduler auditScheduler,
-        AuditProducerConfiguration config )
+        AuditProducerConfiguration config,
+        AuditMatrix auditMatrix, AuditObjectFactory auditObjectFactory )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
+        checkNotNull( auditMatrix );
+        checkNotNull( auditObjectFactory );
 
         this.auditProducerSupplier = auditProducerSupplier;
         this.config = config;
         this.auditScheduler = auditScheduler;
+        this.auditMatrix = auditMatrix;
+        this.objectFactory = auditObjectFactory;
     }
 
     public void send( Audit audit )
     {
-        if ( config.isUseQueue() )
+        if ( auditMatrix.isEnabled( audit ) )
         {
-            auditScheduler.addAuditItem( audit );
+            audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
+                : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(), audit.getAuditableEntity().getEntity(),
+                    audit.getCreatedBy() )) );
+
+            if ( config.isUseQueue() )
+            {
+                auditScheduler.addAuditItem( audit );
+            }
+            else
+            {
+                auditProducerSupplier.publish( audit );
+            }
         }
         else
         {
-            auditProducerSupplier.publish( audit );
+            log.debug( "Audit message ignored:\n" + audit.toLog() );
         }
     }
 }
