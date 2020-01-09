@@ -222,7 +222,7 @@ public class JobConfigurationObjectBundleHook
         }
     }
 
-    private List<ErrorReport> validateInternal( final JobConfiguration jobConfiguration )
+    List<ErrorReport> validateInternal( final JobConfiguration jobConfiguration )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
