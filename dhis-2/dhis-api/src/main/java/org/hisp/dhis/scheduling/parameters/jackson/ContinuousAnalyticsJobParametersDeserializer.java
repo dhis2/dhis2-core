@@ -32,6 +32,9 @@ import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class ContinuousAnalyticsJobParametersDeserializer
     extends AbstractJobParametersDeserializer<ContinuousAnalyticsJobParameters>
 {
