@@ -86,8 +86,6 @@ public class JobConfigurationObjectBundleHook
         }
 
         JobConfiguration jobConfiguration = (JobConfiguration) object;
-        System.out.println( "-- job config hook --" );
-        System.out.println( jobConfiguration );
         List<ErrorReport> errorReports = new ArrayList<>( validateInternal( jobConfiguration ) );
 
         if ( errorReports.size() == 0 )
@@ -291,6 +289,12 @@ public class JobConfigurationObjectBundleHook
             {
                 errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
             }
+        }
+
+        if ( !jobConfiguration.isContinuousExecution() &&
+            jobConfiguration.getJobType().isFixedDelaySchedulingType() && jobConfiguration.getDelay() == null )
+        {
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7007 ) );
         }
     }
 
