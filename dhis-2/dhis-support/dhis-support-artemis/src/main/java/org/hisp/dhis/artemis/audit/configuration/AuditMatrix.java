@@ -1,5 +1,3 @@
-package org.hisp.dhis.artemis.audit.listener;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,58 +26,46 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.event.spi.PostInsertEvent;
-import org.hibernate.event.spi.PostInsertEventListener;
-import org.hibernate.persister.entity.EntityPersister;
+package org.hisp.dhis.artemis.audit.configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
-import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-public class PostInsertAuditListener
-    extends AbstractHibernateListener implements PostInsertEventListener
+public class AuditMatrix
 {
+    private static final Map<AuditType, Boolean> ALL_ENABLED = ImmutableMap.<AuditType, Boolean> builder()
+        .put( AuditType.CREATE, true ).put( AuditType.UPDATE, true ).put( AuditType.READ, true )
+        .put( AuditType.SEARCH, true ).build();
 
-    public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+
+    public AuditMatrix()
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        // TODO initialize this matrix with real configuration data
+        matrix = new HashMap<>();
+
+        matrix.put( AuditScope.METADATA, ALL_ENABLED );
     }
 
-    @Override
-    AuditType getAuditType()
+    public boolean isEnabled( Audit audit )
     {
-        return AuditType.CREATE;
+        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), true );
     }
 
-    @Override
-    public void onPostInsert( PostInsertEvent postInsertEvent )
+    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
     {
-        Object entity = postInsertEvent.getEntity();
-
-        getAuditable( entity, "create" ).ifPresent( auditable ->
-            auditManager.send(Audit.builder()
-                .auditType( getAuditType() )
-                .auditScope( auditable.scope() )
-                .createdAt( LocalDateTime.now() )
-                .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
-                .build() ) );
+        return matrix.get( auditScope ).getOrDefault( auditType, true );
     }
 
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return false;
-    }
 }

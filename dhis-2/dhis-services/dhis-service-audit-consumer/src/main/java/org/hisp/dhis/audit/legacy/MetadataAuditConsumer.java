@@ -67,7 +67,6 @@ public class MetadataAuditConsumer implements AuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        // TODO remove and replace with Audit Configuration Grid (ACG)
         this.metadataAuditPersist = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
         this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
     }

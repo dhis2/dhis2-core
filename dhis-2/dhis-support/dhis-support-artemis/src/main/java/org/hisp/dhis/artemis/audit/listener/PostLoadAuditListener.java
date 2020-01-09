@@ -32,6 +32,7 @@ import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
@@ -54,20 +55,24 @@ public class PostLoadAuditListener
         super( auditManager, auditObjectFactory, userNameSupplier );
     }
 
+    AuditType getAuditType()
+    {
+        return AuditType.READ;
+    }
+
     @Override
     public void onPostLoad( PostLoadEvent postLoadEvent )
     {
         Object entity = postLoadEvent.getEntity();
 
-        getAuditable( entity, "read" ).ifPresent( auditable -> {
+        getAuditable( entity, "read" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( AuditType.READ )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .data( this.objectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
-                .build() );
-        } );
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() ) );
     }
 }
