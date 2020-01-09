@@ -29,20 +29,11 @@
 package org.hisp.dhis.analytics.cache;
 
 import static java.util.Calendar.DATE;
-import static java.util.Calendar.YEAR;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_TO_30_SECONDS;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.MONTHLY;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.QUARTERLY;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.SIX_MONTHS;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.WEEKLY;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.YEARLY;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS;
+import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
+import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_TTL_FACTOR;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
@@ -51,7 +42,6 @@ import java.util.Date;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.setting.DefaultSystemSettingManager;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -67,34 +57,18 @@ public class TimeToLiveTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Before
-	public void setUp() {
-	    // Setting up the default timeout for each period.
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS ) )
-            .thenReturn( ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS.getDefaultValue() );
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS ) )
-            .thenReturn( ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS.getDefaultValue() );
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS ) )
-            .thenReturn( ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS.getDefaultValue() );
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS ) )
-            .thenReturn( ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS.getDefaultValue() );
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS ) )
-            .thenReturn( ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS.getDefaultValue() );
-	}
-
     @Test
-    public void testComputeForWeeklyPeriodDuringTheCurrentYearWhenCacheFactorIsNull()
+    public void testComputeForCurrentDayWhenCacheFactorIsNull()
     {
         // Given
-        final Long aNullCachingFactor = null;
-        final int aWeeklyPeriod = WEEKLY.value();
-        final Date aMostRecentDate = new Date();
-        final Date anOlderDate = calculateDateFrom( aMostRecentDate, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
-        final long expectedTtl = DEFAULT_TO_30_SECONDS;
+        final Integer aNullCachingFactor = null;
+        final Date endingDate = new Date();
+        final Date beginningDate = new Date();
+        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
+        final long expectedTtl = DEFAULT_TTL_FACTOR;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS ) )
+        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
             .thenReturn( aNullCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
@@ -103,18 +77,17 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForWeeklyPeriodDuringTheCurrentYearWhenCacheFactorIsNegative()
+    public void testComputeForCurrentDayWhenCacheFactorIsNegative()
     {
         // Given
-        final Long aNegativeCachingFactor = -1l;
-        final int aWeeklyPeriod = WEEKLY.value();
-        final Date aMostRecentDate = new Date();
-        final Date anOlderDate = calculateDateFrom( aMostRecentDate, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
-        final long expectedTtl = DEFAULT_TO_30_SECONDS;
+        final Integer aNegativeCachingFactor = -1;
+        final Date endingDate = new Date();
+        final Date beginningDate = new Date();
+        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
+        final long expectedTtl = DEFAULT_TTL_FACTOR;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS ) )
+        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
             .thenReturn( aNegativeCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
@@ -123,16 +96,18 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForWeeklyPeriodDuringTheCurrentYear()
+    public void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
     {
         // Given
-        final int aWeeklyPeriod = WEEKLY.value();
-        final Date aMostRecentDate = new Date();
-        final Date anOlderDate = calculateDateFrom( aMostRecentDate, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS.getDefaultValue();
+        final Integer aPositiveCachingFactor = 3;
+        final Date endingDate = new Date();
+        final Date beginningDate = endingDate;
+        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
+        final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
+        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+            .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
         // Then
@@ -140,19 +115,19 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForWeeklyPeriodThreeYearsAgo()
+    public void testComputeForOneDayBeforeWhenCacheFactorIsPositive()
     {
         // Given
-        final int threeYearsAgo = 3;
-        final int aWeeklyPeriod = WEEKLY.value();
-        final Date aDateThreeYearsAgo = calculateDateFrom( new Date(), minus( threeYearsAgo ), YEAR );
-        final Date anOlderDate = calculateDateFrom( aDateThreeYearsAgo, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
-        final int expectedMultiplier = threeYearsAgo + 1;
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS.getDefaultValue()
-            * expectedMultiplier;
+        final int oneDayDiff = 1;
+        final Integer aPositiveCachingFactor = 2;
+        final Date endingDate = new Date();
+        final Date beginningDate = calculateDateFrom( endingDate, minus( oneDayDiff ), DATE );
+        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
+        final long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
         // When
+        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+            .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
         // Then
@@ -160,16 +135,19 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForMonthlyPeriodDuringTheCurrentYear()
+    public void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive()
     {
         // Given
-        final int aMonthlyPeriod = MONTHLY.value();
-        final Date aMostRecentDate = new Date();
-        final Date anOlderDate = calculateDateFrom( aMostRecentDate, minus( aMonthlyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS.getDefaultValue();
+        final int tenDaysAhead = 10;
+        final Integer aPositiveCachingFactor = 1;
+        final Date beginningDate = new Date();
+        final Date endingDate = calculateDateFrom( beginningDate, plus( tenDaysAhead ), DATE );
+        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
+        final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
+        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+            .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
         // Then
@@ -177,145 +155,40 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForMonthlyPeriodInAPastYear()
+    public void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
     {
         // Given
-        final int threeYearsAgo = 3;
-        final int expectedMultiplier = threeYearsAgo + 1;
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS.getDefaultValue()
-            * expectedMultiplier;
-        final int aWeeklyPeriod = MONTHLY.value();
-        final Date aDateThreeYearsAgo = calculateDateFrom( new Date(), minus( threeYearsAgo ), YEAR );
-        final Date anOlderDate = calculateDateFrom( aDateThreeYearsAgo, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
+        final int tenDays = 10;
+        final Integer aPositiveCachingFactor = 2;
+        final Date now = new Date();
+        final Date beginningDate = calculateDateFrom( now, minus( tenDays ), DATE );
+        final Date endingDate = calculateDateFrom( now, minus( tenDays ), DATE );
+        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
+        final long expectedTtl = aPositiveCachingFactor * tenDays;
 
         // When
+        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+            .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
         // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
     }
 
-    @Test
-    public void testComputeForQuarterlyPeriodDuringTheCurrentYear()
+    private DataQueryParams stubbedParams( final Date beginningDate, final Date endingDate )
     {
-        // Given
-        final int aQuarterlyPeriod = QUARTERLY.value();
-        final Date aMostRecentDate = new Date();
-        final Date anOlderDate = calculateDateFrom( aMostRecentDate, minus( aQuarterlyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS.getDefaultValue();
-
-        // When
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
-
-        // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
-
-    @Test
-    public void testComputeForQuarterlyPeriodInAPastYear()
-    {
-        // Given
-        final int threeYearsAgo = 3;
-        final int expectedMultiplier = threeYearsAgo + 1;
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS.getDefaultValue()
-            * expectedMultiplier;
-        final int aWeeklyPeriod = QUARTERLY.value();
-        final Date aDateThreeYearsAgo = calculateDateFrom( new Date(), minus( threeYearsAgo ), YEAR );
-        final Date anOlderDate = calculateDateFrom( aDateThreeYearsAgo, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
-
-        // When
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
-
-        // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
-
-    @Test
-    public void testComputeForSixMonthsPeriodDuringTheCurrentYear()
-    {
-        // Given
-        final int aSixMonthsPeriod = SIX_MONTHS.value();
-        final Date aMostRecentDate = new Date();
-        final Date anOlderDate = calculateDateFrom( aMostRecentDate, minus( aSixMonthsPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS.getDefaultValue();
-
-        // When
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
-
-        // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
-
-    @Test
-    public void testComputeForSixMonthsPeriodInAPastYear()
-    {
-        // Given
-        final int threeYearsAgo = 3;
-        final int expectedMultiplier = threeYearsAgo + 1;
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS.getDefaultValue()
-            * expectedMultiplier;
-        final int aWeeklyPeriod = SIX_MONTHS.value();
-        final Date aDateThreeYearsAgo = calculateDateFrom( new Date(), minus( threeYearsAgo ), YEAR );
-        final Date anOlderDate = calculateDateFrom( aDateThreeYearsAgo, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
-
-        // When
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
-
-        // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
-
-    @Test
-    public void testComputeForYearlyPeriodDuringTheCurrentYear()
-    {
-        // Given
-        final int aYearlyPeriod = YEARLY.value();
-        final Date aMostRecentDate = new Date();
-        final Date anOlderDate = calculateDateFrom( aMostRecentDate, minus( aYearlyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aMostRecentDate, anOlderDate );
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS.getDefaultValue();
-
-        // When
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
-
-        // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
-
-    @Test
-    public void testComputeForYearlyPeriodInAPastYear()
-    {
-        // Given
-        final int threeYearsAgo = 3;
-        final int expectedMultiplier = threeYearsAgo + 1;
-        final Long expectedTtl = (Long) ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS.getDefaultValue()
-            * expectedMultiplier;
-        final int aWeeklyPeriod = YEARLY.value();
-        final Date aDateThreeYearsAgo = calculateDateFrom( new Date(), minus( threeYearsAgo ), YEAR );
-        final Date anOlderDate = calculateDateFrom( aDateThreeYearsAgo, minus( aWeeklyPeriod ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( aDateThreeYearsAgo, anOlderDate );
-
-        // When
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
-
-        // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
-
-    private DataQueryParams stubbedParams( final Date mostRecentDate, final Date oldestDate )
-    {
-        final DataQueryParams dataQueryParams = DataQueryParams.newBuilder().withStartDate( oldestDate )
-            .withEndDate( mostRecentDate ).withEarliestStartDateLatestEndDate().build();
+        final DataQueryParams dataQueryParams = DataQueryParams.newBuilder().withStartDate( beginningDate )
+            .withEndDate( endingDate ).withEarliestStartDateLatestEndDate().build();
         return dataQueryParams;
     }
 
-    private int minus( final int positiveValue )
+    private int minus( final int value )
     {
-        return -positiveValue;
+        return -value;
+    }
+
+    private int plus( final int value )
+    {
+        return value;
     }
 }

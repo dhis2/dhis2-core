@@ -51,6 +51,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
@@ -167,14 +168,16 @@ public enum SettingKey
     ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
 
-    /*
-     * Enum definitions related to Analytics query caching.
+    /**
+     * The Analytics query caching factor. It's used as a factor to assist with the
+     * caching TTL calculation.
      */
-    ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS("keyAnalyticsCacheTimeoutFactorWeeklyPeriodInSeconds", MINUTES.toSeconds( 2 ), Long.class),
-    ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS("keyAnalyticsCacheTimeoutFactorMonthlyPeriodInSeconds", MINUTES.toSeconds( 5 ), Long.class),
-    ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS("keyAnalyticsCacheTimeoutFactorQuarterlyPeriodInSeconds", MINUTES.toSeconds( 10 ), Long.class),
-    ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS("keyAnalyticsCacheTimeoutFactorSixMonthsPeriodInSeconds", MINUTES.toSeconds( 20 ), Long.class),
-    ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS("keyAnalyticsCacheTimeoutFactorYearlyOrOverPeriodInSeconds", MINUTES.toSeconds( 30 ), Long.class);
+    ANALYTICS_CACHE_FACTOR( "keyAnalyticsCacheFactor", 160, Integer.class ),
+
+    /**
+     * The cache type enabled for Analytics. It can be FIXED or PROGRESSIVE.
+     */
+    ANALYTICS_CACHE_TYPE( "keyAnalyticsCacheType", "FIXED", String.class );
 
     private final String name;
 

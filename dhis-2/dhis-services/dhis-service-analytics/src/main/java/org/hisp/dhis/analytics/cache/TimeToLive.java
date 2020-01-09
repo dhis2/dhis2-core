@@ -32,22 +32,12 @@ import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.YEARS;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.MONTHLY;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.QUARTERLY;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.SIX_MONTHS;
-import static org.hisp.dhis.analytics.cache.TimeToLive.Periods.WEEKLY;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_FACTOR;
 import static org.springframework.util.Assert.notNull;
 
 import java.time.Instant;
 
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 
 public class TimeToLive
@@ -55,7 +45,8 @@ public class TimeToLive
     Computable
 {
 
-    static final long DEFAULT_TO_30_SECONDS = 30;
+    static final int DEFAULT_TTL_FACTOR = 5;
+    static final long DEFAULT_MULTIPLIER = 1;
 
     private final DataQueryParams params;
 
@@ -64,7 +55,6 @@ public class TimeToLive
     public TimeToLive( final DataQueryParams params, final SystemSettingManager systemSettingManager )
     {
         notNull( params, "Object params must not be null" );
-        notNull( params.getEarliestStartDate(), "Object params.getEarliestStartDate() must not be null" );
         notNull( params.getLatestEndDate(), "Object params.getLatestEndDate() must not be null" );
         notNull( systemSettingManager, "Object systemSettingManager must not be null" );
         this.params = params;
@@ -72,83 +62,54 @@ public class TimeToLive
     }
 
     /**
-     * Calculates the time to live based on specific internal rules.
+     * Execute the internal rules in order to calculate a TTL for the given
+     * parameters. The current rules are based on a configurable timeout
+     * "factor" (through SettingKey) which will be used in the calculation
+     * of this time to live. Given the "factor" described above:
+     *
+     * Older the "endingDate", higher the "factor", longer the TTL.
+     * The formula is basically: TTL = "factor" * (diff between now and endingDate)
      *
      * @return the computed TTL value in SECONDS.
      */
     @Override
     public long compute()
     {
-        final Instant oldestDate = params.getEarliestStartDate().toInstant();
-        final Instant mostRecentDate = params.getLatestEndDate().toInstant();
-        final long daysDiff = DAYS.between( oldestDate, mostRecentDate );
-        return calculationFor( daysDiff, mostRecentDate );
+        final Instant endingDate = params.getLatestEndDate().toInstant();
+
+        /*
+         * If the difference between the most recent date and NOW is 0 (zero) it means
+         * the current day, so we increment the multiplier by 1 (one) avoiding
+         * multiplying by 0 (zero).
+         */
+        final long diff = daysBetweenDateAndNow( endingDate );
+        final long ttlMultiplier = diff > 0 ? diff : DEFAULT_MULTIPLIER;
+
+        return ttlFactorOrDefault() * ttlMultiplier;
     }
 
     /**
-     * Execute the internal rules in order to calculate a TTL for the given
-     * parameters.
+     * Calculates the difference between now and the given date.
+     * It has a the particularity of returning ZERO (0), if the
+     * diff is negative, which means the date is ahead of now.
      *
-     * @param daysDiff the difference of days between the oldest and most recent
-     *        date in the period.
-     * @param mostRecentDate the most recent date of the period.
-     * @return a time to live value in SECONDS.
+     * @param date the date to subtract from now
+     * @return the difference of days in MILLISECONDS
      */
-    long calculationFor( final long daysDiff, final Instant mostRecentDate )
-    {
-        /*
-         * If the difference between the most recent date and NOW is 0 (zero) it means
-         * the current year, so we increment the multiplier by 1 (one) avoiding
-         * multiplying by 0 (zero).
-         */
-        final long ttlMultiplierOrOne = YEARS.between( ofInstant( mostRecentDate, UTC ), now() ) + 1;
-        final long ttlInSeconds;
-
-        if ( daysDiff <= WEEKLY.value() )
-        {
-            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_WEEKLY_PERIOD_IN_SECONDS);
-        }
-        else if ( daysDiff <= MONTHLY.value() )
-        {
-            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_MONTHLY_PERIOD_IN_SECONDS);
-        }
-        else if ( daysDiff <= QUARTERLY.value() )
-        {
-            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_QUARTERLY_PERIOD_IN_SECONDS);
-        }
-        else if ( daysDiff <= SIX_MONTHS.value() )
-        {
-            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_SIX_MONTHS_PERIOD_IN_SECONDS);
-        }
-        else
-        {
-            ttlInSeconds = preDefinedTtlValueForKey(ANALYTICS_CACHE_TIMEOUT_FACTOR_YEARLY_OR_OVER_PERIOD_IN_SECONDS);
-        }
-        return ttlInSeconds * ttlMultiplierOrOne;
+    private long daysBetweenDateAndNow( final Instant date ) {
+        final long diff = DAYS.between( ofInstant( date, UTC ), now() );
+        return diff >= 0 ? diff : 0;
     }
 
-    private Long preDefinedTtlValueForKey( final SettingKey ttlSettingKey )
+    /**
+     * Returns the default TTL factor or a default one if none is defined.
+     * @return the factor in
+     */
+    private int ttlFactorOrDefault()
     {
-        final Long ttlInSeconds = (Long) systemSettingManager.getSystemSetting( ttlSettingKey );
-        final boolean ttlNotNullAndPositive = ttlInSeconds != null && ttlInSeconds > 0;
+        final Integer ttlFactor = (Integer) systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR );
+        final boolean ttlNotNullAndPositive = ttlFactor != null && ttlFactor > 0;
 
-        return ttlNotNullAndPositive ? ttlInSeconds : DEFAULT_TO_30_SECONDS;
-    }
-
-    enum Periods
-    {
-        WEEKLY( 7 ), MONTHLY( 30 ), QUARTERLY( 120 ), SIX_MONTHS( 180 ), YEARLY( 365 );
-
-        final int days;
-
-        Periods( final int days )
-        {
-            this.days = days;
-        }
-
-        int value()
-        {
-            return days;
-        }
+        return ttlNotNullAndPositive ? ttlFactor : DEFAULT_TTL_FACTOR;
     }
 }

@@ -33,27 +33,32 @@ import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.logging.LogFactory.getLog;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TYPE;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.logging.Log;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
- * This wrapper is responsible for keeping and isolating all caching definition
- * related to the analytics caching, decoupling it from the service layer.
+ * This is just a wrapper class responsible for keeping and isolating all
+ * caching definition related to the analytics caching, decoupling it from the
+ * service layer.
  */
 @Component
-public class AnalyticsCacheWrapper
+public class AnalyticsCache
 {
-    private static final Log log = getLog( AnalyticsCacheWrapper.class );
+    private static final Log log = getLog( AnalyticsCache.class );
 
     private Cache<Grid> queryCache;
 
@@ -63,18 +68,24 @@ public class AnalyticsCacheWrapper
 
     private final DhisConfigurationProvider dhisConfig;
 
+    private final SystemSettingManager systemSettingManager;
+
     private static final int MAX_CACHE_ENTRIES = 20000;
 
     private static final String CACHE_REGION = "analyticsQueryResponse";
 
-    public AnalyticsCacheWrapper( final CacheProvider cacheProvider, final Environment environment,
-        final DhisConfigurationProvider dhisConfig )
+    private static final String CACHE_PROGRESSIVE_TYPE = "PROGRESSIVE";
+
+    public AnalyticsCache( final CacheProvider cacheProvider, final Environment environment,
+        final DhisConfigurationProvider dhisConfig, final SystemSettingManager systemSettingManager )
     {
         checkNotNull( cacheProvider );
         checkNotNull( environment );
+        checkNotNull( systemSettingManager );
         this.cacheProvider = cacheProvider;
         this.environment = environment;
         this.dhisConfig = dhisConfig;
+        this.systemSettingManager = systemSettingManager;
     }
 
     public Optional<Grid> get( final String key )
@@ -82,15 +93,53 @@ public class AnalyticsCacheWrapper
         return queryCache.get( key );
     }
 
+    public Grid getOrFetch( final DataQueryParams params, final Function<DataQueryParams, Grid> function )
+    {
+        final Optional<Grid> cachedGrid = get( params.getKey() );
+
+        if ( cachedGrid.isPresent() )
+        {
+            return cachedGrid.get();
+        }
+        else
+        {
+            final Grid grid = function.apply( params );
+
+            if ( progressiveCachingEnabled() )
+            {
+                // Defines a custom TTL
+                final long ttlInSeconds = new TimeToLive( params, systemSettingManager ).compute();
+                put( params.getKey(), grid, ttlInSeconds );
+            }
+            else
+            {
+                // Respects the default caching definitions
+                put( params.getKey(), grid );
+            }
+            return grid;
+        }
+    }
+
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
         queryCache.put( key, grid, ttlInSeconds );
+    }
+
+    public void put( final String key, final Grid grid )
+    {
+        queryCache.put( key, grid );
     }
 
     public void invalidateAll()
     {
         queryCache.invalidateAll();
         log.info( "Analytics cache cleared" );
+    }
+
+    private boolean progressiveCachingEnabled()
+    {
+        final String cachingType = (String) systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TYPE );
+        return CACHE_PROGRESSIVE_TYPE.equals( cachingType );
     }
 
     @PostConstruct

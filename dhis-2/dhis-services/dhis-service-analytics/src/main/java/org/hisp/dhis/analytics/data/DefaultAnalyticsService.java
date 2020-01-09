@@ -79,7 +79,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -104,8 +103,7 @@ import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.analytics.cache.AnalyticsCacheWrapper;
-import org.hisp.dhis.analytics.cache.TimeToLive;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
@@ -196,7 +194,7 @@ public class DefaultAnalyticsService
 
     private final DhisConfigurationProvider dhisConfig;
 
-    private final AnalyticsCacheWrapper analyticsCacheWrapper;
+    private final AnalyticsCache analyticsCache;
 
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
@@ -208,7 +206,7 @@ public class DefaultAnalyticsService
         ConstantService constantService, ExpressionService expressionService,
         OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
         EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService, ExpressionResolver resolver,
-        DhisConfigurationProvider dhisConfig, AnalyticsCacheWrapper analyticsCacheWrapper )
+        DhisConfigurationProvider dhisConfig, AnalyticsCache analyticsCache )
     {
         checkNotNull( analyticsManager );
         checkNotNull( rawAnalyticsManager );
@@ -223,7 +221,7 @@ public class DefaultAnalyticsService
         checkNotNull( dataQueryService );
         checkNotNull( resolver );
         checkNotNull( dhisConfig );
-        checkNotNull( analyticsCacheWrapper );
+        checkNotNull(analyticsCache);
 
         this.analyticsManager = analyticsManager;
         this.rawAnalyticsManager = rawAnalyticsManager;
@@ -238,7 +236,7 @@ public class DefaultAnalyticsService
         this.dataQueryService = dataQueryService;
         this.resolver = resolver;
         this.dhisConfig = dhisConfig;
-        this.analyticsCacheWrapper = analyticsCacheWrapper;
+        this.analyticsCache = analyticsCache;
     }
 
     @Override
@@ -257,27 +255,11 @@ public class DefaultAnalyticsService
 
         if ( dhisConfig.isAnalyticsCacheEnabled() )
         {
-            return getCachedOrFetch( params );
+            final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
+            return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
         }
 
         return getAggregatedDataValueGridInternal( params );
-    }
-
-    private Grid getCachedOrFetch( final DataQueryParams params )
-    {
-        final Optional<Grid> cachedGrid = analyticsCacheWrapper.get( params.getKey() );
-
-        if ( cachedGrid.isPresent() )
-        {
-            return cachedGrid.get();
-        }
-        else
-        {
-            final long ttlInSeconds = new TimeToLive( params, systemSettingManager ).compute();
-            final Grid grid = getAggregatedDataValueGridInternal( params );
-            analyticsCacheWrapper.put( params.getKey(), grid, ttlInSeconds );
-            return grid;
-        }
     }
 
     @Override
@@ -345,7 +327,7 @@ public class DefaultAnalyticsService
     @EventListener
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
-        analyticsCacheWrapper.invalidateAll();
+        analyticsCache.invalidateAll();
     }
 
     // -------------------------------------------------------------------------
