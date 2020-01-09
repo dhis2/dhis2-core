@@ -54,6 +54,7 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.render.*;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.render.type.SectionRenderingType;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -440,6 +441,25 @@ public class MetadataImportServiceTest
         userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( "TA user group updated", userGroup.getName() );
         assertEquals( userA, userGroup.getUser() );
+    }
+
+    @Test
+    public void testJobConfigurationImport()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+                new ClassPathResource( "dxf2/jobconfigurations.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        List<JobConfiguration> objects = manager.getAllNoAcl( JobConfiguration.class );
+        assertEquals( 2, objects.size() );
     }
 
     @Test

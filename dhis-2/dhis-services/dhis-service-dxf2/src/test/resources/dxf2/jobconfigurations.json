@@ -1,0 +1,20 @@
+{
+  "jobConfigurations": [
+    {
+      "name": "Continuous analytics table update",
+      "jobType": "CONTINUOUS_ANALYTICS_TABLE",
+      "delay": 5,
+      "jobParameters": {
+      },
+      "enabled": true
+    },
+    {
+      "name": "Scheduled analytics table update",
+      "jobType": "ANALYTICS_TABLE",
+      "cronExpression": "0 0 3 ? * *",
+      "jobParameters": {
+      },
+      "enabled": true
+    }
+  ]
+}
