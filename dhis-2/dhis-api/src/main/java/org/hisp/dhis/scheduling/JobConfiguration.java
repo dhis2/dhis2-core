@@ -222,7 +222,6 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    @JsonTypeId
     public JobType getJobType()
     {
         return jobType;
