@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -49,16 +50,18 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
  * @author Lars Helge Overland
  */
 @Component( "continuousAnalyticsTableJob" )
-public class ContinuousAnlyticsTableJob
+public class ContinuousAnalyticsTableJob
     extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( ContinuousAnlyticsTableJob.class );
+    private static final Log log = LogFactory.getLog( ContinuousAnalyticsTableJob.class );
+
+    private static final Integer DEFAULT_HOUR_OF_DAY = 0;
 
     private final AnalyticsTableGenerator analyticsTableGenerator;
 
     private final SystemSettingManager systemSettingManager;
 
-    public ContinuousAnlyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator, SystemSettingManager systemSettingManager )
+    public ContinuousAnalyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator, SystemSettingManager systemSettingManager )
     {
         this.analyticsTableGenerator = analyticsTableGenerator;
         this.systemSettingManager = systemSettingManager;
@@ -86,7 +89,7 @@ public class ContinuousAnlyticsTableJob
     {
         ContinuousAnalyticsJobParameters parameters = (ContinuousAnalyticsJobParameters) jobConfiguration.getJobParameters();
 
-        Integer hourOfDay = parameters.getHourOfDay();
+        Integer hourOfDay = ObjectUtils.firstNonNull( parameters.getHourOfDay(), DEFAULT_HOUR_OF_DAY );
 
         Date now = new Date();
         Date defaultNextFullUpdate = DateUtils.getNextDate( hourOfDay, now );
