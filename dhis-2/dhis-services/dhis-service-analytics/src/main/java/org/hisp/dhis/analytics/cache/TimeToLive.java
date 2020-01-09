@@ -96,7 +96,8 @@ public class TimeToLive
      * @param date the date to subtract from now
      * @return the difference of days in MILLISECONDS
      */
-    private long daysBetweenDateAndNow( final Instant date ) {
+    private long daysBetweenDateAndNow( final Instant date )
+    {
         final long diff = DAYS.between( ofInstant( date, UTC ), now() );
         return diff >= 0 ? diff : 0;
     }
