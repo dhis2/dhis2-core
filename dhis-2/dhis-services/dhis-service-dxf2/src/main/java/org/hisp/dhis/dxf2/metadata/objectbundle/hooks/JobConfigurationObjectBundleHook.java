@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,6 +26,19 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.scheduling.DefaultSchedulingManager.CONTINOUS_CRON;
+import static org.hisp.dhis.scheduling.DefaultSchedulingManager.HOUR_CRON;
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -42,17 +53,6 @@ import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.scheduling.DefaultSchedulingManager.CONTINOUS_CRON;
-import static org.hisp.dhis.scheduling.DefaultSchedulingManager.HOUR_CRON;
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 /**
  * @author Henning Håkonsen
@@ -77,121 +77,6 @@ public class JobConfigurationObjectBundleHook
         this.schedulingManager = schedulingManager;
     }
 
-    private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
-    {
-        Set<JobConfiguration> jobConfigs = jobConfigurationService.getAllJobConfigurations().stream()
-            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) && !Objects.equals( jobConfig.getUid(), jobConfiguration.getUid() ) )
-            .collect( Collectors.toSet() );
-
-        /*
-         *  Validate that there are no other jobs of the same job type which are scheduled with the same cron.
-         *
-         *  Also check if the job is trying to run continuously while other job of the same type is running continuously - this should not be allowed
-         */
-        for ( JobConfiguration jobConfig : jobConfigs )
-        {
-            if ( jobConfiguration.isContinuousExecution() )
-            {
-                if ( jobConfig.isContinuousExecution() )
-                {
-                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7001 ) );
-                }
-            }
-            else
-            {
-                if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
-                {
-                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
-                }
-            }
-        }
-    }
-
-    List<ErrorReport> validateInternal( final JobConfiguration jobConfiguration )
-    {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
-        //Check whether jobConfiguration already exists in the system and if yes, validate it
-        JobConfiguration persistedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
-
-        final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
-            jobConfiguration, persistedJobConfiguration );
-
-        validateJobConfigurationWithNonContinuousExecution( errorReports, tempJobConfiguration );
-        validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
-
-        // Validate parameters
-        if ( tempJobConfiguration.getJobParameters() != null )
-        {
-            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
-        }
-        else
-        {
-            // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
-            if ( tempJobConfiguration.getJobType().getJobParameters() != null )
-            {
-                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType().getKey() ) );
-            }
-        }
-
-        validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );
-
-        return errorReports;
-    }
-
-    private JobConfiguration validatePersistedAndPrepareTempJobConfiguration( List<ErrorReport> errorReports,
-        JobConfiguration jobConfiguration, JobConfiguration persistedJobConfiguration )
-    {
-        if ( persistedJobConfiguration != null && !persistedJobConfiguration.isConfigurable() )
-        {
-            if ( persistedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
-            {
-                errorReports
-                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
-            }
-            else
-            {
-                persistedJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
-                return persistedJobConfiguration;
-            }
-        }
-
-        return jobConfiguration;
-    }
-
-    private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
-        JobConfiguration jobConfiguration )
-    {
-        if ( !jobConfiguration.isContinuousExecution() )
-        {
-            if ( jobConfiguration.getCronExpression() == null )
-            {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
-            }
-            // Validate the cron expression
-            else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
-            {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
-            }
-        }
-    }
-
-    private void validateJob( List<ErrorReport> errorReports, JobConfiguration jobConfiguration,
-        JobConfiguration persistedJobConfiguration )
-    {
-        Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
-        ErrorReport jobValidation = job.validate();
-        if ( jobValidation != null &&
-            ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() ))
-        {
-            // If the error is caused by the environment and the job is a non configurable job
-            // that exists already, then the error can be ignored. Job has the issue with and
-            // without updating it.
-            errorReports.add( jobValidation );
-        }
-    }
-
-
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -206,10 +91,12 @@ public class JobConfigurationObjectBundleHook
         if ( errorReports.size() == 0 )
         {
             jobConfiguration.setNextExecutionTime( null );
+
             if ( jobConfiguration.isContinuousExecution() )
             {
                 jobConfiguration.setCronExpression( CONTINOUS_CRON );
             }
+
             log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded" );
         }
         else
@@ -219,11 +106,6 @@ public class JobConfigurationObjectBundleHook
         }
 
         return errorReports;
-    }
-
-    private boolean setDefaultCronExpressionWhenDisablingContinuousExectution( JobConfiguration newObject, JobConfiguration persistedObject )
-    {
-        return ( !newObject.isContinuousExecution() && persistedObject.isContinuousExecution() ) && newObject.getCronExpression().equals( CONTINOUS_CRON );
     }
 
     @Override
@@ -305,6 +187,129 @@ public class JobConfigurationObjectBundleHook
         {
             schedulingManager.scheduleJob( jobConfiguration );
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /*
+     *  Validates that there are no other jobs of the same job type which are scheduled with the same cron expression.
+     *  Also checks if the job is trying to run continuously while other job of the same type is running continuously.
+     */
+    private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
+    {
+        Set<JobConfiguration> jobConfigs = jobConfigurationService.getAllJobConfigurations().stream()
+            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) && !Objects.equals( jobConfig.getUid(), jobConfiguration.getUid() ) )
+            .collect( Collectors.toSet() );
+
+        for ( JobConfiguration jobConfig : jobConfigs )
+        {
+            if ( jobConfiguration.isContinuousExecution() )
+            {
+                if ( jobConfig.isContinuousExecution() )
+                {
+                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7001 ) );
+                }
+            }
+            else
+            {
+                if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
+                {
+                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
+                }
+            }
+        }
+    }
+
+    private List<ErrorReport> validateInternal( final JobConfiguration jobConfiguration )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        // Check whether jobConfiguration already exists in the system and if so validate it
+
+        JobConfiguration persistedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
+
+        final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
+            jobConfiguration, persistedJobConfiguration );
+
+        validateJobConfigurationWithNonContinuousExecution( errorReports, tempJobConfiguration );
+        validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
+
+        // Validate parameters
+
+        if ( tempJobConfiguration.getJobParameters() != null )
+        {
+            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
+        }
+        else
+        {
+            // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
+
+            if ( tempJobConfiguration.getJobType().getJobParameters() != null )
+            {
+                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType().getKey() ) );
+            }
+        }
+
+        validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );
+
+        return errorReports;
+    }
+
+    private JobConfiguration validatePersistedAndPrepareTempJobConfiguration( List<ErrorReport> errorReports,
+        JobConfiguration jobConfiguration, JobConfiguration persistedJobConfiguration )
+    {
+        if ( persistedJobConfiguration != null && !persistedJobConfiguration.isConfigurable() )
+        {
+            if ( persistedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
+            {
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
+            }
+            else
+            {
+                persistedJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
+                return persistedJobConfiguration;
+            }
+        }
+
+        return jobConfiguration;
+    }
+
+    private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
+        JobConfiguration jobConfiguration )
+    {
+        if ( !jobConfiguration.isContinuousExecution() )
+        {
+            if ( jobConfiguration.getCronExpression() == null )
+            {
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
+            }
+            else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
+            {
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
+            }
+        }
+    }
+
+    private void validateJob( List<ErrorReport> errorReports, JobConfiguration jobConfiguration,
+        JobConfiguration persistedJobConfiguration )
+    {
+        Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
+        ErrorReport jobValidation = job.validate();
+
+        if ( jobValidation != null && ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() ))
+        {
+            // If the error is caused by the environment and the job is a non-configurable job that already exists,
+            // then the error can be ignored as the job has the issue with and without updating it.
+
+            errorReports.add( jobValidation );
+        }
+    }
+
+    private boolean setDefaultCronExpressionWhenDisablingContinuousExectution( JobConfiguration newObject, JobConfiguration persistedObject )
+    {
+        return ( !newObject.isContinuousExecution() && persistedObject.isContinuousExecution() ) && newObject.getCronExpression().equals( CONTINOUS_CRON );
     }
 
     private void ensureDefaultJobParametersAreUsedIfNoOtherArePresent( JobConfiguration jobConfiguration )

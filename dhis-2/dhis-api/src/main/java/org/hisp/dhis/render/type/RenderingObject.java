@@ -28,7 +28,7 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface RenderingObject<T extends Enum>
+public interface RenderingObject<T extends Enum<?>>
 {
     String _TYPE = "type";
 

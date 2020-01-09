@@ -28,12 +28,8 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -49,6 +45,7 @@ public class SectionRenderingObject implements RenderingObject<SectionRenderingT
      */
     private SectionRenderingType type;
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public SectionRenderingType getType()
@@ -56,6 +53,7 @@ public class SectionRenderingObject implements RenderingObject<SectionRenderingT
         return type;
     }
 
+    @Override
     public void setType( SectionRenderingType type )
     {
         this.type = type;
