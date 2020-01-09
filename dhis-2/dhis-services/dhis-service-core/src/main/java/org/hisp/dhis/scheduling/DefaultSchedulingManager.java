@@ -33,6 +33,7 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
@@ -68,6 +69,8 @@ public class DefaultSchedulingManager
 
     public static final String CONTINOUS_CRON = "* * * * * ?";
     public static final String HOUR_CRON = "0 0 * ? * *";
+
+    private static final int DEFAULT_INITIAL_DELAY_S = 10;
 
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
 
@@ -191,6 +194,7 @@ public class DefaultSchedulingManager
                 else if ( jobConfiguration.getJobType().getSchedulingType() == SchedulingType.FIXED_DELAY )
                 {
                     future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
+                        Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
                         Duration.of( jobConfiguration.getDelay(), ChronoUnit.SECONDS ) );
                 }
 
