@@ -77,7 +77,11 @@ public class UserTest extends ApiTest
             Arguments.of( password, "test", "Password must have at least 8, and at most 40 characters", "newPassword is too short" ),
             Arguments.of( password, DataGenerator.randomString(41), "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
             Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
-            Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" )
+            Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" ),
+            Arguments.of( password, "test1212?", "Password must have at least one upper case", "newPassword doesn't contain uppercase" ),
+            Arguments.of( password, "testtest", "Password must have at least one special character", "newPassword doesn't contain a special character" ),
+            Arguments.of( password, "Testtest?", "Password must have at least one digit", "newPassword doesn't contain a digit" )
+
         } );
     }
 
@@ -101,7 +105,7 @@ public class UserTest extends ApiTest
 
         ApiResponse response = meActions.update( "/changePassword", payload  );
 
-        response.validate().statusCode( 202 );
+        response.validate().statusCode( 302 );
 
         // should login with new credentials
         loginActions.addAuthenticationHeader( username, newPassword );

@@ -64,7 +64,9 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.DefaultSecurityService;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUserService;
@@ -356,10 +358,10 @@ public class MeController
         return null;
     }
 
-    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
+    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT, consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException
+        throws WebMessageException, NotAuthenticatedException, IOException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -387,6 +389,8 @@ public class MeController
         manager.update( currentUser );
 
         currentUserService.expireUserSessions();
+
+        response.sendRedirect( response.encodeRedirectURL( DefaultSecurityService.LOGOUT_ACTION ) );
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )

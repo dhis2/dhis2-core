@@ -42,6 +42,10 @@ public class ValidationResultView
 
     private String organisationUnitDisplayName;
 
+    private String organisationUnitPath;
+
+    private String organisationUnitAncestorNames;
+
     private String periodId;
 
     private String periodDisplayName;
@@ -96,6 +100,28 @@ public class ValidationResultView
     public void setOrganisationUnitDisplayName( String organisationUnitDisplayName )
     {
         this.organisationUnitDisplayName = organisationUnitDisplayName;
+    }
+
+    @JsonProperty
+    public String getOrganisationUnitPath()
+    {
+        return organisationUnitPath;
+    }
+
+    public void setOrganisationUnitPath( String organisationUnitPath )
+    {
+        this.organisationUnitPath = organisationUnitPath;
+    }
+
+    @JsonProperty
+    public String getOrganisationUnitAncestorNames()
+    {
+        return organisationUnitAncestorNames;
+    }
+
+    public void setOrganisationUnitAncestorNames( String organisationUnitAncestorNames )
+    {
+        this.organisationUnitAncestorNames = organisationUnitAncestorNames;
     }
 
     @JsonProperty

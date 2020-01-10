@@ -59,8 +59,6 @@ public class RequestIdentifierFilter
     extends
     OncePerRequestFilter
 {
-    private final DhisConfigurationProvider dhisConfig;
-
     private final static String SESSION_ID_KEY = "sessionId";
 
     private static final Log log = LogFactory.getLog( RequestIdentifierFilter.class );
@@ -68,12 +66,12 @@ public class RequestIdentifierFilter
     /**
      * The hash algorithm to use (default is SHA-256)
      */
-    private String HASH_ALGO;
+    private String hashAlgo;
 
     /**
      * Set the maximum length of the String used as request id
      */
-    private int MAX_SIZE;
+    private int maxSize;
 
     private final static String IDENTIFIER_PREFIX = "ID";
 
@@ -81,18 +79,14 @@ public class RequestIdentifierFilter
 
     public RequestIdentifierFilter( DhisConfigurationProvider dhisConfig )
     {
-        this.dhisConfig = dhisConfig;
-
-        this.HASH_ALGO = dhisConfig.getProperty( MONITORING_LOG_REQUESTID_HASHALGO );
-        this.MAX_SIZE = Integer.parseInt( dhisConfig.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) );
-
+        this.hashAlgo = dhisConfig.getProperty( MONITORING_LOG_REQUESTID_HASHALGO );
+        this.maxSize = Integer.parseInt( dhisConfig.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) );
         this.enabled = dhisConfig.isEnabled( MONITORING_LOG_REQUESTID_ENABLED );
     }
 
     @Override
     protected void doFilterInternal( HttpServletRequest req, HttpServletResponse res, FilterChain chain )
-        throws ServletException,
-        IOException
+        throws ServletException, IOException
     {
         if ( enabled )
         {
@@ -103,7 +97,7 @@ public class RequestIdentifierFilter
             }
             catch ( NoSuchAlgorithmException e )
             {
-                log.error( String.format( "Invalid Hash algorithm provided (%s)", HASH_ALGO ), e );
+                log.error( String.format( "Invalid Hash algorithm provided (%s)", hashAlgo ), e );
             }
         }
 
@@ -113,14 +107,14 @@ public class RequestIdentifierFilter
     private String truncate( String id )
     {
         // only truncate if MAX SIZE <> -1
-        return id.substring( 0, (this.MAX_SIZE == -1 ? id.length() : this.MAX_SIZE) );
+        return id.substring( 0, (this.maxSize == -1 ? id.length() : this.maxSize) );
     }
 
     private String hashToBase64( String sessionId )
         throws NoSuchAlgorithmException
     {
         byte[] data = sessionId.getBytes();
-        MessageDigest digester = MessageDigest.getInstance( HASH_ALGO );
+        MessageDigest digester = MessageDigest.getInstance( hashAlgo );
         digester.update( data );
         return Base64.getEncoder().encodeToString( digester.digest() );
     }

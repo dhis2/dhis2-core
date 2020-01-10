@@ -58,7 +58,7 @@ public class DeviceRenderTypeMapSerializer
                 XMLStreamWriter staxWriter = xmlGenerator.getStaxWriter();
                 for ( RenderDevice key : keys )
                 {
-                    RenderingObject val =  value.get( key );
+                    RenderingObject val = value.get( key );
                     staxWriter.writeStartElement(  key.name() );
                     staxWriter.writeAttribute( RenderingObject._TYPE, val.getType().name() );
                     staxWriter.writeEndElement();
