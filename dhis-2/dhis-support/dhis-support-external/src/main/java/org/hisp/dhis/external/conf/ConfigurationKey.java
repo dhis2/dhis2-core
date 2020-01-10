@@ -99,7 +99,8 @@ public enum ConfigurationKey
     MONITORING_LOG_REQUESTID_HASHALGO( "monitoring.requestidlog.hash", "SHA-256", false ),
     MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
     APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
-    APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false );
+    APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false ),
+    AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "on" );
 
     private final String key;
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.audit.payloads;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,18 +28,29 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MetadataAuditStore
+@Data
+@Builder
+public class TrackedEntityAuditPayload implements AuditPayload
 {
-    int save( MetadataAudit audit );
+    @JsonProperty
+    private final String trackedEntityInstance;
 
-    void delete( MetadataAudit audit );
+    @JsonProperty
+    private final String comment;
 
-    int count( MetadataAuditQuery query );
+    @JsonProperty
+    private final String accessedBy;
 
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    @Override
+    public String getType()
+    {
+        return "trackedEntity";
+    }
 }

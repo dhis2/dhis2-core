@@ -32,12 +32,13 @@ import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author Morten Olav Hansen
@@ -48,25 +49,26 @@ public class PostLoadAuditListener
 {
     public PostLoadAuditListener(
         AuditManager auditManager,
-        AuditLegacyObjectFactory auditLegacyObjectFactory,
+        AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
-        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void onPostLoad( PostLoadEvent postLoadEvent )
     {
         Object entity = postLoadEvent.getEntity();
 
         getAuditable( entity, "read" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.READ )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( new Date() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
+                .auditType( AuditType.READ )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .data( this.objectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
                 .build() );
         } );
     }

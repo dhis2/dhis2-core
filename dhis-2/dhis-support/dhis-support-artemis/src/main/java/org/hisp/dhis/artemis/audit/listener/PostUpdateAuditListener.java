@@ -33,12 +33,12 @@ import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author Luciano Fiandesio
@@ -49,10 +49,10 @@ public class PostUpdateAuditListener
 {
     public PostUpdateAuditListener(
         AuditManager auditManager,
-        AuditLegacyObjectFactory auditLegacyObjectFactory,
+        AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
-        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier );
     }
 
     @Override
@@ -62,12 +62,12 @@ public class PostUpdateAuditListener
 
         getAuditable( entity, "update" ).ifPresent( auditable -> {
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.UPDATE )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( new Date() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.UPDATE, entity, getCreatedBy() ) )
+                .auditType( AuditType.UPDATE )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .data( this.objectFactory.create( auditable.scope(), AuditType.UPDATE, entity, getCreatedBy() ) )
                 .build() );
         } );
     }
