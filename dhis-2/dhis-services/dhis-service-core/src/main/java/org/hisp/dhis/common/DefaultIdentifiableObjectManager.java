@@ -45,9 +45,11 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -1088,10 +1090,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> getByName( Category.class, "default" ) ).orElse( null ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> HibernateUtils.initializeProxy( getByName( Category.class, "default" ) ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryCombo.class, "default" ) ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOption.class, "default" ) ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOptionCombo.class, "default" ) ) ).orElse( null ) )
             .build();
     }
 
