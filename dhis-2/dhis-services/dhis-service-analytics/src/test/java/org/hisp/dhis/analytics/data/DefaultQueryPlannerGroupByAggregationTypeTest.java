@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.junit.Assert.assertTrue;
@@ -46,6 +46,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.joda.time.DateTime;
@@ -94,7 +95,6 @@ public class DefaultQueryPlannerGroupByAggregationTypeTest
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
                     Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', ValueType.TEXT, AggregationType.COUNT,
-                            // This will override the Aggregation types of the single data elements
                             DataElementDomain.AGGREGATE ) ) ) ) )
             .withFilters( Lists.newArrayList(
                 // OU FILTER
@@ -114,6 +114,36 @@ public class DefaultQueryPlannerGroupByAggregationTypeTest
         assertThat( dataQueryGroups.getAllQueries(), hasItem(
             both( hasProperty( "aggregationType", hasProperty( "aggregationType", is( AggregationType.AVERAGE ) ) ) )
                 .and( hasProperty( "aggregationType", hasProperty( "dataType", is( DataType.TEXT ) ) ) ) ) );
+    }
+
+    @Test
+    public void verifySingleNonDataElementRetainAggregationTypeButNullDataType()
+    {
+        //
+        // Only single Data Element in filter are retaining the Data Type
+        //
+        List<DimensionalItemObject> periods = new ArrayList<>();
+        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
+        // DataQueryParams with **one** Indicator
+        DataQueryParams queryParams = DataQueryParams.newBuilder().withDimensions(
+                // PERIOD DIMENSION
+                Lists.newArrayList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
+                        new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
+                                Lists.newArrayList( createIndicator('A', createIndicatorType( 'A' ) ) ) ) ) )
+                .withFilters( Lists.newArrayList(
+                        // OU FILTER
+                        new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                                ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+                .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+
+        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
+                QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
+
+        assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
+
+        assertThat( dataQueryGroups.getAllQueries(), hasItem(
+                both( hasProperty( "aggregationType", hasProperty( "aggregationType", is( AggregationType.AVERAGE ) ) ) )
+                        .and( hasProperty( "aggregationType", hasProperty( "dataType", is( nullValue() ) ) ) ) ) );
     }
 
     @Test
