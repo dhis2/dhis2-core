@@ -28,11 +28,11 @@
 
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -45,6 +45,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.chart.ChartType;
+import org.hisp.dhis.chart.Series;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -94,8 +97,6 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.reporttable.ReportParams;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -106,8 +107,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.visualization.ReportingParams;
+import org.hisp.dhis.visualization.Axis;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -115,7 +117,6 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -136,13 +137,13 @@ import com.google.common.collect.Lists;
 /**
  * Temporary class, in deprecation process. Avoid making changes here. This
  * class is just supporting the deprecation process of the
- * ReportTableController.
+ * ChartController.
  *
  * It's just a Façade to keep it compatible with the new Visualization model.
  */
 @Deprecated
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public abstract class ReportTableFacadeController {
+public abstract class ChartFacadeController {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
     protected static final String DEFAULTS = "INCLUDE";
@@ -235,21 +236,21 @@ public abstract class ReportTableFacadeController {
         List<Visualization> entities = getEntityList( metadata, options, filters, orders );
 
         // Conversion point
-        List<ReportTable> reportTables = convertToReportTableList( entities );
+        List<Chart> charts = convertToChartList( entities );
 
         Pager pager = metadata.getPager();
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), reportTables.size(), options.getPageSize() );
-            reportTables = PagerUtils.pageCollection( reportTables, pager );
+            pager = new Pager( options.getPage(), charts.size(), options.getPageSize() );
+            charts = PagerUtils.pageCollection( charts, pager );
         }
 
-        handleLinksAndAccess( reportTables, fields, false, currentUser );
+        handleLinksAndAccess( charts, fields, false, currentUser );
 
-        handleAttributeValues( reportTables, fields );
+        handleAttributeValues( charts, fields );
 
-        linkService.generatePagerLinks( pager, ReportTable.class );
+        linkService.generatePagerLinks( pager, Chart.class );
 
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( rpParameters.get( "inclusionStrategy" ) ) );
@@ -259,8 +260,8 @@ public abstract class ReportTableFacadeController {
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( ReportTable.class,
-            new FieldFilterParams( reportTables, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( Chart.class,
+            new FieldFilterParams( charts, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
@@ -481,7 +482,7 @@ public abstract class ReportTableFacadeController {
             throw new UpdateAccessDeniedException( "This property is read-only." );
         }
 
-        ReportTable object = deserialize( request );
+        Chart object = deserialize( request );
 
         if ( object == null )
         {
@@ -515,19 +516,19 @@ public abstract class ReportTableFacadeController {
         entities = (List<Visualization>) queryService.query( query );
 
         // Conversion point
-        List<ReportTable> reportTables = convertToReportTableList( entities );
+        List<Chart> charts = convertToChartList( entities );
 
-        handleLinksAndAccess( reportTables, fields, true, user );
+        handleLinksAndAccess( charts, fields, true, user );
 
-        handleAttributeValues( reportTables, fields );
+        handleAttributeValues( charts, fields );
 
-        for ( ReportTable entity : reportTables )
+        for ( Chart entity : charts )
         {
             postProcessResponseEntity( entity, options, parameters );
         }
 
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( ReportTable.class,
-            new FieldFilterParams( reportTables, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( Chart.class,
+            new FieldFilterParams( charts, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
                 .setUser( user ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
@@ -572,7 +573,7 @@ public abstract class ReportTableFacadeController {
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        ReportTable parsed = deserializeJsonEntity( request, response );
+        Chart parsed = deserializeJsonEntity( request, response );
         parsed.getTranslations().clear();
 
         final Visualization visualization = convertToVisualization( parsed );
@@ -613,7 +614,7 @@ public abstract class ReportTableFacadeController {
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        ReportTable parsed = deserializeXmlEntity( request, response );
+        Chart parsed = deserializeXmlEntity( request, response );
         parsed.getTranslations().clear();
 
         final Visualization visualization = convertToVisualization( parsed );
@@ -717,7 +718,7 @@ public abstract class ReportTableFacadeController {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        ReportTable parsed = deserializeJsonEntity( request, response );
+        Chart parsed = deserializeJsonEntity( request, response );
         parsed.setUid( pvUid );
 
         final Visualization visualization = convertToVisualization( parsed );
@@ -756,7 +757,7 @@ public abstract class ReportTableFacadeController {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        ReportTable parsed = deserializeXmlEntity( request, response );
+        Chart parsed = deserializeXmlEntity( request, response );
         parsed.setUid( pvUid );
 
         final Visualization visualization = convertToVisualization( parsed );
@@ -1031,21 +1032,21 @@ public abstract class ReportTableFacadeController {
     // Hooks
     //--------------------------------------------------------------------------
 
-    protected ReportTable deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected Chart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
-        return renderService.fromJson( request.getInputStream(), ReportTable.class );
+        return renderService.fromJson( request.getInputStream(), Chart.class );
     }
 
-    protected ReportTable deserializeXmlEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected Chart deserializeXmlEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
-        return renderService.fromXml( request.getInputStream(), ReportTable.class );
+        return renderService.fromXml( request.getInputStream(), Chart.class );
     }
 
     /**
      * Override to process a single entity after it has been retrieved from
      * storage and before it is returned to the view. Entity is null-safe.
      */
-    protected void postProcessResponseEntity( ReportTable entity, WebOptions options, Map<String, String> parameters ) throws Exception
+    protected void postProcessResponseEntity( Chart entity, WebOptions options, Map<String, String> parameters ) throws Exception
     {
     }
 
@@ -1112,60 +1113,123 @@ public abstract class ReportTableFacadeController {
         return null;
     }
     
-    private Visualization convertToVisualization( final ReportTable reportTable )
+    private Visualization convertToVisualization( final Chart chart )
     {
         final Visualization visualization = new Visualization();
 
-        if ( reportTable != null )
+        if ( chart != null )
         {
-            copyProperties( reportTable, visualization );
-            visualization.setType( PIVOT_TABLE );
+            copyProperties( chart, visualization );
 
-            // Copy report params
-            if ( reportTable.hasReportParams() )
+            if ( chart.getType() != null )
             {
-                final ReportingParams reportingParams = new ReportingParams();
-                final ReportParams reportParams = reportTable.getReportParams();
-
-                reportingParams.setGrandParentOrganisationUnit( reportParams.isParamGrandParentOrganisationUnit() );
-                reportingParams.setOrganisationUnit( reportParams.isParamOrganisationUnit() );
-                reportingParams.setParentOrganisationUnit( reportParams.isParamParentOrganisationUnit() );
-                reportingParams.setReportingPeriod( reportParams.isParamReportingMonth() );
-
-                visualization.setReportingParams( reportingParams );
+                visualization.setType( VisualizationType.valueOf( chart.getType().name() ) );
             }
+
+            // Copy seriesItems
+            if ( CollectionUtils.isNotEmpty( chart.getSeriesItems() ) )
+            {
+                final List<Series> seriesItems = chart.getSeriesItems();
+                final List<Axis> axes = visualization.getOptionalAxes();
+
+                for ( final Series seriesItem : seriesItems )
+                {
+                    final Axis axis = new Axis();
+                    axis.setDimensionalItem( seriesItem.getSeries() );
+                    axis.setAxis( seriesItem.getAxis() );
+                    axis.setId( seriesItem.getId() );
+
+                    axes.add( axis );
+                }
+                visualization.setOptionalAxes( axes );
+            }
+
+            // Add series into columns
+            if ( !StringUtils.isEmpty( chart.getSeries() ) )
+            {
+                if ( visualization.getColumnDimensions() != null )
+                {
+                    visualization.getColumnDimensions().add( chart.getSeries() );
+                }
+                else
+                {
+                    visualization.setColumnDimensions( Arrays.asList( chart.getSeries() ) );
+                }
+            }
+
+            // Add category into rows
+            if ( !StringUtils.isEmpty( chart.getCategory() ) )
+            {
+                if ( visualization.getRowDimensions() != null )
+                {
+                    visualization.getRowDimensions().add( chart.getCategory() );
+                }
+                else
+                {
+                    visualization.setRowDimensions( Arrays.asList( chart.getCategory() ) );
+                }
+            }
+
+            visualization.setCumulative( chart.isCumulativeValues() );
         }
         return visualization;
     }
 
-    private List<ReportTable> convertToReportTableList( List<Visualization> entities )
+    private List<Chart> convertToChartList( List<Visualization> entities )
     {
-        List<ReportTable> reportTables = new ArrayList<>();
+        final List<Chart> charts = new ArrayList<>();
+
         if ( CollectionUtils.isNotEmpty( entities ) )
         {
             for ( final Visualization visualization : entities )
             {
-                final ReportTable reportTable = new ReportTable();
-                BeanUtils.copyProperties( visualization, reportTable );
+                final Chart chart = new Chart();
+                copyProperties( visualization, chart, "type" );
 
-                // Copy report params
-                if ( visualization.hasReportingParams() )
+                // Set the correct type
+                if ( visualization.getType() != null
+                    && !"PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
                 {
-                    final ReportingParams reportingParams = visualization.getReportingParams();
-                    final ReportParams reportParams = new ReportParams();
-
-                    reportParams.setParamGrandParentOrganisationUnit( reportingParams.isGrandParentOrganisationUnit() );
-                    reportParams.setParamOrganisationUnit( reportingParams.isOrganisationUnit() );
-                    reportParams.setParamParentOrganisationUnit( reportingParams.isParentOrganisationUnit() );
-                    reportParams.setParamReportingMonth( reportingParams.isReportingPeriod() );
-
-                    reportTable.setReportParams( reportParams );
+                    chart.setType( ChartType.valueOf( visualization.getType().name() ) );
                 }
 
-                reportTables.add( reportTable );
+                // Copy seriesItems
+                if ( CollectionUtils.isNotEmpty( visualization.getOptionalAxes() ) )
+                {
+                    final List<Series> seriesItems = new ArrayList<>();
+                    final List<Axis> axes = visualization.getOptionalAxes();
+
+                    for ( final Axis axis : axes )
+                    {
+                        final Series series = new Series();
+                        series.setSeries( axis.getDimensionalItem() );
+                        series.setAxis( axis.getAxis() );
+                        series.setId( axis.getId() );
+
+                        seriesItems.add( series );
+                    }
+                    chart.setSeriesItems( seriesItems );
+                }
+
+                // Copy column into series
+                if ( CollectionUtils.isNotEmpty( visualization.getColumnDimensions() ) )
+                {
+                    final List<String> columns = visualization.getColumnDimensions();
+                    chart.setSeries( columns.get( 0 ) );
+                }
+
+                // Copy rows into category
+                if ( CollectionUtils.isNotEmpty( visualization.getRowDimensions() ) )
+                {
+                    final List<String> rows = visualization.getRowDimensions();
+                    chart.setCategory( rows.get( 0 ) );
+                }
+
+                chart.setCumulativeValues( visualization.isCumulative() );
+                charts.add( chart );
             }
         }
-        return reportTables;
+        return charts;
     }
 
     protected List<Visualization> getEntity( String uid, WebOptions options )
@@ -1220,7 +1284,7 @@ public abstract class ReportTableFacadeController {
         return fieldsContains( "access", fields );
     }
 
-    protected void handleLinksAndAccess( List<ReportTable> entityList, List<String> fields, boolean deep, User user )
+    protected void handleLinksAndAccess( List<Chart> entityList, List<String> fields, boolean deep, User user )
     {
         boolean generateLinks = hasHref( fields );
 
@@ -1230,7 +1294,7 @@ public abstract class ReportTableFacadeController {
         }
     }
 
-    protected void handleAttributeValues( List<ReportTable> entityList, List<String> fields )
+    protected void handleAttributeValues( List<Chart> entityList, List<String> fields )
     {
         List<String> hasAttributeValues = fields.stream().filter( field -> field.contains( "attributeValues" ) )
             .collect( Collectors.toList() );
@@ -1295,7 +1359,7 @@ public abstract class ReportTableFacadeController {
      * @param request HttpServletRequest from current session
      * @return Parsed entity or null if invalid type
      */
-    protected ReportTable deserialize(HttpServletRequest request ) throws IOException
+    protected Chart deserialize(HttpServletRequest request ) throws IOException
     {
         String type = request.getContentType();
         type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
@@ -1312,11 +1376,11 @@ public abstract class ReportTableFacadeController {
 
         if ( isCompatibleWith( type, MediaType.APPLICATION_JSON ) )
         {
-            return renderService.fromJson( request.getInputStream(), ReportTable.class );
+            return renderService.fromJson( request.getInputStream(), Chart.class );
         }
         else if ( isCompatibleWith( type, MediaType.APPLICATION_XML ) )
         {
-            return renderService.fromXml( request.getInputStream(), ReportTable.class );
+            return renderService.fromXml( request.getInputStream(), Chart.class );
         }
 
         return null;
