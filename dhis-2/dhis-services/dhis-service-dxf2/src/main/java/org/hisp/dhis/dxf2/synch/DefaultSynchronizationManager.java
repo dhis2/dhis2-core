@@ -52,6 +52,7 @@ import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -372,7 +373,8 @@ public class DefaultSynchronizationManager
             return new ImportSummaries().addImportSummary( importSummary );
         }
 
-        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + "/api/events";
+        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + "/api/events?strategy=" +
+            ImportStrategy.SYNC.name();
 
         log.info( "Events: " + lastUpdatedEventsCount + " to push since last push success: " + lastSuccessTime );
         log.info( "Remote server events POST URL: " + url );
