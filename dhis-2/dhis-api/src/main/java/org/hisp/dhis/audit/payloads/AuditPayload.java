@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.audit.payloads;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,21 +28,20 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MetadataAuditService
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
+@JsonSubTypes( {
+    @JsonSubTypes.Type( value = MetadataAuditPayload.class, name = "metadata" ),
+    @JsonSubTypes.Type( value = TrackedEntityAuditPayload.class, name = "trackedEntity" ),
+} )
+public interface AuditPayload
 {
-    /**
-     * Persists the given MetadataAudit instance.
-     *
-     * @param audit Instance to add
-     */
-    void addMetadataAudit( MetadataAudit audit );
-
-    int count( MetadataAuditQuery query );
-
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    @JsonProperty
+    String getType();
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,47 +28,11 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.LinkedHashMap;
+
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ProducerConfiguration
+public class AuditAttributes extends LinkedHashMap<String, Object>
 {
-    private boolean useQueue = false;
-
-    private ProducerConfiguration( boolean useQueue )
-    {
-        this.useQueue = useQueue;
-    }
-
-    public boolean isUseQueue()
-    {
-        return useQueue;
-    }
-
-    public static final class ProducerConfigurationBuilder
-    {
-        private boolean useQueue;
-
-        private int queueSize;
-
-        private ProducerConfigurationBuilder()
-        {
-        }
-
-        public static ProducerConfigurationBuilder aProducerConfiguration()
-        {
-            return new ProducerConfigurationBuilder();
-        }
-
-        public ProducerConfigurationBuilder withUseQueue( boolean useQueue )
-        {
-            this.useQueue = useQueue;
-            return this;
-        }
-
-        public ProducerConfiguration build()
-        {
-            return new ProducerConfiguration( useQueue );
-        }
-    }
 }

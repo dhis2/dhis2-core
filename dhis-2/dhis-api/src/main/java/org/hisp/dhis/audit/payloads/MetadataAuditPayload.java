@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit.legacy;
+package org.hisp.dhis.audit.payloads;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,13 +28,24 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AuditLegacyObjectFactory
+@Data
+@Builder
+public class MetadataAuditPayload implements AuditPayload
 {
-    Object create( AuditScope auditScope, AuditType auditType, Object object, String user );
+    @JsonProperty
+    private final IdentifiableObject identifiableObject;
+
+    @Override
+    public String getType()
+    {
+        return "metadata";
+    }
 }

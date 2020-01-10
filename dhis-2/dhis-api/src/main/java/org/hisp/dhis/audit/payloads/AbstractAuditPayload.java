@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.audit.payloads;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,50 +28,21 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.schema.audit.MetadataAuditService" )
-public class DefaultMetadataAuditService implements MetadataAuditService
+public class AbstractAuditPayload implements AuditPayload
 {
-    private final MetadataAuditStore auditStore;
+    private final String type;
 
-    public DefaultMetadataAuditService(
-        MetadataAuditStore auditStore,
-        DhisConfigurationProvider dhisConfig )
+    public AbstractAuditPayload( String type )
     {
-        checkNotNull( auditStore );
-        checkNotNull( dhisConfig );
-
-        this.auditStore = auditStore;
+        this.type = type;
     }
 
-    @Transactional
     @Override
-    public void addMetadataAudit( MetadataAudit audit )
+    public String getType()
     {
-        auditStore.save( audit );
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public int count( MetadataAuditQuery query )
-    {
-        return auditStore.count( query );
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<MetadataAudit> query( MetadataAuditQuery query )
-    {
-        return auditStore.query( query );
+        return type;
     }
 }
