@@ -79,7 +79,7 @@ public class Audit implements Message
     @JsonProperty
     private AuditAttributes attributes;
 
-    @JsonProperty // TODO remove this from builder
+    @JsonProperty
     private Object data;
 
     @JsonIgnore
@@ -187,13 +187,13 @@ public class Audit implements Message
 
     String toLog() {
         return "Audit{" +
-                "auditType=" + auditType +
-                ", auditScope=" + auditScope +
-                ", createdAt=" + createdAt +
-                ", createdBy='" + createdBy + '\'' +
-                ", klass='" + klass + '\'' +
-                ", uid='" + uid + '\'' +
-                ", code='" + code + '\'' +
-                '}';
+            "auditType=" + auditType +
+            ", auditScope=" + auditScope +
+            ", createdAt=" + createdAt +
+            ", createdBy='" + createdBy + '\'' +
+            ", klass='" + klass + '\'' +
+            ", uid='" + uid + '\'' +
+            ", code='" + code + '\'' +
+            '}';
     }
 }

@@ -69,7 +69,7 @@ public class PostUpdateAuditListener
 
         getAuditable( entity, "update" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
-                .auditType( AuditType.UPDATE )
+                .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )

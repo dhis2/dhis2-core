@@ -67,7 +67,7 @@ public class PostLoadAuditListener
 
         getAuditable( entity, "read" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
-                .auditType( AuditType.READ )
+                .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
