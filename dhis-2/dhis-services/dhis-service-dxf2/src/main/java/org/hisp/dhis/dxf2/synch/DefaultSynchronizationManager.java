@@ -263,7 +263,7 @@ public class DefaultSynchronizationManager
         }
 
         String url = systemSettingManager.getSystemSetting(
-            SettingKey.REMOTE_INSTANCE_URL ) + "/api/events";
+            SettingKey.REMOTE_INSTANCE_URL ) + "/api/events?strategy=SYNC";
 
         log.info( "Remote server events POST URL: " + url );
 
