@@ -28,18 +28,20 @@ package org.hisp.dhis.parser.expression.literal;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprLiteral;
+import org.hisp.dhis.antlr.AntlrExprLiteral;
 
 import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
-import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLiteralContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
 
 /**
  * Gets literal value Strings from an ANTLR parse tree for use in SQL queries.
  */
 public class SqlLiteral
-    implements ExprLiteral
+    implements AntlrExprLiteral
 {
     @Override
     public Object getNumericLiteral( NumericLiteralContext ctx )

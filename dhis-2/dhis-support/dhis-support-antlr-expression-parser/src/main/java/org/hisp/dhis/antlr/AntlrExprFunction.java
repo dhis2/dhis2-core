@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression;
+package org.hisp.dhis.antlr;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,23 +28,22 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Listens to ANTLR parsing errors and throws them (instead of printing them
- * on the console, which is ANTLR's default behaviour.)
+ * Visits a parsed expression function.
  *
  * @author Jim Grace
  */
-public class ParserErrorListener
-    extends BaseErrorListener
+public interface AntlrExprFunction
 {
-    @Override
-    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
-        int line, int charPositionInLine, String msg, RecognitionException e)
-    {
-        throw new ParserException( msg + " at character " + charPositionInLine );
-    }
+    /**
+     * Finds the value of an expression function, evaluating arguments only
+     * when necessary (e.g., if, and, or, firstNonNull).
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return the value of the function, evaluating necessary args
+     */
+    Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor );
 }

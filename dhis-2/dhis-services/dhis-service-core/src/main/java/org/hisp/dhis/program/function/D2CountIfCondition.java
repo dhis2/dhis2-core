@@ -30,8 +30,8 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**

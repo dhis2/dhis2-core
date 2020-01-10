@@ -28,9 +28,9 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.operator.AntlrOperatorCompareGreaterThan;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-
-import java.util.List;
+import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -40,13 +40,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class OperatorCompareGreaterThan
-    extends OperatorCompare
+    extends AntlrOperatorCompareGreaterThan
+    implements SimpleScalarFunction
 {
-    @Override
-    public Object compute( List<Object> values )
-    {
-        return compare( values ) > 0;
-    }
 
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )

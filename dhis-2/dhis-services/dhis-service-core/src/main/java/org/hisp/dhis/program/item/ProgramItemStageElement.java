@@ -31,7 +31,7 @@ package org.hisp.dhis.program.item;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;

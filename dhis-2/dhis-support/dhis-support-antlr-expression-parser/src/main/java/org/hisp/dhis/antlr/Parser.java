@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression;
+package org.hisp.dhis.antlr;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo

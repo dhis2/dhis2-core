@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ListMap;
@@ -788,7 +789,7 @@ public class DefaultDataIntegrityService
         {
             expressionService.getExpressionDescription( expression, INDICATOR_EXPRESSION );
         }
-        catch ( org.hisp.dhis.parser.expression.ParserException e )
+        catch ( ParserException e )
         {
            return e.getMessage();
         }

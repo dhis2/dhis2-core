@@ -30,6 +30,7 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
 import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 import org.hisp.dhis.program.ProgramIndicator;
 
@@ -43,7 +44,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramCountFunction
-    extends SimpleScalarFunction
+    implements ScalarFunctionToEvaluate
 {
 
     @Override

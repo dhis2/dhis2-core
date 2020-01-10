@@ -28,15 +28,16 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
 import org.hisp.dhis.program.ProgramStage;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDate;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.ParserUtils.castDate;
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.CompareDateContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator date/time between functions
@@ -44,7 +45,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
  * @author Jim Grace
  */
 public abstract class ProgramBetweenFunction
-    extends SimpleScalarFunction
+    implements ScalarFunctionToEvaluate
 {
     @Override
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
@@ -80,7 +81,7 @@ public abstract class ProgramBetweenFunction
     /**
      * Validates a compare date
      *
-     * @param ctx program function compare date context
+     * @param ctx     program function compare date context
      * @param visitor the program indicator expression tree visitor
      */
     private void validateDateArg( CompareDateContext ctx, CommonExpressionVisitor visitor )

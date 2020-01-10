@@ -28,7 +28,9 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
 import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -39,7 +41,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramVariable
-    extends SimpleScalarFunction
+    implements ScalarFunctionToEvaluate
 {
     @Override
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )

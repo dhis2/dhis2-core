@@ -33,7 +33,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemNumStringLiteralContext;
 
@@ -43,7 +43,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemNumStri
  * @author Jim Grace
  */
 public class FunctionFirstNonNull
-    extends ScalarFunction
+    implements ScalarFunctionToEvaluate
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )

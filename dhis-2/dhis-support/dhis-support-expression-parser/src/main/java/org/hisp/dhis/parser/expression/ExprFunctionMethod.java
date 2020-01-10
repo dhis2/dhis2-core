@@ -42,7 +42,7 @@ public interface ExprFunctionMethod
      * Invokes a method in an expression function
      *
      * @param function the function to evaluate
-     * @param ctx the expression context
+     * @param ctx      the expression context
      * @return the function result
      */
     Object apply( ExprFunction function, ExprContext ctx, CommonExpressionVisitor visitor );

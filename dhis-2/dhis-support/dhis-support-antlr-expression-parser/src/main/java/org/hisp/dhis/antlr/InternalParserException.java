@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression;
+package org.hisp.dhis.antlr;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -29,15 +29,15 @@ package org.hisp.dhis.parser.expression;
  */
 
 /**
- * Exception while parsing an expression.
+ * Internal parser error (software error, not syntax error).
  *
  * @author Jim Grace
  */
-public class ParserException
-    extends IllegalStateException
+public class InternalParserException
+    extends ParserExceptionWithoutContext
 {
-    public ParserException( String message )
+    public InternalParserException( String message )
     {
-        super( message );
+        super( "Internal parser error: " + message );
     }
 }

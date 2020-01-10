@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression.operator;
+package org.hisp.dhis.antlr.operator;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,51 +28,56 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.InternalParserException;
-import org.hisp.dhis.parser.expression.function.ComputeFunction;
+import org.hisp.dhis.antlr.AntlrExprFunction;
+import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 
-import java.util.List;
-
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Abstract class for compare operators
+ * Logical operator: Or
+ * <pre>
+ *
+ * Truth table (same as for SQL):
+ *
+ *       A      B    A or B
+ *     -----  -----  ------
+ *     null   null    null
+ *     null   false   null
+ *     null   true    true
+ *
+ *     false  null    null
+ *     false  false   false
+ *     false  true    true
+ *
+ *     true   null    true
+ *     true   false   true
+ *     true   true    true
+ * </pre>
  *
  * @author Jim Grace
  */
-public abstract class OperatorCompare
-    extends ComputeFunction
+public class AntlrOperatorLogicalOr
+    implements AntlrExprFunction
 {
-    /**
-     * Compares two Doubles, Strings or Booleans.
-     *
-     * @param values the values to compare
-     * @return the results of the comparision.
-     */
-    protected int compare( List<Object> values )
+    @Override
+    public Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor )
     {
-        Object o1 = values.get( 0 );
-        Object o2 = values.get( 1 );
+        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
 
-        if ( o1 == null || o2 == null )
+        if ( value == null )
         {
-            throw new InternalParserException( "found null when comparing '" + o1 + "' with '" + o2 + "'" );
+            value = visitor.castBooleanVisit( ctx.expr( 1 ) );
+
+            if ( value != null && !value )
+            {
+                value = null;
+            }
         }
-        else if ( o1 instanceof Double )
+        else if ( !value )
         {
-            return ( (Double) o1).compareTo( castDouble( o2 ) );
+            value = visitor.castBooleanVisit( ctx.expr( 1 ) );
         }
-        else if ( o1 instanceof String )
-        {
-            return ( (String) o1).compareTo( castString( o2 ) );
-        }
-        else if ( o1 instanceof Boolean )
-        {
-            return ( (Boolean) o1).compareTo( castBoolean( o2 ) );
-        }
-        else
-        {
-            throw new InternalParserException( "trying to compare class " + o1.getClass().getName() );
-        }
+
+        return value;
     }
 }

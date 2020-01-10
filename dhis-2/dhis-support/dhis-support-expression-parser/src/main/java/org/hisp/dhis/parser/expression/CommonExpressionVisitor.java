@@ -29,22 +29,19 @@ package org.hisp.dhis.parser.expression;
  */
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.antlr.AntlrExpressionVisitor;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
-import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -53,11 +50,19 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemNumStringLiteralContext;
 
 /**
  * Common traversal of the ANTLR4 expression parse tree using the
@@ -66,7 +71,7 @@ import static org.hisp.dhis.parser.expression.ParserUtils.*;
  * @author Jim Grace
  */
 public class CommonExpressionVisitor
-    extends ExpressionBaseVisitor<Object>
+    extends AntlrExpressionVisitor
 {
     private DimensionService dimensionService;
 
@@ -105,11 +110,6 @@ public class CommonExpressionVisitor
      * Method to call within the ExprItem instance
      */
     private ExprItemMethod itemMethod;
-
-    /**
-     * Instance to call for each literal
-     */
-    private ExprLiteral expressionLiteral = new DefaultLiteral();
 
     /**
      * By default, replace nulls with 0 or ''.
@@ -230,12 +230,6 @@ public class CommonExpressionVisitor
     // -------------------------------------------------------------------------
 
     @Override
-    public final Object visitExpression( ExpressionContext ctx )
-    {
-        return visit( ctx.expr() );
-    }
-
-    @Override
     public Object visitExpr( ExprContext ctx )
     {
         if ( itemMethod == ITEM_REGENERATE )
@@ -249,7 +243,8 @@ public class CommonExpressionVisitor
 
             if ( function == null )
             {
-                throw new ParserExceptionWithoutContext( "Function " + ctx.fun.getText() + " not supported for this type of expression" );
+                throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+                    "Function " + ctx.fun.getText() + " not supported for this type of expression" );
             }
 
             return functionMethod.apply( function, ctx, this );
@@ -270,72 +265,16 @@ public class CommonExpressionVisitor
 
         if ( item == null )
         {
-            throw new ParserExceptionWithoutContext( "Item " + ctx.it.getText() + " not supported for this type of expression" );
+            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+                "Item " + ctx.it.getText() + " not supported for this type of expression" );
         }
 
         return itemMethod.apply( item, ctx, this );
     }
 
-    @Override
-    public Object visitNumericLiteral( NumericLiteralContext ctx )
-    {
-        return expressionLiteral.getNumericLiteral( ctx );
-    }
-
-    @Override
-    public Object visitStringLiteral( StringLiteralContext ctx )
-    {
-        return expressionLiteral.getStringLiteral( ctx );
-    }
-
-    @Override
-    public Object visitBooleanLiteral( BooleanLiteralContext ctx )
-    {
-        return expressionLiteral.getBooleanLiteral( ctx );
-    }
-
-    @Override
-    public Object visitTerminal( TerminalNode node )
-    {
-        return node.getText(); // Needed to regenerate an expression.
-    }
-
     // -------------------------------------------------------------------------
     // Logic for functions and items
     // -------------------------------------------------------------------------
-
-    /**
-     * Visits a context and casts the result as Double.
-     *
-     * @param ctx any context
-     * @return the Double value
-     */
-    public Double castDoubleVisit( ParseTree ctx )
-    {
-        return castDouble( visit( ctx ) );
-    }
-
-    /**
-     * Visits a context and casts the result as String.
-     *
-     * @param ctx any context
-     * @return the Double value
-     */
-    public String castStringVisit( ParseTree ctx )
-    {
-        return castString( visit( ctx ) );
-    }
-
-    /**
-     * Visits a context and casts the result as Boolean.
-     *
-     * @param ctx any context
-     * @return the Boolean value
-     */
-    public Boolean castBooleanVisit( ParseTree ctx )
-    {
-        return castBoolean( visit( ctx ) );
-    }
 
     /**
      * Visits a context while allowing null values (not replacing them
@@ -427,7 +366,8 @@ public class CommonExpressionVisitor
 
         if ( programStage == null )
         {
-            throw new ParserExceptionWithoutContext( "Program stage " + programStageId + " not found" );
+            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+                "Program stage " + programStageId + " not found" );
         }
 
         if ( dataElement == null )
@@ -546,11 +486,6 @@ public class CommonExpressionVisitor
     public boolean getReplaceNulls()
     {
         return replaceNulls;
-    }
-
-    public void setExpressionLiteral( ExprLiteral expressionLiteral )
-    {
-        this.expressionLiteral = expressionLiteral;
     }
 
     public Set<DimensionalItemId> getItemIds()

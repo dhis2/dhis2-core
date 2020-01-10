@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression;
+package org.hisp.dhis.antlr.operator;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,16 +28,22 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+
 /**
- * Internal parser error (software error, not syntax error).
+ * Math operator: Modulus
  *
  * @author Jim Grace
  */
-public class InternalParserException
-    extends ParserExceptionWithoutContext
+public class AntlrOperatorMathModulus
+    extends AntlrComputeFunction
 {
-    public InternalParserException( String message )
+    @Override
+    public Object compute( List<Object> values )
     {
-        super( "Internal parser error: " + message );
+        return castDouble( values.get( 0 ) )
+            % castDouble( values.get( 1 ) );
     }
 }

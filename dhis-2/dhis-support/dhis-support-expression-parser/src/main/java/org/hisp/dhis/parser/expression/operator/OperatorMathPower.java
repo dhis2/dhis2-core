@@ -28,15 +28,11 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.operator.AntlrOperatorMathPower;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.ComputeFunction;
+import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 
-import java.util.List;
-
-import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
-import static java.lang.Math.pow;
 
 /**
  * Expression math operator: Power
@@ -44,15 +40,9 @@ import static java.lang.Math.pow;
  * @author Jim Grace
  */
 public class OperatorMathPower
-    extends ComputeFunction
+    extends AntlrOperatorMathPower
+    implements SimpleScalarFunction
 {
-    @Override
-    public Object compute( List<Object> values )
-    {
-        return pow ( castDouble( values.get( 0 ) ),
-            castDouble( values.get( 1 ) ) );
-    }
-
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {

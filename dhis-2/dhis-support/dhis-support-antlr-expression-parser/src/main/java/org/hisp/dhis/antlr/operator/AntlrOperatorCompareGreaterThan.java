@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression;
+package org.hisp.dhis.antlr.operator;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,23 +28,19 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
- * Exception without expression context, while parsing an expression.
- * <p/>
- * This exception is used for lower-level parsing errors that do not yet
- * have any expression context that shows where they occur. By catching
- * this exception, such context can be added and then the exception
- * re-thrown as an ParserException. This prevents attributing
- * multiple levels of context to the same error; only the immediate context
- * need be displayed.
+ * Compare operator: greater than
  *
  * @author Jim Grace
  */
-public class ParserExceptionWithoutContext
-    extends ParserException
+public class AntlrOperatorCompareGreaterThan
+    extends AntlrOperatorCompare
 {
-    public ParserExceptionWithoutContext( String message )
+    @Override
+    public Object compute( List<Object> values )
     {
-        super( message );
+        return compare( values ) > 0;
     }
 }

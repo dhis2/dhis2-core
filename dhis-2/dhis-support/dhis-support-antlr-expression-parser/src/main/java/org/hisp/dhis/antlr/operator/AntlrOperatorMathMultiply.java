@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression;
+package org.hisp.dhis.antlr.operator;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,39 +28,22 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import java.util.List;
+
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 
 /**
- * Fetches literal values from an ANTLR4 expression parse tree
+ * Math operator: Multiply
  *
  * @author Jim Grace
  */
-public interface ExprLiteral
+public class AntlrOperatorMathMultiply
+    extends AntlrComputeFunction
 {
-    /**
-     * Gets a value from the ANTLR4 expression parse tree node for
-     * a numeric literal
-     *
-     * @param ctx parse tree literal context
-     * @return the literal value
-     */
-    Object getNumericLiteral( NumericLiteralContext ctx );
-
-    /**
-     * Gets a value from the ANTLR4 expression parse tree node for
-     * a string literal
-     *
-     * @param ctx parse tree literal context
-     * @return the literal value
-     */
-    Object getStringLiteral( StringLiteralContext ctx );
-
-    /**
-     * Gets a value from the ANTLR4 expression parse tree node for
-     * a boolean literal
-     *
-     * @param ctx parse tree literal context
-     * @return the literal value
-     */
-    Object getBooleanLiteral( BooleanLiteralContext ctx );
+    @Override
+    public Object compute( List<Object> values )
+    {
+        return castDouble( values.get( 0 ) )
+            * castDouble( values.get( 1 ) );
+    }
 }

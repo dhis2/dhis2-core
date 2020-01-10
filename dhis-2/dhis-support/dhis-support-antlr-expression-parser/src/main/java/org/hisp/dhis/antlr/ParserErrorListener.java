@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.antlr;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,47 +28,23 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
 /**
- * A function that computes the result from the arguments, where if any
- * of the arguments are null, then the result is null.
+ * Listens to ANTLR parsing errors and throws them (instead of printing them
+ * on the console, which is ANTLR's default behaviour.)
  *
  * @author Jim Grace
  */
-public abstract class ComputeFunction
-    extends SimpleScalarFunction
+public class ParserErrorListener
+    extends BaseErrorListener
 {
     @Override
-    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
+        int line, int charPositionInLine, String msg, RecognitionException e)
     {
-        List<Object> values = new ArrayList<>();
-
-        for ( ExprContext expr : ctx.expr() )
-        {
-            Object value = visitor.visit( expr );
-
-            if ( value == null )
-            {
-                return null;
-            }
-
-            values.add( value );
-        }
-
-        return compute( values );
+        throw new ParserException( msg + " at character " + charPositionInLine );
     }
-
-    /**
-     * Computes the result from non-null values.
-     *
-     * @param values the values to use.
-     * @return the computed value.
-     */
-    public abstract Object compute( List<Object> values );
 }

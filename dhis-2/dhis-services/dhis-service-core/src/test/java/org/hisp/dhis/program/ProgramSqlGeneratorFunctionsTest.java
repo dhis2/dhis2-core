@@ -29,6 +29,10 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.antlr.AntlrExprLiteral;
+import org.hisp.dhis.antlr.Parser;
+import org.hisp.dhis.antlr.ParserException;
+import org.hisp.dhis.antlr.literal.DefaultLiteral;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,8 +42,9 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.parser.expression.*;
-import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExprFunctionMethod;
+import org.hisp.dhis.parser.expression.ExprItemMethod;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
@@ -53,12 +58,20 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_EVALUATE;
+import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_GET_SQL;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_FUNCTIONS;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
@@ -547,7 +560,7 @@ public class ProgramSqlGeneratorFunctionsTest
         return castString( test( expression, new SqlLiteral(), FUNCTION_GET_SQL, ITEM_GET_SQL ) );
     }
 
-    private Object test( String expression, ExprLiteral exprLiteral,
+    private Object test( String expression, AntlrExprLiteral exprLiteral,
         ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
     {
         Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();

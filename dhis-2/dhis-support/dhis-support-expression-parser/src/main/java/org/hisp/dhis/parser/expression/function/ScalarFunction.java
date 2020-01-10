@@ -41,11 +41,11 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  *
  * @author Jim Grace
  */
-public abstract class ScalarFunction
-    implements ExprFunction
+public interface ScalarFunction
+    extends ExprFunction
 {
     @Override
-    public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
+    default Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return evaluateAllPaths( ctx, visitor );
     }

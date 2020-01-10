@@ -30,7 +30,7 @@ package org.hisp.dhis.parser.expression.function;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -39,7 +39,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class FunctionIsNotNull
-    extends SimpleScalarFunction
+    implements ScalarFunctionToEvaluate
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )

@@ -30,7 +30,7 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**

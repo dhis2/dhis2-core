@@ -39,6 +39,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -482,7 +483,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
         when( expressionService.getExpressionDescription( anyString(), any() ) )
-            .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
+            .thenThrow( new ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
 
@@ -503,7 +504,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
         when( expressionService.getExpressionDescription( anyString(), any() ) )
-            .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
+            .thenThrow( new ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
 

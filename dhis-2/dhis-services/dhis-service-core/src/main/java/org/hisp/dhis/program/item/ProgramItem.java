@@ -30,7 +30,7 @@ package org.hisp.dhis.program.item;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.item.BaseExprItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;

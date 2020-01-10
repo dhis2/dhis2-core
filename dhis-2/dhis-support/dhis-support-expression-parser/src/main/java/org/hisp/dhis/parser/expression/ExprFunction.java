@@ -28,6 +28,8 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.AntlrExprFunction;
+
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -36,27 +38,18 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public interface ExprFunction
+    extends AntlrExprFunction
 {
     /**
      * Collects item ids inside the function for later database lookup.
      * This is the same as the evaluate method for most functions, but for
      * aggregation functions, it collects item ids as aggregation item ids.
      *
-     * @param ctx the expression context
+     * @param ctx     the expression context
      * @param visitor the tree visitor
      * @return a dummy value for the item
      */
     Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor );
-
-    /**
-     * Finds the value of an expression function, evaluating arguments only
-     * when necessary (e.g., if, and, or, firstNonNull).
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return the value of the function, evaluating necessary args
-     */
-    Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor );
 
     /**
      * Finds the value of an expression function, evaluating all
@@ -72,7 +65,7 @@ public interface ExprFunction
     /**
      * Generates SQL for an expression function.
      *
-     * @param ctx the expression context
+     * @param ctx     the expression context
      * @param visitor the tree visitor
      * @return the generated SQL (as a String) for the function
      */

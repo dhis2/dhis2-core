@@ -28,6 +28,7 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.operator.AntlrOperatorLogicalAnd;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.function.ScalarFunction;
 
@@ -57,21 +58,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class OperatorLogicalAnd
-    extends ScalarFunction
+    extends AntlrOperatorLogicalAnd
+    implements ScalarFunction
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
-
-        if ( value != null && value )
-        {
-            value = visitor.castBooleanVisit( ctx.expr( 1 ) );
-        }
-
-        return value;
-    }
-
     @Override
     public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {

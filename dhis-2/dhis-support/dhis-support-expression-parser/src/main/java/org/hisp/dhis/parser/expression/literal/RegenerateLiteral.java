@@ -28,7 +28,7 @@ package org.hisp.dhis.parser.expression.literal;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprLiteral;
+import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
@@ -38,7 +38,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiter
  * Gets literal values from an ANTLR parse tree to regenerate the expression.
  */
 public class RegenerateLiteral
-    implements ExprLiteral
+    implements AntlrExprLiteral
 {
     @Override
     public Object getNumericLiteral( ExpressionParser.NumericLiteralContext ctx )

@@ -38,11 +38,11 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  *
  * @author Jim Grace
  */
-public abstract class SimpleScalarFunction
+public interface SimpleScalarFunction
     extends ScalarFunction
 {
     @Override
-    public final Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
+    default Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return evaluate( ctx, visitor );
     }

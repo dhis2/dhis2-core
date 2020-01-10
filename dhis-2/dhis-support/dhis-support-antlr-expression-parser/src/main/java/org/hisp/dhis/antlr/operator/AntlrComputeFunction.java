@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression.literal;
+package org.hisp.dhis.antlr.operator;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,35 +28,48 @@ package org.hisp.dhis.parser.expression.literal;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprLiteral;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.antlr.AntlrExprFunction;
+import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 
-import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
-import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Gets typed literal values from an ANTLR parse tree for use internally.
+ * A function that computes the result from the arguments, where if any
+ * of the arguments are null, then the result is null.
+ *
+ * @author Jim Grace
  */
-public class DefaultLiteral
-    implements ExprLiteral
+public abstract class AntlrComputeFunction
+    implements AntlrExprFunction
 {
     @Override
-    public Object getNumericLiteral( ExpressionParser.NumericLiteralContext ctx )
+    public final Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor )
     {
-        return Double.valueOf( ctx.getText() );
+        List<Object> values = new ArrayList<>();
+
+        for ( ExprContext expr : ctx.expr() )
+        {
+            Object value = visitor.visit( expr );
+
+            if ( value == null )
+            {
+                return null;
+            }
+
+            values.add( value );
+        }
+
+        return compute( values );
     }
 
-    @Override
-    public Object getStringLiteral( StringLiteralContext ctx )
-    {
-        return unescapeJava( trimQuotes( ctx.getText() ) );
-    }
-
-    @Override
-    public Object getBooleanLiteral( BooleanLiteralContext ctx )
-    {
-        return Boolean.valueOf( ctx.getText() );
-    }
+    /**
+     * Computes the result from non-null values.
+     *
+     * @param values the values to use.
+     * @return the computed value.
+     */
+    public abstract Object compute( List<Object> values );
 }

@@ -28,6 +28,7 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.operator.AntlrOperatorLogicalNot;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 
@@ -49,16 +50,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class OperatorLogicalNot
-    extends SimpleScalarFunction
+    extends AntlrOperatorLogicalNot
+    implements SimpleScalarFunction
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
-
-        return value == null ? null : !value;
-    }
-
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {

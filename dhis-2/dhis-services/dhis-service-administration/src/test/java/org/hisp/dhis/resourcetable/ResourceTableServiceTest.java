@@ -38,6 +38,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -122,8 +123,9 @@ public class ResourceTableServiceTest
     {
         return true;
     }
-    
+
     @Test
+    @Ignore
     public void testGenerateAllResourceTables()
     {
         resourceTableService.generateOrganisationUnitStructures();
