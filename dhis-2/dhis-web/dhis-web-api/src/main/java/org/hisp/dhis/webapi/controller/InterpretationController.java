@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
@@ -51,7 +50,6 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
@@ -127,26 +125,27 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeReportTableInterpretation( @PathVariable( "uid" ) String reportTableUid,
+    public void writeReportTableInterpretation( @PathVariable( "uid" ) String visualizationUid,
         @RequestParam( value = "pe", required = false ) String isoPeriod,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
-        ReportTable reportTable = idObjectManager.get( ReportTable.class, reportTableUid );
+        Visualization visualization = idObjectManager.get( Visualization.class, visualizationUid );
 
-        if ( reportTable == null )
+        if ( visualization == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Report table does not exist or is not accessible: " + reportTableUid ) );
+                WebMessageUtils.conflict( "Report table does not exist or is not accessible: " + visualizationUid ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, reportTable,
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
             currentUserService.getCurrentUser() );
 
-        createIntepretation( new Interpretation( reportTable, period, orgUnit, text ), request, response );
+        createIntepretation( new Interpretation( visualization, period, orgUnit, text ),
+            request, response );
     }
 
     @RequestMapping( value = "/chart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
@@ -155,32 +154,32 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
-        Chart chart = idObjectManager.get( Chart.class, uid );
+        Visualization visualization = idObjectManager.get( Visualization.class, uid );
 
-        if ( chart == null )
+        if ( visualization == null )
         {
             throw new WebMessageException(
                 WebMessageUtils.conflict( "Chart does not exist or is not accessible: " + uid ) );
         }
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, chart, currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization, currentUserService.getCurrentUser() );
 
-        createIntepretation( new Interpretation( chart, orgUnit, text ), request, response );
+        createIntepretation( new Interpretation( visualization, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/visualizations/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
+    @RequestMapping( value = "/visualization/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeVisualizationInterpretation( @PathVariable( "uid" )
-    final String visualizationUid, @RequestParam( value = "ou", required = false )
+    final String uid, @RequestParam( value = "ou", required = false )
     final String orgUnitUid, @RequestBody
     final String text, final HttpServletResponse response, final HttpServletRequest request )
         throws WebMessageException
     {
-        final Visualization visualization = idObjectManager.get( Visualization.class, visualizationUid );
+        final Visualization visualization = idObjectManager.get( Visualization.class, uid );
 
         if ( visualization == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Visualization does not exist or is not accessible: " + visualizationUid ) );
+                WebMessageUtils.conflict( "Visualization does not exist or is not accessible: " + uid ) );
         }
 
         final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,

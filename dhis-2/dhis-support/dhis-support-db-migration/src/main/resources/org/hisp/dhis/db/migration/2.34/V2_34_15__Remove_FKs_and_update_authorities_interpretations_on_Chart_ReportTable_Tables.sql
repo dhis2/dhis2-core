@@ -6,6 +6,7 @@
 -- 2) remove all FKs from "reporttable*" tables
 -- 3) move user authorities from chart to visualization
 -- 4) move user authorities from reporttable to visualization
+-- 5) migrate interpretations to visualization
 
 
 -- 1) Removing FKs from all "chart*" tables
@@ -53,10 +54,15 @@ $$ LANGUAGE plpgsql;
 
 
 -- 3) Moving user authorities from chart to visualization
-UPDATE public.userroleauthorities SET authority = 'F_VISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_CHART_PUBLIC_ADD';
-UPDATE public.userroleauthorities SET authority = 'F_VISUALIZATION_EXTERNAL' WHERE authority = 'F_CHART_EXTERNAL';
+UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_CHART_PUBLIC_ADD';
+UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_EXTERNAL' WHERE authority = 'F_CHART_EXTERNAL';
 
 
 -- 4) Moving user authorities from reporttable to visualization
-UPDATE public.userroleauthorities SET authority = 'F_VISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_REPORTTABLE_PUBLIC_ADD';
-UPDATE public.userroleauthorities SET authority = 'F_VISUALIZATION_EXTERNAL' WHERE authority = 'F_REPORTTABLE_EXTERNAL';
+UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_REPORTTABLE_PUBLIC_ADD';
+UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_EXTERNAL' WHERE authority = 'F_REPORTTABLE_EXTERNAL';
+
+
+-- 5) Migrating interpretation of ReportTable and Chart to Visualization
+UPDATE interpretation SET visualizationid = chartid WHERE chartid IS NOT NULL;
+UPDATE interpretation SET visualizationid = reporttableid WHERE reporttableid IS NOT NULL;

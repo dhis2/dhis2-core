@@ -354,7 +354,6 @@ public abstract class ReportTableFacadeController {
 
         User user = currentUserService.getCurrentUser();
 
-// TODO: Maikel Check it
         if ( !aclService.canUpdate( user, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
@@ -713,7 +712,6 @@ public abstract class ReportTableFacadeController {
 
         User user = currentUserService.getCurrentUser();
 
-        // TODO: Maikel check it!
         if ( !aclService.canUpdate( user, objects.get( 0 ) ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
@@ -1099,7 +1097,6 @@ public abstract class ReportTableFacadeController {
         return getEntity( uid, NO_WEB_OPTIONS );
     }
 
-
     private ObjectReport getObjectReport( ImportReport importReport )
     {
         if ( !importReport.getTypeReports().isEmpty() )
@@ -1118,23 +1115,26 @@ public abstract class ReportTableFacadeController {
     private Visualization convertToVisualization( final ReportTable reportTable )
     {
         final Visualization visualization = new Visualization();
-        copyProperties( reportTable, visualization );
-        visualization.setType( PIVOT_TABLE );
 
-        // Copy report params
-        if ( reportTable.hasReportParams() )
+        if ( reportTable != null )
         {
-            final ReportingParams reportingParams = new ReportingParams();
-            final ReportParams reportParams = reportTable.getReportParams();
+            copyProperties( reportTable, visualization );
+            visualization.setType( PIVOT_TABLE );
 
-            reportingParams.setGrandParentOrganisationUnit( reportParams.isParamGrandParentOrganisationUnit() );
-            reportingParams.setOrganisationUnit( reportParams.isParamOrganisationUnit() );
-            reportingParams.setParentOrganisationUnit( reportParams.isParamParentOrganisationUnit() );
-            reportingParams.setReportingPeriod( reportParams.isParamReportingMonth() );
+            // Copy report params
+            if ( reportTable.hasReportParams() )
+            {
+                final ReportingParams reportingParams = new ReportingParams();
+                final ReportParams reportParams = reportTable.getReportParams();
 
-            visualization.setReportingParams( reportingParams );
+                reportingParams.setGrandParentOrganisationUnit( reportParams.isParamGrandParentOrganisationUnit() );
+                reportingParams.setOrganisationUnit( reportParams.isParamOrganisationUnit() );
+                reportingParams.setParentOrganisationUnit( reportParams.isParamParentOrganisationUnit() );
+                reportingParams.setReportingPeriod( reportParams.isParamReportingMonth() );
+
+                visualization.setReportingParams( reportingParams );
+            }
         }
-
         return visualization;
     }
 
