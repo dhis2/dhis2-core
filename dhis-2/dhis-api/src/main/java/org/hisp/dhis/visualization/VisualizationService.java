@@ -32,6 +32,7 @@ import java.util.Date;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 
 /**
@@ -95,4 +96,12 @@ public interface VisualizationService
      * @return a Grid.
      */
     Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
+
+    /**
+     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
+     *
+     * @param uid the uid of the Visualization to retrieve.
+     * @return the Visualization.
+     */
+    Visualization getVisualizationNoAcl( String uid );
 }

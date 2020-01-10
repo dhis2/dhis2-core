@@ -28,6 +28,17 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -38,9 +49,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,27 +64,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
-
 /**
+ * This controller is being deprecated. Please use the Visualization controller
+ * instead. Only compatibility changes should be done at this stage.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
  */
+@Deprecated
 @Controller
 @RequestMapping( value = ReportTableSchemaDescriptor.API_ENDPOINT )
 public class ReportTableController
-    extends AbstractCrudController<ReportTable>
+    extends ReportTableFacadeController
 {
     @Autowired
-    public ReportTableService reportTableService;
+    public VisualizationService visualizationService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -202,16 +208,17 @@ public class ReportTableController
     private Grid getReportTableGrid( String uid, String organisationUnitUid, Date date )
         throws Exception
     {
-        ReportTable reportTable = reportTableService.getReportTableNoAcl( uid );
+        Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
 
-        if ( organisationUnitUid == null && reportTable.hasReportParams() && reportTable.getReportParams().isOrganisationUnitSet() )
+        if ( organisationUnitUid == null && visualization.hasReportingParams()
+            && visualization.getReportingParams().isOrganisationUnitSet() )
         {
             organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
         }
 
         date = date != null ? date : new Date();
 
-        return reportTableService.getReportTableGrid( uid, date, organisationUnitUid );
+        return visualizationService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
 
     //--------------------------------------------------------------------------
