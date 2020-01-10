@@ -1,4 +1,5 @@
 package org.hisp.dhis.program;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -83,7 +84,7 @@ public class ProgramIndicatorServiceD2FunctionTest
 
     private RelationshipType relationshipTypeA;
 
-    private Date newDate = new GregorianCalendar(2020, Calendar.JANUARY, 9).getTime();
+    private Date newDate = new GregorianCalendar( 2020, Calendar.JANUARY, 9 ).getTime();
 
     @Override
     public void setUpTest()
