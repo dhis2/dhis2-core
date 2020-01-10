@@ -37,9 +37,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -85,7 +83,7 @@ public class ProgramIndicatorServiceD2FunctionTest
 
     private RelationshipType relationshipTypeA;
 
-    private Date newDate = new Date();
+    private Date newDate = new GregorianCalendar(2020, Calendar.JANUARY, 9).getTime();
 
     @Override
     public void setUpTest()
