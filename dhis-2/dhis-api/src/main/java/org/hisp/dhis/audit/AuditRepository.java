@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.objectmapper;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,23 +28,22 @@ package org.hisp.dhis.hibernate.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.hisp.dhis.util.DateUtils;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ParseDateStdDeserializer extends JsonDeserializer<Date>
+public interface AuditRepository
 {
-    @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
-    {
-        return DateUtils.parseDate( parser.getValueAsString() );
-    }
+    long save( Audit audit );
+
+    void save( List<Audit> audits );
+
+    void delete( Audit audit );
+
+    void delete( AuditQuery query );
+
+    int count( AuditQuery query );
+
+    List<Audit> query( AuditQuery query );
 }

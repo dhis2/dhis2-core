@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.objectmapper;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,23 +28,38 @@ package org.hisp.dhis.hibernate.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Date;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.util.DateUtils;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class WriteDateStdSerializer extends JsonSerializer<Date>
+@Service
+public class DefaultAuditService implements AuditService
 {
-    @Override
-    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider ) throws IOException
+    private final AuditRepository auditRepository;
+
+    public DefaultAuditService( AuditRepository auditRepository )
     {
-        generator.writeString( DateUtils.getIso8601NoTz( date ) );
+        this.auditRepository = auditRepository;
+    }
+
+    @Override
+    public long addAudit( Audit audit )
+    {
+        return auditRepository.save( audit );
+    }
+
+    @Override
+    public int countAudits( AuditQuery query )
+    {
+        return auditRepository.count( query );
+    }
+
+    @Override
+    public List<Audit> getAudits( AuditQuery query )
+    {
+        return auditRepository.query( query );
     }
 }
