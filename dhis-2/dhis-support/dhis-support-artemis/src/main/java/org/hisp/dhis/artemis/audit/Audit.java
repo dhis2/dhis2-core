@@ -29,6 +29,8 @@ package org.hisp.dhis.artemis.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
@@ -48,6 +50,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @Builder( builderClassName = "AuditBuilder" )
+@JsonDeserialize( builder = Audit.AuditBuilder.class )
 public class Audit implements Message
 {
     @JsonProperty
@@ -111,6 +114,7 @@ public class Audit implements Message
         return auditBuilder.build();
     }
 
+    @JsonPOJOBuilder( withPrefix = "" )
     public static final class AuditBuilder
     {
         private String klass;
