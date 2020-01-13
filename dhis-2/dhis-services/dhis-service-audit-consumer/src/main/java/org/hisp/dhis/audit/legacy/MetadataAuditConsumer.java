@@ -57,7 +57,6 @@ public class MetadataAuditConsumer implements AuditConsumer
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private final boolean metadataAuditLog;
-    private final boolean metadataAuditPersist;
 
     public MetadataAuditConsumer(
         AuditService auditService,
@@ -67,7 +66,6 @@ public class MetadataAuditConsumer implements AuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        this.metadataAuditPersist = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
         this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
     }
 
@@ -92,10 +90,7 @@ public class MetadataAuditConsumer implements AuditConsumer
                 log.info( objectMapper.writeValueAsString( audit ) );
             }
 
-            if ( metadataAuditPersist )
-            {
-                auditService.addAudit( audit );
-            }
+            auditService.addAudit( audit );
         }
         catch ( IOException e )
         {
