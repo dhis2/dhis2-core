@@ -186,12 +186,12 @@ public class DefaultSchedulingManager
 
                 ScheduledFuture<?> future = null;
 
-                if ( jobConfiguration.getJobType().getSchedulingType() == SchedulingType.CRON )
+                if ( jobConfiguration.getJobType().isCronSchedulingType() )
                 {
                     future = jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ),
                         new CronTrigger( jobConfiguration.getCronExpression() ) );
                 }
-                else if ( jobConfiguration.getJobType().getSchedulingType() == SchedulingType.FIXED_DELAY )
+                else if ( jobConfiguration.getJobType().isFixedDelaySchedulingType() )
                 {
                     future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
                         Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
