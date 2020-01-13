@@ -279,7 +279,7 @@ public class JobConfigurationObjectBundleHook
     private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
         JobConfiguration jobConfiguration )
     {
-        if ( !jobConfiguration.isContinuousExecution() && jobConfiguration.getJobType().isCronSchedulingType()  )
+        if ( !jobConfiguration.isContinuousExecution() && jobConfiguration.getJobType().isCronSchedulingType() )
         {
             if ( jobConfiguration.getCronExpression() == null )
             {

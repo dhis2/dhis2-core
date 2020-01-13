@@ -54,10 +54,19 @@ public class ContinuousAnalyticsJobParameters
 {
     private static final long serialVersionUID = 4613054056442276592L;
 
+    /**
+     * The hour of day at which the full analytics table update will be invoked.
+     */
     private Integer hourOfDay;
 
+    /**
+     * The number of last years of data to include in the full analytics table update.
+     */
     private Integer lastYears = 0;
 
+    /**
+     * The types of analytics tables for which to skip update.
+     */
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
     public ContinuousAnalyticsJobParameters()
