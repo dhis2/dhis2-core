@@ -464,7 +464,7 @@ class DataValidator
     }
 
     /**
-     * Validates if the given dataValue is value for the given DataElement.
+     * Validates if the given dataValue is valid for the given DataElement.
      * 
      * @param dataValue
      * @param dataElement

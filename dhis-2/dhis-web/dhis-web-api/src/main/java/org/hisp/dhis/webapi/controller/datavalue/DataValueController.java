@@ -29,6 +29,8 @@
 package org.hisp.dhis.webapi.controller.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
@@ -156,6 +158,9 @@ public class DataValueController
 
         DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess( de );
 
+        // Normalize to boolean case the value is a compatible boolean.
+        value = normalizeBoolean( trimToEmpty( value ).toLowerCase(), dataElement.getValueType() );
+
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
         CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
@@ -172,7 +177,7 @@ public class DataValueController
 
         dataValueValidation.validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, period );
 
-        dataValueValidation.validateDataValue (value, dataElement);
+        dataValueValidation.validateDataValue ( value, dataElement );
 
         dataValueValidation.validateComment( comment );
 
