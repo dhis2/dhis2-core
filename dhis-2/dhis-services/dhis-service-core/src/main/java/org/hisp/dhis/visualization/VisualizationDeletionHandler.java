@@ -28,9 +28,6 @@
 
 package org.hisp.dhis.visualization;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -39,12 +36,8 @@ public class VisualizationDeletionHandler
     extends
     DeletionHandler
 {
-    private final IdentifiableObjectManager idObjectManager;
-
-    public VisualizationDeletionHandler( IdentifiableObjectManager idObjectManager )
+    public VisualizationDeletionHandler()
     {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
     }
 
     @Override

@@ -101,13 +101,13 @@ public class HibernatePotentialDuplicateStore
         if ( potentialDuplicate.getTeiB() == null )
         {
             query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where pd.teiA = :teia limit 1" );
+                "where pd.teiA = :teia limit 1", BigInteger.class );
             query.setParameter( "teia", potentialDuplicate.getTeiA() );
         }
         else
         {
             query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia) limit 1" );
+                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia) limit 1", BigInteger.class );
 
             query.setParameter( "teia", potentialDuplicate.getTeiA() );
             query.setParameter( "teib", potentialDuplicate.getTeiB() );

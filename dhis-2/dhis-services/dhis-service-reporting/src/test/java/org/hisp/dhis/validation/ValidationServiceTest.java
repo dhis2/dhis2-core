@@ -230,8 +230,6 @@ public class ValidationServiceTest
         Expression expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD" );
         Expression expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE" );
         Expression expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF" );
-        Expression expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})", "expressionG" );
-        Expression expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})", "expressionH" );
         Expression expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI" );
         Expression expressionI2 = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI2" );
         Expression expressionI3 = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI3" );
