@@ -141,8 +141,8 @@ public class DefaultAnalyticsTableService
 
         if ( tables.isEmpty() )
         {
-            clock.logTime( String.format( "Table update aborted, no table or partitions found: '%s'", tableType.getTableName() ) );
-            notifier.notify( jobId, "Table updated aborted, no table or partitions found" );
+            clock.logTime( String.format( "Table update aborted, no table or partitions to be updated: '%s'", tableType.getTableName() ) );
+            notifier.notify( jobId, "Table updated aborted, no table or partitions to be updated" );
             return;
         }
 
