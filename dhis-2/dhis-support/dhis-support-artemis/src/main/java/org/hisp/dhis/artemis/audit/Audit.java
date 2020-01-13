@@ -85,46 +85,6 @@ public class Audit implements Message
     @JsonIgnore
     private AuditableEntity auditableEntity;
 
-    /**
-     * This constructor is used to create an instance of Audit using the 'Builder'
-     * pattern This should be used by a service that needs to create a new Audit
-     * entry
-     */
-    @Builder( builderClassName = "AuditBuilder" )
-    public Audit( AuditType auditType, AuditScope auditScope, LocalDateTime createdAt, String createdBy, String klass,
-        String uid, String code, AuditAttributes attributes, AuditableEntity auditableEntity )
-    {
-        this.auditType = auditType;
-        this.auditScope = auditScope;
-        this.createdAt = createdAt;
-        this.createdBy = createdBy;
-        this.klass = klass;
-        this.uid = uid;
-        this.code = code;
-        this.attributes = attributes;
-        this.auditableEntity = auditableEntity;
-    }
-
-    /**
-     * This constructor should only be used by Jackson to deserialize an Audit instance from a Json String
-     */
-    @JsonCreator
-    public Audit( @JsonProperty( "auditType" ) AuditType auditType, @JsonProperty( "auditScope" ) AuditScope auditScope,
-        @JsonProperty( "createdAt" ) LocalDateTime createdAt, @JsonProperty( "createdBy" ) String createdBy,
-        @JsonProperty( "klass" ) String klass, @JsonProperty( "uid" ) String uid, @JsonProperty( "code" ) String code,
-        @JsonProperty( "attributes" ) AuditAttributes attributes, @JsonProperty( "data" ) Object data )
-    {
-        this.auditType = auditType;
-        this.auditScope = auditScope;
-        this.createdAt = createdAt;
-        this.createdBy = createdBy;
-        this.klass = klass;
-        this.uid = uid;
-        this.code = code;
-        this.attributes = attributes;
-        this.data = data;
-    }
-
     @Override
     public MessageType getMessageType()
     {
