@@ -105,7 +105,7 @@ public class ContinuousAnalyticsTableJob
                 .withSkipResourceTables( false )
                 .withSkipTableTypes( parameters.getSkipTableTypes() )
                 .withJobId( jobConfiguration )
-                .withStartTime( new Date() )
+                .withStartTime( now )
                 .build();
 
             analyticsTableGenerator.generateTables( params );
@@ -125,7 +125,7 @@ public class ContinuousAnalyticsTableJob
                 .withSkipResourceTables( true )
                 .withSkipTableTypes( parameters.getSkipTableTypes() )
                 .withJobId( jobConfiguration )
-                .withStartTime( new Date() )
+                .withStartTime( now )
                 .build();
 
             analyticsTableGenerator.generateTables( params );
