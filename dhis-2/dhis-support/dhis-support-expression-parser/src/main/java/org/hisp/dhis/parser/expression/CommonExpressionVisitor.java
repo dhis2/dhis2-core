@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;

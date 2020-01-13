@@ -140,7 +140,6 @@ public class EventXmlImportTest
         assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
     }
 
-    @SuppressWarnings("unchecked")
     private InputStream createEventXmlInputStream( )
         throws IOException
     {

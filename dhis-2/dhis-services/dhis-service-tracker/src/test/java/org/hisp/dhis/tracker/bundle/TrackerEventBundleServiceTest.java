@@ -42,8 +42,6 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +71,6 @@ public class TrackerEventBundleServiceTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private TrackerPreheatService trackerPreheatService;
 
     @Autowired
     private TrackerBundleService trackerBundleService;
@@ -117,7 +112,7 @@ public class TrackerEventBundleServiceTest
 
         assertEquals( 1, trackerBundles.size() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );

@@ -53,7 +53,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -117,8 +116,6 @@ public class DefaultTrackedEntityInstanceService
 
     private final AuditManager auditManager;
 
-    private final RenderService renderService;
-
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -126,7 +123,7 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
         TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager, RenderService renderService )
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager )
     {
         checkNotNull( trackedEntityInstanceStore );
         checkNotNull( attributeValueService );
@@ -139,7 +136,6 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( auditManager );
-        checkNotNull( renderService );
 
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.attributeValueService = attributeValueService;
@@ -152,7 +148,6 @@ public class DefaultTrackedEntityInstanceService
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;
-        this.renderService = renderService;
     }
 
     // -------------------------------------------------------------------------

@@ -31,7 +31,7 @@ package org.hisp.dhis.common.adapter;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 
 public class ValueRenderTypeDeserialize
-    extends AbstractDeviceRenderTypeMapDeserializer
+    extends AbstractDeviceRenderTypeMapDeserializer<ValueTypeRenderingObject>
 {
     public ValueRenderTypeDeserialize()
     {

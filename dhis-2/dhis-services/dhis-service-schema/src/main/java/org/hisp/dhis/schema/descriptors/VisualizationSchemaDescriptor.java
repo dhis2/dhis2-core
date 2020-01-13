@@ -29,14 +29,8 @@
 package org.hisp.dhis.schema.descriptors;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.security.AuthorityType.CREATE;
 import static org.hisp.dhis.security.AuthorityType.CREATE_PUBLIC;
-import static org.hisp.dhis.security.AuthorityType.DATA_CREATE;
-import static org.hisp.dhis.security.AuthorityType.DATA_READ;
-import static org.hisp.dhis.security.AuthorityType.DELETE;
 import static org.hisp.dhis.security.AuthorityType.EXTERNALIZE;
-import static org.hisp.dhis.security.AuthorityType.READ;
-import static org.hisp.dhis.security.AuthorityType.UPDATE;
 
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;

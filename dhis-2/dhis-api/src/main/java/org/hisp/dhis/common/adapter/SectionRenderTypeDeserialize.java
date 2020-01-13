@@ -31,7 +31,7 @@ package org.hisp.dhis.common.adapter;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 
 public class SectionRenderTypeDeserialize
-    extends AbstractDeviceRenderTypeMapDeserializer
+    extends AbstractDeviceRenderTypeMapDeserializer<SectionRenderingObject>
 {
     public SectionRenderTypeDeserialize()
     {

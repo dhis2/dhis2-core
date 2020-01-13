@@ -29,8 +29,6 @@ package org.hisp.dhis.security;
  */
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,23 +108,23 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
 
     private final CurrentUserService currentUserService;
-    
+
     private final UserSettingService userSettingService;
 
     private final AclService aclService;
 
     private final RestTemplate restTemplate;
-    
+
     private final CacheProvider cacheProvider;
-    
+
     private final PasswordManager passwordManager;
 
     private final MessageSender emailMessageSender;
 
     private final UserService userService;
-    
+
     private final SystemSettingManager systemSettingManager;
-    
+
     private final I18nManager i18nManager;
 
     public DefaultSecurityService( CurrentUserService currentUserService, UserSettingService userSettingService,
@@ -161,7 +159,7 @@ public class DefaultSecurityService
     // Initialization
     // -------------------------------------------------------------------------
 
-    
+
     @PostConstruct
     public void init()
     {
@@ -208,11 +206,11 @@ public class DefaultSecurityService
         {
             return;
         }
-        
+
         Integer attempts = userFailedLoginAttemptCache.get( username ).orElse( 0 );
-        
+
         attempts++;
-        
+
         userFailedLoginAttemptCache.put( username, attempts );
     }
 
@@ -223,8 +221,8 @@ public class DefaultSecurityService
         {
             return;
         }
-        
-        userFailedLoginAttemptCache.invalidate( username );        
+
+        userFailedLoginAttemptCache.invalidate( username );
     }
 
     @Override
@@ -234,15 +232,15 @@ public class DefaultSecurityService
         {
             return false;
         }
-        
+
         return userFailedLoginAttemptCache.get( username ).orElse( 0 ) > LOGIN_MAX_FAILED_ATTEMPTS;
     }
-    
+
     private boolean isBlockFailedLogins()
     {
         return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
     }
-    
+
     @Override
     public boolean prepareUserForInvite( User user )
     {
@@ -631,11 +629,11 @@ public class DefaultSecurityService
     public boolean hasAnyAuthority( String... authorities )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user != null && user.getUserCredentials() != null )
         {
             UserCredentials userCredentials = user.getUserCredentials();
-    
+
             for ( String authority : authorities )
             {
                 if ( userCredentials.isAuthorized( authority ) )

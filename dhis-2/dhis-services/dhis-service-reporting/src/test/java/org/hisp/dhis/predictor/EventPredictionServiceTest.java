@@ -54,7 +54,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -142,9 +141,6 @@ public class EventPredictionServiceTest
 
     @Autowired
     private AnalyticsService analyticsService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     @Autowired
     private CurrentUserService currentUserService;

@@ -155,13 +155,14 @@ public class DefaultQueryPlanner implements QueryPlanner
         return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
     }
 
-    public Path getQueryPath( Root root, Schema schema, String path )
+    @Override
+    public Path<?> getQueryPath( Root<?> root, Schema schema, String path )
     {
         Schema curSchema = schema;
         Property curProperty = null;
         String[] pathComponents = path.split( "\\." );
 
-        Path currentPath = root;
+        Path<?> currentPath = root;
 
         if ( pathComponents.length == 0 )
         {

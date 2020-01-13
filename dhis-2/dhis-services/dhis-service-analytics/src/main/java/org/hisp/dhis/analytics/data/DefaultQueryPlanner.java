@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -58,7 +57,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
