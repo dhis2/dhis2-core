@@ -1,4 +1,5 @@
 -- This script is responsible for removing FKs and updating user authorities so Visualization works as expected.
+-- In addition, it also removes invalid data for PIE and GAUGE.
 -- See Feature DHIS2-7946
 
 -- It does:
@@ -8,6 +9,7 @@
 -- 4) move user authorities from chart to visualization
 -- 5) move user authorities from reporttable to visualization
 -- 6) migrate interpretations to visualization
+-- 7) clean-up PIE/GAUGE rows, as they don't have rows from visualization
 
 
 -- 1) Removing FKs from all "chart*" tables
@@ -57,6 +59,7 @@ $$ LANGUAGE plpgsql;
 ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_chartid;
 ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_reporttableid;
 
+
 -- 4) Moving user authorities from chart to visualization
 UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_CHART_PUBLIC_ADD';
 UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_EXTERNAL' WHERE authority = 'F_CHART_EXTERNAL';
@@ -70,3 +73,12 @@ UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_EXTERNAL' WHERE auth
 -- 6) Migrating interpretation of ReportTable and Chart to Visualization
 UPDATE interpretation SET visualizationid = chartid WHERE chartid IS NOT NULL;
 UPDATE interpretation SET visualizationid = reporttableid WHERE reporttableid IS NOT NULL;
+
+
+-- 7) Update visualization_rows, removing PIE and GAUGE data, as they don't have rows.
+DELETE FROM visualization_rows WHERE visualizationid IN (
+SELECT v.visualizationid
+  FROM visualization v JOIN visualization_rows r
+  ON r.visualizationid = v.visualizationid
+  WHERE r.dimension is NULL or r.dimension = ''
+);
