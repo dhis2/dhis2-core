@@ -50,10 +50,10 @@ public class TrackedEntityTypeAttribute
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
-    private boolean displayInList;    
+    private boolean displayInList;
 
     private Boolean mandatory;
-    
+
     private Boolean searchable = false;
 
     // -------------------------------------------------------------------------
@@ -79,21 +79,6 @@ public class TrackedEntityTypeAttribute
         this.displayInList = displayInList;
         this.mandatory = mandatory;
     }
-
-    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute, boolean displayInList,
-        Boolean mandatory, Integer sortOrder )
-    {
-        this( trackedEntityType, attribute );
-        this.displayInList = displayInList;
-        this.mandatory = mandatory;
-    }
-
-    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute, boolean displayInList,
-        Boolean mandatory, Boolean allowFutureDate )
-    {
-        this( trackedEntityType, attribute, displayInList, mandatory );
-    }
-    
 
     @Override
     public String getName()
@@ -181,7 +166,7 @@ public class TrackedEntityTypeAttribute
     {
         this.displayInList = displayInList;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isSearchable()
@@ -192,5 +177,5 @@ public class TrackedEntityTypeAttribute
     public void setSearchable( Boolean searchable )
     {
         this.searchable = searchable;
-    }    
+    }
 }

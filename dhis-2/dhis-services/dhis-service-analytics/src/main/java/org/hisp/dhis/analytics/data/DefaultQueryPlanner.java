@@ -42,12 +42,8 @@ import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.period.Period;
@@ -62,6 +58,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
@@ -449,7 +446,8 @@ public class DefaultQueryPlanner
         if ( !params.getDataElements().isEmpty() )
         {
             ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap =
-                QueryPlannerUtils.getAggregationTypeDataElementMap( params );
+                QueryPlannerUtils.getAggregationTypeDataElementMap( params.getDataElements(),
+                    params.getAggregationType(), params.getPeriodType() );
 
             for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
@@ -480,6 +478,28 @@ public class DefaultQueryPlanner
                 .withAggregationType( aggregationType ).build();
 
             queries.add( query );
+        }
+        /*
+         * This is a special case: if a *single* Data Element is used as filter, then we
+         * want to be able to calculate the proper aggregation type based on the Date
+         * Element aggregation type or the aggregation type selected for the query. It's
+         * not possible to handle more than one Data Element in the filter, because each
+         * Data Element may have different data type (NUMERIC, etc.) and the data type
+         * is required to construct the select the proper SQL function (avg, sum, etc)
+         */
+        else if ( params.getFilterOptions( DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT ).size() == 1 )
+        {
+            ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = QueryPlannerUtils
+                .getAggregationTypeDataElementMap( params.getFilterOptions( DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT ),
+                    params.getAggregationType(), params.getPeriodType() );
+
+            for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
+            {
+                DataQueryParams query = DataQueryParams.newBuilder( params ).withAggregationType( aggregationType )
+                    .build();
+
+                queries.add( query );
+            }
         }
         else
         {

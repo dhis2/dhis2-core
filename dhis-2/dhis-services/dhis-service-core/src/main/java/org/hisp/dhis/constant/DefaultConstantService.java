@@ -37,6 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -107,27 +109,22 @@ public class DefaultConstantService
     {
         return constantStore.getAll();
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
-    public Map<String, Double> getConstantMap()
+    @Transactional( readOnly = true )
+    public Map<String, Constant> getConstantMap()
     {
-        Map<String, Double> map = new HashMap<>();
-        
-        for ( Constant constant : getAllConstants() )
-        {
-            map.put( constant.getUid(), constant.getValue() );
-        }
-        
-        return map;
+        return getAllConstants()
+            .stream()
+            .collect( Collectors.toMap( c -> c.getUid(), Function.identity() ) );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Map<String, Double> getConstantParameterMap()
     {
         Map<String, Double> map = new HashMap<>();
-        
+
         for ( Constant constant : getAllConstants() )
         {
             map.put( constant.getName(), constant.getValue() );

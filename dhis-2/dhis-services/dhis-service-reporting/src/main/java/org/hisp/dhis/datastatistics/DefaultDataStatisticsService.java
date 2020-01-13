@@ -44,6 +44,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -114,6 +115,7 @@ public class DefaultDataStatisticsService
         double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
         double savedCharts = idObjectManager.getCountByCreated( Chart.class, startDate );
         double savedReportTables = idObjectManager.getCountByCreated( ReportTable.class, startDate );
+        double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
         double savedEventReports = idObjectManager.getCountByCreated( EventReport.class, startDate );
         double savedEventCharts = idObjectManager.getCountByCreated( EventChart.class, startDate );
         double savedDashboards = idObjectManager.getCountByCreated( Dashboard.class, startDate );
@@ -128,12 +130,13 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
             eventCountMap.get( DataStatisticsEventType.CHART_VIEW ),
             eventCountMap.get( DataStatisticsEventType.REPORT_TABLE_VIEW ),
+            eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedCharts, savedReportTables, savedEventReports,
+            savedMaps, savedCharts, savedReportTables, savedVisualizations, savedEventReports,
             savedEventCharts, savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
         
         return dataStatistics;

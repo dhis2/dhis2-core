@@ -227,7 +227,7 @@ function generateaddKeyValueParamForm()
 		+	'<td><input id="name' + rowId + '" name="name' + rowId + '" style="width:9em" type="text" onblur="checkDuplicatedKeyName(this.value,' + rowId + ') " placeholder="' + i18_new_key + '" />:</td>'
 		+	'<td><input id="value' + rowId + '" name="value' + rowId + '" type="text" style="width: 10em" placeholder="' + i18_value + '"/>'
 		+   	'<input type="radio" name="inputType'+rowId+'" value="text" onclick="updateInputType(' + rowId + ',\'text\')" checked>'+i18_text+'</input>'
-		+   	'<input type="radio" name="inputType'+rowId+'" value="classified" onclick="updateInputType(' + rowId + ',\'classified\')" style="margin-left: 1em" >'+i18_password+'</input>'
+		+   	'<input type="radio" name="inputType'+rowId+'" value="confidential" onclick="updateInputType(' + rowId + ',\'confidential\')" style="margin-left: 1em" >'+i18_password+'</input>'
 		+   	'<input type="checkbox" name="headerType'+rowId+'" style="margin-left: 1em">'+i18_header+'</input>'
 		+   	'<input style="margin-left: 3em" type="button" value="remove" onclick="removeNewParamForm(' + rowId + ')"/></td>'
 		+ '</tr>';
@@ -250,10 +250,11 @@ function updateInputType( rowId, type )
 
 function saveSettings ()
 {
-	var url = "../api/gateways/generichttp";
+	var url = "../api/gateways?type=http";
 	var httpFields = jQuery('#genericHTTPFields');
 	var data = {
 		name: httpFields.find("#name")[0].value,
+		type: "http",
 		messageParameter: httpFields.find("#messageParameter")[0].value,
 		recipientParameter: httpFields.find("#recipientParameter")[0].value,
 		urlTemplate: httpFields.find("#urlTemplate")[0].value
@@ -316,13 +317,13 @@ function getHttpKeyValueParamsAddedByTheUser(allFields)
 		object.key=newParamName;
 		object.value=newParamValue;
 		
-		if(newParamType == 'classified')
+		if(newParamType == 'confidential')
 		{
-			object.classified=true;
+			object.confidential=true;
 		}
 		else
 		{
-			object.classified=false;
+			object.confidential=false;
 		}
 		
 		if( newHeaderType == true )
@@ -348,7 +349,7 @@ function getHttpKeyValueParamsAddedByTheUser(allFields)
 
 		object.key=oldParamName;
 		object.value=oldParamValue;
-		object.classified=oldParamType;
+		object.confidential=oldParamType;
 		parameters.push(object);
 	}
 	if (Object.keys(parameters).length === 0) {

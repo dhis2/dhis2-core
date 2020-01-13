@@ -99,7 +99,6 @@ public class JdbcEventStoreTest
         when( rowSet.getString( "ps_identifier" ) ).thenReturn( "PsUID000001" );
         when( rowSet.getString( "p_identifier" ) ).thenReturn( "PrgUID00001" );
         when( rowSet.getString( "ou_identifier" ) ).thenReturn( "OuUID000001" );
-        when( rowSet.getString( "coc_identifier" ) ).thenReturn( "CocUID00001" );
         when( rowSet.getString( "tei_uid" ) ).thenReturn( "iuXUBa26aHN" );
         when( rowSet.getString( "tei_ou" ) ).thenReturn( "" );
         when( rowSet.getString( "tei_ou_name" ) ).thenReturn( "Ngelehun CHC" );

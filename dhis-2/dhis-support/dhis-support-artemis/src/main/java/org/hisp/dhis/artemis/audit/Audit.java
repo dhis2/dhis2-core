@@ -29,57 +29,56 @@ package org.hisp.dhis.artemis.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Builder;
+import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.springframework.util.Assert;
 
-import java.util.Date;
-import java.util.Objects;
+import java.time.LocalDateTime;
 
 /**
+ * Class for Audit messages, mostly compatible with {@link org.hisp.dhis.audit.Audit}
+ * but has some additions relevant only to Artemis messages.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "audit", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder( builderClassName = "AuditBuilder" )
+@JsonDeserialize( builder = Audit.AuditBuilder.class )
 public class Audit implements Message
 {
+    @JsonProperty
     private AuditType auditType;
 
+    @JsonProperty
     private AuditScope auditScope;
 
-    private Date createdAt;
+    @JsonProperty
+    private LocalDateTime createdAt;
 
+    @JsonProperty
     private String createdBy;
 
+    @JsonProperty
     private String klass;
 
+    @JsonProperty
     private String uid;
 
+    @JsonProperty
     private String code;
 
+    @JsonProperty
+    private AuditAttributes attributes;
+
+    @JsonProperty
     private Object data;
-
-    public Audit()
-    {
-    }
-
-    public Audit( AuditType auditType, AuditScope auditScope, Date createdAt, String createdBy )
-    {
-        this.auditType = auditType;
-        this.auditScope = auditScope;
-        this.createdAt = createdAt;
-        this.createdBy = createdBy;
-    }
-
-    public static AuditBuilder builder()
-    {
-        return new AuditBuilder();
-    }
 
     @Override
     public MessageType getMessageType()
@@ -87,136 +86,49 @@ public class Audit implements Message
         return MessageType.AUDIT;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AuditType getAuditType()
+    /**
+     * Converts the AMQP Audit object to a DAO Audit object.
+     * The data property will only be set if data == string.
+     * <p>
+     * TODO should we just do .toString() if its not a string objects?
+     *
+     * @return DAO Audit object with data (if data is string).
+     */
+    public org.hisp.dhis.audit.Audit toAudit()
     {
-        return auditType;
+        org.hisp.dhis.audit.Audit.AuditBuilder auditBuilder = org.hisp.dhis.audit.Audit.builder()
+            .auditType( auditType )
+            .auditScope( auditScope )
+            .createdAt( createdAt )
+            .createdBy( createdBy )
+            .klass( klass )
+            .uid( uid )
+            .code( code )
+            .attributes( attributes );
+
+        if ( data instanceof String )
+        {
+            auditBuilder.data( (String) data );
+        }
+
+        return auditBuilder.build();
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AuditScope getAuditScope()
-    {
-        return auditScope;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getCreatedAt()
-    {
-        return createdAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCreatedBy()
-    {
-        return createdBy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getKlass()
-    {
-        return klass;
-    }
-
-    public void setKlass( String klass )
-    {
-        this.klass = klass;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCode()
-    {
-        return code;
-    }
-
-    public void setCode( String code )
-    {
-        this.code = code;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Object getData()
-    {
-        return data;
-    }
-
-    public void setData( Object data )
-    {
-        this.data = data;
-    }
-
+    @JsonPOJOBuilder( withPrefix = "" )
     public static final class AuditBuilder
     {
-        private AuditType auditType;
-
-        private AuditScope auditScope;
-
-        private Date createdAt = new Date();
-
-        private String createdBy;
-
-        private Class<?> klass;
-
+        private String klass;
         private String uid;
-
         private String code;
 
-        private Object data;
-
-        private AuditBuilder()
-        {
-        }
-
-        public AuditBuilder withAuditType( AuditType auditType )
-        {
-            this.auditType = auditType;
-            return this;
-        }
-
-        public AuditBuilder withAuditScope( AuditScope auditScope )
-        {
-            this.auditScope = auditScope;
-            return this;
-        }
-
-        public AuditBuilder withCreatedAt( Date createdAt )
-        {
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public AuditBuilder withCreatedBy( String createdBy )
-        {
-            this.createdBy = createdBy;
-            return this;
-        }
-
-        public AuditBuilder withObject( Object o )
+        public AuditBuilder object( Object o )
         {
             if ( o == null )
             {
                 return this;
             }
 
-            klass = o.getClass();
+            klass = o.getClass().getName();
 
             if ( o instanceof IdentifiableObject )
             {
@@ -226,85 +138,5 @@ public class Audit implements Message
 
             return this;
         }
-
-        public AuditBuilder withClass( Class<?> klass )
-        {
-            this.klass = klass;
-            return this;
-        }
-
-        public AuditBuilder withUid( String uid )
-        {
-            this.uid = uid;
-            return this;
-        }
-
-        public AuditBuilder withCode( String code )
-        {
-            this.code = code;
-            return this;
-        }
-
-        public AuditBuilder withData( Object data )
-        {
-            this.data = data;
-            return this;
-        }
-
-        public Audit build()
-        {
-            Assert.notNull( auditType, "AuditType is required." );
-            Assert.notNull( auditScope, "AuditScope is required." );
-            Assert.notNull( createdAt, "CreatedAt is required." );
-            Assert.notNull( createdBy, "CreatedBy is required." );
-
-            Audit audit = new Audit( auditType, auditScope, createdAt, createdBy );
-
-            audit.setKlass( klass.getName() );
-            audit.setUid( uid );
-            audit.setCode( code );
-            audit.setData( data );
-
-            return audit;
-        }
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-        Audit audit = (Audit) o;
-        return auditType == audit.auditType && auditScope == audit.auditScope
-            && Objects.equals( createdAt, audit.createdAt ) && Objects.equals( createdBy, audit.createdBy )
-            && Objects.equals( klass, audit.klass ) && Objects.equals( uid, audit.uid )
-            && Objects.equals( code, audit.code ) && Objects.equals( data, audit.data );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( auditType, auditScope, createdAt, createdBy, klass, uid, code, data );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Audit{" +
-            "auditType=" + auditType +
-            ", auditScope=" + auditScope +
-            ", createdAt=" + createdAt +
-            ", createdBy='" + createdBy + '\'' +
-            ", klass='" + klass + '\'' +
-            ", uid='" + uid + '\'' +
-            ", code='" + code + '\'' +
-            ", data=" + data +
-            '}';
     }
 }

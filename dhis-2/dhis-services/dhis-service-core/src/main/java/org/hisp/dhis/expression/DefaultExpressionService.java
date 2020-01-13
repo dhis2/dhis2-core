@@ -49,6 +49,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -254,7 +255,7 @@ public class DefaultExpressionService
 
     @Override
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap )
     {
         if ( indicator == null || indicator.getNumerator() == null || indicator.getDenominator() == null )
@@ -301,7 +302,7 @@ public class DefaultExpressionService
     {
         if ( indicators != null && !indicators.isEmpty() )
         {
-            Map<String, Double> constantMap = constantService.getConstantMap();
+            Map<String, Constant> constantMap = constantService.getConstantMap();
 
             Map<String, Integer> orgUnitCountMap = getIndicatorOrgUnitGroups( indicators ).stream()
                 .collect(
@@ -346,7 +347,8 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType,
-            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS, DEFAULT_SAMPLE_PERIODS );
+            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS, DEFAULT_SAMPLE_PERIODS,
+            constantService.getConstantMap() );
 
         visit( expression, parseType.getDataType(), visitor, false );
 
@@ -455,7 +457,8 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION,
-            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS, DEFAULT_SAMPLE_PERIODS );
+            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS, DEFAULT_SAMPLE_PERIODS,
+            constantService.getConstantMap() );
 
         visit( expression, parseType.getDataType(), visitor, true );
 
@@ -477,7 +480,7 @@ public class DefaultExpressionService
 
     @Override
     public Double getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy )
     {
@@ -487,7 +490,7 @@ public class DefaultExpressionService
 
     @Override
     public Object getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy,
         List<Period> samplePeriods, MapMap<Period, DimensionalItemObject, Double> periodValueMap )
@@ -498,7 +501,8 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType,
-            FUNCTION_EVALUATE, ITEM_EVALUATE, samplePeriods );
+            FUNCTION_EVALUATE, ITEM_EVALUATE, samplePeriods,
+            constantMap );
 
         Map<String, Double> itemValueMap = valueMap.entrySet().stream().collect(
             Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) );
@@ -513,7 +517,6 @@ public class DefaultExpressionService
 
         visitor.setItemValueMap( itemValueMap );
         visitor.setPeriodItemValueMap( periodItemValueMap );
-        visitor.setConstantMap( constantMap );
         visitor.setOrgUnitCountMap( orgUnitCountMap );
 
         if ( days != null )
@@ -569,14 +572,14 @@ public class DefaultExpressionService
      */
     private CommonExpressionVisitor newVisitor( ParseType parseType,
         ExprFunctionMethod functionMethod, ExprItemMethod itemMethod,
-        List<Period> samplePeriods )
+        List<Period> samplePeriods, Map<String, Constant> constantMap )
     {
         return CommonExpressionVisitor.newBuilder()
             .withFunctionMap( PARSE_TYPE_EXPRESSION_FUNCTIONS.get( parseType ) )
             .withItemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( parseType ) )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantMap )
             .withDimensionService( dimensionService )
             .withOrganisationUnitGroupService( organisationUnitGroupService )
             .withSamplePeriods( samplePeriods )
@@ -602,7 +605,8 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType,
-            FUNCTION_GET_IDS, ITEM_GET_IDS, DEFAULT_SAMPLE_PERIODS );
+            FUNCTION_GET_IDS, ITEM_GET_IDS, DEFAULT_SAMPLE_PERIODS,
+            constantService.getConstantMap() );
 
         visitor.setItemIds( itemIds );
         visitor.setSampleItemIds( sampleItemIds );
@@ -664,12 +668,12 @@ public class DefaultExpressionService
      * @return the regenerated expression string.
      */
     private String regenerateIndicatorExpression( String expression,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap )
+        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap )
     {
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION,
-            FUNCTION_EVALUATE, ITEM_REGENERATE, DEFAULT_SAMPLE_PERIODS );
+            FUNCTION_EVALUATE, ITEM_REGENERATE, DEFAULT_SAMPLE_PERIODS,
+            constantMap );
 
-        visitor.setConstantMap( constantMap );
         visitor.setOrgUnitCountMap( orgUnitCountMap );
         visitor.setExpressionLiteral( new RegenerateLiteral() );
 

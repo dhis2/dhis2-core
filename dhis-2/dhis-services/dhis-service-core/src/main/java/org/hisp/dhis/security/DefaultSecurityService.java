@@ -29,6 +29,8 @@ package org.hisp.dhis.security;
  */
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +56,7 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -82,6 +85,8 @@ public class DefaultSecurityService
 {
     private static final Log log = LogFactory.getLog( DefaultSecurityService.class );
 
+    public static final String LOGOUT_ACTION = "/dhis-web-commons-security/logout.action";
+
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
     private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
     private static final String TBD_NAME = "(TBD)";
@@ -93,15 +98,17 @@ public class DefaultSecurityService
     private static final int RESTORE_TOKEN_LENGTH = 50;
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
     private static final int LOGIN_LOCKOUT_MINS = 15;
+    private static final int RECOVERY_LOCKOUT_MINS = 15;
+    private static final int RECOVER_MAX_ATTEMPTS = 5;
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     private Cache<Integer> userFailedLoginAttemptCache;
-    
+    private Cache<Integer> userAccountRecoverAttemptCache;
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     private final CurrentUserService currentUserService;
     
     private final UserSettingService userSettingService;
@@ -161,12 +168,38 @@ public class DefaultSecurityService
         this.userFailedLoginAttemptCache = cacheProvider.newCacheBuilder( Integer.class )
             .forRegion( "userFailedLoginAttempt" ).expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
             .withDefaultValue( 0 ).build();
-        
+
+        this.userAccountRecoverAttemptCache = cacheProvider.newCacheBuilder( Integer.class )
+            .forRegion( "userAccountRecoverAttempt" ).expireAfterWrite( RECOVERY_LOCKOUT_MINS, TimeUnit.MINUTES )
+            .withDefaultValue( 0 ).build();
     }
 
     // -------------------------------------------------------------------------
     // SecurityService implementation
     // -------------------------------------------------------------------------
+    @Override
+    public void registerRecoveryAttempt( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return;
+        }
+
+        Integer attempts = userAccountRecoverAttemptCache.get( username ).orElse( 0 );
+
+        userAccountRecoverAttemptCache.put( username, ++attempts );
+    }
+
+    @Override
+    public boolean isRecoveryLocked( String username )
+    {
+        if ( !isBlockFailedLogins() || username == null )
+        {
+            return false;
+        }
+
+        return userAccountRecoverAttemptCache.get( username ).orElse( 0 ) > RECOVER_MAX_ATTEMPTS;
+    }
 
     @Override
     public void registerFailedLogin( String username )
@@ -290,6 +323,15 @@ public class DefaultSecurityService
             return false;
         }
 
+        if ( isRecoveryLocked( credentials.getUsername() ) )
+        {
+            return false;
+        }
+        else
+        {
+            registerRecoveryAttempt( credentials.getUsername() );
+        }
+
         RestoreType restoreType = restoreOptions.getRestoreType();
 
         String applicationTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
@@ -308,7 +350,7 @@ public class DefaultSecurityService
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
         vars.put( "token", result[0] );
-        vars.put( "username", credentials.getUsername() );
+        vars.put( "username", CodecUtils.utf8UrlEncode( credentials.getUsername() ) );
         vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
         User user = credentials.getUserInfo();

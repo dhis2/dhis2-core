@@ -16,10 +16,6 @@
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-node</artifactId>
     </dependency>
     <dependency>

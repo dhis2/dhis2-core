@@ -28,6 +28,8 @@ package org.hisp.dhis.interpretation.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -63,8 +65,6 @@ import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -347,17 +347,21 @@ public class DefaultInterpretationService
             path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
+        case VISUALIZATION:
+            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid() + "/interpretation/"
+                    + interpretation.getUid();
+            break;
         case REPORT_TABLE:
             path = "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
         case CHART:
             path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getChart().getUid() + "/interpretation/"
-                    + interpretation.getUid();
+                + interpretation.getUid();
             break;
         case EVENT_REPORT:
-            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid() + "&interpretationid="
-                + interpretation.getUid();
+            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
+                + "&interpretationid=" + interpretation.getUid();
             break;
         case EVENT_CHART:
             path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
@@ -506,5 +510,11 @@ public class DefaultInterpretationService
     public Interpretation getInterpretationByChart( long id )
     {
         return interpretationStore.getByChartId( id );
+    }
+
+    @Override
+    public Interpretation getInterpretationByVisualization( long id )
+    {
+        return interpretationStore.getByVisualizationId( id );
     }
 }

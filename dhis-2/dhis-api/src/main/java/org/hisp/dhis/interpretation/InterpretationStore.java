@@ -47,4 +47,5 @@ public interface InterpretationStore
 
     Interpretation getByChartId( long id );
 
+    Interpretation getByVisualizationId( long id );
 }

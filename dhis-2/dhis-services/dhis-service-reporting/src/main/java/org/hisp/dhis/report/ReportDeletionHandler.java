@@ -69,7 +69,7 @@ public class ReportDeletionHandler
     {
         for ( Report report : reportService.getAllReports() )
         {
-            if ( report.getReportTable() != null && report.getReportTable().equals( reportTable ) )
+            if ( report.getVisualization() != null && report.getVisualization().equals( reportTable ) )
             {
                 return report.getName();
             }

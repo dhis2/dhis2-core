@@ -28,6 +28,8 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+
 import java.util.List;
 
 /**

@@ -141,13 +141,10 @@ public class MetadataVersionDelegateTest
 
     @Test
     public void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull()
-        throws Exception
     {
 
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-            .thenReturn( null );
         MetadataVersion version = target.getRemoteMetadataVersion( "testVersion" );
 
         assertNull( version );
@@ -414,7 +411,6 @@ public class MetadataVersionDelegateTest
 
     @Test
     public void testShouldNotDownloadMetadataVersion()
-        throws Exception
     {
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
         metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
@@ -426,8 +422,6 @@ public class MetadataVersionDelegateTest
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
 
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        PowerMockito.when( HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) )
-            .thenReturn( null );
         String actualMetadataVersionSnapshot = target.downloadMetadataVersionSnapshot( metadataVersion );
 
         assertNull(actualMetadataVersionSnapshot);

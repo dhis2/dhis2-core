@@ -50,7 +50,6 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.repository.TrackedEntityAttributeRepository;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -101,62 +100,24 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
-
-    @Autowired
     protected TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Autowired
     protected RelationshipService _relationshipService;
-
-    @Autowired
-    org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
-
-    @Autowired
+    protected org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
     protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    @Autowired
     protected IdentifiableObjectManager manager;
-
-    @Autowired
     protected UserService userService;
-
-    @Autowired
     protected DbmsManager dbmsManager;
-
-    @Autowired
     protected EnrollmentService enrollmentService;
-
-    @Autowired
     protected ProgramInstanceService programInstanceService;
-
-    @Autowired
     protected CurrentUserService currentUserService;
-
-    @Autowired
     protected SchemaService schemaService;
-
-    @Autowired
     protected QueryService queryService;
-
-    @Autowired
     protected ReservedValueService reservedValueService;
-
-    @Autowired
     protected TrackerAccessManager trackerAccessManager;
-
-    @Autowired
     protected FileResourceService fileResourceService;
-
-    @Autowired
     protected TrackerOwnershipManager trackerOwnershipAccessManager;
-
-    @Autowired
     protected Notifier notifier;
-
-    @Autowired
-    protected TrackedEntityAttributeRepository trackedEntityAttributeRepository;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -200,9 +161,9 @@ public abstract class AbstractTrackedEntityInstanceService
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeRepository.getTrackedEntityAttributesByTrackedEntityTypes();
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes();
 
-        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = trackedEntityAttributeRepository.getTrackedEntityAttributesByProgram();
+        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService.getTrackedEntityAttributesByProgram();
 
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {

@@ -81,7 +81,7 @@ public class ProgramSqlGeneratorItemsTest
 
     private Constant constantA;
 
-    private Map<String, Double> constantMap;
+    private Map<String, Constant> constantMap;
 
     private Date startDate = getDate( 2020, 1, 1 );
 
@@ -126,8 +126,8 @@ public class ProgramSqlGeneratorItemsTest
         constantA = new Constant( "Constant A", 123.456 );
         constantA.setUid( "constant00A" );
 
-        constantMap = new ImmutableMap.Builder<String, Double>()
-            .put( "constant00A", 123.456 )
+        constantMap = new ImmutableMap.Builder<String, Constant>()
+            .put( "constant00A", new Constant( "constant", 123.456 ) )
             .build();
 
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
@@ -144,16 +144,14 @@ public class ProgramSqlGeneratorItemsTest
         programIndicator = new ProgramIndicator();
         programIndicator.setProgram( programA );
         programIndicator.setAnalyticsType( AnalyticsType.EVENT );
-
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
-        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
-        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
     }
 
     @Test
     public void testDataElement()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         String sql = test( "#{ProgrmStagA.DataElmentA}" );
         assertThat( sql, is( "coalesce(\"DataElmentA\"::numeric,0)" ) );
     }
@@ -161,6 +159,9 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testDataElementAllowingNulls()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         String sql = test( "d2:oizp(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "coalesce(case when \"DataElmentA\" >= 0 then 1 else 0 end, 0)" ) );
     }
@@ -168,6 +169,10 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testDataElementNotFound()
     {
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         thrown.expect( ParserException.class );
         test( "#{ProgrmStagA.NotElementA}" );
     }
@@ -175,6 +180,8 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testAttribute()
     {
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+
         String sql = test( "A{Attribute0A}" );
         assertThat( sql, is( "coalesce(\"Attribute0A\"::numeric,0)" ) );
     }
@@ -182,6 +189,8 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testAttributeAllowingNulls()
     {
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+
         String sql = test( "d2:oizp(A{Attribute0A})" );
         assertThat( sql, is( "coalesce(case when \"Attribute0A\" >= 0 then 1 else 0 end, 0)" ) );
     }
@@ -238,7 +247,7 @@ public class ProgramSqlGeneratorItemsTest
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantMap )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )
@@ -253,7 +262,6 @@ public class ProgramSqlGeneratorItemsTest
         visitor.setProgramIndicator( programIndicator );
         visitor.setReportingStartDate( startDate );
         visitor.setReportingEndDate( endDate );
-        visitor.setConstantMap( constantMap );
         visitor.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
         return Parser.visit( expression, visitor );

@@ -51,6 +51,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,6 +133,7 @@ public class DefaultDashboardService
         DashboardSearchResult result = new DashboardSearchResult();
 
         result.setUsers( userService.getAllUsersBetweenByName( query, 0, getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
+        result.setVisualizations( objectManager.getBetweenLikeName( Visualization.class, words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setCharts( objectManager.getBetweenLikeName( Chart.class, words, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
         result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
@@ -150,6 +152,7 @@ public class DefaultDashboardService
     {
         DashboardSearchResult result = new DashboardSearchResult();
 
+        result.setVisualizations( objectManager.getBetweenSorted( Visualization.class, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setCharts( objectManager.getBetweenSorted( Chart.class, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
         result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
@@ -186,7 +189,12 @@ public class DefaultDashboardService
 
         DashboardItem item = new DashboardItem();
 
-        if ( DashboardItemType.CHART.equals( type ) )
+        if ( DashboardItemType.VISUALIZATION.equals( type ) )
+        {
+            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
+            dashboard.getItems().add( 0, item );
+        }
+        else if ( DashboardItemType.CHART.equals( type ) )
         {
             item.setChart( objectManager.get( Chart.class, contentUid ) );
             dashboard.getItems().add( 0, item );
@@ -273,6 +281,11 @@ public class DefaultDashboardService
     @Transactional(readOnly = true)
     public void mergeDashboardItem( DashboardItem item )
     {
+        if ( item.getVisualization() != null )
+        {
+            item.setVisualization( objectManager.get( Visualization.class, item.getVisualization().getUid() ) );
+        }
+
         if ( item.getChart() != null )
         {
             item.setChart( objectManager.get( Chart.class, item.getChart().getUid() ) );
@@ -394,16 +407,23 @@ public class DefaultDashboardService
 
     @Override
     @Transactional(readOnly = true)
-    public int countMapDashboardItems( Map map )
+    public int countChartDashboardItems( Chart chart )
     {
-        return dashboardItemStore.countMapDashboardItems( map );
+        return dashboardItemStore.countChartDashboardItems( chart );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countChartDashboardItems( Chart chart )
+    public int countReportTableDashboardItems( ReportTable reportTable )
     {
-        return dashboardItemStore.countChartDashboardItems( chart );
+        return dashboardItemStore.countReportTableDashboardItems( reportTable );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int countMapDashboardItems( Map map )
+    {
+        return dashboardItemStore.countMapDashboardItems( map );
     }
 
     @Override
@@ -415,9 +435,9 @@ public class DefaultDashboardService
 
     @Override
     @Transactional(readOnly = true)
-    public int countReportTableDashboardItems( ReportTable reportTable )
+    public int countVisualizationDashboardItems( Visualization visualization )
     {
-        return dashboardItemStore.countReportTableDashboardItems( reportTable );
+        return dashboardItemStore.countVisualizationDashboardItems( visualization );
     }
 
     @Override

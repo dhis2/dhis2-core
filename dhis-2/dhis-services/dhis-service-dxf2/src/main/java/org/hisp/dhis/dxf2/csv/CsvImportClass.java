@@ -44,7 +44,10 @@ public enum CsvImportClass
     ORGANISATION_UNIT,
     ORGANISATION_UNIT_GROUP,
     VALIDATION_RULE,
-    OPTION_SET;
+    OPTION_SET,
+    OPTION_GROUP,
+    OPTION_GROUP_SET,
+    OPTION_GROUP_SET_MEMBERSHIP;
 
     public static boolean classExists( String classKey )
     {

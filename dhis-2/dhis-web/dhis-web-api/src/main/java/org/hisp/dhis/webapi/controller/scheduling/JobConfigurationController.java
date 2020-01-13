@@ -95,5 +95,4 @@ public class JobConfigurationController
     {
         jobConfigurationService.refreshScheduling( jobConfiguration );
     }
-
 }

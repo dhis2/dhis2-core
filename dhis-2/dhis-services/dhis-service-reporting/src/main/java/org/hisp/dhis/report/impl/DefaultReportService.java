@@ -64,13 +64,13 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
-import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
@@ -101,7 +101,7 @@ public class DefaultReportService
 
     private final IdentifiableObjectStore<Report> reportStore;
 
-    private final ReportTableService reportTableService;
+    private final VisualizationService visualizationService;
 
     private final ConstantService constantService;
 
@@ -116,12 +116,12 @@ public class DefaultReportService
     private final SystemSettingManager systemSettingManager;
 
     public DefaultReportService(
-        @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore, ReportTableService reportTableService,
+        @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore, VisualizationService visualizationService,
         ConstantService constantService, OrganisationUnitService organisationUnitService, PeriodService periodService,
         I18nManager i18nManager, DataSource dataSource, SystemSettingManager systemSettingManager )
     {
         checkNotNull( reportStore );
-        checkNotNull( reportTableService );
+        checkNotNull(visualizationService);
         checkNotNull( constantService );
         checkNotNull( organisationUnitService );
         checkNotNull( periodService );
@@ -130,7 +130,7 @@ public class DefaultReportService
         checkNotNull( systemSettingManager );
 
         this.reportStore = reportStore;
-        this.reportTableService = reportTableService;
+        this.visualizationService = visualizationService;
         this.constantService = constantService;
         this.organisationUnitService = organisationUnitService;
         this.periodService = periodService;
@@ -185,11 +185,11 @@ public class DefaultReportService
         {
             JasperReport jasperReport = JasperCompileManager.compileReport( IOUtils.toInputStream( report.getDesignContent(), StandardCharsets.UTF_8 ) );
 
-            if ( report.hasReportTable() ) // Use JR data source
+            if ( report.hasVisualization() ) // Use JR data source
             {
-                ReportTable reportTable = report.getReportTable();
+                Visualization visualization = report.getVisualization();
 
-                Grid grid = reportTableService.getReportTableGrid( reportTable.getUid(), reportDate, organisationUnitUid );
+                Grid grid = visualizationService.getVisualizationGrid( visualization.getUid(), reportDate, organisationUnitUid );
 
                 print = JasperFillManager.fillReport( jasperReport, params, grid );
             }
@@ -208,7 +208,7 @@ public class DefaultReportService
                     params.put( PARAM_RELATIVE_ISO_PERIODS, isoPeriodString );
                 }
 
-                if ( report.hasReportParams() && report.getReportParams().isParamOrganisationUnit() && orgUnit != null )
+                if ( report.hasReportParams() && report.getReportParams().isOrganisationUnit() && orgUnit != null )
                 {
                     params.put( PARAM_ORG_UNITS, String.valueOf( orgUnit.getId() ) );
                     params.put( PARAM_ORG_UNITS_UID, String.valueOf( orgUnit.getUid() ) );
