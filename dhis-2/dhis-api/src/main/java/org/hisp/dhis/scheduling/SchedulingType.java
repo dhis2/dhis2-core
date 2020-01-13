@@ -34,7 +34,7 @@ package org.hisp.dhis.scheduling;
 public enum SchedulingType
 {
     /**
-     * Scheduling based on a {@code cron} expression.
+     * Scheduling based on a expression.
      */
     CRON,
     /**
