@@ -43,7 +43,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +123,7 @@ public class TrackerBundleServiceTest
 
         assertEquals( 1, trackerBundles.size() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 13, trackedEntityInstances.size() );
