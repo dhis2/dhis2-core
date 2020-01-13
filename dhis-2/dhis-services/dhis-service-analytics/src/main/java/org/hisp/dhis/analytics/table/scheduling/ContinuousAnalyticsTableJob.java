@@ -108,13 +108,16 @@ public class ContinuousAnalyticsTableJob
                 .withStartTime( now )
                 .build();
 
-            analyticsTableGenerator.generateTables( params );
-
-            Date update = DateUtils.getNextDate( hourOfDay, now );
-
-            systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, update );
-
-            log.info( String.format( "Next analytics table update: %s", getMediumDateString( update ) ) );
+            try
+            {
+                analyticsTableGenerator.generateTables( params );
+            }
+            finally
+            {
+                Date update = DateUtils.getNextDate( hourOfDay, now );
+                systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, update );
+                log.info( String.format( "Next analytics table update: %s", getMediumDateString( update ) ) );
+            }
         }
         else
         {
