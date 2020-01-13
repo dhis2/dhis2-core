@@ -146,18 +146,6 @@ public class DefaultTrackerImportService implements TrackerImportService
     // Utility Methods
     //-----------------------------------------------------------------------------------
 
-    private boolean getBooleanWithDefault( Map<String, List<String>> parameters, String key, boolean defaultValue )
-    {
-        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
-        {
-            return defaultValue;
-        }
-
-        String value = String.valueOf( parameters.get( key ).get( 0 ) );
-
-        return "true".equals( value.toLowerCase() );
-    }
-
     private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
     {
         if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )

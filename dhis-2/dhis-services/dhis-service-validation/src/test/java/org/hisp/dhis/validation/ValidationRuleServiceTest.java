@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -70,9 +69,6 @@ public class ValidationRuleServiceTest
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     @Autowired
     private DataSetService dataSetService;

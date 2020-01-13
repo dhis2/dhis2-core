@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -58,18 +57,15 @@ public class PredictorStoreTest
 
     @Autowired
     private DataElementService dataElementService;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private ExpressionService expressionService;
-
     private OrganisationUnitLevel orgUnitLevel1;
-    
+
     private DataElement dataElementA;
 
     private DataElement dataElementB;
@@ -93,7 +89,7 @@ public class PredictorStoreTest
     private Expression expressionD;
 
     private PeriodType periodType;
-    
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -103,9 +99,9 @@ public class PredictorStoreTest
         throws Exception
     {
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
-        
+
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
-        
+
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
         dataElementC = createDataElement( 'C' );
@@ -296,10 +292,6 @@ public class PredictorStoreTest
         Set<DataElement> dataElementsD = new HashSet<>();
         dataElementsD.addAll( dataElementsA );
         dataElementsD.addAll( dataElementsB );
-
-        Expression expression1 = new Expression( "Expression1", "Expression1" );
-        Expression expression2 = new Expression( "Expression2", "Expression2" );
-        Expression expression3 = new Expression( "Expression3", "Expression3" );
 
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,

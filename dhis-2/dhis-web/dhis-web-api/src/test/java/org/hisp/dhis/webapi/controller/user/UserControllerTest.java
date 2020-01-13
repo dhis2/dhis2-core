@@ -119,7 +119,7 @@ public class UserControllerTest
         importReport.addTypeReport( typeReport );
         userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
 
-        Mockito.verifyZeroInteractions( currentUserService );
+        Mockito.verifyNoInteractions( currentUserService );
         Mockito.verify( userGroupService ).updateUserGroups( Mockito.same( user ),
             (Collection<String>) argThat( Matchers.containsInAnyOrder( "abc1", "abc2" ) ),
             Mockito.same( currentUser ) );
@@ -135,9 +135,9 @@ public class UserControllerTest
         importReport.addTypeReport( typeReport );
         userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
 
-        Mockito.verifyZeroInteractions( currentUserService );
-        Mockito.verifyZeroInteractions( userService );
-        Mockito.verifyZeroInteractions( userGroupService );
+        Mockito.verifyNoInteractions( currentUserService );
+        Mockito.verifyNoInteractions( userService );
+        Mockito.verifyNoInteractions( userGroupService );
     }
 
     @Test
@@ -150,9 +150,9 @@ public class UserControllerTest
         importReport.addTypeReport( typeReport );
         userController.updateUserGroups( importReport, "def2", parsedUser, currentUser );
 
-        Mockito.verifyZeroInteractions( currentUserService );
-        Mockito.verifyZeroInteractions( userService );
-        Mockito.verifyZeroInteractions( userGroupService );
+        Mockito.verifyNoInteractions( currentUserService );
+        Mockito.verifyNoInteractions( userService );
+        Mockito.verifyNoInteractions( userGroupService );
     }
 
     @Test

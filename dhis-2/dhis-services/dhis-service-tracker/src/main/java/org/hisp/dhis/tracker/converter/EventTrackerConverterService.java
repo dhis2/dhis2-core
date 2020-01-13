@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.converter;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -67,14 +66,10 @@ public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
     private final TrackerPreheatService trackerPreheatService;
-    private final IdentifiableObjectManager manager;
 
-    public EventTrackerConverterService(
-        TrackerPreheatService trackerPreheatService,
-        IdentifiableObjectManager manager )
+    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.manager = manager;
     }
 
     @Override

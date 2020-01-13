@@ -29,7 +29,6 @@
 package org.hisp.dhis.webapi.controller.datavalue;
 
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.junit.MockitoJUnit.rule;
 

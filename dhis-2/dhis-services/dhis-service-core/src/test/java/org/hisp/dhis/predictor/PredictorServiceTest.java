@@ -39,7 +39,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -70,9 +69,6 @@ public class PredictorServiceTest
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     private OrganisationUnitLevel orgUnitLevel1;
 

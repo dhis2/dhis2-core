@@ -38,14 +38,12 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -56,8 +54,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import javax.sql.DataSource;
 
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -76,7 +72,7 @@ public abstract class IntegrationTestBase
     private static JdbcTemplate jdbcTemplate;
 
     /*
-    "Special" setter to allow setting JdbcTemplate as static field 
+    "Special" setter to allow setting JdbcTemplate as static field
      */
     @Autowired
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )

@@ -193,7 +193,7 @@ public class HibernateMinMaxDataElementStore
             .executeUpdate();
     }
 
-    private Predicate parseFilter( CriteriaBuilder builder, Root root, List<String> filters )
+    private Predicate parseFilter( CriteriaBuilder builder, Root<?> root, List<String> filters )
     {
         Predicate conjunction = builder.conjunction();
 
@@ -210,7 +210,7 @@ public class HibernateMinMaxDataElementStore
                     throw new QueryParserException( "Invalid filter: " + filter );
                 }
 
-                Path queryPath = queryPlanner.getQueryPath( root, schema,  split[0] );
+                Path<?> queryPath = queryPlanner.getQueryPath( root, schema,  split[0] );
 
                 Property property = queryParser.getProperty( schema, split[0] );
 

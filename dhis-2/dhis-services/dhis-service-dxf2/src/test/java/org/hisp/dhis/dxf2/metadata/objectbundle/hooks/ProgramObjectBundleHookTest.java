@@ -93,7 +93,7 @@ public class ProgramObjectBundleHookTest
     {
         subject.preCreate( null, null );
 
-        verifyZeroInteractions( programInstanceService );
+        verifyNoInteractions( programInstanceService );
     }
 
     @Test
@@ -103,7 +103,7 @@ public class ProgramObjectBundleHookTest
 
         subject.preCreate( user, null );
 
-        verifyZeroInteractions( programInstanceService );
+        verifyNoInteractions( programInstanceService );
     }
 
     @Test
@@ -113,7 +113,7 @@ public class ProgramObjectBundleHookTest
 
         subject.preCreate( programInstance, null );
 
-        verifyZeroInteractions( programInstanceService );
+        verifyNoInteractions( programInstanceService );
     }
 
     @Test
@@ -161,7 +161,7 @@ public class ProgramObjectBundleHookTest
         Program transientObj = createProgram( 'A' );
         subject.validate( transientObj, null );
 
-        verifyZeroInteractions( programInstanceService );
+        verifyNoInteractions( programInstanceService );
     }
 
     @Test

@@ -29,14 +29,12 @@ package org.hisp.dhis.schema.descriptors;
  */
 
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
  * @author Enrico Colasante
  */
-
 public class ExpressionSchemaDescriptor
     implements SchemaDescriptor
 {

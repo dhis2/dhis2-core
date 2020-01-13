@@ -45,5 +45,5 @@ public interface QueryPlanner
 
     QueryPath getQueryPath( Schema schema, String path );
 
-    Path getQueryPath( Root root, Schema schema, String path );
+    Path<?> getQueryPath( Root<?> root, Schema schema, String path );
 }

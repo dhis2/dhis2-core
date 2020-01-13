@@ -61,7 +61,7 @@ public class SectionRenderingObject implements RenderingObject<SectionRenderingT
 
     @Override
     @JsonIgnore
-    public Class getRenderTypeClass()
+    public Class<SectionRenderingType> getRenderTypeClass()
     {
         return SectionRenderingType.class;
     }

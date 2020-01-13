@@ -215,9 +215,10 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     /**
-     * @param simpleNode
-     * @param writer
-     * @return TRUE if given simpleNode has been serialized using custom JsonSerializer
+     * @param simpleNode the {@link SimpleNode}.
+     * @param writer the {@link XMLStreamWriter}.
+     *
+     * @return true if given simpleNode has been serialized using custom JsonSerializer
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException

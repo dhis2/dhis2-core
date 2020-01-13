@@ -171,7 +171,7 @@ public class JpaQueryUtils
     /**
      * Use for parsing filter parameter for Object which doesn't extend IdentifiableObject.
      */
-    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path path, String operator, String value )
+    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path<?> path, String operator, String value )
     {
         switch ( operator )
         {
