@@ -214,7 +214,7 @@ public class JobConfigurationObjectBundleHook
             }
             else
             {
-                if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
+                if ( jobConfig.hasCronExpression() && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
                 {
                     errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
                 }
@@ -279,7 +279,7 @@ public class JobConfigurationObjectBundleHook
     private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
         JobConfiguration jobConfiguration )
     {
-        if ( !jobConfiguration.isContinuousExecution() )
+        if ( !jobConfiguration.isContinuousExecution() && jobConfiguration.getJobType().isCronSchedulingType() )
         {
             if ( jobConfiguration.getCronExpression() == null )
             {
@@ -289,6 +289,12 @@ public class JobConfigurationObjectBundleHook
             {
                 errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
             }
+        }
+
+        if ( !jobConfiguration.isContinuousExecution() &&
+            jobConfiguration.getJobType().isFixedDelaySchedulingType() && jobConfiguration.getDelay() == null )
+        {
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7007 ) );
         }
     }
 

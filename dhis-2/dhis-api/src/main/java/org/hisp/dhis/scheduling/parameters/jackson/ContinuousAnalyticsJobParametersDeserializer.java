@@ -28,29 +28,23 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.util.StdConverter;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * Cleans the resulting job configuration after de-serializing.
- *
- * @author Volker Schmidt
+ * @author Lars Helge Overland
  */
-public class JobConfigurationSanitizer extends StdConverter<JobConfiguration, JobConfiguration>
+public class ContinuousAnalyticsJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<ContinuousAnalyticsJobParameters>
 {
-    @Override
-    public JobConfiguration convert( JobConfiguration value )
+    public ContinuousAnalyticsJobParametersDeserializer()
     {
-        if ( value == null )
-        {
-            return null;
-        }
+        super( ContinuousAnalyticsJobParameters.class, CustomJobParameters.class );
+    }
 
-        final JobConfiguration jobConfiguration = new JobConfiguration( value.getName(), value.getJobType(),
-            value.getCronExpression(), value.getJobParameters(), value.isContinuousExecution(), value.isEnabled() );
-        jobConfiguration.setDelay( value.getDelay() );
-        jobConfiguration.setLeaderOnlyJob( value.isLeaderOnlyJob() );
-        jobConfiguration.setUid( value.getUid() );
-        return jobConfiguration;
+    @JsonDeserialize
+    public static class CustomJobParameters extends ContinuousAnalyticsJobParameters
+    {
     }
 }

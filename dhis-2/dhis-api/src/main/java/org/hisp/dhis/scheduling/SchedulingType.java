@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters.jackson;
+package org.hisp.dhis.scheduling;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,29 +28,17 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.util.StdConverter;
-import org.hisp.dhis.scheduling.JobConfiguration;
-
 /**
- * Cleans the resulting job configuration after de-serializing.
- *
- * @author Volker Schmidt
+ * @author Lars Helge Overland
  */
-public class JobConfigurationSanitizer extends StdConverter<JobConfiguration, JobConfiguration>
+public enum SchedulingType
 {
-    @Override
-    public JobConfiguration convert( JobConfiguration value )
-    {
-        if ( value == null )
-        {
-            return null;
-        }
-
-        final JobConfiguration jobConfiguration = new JobConfiguration( value.getName(), value.getJobType(),
-            value.getCronExpression(), value.getJobParameters(), value.isContinuousExecution(), value.isEnabled() );
-        jobConfiguration.setDelay( value.getDelay() );
-        jobConfiguration.setLeaderOnlyJob( value.isLeaderOnlyJob() );
-        jobConfiguration.setUid( value.getUid() );
-        return jobConfiguration;
-    }
+    /**
+     * Scheduling based on a expression.
+     */
+    CRON,
+    /**
+     * Scheduling based on a fixed delay between invocations.
+     */
+    FIXED_DELAY;
 }

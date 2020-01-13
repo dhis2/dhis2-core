@@ -40,6 +40,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -68,6 +69,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * <p>
  * The class uses a custom deserializer to handle several potential {@link JobParameters}.
  *
+ * Note that this class uses {@link JobConfigurationSanitizer} for serialization which needs to be update when new
+ * properties are added.
+ *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
@@ -79,12 +83,22 @@ public class JobConfiguration
     // Externally configurable properties
     // -------------------------------------------------------------------------
 
-    private String cronExpression;
-
     /**
      * The type of job.
      */
     private JobType jobType;
+
+    /**
+     * The cron expression used for scheduling the job. Relevant for scheduling
+     * type {@link SchedulingType#CRON}.
+     */
+    private String cronExpression;
+
+    /**
+     * The delay in seconds between the completion of one job execution and the
+     * start of the next. Relevant for scheduling type {@link SchedulingType#FIXED_DELAY}.
+     */
+    private Integer delay;
 
     /**
      * Indicates this job should be triggered continuously.
@@ -202,14 +216,20 @@ public class JobConfiguration
         return jobType.isConfigurable();
     }
 
+    public boolean hasCronExpression()
+    {
+        return cronExpression != null && !cronExpression.isEmpty();
+    }
+
     @Override
     public String toString()
     {
         return "JobConfiguration{" +
             "uid='" + uid + '\'' +
-            ", displayName='" + displayName + '\'' +
-            ", cronExpression='" + cronExpression + '\'' +
+            ", name='" + name + '\'' +
             ", jobType=" + jobType +
+            ", cronExpression='" + cronExpression + '\'' +
+            ", delay='" + delay + '\'' +
             ", jobParameters=" + jobParameters +
             ", enabled=" + enabled +
             ", continuousExecution=" + continuousExecution +
@@ -229,6 +249,19 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
+    @JsonTypeId
+    public JobType getJobType()
+    {
+        return jobType;
+    }
+
+    public void setJobType( JobType jobType )
+    {
+        this.jobType = jobType;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
     public String getCronExpression()
     {
         return cronExpression;
@@ -241,15 +274,14 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    @JsonTypeId
-    public JobType getJobType()
+    public Integer getDelay()
     {
-        return jobType;
+        return delay;
     }
 
-    public void setJobType( JobType jobType )
+    public void setDelay( Integer delay )
     {
-        this.jobType = jobType;
+        this.delay = delay;
     }
 
     @JacksonXmlProperty
@@ -264,12 +296,16 @@ public class JobConfiguration
         this.continuousExecution = continuousExecution;
     }
 
+    /**
+     * The sub type names refer to the {@link JobType} enumeration.
+     */
     @JacksonXmlProperty
     @JsonProperty
     @Property( required = FALSE )
     @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
     @JsonSubTypes( value = {
         @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
+        @JsonSubTypes.Type( value = ContinuousAnalyticsJobParameters.class, name = "CONTINUOUS_ANALYTICS_TABLE" ),
         @JsonSubTypes.Type( value = MonitoringJobParameters.class, name = "MONITORING" ),
         @JsonSubTypes.Type( value = PredictorJobParameters.class, name = "PREDICTOR" ),
         @JsonSubTypes.Type( value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS" ),

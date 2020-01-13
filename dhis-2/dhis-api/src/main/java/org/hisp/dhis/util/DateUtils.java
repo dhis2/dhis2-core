@@ -441,6 +441,34 @@ public class DateUtils
     }
 
     /**
+     * Returns the nearest date forward in time with the given hour of day,
+     * with the minute, second and millisecond to zero. If the hour equals
+     * the current hour of day, the next following day is used.
+     *
+     * @param hourOfDay the hour of the day.
+     * @param now the date representing the current time, if null, the current
+     *         time is used.
+     * @return the nearest date forward in time with the given hour of day.
+     */
+    public static Date getNextDate( int hourOfDay, Date now )
+    {
+        now = now != null ? now : new Date();
+
+        DateTime date = new DateTime( now ).plusHours( 1 );
+
+        while ( date.getHourOfDay() != hourOfDay )
+        {
+            date = date.plusHours( 1 );
+        }
+
+        return date
+            .withMinuteOfHour( 0 )
+            .withSecondOfMinute( 0 )
+            .withMillisOfSecond( 0 )
+            .toDate();
+    }
+
+    /**
      * Returns Epoch date, ie. 01/01/1970.
      *
      * @return Epoch date, ie. 01/01/1970.
