@@ -33,6 +33,12 @@ package org.hisp.dhis.scheduling;
  */
 public enum SchedulingType
 {
+    /**
+     * Scheduling based on a {@code cron} expression.
+     */
     CRON,
+    /**
+     * Scheduling based on a fixed delay between invocations.
+     */
     FIXED_DELAY;
 }
