@@ -70,24 +70,23 @@ public class AuditManager
 
     public void send( Audit audit )
     {
-        if ( auditMatrix.isEnabled( audit ) )
+        if ( !auditMatrix.isEnabled( audit ) )
         {
-            audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
-                : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(), audit.getAuditableEntity().getEntity(),
-                    audit.getCreatedBy() )) );
+            log.debug( "Audit message ignored:\n" + audit.toLog() );
+            return;
+        }
+        
+        audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
+            : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(), audit.getAuditableEntity().getEntity(),
+                audit.getCreatedBy() )) );
 
-            if ( config.isUseQueue() )
-            {
-                auditScheduler.addAuditItem( audit );
-            }
-            else
-            {
-                auditProducerSupplier.publish( audit );
-            }
+        if ( config.isUseQueue() )
+        {
+            auditScheduler.addAuditItem( audit );
         }
         else
         {
-            log.debug( "Audit message ignored:\n" + audit.toLog() );
+            auditProducerSupplier.publish( audit );
         }
     }
 }
