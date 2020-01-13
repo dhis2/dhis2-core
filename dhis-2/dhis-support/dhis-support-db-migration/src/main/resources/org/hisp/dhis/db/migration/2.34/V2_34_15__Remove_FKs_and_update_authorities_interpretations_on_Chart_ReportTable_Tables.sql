@@ -25,7 +25,7 @@ BEGIN
       AND constraint_name LIKE 'fk%'
     ) LOOP
       RAISE INFO '%','dropping '||r.constraint_name||'FROM TABLE '||t;
-      EXECUTE CONCAT('ALTER TABLE '||t||' DROP CONSTRAINT '||r.constraint_name);
+      EXECUTE CONCAT('ALTER TABLE '||t||' DROP CONSTRAINT IF EXISTS '||r.constraint_name);
     END LOOP;
   END LOOP;
 END;
@@ -47,15 +47,15 @@ BEGIN
       AND constraint_name LIKE 'fk%'
     ) LOOP
       RAISE INFO '%','dropping '||r.constraint_name||'FROM TABLE '||t;
-      EXECUTE CONCAT('ALTER TABLE '||t||' DROP CONSTRAINT '||r.constraint_name);
+      EXECUTE CONCAT('ALTER TABLE '||t||' DROP CONSTRAINT IF EXISTS '||r.constraint_name);
     END LOOP;
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
 -- 3) Removing FKs from Interpretation
-ALTER TABLE interpretation DROP CONSTRAINT fk_interpretation_chartid;
-ALTER TABLE interpretation DROP CONSTRAINT fk_interpretation_reporttableid;
+ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_chartid;
+ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_reporttableid;
 
 -- 4) Moving user authorities from chart to visualization
 UPDATE userroleauthorities SET authority = 'F_VISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_CHART_PUBLIC_ADD';
