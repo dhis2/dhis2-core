@@ -162,7 +162,7 @@ public class DefaultDataQueryServiceTest
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) ).thenReturn( 2 );
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
         rb.addOuFilter( "LEVEL-2;ImspTQPwCqd" );
@@ -577,7 +577,7 @@ public class DefaultDataQueryServiceTest
             .thenReturn( buildOrganizationalUnitGroup( ouGroupUID, "Chiefdom", "CODE_001" ) );
         when( idObjectManager.getObject( OrganisationUnit.class, UID, this.rootOu.getUid() ) )
             .thenReturn( rootOu );
-        when( organisationUnitService.getOrganisationUnits( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnits( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
     }
 
