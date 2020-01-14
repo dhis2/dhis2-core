@@ -139,7 +139,7 @@ public class HibernateProgramRuleStore
     {
         List<BigInteger> bigIntegerList = getSession().createNativeQuery(
             "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid " +
-                "where environments@> '[\"" + environment + "\"]';", BigInteger.class )
+                "where environments@> '[\"" + environment + "\"]';")
             .list();
         List<Long> idList = bigIntegerList
             .stream()
