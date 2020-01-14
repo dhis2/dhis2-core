@@ -157,12 +157,6 @@ public class DataValueController
 
         DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess(de);
 
-        // Normalize to boolean case the value is a compatible boolean.
-        if ( value != null )
-        {
-            value = normalizeBoolean( value.trim().toLowerCase(), dataElement.getValueType() );
-        }
-
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
         CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
@@ -179,7 +173,7 @@ public class DataValueController
 
         dataValueValidation.validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, period );
 
-        dataValueValidation.validateDataValue ( value, dataElement );
+        value = dataValueValidation.validateAndNormalizeDataValue ( value, dataElement );
 
         dataValueValidation.validateComment( comment );
 

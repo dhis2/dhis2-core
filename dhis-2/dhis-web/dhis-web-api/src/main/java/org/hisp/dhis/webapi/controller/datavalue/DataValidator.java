@@ -464,24 +464,27 @@ class DataValidator
     }
 
     /**
-     * Validates if the given dataValue is valid for the given DataElement.
+     * Validates if the given dataValue is valid for the given DataElement,
+     * and normalize it if the dataValue is a boolean type.
      * 
      * @param dataValue
      * @param dataElement
+     * @return the normalized boolean or the same dataValue provided
      * @throws WebMessageException if the validation fails.
      */
-    void validateDataValue( final String dataValue, final DataElement dataElement )
+    String validateAndNormalizeDataValue( final String dataValue, final DataElement dataElement )
         throws WebMessageException
     {
-        final String withNormalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
+        final String normalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
 
-        final String valueValid = dataValueIsValid( withNormalizedBoolean, dataElement );
+        final String valueValid = dataValueIsValid( normalizedBoolean, dataElement );
 
         if ( valueValid != null )
         {
             throw new WebMessageException( conflict(
                 "Invalid value: " + dataValue + ", must match data element type: " + dataElement.getValueType() ) );
         }
+        return normalizedBoolean;
     }
 
     /**
