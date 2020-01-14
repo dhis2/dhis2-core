@@ -155,7 +155,7 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess(de);
+        DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess( de );
 
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
