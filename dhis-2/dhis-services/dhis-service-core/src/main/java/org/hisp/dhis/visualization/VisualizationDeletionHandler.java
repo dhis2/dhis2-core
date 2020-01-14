@@ -1,5 +1,7 @@
+package org.hisp.dhis.visualization;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.visualization;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -39,12 +36,8 @@ public class VisualizationDeletionHandler
     extends
     DeletionHandler
 {
-    private final IdentifiableObjectManager idObjectManager;
-
-    public VisualizationDeletionHandler( IdentifiableObjectManager idObjectManager )
+    public VisualizationDeletionHandler()
     {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
     }
 
     @Override

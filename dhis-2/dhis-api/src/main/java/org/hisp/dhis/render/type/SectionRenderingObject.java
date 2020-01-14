@@ -1,7 +1,7 @@
 package org.hisp.dhis.render.type;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ public class SectionRenderingObject implements RenderingObject<SectionRenderingT
 
     @Override
     @JsonIgnore
-    public Class getRenderTypeClass()
+    public Class<SectionRenderingType> getRenderTypeClass()
     {
         return SectionRenderingType.class;
     }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.schema.descriptors;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,17 +28,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.schema.descriptors;
-
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.security.AuthorityType.CREATE;
 import static org.hisp.dhis.security.AuthorityType.CREATE_PUBLIC;
-import static org.hisp.dhis.security.AuthorityType.DATA_CREATE;
-import static org.hisp.dhis.security.AuthorityType.DATA_READ;
-import static org.hisp.dhis.security.AuthorityType.DELETE;
 import static org.hisp.dhis.security.AuthorityType.EXTERNALIZE;
-import static org.hisp.dhis.security.AuthorityType.READ;
-import static org.hisp.dhis.security.AuthorityType.UPDATE;
 
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;

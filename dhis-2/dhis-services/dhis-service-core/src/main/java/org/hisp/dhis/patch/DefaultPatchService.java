@@ -1,7 +1,7 @@
 package org.hisp.dhis.patch;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -66,17 +64,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Transactional // TODO not sure if this can be completely readonly
 public class DefaultPatchService implements PatchService
 {
-    private static final Log log = LogFactory.getLog( DefaultPatchService.class );
-
     private final SchemaService schemaService;
 
     private final QueryService queryService;
-
-    private final CurrentUserService currentUserService;
-
-    private final RenderService renderService;
-
-    private final SystemService systemService;
 
     @Autowired
     public DefaultPatchService(
@@ -94,9 +84,6 @@ public class DefaultPatchService implements PatchService
 
         this.schemaService = schemaService;
         this.queryService = queryService;
-        this.currentUserService = currentUserService;
-        this.renderService = renderService;
-        this.systemService = systemService;
     }
 
     @Override

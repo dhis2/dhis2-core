@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.planner;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,13 +155,14 @@ public class DefaultQueryPlanner implements QueryPlanner
         return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
     }
 
-    public Path getQueryPath( Root root, Schema schema, String path )
+    @Override
+    public Path<?> getQueryPath( Root<?> root, Schema schema, String path )
     {
         Schema curSchema = schema;
         Property curProperty = null;
         String[] pathComponents = path.split( "\\." );
 
-        Path currentPath = root;
+        Path<?> currentPath = root;
 
         if ( pathComponents.length == 0 )
         {
