@@ -499,8 +499,7 @@ public class DefaultQueryPlanner
      * and the same Value Type. If the DataQueryParams has the aggregationType set, then the DataQueryParams
      * aggregationType overrides all the Data Elements' aggregation types.
      *
-     * @param params DataQueryParams object
-     *
+     * @param params DataQueryParams object.
      */
     private boolean filterHasDataElementsOfSameAggregationTypeAndValueType( DataQueryParams params )
     {
