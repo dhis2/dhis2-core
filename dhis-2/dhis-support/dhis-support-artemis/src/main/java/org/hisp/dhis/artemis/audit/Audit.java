@@ -79,9 +79,17 @@ public class Audit implements Message
     @JsonProperty
     private AuditAttributes attributes;
 
+    /**
+     * This property holds the serialized Audited entity: it should not be used during the construction
+     * of an instance of this object
+     */
     @JsonProperty
     private Object data;
 
+    /**
+     * This property should be used when constructing an Audit instance to send to the Audit sub-system
+     * The AuditableEntity object allows the AuditManager to serialize the audited entity only if needed
+     */
     @JsonIgnore
     private AuditableEntity auditableEntity;
 

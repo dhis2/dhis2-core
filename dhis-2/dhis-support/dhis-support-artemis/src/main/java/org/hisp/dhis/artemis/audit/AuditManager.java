@@ -28,19 +28,19 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@Slf4j
 public class AuditManager
 {
     private final AuditProducerSupplier auditProducerSupplier;
@@ -49,6 +49,8 @@ public class AuditManager
     private final AuditMatrix auditMatrix;
 
     private final AuditObjectFactory objectFactory;
+
+    private static final Log log = LogFactory.getLog( AuditManager.class );
 
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
