@@ -145,11 +145,17 @@ public class DataValueController
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
+
         boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS);
+
         boolean strictCategoryOptionCombos = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS);
+
         boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS);
+
         boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO);
+
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting(SettingKey.FILE_RESOURCE_RETENTION_STRATEGY);
+
         User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
