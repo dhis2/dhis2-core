@@ -28,6 +28,11 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.option.Option;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * @author Lars Helge Overland
  */
@@ -99,7 +104,10 @@ public enum ConfigurationKey
     MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
     APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
     APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false ),
-    AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "on" );
+    AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "on" ),
+    AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
+    AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
 
     private final String key;
 
@@ -141,5 +149,10 @@ public enum ConfigurationKey
     public boolean isConfidential()
     {
         return confidential;
+    }
+    
+    public static Optional<ConfigurationKey> getByKey( String key )
+    {
+        return Arrays.stream( ConfigurationKey.values() ).filter( k -> k.key.equals( key ) ).findFirst();
     }
 }

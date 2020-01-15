@@ -28,44 +28,39 @@
 
 package org.hisp.dhis.artemis.audit.configuration;
 
-import java.util.HashMap;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Map;
 
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
+@DependsOn( "dhisConfigurationProvider" )
 public class AuditMatrix
 {
-    private static final Map<AuditType, Boolean> ALL_ENABLED = ImmutableMap.<AuditType, Boolean> builder()
-        .put( AuditType.CREATE, true ).put( AuditType.UPDATE, true ).put( AuditType.READ, true )
-        .put( AuditType.SEARCH, true ).build();
-
     private Map<AuditScope, Map<AuditType, Boolean>> matrix;
 
-    public AuditMatrix()
+    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
     {
-        // TODO initialize this matrix with real configuration data
-        matrix = new HashMap<>();
+        checkNotNull( auditMatrixConfigurer );
 
-        matrix.put( AuditScope.METADATA, ALL_ENABLED );
+        matrix = auditMatrixConfigurer.configure();
     }
 
     public boolean isEnabled( Audit audit )
     {
-        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), true );
+        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
     }
 
     public boolean isEnabled( AuditScope auditScope, AuditType auditType )
     {
-        return matrix.get( auditScope ).getOrDefault( auditType, true );
+        return matrix.get( auditScope ).getOrDefault( auditType, false );
     }
-
 }
