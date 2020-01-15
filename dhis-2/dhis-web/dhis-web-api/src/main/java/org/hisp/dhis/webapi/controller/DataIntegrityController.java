@@ -73,8 +73,8 @@ public class DataIntegrityController
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
-            false, true, true );
+        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null,
+            null, true, true );
         jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
         jobConfiguration.setAutoFields();
 

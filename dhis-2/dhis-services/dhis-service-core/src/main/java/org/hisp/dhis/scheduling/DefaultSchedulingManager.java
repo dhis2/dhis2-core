@@ -134,9 +134,8 @@ public class DefaultSchedulingManager
             return false;
         }
 
-        return !jobConfiguration.isContinuousExecution() &&
-            runningJobConfigurations.stream().anyMatch(
-                jc -> jc.getJobType().equals( jobConfiguration.getJobType() ) && !jc.isContinuousExecution() );
+        return runningJobConfigurations.stream().anyMatch(
+            jc -> jc.getJobType().equals( jobConfiguration.getJobType() ) );
     }
 
     @Override

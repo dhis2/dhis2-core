@@ -82,19 +82,19 @@ public class ResourceTableController
         HttpServletResponse response, HttpServletRequest request )
     {
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-        
+
         if ( skipAggregate )
         {
             skipTableTypes.add( AnalyticsTableType.DATA_VALUE );
             skipTableTypes.add( AnalyticsTableType.COMPLETENESS );
             skipTableTypes.add( AnalyticsTableType.COMPLETENESS_TARGET );
         }
-        
+
         if ( skipEvents )
         {
             skipTableTypes.add( AnalyticsTableType.EVENT );
         }
-        
+
         if ( skipEnrollment )
         {
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
@@ -102,7 +102,8 @@ public class ResourceTableController
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes, skipResourceTables );
 
-        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "", analyticsJobParameters, false, true, true );
+        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
+            analyticsJobParameters, true, true );
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
         schedulingManager.executeJob( analyticsTableJob );
@@ -126,8 +127,8 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "", new MonitoringJobParameters(),
-            false, true, true );
+        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "",
+            new MonitoringJobParameters(), true, true );
 
         schedulingManager.executeJob( monitoringJob );
 
