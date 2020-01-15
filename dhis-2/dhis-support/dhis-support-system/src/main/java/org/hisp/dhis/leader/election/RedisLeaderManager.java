@@ -92,7 +92,7 @@ public class RedisLeaderManager implements LeaderManager
             calendar.add( Calendar.SECOND, (int) (this.timeToLiveSeconds / 2) );
             log.debug( "Next leader renewal job nodeId:" + this.nodeId + " set at " + calendar.getTime().toString() );
             JobConfiguration leaderRenewalJobConfiguration = new JobConfiguration( CLUSTER_LEADER_RENEWAL,
-                JobType.LEADER_RENEWAL, null, null, false, true, true );
+                JobType.LEADER_RENEWAL, null, null, true, true );
             leaderRenewalJobConfiguration.setLeaderOnlyJob( true );
             schedulingManager.scheduleJobWithStartTime( leaderRenewalJobConfiguration, calendar.getTime() );
         }
