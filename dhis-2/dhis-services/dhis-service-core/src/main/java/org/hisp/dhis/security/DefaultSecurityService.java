@@ -83,8 +83,6 @@ public class DefaultSecurityService
 {
     private static final Log log = LogFactory.getLog( DefaultSecurityService.class );
 
-    public static final String LOGOUT_ACTION = "/dhis-web-commons-security/logout.action";
-
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
     private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
     private static final String TBD_NAME = "(TBD)";
