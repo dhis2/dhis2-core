@@ -134,6 +134,14 @@ public class JobConfiguration
     {
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param userUid the user UID.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String userUid, boolean inMemoryJob )
     {
         this.name = name;
@@ -143,12 +151,30 @@ public class JobConfiguration
         init();
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean enabled )
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression used for scheduling.
+     * @param jobParameters the job parameters.
+     * @param enabled whether this job is enabled.
+     */
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean enabled )
     {
         this( name, jobType, cronExpression, jobParameters, enabled, false );
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression used for scheduling.
+     * @param jobParameters the job parameters.
+     * @param enabled whether this job is enabled.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean enabled, boolean inMemoryJob )
     {

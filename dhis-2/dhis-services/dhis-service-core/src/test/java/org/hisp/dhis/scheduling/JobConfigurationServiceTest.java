@@ -45,6 +45,8 @@ import static org.junit.Assert.assertNull;
 public class JobConfigurationServiceTest
     extends DhisSpringTest
 {
+    private static final String CRON_EVERY_MIN = "0 * * ? * *";
+
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
@@ -56,9 +58,7 @@ public class JobConfigurationServiceTest
     protected void setUpTest()
         throws Exception
     {
-        String CRON_EVERY_MIN = "0 * * ? * *";
-        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ), false,
-            true );
+        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ), false, true );
         jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null, false, true );
 
         jobConfigurationService.addJobConfiguration( jobA );
@@ -69,7 +69,7 @@ public class JobConfigurationServiceTest
     public void testGetJob()
     {
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
-        assertEquals( "The number of job configurations does not match", 2, jobConfigurationList.size() );
+        assertEquals( 2, jobConfigurationList.size() );
 
         assertEquals( JobType.MOCK, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
         MockJobParameters jobParameters = (MockJobParameters) jobConfigurationService
