@@ -98,7 +98,6 @@ public enum ErrorCode
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
-    E7001( "Failed to add/update job configuration - Trying to add job with continuous execution while there already is a job with continuous exectution of the same job type." ),
     E7002( "Failed to add/update job configuration - Uid does not exist" ),
     E7003( "Failed to add/update job configuration - Only interval can be configured for non configurable job type `{0}`" ),
     E7004( "Failed to add/update job configuration - Cron expression must be not null for jobs with scheduling type CRON" ),

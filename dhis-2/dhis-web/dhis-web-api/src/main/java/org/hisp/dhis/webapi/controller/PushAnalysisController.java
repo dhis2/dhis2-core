@@ -113,7 +113,7 @@ public class PushAnalysisController
         }
 
         JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",
-            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), false, true, true );
+            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), true, true );
         schedulingManager.executeJob( pushAnalysisJobConfiguration );
     }
 }

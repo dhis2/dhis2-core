@@ -77,7 +77,6 @@ public class JobConfigurationObjectBundleHookTest
         previousJobConfiguration = new JobConfiguration();
         previousJobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         previousJobConfiguration.setEnabled( true );
-        previousJobConfiguration.setContinuousExecution( true );
     }
 
     @Test
@@ -92,7 +91,6 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( false );
-        jobConfiguration.setContinuousExecution( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
         Assert.assertEquals( 1, errorReports.size() );
@@ -111,7 +109,6 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( true );
-        jobConfiguration.setContinuousExecution( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
         Assert.assertEquals( 0, errorReports.size() );
@@ -130,7 +127,6 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( true );
-        jobConfiguration.setContinuousExecution( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
         Assert.assertEquals( 1, errorReports.size() );
@@ -151,7 +147,6 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.DATA_SYNC );
         jobConfiguration.setEnabled( true );
-        jobConfiguration.setContinuousExecution( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
         Assert.assertEquals( 1, errorReports.size() );
@@ -172,7 +167,6 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( true );
-        jobConfiguration.setContinuousExecution( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
         Assert.assertEquals( 1, errorReports.size() );
@@ -192,7 +186,6 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( true );
-        jobConfiguration.setContinuousExecution( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
         Assert.assertEquals( 0, errorReports.size() );
