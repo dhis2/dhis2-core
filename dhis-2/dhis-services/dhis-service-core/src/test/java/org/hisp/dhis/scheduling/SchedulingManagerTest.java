@@ -66,12 +66,12 @@ public class SchedulingManagerTest
         MockJobParameters jobConfigurationParametersA = new MockJobParameters();
         jobConfigurationParametersA.setMessage( "parameters A" );
 
-        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, jobConfigurationParametersA, false, true );
+        jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, jobConfigurationParametersA );
 
         MockJobParameters jobConfigurationParametersB = new MockJobParameters();
         jobConfigurationParametersB.setMessage( "parameters B" );
 
-        jobB = new JobConfiguration( "jobB", JobType.MOCK, CRON_EVERY_SEC, jobConfigurationParametersB, false, true );
+        jobB = new JobConfiguration( "jobB", JobType.MOCK, CRON_EVERY_SEC, jobConfigurationParametersB );
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
@@ -151,7 +151,7 @@ public class SchedulingManagerTest
             e.printStackTrace();
         }
 
-        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.MOCK, "", new MockJobParameters(), false, true );
+        JobConfiguration jobC = new JobConfiguration( "jobC", JobType.MOCK, "", new MockJobParameters() );
         schedulingManager.executeJob( jobC );
 
         verifyScheduledJobs( 2 );

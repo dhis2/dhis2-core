@@ -227,9 +227,6 @@ public class ValidationServiceTest
         Expression expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC" );
         Expression expressionC2 = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC2" );
         Expression expressionC3 = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC3" );
-        Expression expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD" );
-        Expression expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE" );
-        Expression expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF" );
         Expression expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI" );
         Expression expressionI2 = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI2" );
         Expression expressionI3 = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI3" );
