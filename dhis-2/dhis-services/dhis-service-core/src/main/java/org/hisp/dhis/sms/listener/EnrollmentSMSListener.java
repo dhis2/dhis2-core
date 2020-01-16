@@ -158,12 +158,6 @@ public class EnrollmentSMSListener
 
         TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID.uid );
 
-        // return response if an ACTIVE enrollment exists
-        if ( enrollmentExists( tei, program ) )
-        {
-            return SMSResponse.ENROLL_EXIST;
-        }
-
         Date enrollmentDate = new Date();
 
         ProgramInstance enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate,
