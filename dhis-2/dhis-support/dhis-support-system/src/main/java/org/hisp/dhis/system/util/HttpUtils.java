@@ -56,8 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class has the utility methods to invoke rest endpoints for various
- * Verbs. It uses Apache's HttpClient for the same.
+ * This class has the utility methods to invoke REST endpoints for various HTTP methods.
  *
  * @author vanyas
  */
@@ -68,9 +67,7 @@ public class HttpUtils
     private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Method to make an http GET call to a given URL with/without authentication.
+     * Method to make an HTTP GET call to a given URL with/without authentication.
      *
      * @param requestURL
      * @param authorize
@@ -139,9 +136,7 @@ public class HttpUtils
     }
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Method to make an http POST call to a given URL with/without authentication.
+     * Method to make an HTTP POST call to a given URL with/without authentication.
      *
      * @param requestURL
      * @param body
@@ -220,9 +215,7 @@ public class HttpUtils
     }
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Method to make an http DELETE call to a given URL with/without authentication.
+     * Method to make an HTTP DELETE call to a given URL with/without authentication.
      *
      * @param requestURL
      * @param authorize
@@ -284,9 +277,7 @@ public class HttpUtils
 
 
     /**
-     * <pre>
-     * <b>Description : </b>
-     * Processes the HttpResponse to create a DHisHttpResponse object
+     * Processes the HttpResponse to create a DHisHttpResponse object.
      *
      * @param requestURL
      * @param username
