@@ -29,9 +29,11 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link JobConfiguration}.
@@ -69,7 +71,7 @@ public class JobConfigurationTest
         jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( false );
-        Assert.assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -83,7 +85,7 @@ public class JobConfigurationTest
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
         jc.setCronExpression( "0 0 12 * * ?" );
-        Assert.assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -96,7 +98,7 @@ public class JobConfigurationTest
         jc.setContinuousExecution( true );
         jc.setEnabled( false );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -109,7 +111,7 @@ public class JobConfigurationTest
         jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -122,7 +124,7 @@ public class JobConfigurationTest
         jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -135,19 +137,6 @@ public class JobConfigurationTest
         jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
-
-    @Test
-    public void hasNonConfigurableJobChangesContinousExecution()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.ANALYTICS_TABLE );
-        jc.setJobStatus( JobStatus.COMPLETED );
-        jc.setJobParameters( jobParameters );
-        jc.setContinuousExecution( false );
-        jc.setEnabled( true );
-        jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 }
