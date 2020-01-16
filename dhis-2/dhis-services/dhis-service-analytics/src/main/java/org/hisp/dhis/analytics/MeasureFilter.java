@@ -35,15 +35,18 @@ package org.hisp.dhis.analytics;
  */
 public enum MeasureFilter
 {
-    EQ, GT, GE, LT, LE;
+    EQ,
+    GT,
+    GE,
+    LT,
+    LE;
 
     /**
-     * Checks whether the measureFilter is valid for x and y as the values for comparison
-     * 
-     * @param x The first double value to be compared
-     * @param y The second double value to be compared
-     * @return true if the constraint/filter is valid when x is compared
-     *         with y.
+     * Tests whether the measureFilter is valid for x and y as the values for comparison.
+     *
+     * @param x The first double value to be compared.
+     * @param y The second double value to be compared.
+     * @return true if the constraint/filter is valid when x is compared with y.
      */
     public boolean measureIsValid( Double x, Double y )
     {
