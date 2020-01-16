@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit.listener;
+package org.hisp.dhis.artemis.audit.configuration;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,51 +28,39 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.event.spi.PostLoadEvent;
-import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
-import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author Morten Olav Hansen
+ * @author Luciano Fiandesio
  */
 @Component
-public class PostLoadAuditListener
-    extends AbstractHibernateListener implements PostLoadEventListener
+@DependsOn( "dhisConfigurationProvider" )
+public class AuditMatrix
 {
-    public PostLoadAuditListener(
-        AuditManager auditManager,
-        AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+
+    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        checkNotNull( auditMatrixConfigurer );
+
+        matrix = auditMatrixConfigurer.configure();
     }
 
-    AuditType getAuditType()
+    public boolean isEnabled( Audit audit )
     {
-        return AuditType.READ;
+        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
     }
 
-    @Override
-    public void onPostLoad( PostLoadEvent postLoadEvent )
+    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
     {
-        Object entity = postLoadEvent.getEntity();
-
-        getAuditable( entity, "read" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
-                .auditType( getAuditType() )
-                .auditScope( auditable.scope() )
-                .createdAt( LocalDateTime.now() )
-                .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
-                .build() ) );
+        return matrix.get( auditScope ).getOrDefault( auditType, false );
     }
 }
