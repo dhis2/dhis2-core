@@ -148,12 +148,30 @@ public class JobConfiguration
         init();
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled )
+    /**
+     * Constructors which implies continuous execution false, enabled true, in-memory job false.
+     *
+     * @param name the name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     */
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters )
     {
-        this( name, jobType, cronExpression, jobParameters, continuousExecution, enabled, false );
+        this( name, jobType, cronExpression, jobParameters, false, true, false );
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     * @param continuousExecution whether to do continuous execution of job.
+     * @param enabled whether this job is enabled.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled, boolean inMemoryJob )
     {
