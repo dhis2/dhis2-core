@@ -154,7 +154,6 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
         mockDimensionService();
@@ -570,7 +569,6 @@ public class DefaultDataQueryServiceTest
         assertTrue( Ordering.natural().isOrdered( result ) );
     }
 
-    @SuppressWarnings("unchecked")
     private void initOrgUnitGroup( String ouGroupUID )
     {
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )
