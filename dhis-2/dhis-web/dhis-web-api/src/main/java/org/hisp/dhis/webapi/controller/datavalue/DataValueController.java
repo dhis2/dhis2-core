@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.datavalue;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
@@ -143,11 +145,17 @@ public class DataValueController
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
-        boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
-        boolean strictCategoryOptionCombos = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
-        boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
-        boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+
+        boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS);
+
+        boolean strictCategoryOptionCombos = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS);
+
+        boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS);
+
+        boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO);
+
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting(SettingKey.FILE_RESOURCE_RETENTION_STRATEGY);
+
         User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
@@ -172,7 +180,7 @@ public class DataValueController
 
         dataValueValidation.validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, period );
 
-        dataValueValidation.validateDataValue (value, dataElement);
+        value = dataValueValidation.validateAndNormalizeDataValue ( value, dataElement );
 
         dataValueValidation.validateComment( comment );
 
