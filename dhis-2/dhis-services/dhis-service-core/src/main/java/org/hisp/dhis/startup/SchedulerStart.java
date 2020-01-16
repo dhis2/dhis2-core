@@ -129,7 +129,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                 jobConfigurationService.updateJobConfiguration( jobConfig );
 
                 if ( jobConfig.getLastExecutedStatus() == FAILED
-                    || (!jobConfig.isContinuousExecution() && oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
+                    || (oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
                 {
                     unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
                         + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "

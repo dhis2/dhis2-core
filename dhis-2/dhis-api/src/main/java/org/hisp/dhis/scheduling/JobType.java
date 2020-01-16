@@ -130,6 +130,11 @@ public enum JobType
         return getSchedulingType() == SchedulingType.FIXED_DELAY;
     }
 
+    public boolean hasJobParameters()
+    {
+        return jobParameters != null;
+    }
+
     public String getKey()
     {
         return key;
