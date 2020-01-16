@@ -201,13 +201,14 @@ public class JobConfigurationObjectBundleHookTest
     @Test
     public void validateCronExpressionForCronTypeJobs()
     {
-        Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
+        String jobConfigUid = "jsdhJSJHD";
+        Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
             .thenReturn( analyticsTableJobConfig );
         Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();
-        jobConfiguration.setUid( "jsdhJSJHD" );
+        jobConfiguration.setUid( jobConfigUid );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( true );
 
