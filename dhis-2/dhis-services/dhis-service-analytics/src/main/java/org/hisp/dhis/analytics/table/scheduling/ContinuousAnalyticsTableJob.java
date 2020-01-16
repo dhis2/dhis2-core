@@ -88,10 +88,10 @@ public class ContinuousAnalyticsTableJob
     {
         ContinuousAnalyticsJobParameters parameters = (ContinuousAnalyticsJobParameters) jobConfiguration.getJobParameters();
 
-        Integer hourOfDay = ObjectUtils.firstNonNull( parameters.getHourOfDay(), DEFAULT_HOUR_OF_DAY );
+        Integer fullUpdateHourOfDay = ObjectUtils.firstNonNull( parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY );
 
         Date now = new Date();
-        Date defaultNextFullUpdate = DateUtils.getNextDate( hourOfDay, now );
+        Date defaultNextFullUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
         Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, defaultNextFullUpdate );
 
         if ( now.after( nextFullUpdate ) )
@@ -114,7 +114,7 @@ public class ContinuousAnalyticsTableJob
             }
             finally
             {
-                Date update = DateUtils.getNextDate( hourOfDay, now );
+                Date update = DateUtils.getNextDate( fullUpdateHourOfDay, now );
                 systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, update );
                 log.info( String.format( "Next analytics table update: %s", getMediumDateString( update ) ) );
             }
