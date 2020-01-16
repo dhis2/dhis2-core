@@ -90,15 +90,18 @@ public class AuditMatrixConfigurer
         for ( AuditScope value : AuditScope.values() )
         {
             Optional<ConfigurationKey> confKey = ConfigurationKey.getByKey( PROPERTY_PREFIX + value.name().toLowerCase() );
+
             if ( confKey.isPresent() && !StringUtils.isEmpty( config.getProperty( confKey.get() ) ) )
             {
                 String[] configuredTypes = config.getProperty( confKey.get() ).split( AUDIT_TYPE_STRING_SEPAR );
 
                 Map<AuditType, Boolean> matrixAuditTypes = new HashMap<>();
+
                 for ( AuditType auditType : AuditType.values() )
                 {
                     matrixAuditTypes.put( auditType, ArrayUtils.contains( configuredTypes, auditType.name() ) );
                 }
+
                 matrix.put( value, matrixAuditTypes );
 
             }
