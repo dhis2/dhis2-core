@@ -45,6 +45,8 @@ import static org.junit.Assert.assertNull;
 public class JobConfigurationServiceTest
     extends DhisSpringTest
 {
+    private static final String CRON_EVERY_MIN = "0 * * ? * *";
+
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
@@ -56,7 +58,6 @@ public class JobConfigurationServiceTest
     protected void setUpTest()
         throws Exception
     {
-        String CRON_EVERY_MIN = "0 * * ? * *";
         jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ) );
         jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null );
 
