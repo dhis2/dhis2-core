@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,11 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.hisp.dhis.option.Option;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +71,6 @@ public enum ConfigurationKey
     CLUSTER_MEMBERS( "cluster.members", "", false ),
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
-    METADATA_AUDIT_PERSIST( "metadata.audit.persist", "off", false ),
     METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
     REDIS_HOST( "redis.host", "localhost", false ),
     REDIS_PORT( "redis.port", "6379", false ),
@@ -99,7 +103,11 @@ public enum ConfigurationKey
     MONITORING_LOG_REQUESTID_HASHALGO( "monitoring.requestidlog.hash", "SHA-256", false ),
     MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
     APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
-    APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false );
+    APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false ),
+    AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "on" ),
+    AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
+    AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
 
     private final String key;
 
@@ -141,5 +149,10 @@ public enum ConfigurationKey
     public boolean isConfidential()
     {
         return confidential;
+    }
+    
+    public static Optional<ConfigurationKey> getByKey( String key )
+    {
+        return Arrays.stream( ConfigurationKey.values() ).filter( k -> k.key.equals( key ) ).findFirst();
     }
 }

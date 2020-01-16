@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,7 +162,7 @@ public class DefaultDataQueryServiceTest
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) ).thenReturn( 2 );
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
         rb.addOuFilter( "LEVEL-2;ImspTQPwCqd" );
@@ -195,7 +195,7 @@ public class DefaultDataQueryServiceTest
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) )
             .thenReturn( 2 );
 
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
         rb.addOuFilter( "LEVEL-2;LEVEL-3;ImspTQPwCqd" );
@@ -306,8 +306,8 @@ public class DefaultDataQueryServiceTest
 
         when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
 
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ),
-            Mockito.any( Collection.class ) ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(),
+            Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
@@ -351,8 +351,8 @@ public class DefaultDataQueryServiceTest
         when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, "tDZVQ1WtwpA" ) ).thenReturn( groupOu );
 
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ),
-                Mockito.any( Collection.class ) ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(),
+                Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
                 .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
@@ -577,7 +577,7 @@ public class DefaultDataQueryServiceTest
             .thenReturn( buildOrganizationalUnitGroup( ouGroupUID, "Chiefdom", "CODE_001" ) );
         when( idObjectManager.getObject( OrganisationUnit.class, UID, this.rootOu.getUid() ) )
             .thenReturn( rootOu );
-        when( organisationUnitService.getOrganisationUnits( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnits( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
     }
 

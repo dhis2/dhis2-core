@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,7 +171,7 @@ public class JpaQueryUtils
     /**
      * Use for parsing filter parameter for Object which doesn't extend IdentifiableObject.
      */
-    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path path, String operator, String value )
+    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path<?> path, String operator, String value )
     {
         switch ( operator )
         {

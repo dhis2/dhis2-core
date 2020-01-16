@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -193,7 +193,7 @@ public class HibernateMinMaxDataElementStore
             .executeUpdate();
     }
 
-    private Predicate parseFilter( CriteriaBuilder builder, Root root, List<String> filters )
+    private Predicate parseFilter( CriteriaBuilder builder, Root<?> root, List<String> filters )
     {
         Predicate conjunction = builder.conjunction();
 
@@ -210,7 +210,7 @@ public class HibernateMinMaxDataElementStore
                     throw new QueryParserException( "Invalid filter: " + filter );
                 }
 
-                Path queryPath = queryPlanner.getQueryPath( root, schema,  split[0] );
+                Path<?> queryPath = queryPlanner.getQueryPath( root, schema,  split[0] );
 
                 Property property = queryParser.getProperty( schema, split[0] );
 

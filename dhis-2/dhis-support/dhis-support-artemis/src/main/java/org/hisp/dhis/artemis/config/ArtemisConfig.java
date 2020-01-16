@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.qpid.jms.JmsConnectionFactory;
-import org.hisp.dhis.artemis.ProducerConfiguration;
+import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -54,7 +54,6 @@ import javax.jms.DeliveryMode;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hisp.dhis.artemis.ProducerConfiguration.ProducerConfigurationBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -207,10 +206,10 @@ public class ArtemisConfig
     }
 
     @Bean
-    public ProducerConfiguration producerConfiguration()
+    public AuditProducerConfiguration producerConfiguration()
     {
-        return ProducerConfigurationBuilder.aProducerConfiguration()
-            .withUseQueue( true ) // TODO this should come from configuration
+        return AuditProducerConfiguration.builder()
+            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED ) )
             .build();
     }
 }

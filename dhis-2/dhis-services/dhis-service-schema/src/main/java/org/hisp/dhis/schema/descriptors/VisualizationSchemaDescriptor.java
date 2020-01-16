@@ -1,5 +1,7 @@
+package org.hisp.dhis.schema.descriptors;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.schema.descriptors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.security.AuthorityType.CREATE_PUBLIC;
@@ -54,6 +54,8 @@ public class VisualizationSchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setImplicitPrivateAuthority( true );
         schema.setOrder( 2000 );
+        schema.setShareable( true );
+        schema.setDataShareable( true );
 
         schema.getAuthorities().add( new Authority( CREATE_PUBLIC, newArrayList( "F_VISUALIZATION_PUBLIC_ADD" ) ) );
         schema.getAuthorities().add( new Authority( EXTERNALIZE, newArrayList( "F_VISUALIZATION_EXTERNAL" ) ) );
