@@ -183,7 +183,6 @@ public class JobConfigurationObjectBundleHook
 
     /*
      *  Validates that there are no other jobs of the same job type which are scheduled with the same cron expression.
-     *  Also checks if the job is trying to run continuously while other job of the same type is running continuously.
      */
     private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
     {
@@ -211,7 +210,7 @@ public class JobConfigurationObjectBundleHook
         final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
             jobConfiguration, persistedJobConfiguration );
 
-        validateJobConfigurationWithNonContinuousExecution( errorReports, tempJobConfiguration );
+        validateJobConfigurationCronOrFixedDelay( errorReports, tempJobConfiguration );
         validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
 
         // Validate parameters
@@ -254,7 +253,7 @@ public class JobConfigurationObjectBundleHook
         return jobConfiguration;
     }
 
-    private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
+    private void validateJobConfigurationCronOrFixedDelay( List<ErrorReport> errorReports,
         JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.getJobType().isCronSchedulingType() )
