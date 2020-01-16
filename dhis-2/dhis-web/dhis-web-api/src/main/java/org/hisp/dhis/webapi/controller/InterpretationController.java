@@ -579,7 +579,9 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             switch ( type )
             {
             case PIVOT_TABLE:
-                interpretation.setReportTable( new ReportTable() );
+                final ReportTable reportTable = new ReportTable();
+                reportTable.setUid( interpretation.getVisualization().getUid() );
+                interpretation.setReportTable( reportTable );
                 break;
             case AREA:
             case BAR:
@@ -593,7 +595,9 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             case STACKED_COLUMN:
             case YEAR_OVER_YEAR_COLUMN:
             case YEAR_OVER_YEAR_LINE:
-                interpretation.setChart( new Chart() );
+                final Chart chart = new Chart();
+                chart.setUid( interpretation.getVisualization().getUid() );
+                interpretation.setChart( chart );
                 break;
             }
         }
