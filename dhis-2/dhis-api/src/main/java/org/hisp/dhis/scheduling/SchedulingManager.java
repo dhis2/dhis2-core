@@ -52,8 +52,6 @@ import org.springframework.util.concurrent.ListenableFuture;
  */
 public interface SchedulingManager
 {
-    String CRON_HOURLY = "0 0 * ? * *";
-
     /**
      * Check if this job configuration is currently running
      *

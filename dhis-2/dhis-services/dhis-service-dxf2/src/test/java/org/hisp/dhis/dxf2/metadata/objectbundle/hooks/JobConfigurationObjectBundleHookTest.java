@@ -55,6 +55,8 @@ import java.util.List;
  */
 public class JobConfigurationObjectBundleHookTest
 {
+    private static final String CRON_HOURLY = "0 0 * ? * *";
+
     @Mock
     private JobConfigurationService jobConfigurationService;
 
@@ -91,7 +93,7 @@ public class JobConfigurationObjectBundleHookTest
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
-        jobConfiguration.setCronExpression( SchedulingManager.CRON_HOURLY );
+        jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( false );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
@@ -110,7 +112,7 @@ public class JobConfigurationObjectBundleHookTest
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
-        jobConfiguration.setCronExpression( SchedulingManager.CRON_HOURLY );
+        jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
@@ -129,7 +131,7 @@ public class JobConfigurationObjectBundleHookTest
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
-        jobConfiguration.setCronExpression( SchedulingManager.CRON_HOURLY );
+        jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
@@ -150,7 +152,7 @@ public class JobConfigurationObjectBundleHookTest
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.DATA_SYNC );
-        jobConfiguration.setCronExpression( SchedulingManager.CRON_HOURLY );
+        jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
@@ -171,7 +173,7 @@ public class JobConfigurationObjectBundleHookTest
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
-        jobConfiguration.setCronExpression( SchedulingManager.CRON_HOURLY );
+        jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
@@ -191,7 +193,7 @@ public class JobConfigurationObjectBundleHookTest
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( "jsdhJSJHD" );
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
-        jobConfiguration.setCronExpression( SchedulingManager.CRON_HOURLY );
+        jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
