@@ -100,5 +100,4 @@ public class JobConfigurationServiceTest
 
         assertNull( jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ) );
     }
-
 }
