@@ -50,7 +50,7 @@ public class OptionObjectBundleHook
     {
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( !( object instanceof Option ) ) return new ArrayList<>();
+        if ( !(object instanceof Option) ) return new ArrayList<>();
 
         final Option option = (Option) object;
 
@@ -62,6 +62,11 @@ public class OptionObjectBundleHook
 
             for ( Option persistedOption : persistedOptions )
             {
+                if ( persistedOption == null || persistedOption.getName() == null || persistedOption.getCode() == null )
+                {
+                    break;
+                }
+
                 if ( persistedOption.getName().equals( option.getName() ) && persistedOption.getCode().equals( option.getCode() ) )
                 {
                     errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
@@ -76,17 +81,19 @@ public class OptionObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !( object instanceof Option ) )
+        if ( !(object instanceof Option) )
         {
             return;
         }
 
         final Option option = (Option) object;
+
         // if the bundle contains also the option set there is no need to add the option here
         // (will be done automatically later and option set may contain raw value already)
         if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
         {
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+
             if ( optionSet != null )
             {
                 optionSet.addOption( option );

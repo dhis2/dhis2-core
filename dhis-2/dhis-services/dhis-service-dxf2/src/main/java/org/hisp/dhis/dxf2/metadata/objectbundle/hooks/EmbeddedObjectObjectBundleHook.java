@@ -34,13 +34,18 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,6 +55,54 @@ public class EmbeddedObjectObjectBundleHook
 {
     @Autowired
     private AnalyticalObjectImportHandler analyticalObjectImportHandler;
+
+    @Autowired
+    private SchemaValidator schemaValidator;
+
+    @Override
+    public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        Class<? extends IdentifiableObject> klass = object.getClass();
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        schema.getEmbeddedObjectProperties().keySet()
+            .stream()
+            .forEach( propertyName -> {
+                Property property = schema.getEmbeddedObjectProperties().get( propertyName );
+                Object propertyObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+                if ( property.getPropertyType().equals( PropertyType.COMPLEX ) )
+                {
+                    List<ErrorReport> unformattedErrors = schemaValidator
+                        .validateEmbeddedObject( propertyObject, klass );
+                    errors.addAll( formatEmbeddedErrorReport( unformattedErrors, propertyName ) );
+                }
+                else if ( property.getPropertyType().equals( PropertyType.COLLECTION ) )
+                {
+                    Collection<?> collection = (Collection<?>) propertyObject;
+                    for ( Object item : collection )
+                    {
+                        List<ErrorReport> unformattedErrors = schemaValidator
+                            .validateEmbeddedObject( property.getItemKlass().cast( item ), klass );
+                        errors.addAll( formatEmbeddedErrorReport( unformattedErrors, propertyName ) );
+                    }
+                }
+            } );
+
+        return errors;
+    }
+
+    private List<ErrorReport> formatEmbeddedErrorReport( List<ErrorReport> errors, String embeddedPropertyName )
+    {
+        for ( ErrorReport errorReport : errors )
+        {
+            errorReport.setErrorProperty( embeddedPropertyName + "." + errorReport.getErrorProperty() );
+        }
+
+        return errors;
+    }
 
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
@@ -97,7 +150,7 @@ public class EmbeddedObjectObjectBundleHook
             }
             else
             {
-                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), ( Object ) null );
+                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), (Object) null );
             }
         }
     }
@@ -124,30 +177,34 @@ public class EmbeddedObjectObjectBundleHook
             }
         }
     }
-    
-    private void handleProperty( Object o, ObjectBundle bundle, Property property )
+    private void handleProperty( Object object, ObjectBundle bundle, Property property )
     {
+        if ( object == null || bundle == null || property == null )
+        {
+            return;
+        }
+
         if ( property.isIdentifiableObject() )
         {
-            ((BaseIdentifiableObject) o).setAutoFields();
+            ((BaseIdentifiableObject) object).setAutoFields();
         }
-        
-        Schema embeddedSchema = schemaService.getDynamicSchema( o.getClass() );
+
+        Schema embeddedSchema = schemaService.getDynamicSchema( object.getClass() );
         for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
         {
             if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
             {
-                PeriodType periodType = ReflectionUtils.invokeMethod( o, embeddedProperty.getGetterMethod() );
-    
+                PeriodType periodType = ReflectionUtils.invokeMethod( object, embeddedProperty.getGetterMethod() );
+
                 if ( periodType != null )
                 {
                     periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
-                    ReflectionUtils.invokeMethod( o, embeddedProperty.getSetterMethod(), periodType );
+                    ReflectionUtils.invokeMethod( object, embeddedProperty.getSetterMethod(), periodType );
                 }
             }
         }
 
-        preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+        preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
     }
 
     private void handleEmbeddedAnalyticalProperty(Object identifiableObject, ObjectBundle bundle, Property property )

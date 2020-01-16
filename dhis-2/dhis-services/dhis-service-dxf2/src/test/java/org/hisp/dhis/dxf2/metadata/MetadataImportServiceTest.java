@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,19 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.render.type.SectionRenderingObject;
+import org.hisp.dhis.render.type.SectionRenderingType;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -52,7 +60,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
+import javax.xml.xpath.XPathExpressionException;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +81,9 @@ public class MetadataImportServiceTest
     private MetadataImportService importService;
 
     @Autowired
+    private MetadataExportService exportService;
+
+    @Autowired
     private RenderService _renderService;
 
     @Autowired
@@ -79,7 +93,13 @@ public class MetadataImportServiceTest
     private IdentifiableObjectManager manager;
 
     @Autowired
+    private SchemaService schemaService;
+
+    @Autowired
     private DataSetService dataSetService;
+
+    @Autowired
+    private NodeService nodeService;
 
     @Override
     protected void setUpTest() throws Exception
@@ -416,5 +436,45 @@ public class MetadataImportServiceTest
 
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
+    }
+
+    @Test
+    public void testSerializeDeviceRenderTypeMap()
+        throws IOException, XPathExpressionException
+    {
+        Metadata metadata = renderService.fromXml(
+            new ClassPathResource( "dxf2/programstagesection_with_deps.xml" ).getInputStream(), Metadata.class );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        ProgramStageSection programStageSection = manager.get( ProgramStageSection.class, "e99B1JXVMMQ" );
+        assertNotNull( programStageSection );
+        assertEquals( 2, programStageSection.getRenderType().size() );
+        DeviceRenderTypeMap<SectionRenderingObject> renderingType = programStageSection.getRenderType();
+
+        SectionRenderingObject renderDevice1 = renderingType.get( RenderDevice.MOBILE );
+        SectionRenderingObject renderDevice2 = renderingType.get( RenderDevice.DESKTOP );
+
+        assertEquals( SectionRenderingType.SEQUENTIAL , renderDevice1.getType() );
+        assertEquals( SectionRenderingType.LISTING  , renderDevice2.getType() );
+
+        MetadataExportParams exportParams = new MetadataExportParams();
+        exportParams.addQuery( Query.from( schemaService.getSchema( ProgramStageSection.class ) ) );
+
+        RootNode rootNode = exportService.getMetadataAsNode( exportParams );
+
+        OutputStream outputStream = new ByteArrayOutputStream();
+
+        nodeService.serialize( rootNode, "application/xml", outputStream );
+
+        assertEquals( "1", xpathTest( "count(//d:programStageSection)", outputStream.toString() ) );
+        assertEquals( "SEQUENTIAL", xpathTest( "//d:MOBILE/@type", outputStream.toString() ) );
+        assertEquals( "LISTING", xpathTest( "//d:DESKTOP/@type", outputStream.toString() ) );
     }
 }

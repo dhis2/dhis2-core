@@ -101,6 +101,7 @@
     <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
   </bean>
 
+  <bean id="httpBasicWebAuthenticationDetailsSource" class="org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource"/>
   <bean id="basicAuthenticationEntryPoint" class="org.hisp.dhis.security.BasicAuthenticationEntryPoint"/>
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
@@ -127,7 +128,8 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint" />
+    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint"
+      authentication-details-source-ref="httpBasicWebAuthenticationDetailsSource"/>
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -200,6 +202,10 @@
     <property name="defaultFailureUrl" value="/dhis-web-commons/security/login.action?failed=true" />
   </bean>
 
+  <!-- Security : Listener -->
+
+  <bean id="loggerListener" class="org.hisp.dhis.security.AuthenticationLoggerListener" />
+
   <!-- Security : Action -->
 
   <bean id="restrictOrganisationUnitsAction" class="org.hisp.dhis.security.action.RestrictOrganisationUnitsAction"
@@ -217,10 +223,6 @@
       </map>
     </property>
   </bean>
-
-  <!-- Security : Listener -->
-
-  <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
 
   <!-- Security : AccessProvider -->
 
