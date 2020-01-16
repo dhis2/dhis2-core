@@ -194,7 +194,7 @@ public class JobConfigurationObjectBundleHook
         {
             if ( jobConfig.hasCronExpression() && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
             {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000, jobConfig.getCronExpression() ) );
             }
         }
     }
@@ -223,9 +223,9 @@ public class JobConfigurationObjectBundleHook
         {
             // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
 
-            if ( tempJobConfiguration.getJobType().getJobParameters() != null )
+            if ( tempJobConfiguration.getJobType().hasJobParameters() )
             {
-                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType().getKey() ) );
+                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType() ) );
             }
         }
 
@@ -260,7 +260,7 @@ public class JobConfigurationObjectBundleHook
         {
             if ( jobConfiguration.getCronExpression() == null )
             {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid() ) );
             }
             else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
             {
@@ -270,7 +270,7 @@ public class JobConfigurationObjectBundleHook
 
         if ( jobConfiguration.getJobType().isFixedDelaySchedulingType() && jobConfiguration.getDelay() == null )
         {
-            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7007 ) );
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7007, jobConfiguration.getUid() ) );
         }
     }
 

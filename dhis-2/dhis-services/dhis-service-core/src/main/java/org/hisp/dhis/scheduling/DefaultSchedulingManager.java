@@ -67,8 +67,6 @@ public class DefaultSchedulingManager
 {
     private static final Log log = LogFactory.getLog( DefaultSchedulingManager.class );
 
-    public static final String HOUR_CRON = "0 0 * ? * *";
-
     private static final int DEFAULT_INITIAL_DELAY_S = 10;
 
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
