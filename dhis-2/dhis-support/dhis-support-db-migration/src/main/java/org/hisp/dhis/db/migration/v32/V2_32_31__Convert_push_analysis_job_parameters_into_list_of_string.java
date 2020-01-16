@@ -60,13 +60,14 @@ public class V2_32_31__Convert_push_analysis_job_parameters_into_list_of_string 
 
         try ( Statement statement = context.getConnection().createStatement() )
         {
-            ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
-                JobType.PUSH_ANALYSIS.name() + "';" );
-
-            if ( resultSet.next() )
+            try ( ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
+                JobType.PUSH_ANALYSIS.name() + "';" ) )
             {
-                pushAnalysisUid = resultSet.getString( 1 );
-                pushAnalysisUid = StringUtils.strip( pushAnalysisUid, "\"" );
+                if ( resultSet.next() )
+                {
+                    pushAnalysisUid = resultSet.getString( 1 );
+                    pushAnalysisUid = StringUtils.strip( pushAnalysisUid, "\"" );
+                }
             }
         }
 
