@@ -38,23 +38,23 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Configures the Audit Matrix based on configuration properties from dhis.conf
- *
+ * <p>
  * This configurator uses properties with prefix "audit.". Each property prefixed with "audit."
  * must match the (lowercase) name of an {@see AuditScope} and must contain a semi-colon list of valid
  * {@see AuditType} names: (READ;UPDATE;...).
- *
+ * <p>
  * Example:
- *
+ * <p>
  * audit.tracker=CREATE;READ;UPDATE;DELETE
- *
+ * <p>
  * Misspelled entries are ignored, and the specific type is set to false.
  * Missing {@see AuditScope} are replaced with all-false types.
  * To disable Auditing completely, simply do not declare any audit.* property in dhis.conf
@@ -68,7 +68,7 @@ public class AuditMatrixConfigurer
     private final DhisConfigurationProvider config;
     private final static String PROPERTY_PREFIX = "audit.";
     private final static String AUDIT_TYPE_STRING_SEPAR = ";";
-    private static final Map<AuditType, Boolean> ALL_DISABLED = ImmutableMap.<AuditType, Boolean> builder()
+    private static final Map<AuditType, Boolean> ALL_DISABLED = ImmutableMap.<AuditType, Boolean>builder()
         .put( AuditType.CREATE, false )
         .put( AuditType.UPDATE, false )
         .put( AuditType.READ, false )

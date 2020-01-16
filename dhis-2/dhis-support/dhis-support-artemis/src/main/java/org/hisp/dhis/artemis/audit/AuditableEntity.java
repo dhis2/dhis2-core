@@ -1,3 +1,5 @@
+package org.hisp.dhis.artemis.audit;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.artemis.audit;
-
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
@@ -36,7 +36,7 @@ import lombok.Value;
  */
 @Value
 @AllArgsConstructor
-public class AuditableEntity {
-
+public class AuditableEntity
+{
     private Object entity;
 }

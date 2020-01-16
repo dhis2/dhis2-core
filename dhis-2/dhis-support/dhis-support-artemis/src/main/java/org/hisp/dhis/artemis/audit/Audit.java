@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -77,7 +76,8 @@ public class Audit implements Message
     private String code;
 
     @JsonProperty
-    private AuditAttributes attributes;
+    @Builder.Default
+    private AuditAttributes attributes = new AuditAttributes();
 
     /**
      * This property holds the serialized Audited entity: it should not be used during the construction
@@ -153,7 +153,8 @@ public class Audit implements Message
         }
     }
 
-    String toLog() {
+    String toLog()
+    {
         return "Audit{" +
             "auditType=" + auditType +
             ", auditScope=" + auditScope +

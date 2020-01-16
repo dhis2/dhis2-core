@@ -31,8 +31,6 @@ package org.hisp.dhis.artemis.audit.legacy;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 
-import java.util.function.Supplier;
-
 /**
  * @author Luciano Fiandesio
  */

@@ -67,7 +67,7 @@ public class PostInsertAuditListener
         Object entity = postInsertEvent.getEntity();
 
         getAuditable( entity, "create" ).ifPresent( auditable ->
-            auditManager.send(Audit.builder()
+            auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )

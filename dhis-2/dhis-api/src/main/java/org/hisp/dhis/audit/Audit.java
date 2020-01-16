@@ -95,7 +95,8 @@ public class Audit implements Serializable
      * Additional attributes attached to Audit. Stored as JSONB in the database.
      */
     @JsonProperty
-    private final AuditAttributes attributes;
+    @Builder.Default
+    private AuditAttributes attributes = new AuditAttributes();
 
     /**
      * GZipped payload. Exposed as raw json, make sure that the payload is decompressed first.

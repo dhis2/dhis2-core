@@ -28,14 +28,14 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,7 +56,8 @@ public class AuditManager
         AuditProducerSupplier auditProducerSupplier,
         AuditScheduler auditScheduler,
         AuditProducerConfiguration config,
-        AuditMatrix auditMatrix, AuditObjectFactory auditObjectFactory )
+        AuditMatrix auditMatrix,
+        AuditObjectFactory auditObjectFactory )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
@@ -77,10 +78,10 @@ public class AuditManager
             log.debug( "Audit message ignored:\n" + audit.toLog() );
             return;
         }
-        
-        audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
+
+        audit.setData( (audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
             : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(), audit.getAuditableEntity().getEntity(),
-                audit.getCreatedBy() )) );
+            audit.getCreatedBy() )) );
 
         if ( config.isUseQueue() )
         {

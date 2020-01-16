@@ -31,10 +31,8 @@ package org.hisp.dhis.artemis.audit.listener;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
-import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 import java.util.Arrays;
