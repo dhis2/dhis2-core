@@ -37,6 +37,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -240,6 +241,11 @@ public class JdbcAuditRepository implements AuditRepository
 
     private static byte[] compress( String data )
     {
+        if ( StringUtils.isEmpty( data ) )
+        {
+            return new byte[]{};
+        }
+
         byte[] result = data.getBytes( StandardCharsets.UTF_8 );
 
         try ( ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() ) )
@@ -259,6 +265,11 @@ public class JdbcAuditRepository implements AuditRepository
 
     private static String decompress( byte[] data )
     {
+        if ( data == null || data.length == 0 )
+        {
+            return "{}";
+        }
+
         String result = null;
 
         try ( ByteArrayInputStream bin = new ByteArrayInputStream( data ) )
