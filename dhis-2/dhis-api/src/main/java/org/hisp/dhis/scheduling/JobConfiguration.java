@@ -157,7 +157,7 @@ public class JobConfiguration
     }
 
     /**
-     * Constructors which implies continuous execution false, enabled true, in-memory job false.
+     * Constructor which implies continuous execution false, enabled true, in-memory job false.
      *
      * @param name the job name.
      * @param jobType the {@link JobType}.
