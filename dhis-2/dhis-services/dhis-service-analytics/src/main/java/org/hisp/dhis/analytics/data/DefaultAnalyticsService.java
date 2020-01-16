@@ -566,12 +566,12 @@ public class DefaultAnalyticsService
      */
     private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
     {
-        if ( !params.hasMeasureCriteria() )
+        if ( !params.hasMeasureCriteria() || value == null )
         {
             return true;
         }
 
-        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() );
+        Double indicatorRoundedValue = AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value.getValue() ).doubleValue();
 
         // if any one measureFilter is invalid return false.
         return !params.getMeasureCriteria().entrySet().stream().anyMatch(
