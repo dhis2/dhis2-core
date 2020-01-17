@@ -51,8 +51,8 @@ import io.restassured.http.ContentType;
  */
 public class SystemSettingsTests extends ApiTest
 {
-    private static final String APPLICATION_INTRO = "keyApplicationIntro";
-    private static final String APPLICATION_FOOTER = "keyApplicationFooter";
+    private static final String APPLICATION_INTRO_KEY = "keyApplicationIntro";
+    private static final String APPLICATION_FOOTER_KEY = "keyApplicationFooter";
 
     private static final String DEFAULT_FOOTER = "Learn more ...";
 
@@ -79,27 +79,43 @@ public class SystemSettingsTests extends ApiTest
         QueryParamsBuilder params = new QueryParamsBuilder();
         params.add( "value=" + DEFAULT_FOOTER );
 
-        systemSettingActions.post( APPLICATION_FOOTER, ContentType.TEXT.toString(), new JsonObject(), params );
+        systemSettingActions.post(
+            APPLICATION_FOOTER_KEY,
+            ContentType.TEXT.toString(),
+            new JsonObject(),
+            params );
         // ------------------------
 
         params = new QueryParamsBuilder();
         params.add( "value=" + DEFAULT_INTRO );
 
-        systemSettingActions.post( APPLICATION_INTRO, ContentType.TEXT.toString(), new JsonObject(), params );
+        systemSettingActions.post(
+            APPLICATION_INTRO_KEY,
+            ContentType.TEXT.toString(),
+            new JsonObject(),
+            params );
         // ------------------------
 
         params = new QueryParamsBuilder();
         params.add( "value=" + ENGLISH_INTRO );
         params.add( "locale=en" );
 
-        systemSettingActions.post( APPLICATION_INTRO, ContentType.TEXT.toString(), new JsonObject(), params );
+        systemSettingActions.post(
+            APPLICATION_INTRO_KEY,
+            ContentType.TEXT.toString(),
+            new JsonObject(),
+            params );
         // ------------------------
 
         params = new QueryParamsBuilder();
         params.add( "value=" + FRENCH_INTRO );
         params.add( "locale=fr" );
 
-        systemSettingActions.post( APPLICATION_INTRO, ContentType.TEXT.toString(), new JsonObject(), params );
+        systemSettingActions.post(
+            APPLICATION_INTRO_KEY,
+            ContentType.TEXT.toString(),
+            new JsonObject(),
+            params );
     }
 
     @Test
@@ -112,7 +128,10 @@ public class SystemSettingsTests extends ApiTest
 
         System.out.println( "JSON content type: `" + ContentType.TEXT.toString() + "`" );
 
-        ApiResponse response = systemSettingActions.post( APPLICATION_FOOTER, ContentType.TEXT.toString(), new JsonObject(), params );
+        ApiResponse response = systemSettingActions.post(
+            APPLICATION_FOOTER_KEY,
+            ContentType.TEXT.toString(),
+            new JsonObject(), params );
 
         response
             .validate()
@@ -129,8 +148,11 @@ public class SystemSettingsTests extends ApiTest
         //I need to log out
         loginActions.removeAuthenticationHeader();
 
-        ApiResponse response = systemSettingActions.get( APPLICATION_INTRO, ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(), new QueryParamsBuilder() );
+        ApiResponse response = systemSettingActions.get(
+            APPLICATION_INTRO_KEY,
+            ContentType.TEXT.toString(),
+            ContentType.TEXT.toString(),
+            new QueryParamsBuilder() );
 
         response
             .validate()
@@ -143,7 +165,7 @@ public class SystemSettingsTests extends ApiTest
         prepareData();
 
         ApiResponse response = systemSettingActions.get(
-            APPLICATION_INTRO,
+            APPLICATION_INTRO_KEY,
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
             new QueryParamsBuilder().add( "locale=pl" ) );
@@ -163,7 +185,7 @@ public class SystemSettingsTests extends ApiTest
         prepareData();
 
         ApiResponse response = systemSettingActions.get(
-            APPLICATION_INTRO,
+            APPLICATION_INTRO_KEY,
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
             new QueryParamsBuilder() );
@@ -180,7 +202,7 @@ public class SystemSettingsTests extends ApiTest
         prepareData();
 
         ApiResponse response = systemSettingActions.get(
-            APPLICATION_INTRO,
+            APPLICATION_INTRO_KEY,
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
             new QueryParamsBuilder().add( "locale=fr" ) );
@@ -201,8 +223,8 @@ public class SystemSettingsTests extends ApiTest
         response
             .validate()
             .statusCode( 200 )
-            .body( APPLICATION_INTRO, equalTo( DEFAULT_INTRO ) )
-            .body( APPLICATION_FOOTER, equalTo( DEFAULT_FOOTER ) );
+            .body( APPLICATION_INTRO_KEY, equalTo( DEFAULT_INTRO ) )
+            .body( APPLICATION_FOOTER_KEY, equalTo( DEFAULT_FOOTER ) );
     }
 
     @Test
@@ -211,7 +233,7 @@ public class SystemSettingsTests extends ApiTest
         prepareData();
 
         ApiResponse response = systemSettingActions.delete(
-            APPLICATION_INTRO,
+            APPLICATION_INTRO_KEY,
             new QueryParamsBuilder().add( "locale=fr" ) );
 
         response
@@ -219,7 +241,7 @@ public class SystemSettingsTests extends ApiTest
             .statusCode( 204 );
 
         response = systemSettingActions.get(
-            APPLICATION_INTRO,
+            APPLICATION_INTRO_KEY,
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
             new QueryParamsBuilder().add( "locale=fr" ) );
@@ -235,14 +257,14 @@ public class SystemSettingsTests extends ApiTest
     {
         prepareData();
 
-        ApiResponse response = systemSettingActions.delete( APPLICATION_INTRO );
+        ApiResponse response = systemSettingActions.delete( APPLICATION_INTRO_KEY );
 
         response
             .validate()
             .statusCode( 204 );
 
         response = systemSettingActions.get(
-            APPLICATION_INTRO,
+            APPLICATION_INTRO_KEY,
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
             new QueryParamsBuilder() );
