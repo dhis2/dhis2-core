@@ -157,6 +157,32 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
+    public String saveSystemSettingTranslation( SettingKey key, String locale, String translation )
+    {
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
+        if ( setting == null )
+        {
+            return "No entry found for key: " + key;
+        }
+
+        if ( translation.isEmpty() )
+        {
+            setting.getTranslations().remove( locale );
+        }
+        else
+        {
+            setting.getTranslations().put( locale, translation );
+        }
+
+        settingCache.invalidate( key.getName() );
+        systemSettingStore.update( setting );
+
+        return "";
+    }
+
+    @Override
+    @Transactional
     public void deleteSystemSetting( SettingKey key )
     {
         SystemSetting setting = systemSettingStore.getByName( key.getName() );
@@ -227,6 +253,18 @@ public class DefaultSystemSettingManager
         {
             return Optional.ofNullable( defaultValue );
         }
+    }
+
+    @Override
+    public String getSystemSettingTranslation( SettingKey key, String locale )
+    {
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
+        if ( setting != null )
+        {
+            return setting.getTranslation( locale );
+        }
+
+        return "";
     }
 
     @Override
@@ -403,5 +441,11 @@ public class DefaultSystemSettingManager
     public boolean isConfidential( String name )
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+    }
+
+    @Override
+    public boolean isTranslatable( final String name )
+    {
+        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
     }
 }

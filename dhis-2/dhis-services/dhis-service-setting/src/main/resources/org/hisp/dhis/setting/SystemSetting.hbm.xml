@@ -18,5 +18,7 @@
 
     <property name="value" column="value" type="text" />
 
+    <property name="translations" type="jbObject"/>
+
   </class>
 </hibernate-mapping>
