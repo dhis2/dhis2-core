@@ -157,28 +157,28 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public String saveSystemSettingTranslation( SettingKey key, String locale, String translation )
+    public void saveSystemSettingTranslation( SettingKey key, String locale, String translation )
     {
         SystemSetting setting = systemSettingStore.getByName( key.getName() );
 
-        if ( setting == null )
+        if ( setting == null && !translation.isEmpty() )
         {
-            return "No entry found for key: " + key;
+            throw new IllegalStateException( "No entry found for key: " + key );
         }
-
-        if ( translation.isEmpty() )
+        else if ( setting != null )
         {
-            setting.getTranslations().remove( locale );
-        }
-        else
-        {
-            setting.getTranslations().put( locale, translation );
-        }
+            if ( translation.isEmpty() )
+            {
+                setting.getTranslations().remove( locale );
+            }
+            else
+            {
+                setting.getTranslations().put( locale, translation );
+            }
 
-        settingCache.invalidate( key.getName() );
-        systemSettingStore.update( setting );
-
-        return "";
+            settingCache.invalidate( key.getName() );
+            systemSettingStore.update( setting );
+        }
     }
 
     @Override
@@ -256,7 +256,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    public String getSystemSettingTranslation( SettingKey key, String locale )
+    public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
     {
         SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
         if ( setting != null )
@@ -264,7 +264,7 @@ public class DefaultSystemSettingManager
             return setting.getTranslation( locale );
         }
 
-        return "";
+        return Optional.empty();
     }
 
     @Override

@@ -133,10 +133,13 @@ public class SystemSettingController
     private void saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting,
         HttpServletResponse response, HttpServletRequest request) throws WebMessageException
     {
-        String errorMsg = systemSettingManager.saveSystemSettingTranslation( setting, locale, value );
-        if ( !errorMsg.isEmpty() )
+        try
         {
-            throw new WebMessageException( WebMessageUtils.conflict( errorMsg ) );
+            systemSettingManager.saveSystemSettingTranslation( setting, locale, value );
+        }
+        catch ( IllegalStateException e )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( e.getMessage() ) );
         }
 
         webMessageService.send( WebMessageUtils.ok( "Translation for system setting '" + key +
@@ -184,27 +187,21 @@ public class SystemSettingController
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
-        if ( !systemSettingManager.isConfidential( key ) )
+        Optional<SettingKey> settingKey = SettingKey.getByName( key );
+        String localeToFetch = getLocaleToFetch( locale, key );
+
+        if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent()
+            && StringUtils.isNotEmpty( localeToFetch ) )
         {
-            Optional<SettingKey> settingKey = SettingKey.getByName( key );
+            Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch );
 
-            if ( settingKey.isPresent() )
+            if ( translation.isPresent() )
             {
-                String localeToFetch = getLocaleToFetch( locale, key );
-
-                if ( StringUtils.isNotEmpty( localeToFetch ) )
-                {
-                    String translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch );
-
-                    if ( !translation.isEmpty() )
-                    {
-                        return translation;
-                    }
-                }
-
-                Serializable setting = systemSettingManager.getSystemSetting( settingKey.get() );
-                return setting != null ? String.valueOf( setting ) : StringUtils.EMPTY;
+                return translation.get();
             }
+
+            Serializable setting = systemSettingManager.getSystemSetting( settingKey.get() );
+            return setting != null ? String.valueOf( setting ) : StringUtils.EMPTY;
         }
 
         return StringUtils.EMPTY;
@@ -264,8 +261,11 @@ public class SystemSettingController
         if ( keys != null )
         {
             keys.removeIf( systemSettingManager::isConfidential );
-            settingKeys = keys.stream().map( key -> SettingKey.getByName( key ) ).filter( settingKeyOpt -> settingKeyOpt.isPresent() )
-                .map( settingKeyOpt -> settingKeyOpt.get() ).collect( Collectors.toSet() );
+            settingKeys = keys.stream()
+                .map( SettingKey::getByName )
+                .filter( Optional::isPresent )
+                .map( Optional::get )
+                .collect( Collectors.toSet() );
         }
         else
         {

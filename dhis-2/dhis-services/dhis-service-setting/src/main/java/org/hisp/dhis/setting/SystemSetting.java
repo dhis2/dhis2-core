@@ -181,8 +181,8 @@ public class SystemSetting
         }
     }
 
-    public String getTranslation( String locale ) {
-        return translations.getOrDefault( locale, "" );
+    public Optional<String> getTranslation( String locale ) {
+        return Optional.ofNullable( translations.get( locale ) );
     }
 
     // -------------------------------------------------------------------------
