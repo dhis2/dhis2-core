@@ -55,6 +55,7 @@ expr
 
     |   'V{' fun='analytics_period_end' '}'
     |   'V{' fun='analytics_period_start' '}'
+    |   'V{' fun='completed_date' '}'
     |   'V{' fun='creation_date' '}'
     |   'V{' fun='current_date' '}'
     |   'V{' fun='due_date' '}'
@@ -80,7 +81,7 @@ expr
     |   fun='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
     |   fun='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
     |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:hasValue(' item ')'
+    |   fun='d2:hasValue(' expr ')'
     |   fun='d2:maxValue(' ( item | compareDate ) ')'
     |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
     |   fun='d2:minValue(' ( item | compareDate ) ')'
@@ -206,6 +207,7 @@ VARIANCE        : 'variance(';
 
 V_ANALYTICS_PERIOD_END  : 'analytics_period_end';
 V_ANALYTICS_PERIOD_START: 'analytics_period_start';
+V_COMPLETED_DATE        : 'completed_date';
 V_CREATION_DATE         : 'creation_date';
 V_CURRENT_DATE          : 'current_date';
 V_DUE_DATE              : 'due_date';

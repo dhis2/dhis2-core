@@ -1,7 +1,7 @@
-package org.hisp.dhis.program.function;
+package org.hisp.dhis.program.variable;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,18 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
- * Program indicator function: d2 has value
- *
- * @author Jim Grace
+ * @author Zubair Asghar
  */
-public class D2HasValue
-    extends SimpleScalarFunction
+public class vCompletedDate extends ProgramDateVariable
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.visit( ctx.expr( 0 ) );
-
-        return true;
-    }
-
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "(" + visitor.visitAllowingNulls( ctx.expr( 0 ) ) + " is not null)";
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+            null, "completed", visitor.getReportingStartDate(),
+            visitor.getReportingStartDate(), visitor.getProgramIndicator() );
     }
 }
