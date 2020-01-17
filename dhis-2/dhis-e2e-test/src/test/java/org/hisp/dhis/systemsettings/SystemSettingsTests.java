@@ -126,8 +126,6 @@ public class SystemSettingsTests extends ApiTest
         QueryParamsBuilder params = new QueryParamsBuilder();
         params.add( "value=" + specificFooter );
 
-        System.out.println( "JSON content type: `" + ContentType.TEXT.toString() + "`" );
-
         ApiResponse response = systemSettingActions.post(
             APPLICATION_FOOTER_KEY,
             ContentType.TEXT.toString(),
