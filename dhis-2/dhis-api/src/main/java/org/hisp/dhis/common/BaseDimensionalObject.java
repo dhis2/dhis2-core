@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.ProgramStage;
 

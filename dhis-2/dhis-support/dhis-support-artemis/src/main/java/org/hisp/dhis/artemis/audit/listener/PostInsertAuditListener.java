@@ -66,6 +66,7 @@ public class PostInsertAuditListener
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
+                .attributes( this.objectFactory.collectAuditAttributes( entity ) )
                 .data( this.objectFactory.create( auditable.scope(), AuditType.CREATE, entity, getCreatedBy() ) )
                 .build() );
         } );

@@ -28,7 +28,11 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.hisp.dhis.audit.AuditAttribute;
+
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +70,25 @@ public class AnnotationUtils
         }
 
         return methods;
+    }
+
+    /**
+     * Returns fields on the given target object and its parents (if any) which are annotated in Field or Method with the
+     * annotation of the given annotationType.
+     * @param target
+     * @param annotationType
+     * @return
+     */
+    public static List<Field> getAnnotatedFields( Object target, Class<? extends Annotation> annotationType )
+    {
+        final List<Field> fields = new ArrayList<>();
+
+        if ( target == null || annotationType == null )
+        {
+            return fields;
+        }
+
+        return FieldUtils.getFieldsListWithAnnotation( target.getClass(),  AuditAttribute.class );
     }
 
     /**

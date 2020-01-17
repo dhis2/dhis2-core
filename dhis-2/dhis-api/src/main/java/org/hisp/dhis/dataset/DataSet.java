@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -105,12 +106,14 @@ public class DataSet
     /**
      * All DataElements associated with this DataSet.
      */
+    @AuditAttribute
     private Set<DataSetElement> dataSetElements = new HashSet<>();
 
     /**
      * Indicators associated with this data set. Indicators are used for view
      * and output purposes, such as calculated fields in forms and reports.
      */
+    @AuditAttribute
     private Set<Indicator> indicators = new HashSet<>();
 
     /**
@@ -122,6 +125,7 @@ public class DataSet
     /**
      * All Sources that register data with this DataSet.
      */
+    @AuditAttribute
     private Set<OrganisationUnit> sources = new HashSet<>();
 
     /**

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -107,6 +108,7 @@ public class DataElement extends BaseDimensionalItemObject
      * The domain of this DataElement; e.g. DataElementDomainType.AGGREGATE or
      * DataElementDomainType.TRACKER.
      */
+    @AuditAttribute
     private DataElementDomain domainType;
 
     /**
@@ -114,6 +116,7 @@ public class DataElement extends BaseDimensionalItemObject
      * that this category combination could be overridden by data set elements
      * which this data element is part of, see {@link DataSetElement}.
      */
+    @AuditAttribute
     private CategoryCombo categoryCombo;
 
     /**
@@ -149,6 +152,7 @@ public class DataElement extends BaseDimensionalItemObject
     /**
      * The option set for comments linked to this data element, can be null.
      */
+    @AuditAttribute
     private OptionSet commentOptionSet;
 
     /**
