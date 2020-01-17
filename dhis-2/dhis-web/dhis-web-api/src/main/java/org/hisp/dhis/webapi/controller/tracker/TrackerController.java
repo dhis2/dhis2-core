@@ -36,7 +36,9 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,8 +47,8 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-// @Controller
-// @RequestMapping( value = TrackerController.RESOURCE_PATH )
+@Controller
+@RequestMapping( value = TrackerController.RESOURCE_PATH )
 public class TrackerController
 {
     public static final String RESOURCE_PATH = "/tracker";
