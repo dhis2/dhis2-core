@@ -40,7 +40,7 @@ public class vCompletedDate extends ProgramDateVariable
     public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-            null, "completed", visitor.getReportingStartDate(),
+            null, "completeddate", visitor.getReportingStartDate(),
             visitor.getReportingStartDate(), visitor.getProgramIndicator() );
     }
 }
