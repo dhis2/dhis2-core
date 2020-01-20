@@ -506,12 +506,8 @@ public class DefaultAnalyticsService
                 {
                     String permKey = DimensionItem.asItemKey( dimensionItems );
 
-                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap.get( permKey );
-
-                    if ( valueMap == null )
-                    {
-                        continue;
-                    }
+                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap
+                        .getOrDefault( permKey, new HashMap<>() );
 
                     List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
                         : Collections.singletonList( (Period) DimensionItem.getPeriodItem( dimensionItems ) );
