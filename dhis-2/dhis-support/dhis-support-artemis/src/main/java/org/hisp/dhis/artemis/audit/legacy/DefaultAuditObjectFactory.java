@@ -33,17 +33,21 @@ import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself
@@ -56,9 +60,24 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
     private final RenderService renderService;
 
-    public DefaultAuditObjectFactory( RenderService renderService )
+    private final CacheProvider cacheProvider;
+
+    private Cache<List<Field>> cachedAuditAttributeFields;
+
+    public DefaultAuditObjectFactory( RenderService renderService, CacheProvider cacheProvider )
     {
         this.renderService = renderService;
+        this.cacheProvider = cacheProvider;
+    }
+
+    @PostConstruct
+    public void initCache()
+    {
+        cachedAuditAttributeFields = cacheProvider.newCacheBuilderForList( Field.class )
+            .forRegion( "auditAttributeFields" )
+            .withInitialCapacity( 100 )
+            .withMaximumSize( 500 )
+            .build();
     }
 
     @Override
@@ -81,9 +100,8 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
     public AuditAttributes collectAuditAttributes( Object auditObject )
     {
         AuditAttributes auditAttributes = new AuditAttributes();
-        List<Field> fields = AnnotationUtils.getAnnotatedFields( auditObject, AuditAttribute.class );
 
-        fields.forEach( field -> {
+        getAuditAttributeFields( auditObject.getClass() ).forEach( field -> {
 
             Object attributeObject = ReflectionUtils.invokeGetterMethod( field.getName(), auditObject );
 
@@ -98,13 +116,16 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
                     auditAttributes.put( field.getName(), attributeObject );
                 }
             }
-            else
-            {
-
-            }
         } );
 
         return auditAttributes;
+    }
+
+    private List<Field> getAuditAttributeFields( Class<?> auditClass )
+    {
+        Optional<List<Field>> listFields = cachedAuditAttributeFields.get( auditClass.getName(), a -> AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class ) );
+
+        return listFields.orElse( new ArrayList<>() );
     }
 
     private Object handleTracker( AuditType auditType, Object object, String user )

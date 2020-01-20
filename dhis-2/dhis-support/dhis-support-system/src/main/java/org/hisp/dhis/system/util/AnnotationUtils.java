@@ -73,22 +73,22 @@ public class AnnotationUtils
     }
 
     /**
-     * Returns fields on the given target object and its parents (if any) which are annotated in Field or Method with the
+     * Returns fields on the given class and its parents (if any) which are annotated in Field or Method with the
      * annotation of the given annotationType.
-     * @param target
+     * @param klass
      * @param annotationType
      * @return
      */
-    public static List<Field> getAnnotatedFields( Object target, Class<? extends Annotation> annotationType )
+    public static List<Field> getAnnotatedFields( Class<?> klass, Class<? extends Annotation> annotationType )
     {
         final List<Field> fields = new ArrayList<>();
 
-        if ( target == null || annotationType == null )
+        if ( klass == null || annotationType == null )
         {
             return fields;
         }
 
-        return FieldUtils.getFieldsListWithAnnotation( target.getClass(),  AuditAttribute.class );
+        return FieldUtils.getFieldsListWithAnnotation( klass,  AuditAttribute.class );
     }
 
     /**
