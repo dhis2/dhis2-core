@@ -104,12 +104,14 @@ public class QueryPlannerUtils
      * Creates a mapping between the aggregation type and data element for the
      * given data elements and period type.
      *
-     * @param params the data query parameters.
+     * @param dataElements a List of {@see DimensionalItemObject}
+     * @param aggregationType an {@see AnalyticsAggregationType}
+     * @param periodType a String representing a Period Type (e.g. 201901)
      */
-    public static ListMap<AnalyticsAggregationType, DimensionalItemObject> getAggregationTypeDataElementMap( DataQueryParams params )
+    public static ListMap<AnalyticsAggregationType, DimensionalItemObject> getAggregationTypeDataElementMap(
+            List<DimensionalItemObject> dataElements, AnalyticsAggregationType aggregationType, String periodType )
     {
-        List<DimensionalItemObject> dataElements = params.getDataElements();
-        PeriodType aggregationPeriodType = PeriodType.getPeriodTypeByName( params.getPeriodType() );
+        PeriodType aggregationPeriodType = PeriodType.getPeriodTypeByName( periodType );
 
         ListMap<AnalyticsAggregationType, DimensionalItemObject> map = new ListMap<>();
 
@@ -117,11 +119,11 @@ public class QueryPlannerUtils
         {
             DataElement de = (DataElement) element;
 
-            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(),
-                AnalyticsAggregationType.fromAggregationType( de.getAggregationType() ) );
+            AnalyticsAggregationType aggType = ObjectUtils.firstNonNull( aggregationType,
+                    AnalyticsAggregationType.fromAggregationType( de.getAggregationType() ) );
 
-            AnalyticsAggregationType analyticsAggregationType = getAggregationType( aggregationType, de.getValueType(),
-                aggregationPeriodType, de.getPeriodType() );
+            AnalyticsAggregationType analyticsAggregationType = getAggregationType( aggType, de.getValueType(),
+                    aggregationPeriodType, de.getPeriodType() );
 
             map.putValue( analyticsAggregationType, de );
         }

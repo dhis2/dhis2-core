@@ -41,13 +41,9 @@ import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.PaginatedList;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -420,8 +416,9 @@ public class DefaultQueryPlanner
 
         if ( !params.getDataElements().isEmpty() )
         {
-            ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap =
-                QueryPlannerUtils.getAggregationTypeDataElementMap( params );
+            ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = QueryPlannerUtils
+                .getAggregationTypeDataElementMap( params.getDataElements(), params.getAggregationType(),
+                    params.getPeriodType() );
 
             for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
@@ -453,6 +450,20 @@ public class DefaultQueryPlanner
 
             queries.add( query );
         }
+        else if ( filterHasDataElementsOfSameAggregationTypeAndValueType( params ) )
+        {
+            ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = QueryPlannerUtils
+                    .getAggregationTypeDataElementMap( params.getFilterOptions( DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT ),
+                            params.getAggregationType(), params.getPeriodType() );
+
+            for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
+            {
+                DataQueryParams query = DataQueryParams.newBuilder( params ).withAggregationType( aggregationType )
+                        .build();
+
+                queries.add( query );
+            }
+        }
         else
         {
             DataQueryParams query = DataQueryParams.newBuilder( params )
@@ -464,6 +475,32 @@ public class DefaultQueryPlanner
         logQuerySplit( queries, "aggregation type" );
 
         return queries;
+    }
+
+    /**
+     * Check if the filter of this DataQueryParams contains Data Elements having the same Aggregation Type
+     * and the same Value Type. If the DataQueryParams has the aggregationType set, then the DataQueryParams
+     * aggregationType overrides all the Data Elements' aggregation types.
+     *
+     * @param params DataQueryParams object.
+     */
+    private boolean filterHasDataElementsOfSameAggregationTypeAndValueType( DataQueryParams params )
+    {
+        List<DimensionalItemObject> filterDataElements = params.getFilterOptions( DATA_X_DIM_ID,
+                DataDimensionItemType.DATA_ELEMENT );
+
+        if ( filterDataElements.size() >= 1 )
+        {
+            DataElement firstDataElement = (DataElement) filterDataElements.get( 0 );
+            return (params.getAggregationType() != null || filterDataElements.stream().allMatch(
+                    de -> de.getAggregationType().name().equals( firstDataElement.getAggregationType().name() ) ))
+                    && filterDataElements.stream().allMatch(
+                    de -> ((DataElement) de).getValueType().name().equals( firstDataElement.getValueType().name() ) );
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
