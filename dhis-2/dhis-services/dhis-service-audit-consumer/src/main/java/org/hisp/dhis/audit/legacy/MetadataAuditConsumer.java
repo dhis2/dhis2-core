@@ -1,7 +1,7 @@
 package org.hisp.dhis.audit.legacy;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.Topics;
@@ -36,7 +37,6 @@ import org.hisp.dhis.audit.AuditConsumer;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.render.RenderService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
@@ -55,20 +55,17 @@ public class MetadataAuditConsumer implements AuditConsumer
     private static final Log log = LogFactory.getLog( MetadataAuditConsumer.class );
 
     private final AuditService auditService;
-    private final RenderService renderService;
+    private final ObjectMapper objectMapper;
     private final boolean metadataAuditLog;
-    private final boolean metadataAuditPersist;
 
     public MetadataAuditConsumer(
         AuditService auditService,
-        RenderService renderService,
+        ObjectMapper objectMapper,
         DhisConfigurationProvider dhisConfig )
     {
         this.auditService = auditService;
-        this.renderService = renderService;
+        this.objectMapper = objectMapper;
 
-        // TODO remove and replace with Audit Configuration Grid (ACG)
-        this.metadataAuditPersist = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
         this.metadataAuditLog = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" );
     }
 
@@ -79,24 +76,21 @@ public class MetadataAuditConsumer implements AuditConsumer
         {
             String payload = message.getText();
 
-            Audit auditMessage = renderService.fromJson( payload, Audit.class );
+            Audit auditMessage = objectMapper.readValue( payload, Audit.class );
 
             if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
             {
-                auditMessage.setData( renderService.toJsonAsString( auditMessage.getData() ) );
+                auditMessage.setData( objectMapper.writeValueAsString( auditMessage.getData() ) );
             }
 
             org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
 
             if ( metadataAuditLog )
             {
-                log.info( renderService.toJsonAsString( audit ) );
+                log.info( objectMapper.writeValueAsString( audit ) );
             }
 
-            if ( metadataAuditPersist )
-            {
-                auditService.addAudit( audit );
-            }
+            auditService.addAudit( audit );
         }
         catch ( IOException e )
         {

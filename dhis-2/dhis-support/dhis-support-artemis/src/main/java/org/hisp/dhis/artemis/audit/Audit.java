@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,10 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
@@ -48,10 +51,11 @@ import java.time.LocalDateTime;
  */
 @Data
 @Builder( builderClassName = "AuditBuilder" )
+@JsonDeserialize( builder = Audit.AuditBuilder.class )
 public class Audit implements Message
 {
     @JsonProperty
-    private AuditType auditType;
+    private final AuditType auditType;
 
     @JsonProperty
     private AuditScope auditScope;
@@ -72,10 +76,22 @@ public class Audit implements Message
     private String code;
 
     @JsonProperty
-    private AuditAttributes attributes;
+    @Builder.Default
+    private AuditAttributes attributes = new AuditAttributes();
 
+    /**
+     * This property holds the serialized Audited entity: it should not be used during the construction
+     * of an instance of this object
+     */
     @JsonProperty
     private Object data;
+
+    /**
+     * This property should be used when constructing an Audit instance to send to the Audit sub-system
+     * The AuditableEntity object allows the AuditManager to serialize the audited entity only if needed
+     */
+    @JsonIgnore
+    private AuditableEntity auditableEntity;
 
     @Override
     public MessageType getMessageType()
@@ -111,6 +127,7 @@ public class Audit implements Message
         return auditBuilder.build();
     }
 
+    @JsonPOJOBuilder( withPrefix = "" )
     public static final class AuditBuilder
     {
         private String klass;
@@ -134,5 +151,18 @@ public class Audit implements Message
 
             return this;
         }
+    }
+
+    String toLog()
+    {
+        return "Audit{" +
+            "auditType=" + auditType +
+            ", auditScope=" + auditScope +
+            ", createdAt=" + createdAt +
+            ", createdBy='" + createdBy + '\'' +
+            ", klass='" + klass + '\'' +
+            ", uid='" + uid + '\'' +
+            ", code='" + code + '\'' +
+            '}';
     }
 }

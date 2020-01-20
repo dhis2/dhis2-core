@@ -1,7 +1,7 @@
 package org.hisp.dhis.leader.election;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,7 +92,7 @@ public class RedisLeaderManager implements LeaderManager
             calendar.add( Calendar.SECOND, (int) (this.timeToLiveSeconds / 2) );
             log.debug( "Next leader renewal job nodeId:" + this.nodeId + " set at " + calendar.getTime().toString() );
             JobConfiguration leaderRenewalJobConfiguration = new JobConfiguration( CLUSTER_LEADER_RENEWAL,
-                JobType.LEADER_RENEWAL, null, null, false, true, true );
+                JobType.LEADER_RENEWAL, null, true );
             leaderRenewalJobConfiguration.setLeaderOnlyJob( true );
             schedulingManager.scheduleJobWithStartTime( leaderRenewalJobConfiguration, calendar.getTime() );
         }

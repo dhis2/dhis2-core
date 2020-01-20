@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.junit.Test;
@@ -64,9 +63,6 @@ public class ValidationRuleStoreTest
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -101,7 +97,7 @@ public class ValidationRuleStoreTest
     public void setUpTest()
         throws Exception
     {
-      
+
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
         dataElementC = createDataElement( 'C' );

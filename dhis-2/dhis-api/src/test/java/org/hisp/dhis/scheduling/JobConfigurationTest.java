@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,11 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link JobConfiguration}.
@@ -53,7 +55,6 @@ public class JobConfigurationTest
         jobConfiguration.setJobType( JobType.ANALYTICS_TABLE );
         jobConfiguration.setJobStatus( JobStatus.COMPLETED );
         jobConfiguration.setJobParameters( jobParameters );
-        jobConfiguration.setContinuousExecution( true );
         jobConfiguration.setEnabled( true );
         jobConfiguration.setLeaderOnlyJob( true );
         jobConfiguration.setCronExpression( "0 0 6 * * ?" );
@@ -66,10 +67,9 @@ public class JobConfigurationTest
         jc.setJobType( JobType.ANALYTICS_TABLE );
         jc.setJobStatus( JobStatus.COMPLETED );
         jc.setJobParameters( jobParameters );
-        jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( false );
-        Assert.assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -79,11 +79,10 @@ public class JobConfigurationTest
         jc.setJobType( JobType.ANALYTICS_TABLE );
         jc.setJobStatus( JobStatus.COMPLETED );
         jc.setJobParameters( jobParameters );
-        jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
         jc.setCronExpression( "0 0 12 * * ?" );
-        Assert.assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertFalse( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -93,10 +92,9 @@ public class JobConfigurationTest
         jc.setJobType( JobType.ANALYTICS_TABLE );
         jc.setJobStatus( JobStatus.COMPLETED );
         jc.setJobParameters( jobParameters );
-        jc.setContinuousExecution( true );
         jc.setEnabled( false );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -106,10 +104,9 @@ public class JobConfigurationTest
         jc.setJobType( JobType.DATA_INTEGRITY );
         jc.setJobStatus( JobStatus.COMPLETED );
         jc.setJobParameters( jobParameters );
-        jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -119,10 +116,9 @@ public class JobConfigurationTest
         jc.setJobType( JobType.ANALYTICS_TABLE );
         jc.setJobStatus( JobStatus.STOPPED );
         jc.setJobParameters( jobParameters );
-        jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 
     @Test
@@ -132,22 +128,8 @@ public class JobConfigurationTest
         jc.setJobType( JobType.ANALYTICS_TABLE );
         jc.setJobStatus( JobStatus.COMPLETED );
         jc.setJobParameters( new MockJobParameters() );
-        jc.setContinuousExecution( true );
         jc.setEnabled( true );
         jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
-    }
-
-    @Test
-    public void hasNonConfigurableJobChangesContinousExecution()
-    {
-        final JobConfiguration jc = new JobConfiguration();
-        jc.setJobType( JobType.ANALYTICS_TABLE );
-        jc.setJobStatus( JobStatus.COMPLETED );
-        jc.setJobParameters( jobParameters );
-        jc.setContinuousExecution( false );
-        jc.setEnabled( true );
-        jc.setLeaderOnlyJob( true );
-        Assert.assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
+        assertTrue( jobConfiguration.hasNonConfigurableJobChanges( jc ) );
     }
 }

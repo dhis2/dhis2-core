@@ -1,7 +1,7 @@
 package org.hisp.dhis.render.type;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,6 +134,7 @@ public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRender
         this.min = min;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueTypeRenderingType getType()
@@ -141,6 +142,7 @@ public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRender
         return type;
     }
 
+    @Override
     public void setType( ValueTypeRenderingType renderingType )
     {
         this.type = renderingType;
@@ -148,7 +150,7 @@ public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRender
 
     @Override
     @JsonIgnore
-    public Class getRenderTypeClass()
+    public Class<ValueTypeRenderingType> getRenderTypeClass()
     {
         return ValueTypeRenderingType.class;
     }

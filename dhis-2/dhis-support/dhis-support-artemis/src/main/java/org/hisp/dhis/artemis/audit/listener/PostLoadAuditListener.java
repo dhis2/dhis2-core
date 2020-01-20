@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,11 @@ import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -55,21 +55,24 @@ public class PostLoadAuditListener
         super( auditManager, auditObjectFactory, userNameSupplier );
     }
 
+    AuditType getAuditType()
+    {
+        return AuditType.READ;
+    }
+
     @Override
-    @Transactional( readOnly = true )
     public void onPostLoad( PostLoadEvent postLoadEvent )
     {
         Object entity = postLoadEvent.getEntity();
 
-        getAuditable( entity, "read" ).ifPresent( auditable -> {
+        getAuditable( entity, "read" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
-                .auditType( AuditType.READ )
+                .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
                 .object( entity )
-                .data( this.objectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
-                .build() );
-        } );
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() ) );
     }
 }

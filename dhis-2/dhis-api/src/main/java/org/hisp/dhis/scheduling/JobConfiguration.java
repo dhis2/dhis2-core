@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -68,6 +69,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * <p>
  * The class uses a custom deserializer to handle several potential {@link JobParameters}.
  *
+ * Note that this class uses {@link JobConfigurationSanitizer} for serialization which needs to be update when new
+ * properties are added.
+ *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
@@ -79,17 +83,22 @@ public class JobConfiguration
     // Externally configurable properties
     // -------------------------------------------------------------------------
 
-    private String cronExpression;
-
     /**
      * The type of job.
      */
     private JobType jobType;
 
     /**
-     * Indicates this job should be triggered continuously.
+     * The cron expression used for scheduling the job. Relevant for scheduling
+     * type {@link SchedulingType#CRON}.
      */
-    private boolean continuousExecution = false;
+    private String cronExpression;
+
+    /**
+     * The delay in seconds between the completion of one job execution and the
+     * start of the next. Relevant for scheduling type {@link SchedulingType#FIXED_DELAY}.
+     */
+    private Integer delay;
 
     /**
      * Parameters of the job. Jobs can use their own implementation of the {@link JobParameters} class.
@@ -125,6 +134,14 @@ public class JobConfiguration
     {
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param userUid the user UID.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String userUid, boolean inMemoryJob )
     {
         this.name = name;
@@ -134,20 +151,36 @@ public class JobConfiguration
         init();
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled )
+    /**
+     * Constructor which implies enabled true and in-memory job false.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     */
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters )
     {
-        this( name, jobType, cronExpression, jobParameters, continuousExecution, enabled, false );
+        this( name, jobType, cronExpression, jobParameters, true, false );
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     * @param enabled whether this job is enabled.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled, boolean inMemoryJob )
+        boolean enabled, boolean inMemoryJob )
     {
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
-        this.continuousExecution = continuousExecution;
         this.enabled = enabled;
         this.inMemoryJob = inMemoryJob;
         setJobStatus( enabled ? SCHEDULED : DISABLED );
@@ -170,29 +203,25 @@ public class JobConfiguration
      * Checks if this job has changes compared to the specified job configuration that are only
      * allowed for configurable jobs.
      *
-     * @param jobConfiguration the job configuration that should be checked.
+     * @param other the job configuration that should be checked.
      * @return <code>true</code> if this job configuration has changes in fields that are only
-     * allowed for configurable jobs, <code>false</code> otherwise.
+     *          allowed for configurable jobs, <code>false</code> otherwise.
      */
-    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration jobConfiguration )
+    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration other )
     {
-        if ( jobType != jobConfiguration.getJobType() )
+        if ( this.jobType != other.getJobType() )
         {
             return true;
         }
-        if ( jobStatus != jobConfiguration.getJobStatus() )
+        if ( this.jobStatus != other.getJobStatus() )
         {
             return true;
         }
-        if ( jobParameters != jobConfiguration.getJobParameters() )
+        if ( this.jobParameters != other.getJobParameters() )
         {
             return true;
         }
-        if ( continuousExecution != jobConfiguration.isContinuousExecution() )
-        {
-            return true;
-        }
-        return enabled != jobConfiguration.isEnabled();
+        return this.enabled != other.isEnabled();
     }
 
     @JacksonXmlProperty
@@ -202,17 +231,22 @@ public class JobConfiguration
         return jobType.isConfigurable();
     }
 
+    public boolean hasCronExpression()
+    {
+        return cronExpression != null && !cronExpression.isEmpty();
+    }
+
     @Override
     public String toString()
     {
         return "JobConfiguration{" +
             "uid='" + uid + '\'' +
-            ", displayName='" + displayName + '\'' +
-            ", cronExpression='" + cronExpression + '\'' +
+            ", name='" + name + '\'' +
             ", jobType=" + jobType +
+            ", cronExpression='" + cronExpression + '\'' +
+            ", delay='" + delay + '\'' +
             ", jobParameters=" + jobParameters +
             ", enabled=" + enabled +
-            ", continuousExecution=" + continuousExecution +
             ", inMemoryJob=" + inMemoryJob +
             ", lastRuntimeExecution='" + lastRuntimeExecution + '\'' +
             ", userUid='" + userUid + '\'' +
@@ -229,18 +263,6 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    public String getCronExpression()
-    {
-        return cronExpression;
-    }
-
-    public void setCronExpression( String cronExpression )
-    {
-        this.cronExpression = cronExpression;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
     @JsonTypeId
     public JobType getJobType()
     {
@@ -254,22 +276,38 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    public boolean isContinuousExecution()
+    public String getCronExpression()
     {
-        return continuousExecution;
+        return cronExpression;
     }
 
-    public void setContinuousExecution( boolean continuousExecution )
+    public void setCronExpression( String cronExpression )
     {
-        this.continuousExecution = continuousExecution;
+        this.cronExpression = cronExpression;
     }
 
+    @JacksonXmlProperty
+    @JsonProperty
+    public Integer getDelay()
+    {
+        return delay;
+    }
+
+    public void setDelay( Integer delay )
+    {
+        this.delay = delay;
+    }
+
+    /**
+     * The sub type names refer to the {@link JobType} enumeration.
+     */
     @JacksonXmlProperty
     @JsonProperty
     @Property( required = FALSE )
     @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
     @JsonSubTypes( value = {
         @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
+        @JsonSubTypes.Type( value = ContinuousAnalyticsJobParameters.class, name = "CONTINUOUS_ANALYTICS_TABLE" ),
         @JsonSubTypes.Type( value = MonitoringJobParameters.class, name = "MONITORING" ),
         @JsonSubTypes.Type( value = PredictorJobParameters.class, name = "PREDICTOR" ),
         @JsonSubTypes.Type( value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS" ),

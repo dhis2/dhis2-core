@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters.jackson;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ public class JobConfigurationSanitizer extends StdConverter<JobConfiguration, Jo
         }
 
         final JobConfiguration jobConfiguration = new JobConfiguration( value.getName(), value.getJobType(),
-            value.getCronExpression(), value.getJobParameters(), value.isContinuousExecution(), value.isEnabled() );
+            value.getCronExpression(), value.getJobParameters(), value.isEnabled(), value.isInMemoryJob() );
+        jobConfiguration.setDelay( value.getDelay() );
         jobConfiguration.setLeaderOnlyJob( value.isLeaderOnlyJob() );
         jobConfiguration.setUid( value.getUid() );
         return jobConfiguration;

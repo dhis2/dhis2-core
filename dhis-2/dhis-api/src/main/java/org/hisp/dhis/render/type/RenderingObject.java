@@ -1,7 +1,7 @@
 package org.hisp.dhis.render.type;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface RenderingObject<T extends Enum>
+public interface RenderingObject<T extends Enum<?>>
 {
     String _TYPE = "type";
 

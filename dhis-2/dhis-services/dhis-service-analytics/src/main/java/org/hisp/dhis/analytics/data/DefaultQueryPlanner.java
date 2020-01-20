@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,31 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.common.DimensionalObject.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.DataQueryGroups;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.PaginatedList;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 /**
  * @author Lars Helge Overland
@@ -479,15 +467,7 @@ public class DefaultQueryPlanner
 
             queries.add( query );
         }
-        /*
-         * This is a special case: if a *single* Data Element is used as filter, then we
-         * want to be able to calculate the proper aggregation type based on the Date
-         * Element aggregation type or the aggregation type selected for the query. It's
-         * not possible to handle more than one Data Element in the filter, because each
-         * Data Element may have different data type (NUMERIC, etc.) and the data type
-         * is required to construct the select the proper SQL function (avg, sum, etc)
-         */
-        else if ( params.getFilterOptions( DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT ).size() == 1 )
+        else if ( filterHasDataElementsOfSameAggregationTypeAndValueType( params ) )
         {
             ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = QueryPlannerUtils
                 .getAggregationTypeDataElementMap( params.getFilterOptions( DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT ),
@@ -512,6 +492,32 @@ public class DefaultQueryPlanner
         logQuerySplit( queries, "aggregation type" );
 
         return queries;
+    }
+
+    /**
+     * Check if the filter of this DataQueryParams contains Data Elements having the same Aggregation Type
+     * and the same Value Type. If the DataQueryParams has the aggregationType set, then the DataQueryParams
+     * aggregationType overrides all the Data Elements' aggregation types.
+     *
+     * @param params DataQueryParams object.
+     */
+    private boolean filterHasDataElementsOfSameAggregationTypeAndValueType( DataQueryParams params )
+    {
+        List<DimensionalItemObject> filterDataElements = params.getFilterOptions( DATA_X_DIM_ID,
+            DataDimensionItemType.DATA_ELEMENT );
+
+        if ( filterDataElements.size() >= 1 )
+        {
+            DataElement firstDataElement = (DataElement) filterDataElements.get( 0 );
+            return (params.getAggregationType() != null || filterDataElements.stream().allMatch(
+                de -> de.getAggregationType().name().equals( firstDataElement.getAggregationType().name() ) ))
+                && filterDataElements.stream().allMatch(
+                    de -> ((DataElement) de).getValueType().name().equals( firstDataElement.getValueType().name() ) );
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**

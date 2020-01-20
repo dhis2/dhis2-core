@@ -1,7 +1,7 @@
 package org.hisp.dhis.audit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -241,6 +241,11 @@ public class JdbcAuditRepository implements AuditRepository
 
     private static byte[] compress( String data )
     {
+        if ( StringUtils.isEmpty( data ) )
+        {
+            return new byte[]{};
+        }
+
         byte[] result = data.getBytes( StandardCharsets.UTF_8 );
 
         try ( ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() ) )
@@ -260,6 +265,11 @@ public class JdbcAuditRepository implements AuditRepository
 
     private static String decompress( byte[] data )
     {
+        if ( data == null || data.length == 0 )
+        {
+            return "{}";
+        }
+
         String result = null;
 
         try ( ByteArrayInputStream bin = new ByteArrayInputStream( data ) )

@@ -1,5 +1,7 @@
+package org.hisp.dhis.webapi.controller.datavalue;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.webapi.controller.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -464,24 +464,27 @@ class DataValidator
     }
 
     /**
-     * Validates if the given dataValue is value for the given DataElement.
+     * Validates if the given dataValue is valid for the given DataElement,
+     * and normalize it if the dataValue is a boolean type.
      * 
      * @param dataValue
      * @param dataElement
+     * @return the normalized boolean or the same dataValue provided
      * @throws WebMessageException if the validation fails.
      */
-    void validateDataValue( final String dataValue, final DataElement dataElement )
+    String validateAndNormalizeDataValue( final String dataValue, final DataElement dataElement )
         throws WebMessageException
     {
-        final String withNormalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
+        final String normalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
 
-        final String valueValid = dataValueIsValid( withNormalizedBoolean, dataElement );
+        final String valueValid = dataValueIsValid( normalizedBoolean, dataElement );
 
         if ( valueValid != null )
         {
             throw new WebMessageException( conflict(
                 "Invalid value: " + dataValue + ", must match data element type: " + dataElement.getValueType() ) );
         }
+        return normalizedBoolean;
     }
 
     /**

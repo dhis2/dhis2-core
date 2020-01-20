@@ -1,7 +1,7 @@
 package org.hisp.dhis.audit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,8 @@ public class Audit implements Serializable
      * Additional attributes attached to Audit. Stored as JSONB in the database.
      */
     @JsonProperty
-    private final AuditAttributes attributes;
+    @Builder.Default
+    private AuditAttributes attributes = new AuditAttributes();
 
     /**
      * GZipped payload. Exposed as raw json, make sure that the payload is decompressed first.

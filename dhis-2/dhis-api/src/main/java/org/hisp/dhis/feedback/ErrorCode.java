@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,21 +89,21 @@ public enum ErrorCode
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`." ),
 
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
-    E4028( "OptionSet `{0}` already contains Option `{1}`" ),
-    E4029( "JobParameters cannot be null for JobType {0}" ),
+    E4028( "Option set `{0}` already contains option `{1}`" ),
+    E4029( "Job parameters cannot be null for job type: {0}" ),
 
     /* Program Errors */
     E6000( "Program `{0}` has more than one Program Instances"),
     E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
 
     /* Scheduling errors */
-    E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
-    E7001( "Failed to add/update job configuration - Trying to add job with continuous execution while there already is a job with continuous exectution of the same job type." ),
-    E7002( "Failed to add/update job configuration - Uid does not exist" ),
-    E7003( "Failed to add/update job configuration - Only interval can be configured for non configurable job type `{0}`" ),
-    E7004( "Failed to add/update job configuration - Cron Expression must not be null " ),
-    E7005( "Failed to add/update job configuration - Failed to validate cron expression: `{0}` " ),
+    E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
+    E7002( "Failed to add/update job configuration, UID does not exist" ),
+    E7003( "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
+    E7004( "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
+    E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
     E7006( "Failed to execute job `{0}`." ),
+    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
 
     /* Job specific scheduling errors */
     E7010( "Failed to validate job runtime - `{0}`" ),
