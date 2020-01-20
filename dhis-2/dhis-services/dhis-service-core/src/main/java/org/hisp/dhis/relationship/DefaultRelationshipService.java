@@ -34,6 +34,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Abyot Asalefew
@@ -125,5 +126,13 @@ public class DefaultRelationshipService
         boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramStageInstance( psi );
+    }
+
+
+    @Override
+    @Transactional( readOnly = true )
+    public Optional<Relationship> getRelationshipByRelationship( Relationship relationship )
+    {
+        return Optional.ofNullable( relationshipStore.getByRelationship( relationship ) );
     }
 }

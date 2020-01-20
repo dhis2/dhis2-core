@@ -28,15 +28,21 @@ package org.hisp.dhis.relationship.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -70,5 +76,59 @@ public class HibernateRelationshipStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ) ));
+    }
+
+    @Override
+    public Relationship getByRelationship( Relationship relationship )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<Relationship> criteriaQuery = builder.createQuery( Relationship.class );
+
+        Root<Relationship> root = criteriaQuery.from( Relationship.class );
+
+        criteriaQuery.where( builder.and(
+            getFromOrToPredicate("from", builder, root, relationship),
+            getFromOrToPredicate("to", builder, root, relationship),
+            builder.equal( root.join( "relationshipType" ), relationship.getRelationshipType() ) ) );
+
+        try
+        {
+            return getSession().createQuery( criteriaQuery ).setMaxResults( 1 ).getSingleResult();
+        }
+        catch ( NoResultException nre )
+        {
+            return null;
+        }
+
+    }
+
+    private Predicate getFromOrToPredicate(String direction, CriteriaBuilder builder, Root<Relationship> root, Relationship relationship) {
+
+        RelationshipItem relationshipItemDirection = getItem( direction, relationship );
+
+        if ( relationshipItemDirection.getTrackedEntityInstance() != null )
+        {
+            return builder.equal( root.join( direction ).get( "trackedEntityInstance" ),
+                getItem( direction, relationship ).getTrackedEntityInstance() );
+        }
+        else if ( relationshipItemDirection.getProgramInstance() != null )
+        {
+            return builder.equal( root.join( direction ).get( "programInstance" ),
+                getItem( direction, relationship ).getProgramInstance() );
+        }
+        else if ( relationshipItemDirection.getProgramStageInstance() != null )
+        {
+            return builder.equal( root.join( direction ).get( "programStageInstance" ),
+                getItem( direction, relationship ).getProgramStageInstance() );
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private RelationshipItem getItem( String direction, Relationship relationship )
+    {
+        return (direction.equalsIgnoreCase( "from" ) ? relationship.getFrom() : relationship.getTo());
     }
 }
