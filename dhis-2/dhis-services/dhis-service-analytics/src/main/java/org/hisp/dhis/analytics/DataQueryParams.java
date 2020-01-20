@@ -930,6 +930,19 @@ public class DataQueryParams
     }
 
     /**
+     * Retrieves the options for the given dimension and dimension type.
+     * Returns an empty list if the filtering options do not match any dimension.
+     */
+    public List<DimensionalItemObject> getFilterOptions( String filter, DataDimensionItemType dataDimensionItemType )
+    {
+        int index = filters.indexOf( new BaseDimensionalObject( filter ) );
+
+        return index != -1
+                ? AnalyticsUtils.getByDataDimensionItemType( dataDimensionItemType, filters.get( index ).getItems() )
+                : new ArrayList<>();
+    }
+
+    /**
      * Get all filter items.
      */
     public List<DimensionalItemObject> getFilterItems()
