@@ -96,6 +96,18 @@ public class ArtemisConfig
         return template;
     }
 
+    @Bean
+    public JmsTemplate jmsQueueTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    {
+        JmsTemplate template = new JmsTemplate( connectionFactory );
+        template.setDeliveryMode( DeliveryMode.PERSISTENT );
+        template.setDestinationResolver( nameDestinationResolver );
+        // set to true, since we only use topics and we want to resolve names to topic destination
+        template.setPubSubDomain( false );
+
+        return template;
+    }
+
     @Bean // configured for topics
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
     {
@@ -106,6 +118,18 @@ public class ArtemisConfig
         factory.setPubSubDomain( true );
         // 1 forces the listener to use only one consumer, to avoid duplicated messages
         factory.setConcurrency( "1" );
+
+        return factory;
+    }
+
+    @Bean // configured for queues
+    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory( connectionFactory );
+        factory.setDestinationResolver( nameDestinationResolver );
+        factory.setPubSubDomain( false );
+        factory.setConcurrency( "5-10" );
 
         return factory;
     }

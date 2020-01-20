@@ -33,8 +33,9 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.job.TrackerManager;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,15 +58,18 @@ public class TrackerController
     private final TrackerImportService trackerImportService;
     private final RenderService renderService;
     private final ContextService contextService;
+    private final TrackerManager trackerManager;
 
     public TrackerController(
         TrackerImportService trackerImportService,
         RenderService renderService,
-        ContextService contextService )
+        ContextService contextService,
+        TrackerManager trackerManager )
     {
         this.trackerImportService = trackerImportService;
         this.renderService = renderService;
         this.contextService = contextService;
+        this.trackerManager = trackerManager;
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -77,9 +82,15 @@ public class TrackerController
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        String jobId = trackerManager.addJob( trackerBundle );
 
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        renderService.toJson( response.getOutputStream(), new HashMap<>() );
+
+        /*
         TrackerImportReport importReport = trackerImportService.importTracker( params );
         renderService.toJson( response.getOutputStream(), importReport );
+        */
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,12 +28,49 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MessageType
+@Component
+public class TrackerManager
 {
-    AUDIT,
+    private final MessageManager messageManager;
+    private final ObjectMapper objectMapper;
 
-    TRACKER_JOB
+    public TrackerManager(
+        MessageManager messageManager,
+        ObjectMapper objectMapper )
+    {
+        this.messageManager = messageManager;
+        this.objectMapper = objectMapper;
+    }
+
+    public String addJob( TrackerBundle trackerBundle )
+    {
+        TrackerMessage trackerMessage = TrackerMessage.builder().trackerBundle( trackerBundle ).build();
+        messageManager.sendQueue( Topics.TRACKER_JOB_TOPIC_NAME, trackerMessage );
+
+        return trackerMessage.getUid();
+    }
+
+    @JmsListener( destination = Topics.TRACKER_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
+    public void consume( TextMessage message ) throws JMSException, JsonProcessingException
+    {
+        String payload = message.getText();
+        TrackerMessage trackerMessage = objectMapper.readValue( payload, TrackerMessage.class );
+
+        // System.err.println( "GOT:" );
+        // System.err.println( trackerMessage );
+    }
 }

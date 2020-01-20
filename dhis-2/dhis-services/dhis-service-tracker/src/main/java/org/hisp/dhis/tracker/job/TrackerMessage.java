@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,12 +28,38 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.artemis.Message;
+import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MessageType
+@Data
+@Builder( builderClassName = "TrackerMessageBuilder" )
+@JsonDeserialize( builder = TrackerMessage.TrackerMessageBuilder.class )
+public class TrackerMessage implements Message
 {
-    AUDIT,
+    @JsonProperty
+    private final String uid = CodeGenerator.generateUid();
 
-    TRACKER_JOB
+    @JsonProperty
+    private final TrackerBundle trackerBundle;
+
+    @Override
+    public MessageType getMessageType()
+    {
+        return MessageType.TRACKER_JOB;
+    }
+
+    @JsonPOJOBuilder( withPrefix = "" )
+    public static final class TrackerMessageBuilder
+    {
+    }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -31,9 +31,7 @@ package org.hisp.dhis.artemis;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MessageType
+public enum TrackerJobStatus
 {
-    AUDIT,
-
-    TRACKER_JOB
+    PENDING, RUNNING, FINISHED
 }
