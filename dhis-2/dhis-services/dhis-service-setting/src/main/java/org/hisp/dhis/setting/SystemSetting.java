@@ -29,6 +29,8 @@ package org.hisp.dhis.setting;
  */
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 
@@ -40,9 +42,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
+
 /**
- * TODO make IdentifiableObject
- * 
  * @author Stian Strandli
  */
 public class SystemSetting
@@ -59,6 +60,8 @@ public class SystemSetting
     private String value;
 
     private transient Serializable displayValue;
+
+    protected Map<String, String> translations = new HashMap<>();
 
     // -------------------------------------------------------------------------
     // Logic
@@ -161,6 +164,27 @@ public class SystemSetting
         return valueAsSerializable;
     }
 
+    public Map<String, String> getTranslations()
+    {
+        return translations;
+    }
+
+    public void setTranslations( Map<String, String> translations )
+    {
+        if ( translations != null )
+        {
+            this.translations = new HashMap<>( translations );
+        }
+        else
+        {
+            this.translations.clear();
+        }
+    }
+
+    public Optional<String> getTranslation( String locale ) {
+        return Optional.ofNullable( translations.get( locale ) );
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -206,6 +230,7 @@ public class SystemSetting
             .add( "id=" + id )
             .add( "name='" + name + "'" )
             .add( "value='" + value + "'" )
-            .add( "displayValue=" + displayValue ).toString();
+            .add( "displayValue=" + displayValue )
+            .add( "translations=" + translations ).toString();
     }
 }
