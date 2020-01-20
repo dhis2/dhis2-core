@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -135,8 +136,20 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType )
     {
         return relationshipStore.getByRelationshipType( relationshipType );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Optional<Relationship> getRelationshipByRelationship( Relationship relationship )
+    {
+        checkNotNull( relationship.getFrom() );
+        checkNotNull( relationship.getTo() );
+        checkNotNull( relationship.getRelationshipType() );
+
+        return Optional.ofNullable( relationshipStore.getByRelationship( relationship ) );
     }
 }
