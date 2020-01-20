@@ -188,16 +188,18 @@ public class SystemSettingController
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         Optional<SettingKey> settingKey = SettingKey.getByName( key );
-        String localeToFetch = getLocaleToFetch( locale, key );
-
-        if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent()
-            && StringUtils.isNotEmpty( localeToFetch ) )
+        if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
         {
-            Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch );
+            String localeToFetch = getLocaleToFetch( locale, key );
 
-            if ( translation.isPresent() )
+            if ( StringUtils.isNotEmpty( localeToFetch ) )
             {
-                return translation.get();
+                Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch );
+
+                if ( translation.isPresent() )
+                {
+                    return translation.get();
+                }
             }
 
             Serializable setting = systemSettingManager.getSystemSetting( settingKey.get() );
