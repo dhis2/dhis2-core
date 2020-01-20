@@ -513,12 +513,8 @@ public class DefaultAnalyticsService
                 {
                     String permKey = DimensionItem.asItemKey( dimensionItems );
 
-                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap.get( permKey );
-
-                    if ( valueMap == null )
-                    {
-                        continue;
-                    }
+                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap
+                        .getOrDefault( permKey, new HashMap<>() );
 
                     Period period = filterPeriod != null ? filterPeriod : (Period) DimensionItem.getPeriodItem( dimensionItems );
 
