@@ -54,6 +54,14 @@ public class SystemSettingsTests extends ApiTest
     private static final String APPLICATION_INTRO_KEY = "keyApplicationIntro";
     private static final String APPLICATION_FOOTER_KEY = "keyApplicationFooter";
 
+    private static final String MAX_SYNC_ATTEMPTS_KEY = "syncMaxAttempts";
+    private static final int MAX_SYNC_ATTEMPTS_DEFAULT_VALUE = 3;
+    private static final String MAX_PASSWORD_LENGTH_KEY = "maxPasswordLength";
+    private static final int MAX_PASSWORD_LENGTH_DEFAULT_VALUE = 40;
+    private static final String EMAIL_SENDER_KEY = "keyEmailSender";
+    private static final String EMAIL_SENDER_DEFAULT_VALUE = "no-reply@dhis2.org";
+
+
     private static final String DEFAULT_FOOTER = "Learn more ...";
 
     private static final String DEFAULT_INTRO = "Default - Welcome to the DHIS2";
@@ -272,5 +280,43 @@ public class SystemSettingsTests extends ApiTest
             .statusCode( 200 );
 
         assertEquals( StringUtils.EMPTY, response.getAsString() );
+    }
+
+    @Test
+    public void getDefaultSystemSetting()
+    {
+        ApiResponse response = systemSettingActions.get(
+            MAX_SYNC_ATTEMPTS_KEY,
+            ContentType.TEXT.toString(),
+            ContentType.TEXT.toString(),
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( String.valueOf( MAX_SYNC_ATTEMPTS_DEFAULT_VALUE ) ) );
+
+        // -----------------------------------------
+        response = systemSettingActions.get(
+            MAX_PASSWORD_LENGTH_KEY,
+            ContentType.TEXT.toString(),
+            ContentType.TEXT.toString(),
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( String.valueOf( MAX_PASSWORD_LENGTH_DEFAULT_VALUE ) ) );
+
+        // -----------------------------------------
+        response = systemSettingActions.get( EMAIL_SENDER_KEY,
+            ContentType.TEXT.toString(),
+            ContentType.TEXT.toString(),
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( EMAIL_SENDER_DEFAULT_VALUE ) );
     }
 }
