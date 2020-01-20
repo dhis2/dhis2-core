@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,12 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
@@ -42,14 +46,8 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -65,11 +63,11 @@ public enum SettingKey
     AUTO_SAVE_TRACKED_ENTITY_REGISTRATION_ENTRY_FORM( "keyAutoSavetTrackedEntityForm", Boolean.FALSE, Boolean.class ),
     AUTO_SAVE_DATA_ENTRY_FORM( "keyAutoSaveDataEntryForm", Boolean.FALSE, Boolean.class ),
     TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" ),
-    APPLICATION_TITLE( "applicationTitle", "DHIS 2", String.class ),
-    APPLICATION_INTRO( "keyApplicationIntro" ),
-    APPLICATION_NOTIFICATION( "keyApplicationNotification" ),
-    APPLICATION_FOOTER( "keyApplicationFooter" ),
-    APPLICATION_RIGHT_FOOTER( "keyApplicationRightFooter" ),
+    APPLICATION_TITLE( "applicationTitle", "DHIS 2", String.class, false, true ),
+    APPLICATION_INTRO( "keyApplicationIntro", true ),
+    APPLICATION_NOTIFICATION( "keyApplicationNotification", true ),
+    APPLICATION_FOOTER( "keyApplicationFooter", true ),
+    APPLICATION_RIGHT_FOOTER( "keyApplicationRightFooter", true ),
     FLAG( "keyFlag", "dhis2", String.class ),
     FLAG_IMAGE( "keyFlagImage" ),
     START_MODULE( "startModule", "dhis-web-dashboard", String.class ),
@@ -79,7 +77,7 @@ public enum SettingKey
     EMAIL_USERNAME( "keyEmailUsername" ),
     EMAIL_TLS( "keyEmailTls", Boolean.TRUE, Boolean.class ),
     EMAIL_SENDER( "keyEmailSender", "no-reply@dhis2.org", String.class ),
-    EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true ),
+    EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true, false ),
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     SMS_CONFIG( "keySmsSetting", SmsConfiguration.class ),
@@ -150,7 +148,7 @@ public enum SettingKey
     STYLE( "keyStyle", "light_blue/light_blue.css", String.class ),
     REMOTE_INSTANCE_URL( "keyRemoteInstanceUrl", "", String.class ),
     REMOTE_INSTANCE_USERNAME( "keyRemoteInstanceUsername", "", String.class ),
-    REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true ),
+    REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true, false ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
     GOOGLE_CLOUD_API_KEY( "keyGoogleCloudApiKey", "AIzaSyDWyCSemDgAxocSL7j9Dy4mi93xTTcPEek", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
@@ -190,6 +188,8 @@ public enum SettingKey
 
     private boolean confidential;
 
+    private boolean translatable;
+
     private static final ImmutableSet<String> NAMES = getNameSet();
 
     // -------------------------------------------------------------------------
@@ -202,6 +202,16 @@ public enum SettingKey
         this.defaultValue = null;
         this.clazz = String.class;
         this.confidential = false;
+        this.translatable = false;
+    }
+
+    SettingKey( String name, boolean translatable )
+    {
+        this.name = name;
+        this.defaultValue = null;
+        this.clazz = String.class;
+        this.confidential = false;
+        this.translatable = translatable;
     }
 
     SettingKey( String name, Class<?> clazz )
@@ -210,6 +220,7 @@ public enum SettingKey
         this.defaultValue = null;
         this.clazz = clazz;
         this.confidential = false;
+        this.translatable = false;
     }
 
     SettingKey( String name, Serializable defaultValue, Class<?> clazz )
@@ -218,14 +229,16 @@ public enum SettingKey
         this.defaultValue = defaultValue;
         this.clazz = clazz;
         this.confidential = false;
+        this.translatable = false;
     }
 
-    SettingKey( String name, Serializable defaultValue, Class<?> clazz, boolean confidential )
+    SettingKey( String name, Serializable defaultValue, Class<?> clazz, boolean confidential, boolean translatable )
     {
         this.name = name;
         this.defaultValue = defaultValue;
         this.clazz = clazz;
         this.confidential = confidential;
+        this.translatable = translatable;
     }
 
     // -------------------------------------------------------------------------
@@ -343,5 +356,20 @@ public enum SettingKey
     public boolean isConfidential()
     {
         return confidential;
+    }
+
+    public boolean isTranslatable()
+    {
+        return translatable;
+    }
+
+    @Override public String toString()
+    {
+        return new StringJoiner( ", ", SettingKey.class.getSimpleName() + "[", "]" )
+            .add( "name='" + name + "'" )
+            .add( "defaultValue=" + defaultValue )
+            .add( "clazz=" + clazz )
+            .add( "confidential=" + confidential )
+            .add( "translatable=" + translatable ).toString();
     }
 }
