@@ -39,30 +39,15 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
 public class MetadataAudit
 {
-    private boolean persist;
-
     private boolean log;
 
     public MetadataAudit()
     {
     }
 
-    public MetadataAudit( boolean persist, boolean log )
+    public MetadataAudit( boolean log )
     {
-        this.persist = persist;
         this.log = log;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isPersist()
-    {
-        return persist;
-    }
-
-    public void setPersist( boolean persist )
-    {
-        this.persist = persist;
     }
 
     @JsonProperty
@@ -77,8 +62,4 @@ public class MetadataAudit
         this.log = log;
     }
 
-    public boolean isAudit()
-    {
-        return log || persist;
-    }
 }

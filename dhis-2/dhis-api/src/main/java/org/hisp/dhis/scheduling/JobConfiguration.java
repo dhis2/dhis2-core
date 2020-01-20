@@ -101,11 +101,6 @@ public class JobConfiguration
     private Integer delay;
 
     /**
-     * Indicates this job should be triggered continuously.
-     */
-    private boolean continuousExecution = false;
-
-    /**
      * Parameters of the job. Jobs can use their own implementation of the {@link JobParameters} class.
      */
     private JobParameters jobParameters;
@@ -139,6 +134,14 @@ public class JobConfiguration
     {
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param userUid the user UID.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String userUid, boolean inMemoryJob )
     {
         this.name = name;
@@ -148,20 +151,36 @@ public class JobConfiguration
         init();
     }
 
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled )
+    /**
+     * Constructor which implies enabled true and in-memory job false.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     */
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters )
     {
-        this( name, jobType, cronExpression, jobParameters, continuousExecution, enabled, false );
+        this( name, jobType, cronExpression, jobParameters, true, false );
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     * @param enabled whether this job is enabled.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled, boolean inMemoryJob )
+        boolean enabled, boolean inMemoryJob )
     {
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
-        this.continuousExecution = continuousExecution;
         this.enabled = enabled;
         this.inMemoryJob = inMemoryJob;
         setJobStatus( enabled ? SCHEDULED : DISABLED );
@@ -184,29 +203,25 @@ public class JobConfiguration
      * Checks if this job has changes compared to the specified job configuration that are only
      * allowed for configurable jobs.
      *
-     * @param jobConfiguration the job configuration that should be checked.
+     * @param other the job configuration that should be checked.
      * @return <code>true</code> if this job configuration has changes in fields that are only
-     * allowed for configurable jobs, <code>false</code> otherwise.
+     *          allowed for configurable jobs, <code>false</code> otherwise.
      */
-    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration jobConfiguration )
+    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration other )
     {
-        if ( jobType != jobConfiguration.getJobType() )
+        if ( this.jobType != other.getJobType() )
         {
             return true;
         }
-        if ( jobStatus != jobConfiguration.getJobStatus() )
+        if ( this.jobStatus != other.getJobStatus() )
         {
             return true;
         }
-        if ( jobParameters != jobConfiguration.getJobParameters() )
+        if ( this.jobParameters != other.getJobParameters() )
         {
             return true;
         }
-        if ( continuousExecution != jobConfiguration.isContinuousExecution() )
-        {
-            return true;
-        }
-        return enabled != jobConfiguration.isEnabled();
+        return this.enabled != other.isEnabled();
     }
 
     @JacksonXmlProperty
@@ -232,7 +247,6 @@ public class JobConfiguration
             ", delay='" + delay + '\'' +
             ", jobParameters=" + jobParameters +
             ", enabled=" + enabled +
-            ", continuousExecution=" + continuousExecution +
             ", inMemoryJob=" + inMemoryJob +
             ", lastRuntimeExecution='" + lastRuntimeExecution + '\'' +
             ", userUid='" + userUid + '\'' +
@@ -282,18 +296,6 @@ public class JobConfiguration
     public void setDelay( Integer delay )
     {
         this.delay = delay;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public boolean isContinuousExecution()
-    {
-        return continuousExecution;
-    }
-
-    public void setContinuousExecution( boolean continuousExecution )
-    {
-        this.continuousExecution = continuousExecution;
     }
 
     /**

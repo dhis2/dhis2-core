@@ -144,14 +144,13 @@ public class DefaultJobInstance
             return;
         }
 
-        if ( !jobConfiguration.isContinuousExecution() )
-        {
-            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
-        }
-
         if ( !jobConfiguration.isEnabled() )
         {
             jobConfiguration.setJobStatus( JobStatus.DISABLED );
+        }
+        else
+        {
+            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
         }
 
         jobConfiguration.setNextExecutionTime( null );

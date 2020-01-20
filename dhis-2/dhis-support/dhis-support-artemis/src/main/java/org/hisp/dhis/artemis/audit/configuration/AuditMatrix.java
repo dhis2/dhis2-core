@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters.jackson;
+package org.hisp.dhis.artemis.audit.configuration;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,39 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.util.StdConverter;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Cleans the resulting job configuration after de-serializing.
- *
- * @author Volker Schmidt
+ * @author Luciano Fiandesio
  */
-public class JobConfigurationSanitizer extends StdConverter<JobConfiguration, JobConfiguration>
+@Component
+@DependsOn( "dhisConfigurationProvider" )
+public class AuditMatrix
 {
-    @Override
-    public JobConfiguration convert( JobConfiguration value )
-    {
-        if ( value == null )
-        {
-            return null;
-        }
+    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
 
-        final JobConfiguration jobConfiguration = new JobConfiguration( value.getName(), value.getJobType(),
-            value.getCronExpression(), value.getJobParameters(), value.isEnabled(), value.isInMemoryJob() );
-        jobConfiguration.setDelay( value.getDelay() );
-        jobConfiguration.setLeaderOnlyJob( value.isLeaderOnlyJob() );
-        jobConfiguration.setUid( value.getUid() );
-        return jobConfiguration;
+    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
+    {
+        checkNotNull( auditMatrixConfigurer );
+
+        matrix = auditMatrixConfigurer.configure();
+    }
+
+    public boolean isEnabled( Audit audit )
+    {
+        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
+    }
+
+    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
+    {
+        return matrix.get( auditScope ).getOrDefault( auditType, false );
     }
 }

@@ -54,7 +54,8 @@ public class HibernatePotentialDuplicateStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
+            deletedObjectService,
             aclService, false );
     }
 
@@ -79,7 +80,8 @@ public class HibernatePotentialDuplicateStore
     {
         if ( query.getTeis() != null && query.getTeis().size() > 0 )
         {
-            Query<PotentialDuplicate> hibernateQuery = getTypedQuery( "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
+            Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
+                "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
             hibernateQuery.setParameterList( "uids", query.getTeis() );
             return hibernateQuery.getResultList();
         }
@@ -101,13 +103,13 @@ public class HibernatePotentialDuplicateStore
         if ( potentialDuplicate.getTeiB() == null )
         {
             query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where pd.teiA = :teia limit 1", BigInteger.class );
+                "where pd.teiA = :teia limit 1" );
             query.setParameter( "teia", potentialDuplicate.getTeiA() );
         }
         else
         {
             query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia) limit 1", BigInteger.class );
+                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia) limit 1" );
 
             query.setParameter( "teia", potentialDuplicate.getTeiA() );
             query.setParameter( "teib", potentialDuplicate.getTeiB() );

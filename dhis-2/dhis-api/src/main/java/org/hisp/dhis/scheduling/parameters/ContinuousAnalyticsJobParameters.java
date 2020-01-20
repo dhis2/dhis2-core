@@ -57,7 +57,7 @@ public class ContinuousAnalyticsJobParameters
     /**
      * The hour of day at which the full analytics table update will be invoked.
      */
-    private Integer hourOfDay;
+    private Integer fullUpdateHourOfDay = 0;
 
     /**
      * The number of last years of data to include in the full analytics table update.
@@ -73,24 +73,25 @@ public class ContinuousAnalyticsJobParameters
     {
     }
 
-    public ContinuousAnalyticsJobParameters( Integer hourOfDay, Integer lastYears, Set<AnalyticsTableType> skipTableTypes )
+    public ContinuousAnalyticsJobParameters( Integer fullUpdateHourOfDay, Integer lastYears, Set<AnalyticsTableType> skipTableTypes )
     {
-        this.hourOfDay = hourOfDay;
+        this.fullUpdateHourOfDay = fullUpdateHourOfDay;
         this.lastYears = lastYears;
         this.skipTableTypes = skipTableTypes;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getHourOfDay()
+    public Integer getFullUpdateHourOfDay()
     {
-        return hourOfDay;
+        return fullUpdateHourOfDay;
     }
 
-    public void setHourOfDay( Integer hourOfDay )
+    public void setFullUpdateHourOfDay( Integer fullUpdateHourOfDay )
     {
-        this.hourOfDay = hourOfDay;
+        this.fullUpdateHourOfDay = fullUpdateHourOfDay;
     }
+
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

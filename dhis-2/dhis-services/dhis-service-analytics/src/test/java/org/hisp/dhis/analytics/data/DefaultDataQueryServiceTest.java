@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -154,7 +153,6 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
         mockDimensionService();
@@ -570,7 +568,6 @@ public class DefaultDataQueryServiceTest
         assertTrue( Ordering.natural().isOrdered( result ) );
     }
 
-    @SuppressWarnings("unchecked")
     private void initOrgUnitGroup( String ouGroupUID )
     {
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )

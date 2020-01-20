@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters.jackson;
+package org.hisp.dhis.artemis.audit;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,15 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.util.StdConverter;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
 /**
- * Cleans the resulting job configuration after de-serializing.
- *
- * @author Volker Schmidt
+ * @author Luciano Fiandesio
  */
-public class JobConfigurationSanitizer extends StdConverter<JobConfiguration, JobConfiguration>
+@Value
+@AllArgsConstructor
+public class AuditableEntity
 {
-    @Override
-    public JobConfiguration convert( JobConfiguration value )
-    {
-        if ( value == null )
-        {
-            return null;
-        }
-
-        final JobConfiguration jobConfiguration = new JobConfiguration( value.getName(), value.getJobType(),
-            value.getCronExpression(), value.getJobParameters(), value.isEnabled(), value.isInMemoryJob() );
-        jobConfiguration.setDelay( value.getDelay() );
-        jobConfiguration.setLeaderOnlyJob( value.isLeaderOnlyJob() );
-        jobConfiguration.setUid( value.getUid() );
-        return jobConfiguration;
-    }
+    private Object entity;
 }
