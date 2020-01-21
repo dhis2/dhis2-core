@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,12 @@ package org.hisp.dhis.setting;
  */
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
 
 /**
- * TODO make IdentifiableObject
- * 
  * @author Stian Strandli
  */
 public class SystemSetting
@@ -44,13 +46,7 @@ public class SystemSetting
 
     private Serializable value;
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
-
-    public SystemSetting()
-    {
-    }
+    protected Map<String, String> translations = new HashMap<>();
 
     // -------------------------------------------------------------------------
     // Logic
@@ -95,6 +91,27 @@ public class SystemSetting
         this.value = value;
     }
 
+    public Map<String, String> getTranslations()
+    {
+        return translations;
+    }
+
+    public void setTranslations( Map<String, String> translations )
+    {
+        if ( translations != null )
+        {
+            this.translations = new HashMap<>( translations );
+        }
+        else
+        {
+            this.translations.clear();
+        }
+    }
+
+    public Optional<String> getTranslation( String locale ) {
+        return Optional.ofNullable( translations.get( locale ) );
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -131,5 +148,15 @@ public class SystemSetting
         result = result * prime + name.hashCode();
 
         return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        return new StringJoiner( ", ", SystemSetting.class.getSimpleName() + "[", "]" )
+            .add( "id=" + id )
+            .add( "name='" + name + "'" )
+            .add( "value='" + value + "'" )
+            .add( "translations=" + translations ).toString();
     }
 }

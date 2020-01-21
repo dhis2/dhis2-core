@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Stian Strandli
@@ -40,11 +41,30 @@ public interface SystemSettingManager
 {
     void saveSystemSetting( SettingKey setting, Serializable value );
 
+    /**
+     * Saves the translation for given setting key and locale if given setting key is translatable.
+     * If the translation string contains an empty string, the translation for given locale and key is removed.
+     *
+     * @param key SettingKey
+     * @param locale locale of the translation
+     * @param translation Actual translation
+     */
+    void saveSystemSettingTranslation( SettingKey key, String locale, String translation );
+
     void deleteSystemSetting( SettingKey setting );
 
     Serializable getSystemSetting( SettingKey setting );
 
     Serializable getSystemSetting( SettingKey setting, Serializable defaultValue );
+
+    /**
+     * Returns the translation for given setting key and locale or empty Optional if no translation is
+     * available or setting key is not translatable.
+     * @param key SettingKey
+     * @param locale Locale of required translation
+     * @return The Optional with the actual translation or empty Optional
+     */
+    Optional<String> getSystemSettingTranslation( SettingKey key, String locale );
 
     List<SystemSetting> getAllSystemSettings();
 
@@ -80,7 +100,7 @@ public interface SystemSettingManager
     boolean accountRecoveryEnabled();
 
     boolean selfRegistrationNoRecaptcha();
-    
+
     boolean emailConfigured();
 
     boolean systemNotificationEmailValid();
@@ -94,4 +114,6 @@ public interface SystemSettingManager
     Integer credentialsExpires();
 
     boolean isConfidential( String name );
+
+    boolean isTranslatable( String name );
 }
