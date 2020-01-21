@@ -173,7 +173,7 @@ public class HibernateTrackedEntityInstanceStore
             hql = hql.replaceFirst( "select tei from", "select distinct tei from" );
         }
 
-        Query<TrackedEntityInstance> query = getQuery( hql );
+        Query query = getSession().createQuery( hql );
 
         if ( params.isPaging() )
         {
