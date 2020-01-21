@@ -54,7 +54,6 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.DEFAULT } )
 @RequestMapping( value = DashboardSchemaDescriptor.API_ENDPOINT )
 public class DashboardController
     extends AbstractCrudController<Dashboard>
@@ -68,7 +67,8 @@ public class DashboardController
 
     @RequestMapping( value = "/q/{query}", method = RequestMethod.GET )
     public @ResponseBody DashboardSearchResult search( @PathVariable String query,
-        @RequestParam( required = false ) Set<DashboardItemType> max, @RequestParam( required = false ) Integer count,
+        @RequestParam( required = false ) Set<DashboardItemType> max,
+        @RequestParam( required = false ) Integer count,
         @RequestParam( required = false ) Integer maxCount )
     {
         return dashboardService.search( query, max, count, maxCount );
