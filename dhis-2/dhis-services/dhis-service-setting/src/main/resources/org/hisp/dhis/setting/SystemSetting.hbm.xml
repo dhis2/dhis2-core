@@ -18,5 +18,7 @@
 
     <property name="value" type="serializable" length="65535" />
 
+    <property name="translations" type="jbObject"/>
+
   </class>
 </hibernate-mapping>
