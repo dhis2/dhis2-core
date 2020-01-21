@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 import java.util.List;
 
@@ -50,6 +51,16 @@ public interface EventQueryValidator
         throws IllegalQueryException, MaintenanceModeException;
 
     /**
+     * Validates the given query. Returns null if the query is valid, or an
+     * {@link ErrorMessage} describing the validation violation if the query
+     * is invalid.
+     *
+     * @param params the event query parameters.
+     * @return null if valid or {@link ErrorMessage} if invalid.
+     */
+    ErrorMessage validateForErrorMessage( EventQueryParams params );
+
+    /**
      * Validates whether the given table layout is valid for the given query.
      * Throws an IllegalQueryException if the query is not valid with a
      * descriptive message. Returns normally if the query is valid.
@@ -65,7 +76,7 @@ public interface EventQueryValidator
     /**
      * Returns the max number of records to return. A value of 0 indicates no limit.
      *
-     * @return the max number of recrods to return.
+     * @return the max number of records to return.
      */
     int getMaxLimit();
 }
