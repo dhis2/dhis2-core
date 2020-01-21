@@ -46,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 /**
  * @author Lars Helge Overland
  */
@@ -125,12 +127,12 @@ public class Chart
     @Override
     public void populateAnalyticalProperties()
     {
-        if ( series != null )
+        if ( !isEmpty( series ) )
         {
             columns.add( getDimensionalObject( series ) );
         }
 
-        if ( category != null )
+        if ( !isEmpty( category ) )
         {
             rows.add( getDimensionalObject( category ) );
         }

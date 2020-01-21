@@ -123,17 +123,17 @@ public class DashboardItem
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public DashboardItemType getType()
     {
-        if ( visualization != null )
-        {
-            return DashboardItemType.VISUALIZATION;
-        }
-        else if ( chart != null )
+        if ( chart != null )
         {
             return DashboardItemType.CHART;
         }
         else if ( reportTable != null )
         {
             return DashboardItemType.REPORT_TABLE;
+        }
+        else if ( visualization != null )
+        {
+            return DashboardItemType.VISUALIZATION;
         }
         else if ( eventChart != null )
         {
@@ -181,17 +181,17 @@ public class DashboardItem
      */
     public InterpretableObject getEmbeddedItem()
     {
-        if ( visualization != null )
-        {
-            return visualization;
-        }
-        else if ( chart != null )
+        if ( chart != null )
         {
             return chart;
         }
         else if ( reportTable != null )
         {
             return reportTable;
+        }
+        else if ( visualization != null )
+        {
+            return visualization;
         }
         else if ( eventChart != null )
         {
