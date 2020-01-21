@@ -39,6 +39,8 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,6 +52,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -159,6 +163,18 @@ public class EventQueryValidatorTest
         queryValidator.validate( params );
     }
 
+    @Test
+    public void validateErrorNoStartEndDatePeriods()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7205, error.getErrorCode() );
+    }
+
     @Test( expected = IllegalQueryException.class )
     public void validateInvalidQueryItem()
     {
@@ -196,5 +212,31 @@ public class EventQueryValidatorTest
             .withOrgUnitField( "notAUid" ).build();
 
         queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateErrorPage()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withPage( -2 ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7207, error.getErrorCode() );
+    }
+
+    @Test
+    public void validateErrorPageSize()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withPageSize( -1 ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7208, error.getErrorCode() );
     }
 }

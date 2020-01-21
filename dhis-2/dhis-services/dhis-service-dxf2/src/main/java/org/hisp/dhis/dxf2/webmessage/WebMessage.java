@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.springframework.http.HttpStatus;
 
@@ -66,6 +67,12 @@ public class WebMessage
     protected HttpStatus httpStatus = HttpStatus.OK;
 
     /**
+     * The {@link ErrorCode} which describes a potential error. Only relevant for {@link Status#WARNING}
+     * and {@link Status#ERROR}.
+     */
+    protected ErrorCode errorCode;
+
+    /**
      * Non-technical message, should be simple and could possibly be used to display message
      * to an end-user.
      */
@@ -87,7 +94,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Constructors
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     public WebMessage()
     {
@@ -106,7 +113,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Logic
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     public boolean isOk()
     {
@@ -125,7 +132,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Get and set methods
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -168,6 +175,18 @@ public class WebMessage
     public Integer getHttpStatusCode()
     {
         return httpStatus.value();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
+    }
+
+    public void setErrorCode( ErrorCode errorCode )
+    {
+        this.errorCode = errorCode;
     }
 
     @JsonProperty

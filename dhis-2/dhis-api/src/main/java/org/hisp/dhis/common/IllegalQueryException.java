@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,19 +26,38 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.common;
+
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+
 /**
  * @author Lars Helge Overland
  */
 public class IllegalQueryException
     extends RuntimeException
 {
+    private ErrorCode errorCode;
+
     public IllegalQueryException( String message )
     {
         super( message );
     }
-    
-    public IllegalQueryException( String message, Throwable throwable ) 
+
+    public IllegalQueryException( ErrorCode errorCode )
     {
-        super( message, throwable );
+        super( errorCode.getMessage() );
+        this.errorCode = errorCode;
+    }
+
+    public IllegalQueryException( ErrorMessage errorMessage )
+    {
+        super( errorMessage.getMessage() );
+        this.errorCode = errorMessage.getErrorCode();
+    }
+
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
     }
 }
