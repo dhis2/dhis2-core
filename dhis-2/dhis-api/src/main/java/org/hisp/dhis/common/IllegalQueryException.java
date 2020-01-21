@@ -32,6 +32,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
+ * Exception representing an illegal query.
+ *
  * @author Lars Helge Overland
  */
 public class IllegalQueryException
@@ -39,17 +41,33 @@ public class IllegalQueryException
 {
     private ErrorCode errorCode;
 
+    /**
+     * Constructor.
+     *
+     * @param message the exception message.
+     */
     public IllegalQueryException( String message )
     {
         super( message );
     }
 
+    /**
+     * Constructor. Sets the message based on the error code message.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     */
     public IllegalQueryException( ErrorCode errorCode )
     {
         super( errorCode.getMessage() );
         this.errorCode = errorCode;
     }
 
+    /**
+     * Constructor. Sets the message and error code based
+     * on the error message.
+     *
+     * @param errorMessage the {@link ErrorMessage}.
+     */
     public IllegalQueryException( ErrorMessage errorMessage )
     {
         super( errorMessage.getMessage() );
