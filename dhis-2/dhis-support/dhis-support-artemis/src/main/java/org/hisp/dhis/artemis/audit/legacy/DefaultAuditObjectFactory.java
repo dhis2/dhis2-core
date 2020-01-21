@@ -69,7 +69,14 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 
     private Object handleTracker( AuditType auditType, Object object, String user )
     {
-        return null;
+        if ( !(object instanceof IdentifiableObject) )
+        {
+            return null;
+        }
+
+        return renderService.toJsonAsString( MetadataAuditPayload.builder()
+            .identifiableObject( (IdentifiableObject) object )
+            .build() );
     }
 
     private Object handleAggregate( AuditType auditType, Object object, String user )

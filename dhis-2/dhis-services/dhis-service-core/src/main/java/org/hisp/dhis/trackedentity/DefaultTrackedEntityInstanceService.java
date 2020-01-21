@@ -70,6 +70,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,6 +119,8 @@ public class DefaultTrackedEntityInstanceService
 
     private final AuditManager auditManager;
 
+    private final ApplicationEventPublisher publisher;
+
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -125,7 +128,8 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
         TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager )
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager,
+        ApplicationEventPublisher publisher )
     {
         checkNotNull( trackedEntityInstanceStore );
         checkNotNull( attributeValueService );
@@ -150,6 +154,7 @@ public class DefaultTrackedEntityInstanceService
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;
+        this.publisher = publisher;
     }
 
     // -------------------------------------------------------------------------
@@ -874,6 +879,8 @@ public class DefaultTrackedEntityInstanceService
     {
         trackedEntityInstanceStore.save( instance );
 
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.CREATE );
+
         return instance.getId();
     }
 
@@ -1016,7 +1023,7 @@ public class DefaultTrackedEntityInstanceService
 
     private void sendAuditEvent( AuditType auditType, TrackedEntityAuditPayload auditPayload )
     {
-        auditManager.send( Audit.builder()
+        publisher.publishEvent( Audit.builder()
             .auditType( mapAuditType( auditType ) )
             .auditScope( AuditScope.TRACKER )
             .createdAt( LocalDateTime.now() )
@@ -1031,6 +1038,8 @@ public class DefaultTrackedEntityInstanceService
     {
         switch ( auditType )
         {
+            case CREATE:
+                return org.hisp.dhis.audit.AuditType.CREATE;
             case SEARCH:
                 return org.hisp.dhis.audit.AuditType.SEARCH;
             case READ:
