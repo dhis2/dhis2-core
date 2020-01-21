@@ -190,11 +190,11 @@ public class SystemSettingController
         Optional<SettingKey> settingKey = SettingKey.getByName( key );
         if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
         {
-            String localeToFetch = getLocaleToFetch( locale, key );
+            Optional<String> localeToFetch = getLocaleToFetch( locale, key );
 
-            if ( StringUtils.isNotEmpty( localeToFetch ) )
+            if ( localeToFetch.isPresent() )
             {
-                Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch );
+                Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch.get() );
 
                 if ( translation.isPresent() )
                 {
@@ -209,7 +209,7 @@ public class SystemSettingController
         return StringUtils.EMPTY;
     }
 
-    private String getLocaleToFetch( String locale, String key )
+    private Optional<String> getLocaleToFetch( String locale, String key )
     {
         if ( systemSettingManager.isTranslatable( key ) )
         {
@@ -217,7 +217,7 @@ public class SystemSettingController
 
             if ( StringUtils.isNotEmpty( locale ) )
             {
-                return locale;
+                return Optional.of( locale );
             }
             else if ( currentUser != null )
             {
@@ -225,12 +225,12 @@ public class SystemSettingController
 
                 if ( userLocale != null )
                 {
-                    return userLocale.getLanguage();
+                    return Optional.of( userLocale.getLanguage() );
                 }
             }
         }
 
-        return StringUtils.EMPTY;
+        return Optional.empty();
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
