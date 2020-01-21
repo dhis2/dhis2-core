@@ -128,7 +128,6 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getOrganisationUnits( OrganisationUnitQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();
@@ -179,7 +178,7 @@ public class HibernateOrganisationUnitStore
 
         hql += "order by o." +  params.getOrderBy().getName();
 
-        Query query = getQuery( hql );
+        Query<OrganisationUnit> query = getQuery( hql );
 
         if ( params.hasQuery() )
         {

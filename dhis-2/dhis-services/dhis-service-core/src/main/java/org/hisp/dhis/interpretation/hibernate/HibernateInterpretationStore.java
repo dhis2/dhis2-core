@@ -62,26 +62,24 @@ public class HibernateInterpretationStore
         super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, deletedObjectService, aclService, false );
     }
 
-    @SuppressWarnings("unchecked")
     public List<Interpretation> getInterpretations( User user )
     {
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql )
+        Query<Interpretation> query = getQuery( hql )
             .setParameter( "user", user )
             .setCacheable( cacheable );
 
         return query.list();
     }
 
-    @SuppressWarnings("unchecked")
     public List<Interpretation> getInterpretations( User user, int first, int max )
     {
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql )
+        Query<Interpretation> query = getQuery( hql )
             .setParameter( "user", user )
             .setMaxResults( first )
             .setMaxResults( max )
@@ -125,10 +123,9 @@ public class HibernateInterpretationStore
     {
         String hql = "from Interpretation i where i.chart.id = " + id;
 
-        Query query = getSession().createQuery( hql )
-            .setCacheable( cacheable );
+        Query<Interpretation> query = getQuery( hql );
 
-        return (Interpretation) query.uniqueResult();
+        return query.uniqueResult();
     }
 
     @Override

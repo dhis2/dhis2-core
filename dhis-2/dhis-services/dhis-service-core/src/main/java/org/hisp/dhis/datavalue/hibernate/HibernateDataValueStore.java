@@ -316,7 +316,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
         }
 
-        Query query = getQuery( hql )
+        Query<DataValue> query = getQuery( hql )
             .setParameter( "dataElements", dataElements )
             .setParameter( "period", storedPeriod );
 

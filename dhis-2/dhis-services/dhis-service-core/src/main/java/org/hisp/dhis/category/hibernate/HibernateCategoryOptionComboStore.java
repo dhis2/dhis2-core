@@ -78,7 +78,7 @@ public class HibernateCategoryOptionComboStore
             hql += " and :option" + option.getId() + " in elements (co.categoryOptions)";
         }
 
-        Query query = getQuery( hql );
+        Query<CategoryOptionCombo> query = getQuery( hql );
 
         query.setParameter( "categoryCombo", categoryCombo );
 
@@ -87,7 +87,7 @@ public class HibernateCategoryOptionComboStore
             query.setParameter( "option" + option.getId(), option );
         }
 
-        return (CategoryOptionCombo) query.uniqueResult();
+        return query.uniqueResult();
     }
 
     @Override
