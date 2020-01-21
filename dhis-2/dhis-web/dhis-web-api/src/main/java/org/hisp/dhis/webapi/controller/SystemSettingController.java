@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,16 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -35,33 +45,20 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Lars Helge Overland
@@ -71,21 +68,87 @@ import java.util.stream.Collectors;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SystemSettingController
 {
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
+    private final RenderService renderService;
+    private final WebMessageService webMessageService;
+    private final CurrentUserService currentUserService;
+    private final UserSettingService userSettingService;
 
-    @Autowired
-    private RenderService renderService;
+    public SystemSettingController( SystemSettingManager systemSettingManager, RenderService renderService,
+        WebMessageService webMessageService, CurrentUserService currentUserService,
+        UserSettingService userSettingService )
+    {
+        checkNotNull( systemSettingManager );
+        checkNotNull( renderService );
+        checkNotNull( webMessageService );
+        checkNotNull( currentUserService );
+        checkNotNull( userSettingService );
 
-    @Autowired
-    private WebMessageService webMessageService;
+        this.systemSettingManager = systemSettingManager;
+        this.renderService = renderService;
+        this.webMessageService = webMessageService;
+        this.currentUserService = currentUserService;
+        this.userSettingService = userSettingService;
+    }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31 }, exclude = { DhisApiVersion.V26,
         DhisApiVersion.V27, DhisApiVersion.V28 } )
-    public void setSystemSettingV29( @PathVariable( value = "key" ) String key, @RequestParam( value = "value", required = false ) String value,
+    public void setSystemSettingOrTranslation( @PathVariable( value = "key" ) String key,
+        @RequestParam( value = "locale", required = false ) String locale,
+        @RequestParam( value = "value", required = false ) String value,
         @RequestBody( required = false ) String valuePayload, HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
+    {
+        validateParameters( key, value, valuePayload );
+
+        Optional<SettingKey> setting = SettingKey.getByName( key );
+
+        if ( !setting.isPresent() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+        }
+
+        value = ObjectUtils.firstNonNull( value, valuePayload );
+
+        if ( StringUtils.isEmpty( locale ) )
+        {
+            saveSystemSetting( key, value, setting.get(), response, request );
+        }
+        else
+        {
+            saveSystemSettingTranslation( key, locale, value, setting.get(), response, request );
+        }
+    }
+
+    private void saveSystemSetting( String key, String value, SettingKey setting,
+        HttpServletResponse response, HttpServletRequest request )
+    {
+        Serializable valueObject = SettingKey.getAsRealClass( key, value );
+
+        systemSettingManager.saveSystemSetting( setting, valueObject );
+
+        webMessageService.send( WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response, request );
+    }
+
+    private void saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting,
+        HttpServletResponse response, HttpServletRequest request) throws WebMessageException
+    {
+        try
+        {
+            systemSettingManager.saveSystemSettingTranslation( setting, locale, value );
+        }
+        catch ( IllegalStateException e )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( e.getMessage() ) );
+        }
+
+        webMessageService.send( WebMessageUtils.ok( "Translation for system setting '" + key +
+            "' and locale: '" + locale + "' set to: '" + value + "'" ), response, request );
+    }
+
+    private void validateParameters( String key, String value, String valuePayload )
         throws WebMessageException
     {
         if ( key == null )
@@ -97,21 +160,6 @@ public class SystemSettingController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
         }
-
-        value = ObjectUtils.firstNonNull( value, valuePayload );
-
-        Optional<SettingKey> setting = SettingKey.getByName( key );
-
-        if ( !setting.isPresent() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
-        }
-
-        Serializable valueObject = SettingKey.getAsRealClass( key, value );
-
-        systemSettingManager.saveSystemSetting( setting.get(), valueObject );
-
-        webMessageService.send( WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response, request );
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
@@ -138,45 +186,62 @@ public class SystemSettingController
     }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
-    public @ResponseBody String getSystemSettingAsText( @PathVariable( "key" ) String key, HttpServletResponse response )
+    public @ResponseBody String getSystemSettingOrTranslation( @PathVariable( "key" ) String key,
+        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
-        if ( systemSettingManager.isConfidential( key ) )
+        Optional<SettingKey> settingKey = SettingKey.getByName( key );
+        if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
         {
-            return StringUtils.EMPTY;
-        }
-        else
-        {
-            Optional<SettingKey> settingKey = SettingKey.getByName( key );
+            Optional<String> localeToFetch = getLocaleToFetch( locale, key );
 
-            Serializable setting;
+            if ( localeToFetch.isPresent() )
+            {
+                Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch.get() );
 
-            if ( settingKey.isPresent() )
-            {
-                setting = systemSettingManager.getSystemSetting( settingKey.get() );
-            }
-            else
-            {
-                setting = StringUtils.EMPTY;
+                if ( translation.isPresent() )
+                {
+                    return translation.get();
+                }
             }
 
-            return setting != null ? String.valueOf( setting ) : null;
+            Serializable setting = systemSettingManager.getSystemSetting( settingKey.get() );
+            return setting != null ? String.valueOf( setting ) : StringUtils.EMPTY;
         }
+
+        return StringUtils.EMPTY;
+    }
+
+    private Optional<String> getLocaleToFetch( String locale, String key )
+    {
+        if ( systemSettingManager.isTranslatable( key ) )
+        {
+            User currentUser = currentUserService.getCurrentUser();
+
+            if ( StringUtils.isNotEmpty( locale ) )
+            {
+                return Optional.of( locale );
+            }
+            else if ( currentUser != null )
+            {
+                Locale userLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, currentUser );
+
+                if ( userLocale != null )
+                {
+                    return Optional.of( userLocale.getLanguage() );
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> keys, HttpServletResponse response )
-        throws IOException, WebMessageException
+        throws IOException
     {
-        Set<SettingKey> settingKeys = null;
-
-        if ( keys != null )
-        {
-            keys.removeIf( systemSettingManager::isConfidential );
-            settingKeys = keys.stream().map( key -> SettingKey.getByName( key ) ).filter( settingKeyOpt -> settingKeyOpt.isPresent() )
-                .map( settingKeyOpt -> settingKeyOpt.get() ).collect( Collectors.toSet() );
-        }
+        Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
@@ -188,39 +253,45 @@ public class SystemSettingController
         @RequestParam( defaultValue = "callback" ) String callback, HttpServletResponse response )
         throws IOException
     {
-        Set<SettingKey> settingKeys = null;
-
-        if ( keys != null )
-        {
-            keys.removeIf( systemSettingManager::isConfidential );
-            settingKeys = keys.stream().map( key -> SettingKey.getByName( key ) ).filter( settingKeyOpt -> settingKeyOpt.isPresent() )
-                .map( settingKeyOpt -> settingKeyOpt.get() ).collect( Collectors.toSet() );
-        }
+        Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJsonP( response.getOutputStream(), getSystemSettings( settingKeys ), callback );
     }
 
-    private Map<String, Serializable> getSystemSettings( Set<SettingKey> keys )
+    private Set<SettingKey> getSettingKeysToFetch( Set<String> keys )
     {
-        Map<String, Serializable> value;
-        if ( keys != null && !keys.isEmpty() )
+        Set<SettingKey> settingKeys;
+
+        if ( keys != null )
         {
-            value = systemSettingManager.getSystemSettings( keys );
+            keys.removeIf( systemSettingManager::isConfidential );
+            settingKeys = keys.stream()
+                .map( SettingKey::getByName )
+                .filter( Optional::isPresent )
+                .map( Optional::get )
+                .collect( Collectors.toSet() );
         }
         else
         {
-            value = systemSettingManager.getSystemSettingsAsMap();
+            settingKeys = new HashSet<>( Arrays.asList( SettingKey.values() ) );
+            settingKeys.removeIf( key -> systemSettingManager.isConfidential( key.getName() ) );
         }
 
-        return value;
+        return settingKeys;
+    }
+
+    private Map<String, Serializable> getSystemSettings( Set<SettingKey> keys )
+    {
+        return systemSettingManager.getSystemSettings( keys );
     }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void removeSystemSetting( @PathVariable( "key" ) String key )
+    public void removeSystemSetting( @PathVariable( "key" ) String key,
+        @RequestParam( value = "locale", required = false ) String locale )
         throws WebMessageException
     {
         Optional<SettingKey> setting = SettingKey.getByName( key );
@@ -229,6 +300,14 @@ public class SystemSettingController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
         }
-        systemSettingManager.deleteSystemSetting( setting.get() );
+
+        if ( StringUtils.isNotEmpty( locale ) )
+        {
+            systemSettingManager.saveSystemSettingTranslation( setting.get(), locale, StringUtils.EMPTY );
+        }
+        else
+        {
+            systemSettingManager.deleteSystemSetting( setting.get() );
+        }
     }
 }

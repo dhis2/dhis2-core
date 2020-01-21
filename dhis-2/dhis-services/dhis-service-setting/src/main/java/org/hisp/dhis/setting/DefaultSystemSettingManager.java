@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,17 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -39,20 +50,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.Lists;
 
 /**
@@ -66,6 +63,13 @@ import com.google.common.collect.Lists;
 public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
+    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+
+    /**
+     * Cache for system settings. Does not accept nulls. Disabled during test phase.
+     */
+    private Cache<Serializable> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -74,14 +78,6 @@ public class DefaultSystemSettingManager
     private static final Log log = LogFactory.getLog( DefaultSystemSettingManager.class );
 
     private SystemSettingStore systemSettingStore;
-
-    /**
-     * Cache for system settings. Does not accept nulls. Disabled during test phase.
-     */
-    private Cache<Serializable> settingCache;
-
-    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -145,6 +141,32 @@ public class DefaultSystemSettingManager
         {
             setting.setValue( value );
 
+            systemSettingStore.update( setting );
+        }
+    }
+
+    @Override
+    @Transactional
+    public void saveSystemSettingTranslation( SettingKey key, String locale, String translation )
+    {
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
+        if ( setting == null && !translation.isEmpty() )
+        {
+            throw new IllegalStateException( "No entry found for key: " + key );
+        }
+        else if ( setting != null )
+        {
+            if ( translation.isEmpty() )
+            {
+                setting.getTranslations().remove( locale );
+            }
+            else
+            {
+                setting.getTranslations().put( locale, translation );
+            }
+
+            settingCache.invalidate( key.getName() );
             systemSettingStore.update( setting );
         }
     }
@@ -228,6 +250,18 @@ public class DefaultSystemSettingManager
         {
             return Optional.ofNullable( defaultValue );
         }
+    }
+
+    @Override
+    public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
+    {
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
+        if ( setting != null )
+        {
+            return setting.getTranslation( locale );
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -412,5 +446,11 @@ public class DefaultSystemSettingManager
     public boolean isConfidential( String name )
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+    }
+
+    @Override
+    public boolean isTranslatable( final String name )
+    {
+        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
     }
 }
