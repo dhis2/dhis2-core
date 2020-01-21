@@ -28,17 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
-
+import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appstore.AppStoreService;
 import org.hisp.dhis.appstore.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,19 +46,23 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
 @Controller
 @RequestMapping( AppStoreController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AppStoreController
 {
     public static final String RESOURCE_PATH = "/appStore";
 
     @Autowired
     private AppStoreService appStoreService;
-    
+
     @Autowired
     private I18nManager i18nManager;
 

@@ -269,7 +269,7 @@ public class HibernateUserStore
             hql += "order by " + StringUtils.defaultString( orderExpression, "u.surname, u.firstName" );
         }
 
-        Query query = sessionFactory.getCurrentSession().createQuery( hql );
+        Query query = getQuery( hql );
 
         if ( params.getQuery() != null )
         {
