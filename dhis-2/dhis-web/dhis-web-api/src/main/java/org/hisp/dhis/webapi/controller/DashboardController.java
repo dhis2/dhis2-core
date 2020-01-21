@@ -194,7 +194,7 @@ public class DashboardController
             }
         }
     }
-    
+
     private Chart convertToChart( final Visualization visualization )
     {
         final Chart chart = new Chart();
@@ -210,7 +210,7 @@ public class DashboardController
 
         return chart;
     }
-    
+
     private ReportTable convertToReportTable( final Visualization visualization )
     {
         final ReportTable reportTable = new ReportTable();

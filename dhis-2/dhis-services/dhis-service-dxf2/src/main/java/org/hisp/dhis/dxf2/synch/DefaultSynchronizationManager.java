@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.util.Date;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
@@ -59,15 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
-import java.util.Date;
+import org.springframework.web.client.*;
 
 /**
  * @author Lars Helge Overland
@@ -130,7 +125,7 @@ public class DefaultSynchronizationManager
         }
 
         String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL )
-            + "api/completeDataSetRegistrations";
+            + SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS.getPath();
         String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
