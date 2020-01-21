@@ -67,8 +67,7 @@ public class WebMessage
     protected HttpStatus httpStatus = HttpStatus.OK;
 
     /**
-     * The {@link ErrorCode} which describes a potential error. Only relevant for {@link Status#WARNING}
-     * and {@link Status#ERROR}.
+     * The {@link ErrorCode} which describes a potential error. Only relevant for {@link Status#ERROR}.
      */
     protected ErrorCode errorCode;
 
