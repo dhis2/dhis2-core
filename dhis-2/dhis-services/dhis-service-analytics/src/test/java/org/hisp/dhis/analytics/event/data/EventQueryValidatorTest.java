@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
@@ -46,14 +47,21 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Lars Helge Overland
@@ -67,6 +75,7 @@ public class EventQueryValidatorTest
     private DataElement deB;
     private DataElement deC;
     private DataElement deD;
+    private DataElement deE;
 
     private TrackedEntityAttribute atA;
     private TrackedEntityAttribute atB;
@@ -79,17 +88,27 @@ public class EventQueryValidatorTest
     private OptionSet osA;
 
     @Autowired
-    private EventQueryValidator queryValidator;
-
-    @Autowired
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
+    @Mock
+    private QueryValidator aggregateQueryValidator;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    private EventQueryValidator queryValidator;
+
     @Override
     public void setUpTest()
     {
+        queryValidator = new DefaultEventQueryValidator( aggregateQueryValidator, systemSettingManager );
+
         prA = createProgram( 'A' );
         prA.setUid( "programuida" );
 
@@ -99,11 +118,13 @@ public class EventQueryValidatorTest
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
         deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
+        deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
 
         idObjectManager.save( deA );
         idObjectManager.save( deB );
         idObjectManager.save( deC );
         idObjectManager.save( deD );
+        idObjectManager.save( deE );
 
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
@@ -238,5 +259,35 @@ public class EventQueryValidatorTest
         ErrorMessage error = queryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7208, error.getErrorCode() );
+    }
+
+    @Test
+    public void validateErrorMaxLimit()
+    {
+        when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAX_LIMIT ) )
+            .thenReturn( 100 );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withLimit( 200 ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7209, error.getErrorCode() );
+    }
+
+    @Test
+    public void validateErrorClusterSize()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withCoordinateField( deE.getUid() )
+            .withClusterSize( -3L ).build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7212, error.getErrorCode() );
     }
 }

@@ -167,6 +167,8 @@ public class DefaultEventQueryValidator
             error = new ErrorMessage( ErrorCode.E7213, params.getBbox() );
         }
 
+        // TODO validate coordinate field
+
         if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
         {
             error = new ErrorMessage( ErrorCode.E7214 );;
