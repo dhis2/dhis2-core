@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Provides cache builder to build instances.
@@ -54,9 +54,9 @@ public class DefaultCacheProvider implements CacheProvider
     }
 
     @Override
-    public <V> ExtendedCacheBuilder<List<V>> newCacheBuilderForList( Class<V> valueType )
+    public  <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
     {
-        return new ExtendedCacheBuilder<List<V>>( redisTemplate, configurationProvider );
+        return new ExtendedCacheBuilder<Map<K,V>>( redisTemplate, configurationProvider );
     }
 
     @Autowired

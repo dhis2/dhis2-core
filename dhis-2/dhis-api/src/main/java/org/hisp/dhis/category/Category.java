@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -61,7 +60,6 @@ public class Category
 {
     public static final String DEFAULT_NAME = "default";
 
-    @AuditAttribute
     private List<CategoryOption> categoryOptions = new ArrayList<>();
 
     private List<CategoryCombo> categoryCombos = new ArrayList<>();

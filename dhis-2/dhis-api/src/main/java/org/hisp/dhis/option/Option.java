@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -89,7 +88,6 @@ public class Option
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     @Property( PropertyType.TEXT )
-    @AuditAttribute
     public String getCode()
     {
         return super.getCode();
@@ -98,7 +96,6 @@ public class Option
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @AuditAttribute
     public OptionSet getOptionSet()
     {
         return optionSet;
@@ -135,7 +132,6 @@ public class Option
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @AuditAttribute
     public String getFormName()
     {
         return formName;
