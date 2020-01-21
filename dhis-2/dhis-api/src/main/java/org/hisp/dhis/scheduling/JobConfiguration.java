@@ -231,6 +231,13 @@ public class JobConfiguration
         return jobType.isConfigurable();
     }
 
+    @JacksonXmlProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    public SchedulingType getSchedulingType()
+    {
+        return jobType.getSchedulingType();
+    }
+
     public boolean hasCronExpression()
     {
         return cronExpression != null && !cronExpression.isEmpty();
