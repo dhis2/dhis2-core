@@ -296,12 +296,11 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> getByType( ProgramType type )
     {
         String hql = "from ProgramInstance pi where pi.program.programType = :type";
 
-        Query query = getQuery( hql );
+        Query<ProgramInstance> query = getQuery( hql );
         query.setParameter( "type", type );
 
         return query.list();
