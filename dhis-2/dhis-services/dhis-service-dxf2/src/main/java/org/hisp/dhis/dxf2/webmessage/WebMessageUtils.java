@@ -121,7 +121,7 @@ public final class WebMessageUtils
 
     public static WebMessage conflict( String message, ErrorCode errorCode )
     {
-        return createWebMessage( message, Status.ERROR, HttpStatus.CONFLICT );
+        return createWebMessage( message, Status.ERROR, HttpStatus.CONFLICT, errorCode );
     }
 
     public static WebMessage conflict( String message, String devMessage )
