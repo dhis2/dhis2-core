@@ -36,6 +36,8 @@ import org.hisp.dhis.schema.Property;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Class which represents information about a job type.
+ *
  * @author Lars Helge Overland
  */
 public class JobTypeInfo
@@ -54,6 +56,13 @@ public class JobTypeInfo
     {
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job type name.
+     * @param jobType the {@link JobType}.
+     * @param jobParameters the list of {@link Property}.
+     */
     public JobTypeInfo( String name, JobType jobType, List<Property> jobParameters )
     {
         this.name = name;
