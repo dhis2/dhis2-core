@@ -38,6 +38,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Henning Håkonsen
@@ -63,6 +64,23 @@ public class JobConfigurationServiceTest
 
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
+    }
+
+    @Test
+    public void testGetJobTypeInfo()
+    {
+        List<JobTypeInfo> jobTypes = jobConfigurationService.getJobTypeInfo();
+
+        assertNotNull( jobTypes );
+        assertFalse( jobTypes.isEmpty() );
+
+        JobTypeInfo jobType = jobTypes.stream()
+            .filter( j -> j.getJobType() == JobType.CONTINUOUS_ANALYTICS_TABLE )
+            .findFirst().get();
+
+        assertNotNull( jobType );
+        assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType() );
+        assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getKey(), jobType.getKey() );
     }
 
     @Test
