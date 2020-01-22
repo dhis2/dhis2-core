@@ -35,6 +35,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -201,7 +202,7 @@ public class DefaultJobConfigurationService
         {
             Property property = new Property( Primitives.wrap( field.getType() ), null, null );
             property.setName( field.getName() );
-            property.setFieldName( prettyPrint( field.getName() ) );
+            property.setFieldName( TextUtils.getPrettyPropertyName( field.getName() ) );
 
             try
             {
@@ -231,21 +232,5 @@ public class DefaultJobConfigurationService
         }
 
         return jobParameters;
-    }
-
-    /**
-     * Returns a pretty, readable version of the field name.
-     *
-     * @param field the field name.
-     * @return a pretty field name.
-     */
-    private String prettyPrint( String field )
-    {
-        List<String> fieldStrings = Arrays.stream( field.split( "(?=[A-Z])" ) ).map( String::toLowerCase )
-            .collect( Collectors.toList() );
-
-        fieldStrings.set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
-
-        return String.join( " ", fieldStrings );
     }
 }

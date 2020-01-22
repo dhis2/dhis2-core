@@ -536,15 +536,30 @@ public class TextUtils
     }
 
     /**
-     * Returns a human friendly version of the given value which may be on the format
-     * of a property, enum or class name.
+     * Returns a human friendly name of the given enum.
      *
-     * @param property the property.
-     * @return a human friendly version.
+     * @param enumeration the enum.
+     * @return a human friendly name.
      */
     public static String getPrettyEnumName( Enum<?> enumeration )
     {
         return StringUtils.capitalize( enumeration.name().replaceAll( "_", " " ).toLowerCase() );
+    }
+
+    /**
+     * Returns a human friendly name of the given property value.
+     *
+     * @param property the property value.
+     * @return a human friendly name.
+     */
+    public static String getPrettyPropertyName( String property )
+    {
+        List<String> fieldStrings = Arrays.stream( property.split( "(?=[A-Z])" ) ).map( String::toLowerCase )
+            .collect( Collectors.toList() );
+
+        fieldStrings.set( 0, StringUtils.capitalize( fieldStrings.get( 0 ) ) );
+
+        return String.join( " ", fieldStrings );
     }
 
     /**

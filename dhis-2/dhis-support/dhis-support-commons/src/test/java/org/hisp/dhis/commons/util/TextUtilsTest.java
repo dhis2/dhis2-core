@@ -1,7 +1,5 @@
 package org.hisp.dhis.commons.util;
 
-import org.apache.commons.lang3.StringUtils;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -139,11 +137,19 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testGetPrettyEnum()
+    public void testGetPrettyEnumName()
     {
         assertEquals( "Antibiotic resistant infection", TextUtils.getPrettyEnumName( Disease.ANTIBIOTIC_RESISTANT_INFECTION ) );
         assertEquals( "Chronic wasting disease", TextUtils.getPrettyEnumName( Disease.CHRONIC_WASTING_DISEASE ) );
         assertEquals( "Malaria", TextUtils.getPrettyEnumName( Disease.MALARIA ) );
+    }
+
+    @Test
+    public void testGetPrettyPropertyName()
+    {
+        assertEquals( "Tracker program page size", TextUtils.getPrettyPropertyName( "trackerProgramPageSize" ) );
+        assertEquals( "Data values page size", TextUtils.getPrettyPropertyName( "dataValuesPageSize" ) );
+        assertEquals( "Relative start", TextUtils.getPrettyPropertyName( "relativeStart" ) );
     }
 
     @Test
