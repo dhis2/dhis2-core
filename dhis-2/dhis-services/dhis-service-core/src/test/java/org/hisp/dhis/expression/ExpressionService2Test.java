@@ -157,7 +157,7 @@ public class ExpressionService2Test
     private String expressionM;
     private String expressionN;
     private String expressionO;
-
+    private String expressionP;
     private String expressionR;
 
     private BeanRandomizer rnd;
@@ -168,9 +168,8 @@ public class ExpressionService2Test
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
             categoryService, organisationUnitGroupService, dimensionService );
-        rnd = new BeanRandomizer();
 
-        // SETUP FIXTURES
+        rnd = new BeanRandomizer();
 
         categoryOptionA = new CategoryOption( "Under 5" );
         categoryOptionB = new CategoryOption( "Over 5" );
@@ -221,7 +220,6 @@ public class ExpressionService2Test
         pdeA = rnd.randomObject( ProgramDataElementDimensionItem.class );
         piA = rnd.randomObject( ProgramIndicator.class );
 
-
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C' );
@@ -249,8 +247,7 @@ public class ExpressionService2Test
         reportingRate = new ReportingRate( dataSetA );
 
         expressionA = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
-        expressionB = "#{" + deC.getUid() + SEPARATOR + coc.getUid() + "}-#{" + deD.getUid() + SEPARATOR
-                + coc.getUid() + "}";
+        expressionB = "#{" + deC.getUid() + SEPARATOR + coc.getUid() + "}-#{" + deD.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionC = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+#{" + deE.getUid() + "}-10";
         expressionD = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+" + SYMBOL_DAYS;
         expressionE = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}*C{" + constantA.getUid() + "}";
@@ -271,6 +268,7 @@ public class ExpressionService2Test
             "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() +
                 SEPARATOR + cocA.getUid() + "}";
         expressionO = "#{" + opA.getDimensionItem() + "}+sum(#{" + opB.getDimensionItem() + "})";
+        expressionP = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() +
             ".REPORTING_RATE}";
 
@@ -801,6 +799,44 @@ public class ExpressionService2Test
         assertEquals( 1, value.getDivisor() );
         assertEquals( 100.0d, Precision.round( value.getFactor(), 2 ), DELTA );
         assertEquals( 200.0d, Precision.round( value.getValue(), 2 ), DELTA );
+    }
+
+    @Test
+    public void testGetNullWithoutNumeratorDataWithDenominatorData()
+    {
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setNumerator( expressionF );
+        indicatorA.setDenominator( expressionP );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deB, coc ), 12d );
+        valueMap.put( new DataElementOperand( deC, coc ), 18d );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap(), null );
+
+        assertNull( value );
+    }
+
+    @Test
+    public void testGetNullWithNumeratorDataWithZeroDenominatorData()
+    {
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setNumerator( expressionF );
+        indicatorA.setDenominator( expressionP );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 0d );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap(), null );
+
+        assertNull( value );
     }
 
     private Map<String, Constant> constantMap()
