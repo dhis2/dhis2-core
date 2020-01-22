@@ -52,6 +52,9 @@ public class JobTypeInfo
 
     private List<Property> jobParameters = new ArrayList<>();
 
+    /**
+     * Default constructor.
+     */
     public JobTypeInfo()
     {
     }
