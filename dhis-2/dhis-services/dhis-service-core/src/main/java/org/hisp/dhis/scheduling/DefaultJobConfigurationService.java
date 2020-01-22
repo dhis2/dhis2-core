@@ -157,6 +157,30 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    public List<JobTypeInfo> getJobTypeInfo()
+    {
+        List<JobTypeInfo> jobTypes = new ArrayList<>();
+
+        for ( JobType jobType : values() )
+        {
+            if ( !jobType.isConfigurable() )
+            {
+                continue;
+            }
+
+            String name = TextUtils.getPrettyEnumName( jobType );
+
+            List<Property> jobParameters = getJobParameters( jobType );
+
+            JobTypeInfo info = new JobTypeInfo( name, jobType, jobParameters );
+
+            jobTypes.add( info );
+        }
+
+        return jobTypes;
+    }
+
+    @Override
     public void refreshScheduling( JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isEnabled() )
