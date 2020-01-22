@@ -554,7 +554,8 @@ public class TextUtils
      */
     public static String getPrettyPropertyName( String property )
     {
-        List<String> fieldStrings = Arrays.stream( property.split( "(?=[A-Z])" ) ).map( String::toLowerCase )
+        List<String> fieldStrings = Arrays.stream( property.split( "(?=[A-Z])" ) )
+            .map( String::toLowerCase )
             .collect( Collectors.toList() );
 
         fieldStrings.set( 0, StringUtils.capitalize( fieldStrings.get( 0 ) ) );
