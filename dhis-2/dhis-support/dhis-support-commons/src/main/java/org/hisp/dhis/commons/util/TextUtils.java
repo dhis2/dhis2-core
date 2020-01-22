@@ -536,6 +536,18 @@ public class TextUtils
     }
 
     /**
+     * Returns a human friendly version of the given value which may be on the format
+     * of a property, enum or class name.
+     *
+     * @param property the property.
+     * @return a human friendly version.
+     */
+    public static String getPrettyEnumName( Enum<?> enumeration )
+    {
+        return StringUtils.capitalize( enumeration.name().replaceAll( "_", " " ).toLowerCase() );
+    }
+
+    /**
      * Gets the string at the given index of the array produced by splitting
      * the given string on the given separator. Returns null if the given string
      * is null or if the given index is out of bounds of the array.

@@ -43,9 +43,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -143,57 +143,13 @@ public class DefaultJobConfigurationService
 
         for ( JobType jobType : values() )
         {
-            Map<String, Property> jobParameters = new LinkedHashMap<>();
-
             if ( !jobType.isConfigurable() )
             {
                 continue;
             }
 
-            Class<?> clazz = jobType.getJobParameters();
-            if ( clazz == null )
-            {
-                propertyMap.put( jobType.name(), new LinkedHashMap<>() );
-                continue;
-            }
+            Map<String, Property> jobParameters = Maps.uniqueIndex( getJobParameters( jobType ), p -> p.getName() );
 
-            final Set<String> propertyNames = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
-                .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
-                .map( PropertyDescriptor::getName )
-                .collect( Collectors.toSet() );
-
-            for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) ).collect( Collectors.toList() ) )
-            {
-                Property property = new Property( Primitives.wrap( field.getType() ), null, null );
-                property.setName( field.getName() );
-                property.setFieldName( prettyPrint( field.getName() ) );
-
-                try
-                {
-                    field.setAccessible( true );
-                    property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
-                }
-                catch ( IllegalAccessException | InstantiationException e )
-                {
-                    log.error( "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
-                }
-
-                String relativeApiElements = jobType.getRelativeApiElements() != null ?
-                    jobType.getRelativeApiElements().get( field.getName() ) : "";
-
-                if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
-                {
-                    property.setRelativeApiEndpoint( relativeApiElements );
-                }
-
-                if ( Collection.class.isAssignableFrom( field.getType() ) )
-                {
-                    property = new NodePropertyIntrospectorService()
-                        .setPropertyIfCollection( property, field, clazz );
-                }
-
-                jobParameters.put( property.getName(), property );
-            }
             propertyMap.put( jobType.name(), jobParameters );
         }
 
@@ -213,6 +169,68 @@ public class DefaultJobConfigurationService
         }
 
         jobConfigurationStore.update( jobConfiguration );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a list of job parameters for the given job type.
+     *
+     * @param jobType the {@link JobType}.
+     * @return a list of {@link Property}.
+     */
+    private List<Property> getJobParameters( JobType jobType )
+    {
+        List<Property> jobParameters = new ArrayList<>();
+
+        Class<?> clazz = jobType.getJobParameters();
+
+        if ( clazz == null )
+        {
+            return jobParameters;
+        }
+
+        final Set<String> propertyNames = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
+            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
+            .map( PropertyDescriptor::getName )
+            .collect( Collectors.toSet() );
+
+        for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) ).collect( Collectors.toList() ) )
+        {
+            Property property = new Property( Primitives.wrap( field.getType() ), null, null );
+            property.setName( field.getName() );
+            property.setFieldName( prettyPrint( field.getName() ) );
+
+            try
+            {
+                field.setAccessible( true );
+                property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
+            }
+            catch ( IllegalAccessException | InstantiationException e )
+            {
+                log.error( "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
+            }
+
+            String relativeApiElements = jobType.getRelativeApiElements() != null ?
+                jobType.getRelativeApiElements().get( field.getName() ) : "";
+
+            if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
+            {
+                property.setRelativeApiEndpoint( relativeApiElements );
+            }
+
+            if ( Collection.class.isAssignableFrom( field.getType() ) )
+            {
+                property = new NodePropertyIntrospectorService()
+                    .setPropertyIfCollection( property, field, clazz );
+            }
+
+            jobParameters.add( property );
+        }
+
+        return jobParameters;
     }
 
     /**
