@@ -104,7 +104,6 @@ public class DataApprovalController
     private static final String STATUS_PATH = APPROVALS_PATH + "/status";
     private static final String ACCEPTANCES_PATH = "/dataAcceptances";
     private static final String MULTIPLE_APPROVALS_PATH = APPROVALS_PATH + "/multiple";
-    private static final String MULTIPLE_ACCEPTANCES_PATH = ACCEPTANCES_PATH + "/multiple";
 
     @Autowired
     private DataApprovalService dataApprovalService;
@@ -168,7 +167,7 @@ public class DataApprovalController
         renderService.toJson( response.getOutputStream(), status.getPermissions() );
     }
 
-    @RequestMapping( value = MULTIPLE_APPROVALS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @RequestMapping( value = { MULTIPLE_APPROVALS_PATH, APPROVALS_PATH + "/approvals" } , method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getMultipleApprovalPermissions(
         @RequestParam Set<String> wf,
         @RequestParam( required = false ) Set<String> pe,
@@ -198,21 +197,21 @@ public class DataApprovalController
 
             periods = new ArrayList<>();
 
-            for ( String p : pe )
+            for ( String period : pe )
             {
-                Period period = periodService.getPeriod( getAndValidatePeriod( p ).getIsoDate() );
+                Period periodObj = periodService.getPeriod( getAndValidatePeriod( period ).getIsoDate() );
 
-                if ( period != null )
+                if ( periodObj != null )
                 {
-                    periods.add( period );
+                    periods.add( periodObj );
                 }
             }
         }
 
         List<OrganisationUnit> orgUnits = new ArrayList<>();
-        for ( String o : ou )
+        for ( String orgUnit : ou )
         {
-            orgUnits.add( getAndValidateOrgUnit( o ) );
+            orgUnits.add( getAndValidateOrgUnit( orgUnit ) );
         }
 
         List<CategoryOptionCombo> optionCombos = new ArrayList<>();
@@ -222,9 +221,9 @@ public class DataApprovalController
         }
         else
         {
-            for ( String a : aoc )
+            for ( String optionCombo : aoc )
             {
-                optionCombos.add( getAndValidateAttributeOptionCombo( a ) );
+                optionCombos.add( getAndValidateAttributeOptionCombo( optionCombo ) );
             }
         }
 
@@ -232,9 +231,8 @@ public class DataApprovalController
 
         for ( DataApprovalWorkflow workflow : workflows )
         {
-            List<Period> workflowPeriods = periods != null
-                ? periods
-                : periodService.getPeriodsBetweenDates( workflow.getPeriodType(), startDate, endDate );
+            List<Period> workflowPeriods = periods != null ? periods :
+                periodService.getPeriodsBetweenDates( workflow.getPeriodType(), startDate, endDate );
 
             for ( Period period : workflowPeriods )
             {
