@@ -32,6 +32,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataapproval.DataApprovalPermissions;
 import org.hisp.dhis.dataapproval.DataApprovalState;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "approvalStatus", namespace = DxfNamespaces.DXF_2_0 )
@@ -57,6 +59,8 @@ public class ApprovalStatusDto
     {
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getWf()
     {
         return wf;
@@ -67,6 +71,8 @@ public class ApprovalStatusDto
         this.wf = wf;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getPe()
     {
         return pe;
@@ -77,6 +83,8 @@ public class ApprovalStatusDto
         this.pe = pe;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getOu()
     {
         return ou;
@@ -87,6 +95,8 @@ public class ApprovalStatusDto
         this.ou = ou;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getOuName()
     {
         return ouName;
@@ -97,6 +107,8 @@ public class ApprovalStatusDto
         this.ouName = ouName;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAoc()
     {
         return aoc;
@@ -107,6 +119,8 @@ public class ApprovalStatusDto
         this.aoc = aoc;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DataApprovalState getState()
     {
         return state;
@@ -117,6 +131,8 @@ public class ApprovalStatusDto
         this.state = state;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getLevel()
     {
         return level;
@@ -127,6 +143,8 @@ public class ApprovalStatusDto
         this.level = level;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DataApprovalPermissions getPermissions()
     {
         return permissions;
