@@ -235,10 +235,10 @@ public class DefaultExpressionService
         Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
         Double denominatorValue = getExpressionValue( indicator.getDenominator(),
-            valueMap, constantMap, orgUnitCountMap, days, MissingValueStrategy.NEVER_SKIP );
+            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
 
         Double numeratorValue = getExpressionValue( indicator.getNumerator(),
-            valueMap, constantMap, orgUnitCountMap, days, MissingValueStrategy.NEVER_SKIP );
+            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {
