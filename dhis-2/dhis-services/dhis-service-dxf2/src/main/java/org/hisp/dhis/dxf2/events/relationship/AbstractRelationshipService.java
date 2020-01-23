@@ -32,13 +32,7 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -250,15 +244,6 @@ public abstract class AbstractRelationshipService
             prepareCaches( Lists.newArrayList( relationship ), importOptions.getUser() );
         }
 
-        if ( relationshipService.relationshipExists( relationship.getRelationship() ) )
-        {
-            String message = "Relationship " + relationship.getRelationship() +
-                " already exists";
-            return new ImportSummary( ImportStatus.ERROR, message )
-                .setReference( relationship.getRelationship() )
-                .incrementIgnored();
-        }
-
         Set<ImportConflict> importConflicts = new HashSet<>( checkRelationship( relationship ) );
 
         if ( !importConflicts.isEmpty() )
@@ -269,12 +254,16 @@ public abstract class AbstractRelationshipService
             return importSummary;
         }
 
-        org.hisp.dhis.relationship.Relationship daoRelationship = createDAORelationship(
-            relationship );
+        org.hisp.dhis.relationship.Relationship daoRelationship = createDAORelationship( relationship );
 
-        if ( daoRelationship == null )
+        Optional<org.hisp.dhis.relationship.Relationship> existing = relationshipService
+            .getRelationshipByRelationship( daoRelationship );
+
+        if ( existing.isPresent() )
         {
-            return importSummary;
+            String message = "Relationship " + existing.get().getUid() + " already exists";
+            return new ImportSummary( ImportStatus.ERROR, message ).setReference( existing.get().getUid() )
+                .incrementIgnored();
         }
 
         // Check access for both sides
@@ -282,8 +271,7 @@ public abstract class AbstractRelationshipService
 
         if ( !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() )
-                .incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
         }
 
         relationshipService.addRelationship( daoRelationship );
