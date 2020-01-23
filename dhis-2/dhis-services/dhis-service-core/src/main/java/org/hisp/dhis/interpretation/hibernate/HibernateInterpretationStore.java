@@ -101,7 +101,7 @@ public class HibernateInterpretationStore
     {
         Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" );
         query.setParameter( "chart", chart ).setCacheable( cacheable );
-        return query.uniqueResult().intValue();
+        return query.uniqueResult();
     }
 
     @Override
