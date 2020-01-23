@@ -182,6 +182,7 @@ public class DataApprovalController
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( null, wf );
 
         List<Period> periods = null;
+
         if ( pe == null )
         {
             if ( startDate == null || endDate == null )
