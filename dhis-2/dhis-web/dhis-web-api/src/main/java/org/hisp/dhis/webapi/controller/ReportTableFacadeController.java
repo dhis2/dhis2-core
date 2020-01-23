@@ -142,6 +142,7 @@ import com.google.common.collect.Lists;
  */
 @Deprecated
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@SuppressWarnings("unchecked")
 public abstract class ReportTableFacadeController {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
@@ -495,7 +496,6 @@ public abstract class ReportTableFacadeController {
         manager.update( persistedObject );
     }
 
-    @SuppressWarnings( "unchecked" )
     private RootNode getObjectInternal( String uid, Map<String, String> parameters,
         List<String> filters, List<String> fields, User user ) throws Exception
     {
@@ -671,7 +671,6 @@ public abstract class ReportTableFacadeController {
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -839,7 +838,6 @@ public abstract class ReportTableFacadeController {
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -1071,7 +1069,6 @@ public abstract class ReportTableFacadeController {
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
-    @SuppressWarnings( "unchecked" )
     protected List<Visualization> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException
     {
@@ -1111,7 +1108,7 @@ public abstract class ReportTableFacadeController {
 
         return null;
     }
-    
+
     private Visualization convertToVisualization( final ReportTable reportTable )
     {
         final Visualization visualization = new Visualization();
@@ -1385,7 +1382,6 @@ public abstract class ReportTableFacadeController {
 
     private String entitySimpleName;
 
-    @SuppressWarnings( "unchecked" )
     protected Class<Visualization> getEntityClass()
     {
         return Visualization.class;

@@ -101,12 +101,11 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params );
 
-        Query query = getQuery( hql );
+        Query<ProgramInstance> query = getQuery( hql );
 
         if ( params.isPaging() )
         {
