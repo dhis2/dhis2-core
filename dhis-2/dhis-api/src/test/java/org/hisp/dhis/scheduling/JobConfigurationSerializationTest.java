@@ -59,7 +59,6 @@ public class JobConfigurationSerializationTest
             "      <enabled>true</enabled>\n" +
             "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
             "      <externalAccess>false</externalAccess>\n" +
-            "      <continuousExecution>true</continuousExecution>\n" +
             "      <jobType>ANALYTICS_TABLE</jobType>\n" +
             "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
             "      <favorite>false</favorite>\n" +
@@ -89,9 +88,7 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
         Assert.assertTrue( jc.isEnabled() );
         Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertNull( jc.getNextExecutionTime() );
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
@@ -116,7 +113,6 @@ public class JobConfigurationSerializationTest
             "      <enabled>true</enabled>\n" +
             "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
             "      <externalAccess>false</externalAccess>\n" +
-            "      <continuousExecution>true</continuousExecution>\n" +
             "      <jobType>ANALYTICS_TABLE</jobType>\n" +
             "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
             "      <favorite>false</favorite>\n" +
@@ -145,9 +141,7 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
         Assert.assertTrue( jc.isEnabled() );
         Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertNull( jc.getNextExecutionTime() );
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
@@ -171,7 +165,6 @@ public class JobConfigurationSerializationTest
             "      <enabled>true</enabled>\n" +
             "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
             "      <externalAccess>false</externalAccess>\n" +
-            "      <continuousExecution>true</continuousExecution>\n" +
             "      <jobType>ANALYTICS_TABLE</jobType>\n" +
             "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
             "      <favorite>false</favorite>\n" +
@@ -202,9 +195,7 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
         Assert.assertTrue( jc.isEnabled() );
         Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertNull( jc.getNextExecutionTime() );
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
@@ -233,7 +224,6 @@ public class JobConfigurationSerializationTest
             "      \"enabled\": true,\n" +
             "      \"leaderOnlyJob\": true,\n" +
             "      \"externalAccess\": false,\n" +
-            "      \"continuousExecution\": true,\n" +
             "      \"jobType\": \"ANALYTICS_TABLE\",\n" +
             "      \"nextExecutionTime\": \"2019-03-27T02:00:00.000\",\n" +
             "      \"cronExpression\": \"0 0 12 ? * MON-FRI\",\n" +
@@ -263,9 +253,7 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
         Assert.assertTrue( jc.isEnabled() );
         Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertNull( jc.getNextExecutionTime() );
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
@@ -294,7 +282,6 @@ public class JobConfigurationSerializationTest
             "      \"enabled\": false,\n" +
             "      \"leaderOnlyJob\": true,\n" +
             "      \"externalAccess\": false,\n" +
-            "      \"continuousExecution\": true,\n" +
             "      \"jobType\": \"ANALYTICS_TABLE\",\n" +
             "      \"nextExecutionTime\": \"2019-03-27T02:00:00.000\",\n" +
             "      \"cronExpression\": \"0 0 12 ? * MON-FRI\",\n" +
@@ -324,9 +311,7 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
         Assert.assertFalse( jc.isEnabled() );
         Assert.assertTrue( jc.isLeaderOnlyJob() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        Assert.assertTrue( jc.isContinuousExecution() );
         Assert.assertNull( jc.getNextExecutionTime() );
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 

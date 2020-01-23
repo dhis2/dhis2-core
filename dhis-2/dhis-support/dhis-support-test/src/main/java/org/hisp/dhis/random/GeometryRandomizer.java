@@ -1,4 +1,4 @@
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.random;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,22 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.Geometry;
+
+import com.vividsolutions.jts.shape.random.RandomPointsInGridBuilder;
+import io.github.benas.randombeans.api.Randomizer;
+
 /**
- * Created by zubair@dhis2.org on 29.08.17.
+ * @author Luciano Fiandesio
  */
-public enum SettingType
+public class GeometryRandomizer
+    implements
+    Randomizer<Geometry>
 {
-    USER_SETTING( "user-settings" ),
-    SYSTEM_SETTING( "system-settings" ),
-    CONFIGURATION( "dhis-configurations" );
 
-    private String key;
-
-    SettingType( String key )
+    @Override
+    public Geometry getRandomValue()
     {
-        this.key = key;
-    }
-
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
+        return new RandomPointsInGridBuilder().getGeometry();
     }
 }

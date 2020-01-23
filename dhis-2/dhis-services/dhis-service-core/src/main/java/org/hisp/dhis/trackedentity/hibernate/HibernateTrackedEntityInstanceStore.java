@@ -120,7 +120,6 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
         String hql = buildTrackedEntityInstanceHql( params );
@@ -131,7 +130,7 @@ public class HibernateTrackedEntityInstanceStore
             hql = hql.replaceFirst( "select tei from", "select distinct tei from" );
         }
 
-        Query query = getQuery( hql );
+        Query<TrackedEntityInstance> query = getQuery( hql );
 
         if ( params.isPaging() )
         {
@@ -868,6 +867,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         return getSharingCriteria( user )

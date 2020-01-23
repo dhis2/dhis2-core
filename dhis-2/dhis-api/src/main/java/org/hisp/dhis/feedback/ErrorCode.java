@@ -29,17 +29,21 @@ package org.hisp.dhis.feedback;
  */
 
 /**
- * E3000 - E3999: Security Errors
- * E4000 - E4999: Metadata Validation Errors
- * E5000 - E5999: Preheat Errors
- * E6000 - E6999: Metadata Import Errors
- * E7000 - E7099: Scheduling errors
+ * Error series:
+ *
+ * E3000 - E3999: Security
+ * E4000 - E4999: Metadata validation
+ * E5000 - E5999: Preheat
+ * E6000 - E6999: Metadata import
+ * E7000 - E7099: Scheduling
+ * E7100 - E7199: Aggregate analytics
+ * E7200 - E7299: Event analytics
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum ErrorCode
 {
-    /* Security Errors */
+    /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),
     E3002( "User `{0}` is not allowed to delete object `{1}`." ),
@@ -53,7 +57,7 @@ public enum ErrorCode
     E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
     E3012( "User `{0}` does not have read access for object {1}." ),
 
-    /* Metadata Validation Errors */
+    /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
     E4001( "Maximum length of property `{0}`is {1}, but given length was {2}." ),
     E4002( "Allowed length range for property `{0}` is [{1} to {2}], but given length was {3}." ),
@@ -74,47 +78,85 @@ public enum ErrorCode
     E4017( "RenderingType `{0}` is not supported for ValueType `{1}`" ),
     E4018( "Property `{0}` must be set when property `{1}` is `{2}`" ),
 
-    /* TextPattern Errors */
+    /* TextPattern */
     E4019( "Failed to parse pattern `{0}`. {1}" ),
     E4020( "The value `{0}` does not conform to the attribute pattern `{1}`" ),
 
-    /* TextPattern for ID generation errors */
+    /* TextPattern for ID generation */
     E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
     E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
 
-    /* Tracker Relationship */
+    /* Tracker relationship */
     E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
     E4024( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
     E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together." ),
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`." ),
 
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
-    E4028( "OptionSet `{0}` already contains Option `{1}`" ),
-    E4029( "JobParameters cannot be null for JobType {0}" ),
+    E4028( "Option set `{0}` already contains option `{1}`" ),
+    E4029( "Job parameters cannot be null for job type: {0}" ),
 
-    /* Program Errors */
-    E6000( "Program `{0}` has more than one Program Instances"),
-    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
-
-    /* Scheduling errors */
-    E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
-    E7001( "Failed to add/update job configuration - Trying to add job with continuous execution while there already is a job with continuous exectution of the same job type." ),
-    E7002( "Failed to add/update job configuration - Uid does not exist" ),
-    E7003( "Failed to add/update job configuration - Only interval can be configured for non configurable job type `{0}`" ),
-    E7004( "Failed to add/update job configuration - Cron expression must be not null for jobs with scheduling type CRON" ),
-    E7005( "Failed to add/update job configuration - Failed to validate cron expression: `{0}` " ),
-    E7006( "Failed to execute job `{0}`." ),
-    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY" ),
-
-    /* Job specific scheduling errors */
-    E7010( "Failed to validate job runtime - `{0}`" ),
-
-    /* Preheat Errors */
+    /* Preheat */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
     E5001( "No matching object for given reference. Identifier was {0}, and object was {1}." ),
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
-    E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." );
+    E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
+
+    /* Metadata import */
+    E6000( "Program `{0}` has more than one Program Instances"),
+    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
+
+    /* Scheduling */
+    E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
+    E7002( "Failed to add/update job configuration, UID does not exist" ),
+    E7003( "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
+    E7004( "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
+    E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
+    E7006( "Failed to execute job `{0}`." ),
+    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
+    E7010( "Failed to validate job runtime - `{0}`" ),
+
+    /* Aggregete analytics */
+    E7100( "Query parameters cannot be null" ),
+    E7101( "At least one dimension must be specified" ),
+    E7102( "At least one data dimension item or data element group set dimension item must be specified" ),
+    E7103( "Dimensions cannot be specified as dimension and filter simultaneously: `{0}`" ),
+    E7104( "At least one period as dimension or filter, or start and dates, must be specified" ),
+    E7105( "Periods and start and end dates cannot be specified simultaneously" ),
+    E7106( "Start date cannot be after end date" ),
+    E7107( "Start and end dates cannot be specified for reporting rates" ),
+    E7108( "Only a single indicator can be specified as filter" ),
+    E7109( "Only a single reporting rate can be specified as filter" ),
+    E7110( "Category option combos cannot be specified as filter" ),
+    E7111( "Dimensions cannot be specified more than once: `{0}`" ),
+    E7112( "Reporting rates can only be specified together with dimensions of type: `{0}`" ),
+    E7113( "Assigned categories cannot be specified when data elements are not specified" ),
+    E7114( "Assigned categories can only be specified together with data elements, not indicators or reporting rates" ),
+    E7115( "Data elements must be of a value and aggregation type that allow aggregation: `{0}`" ),
+    E7116( "Indicator expressions cannot contain cyclic references: `{0}`" ),
+    E7117( "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET" ),
+    E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
+    E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
+
+    /* Event analytics */
+    E7200( "At least one organisation unit must be specified" ),
+    E7201( "Dimensions cannot be specified more than once: `{0}`" ),
+    E7202( "Query items cannot be specified more than once: `{0}`" ),
+    E7203( "Value dimension cannot also be specified as an item or item filter" ),
+    E7204( "Value dimension or aggregate data must be specified when aggregation type is specified" ),
+    E7205( "Start and end date or at least one period must be specified" ),
+    E7206( "Start date is after end date: `{0}`, `{1}`" ),
+    E7207( "Page number must be a positive number: `{0}`" ),
+    E7208( "Page size must be zero or a positive number: `{0}`" ),
+    E7209( "Limit is larger than max limit: `{0}`, `{1}`" ),
+    E7210( "Time field is invalid: `{0}`" ),
+    E7211( "Org unit field is invalid: `{0}`" ),
+    E7212( "Cluster size must be a positive number: `{0}`" ),
+    E7213( "Bbox is invalid, must be on format: 'min-lng,min-lat,max-lng,max-lat': `{0}`" ),
+    E7214( "Cluster field must be specified when bbox or cluster size are specified" ),
+    E7215( "Query item cannot specify both legend set and option set: `{0}`" ),
+    E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" );
 
     private String message;
 

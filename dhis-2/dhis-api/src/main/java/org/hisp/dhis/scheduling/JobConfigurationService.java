@@ -107,6 +107,13 @@ public interface JobConfigurationService
     Map<String, Map<String, Property>> getJobParametersSchema();
 
     /**
+     * Returns a list of all configurable and available job types.
+     *
+     * @return a list of {@link JobTypeInfo}.
+     */
+    List<JobTypeInfo> getJobTypeInfo();
+
+    /**
      * Update the state of the jobConfiguration.
      * @param jobConfiguration
      */

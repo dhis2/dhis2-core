@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
@@ -57,7 +58,7 @@ public enum JobType
     RESOURCE_TABLE( "resourceTableJob", true ),
     ANALYTICS_TABLE( "analyticsTableJob", true, SchedulingType.CRON, AnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes"  ) ),
-    CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY, AnalyticsJobParameters.class, ImmutableMap.of(
+    CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY, ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes"  ) ),
     DATA_SYNC( "dataSyncJob", true ),
     TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, SchedulingType.CRON, TrackerProgramsDataSynchronizationJobParameters.class, null ),
@@ -128,6 +129,11 @@ public enum JobType
     public boolean isFixedDelaySchedulingType()
     {
         return getSchedulingType() == SchedulingType.FIXED_DELAY;
+    }
+
+    public boolean hasJobParameters()
+    {
+        return jobParameters != null;
     }
 
     public String getKey()

@@ -94,9 +94,9 @@ public class DimensionalObjectUtils
      * DimensionalObjects.
      *
      * @param dimensions the list of DimensionalObjects.
-     * @return list of dimension identifiers.
+     * @return collection of dimension identifiers.
      */
-    public static List<String> getDimensions( List<DimensionalObject> dimensions )
+    public static List<String> getDimensions( Collection<DimensionalObject> dimensions )
     {
         List<String> dims = new ArrayList<>();
 

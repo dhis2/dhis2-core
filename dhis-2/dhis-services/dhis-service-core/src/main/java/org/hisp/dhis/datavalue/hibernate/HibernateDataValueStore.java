@@ -242,8 +242,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         // Query parameters
         // ---------------------------------------------------------------------
 
-        Query<DataValue> query = getSession()
-            .createQuery( hql )
+        Query<DataValue> query = getQuery( hql )
             .setParameterList( "dataElements", getIdentifiers( dataElements ) );
 
         if ( params.hasPeriods() )
@@ -316,7 +315,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
         }
 
-        Query query = getQuery( hql )
+        Query<DataValue> query = getQuery( hql )
             .setParameter( "dataElements", dataElements )
             .setParameter( "period", storedPeriod );
 

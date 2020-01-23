@@ -29,8 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.scheduling.DefaultSchedulingManager.CONTINOUS_CRON;
-import static org.hisp.dhis.scheduling.DefaultSchedulingManager.HOUR_CRON;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 import java.util.ArrayList;
@@ -92,11 +90,6 @@ public class JobConfigurationObjectBundleHook
         {
             jobConfiguration.setNextExecutionTime( null );
 
-            if ( jobConfiguration.isContinuousExecution() )
-            {
-                jobConfiguration.setCronExpression( CONTINOUS_CRON );
-            }
-
             log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded" );
         }
         else
@@ -134,11 +127,6 @@ public class JobConfigurationObjectBundleHook
         newObject.setLastExecuted( persObject.getLastExecuted() );
         newObject.setLastExecutedStatus( persObject.getLastExecutedStatus() );
         newObject.setLastRuntimeExecution( persObject.getLastRuntimeExecution() );
-
-        if ( setDefaultCronExpressionWhenDisablingContinuousExectution( newObject, persObject ) )
-        {
-            newObject.setCronExpression( HOUR_CRON );
-        }
 
         ensureDefaultJobParametersAreUsedIfNoOtherArePresent( newObject );
 
@@ -195,7 +183,6 @@ public class JobConfigurationObjectBundleHook
 
     /*
      *  Validates that there are no other jobs of the same job type which are scheduled with the same cron expression.
-     *  Also checks if the job is trying to run continuously while other job of the same type is running continuously.
      */
     private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
     {
@@ -205,19 +192,9 @@ public class JobConfigurationObjectBundleHook
 
         for ( JobConfiguration jobConfig : jobConfigs )
         {
-            if ( jobConfiguration.isContinuousExecution() )
+            if ( jobConfig.hasCronExpression() && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
             {
-                if ( jobConfig.isContinuousExecution() )
-                {
-                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7001 ) );
-                }
-            }
-            else
-            {
-                if ( jobConfig.hasCronExpression() && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
-                {
-                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
-                }
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000, jobConfig.getCronExpression() ) );
             }
         }
     }
@@ -233,7 +210,7 @@ public class JobConfigurationObjectBundleHook
         final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
             jobConfiguration, persistedJobConfiguration );
 
-        validateJobConfigurationWithNonContinuousExecution( errorReports, tempJobConfiguration );
+        validateJobConfigurationCronOrFixedDelay( errorReports, tempJobConfiguration );
         validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
 
         // Validate parameters
@@ -246,9 +223,9 @@ public class JobConfigurationObjectBundleHook
         {
             // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
 
-            if ( tempJobConfiguration.getJobType().getJobParameters() != null )
+            if ( tempJobConfiguration.getJobType().hasJobParameters() )
             {
-                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType().getKey() ) );
+                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType() ) );
             }
         }
 
@@ -276,14 +253,14 @@ public class JobConfigurationObjectBundleHook
         return jobConfiguration;
     }
 
-    private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
+    private void validateJobConfigurationCronOrFixedDelay( List<ErrorReport> errorReports,
         JobConfiguration jobConfiguration )
     {
-        if ( !jobConfiguration.isContinuousExecution() && jobConfiguration.getJobType().isCronSchedulingType() )
+        if ( jobConfiguration.getJobType().isCronSchedulingType() )
         {
             if ( jobConfiguration.getCronExpression() == null )
             {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid() ) );
             }
             else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
             {
@@ -291,10 +268,9 @@ public class JobConfigurationObjectBundleHook
             }
         }
 
-        if ( !jobConfiguration.isContinuousExecution() &&
-            jobConfiguration.getJobType().isFixedDelaySchedulingType() && jobConfiguration.getDelay() == null )
+        if ( jobConfiguration.getJobType().isFixedDelaySchedulingType() && jobConfiguration.getDelay() == null )
         {
-            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7007 ) );
+            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7007, jobConfiguration.getUid() ) );
         }
     }
 
@@ -311,11 +287,6 @@ public class JobConfigurationObjectBundleHook
 
             errorReports.add( jobValidation );
         }
-    }
-
-    private boolean setDefaultCronExpressionWhenDisablingContinuousExectution( JobConfiguration newObject, JobConfiguration persistedObject )
-    {
-        return ( !newObject.isContinuousExecution() && persistedObject.isContinuousExecution() ) && newObject.getCronExpression().equals( CONTINOUS_CRON );
     }
 
     private void ensureDefaultJobParametersAreUsedIfNoOtherArePresent( JobConfiguration jobConfiguration )

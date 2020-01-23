@@ -54,8 +54,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Lars Helge Overland
  */
 @Repository( "CompleteDataSetRegistrationStore" )
-public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericStore<CompleteDataSetRegistration>
-    implements CompleteDataSetRegistrationStore
+public class HibernateCompleteDataSetRegistrationStore
+    extends HibernateGenericStore<CompleteDataSetRegistration>
+        implements CompleteDataSetRegistrationStore
 {
     private final PeriodStore periodStore;
 

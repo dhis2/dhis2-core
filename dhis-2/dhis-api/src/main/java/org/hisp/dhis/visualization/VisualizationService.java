@@ -95,4 +95,12 @@ public interface VisualizationService
      * @return a Grid.
      */
     Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
+
+    /**
+     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
+     *
+     * @param uid the uid of the Visualization to retrieve.
+     * @return the Visualization.
+     */
+    Visualization getVisualizationNoAcl( String uid );
 }

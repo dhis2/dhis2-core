@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Stian Strandli
@@ -46,6 +47,16 @@ public interface SystemSettingManager
      * @param value the system setting value.
      */
     void saveSystemSetting( SettingKey key, Serializable value );
+
+    /**
+     * Saves the translation for given setting key and locale if given setting key is translatable.
+     * If the translation string contains an empty string, the translation for given locale and key is removed.
+     *
+     * @param key SettingKey
+     * @param locale locale of the translation
+     * @param translation Actual translation
+     */
+    void saveSystemSettingTranslation( SettingKey key, String locale, String translation );
 
     /**
      * Deletes the system setting with the given key.
@@ -72,6 +83,15 @@ public interface SystemSettingManager
      * @return the setting value.
      */
     Serializable getSystemSetting( SettingKey key, Serializable defaultValue );
+
+    /**
+     * Returns the translation for given setting key and locale or empty Optional if no translation is
+     * available or setting key is not translatable.
+     * @param key SettingKey
+     * @param locale Locale of required translation
+     * @return The Optional with the actual translation or empty Optional
+     */
+    Optional<String> getSystemSettingTranslation( SettingKey key, String locale );
 
     /**
      * Returns all system settings.
@@ -137,4 +157,6 @@ public interface SystemSettingManager
     Integer credentialsExpires();
 
     boolean isConfidential( String name );
+
+    boolean isTranslatable( String name );
 }
