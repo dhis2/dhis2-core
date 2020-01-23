@@ -2517,7 +2517,8 @@ dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
   var startDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.startDate );
   var endDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.endDate );
 
-  if ( odate && startDate.compareTo( odate ) == -1 || cdate && endDate.compareTo( cdate ) == 1 ) {
+  if( ( cdate && cdate < startDate ) || odate > endDate )
+  {
     $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
     $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
     $( '.entrytrueonly' ).attr( 'onclick', 'return false;');
