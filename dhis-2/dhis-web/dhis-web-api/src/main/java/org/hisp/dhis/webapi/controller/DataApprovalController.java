@@ -103,6 +103,8 @@ public class DataApprovalController
     private static final String APPROVALS_PATH = "/dataApprovals";
     private static final String STATUS_PATH = APPROVALS_PATH + "/status";
     private static final String ACCEPTANCES_PATH = "/dataAcceptances";
+    private static final String MULTIPLE_APPROVALS_PATH = APPROVALS_PATH + "/multiple";
+    private static final String MULTIPLE_ACCEPTANCES_PATH = ACCEPTANCES_PATH + "/multiple";
 
     @Autowired
     private DataApprovalService dataApprovalService;
@@ -164,6 +166,116 @@ public class DataApprovalController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), status.getPermissions() );
+    }
+
+    @RequestMapping( value = MULTIPLE_APPROVALS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    public void getMultipleApprovalPermissions(
+        @RequestParam Set<String> wf,
+        @RequestParam( required = false ) Set<String> pe,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam Set<String> ou,
+        @RequestParam( required = false ) Set<String> aoc,
+        HttpServletResponse response )
+        throws IOException, WebMessageException
+    {
+        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( null, wf );
+
+        List<Period> periods = null;
+        if ( pe == null )
+        {
+            if ( startDate == null || endDate == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Must have either pe or both startDate and endDate." ) );
+            }
+        }
+        else
+        {
+            if ( startDate != null || endDate != null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Cannot have both pe and startDate or endDate." ) );
+            }
+
+            periods = new ArrayList<>();
+
+            for ( String p : pe )
+            {
+                Period period = periodService.getPeriod( getAndValidatePeriod( p ).getIsoDate() );
+
+                if ( period != null )
+                {
+                    periods.add( period );
+                }
+            }
+        }
+
+        List<OrganisationUnit> orgUnits = new ArrayList<>();
+        for ( String o : ou )
+        {
+            orgUnits.add( getAndValidateOrgUnit( o ) );
+        }
+
+        List<CategoryOptionCombo> optionCombos = new ArrayList<>();
+        if ( aoc == null )
+        {
+            optionCombos.add( getAndValidateAttributeOptionCombo( null ) );
+        }
+        else
+        {
+            for ( String a : aoc )
+            {
+                optionCombos.add( getAndValidateAttributeOptionCombo( a ) );
+            }
+        }
+
+        List<DataApproval> dataApprovals = new ArrayList<>();
+
+        for ( DataApprovalWorkflow workflow : workflows )
+        {
+            List<Period> workflowPeriods = periods != null
+                ? periods
+                : periodService.getPeriodsBetweenDates( workflow.getPeriodType(), startDate, endDate );
+
+            for ( Period period : workflowPeriods )
+            {
+                if ( period.getPeriodType().equals( workflow.getPeriodType() ) )
+                {
+                    for ( OrganisationUnit orgUnit : orgUnits )
+                    {
+                        for ( CategoryOptionCombo optionCombo : optionCombos )
+                        {
+                            dataApprovals.add( new DataApproval( null, workflow, period, orgUnit, optionCombo ) );
+                        }
+                    }
+                }
+            }
+        }
+
+        Map<DataApproval, DataApprovalStatus> statusMap = dataApprovalService.getDataApprovalStatuses( dataApprovals );
+
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        for ( Map.Entry<DataApproval, DataApprovalStatus> entry : statusMap.entrySet() )
+        {
+            DataApproval da = entry.getKey();
+
+            DataApprovalStatus status = entry.getValue();
+
+            Map<String, Object> item = new HashMap<>();
+
+            item.put( "wf", da.getWorkflow().getUid() );
+            item.put( "pe", da.getPeriod().getIsoDate() );
+            item.put( "ou", da.getOrganisationUnit().getUid() );
+            item.put( "aoc", da.getAttributeOptionCombo().getUid() );
+            item.put( "state", status == null ? null : status.getState() );
+            item.put( "level", status == null || status.getApprovedLevel() == null ? null : status.getApprovedLevel().getUid() );
+            item.put( "permissions", status == null ? null : status.getPermissions() );
+
+            list.add( item );
+        }
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        renderService.toJson( response.getOutputStream(), list );
     }
 
     @RequestMapping( value = STATUS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
