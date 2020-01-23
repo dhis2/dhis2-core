@@ -28,6 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
@@ -46,7 +47,7 @@ import java.time.LocalDateTime;
  */
 @Component
 public class PostUpdateAuditListener
-    extends AbstractHibernateListener implements PostUpdateEventListener
+    extends AbstractHibernateListener implements PostCommitUpdateEventListener
 {
     public PostUpdateAuditListener(
         AuditManager auditManager,
@@ -82,5 +83,10 @@ public class PostUpdateAuditListener
     public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
         return false;
+    }
+
+    @Override
+    public void onPostUpdateCommitFailed( PostUpdateEvent event )
+    {
     }
 }

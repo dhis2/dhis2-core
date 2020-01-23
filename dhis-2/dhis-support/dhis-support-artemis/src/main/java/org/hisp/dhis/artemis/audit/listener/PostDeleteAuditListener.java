@@ -28,6 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
@@ -46,7 +47,7 @@ import java.time.LocalDateTime;
  */
 @Component
 public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostDeleteEventListener
+    extends AbstractHibernateListener implements PostCommitDeleteEventListener
 {
     public PostDeleteAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
@@ -79,5 +80,10 @@ public class PostDeleteAuditListener
     AuditType getAuditType()
     {
         return AuditType.DELETE;
+    }
+
+    @Override
+    public void onPostDeleteCommitFailed( PostDeleteEvent event )
+    {
     }
 }

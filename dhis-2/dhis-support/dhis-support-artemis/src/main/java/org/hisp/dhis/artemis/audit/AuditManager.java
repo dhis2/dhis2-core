@@ -91,5 +91,7 @@ public class AuditManager
         {
             auditProducerSupplier.publish( audit );
         }
+
+        System.out.println( "End AuditManager.send" );
     }
 }

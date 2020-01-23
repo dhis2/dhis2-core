@@ -20,6 +20,7 @@ public class TrackerAuditEventListener
     @TransactionalEventListener
     public void processAuditEvent( Audit audit )
     {
+        System.out.println( "In TrackerAuditEventListener.processAuditEvent" );
         auditManager.send( audit );
     }
 }

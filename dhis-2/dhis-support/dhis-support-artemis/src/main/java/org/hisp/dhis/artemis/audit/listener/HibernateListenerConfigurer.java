@@ -88,11 +88,11 @@ public class HibernateListenerConfigurer
 
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
 
-        registry.getEventListenerGroup( EventType.POST_INSERT ).appendListener( postInsertAuditListener );
+        registry.getEventListenerGroup( EventType.POST_COMMIT_INSERT ).appendListener( postInsertAuditListener );
 
-        registry.getEventListenerGroup( EventType.POST_UPDATE ).appendListener( postUpdateEventListener );
+        registry.getEventListenerGroup( EventType.POST_COMMIT_UPDATE ).appendListener( postUpdateEventListener );
 
-        registry.getEventListenerGroup( EventType.POST_DELETE ).appendListener( postDeleteEventListener );
+        registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( postDeleteEventListener );
 
         registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
     }

@@ -1023,15 +1023,15 @@ public class DefaultTrackedEntityInstanceService
 
     private void sendAuditEvent( AuditType auditType, TrackedEntityAuditPayload auditPayload )
     {
-        publisher.publishEvent( Audit.builder()
-            .auditType( mapAuditType( auditType ) )
-            .auditScope( AuditScope.TRACKER )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( auditPayload.getAccessedBy() )
-            .klass( TrackedEntityInstance.class.getName() )
-            .uid( auditPayload.getTrackedEntityInstance() )
-            .auditableEntity( new AuditableEntity( auditPayload ) )
-            .build() );
+//        publisher.publishEvent( Audit.builder()
+//            .auditType( mapAuditType( auditType ) )
+//            .auditScope( AuditScope.TRACKER )
+//            .createdAt( LocalDateTime.now() )
+//            .createdBy( auditPayload.getAccessedBy() )
+//            .klass( TrackedEntityInstance.class.getName() )
+//            .uid( auditPayload.getTrackedEntityInstance() )
+//            .auditableEntity( new AuditableEntity( auditPayload ) )
+//            .build() );
     }
 
     private org.hisp.dhis.audit.AuditType mapAuditType( AuditType auditType )

@@ -35,6 +35,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,6 +52,7 @@ import java.util.Set;
  * @author Abyot Asalefew Gizaw
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
+@Auditable( scope = AuditScope.TRACKER )
 public class TrackedEntityInstance
     extends BaseIdentifiableObject
 {
