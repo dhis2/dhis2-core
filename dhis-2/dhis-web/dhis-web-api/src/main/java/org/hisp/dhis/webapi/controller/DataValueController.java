@@ -175,6 +175,8 @@ public class DataValueController
 
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
 
+        validateOrganisationUnitPeriod( organisationUnit, period );
+
         DataSet dataSet = getAndValidateOptionalDataSet( ds, dataElement );
 
         validateInvalidFuturePeriod( period, dataElement );
@@ -517,6 +519,8 @@ public class DataValueController
 
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
 
+        validateOrganisationUnitPeriod( organisationUnit, period );
+
         // ---------------------------------------------------------------------
         // Get data value
         // ---------------------------------------------------------------------
@@ -639,6 +643,19 @@ public class DataValueController
         }
 
         return period;
+    }
+
+    private void validateOrganisationUnitPeriod( OrganisationUnit organisationUnit, Period period ) throws WebMessageException
+    {
+        Date openingDate = organisationUnit.getOpeningDate();
+        Date closedDate = organisationUnit.getClosedDate();
+        Date startDate = period.getStartDate();
+        Date endDate = period.getEndDate();
+
+        if ( ( closedDate != null && closedDate.before( startDate ) ) || openingDate.after( endDate ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit is closed for the selected period. " ) );
+        }
     }
 
     private OrganisationUnit getAndValidateOrganisationUnit( String ou )
