@@ -83,21 +83,20 @@ public class HibernateUserSettingStore
     {
         Session session = sessionFactory.getCurrentSession();
 
-        Query query = session.createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
+        Query<UserSetting> query = session.createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
 
         query.setParameter( "user", user );
         query.setParameter( "name", name );
         query.setCacheable( CACHEABLE );
 
-        return (UserSetting) query.uniqueResult();
+        return query.uniqueResult();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<UserSetting> getAllUserSettings( User user )
     {
         Session session = sessionFactory.getCurrentSession();
-        Query query = session.createQuery( "from UserSetting us where us.user = :user" );
+        Query<UserSetting> query = session.createQuery( "from UserSetting us where us.user = :user" );
         query.setParameter( "user", user );
         query.setCacheable( CACHEABLE );
 
