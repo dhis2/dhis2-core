@@ -128,49 +128,49 @@ public abstract class GenericAnalyticalObjectService<T extends AnalyticalObject>
 
     @Override
     @Transactional(readOnly = true)
-    public int countAnalyticalObjects( Indicator indicator )
+    public long countAnalyticalObjects( Indicator indicator )
     {
         return getAnalyticalObjectStore().countAnalyticalObjects( indicator );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countAnalyticalObjects( DataElement dataElement )
+    public long countAnalyticalObjects( DataElement dataElement )
     {
         return getAnalyticalObjectStore().countAnalyticalObjects( dataElement );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countAnalyticalObjects( DataSet dataSet )
+    public long countAnalyticalObjects( DataSet dataSet )
     {
         return getAnalyticalObjectStore().countAnalyticalObjects( dataSet );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countAnalyticalObjects( ProgramIndicator programIndicator )
+    public long countAnalyticalObjects( ProgramIndicator programIndicator )
     {
         return getAnalyticalObjectStore().countAnalyticalObjects( programIndicator );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countAnalyticalObjects( Period period )
+    public long countAnalyticalObjects( Period period )
     {
         return getAnalyticalObjectStore().countAnalyticalObjects( period );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countAnalyticalObjects( OrganisationUnit organisationUnit )
+    public long countAnalyticalObjects( OrganisationUnit organisationUnit )
     {
         return getAnalyticalObjectStore().countAnalyticalObjects( organisationUnit );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
+    public long countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
         return getAnalyticalObjectStore().countAnalyticalObjects( categoryOptionGroup );
     }

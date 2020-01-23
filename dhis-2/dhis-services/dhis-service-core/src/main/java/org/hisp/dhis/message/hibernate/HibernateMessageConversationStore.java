@@ -149,10 +149,10 @@ public class HibernateMessageConversationStore
 
         String hql = "select count(*) from MessageConversation m join m.userMessages u where u.user = :user and u.read = false";
 
-        Query query = getQuery( hql );
+        Query<Long> query = getTypedQuery( hql );
         query.setParameter( "user", user );
 
-        return (Long) query.uniqueResult();
+        return query.uniqueResult();
     }
 
     @Override
