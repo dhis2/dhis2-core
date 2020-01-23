@@ -30,6 +30,7 @@ package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
  * @author Zubair Asghar
@@ -39,6 +40,11 @@ public class vCompletedDate extends ProgramDateVariable
     @Override
     public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        if ( AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() )
+        {
+            return "completeddate";
+        }
+
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
             null, "completeddate", visitor.getReportingStartDate(),
             visitor.getReportingStartDate(), visitor.getProgramIndicator() );
