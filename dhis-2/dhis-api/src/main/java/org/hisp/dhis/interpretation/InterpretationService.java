@@ -74,7 +74,7 @@ public interface InterpretationService
      * Adds a like to the given interpretation for the current user. This method
      * will have a "repeatable read" transaction isolation level to ensure an
      * atomic increment of the like count interpretation property.
-     * 
+     *
      * @param id the interpretation id.
      * @return true if the current user had not already liked the
      *         interpretation.
@@ -85,17 +85,17 @@ public interface InterpretationService
      * Removes a like from the given interpretation for the current user. This
      * method will have a "repeatable read" transaction isolation level to
      * ensure an atomic decrease of the like count interpretation property.
-     * 
+     *
      * @param id the interpretation id.
      * @return true if the current user had previously liked the interpretation.
      */
     boolean unlikeInterpretation( long id );
 
-    int countMapInterpretations( Map map );
+    long countMapInterpretations( Map map );
 
-    int countChartInterpretations( Chart chart );
+    long countChartInterpretations( Chart chart );
 
-    int countReportTableInterpretations( ReportTable reportTable );
+    long countReportTableInterpretations( ReportTable reportTable );
 
     Interpretation getInterpretationByChart( long id );
 

@@ -63,6 +63,8 @@ public class TrackedEntityDataElementDimensionDeletionHandler
     @SuppressWarnings( "unchecked" )
     public void deleteLegendSet( LegendSet legendSet )
     {
+        //TODO Move this get-method to service layer
+
         Query query = sessionFactory.getCurrentSession()
             .createQuery( "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet" );
         query.setParameter( "legendSet", legendSet );

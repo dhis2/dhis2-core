@@ -39,11 +39,11 @@ import org.hisp.dhis.reporttable.ReportTable;
 public interface InterpretationStore
     extends IdentifiableObjectStore<Interpretation>
 {
-    int countMapInterpretations( Map map );
+    long countMapInterpretations( Map map );
 
-    int countChartInterpretations( Chart chart );
+    long countChartInterpretations( Chart chart );
 
-    int countReportTableInterpretations( ReportTable reportTable );
+    long countReportTableInterpretations( ReportTable reportTable );
 
     Interpretation getByChartId( long id );
 

@@ -89,42 +89,34 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" )
-            .setParameter( "map", map )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
+        query.setParameter( "map", map );
+        return query.uniqueResult();
     }
 
     @Override
-    public int countChartInterpretations( Chart chart )
+    public long countChartInterpretations( Chart chart )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" )
-            .setParameter( "chart", chart )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" );
+        query.setParameter( "chart", chart ).setCacheable( cacheable );
+        return query.uniqueResult().intValue();
     }
 
     @Override
-    public int countReportTableInterpretations( ReportTable reportTable )
+    public long countReportTableInterpretations( ReportTable reportTable )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" )
-            .setParameter( "reportTable", reportTable )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" );
+        query.setParameter( "reportTable", reportTable );
+        return query.uniqueResult();
     }
 
     @Override
     public Interpretation getByChartId( long id )
     {
         String hql = "from Interpretation i where i.chart.id = " + id;
-
         Query<Interpretation> query = getQuery( hql );
-
         return query.uniqueResult();
     }
 
@@ -132,9 +124,7 @@ public class HibernateInterpretationStore
     public Interpretation getByVisualizationId( long id )
     {
         String hql = "from Interpretation i where i.visualization.id = " + id;
-
-        Query<Interpretation> query = getSession().createQuery( hql, Interpretation.class ).setCacheable( cacheable );
-
+        Query<Interpretation> query = getQuery( hql );
         return query.uniqueResult();
     }
 }

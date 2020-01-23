@@ -167,9 +167,9 @@ public class HibernateMessageConversationStore
 
         String hql = "delete Message m where m.sender = :sender";
 
-        Query query = getQuery( hql );
-        query.setParameter( "sender", sender );
-        return query.executeUpdate();
+        return getQuery( hql )
+            .setParameter( "sender", sender )
+            .executeUpdate();
     }
 
     @Override
@@ -184,9 +184,9 @@ public class HibernateMessageConversationStore
 
         String hql = "delete UserMessage u where u.user = :user";
 
-        Query query = getQuery( hql );
-        query.setParameter( "user", user );
-        return query.executeUpdate();
+        return getQuery( hql )
+            .setParameter( "user", user )
+            .executeUpdate();
     }
 
     @Override
@@ -196,9 +196,9 @@ public class HibernateMessageConversationStore
 
         String hql = "update MessageConversation m set m.lastSender = null where m.lastSender = :lastSender";
 
-        Query query = getQuery( hql );
-        query.setParameter( "lastSender", lastSender );
-        return query.executeUpdate();
+        return getQuery( hql )
+            .setParameter( "lastSender", lastSender )
+            .executeUpdate();
     }
 
     @Override
