@@ -210,12 +210,14 @@ public class DataApprovalController
         }
 
         List<OrganisationUnit> orgUnits = new ArrayList<>();
+
         for ( String orgUnit : ou )
         {
             orgUnits.add( getAndValidateOrgUnit( orgUnit ) );
         }
 
         List<CategoryOptionCombo> optionCombos = new ArrayList<>();
+
         if ( aoc == null )
         {
             optionCombos.add( getAndValidateAttributeOptionCombo( null ) );
