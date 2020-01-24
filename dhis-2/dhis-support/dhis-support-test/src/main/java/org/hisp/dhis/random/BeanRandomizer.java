@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.random;
 
+import com.vividsolutions.jts.geom.Geometry;
 import io.github.benas.randombeans.FieldDefinitionBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import org.hisp.dhis.period.PeriodType;
@@ -47,6 +48,7 @@ public class BeanRandomizer
     public BeanRandomizer() {
         rnd = aNewEnhancedRandomBuilder()
                 .randomize(PeriodType.class, new PeriodTypeRandomizer())
+                .randomize(Geometry.class, new GeometryRandomizer())
                 .randomize(FieldDefinitionBuilder.field().named("uid").ofType(String.class).get(),
                         new UidRandomizer())
                 .build();

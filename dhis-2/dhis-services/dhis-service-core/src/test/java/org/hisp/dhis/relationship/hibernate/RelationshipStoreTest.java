@@ -31,9 +31,7 @@ package org.hisp.dhis.relationship.hibernate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
@@ -41,35 +39,23 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
-import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.relationship.RelationshipTypeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
 import org.hisp.dhis.program.*;
-import org.hisp.dhis.relationship.*;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Category( IntegrationTest.class )
 public class RelationshipStoreTest
-    extends IntegrationTestBase
+        extends IntegrationTestBase
 {
 
     @Autowired
@@ -185,10 +171,12 @@ public class RelationshipStoreTest
         relationshipService.addRelationship( relationshipA );
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramStageInstance( programStageInstance, true );
+                .getRelationshipsByProgramStageInstance( programStageInstance, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
+
+        assertTrue( relationshipService.getRelationshipByRelationship( relationshipA ).isPresent() );
     }
 
     @Test
@@ -199,6 +187,15 @@ public class RelationshipStoreTest
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
     }
+
+    @Test
+    public void testGetByRelationship()
+    {
+        Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( relationship );
+
+        assertTrue( existing.isPresent() );
+    }
+
 
     @Override
     public boolean emptyDatabaseAfterTest()
