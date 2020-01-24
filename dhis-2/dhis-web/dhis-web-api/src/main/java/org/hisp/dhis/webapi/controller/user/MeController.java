@@ -236,11 +236,6 @@ public class MeController
         User user = renderService.fromJson( request.getInputStream(), User.class );
         merge( currentUser, user );
 
-        if ( user.getUserCredentials() != null )
-        {
-            updatePassword( currentUser, user.getUserCredentials().getPassword() );
-        }
-
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
@@ -370,23 +365,6 @@ public class MeController
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), value );
-    }
-
-    @RequestMapping( value = "/password", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = "text/*" )
-    public @ResponseBody RootNode changePassword( @RequestBody String password, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser == null )
-        {
-            throw new NotAuthenticatedException();
-        }
-
-        updatePassword( currentUser, password );
-        manager.update( currentUser );
-
-        return null;
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
@@ -528,14 +506,6 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
-
-        if ( user.getUserCredentials() != null && currentUser.getUserCredentials() != null )
-        {
-            UserCredentials userCredentials = user.getUserCredentials();
-            currentUser.getUserCredentials().setOpenId( userCredentials.getOpenId() );
-            currentUser.getUserCredentials().setLdapId( userCredentials.getLdapId() );
-            currentUser.getUserCredentials().setTwoFA( userCredentials.isTwoFA() );
-        }
     }
 
     private void updatePassword( User currentUser, String password ) throws WebMessageException
