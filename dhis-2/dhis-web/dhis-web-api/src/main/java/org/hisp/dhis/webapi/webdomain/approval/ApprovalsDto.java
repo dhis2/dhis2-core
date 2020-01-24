@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.webapi.webdomain.approval;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,56 +28,75 @@ package org.hisp.dhis.webapi.webdomain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.period.PeriodType;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
-public class PeriodTypeDTO
+@JacksonXmlRootElement( localName = "approvals", namespace = DxfNamespaces.DXF_2_0 )
+public class ApprovalsDto
 {
-    private final String name;
-    private final String isoDuration;
-    private final String isoFormat;
-    private final int frequencyOrder;
+    private List<String> wf = new ArrayList<>();
 
-    public PeriodTypeDTO( PeriodType periodType )
+    private List<String> ds = new ArrayList<>();
+
+    private List<String> pe = new ArrayList<>();
+    
+    private List<ApprovalDto> approvals = new ArrayList<>();
+
+    public ApprovalsDto()
     {
-        this.name = periodType.getName();
-        this.frequencyOrder = periodType.getFrequencyOrder();
-        this.isoDuration = periodType.getIso8601Duration();
-        this.isoFormat = periodType.getIsoFormat();
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
+    public List<String> getWf()
     {
-        return name;
+        return wf;
+    }
+
+    public void setWf( List<String> wf )
+    {
+        this.wf = wf;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoDuration()
+    public List<String> getDs()
     {
-        return isoDuration;
+        return ds;
+    }
+
+    public void setDs( List<String> ds )
+    {
+        this.ds = ds;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoFormat()
+    public List<String> getPe()
     {
-        return isoFormat;
+        return pe;
+    }
+
+    public void setPe( List<String> pe )
+    {
+        this.pe = pe;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getFrequencyOrder()
+    public List<ApprovalDto> getApprovals()
     {
-        return frequencyOrder;
+        return approvals;
+    }
+
+    public void setApprovals( List<ApprovalDto> approvals )
+    {
+        this.approvals = approvals;
     }
 }

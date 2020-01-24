@@ -63,8 +63,9 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.approval.Approval;
-import org.hisp.dhis.webapi.webdomain.approval.Approvals;
+import org.hisp.dhis.webapi.webdomain.approval.ApprovalDto;
+import org.hisp.dhis.webapi.webdomain.approval.ApprovalStatusDto;
+import org.hisp.dhis.webapi.webdomain.approval.ApprovalsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -103,6 +104,7 @@ public class DataApprovalController
     private static final String APPROVALS_PATH = "/dataApprovals";
     private static final String STATUS_PATH = APPROVALS_PATH + "/status";
     private static final String ACCEPTANCES_PATH = "/dataAcceptances";
+    private static final String MULTIPLE_APPROVALS_PATH = APPROVALS_PATH + "/multiple";
 
     @Autowired
     private DataApprovalService dataApprovalService;
@@ -164,6 +166,118 @@ public class DataApprovalController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), status.getPermissions() );
+    }
+
+    @RequestMapping( value = { MULTIPLE_APPROVALS_PATH, APPROVALS_PATH + "/approvals" } , method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    public void getMultipleApprovalPermissions(
+        @RequestParam Set<String> wf,
+        @RequestParam( required = false ) Set<String> pe,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam Set<String> ou,
+        @RequestParam( required = false ) Set<String> aoc,
+        HttpServletResponse response )
+        throws IOException, WebMessageException
+    {
+        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( null, wf );
+
+        List<Period> periods = null;
+
+        if ( pe == null )
+        {
+            if ( startDate == null || endDate == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Must have either pe or both startDate and endDate." ) );
+            }
+        }
+        else
+        {
+            if ( startDate != null || endDate != null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Cannot have both pe and startDate or endDate." ) );
+            }
+
+            periods = new ArrayList<>();
+
+            for ( String period : pe )
+            {
+                Period periodObj = periodService.getPeriod( getAndValidatePeriod( period ).getIsoDate() );
+
+                if ( periodObj != null )
+                {
+                    periods.add( periodObj );
+                }
+            }
+        }
+
+        List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+        for ( String orgUnit : ou )
+        {
+            orgUnits.add( getAndValidateOrgUnit( orgUnit ) );
+        }
+
+        List<CategoryOptionCombo> optionCombos = new ArrayList<>();
+
+        if ( aoc == null )
+        {
+            optionCombos.add( getAndValidateAttributeOptionCombo( null ) );
+        }
+        else
+        {
+            for ( String optionCombo : aoc )
+            {
+                optionCombos.add( getAndValidateAttributeOptionCombo( optionCombo ) );
+            }
+        }
+
+        List<DataApproval> dataApprovals = new ArrayList<>();
+
+        for ( DataApprovalWorkflow workflow : workflows )
+        {
+            List<Period> workflowPeriods = periods != null ? periods :
+                periodService.getPeriodsBetweenDates( workflow.getPeriodType(), startDate, endDate );
+
+            for ( Period period : workflowPeriods )
+            {
+                if ( period.getPeriodType().equals( workflow.getPeriodType() ) )
+                {
+                    for ( OrganisationUnit orgUnit : orgUnits )
+                    {
+                        for ( CategoryOptionCombo optionCombo : optionCombos )
+                        {
+                            dataApprovals.add( new DataApproval( null, workflow, period, orgUnit, optionCombo ) );
+                        }
+                    }
+                }
+            }
+        }
+
+        Map<DataApproval, DataApprovalStatus> statusMap = dataApprovalService.getDataApprovalStatuses( dataApprovals );
+
+        List<ApprovalStatusDto> approvalStatuses = new ArrayList<>();
+
+        for ( Map.Entry<DataApproval, DataApprovalStatus> entry : statusMap.entrySet() )
+        {
+            DataApproval da = entry.getKey();
+
+            DataApprovalStatus status = entry.getValue();
+
+            ApprovalStatusDto approvalStatus = new ApprovalStatusDto();
+
+            approvalStatus.setWf( da.getWorkflow().getUid() );
+            approvalStatus.setPe( da.getPeriod().getIsoDate() );
+            approvalStatus.setOu( da.getOrganisationUnit().getUid() );
+            approvalStatus.setAoc( da.getAttributeOptionCombo().getUid() );
+            approvalStatus.setState( status != null ? status.getState() : null );
+            approvalStatus.setLevel( status != null && status.getApprovedLevel() != null ? status.getApprovedLevel().getUid() : null );
+            approvalStatus.setPermissions( status != null ? status.getPermissions() : null );
+
+            approvalStatuses.add( approvalStatus );
+        }
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        renderService.toJson( response.getOutputStream(), approvalStatuses );
     }
 
     @RequestMapping( value = STATUS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
@@ -347,7 +461,7 @@ public class DataApprovalController
 
     @RequestMapping( value = APPROVALS_PATH + "/approvals", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveApprovalBatch( @RequestBody Approvals approvals,
+    public void saveApprovalBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.approveData( getDataApprovalList( approvals ) );
@@ -355,7 +469,7 @@ public class DataApprovalController
 
     @RequestMapping( value = APPROVALS_PATH + "/unapprovals", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeApprovalBatch( @RequestBody Approvals approvals,
+    public void removeApprovalBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.unapproveData( getDataApprovalList( approvals ) );
@@ -392,7 +506,7 @@ public class DataApprovalController
 
     @RequestMapping( value = ACCEPTANCES_PATH + "/acceptances", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveAcceptanceBatch( @RequestBody Approvals approvals,
+    public void saveAcceptanceBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.acceptData( getDataApprovalList( approvals ) );
@@ -400,7 +514,7 @@ public class DataApprovalController
 
     @RequestMapping( value = ACCEPTANCES_PATH + "/unacceptances", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeAcceptancesBatch( @RequestBody Approvals approvals,
+    public void removeAcceptancesBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.unacceptData( getDataApprovalList( approvals ) );
@@ -499,7 +613,7 @@ public class DataApprovalController
         return approvals;
     }
 
-    private List<DataApproval> getDataApprovalList( Approvals approvals ) throws WebMessageException
+    private List<DataApproval> getDataApprovalList( ApprovalsDto approvals ) throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( approvals.getDs(), approvals.getWf() );
         List<Period> periods = PeriodType.getPeriodsFromIsoStrings( approvals.getPe() );
@@ -522,7 +636,7 @@ public class DataApprovalController
 
         Map<String, OrganisationUnit> ouCache = new HashMap<>();
 
-        for ( Approval approval : approvals.getApprovals() )
+        for ( ApprovalDto approval : approvals.getApprovals() )
         {
             CategoryOptionCombo atributeOptionCombo = comboMap.get( approval.getAoc() );
             atributeOptionCombo = ObjectUtils.firstNonNull( atributeOptionCombo, defaultOptionCombo );
