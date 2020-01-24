@@ -9,12 +9,14 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -25,10 +27,10 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -124,10 +126,8 @@ public class JacksonRelationshipServiceTest
     }
 
     @Test
-    @Ignore( "Ignoring for now since test outcome is not deterministic" )
     public void verifyRelationshipIsImportedIfDoesNotExist()
     {
-
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
                 .thenReturn( Optional.empty() );
@@ -139,7 +139,6 @@ public class JacksonRelationshipServiceTest
     }
 
     @Test
-    @Ignore( "Ignoring for now since test outcome is not deterministic" )
     public void verifyRelationshipIsNotImportedWhenDoesExist()
     {
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
@@ -160,10 +159,11 @@ public class JacksonRelationshipServiceTest
     private void initFakeCaches( Relationship relationship, RelationshipType relationshipType )
         throws IllegalAccessException
     {
-
+        // init relationship type cache
         HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
         relationshipTypeCache.put( relationship.getRelationshipType(), relationshipType );
 
+        // init tracked entity instance cache
         HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
         trackedEntityInstanceCache.put( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
             new TrackedEntityInstance()
@@ -187,30 +187,31 @@ public class JacksonRelationshipServiceTest
 
     private Relationship createTei2TeiRelationship( RelationshipType relationshipType )
     {
-        Relationship relationship = rnd.randomObject( Relationship.class );
+        Relationship relationship = new Relationship();
 
-        relationship.getFrom().setEvent( null );
-        relationship.getFrom().setEnrollment( null );
-        relationship.getTo().setEnrollment( null );
-        relationship.getTo().setEvent( null );
+        RelationshipItem from = new RelationshipItem();
+        from.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+
+        RelationshipItem to = new RelationshipItem();
+        to.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class )  );
+
+        relationship.setFrom( from );
+        relationship.setTo( to );
         relationship.setRelationshipType( relationshipType.getUid() );
         return relationship;
     }
 
     private RelationshipType createRelationshipTypeWithTeiConstraint()
     {
-        RelationshipType relationshipType = rnd.randomObject( RelationshipType.class );
+        RelationshipType relationshipType = new RelationshipType();
+        relationshipType.setUid( CodeGenerator.generateUid() );
 
-        RelationshipConstraint from = rnd.randomObject( RelationshipConstraint.class );
-        from.setProgram( null );
-        from.setProgramStage( null );
+        RelationshipConstraint from = new RelationshipConstraint();
         from.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-
+        from.setTrackedEntityType( new TrackedEntityType( "a", "b" ) );
         RelationshipConstraint to = rnd.randomObject( RelationshipConstraint.class );
-        to.setProgram( null );
-        to.setProgramStage( null );
         to.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-
+        to.setTrackedEntityType( new TrackedEntityType( "b", "c" ) );
         relationshipType.setFromConstraint( from );
         relationshipType.setToConstraint( to );
 
