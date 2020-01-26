@@ -1287,12 +1287,12 @@
       <dependency>
         <groupId>org.cache2k</groupId>
         <artifactId>cache2k-api</artifactId>
-        <version>1.2.3.Final</version>
+        <version>1.2.4.Final</version>
       </dependency>
       <dependency>
         <groupId>org.cache2k</groupId>
         <artifactId>cache2k-core</artifactId>
-        <version>1.2.3.Final</version>
+        <version>1.2.4.Final</version>
       </dependency>
       <dependency>
         <groupId>com.googlecode.jsmpp</groupId>
