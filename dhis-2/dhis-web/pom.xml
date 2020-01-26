@@ -74,6 +74,26 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>set-system-properties</goal>
+            </goals>
+            <configuration>
+              <properties>
+                <property>
+                  <name>log4j.configurationFile</name>
+                  <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>
+                </property>
+              </properties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
         <version>9.3.13.v20161014</version>
@@ -82,18 +102,6 @@
             <systemProperty>
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
               <value>10000000</value>
-            </systemProperty>
-            <systemProperty>
-              <name>org.apache.commons.logging.Log</name>
-              <value>org.apache.commons.logging.impl.Log4JLogger</value>
-            </systemProperty>
-            <systemProperty>
-              <name>slf4j</name>
-              <value>false</value>
-            </systemProperty>
-            <systemProperty>
-              <name>log4j.configuration</name>
-              <value>log4j-jetty.properties</value>
             </systemProperty>
           </systemProperties>
           <webAppConfig>

@@ -30,12 +30,7 @@ package org.hisp.dhis.message;
 
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -52,15 +47,12 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ClassUtils;
 
 import com.google.api.client.util.Sets;
 
@@ -138,6 +130,7 @@ public class DefaultMessageService
     @Autowired
     public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
     {
+
         this.configurationProvider = configurationProvider;
     }
 
