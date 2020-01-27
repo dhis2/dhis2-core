@@ -102,7 +102,6 @@ public class ArtemisConfig
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.PERSISTENT );
         template.setDestinationResolver( nameDestinationResolver );
-        // set to true, since we only use topics and we want to resolve names to topic destination
         template.setPubSubDomain( false );
 
         return template;

@@ -32,7 +32,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
@@ -47,18 +50,21 @@ public class TrackerManager
 {
     private final MessageManager messageManager;
     private final ObjectMapper objectMapper;
+    private final TrackerImportService trackerImportService;
 
     public TrackerManager(
         MessageManager messageManager,
-        ObjectMapper objectMapper )
+        ObjectMapper objectMapper,
+        TrackerImportService trackerImportService )
     {
         this.messageManager = messageManager;
         this.objectMapper = objectMapper;
+        this.trackerImportService = trackerImportService;
     }
 
-    public String addJob( TrackerBundle trackerBundle )
+    public String addJob( TrackerImportParams params )
     {
-        TrackerMessage trackerMessage = TrackerMessage.builder().trackerBundle( trackerBundle ).build();
+        TrackerMessage trackerMessage = TrackerMessage.builder().trackerImportParams( params ).build();
         messageManager.sendQueue( Topics.TRACKER_JOB_TOPIC_NAME, trackerMessage );
 
         return trackerMessage.getUid();
@@ -70,7 +76,12 @@ public class TrackerManager
         String payload = message.getText();
         TrackerMessage trackerMessage = objectMapper.readValue( payload, TrackerMessage.class );
 
-        // System.err.println( "GOT:" );
-        // System.err.println( trackerMessage );
+        System.err.println( "GOT:" );
+        System.err.println( trackerMessage );
+
+        TrackerImportReport importReport = trackerImportService.importTracker( trackerMessage.getTrackerImportParams() );
+
+        System.err.println( "IR:" );
+        System.err.println( importReport );
     }
 }

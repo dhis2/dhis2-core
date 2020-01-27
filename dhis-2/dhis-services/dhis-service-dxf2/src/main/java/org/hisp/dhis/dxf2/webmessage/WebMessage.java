@@ -134,9 +134,10 @@ public class WebMessage
         return status;
     }
 
-    public void setStatus( Status status )
+    public WebMessage setStatus( Status status )
     {
         this.status = status;
+        return this;
     }
 
     @JsonProperty
@@ -146,9 +147,10 @@ public class WebMessage
         return code;
     }
 
-    public void setCode( Integer code )
+    public WebMessage setCode( Integer code )
     {
         this.code = code;
+        return this;
     }
 
     @JsonProperty
@@ -158,9 +160,10 @@ public class WebMessage
         return httpStatus.getReasonPhrase();
     }
 
-    public void setHttpStatus( HttpStatus httpStatus )
+    public WebMessage setHttpStatus( HttpStatus httpStatus )
     {
         this.httpStatus = httpStatus;
+        return this;
     }
 
     @JsonProperty
@@ -177,9 +180,10 @@ public class WebMessage
         return message;
     }
 
-    public void setMessage( String message )
+    public WebMessage setMessage( String message )
     {
         this.message = message;
+        return this;
     }
 
     @JsonProperty
@@ -189,9 +193,10 @@ public class WebMessage
         return devMessage;
     }
 
-    public void setDevMessage( String devMessage )
+    public WebMessage setDevMessage( String devMessage )
     {
         this.devMessage = devMessage;
+        return this;
     }
 
     @JsonProperty
@@ -201,9 +206,10 @@ public class WebMessage
         return response;
     }
 
-    public void setResponse( WebMessageResponse response )
+    public WebMessage setResponse( WebMessageResponse response )
     {
         this.response = response;
+        return this;
     }
 
     @Override

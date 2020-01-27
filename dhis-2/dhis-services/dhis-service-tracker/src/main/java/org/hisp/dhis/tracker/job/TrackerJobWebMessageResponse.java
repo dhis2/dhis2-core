@@ -29,37 +29,26 @@ package org.hisp.dhis.tracker.job;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.artemis.Message;
-import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.TrackerImportParams;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@Builder( builderClassName = "TrackerMessageBuilder" )
-@JsonDeserialize( builder = TrackerMessage.TrackerMessageBuilder.class )
-public class TrackerMessage implements Message
+@Builder
+@EqualsAndHashCode( callSuper = true )
+@JacksonXmlRootElement( localName = "trackerJob", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackerJobWebMessageResponse
+    extends AbstractWebMessageResponse
 {
     @JsonProperty
-    private final String uid = CodeGenerator.generateUid();
+    private final String id;
 
     @JsonProperty
-    private final TrackerImportParams trackerImportParams;
-
-    @Override
-    public MessageType getMessageType()
-    {
-        return MessageType.TRACKER_JOB;
-    }
-
-    @JsonPOJOBuilder( withPrefix = "" )
-    public static final class TrackerMessageBuilder
-    {
-    }
+    private final String location;
 }
