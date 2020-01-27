@@ -61,15 +61,19 @@ public abstract class AntlrOperatorCompare
         }
         else if ( o1 instanceof Double )
         {
-            return ( (Double) o1).compareTo( castDouble( o2 ) );
+            return ((Double) o1).compareTo( castDouble( o2 ) );
+        }
+        else if ( o2 instanceof Double )
+        {
+            return ((Double) o2).compareTo( castDouble( o1 ) );
         }
         else if ( o1 instanceof String )
         {
-            return castString( o1 ).compareTo( castString( o2 ) );
+            return ((String) o1).compareTo( castString( o2 ) );
         }
         else if ( o1 instanceof Boolean )
         {
-            return ( (Boolean) o1).compareTo( castBoolean( o2 ) );
+            return ((Boolean) o1).compareTo( castBoolean( o2 ) );
         }
         else
         {

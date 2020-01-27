@@ -192,11 +192,6 @@ public class AntlrParserUtils
         {
             if ( clazz == String.class )
             {
-                Double doubleNumber = (Double) object;
-                if ( doubleNumber == Math.floor(doubleNumber) )
-                {
-                    return Long.toString( Double.valueOf( doubleNumber ).longValue() );
-                }
                 return object.toString();
             }
             else if ( clazz != Double.class )
@@ -231,26 +226,7 @@ public class AntlrParserUtils
             }
             else if ( clazz == String.class )
             {
-                try
-                {
-                    if ( NumberUtils.isCreatable( (String) object ) )
-                    {
-                        double doubleNumber = Double.parseDouble( (String) object );
-                        if ( doubleNumber == Math.floor(doubleNumber) && !((String) object).contains( "." ) )
-                        {
-                            return Long.toString( Double.valueOf( doubleNumber ).longValue() );
-                        }
-                        return Double.toString( doubleNumber );
-                    }
-                    else
-                    {
-                        return object;
-                    }
-                }
-                catch ( Exception e )
-                {
-                    throw new ParserExceptionWithoutContext( "Found '" + object + "' when expecting a number" );
-                }
+                return object;
             }
             else if ( clazz != String.class )
             {
