@@ -1,4 +1,4 @@
-package org.hisp.dhis.interpretation;
+package org.hisp.dhis.webapi.webdomain.approval;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,44 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.common.DxfNamespaces;
 
-/**
- * @author Lars Helge Overland
- */
-public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+@JacksonXmlRootElement( localName = "approval", namespace = DxfNamespaces.DXF_2_0 )
+public class ApprovalDto
 {
-    long countMapInterpretations( Map map );
+    private String ou;
+    
+    private String aoc;
+    
+    public ApprovalDto()
+    {
+    }
 
-    long countChartInterpretations( Chart chart );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOu()
+    {
+        return ou;
+    }
 
-    long countReportTableInterpretations( ReportTable reportTable );
+    public void setOu( String ou )
+    {
+        this.ou = ou;
+    }
 
-    Interpretation getByChartId( long id );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAoc()
+    {
+        return aoc;
+    }
 
-    Interpretation getByVisualizationId( long id );
+    public void setAoc( String aoc )
+    {
+        this.aoc = aoc;
+    }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.interpretation;
+package org.hisp.dhis.webapi.webdomain;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,39 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.reporttable.ReportTable;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.scheduling.JobTypeInfo;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Wrapper DTO class for a list of {@link JobTypeInfo}.
+ *
  * @author Lars Helge Overland
  */
-public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
+public class JobTypes
 {
-    long countMapInterpretations( Map map );
+    private List<JobTypeInfo> jobTypes = new ArrayList<>();
 
-    long countChartInterpretations( Chart chart );
+    public JobTypes()
+    {
+    }
 
-    long countReportTableInterpretations( ReportTable reportTable );
+    public JobTypes( List<JobTypeInfo> jobTypes )
+    {
+        this.jobTypes = jobTypes;
+    }
 
-    Interpretation getByChartId( long id );
+    @JsonProperty
+    public List<JobTypeInfo> getJobTypes()
+    {
+        return jobTypes;
+    }
 
-    Interpretation getByVisualizationId( long id );
+    public void setJobTypes( List<JobTypeInfo> jobTypes )
+    {
+        this.jobTypes = jobTypes;
+    }
 }

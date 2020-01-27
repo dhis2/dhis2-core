@@ -38,6 +38,8 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.webdomain.JobTypes;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -71,6 +73,12 @@ public class JobConfigurationController
     public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended()
     {
         return jobConfigurationService.getJobParametersSchema();
+    }
+
+    @GetMapping( value = "/jobTypes", produces = "application/json" )
+    public JobTypes getJobTypeInfo()
+    {
+        return new JobTypes( jobConfigurationService.getJobTypeInfo() );
     }
 
     @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )

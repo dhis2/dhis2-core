@@ -536,6 +536,34 @@ public class TextUtils
     }
 
     /**
+     * Returns a human friendly name of the given enum.
+     *
+     * @param enumeration the enum.
+     * @return a human friendly name.
+     */
+    public static String getPrettyEnumName( Enum<?> enumeration )
+    {
+        return StringUtils.capitalize( enumeration.name().replaceAll( "_", " " ).toLowerCase() );
+    }
+
+    /**
+     * Returns a human friendly name of the given property value.
+     *
+     * @param property the property value.
+     * @return a human friendly name.
+     */
+    public static String getPrettyPropertyName( String property )
+    {
+        List<String> fieldStrings = Arrays.stream( property.split( "(?=[A-Z])" ) )
+            .map( String::toLowerCase )
+            .collect( Collectors.toList() );
+
+        fieldStrings.set( 0, StringUtils.capitalize( fieldStrings.get( 0 ) ) );
+
+        return String.join( " ", fieldStrings );
+    }
+
+    /**
      * Gets the string at the given index of the array produced by splitting
      * the given string on the given separator. Returns null if the given string
      * is null or if the given index is out of bounds of the array.

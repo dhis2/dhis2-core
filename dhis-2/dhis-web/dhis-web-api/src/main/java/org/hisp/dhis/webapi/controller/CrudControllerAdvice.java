@@ -100,7 +100,13 @@ public class CrudControllerAdvice
         } );
     }
 
-    @ExceptionHandler( { IllegalQueryException.class, QueryTimeoutException.class, DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
+    @ExceptionHandler( IllegalQueryException.class )
+    public void illegalQueryExceptionHandler( IllegalQueryException ex, HttpServletResponse response, HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( { QueryTimeoutException.class, DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
     public void conflictsExceptionHandler( Exception ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
@@ -130,13 +136,13 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
     }
 
-    @ExceptionHandler( { NotAuthenticatedException.class } )
+    @ExceptionHandler( NotAuthenticatedException.class )
     public void notAuthenticatedExceptionHandler( NotAuthenticatedException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.unathorized( ex.getMessage() ), response, request );
     }
 
-    @ExceptionHandler( { NotFoundException.class } )
+    @ExceptionHandler( NotFoundException.class )
     public void notFoundExceptionHandler( NotFoundException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.notFound( ex.getMessage() ), response, request );

@@ -56,6 +56,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +77,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -127,26 +130,27 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeReportTableInterpretation( @PathVariable( "uid" ) String reportTableUid,
+    public void writeReportTableInterpretation( @PathVariable( "uid" ) String visualizationUid,
         @RequestParam( value = "pe", required = false ) String isoPeriod,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
-        ReportTable reportTable = idObjectManager.get( ReportTable.class, reportTableUid );
+        Visualization visualization = idObjectManager.get( Visualization.class, visualizationUid );
 
-        if ( reportTable == null )
+        if ( visualization == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Report table does not exist or is not accessible: " + reportTableUid ) );
+                WebMessageUtils.conflict( "Report table does not exist or is not accessible: " + visualizationUid ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, reportTable,
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
             currentUserService.getCurrentUser() );
 
-        createIntepretation( new Interpretation( reportTable, period, orgUnit, text ), request, response );
+        createIntepretation( new Interpretation( visualization, period, orgUnit, text ),
+            request, response );
     }
 
     @RequestMapping( value = "/chart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
@@ -155,32 +159,32 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
-        Chart chart = idObjectManager.get( Chart.class, uid );
+        Visualization visualization = idObjectManager.get( Visualization.class, uid );
 
-        if ( chart == null )
+        if ( visualization == null )
         {
             throw new WebMessageException(
                 WebMessageUtils.conflict( "Chart does not exist or is not accessible: " + uid ) );
         }
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, chart, currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization, currentUserService.getCurrentUser() );
 
-        createIntepretation( new Interpretation( chart, orgUnit, text ), request, response );
+        createIntepretation( new Interpretation( visualization, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/visualizations/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
+    @RequestMapping( value = "/visualization/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeVisualizationInterpretation( @PathVariable( "uid" )
-    final String visualizationUid, @RequestParam( value = "ou", required = false )
+    final String uid, @RequestParam( value = "ou", required = false )
     final String orgUnitUid, @RequestBody
     final String text, final HttpServletResponse response, final HttpServletRequest request )
         throws WebMessageException
     {
-        final Visualization visualization = idObjectManager.get( Visualization.class, visualizationUid );
+        final Visualization visualization = idObjectManager.get( Visualization.class, uid );
 
         if ( visualization == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Visualization does not exist or is not accessible: " + visualizationUid ) );
+                WebMessageUtils.conflict( "Visualization does not exist or is not accessible: " + uid ) );
         }
 
         final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
@@ -525,5 +529,77 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             disjunctions.add( disjunction );
         }
         return disjunctions;
+    }
+
+    /**
+     * Logic required to keep the backward compatibility with Chart and ReporTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
+     *
+     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
+     * Once the Visualization API is fully enabled this logic should be removed.
+     *
+     * @param interpretations
+     * @param options
+     * @param parameters
+     */
+    @Override
+    @Deprecated
+    protected void postProcessResponseEntities( final List<Interpretation> interpretations, final WebOptions options,
+        final java.util.Map<String, String> parameters )
+    {
+        if ( isNotEmpty( interpretations ) )
+        {
+            for ( final Interpretation interpretation : interpretations )
+            {
+                postProcessResponseEntity( interpretation, options, parameters );
+            }
+        }
+    }
+
+    /**
+     * Logic required to keep the backward compatibility with Chart and ReporTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
+     *
+     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
+     * Once the Visualization API is fully enabled this logic should be removed.
+     *
+     * @param interpretation
+     * @param options
+     * @param parameters
+     */
+    @Override
+    @Deprecated
+    protected void postProcessResponseEntity( final Interpretation interpretation, final WebOptions options,
+        final java.util.Map<String, String> parameters )
+    {
+        if ( interpretation != null && interpretation.getVisualization() != null )
+        {
+            final VisualizationType type = interpretation.getVisualization().getType();
+
+            switch ( type )
+            {
+            case PIVOT_TABLE:
+                final ReportTable reportTable = new ReportTable();
+                reportTable.setUid( interpretation.getVisualization().getUid() );
+                interpretation.setReportTable( reportTable );
+                break;
+            case AREA:
+            case BAR:
+            case COLUMN:
+            case GAUGE:
+            case LINE:
+            case PIE:
+            case RADAR:
+            case SINGLE_VALUE:
+            case STACKED_BAR:
+            case STACKED_COLUMN:
+            case YEAR_OVER_YEAR_COLUMN:
+            case YEAR_OVER_YEAR_LINE:
+                final Chart chart = new Chart();
+                chart.setUid( interpretation.getVisualization().getUid() );
+                interpretation.setChart( chart );
+                break;
+            }
+        }
     }
 }

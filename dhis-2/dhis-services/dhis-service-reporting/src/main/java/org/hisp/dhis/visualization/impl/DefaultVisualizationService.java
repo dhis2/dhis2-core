@@ -170,4 +170,11 @@ public class DefaultVisualizationService
 
         return visualizationGrid;
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Visualization getVisualizationNoAcl( final String uid )
+    {
+        return visualizationStore.getByUidNoAcl( uid );
+    }
 }

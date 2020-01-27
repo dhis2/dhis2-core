@@ -29,14 +29,12 @@
 package org.hisp.dhis.metadata.users;
 
 import com.google.gson.JsonObject;
-import io.restassured.specification.Argument;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -79,7 +77,7 @@ public class UserTest extends ApiTest
             Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
             Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" ),
             Arguments.of( password, "test1212?", "Password must have at least one upper case", "newPassword doesn't contain uppercase" ),
-            Arguments.of( password, "testtest", "Password must have at least one special character", "newPassword doesn't contain a special character" ),
+            Arguments.of( password, "Testtest1212", "Password must have at least one special character", "newPassword doesn't contain a special character" ),
             Arguments.of( password, "Testtest?", "Password must have at least one digit", "newPassword doesn't contain a digit" )
 
         } );
@@ -105,7 +103,7 @@ public class UserTest extends ApiTest
 
         ApiResponse response = meActions.update( "/changePassword", payload  );
 
-        response.validate().statusCode( 302 );
+        response.validate().statusCode( 202 );
 
         // should login with new credentials
         loginActions.addAuthenticationHeader( username, newPassword );

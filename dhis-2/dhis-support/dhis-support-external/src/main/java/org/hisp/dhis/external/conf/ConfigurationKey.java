@@ -28,8 +28,6 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.option.Option;
-
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -150,7 +148,7 @@ public enum ConfigurationKey
     {
         return confidential;
     }
-    
+
     public static Optional<ConfigurationKey> getByKey( String key )
     {
         return Arrays.stream( ConfigurationKey.values() ).filter( k -> k.key.equals( key ) ).findFirst();

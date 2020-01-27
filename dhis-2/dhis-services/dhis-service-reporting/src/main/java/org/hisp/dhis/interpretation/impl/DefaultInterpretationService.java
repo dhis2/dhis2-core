@@ -83,17 +83,17 @@ public class DefaultInterpretationService
     private final InterpretationStore interpretationStore;
 
     private CurrentUserService currentUserService;
-    
+
     private UserService userService;
-    
+
     private final PeriodService periodService;
 
     private final MessageService messageService;
 
     private final AclService aclService;
-    
+
     private final I18nManager i18nManager;
-    
+
     private final DhisConfigurationProvider configurationProvider;
 
     public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
@@ -489,19 +489,19 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
         return interpretationStore.countMapInterpretations( map );
     }
 
     @Override
-    public int countChartInterpretations( Chart chart )
+    public long countChartInterpretations( Chart chart )
     {
         return interpretationStore.countChartInterpretations( chart );
     }
 
     @Override
-    public int countReportTableInterpretations( ReportTable reportTable )
+    public long countReportTableInterpretations( ReportTable reportTable )
     {
         return interpretationStore.countReportTableInterpretations( reportTable );
     }
