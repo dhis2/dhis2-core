@@ -236,12 +236,13 @@ public class DefaultQueryPlanner implements QueryPlanner
                 Restriction restriction = (Restriction) criterion;
                 restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
 
-                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias() )
+                if ( restriction.getQueryPath().isPersisted() && restriction.getQueryPath().haveAlias() )
                 {
                     pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                 }
+
             }
         }
 
