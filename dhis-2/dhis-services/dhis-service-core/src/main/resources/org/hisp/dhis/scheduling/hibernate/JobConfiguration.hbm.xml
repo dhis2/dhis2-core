@@ -16,7 +16,9 @@
 
         <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-        <property name="cronExpression" not-null="true" />
+        <property name="cronExpression" />
+        
+        <property name="delay" />
 
         <property name="jobType" column="jobtype" not-null="true" length="120">
             <type name="org.hibernate.type.EnumType">
@@ -47,8 +49,6 @@
         <property name="lastRuntimeExecution" type="text" />
 
         <property name="nextExecutionTime" type="timestamp" />
-
-        <property name="continuousExecution" not-null="true" type="boolean" />
 
         <property name="enabled" not-null="true" type="boolean" />
 

@@ -13,9 +13,9 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
-import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
+import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

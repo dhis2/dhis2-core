@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,6 @@ public class EventXmlImportTest
         assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
     }
 
-    @SuppressWarnings("unchecked")
     private InputStream createEventXmlInputStream( )
         throws IOException
     {

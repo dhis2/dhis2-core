@@ -1,5 +1,7 @@
+package org.hisp.dhis.visualization;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.visualization;
 
 import java.util.Date;
 
@@ -95,4 +95,12 @@ public interface VisualizationService
      * @return a Grid.
      */
     Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
+
+    /**
+     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
+     *
+     * @param uid the uid of the Visualization to retrieve.
+     * @return the Visualization.
+     */
+    Visualization getVisualizationNoAcl( String uid );
 }

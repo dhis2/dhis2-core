@@ -1,7 +1,8 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-    /*
- * Copyright (c) 2004-2019, University of Oslo
+
+/*
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +29,14 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections.set.CompositeSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -40,19 +48,13 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import java.security.acl.Acl;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,18 +145,6 @@ public class DefaultTrackerImportService implements TrackerImportService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
-
-    private boolean getBooleanWithDefault( Map<String, List<String>> parameters, String key, boolean defaultValue )
-    {
-        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
-        {
-            return defaultValue;
-        }
-
-        String value = String.valueOf( parameters.get( key ).get( 0 ) );
-
-        return "true".equals( value.toLowerCase() );
-    }
 
     private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
     {

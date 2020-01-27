@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -269,7 +269,7 @@ public class HibernateUserStore
             hql += "order by " + StringUtils.defaultString( orderExpression, "u.surname, u.firstName" );
         }
 
-        Query query = sessionFactory.getCurrentSession().createQuery( hql );
+        Query query = getQuery( hql );
 
         if ( params.getQuery() != null )
         {

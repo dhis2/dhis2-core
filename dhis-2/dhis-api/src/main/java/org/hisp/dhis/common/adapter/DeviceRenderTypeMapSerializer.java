@@ -1,7 +1,7 @@
 package org.hisp.dhis.common.adapter;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,10 +43,11 @@ import java.util.LinkedHashMap;
 import java.util.Set;
 
 public class DeviceRenderTypeMapSerializer
-    extends JsonSerializer<DeviceRenderTypeMap<RenderingObject>>
+    extends JsonSerializer<DeviceRenderTypeMap<RenderingObject<?>>>
 {
     @Override
-    public void serialize( DeviceRenderTypeMap<RenderingObject> value, JsonGenerator gen, SerializerProvider serializers )
+    @SuppressWarnings("unchecked")
+    public void serialize( DeviceRenderTypeMap<RenderingObject<?>> value, JsonGenerator gen, SerializerProvider serializers )
         throws IOException
     {
         Set<RenderDevice> keys = value.keySet();
@@ -58,7 +59,7 @@ public class DeviceRenderTypeMapSerializer
                 XMLStreamWriter staxWriter = xmlGenerator.getStaxWriter();
                 for ( RenderDevice key : keys )
                 {
-                    RenderingObject val =  value.get( key );
+                    RenderingObject<?> val = value.get( key );
                     staxWriter.writeStartElement(  key.name() );
                     staxWriter.writeAttribute( RenderingObject._TYPE, val.getType().name() );
                     staxWriter.writeEndElement();
@@ -80,12 +81,12 @@ public class DeviceRenderTypeMapSerializer
 
                 if ( LinkedHashMap.class.isAssignableFrom( val.getClass() ) )
                 {
-                    LinkedHashMap<String,String> map = ( LinkedHashMap<String, String> ) val;
+                    LinkedHashMap<String,String> map = (LinkedHashMap<String, String>) val;
                     fieldValue = map.get( RenderingObject._TYPE );
                 }
                 else if ( RenderingObject.class.isAssignableFrom( val.getClass()) )
                 {
-                    RenderingObject renderingObject = ( RenderingObject ) val;
+                    RenderingObject<?> renderingObject = ( RenderingObject<?> ) val;
                     fieldValue = renderingObject.getType().name();
                 }
                 else

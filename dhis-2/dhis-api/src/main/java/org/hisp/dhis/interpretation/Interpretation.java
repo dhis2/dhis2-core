@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,17 +195,17 @@ public class Interpretation
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public AnalyticsFavoriteType getType()
     {
-        if ( visualization != null )
-        {
-            return VISUALIZATION;
-        }
-        else if ( reportTable != null )
+        if ( reportTable != null )
         {
             return REPORT_TABLE;
         }
         else if ( chart != null )
         {
             return CHART;
+        }
+        else if ( visualization != null )
+        {
+            return VISUALIZATION;
         }
         else if ( map != null )
         {
@@ -229,17 +229,17 @@ public class Interpretation
 
     public IdentifiableObject getObject()
     {
-        if ( visualization != null )
-        {
-            return visualization;
-        }
-        else if ( reportTable != null )
+        if ( reportTable != null )
         {
             return reportTable;
         }
         else if ( chart != null )
         {
             return chart;
+        }
+        else if ( visualization != null )
+        {
+            return visualization;
         }
         else if ( map != null )
         {

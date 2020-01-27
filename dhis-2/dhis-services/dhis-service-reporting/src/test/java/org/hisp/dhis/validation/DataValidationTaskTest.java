@@ -1,5 +1,7 @@
+package org.hisp.dhis.validation;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.validation;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.*;
@@ -54,7 +54,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -89,27 +88,25 @@ public class DataValidationTaskTest
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
-    
+
     private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
     private DataValidationTask subject;
     private DataElement deA;
-    private DataElement deB;
     private List<OrganisationUnit> organisationUnits;
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
-    private OrganisationUnit ouZ;
 
     private Period p1;
     private Period p2;
     private Period p3;
     private Map<String, Constant> constantMap;
+
     @Before
     public void setUp()
     {
         subject = new DataValidationTask( expressionService, dataValueService, categoryService, periodService );
 
-        deA = createDataElement('A');
-        deB = createDataElement('B');
+        deA = createDataElement( 'A' );
 
         organisationUnits = new ArrayList<>();
 
@@ -122,8 +119,6 @@ public class DataValidationTaskTest
         organisationUnits.add( ouB );
         organisationUnits.add( ouC );
         organisationUnits.add( ouD );
-
-        ouZ = createOu( 'Z' );
 
         p1 = createPeriod( "201901" );
         p2 = createPeriod( "201902" );
@@ -142,9 +137,9 @@ public class DataValidationTaskTest
     {
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );
-        
+
         ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression, Operator.not_equal_to );
-        
+
         List<PeriodTypeExtended> periodTypes = new ArrayList<>();
         PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
         periodType.addDataElement( deA );
@@ -169,7 +164,7 @@ public class DataValidationTaskTest
 
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
             .thenReturn( deflatedDataValues );
-        
+
         Map<DimensionalItemObject, Double> vals = new HashMap<>();
         vals.put( deA, 12.4 );
 
@@ -232,8 +227,8 @@ public class DataValidationTaskTest
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
                 ctx.getConstantMap(), null, p3.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
     }
-    
-    
+
+
     private ValidationRuleExtended createValidationRuleExtended( Expression left, Expression right, Operator op )
     {
         return new ValidationRuleExtended( createValidationRule( 'A', op, left, right, MONTHLY ) );
@@ -261,12 +256,5 @@ public class DataValidationTaskTest
         OrganisationUnit organisationUnit = createOrganisationUnit( uniqueCharacter );
         organisationUnit.setId( RandomUtils.nextLong() );
         return organisationUnit;
-    }
-    
-    private Expression createExpression( char uniqueCharacter, String expressionString, MissingValueStrategy mvs )
-    {
-        Expression exp = createExpression2( uniqueCharacter, expressionString );
-        exp.setMissingValueStrategy( mvs );
-        return exp;
     }
 }

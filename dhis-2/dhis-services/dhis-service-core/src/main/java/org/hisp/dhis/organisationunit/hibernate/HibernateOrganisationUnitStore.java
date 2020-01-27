@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,7 +128,6 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getOrganisationUnits( OrganisationUnitQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();
@@ -179,7 +178,7 @@ public class HibernateOrganisationUnitStore
 
         hql += "order by o." +  params.getOrderBy().getName();
 
-        Query query = getQuery( hql );
+        Query<OrganisationUnit> query = getQuery( hql );
 
         if ( params.hasQuery() )
         {

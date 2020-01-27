@@ -15,15 +15,11 @@
     </id>
     &identifiableProperties;
 
-    <many-to-one name="chart" class="org.hisp.dhis.chart.Chart" column="chartid" foreign-key="fk_dashboarditem_chartid" />
-
     <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid" foreign-key="fk_dashboarditem_visualizationid" />
 
     <many-to-one name="eventChart" class="org.hisp.dhis.eventchart.EventChart" column="eventchartid" foreign-key="fk_dashboarditem_eventchartid" />
     
     <many-to-one name="map" class="org.hisp.dhis.mapping.Map" column="mapid" foreign-key="fk_dashboarditem_mapid" />
-
-    <many-to-one name="reportTable" class="org.hisp.dhis.reporttable.ReportTable" foreign-key="fk_dashboarditem_reporttableid" />
 
     <many-to-one name="eventReport" class="org.hisp.dhis.eventreport.EventReport" foreign-key="fk_dashboarditem_eventreportid" />
     

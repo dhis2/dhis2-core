@@ -1,5 +1,7 @@
+package org.hisp.dhis.visualization.impl;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.visualization.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
@@ -169,5 +169,12 @@ public class DefaultVisualizationService
         visualization.clearTransientState();
 
         return visualizationGrid;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Visualization getVisualizationNoAcl( final String uid )
+    {
+        return visualizationStore.getByUidNoAcl( uid );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,11 @@ import static org.junit.Assert.assertNull;
 public class TextUtilsTest
 {
     private static final String STRING = "abcdefghij";
+
+    enum Disease
+    {
+        ANTIBIOTIC_RESISTANT_INFECTION, MALARIA, CHRONIC_WASTING_DISEASE;
+    }
 
     @Test
     public void testHtmlLinks()
@@ -132,6 +137,22 @@ public class TextUtilsTest
     }
 
     @Test
+    public void testGetPrettyEnumName()
+    {
+        assertEquals( "Antibiotic resistant infection", TextUtils.getPrettyEnumName( Disease.ANTIBIOTIC_RESISTANT_INFECTION ) );
+        assertEquals( "Chronic wasting disease", TextUtils.getPrettyEnumName( Disease.CHRONIC_WASTING_DISEASE ) );
+        assertEquals( "Malaria", TextUtils.getPrettyEnumName( Disease.MALARIA ) );
+    }
+
+    @Test
+    public void testGetPrettyPropertyName()
+    {
+        assertEquals( "Tracker program page size", TextUtils.getPrettyPropertyName( "trackerProgramPageSize" ) );
+        assertEquals( "Data values page size", TextUtils.getPrettyPropertyName( "dataValuesPageSize" ) );
+        assertEquals( "Relative start", TextUtils.getPrettyPropertyName( "relativeStart" ) );
+    }
+
+    @Test
     public void testSplitSafe()
     {
         assertEquals( "green", TextUtils.splitSafe( "red-green-blue", "-", 1 ) );
@@ -180,4 +201,5 @@ public class TextUtilsTest
         assertThat( TextUtils.getCommaDelimitedString( Collections.singletonList( 1 ) ), is( "1" ) );
         assertThat( TextUtils.getCommaDelimitedString( null ), is( "" ) );
     }
+
 }
