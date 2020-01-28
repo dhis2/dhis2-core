@@ -28,23 +28,17 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.period.*;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -54,17 +48,19 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class PartitionUtilsTest
+public class PartitionUtilsTest extends DhisConvenienceTest
 {
     private PeriodType quarterly = new QuarterlyPeriodType();
     private Period q1 = quarterly.createPeriod( new DateTime( 2018, 7, 1, 0, 0 ).toDate() );
     private Period q2 = quarterly.createPeriod( new DateTime( 2018, 10, 1, 0, 0 ).toDate() );
     private Period q3 = quarterly.createPeriod( new DateTime( 2019, 1, 1, 0, 0 ).toDate() );
 
+    private Date firstDay2019 = getDate( 2019, 1, 1 );
+
     @Test
     public void testGetPartitions()
     {
-        assertEquals( new Partitions( Sets.newHashSet( 2000 ) ), PartitionUtils.getPartitions( createPeriod( "200001" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 1999, 2000 ) ), PartitionUtils.getPartitions( createPeriod( "200001" ) ) );
         assertEquals( new Partitions( Sets.newHashSet( 2001 ) ), PartitionUtils.getPartitions( createPeriod( "200110" ) ) );
         assertEquals( new Partitions( Sets.newHashSet( 2002 ) ), PartitionUtils.getPartitions( createPeriod( "2002Q2" ) ) );
         assertEquals( new Partitions( Sets.newHashSet( 2003 ) ), PartitionUtils.getPartitions( createPeriod( "2003S2" ) ) );
@@ -78,12 +74,13 @@ public class PartitionUtilsTest
         Period period = new Period();
         period.setStartDate( new DateTime( 2008, 3, 1, 0, 0 ).toDate() );
         period.setEndDate( new DateTime( 2011, 7, 1, 0, 0 ).toDate() );
-
+        period.setPeriodType( new DailyPeriodType() );
         Partitions expected = new Partitions( Sets.newHashSet( 2008, 2009, 2010, 2011 ) );
 
         assertEquals( expected, PartitionUtils.getPartitions( period ) );
 
         period = new Period();
+        period.setPeriodType( new DailyPeriodType() );
         period.setStartDate( new DateTime( 2009, 8, 1, 0, 0 ).toDate() );
         period.setEndDate( new DateTime( 2010, 2, 1, 0, 0 ).toDate() );
 
@@ -132,4 +129,48 @@ public class PartitionUtilsTest
         assertEquals( 1, partitions.getPartitions().size() );
         assertTrue( partitions.getPartitions().contains( 2018 ) );
     }
+
+    @Test
+    public void testMonthlyPeriod()
+    {
+        Period period = createPeriod( PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME ), firstDay2019,
+            getLastDayOfMonth( firstDay2019 ) );
+
+        assertHasPreviousYearPartition( PartitionUtils.getPartitions( period ) );
+    }
+
+    @Test
+    public void testQuarterlyPeriod()
+    {
+        Period period = createPeriod( PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME ), firstDay2019,
+            getDate( 2019, 3, 31 ) );
+
+        assertHasPreviousYearPartition( PartitionUtils.getPartitions( period ) );
+    }
+
+    @Test
+    public void testYearlyPeriod()
+    {
+        Period period = createPeriod( PeriodType.getPeriodTypeByName( YearlyPeriodType.NAME ), firstDay2019,
+            getDate( 2019, 12, 31 ) );
+
+        assertHasPreviousYearPartition( PartitionUtils.getPartitions( period ) );
+    }
+
+    @Test
+    public void testSixMonthlyPeriod()
+    {
+        Period period = createPeriod( PeriodType.getPeriodTypeByName( SixMonthlyPeriodType.NAME ), firstDay2019,
+            getLastDayOfMonth( getDate( 2019, 6, 1 ) ) );
+
+        assertHasPreviousYearPartition( PartitionUtils.getPartitions( period ) );
+    }
+
+    private void assertHasPreviousYearPartition( Partitions partitions )
+    {
+        assertEquals( 2, partitions.getPartitions().size() );
+        assertThat( partitions.getPartitions(), hasItems( 2018, 2019 ) );
+    }
+
+
 }

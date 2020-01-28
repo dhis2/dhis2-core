@@ -179,4 +179,10 @@ public class MonthlyPeriodType
 
         return cal.toIso( dateTimeUnit ).toJdkDate();
     }
+
+    @Override
+    public boolean canStartOnPreviousYear()
+    {
+        return true;
+    }
 }

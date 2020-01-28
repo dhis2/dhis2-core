@@ -28,32 +28,23 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.Serializable;
+import java.time.DayOfWeek;
+import java.util.*;
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
-import org.hisp.dhis.calendar.CalendarService;
-import org.hisp.dhis.calendar.DateInterval;
-import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.calendar.DateUnitPeriodTypeParser;
-import org.hisp.dhis.calendar.DateUnitType;
-import org.hisp.dhis.calendar.PeriodTypeParser;
+import org.hisp.dhis.calendar.*;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
-import java.io.Serializable;
-import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * The superclass of all PeriodTypes.
@@ -734,6 +725,21 @@ public abstract class PeriodType
      * @return true if the period spans more than one calendar year.
      */
     public boolean spansMultipleCalendarYears()
+    {
+        return false;
+    }
+
+    /**
+     * Returns true if the first week of this period type may start on the previous year.
+     * Example:
+     *
+     * 2019
+     *
+     * The first week of 2019 starts on 31/12/2018, therefore this method will return true
+     *
+     * @return true, if the period type can have the first week starting on the previous year
+     */
+    public boolean canStartOnPreviousYear()
     {
         return false;
     }

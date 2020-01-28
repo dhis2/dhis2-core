@@ -28,32 +28,35 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
-import com.vividsolutions.jts.geom.Geometry;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+
+import java.io.*;
+import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.temporal.IsoFields;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.category.*;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
@@ -90,30 +93,15 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
-import org.hisp.dhis.program.AnalyticsPeriodBoundary;
-import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.UniqunessType;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -125,12 +113,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -153,28 +136,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import javax.annotation.PostConstruct;
-import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Lars Helge Overland
@@ -2321,5 +2286,29 @@ public abstract class DhisConvenienceTest
         userAccess.setAccess( access );
 
         object.getUserAccesses().add( userAccess );
+    }
+
+    protected Date getFirstDayOfMonth( Date date )
+    {
+
+        return toDate( YearMonth.from( fromDate( date ) ).atDay( 1 ) );
+    }
+
+    protected Date getLastDayOfMonth( Date date )
+    {
+
+        return toDate( YearMonth.from( fromDate( date ) ).atEndOfMonth() );
+    }
+
+    private LocalDate fromDate( Date date )
+    {
+
+        return date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
+    }
+
+    private Date toDate( LocalDate localDate )
+    {
+
+        return Date.from( localDate.atStartOfDay( ZoneId.systemDefault() ).toInstant() );
     }
 }

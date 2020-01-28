@@ -115,4 +115,10 @@ public class SixMonthlyPeriodType
         return ISO8601_DURATION;
     }
 
+    @Override
+    public boolean canStartOnPreviousYear()
+    {
+        return true;
+    }
+
 }

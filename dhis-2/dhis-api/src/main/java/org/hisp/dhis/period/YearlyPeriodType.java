@@ -198,4 +198,10 @@ public class YearlyPeriodType
 
         return calendar.toIso( dateTimeUnit ).toJdkDate();
     }
+
+    @Override
+    public boolean canStartOnPreviousYear()
+    {
+        return true;
+    }
 }

@@ -28,17 +28,12 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.DayOfWeek;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
 
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
@@ -99,7 +94,7 @@ public class PartitionUtils
     /**
      * Returns partitions for the given list of periods.
      *
-     * @param period the period.
+     * @param periods a list the periods.
      * @return partitions for the given list of periods.
      */
     public static Partitions getPartitions( List<DimensionalItemObject> periods )
@@ -167,6 +162,7 @@ public class PartitionUtils
     /**
      * Returns the years which the given period spans.
      *
+     *
      * @param period the period.
      * @return a set of years.
      */
@@ -177,6 +173,11 @@ public class PartitionUtils
         int startYear = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
         int endYear = PeriodType.getCalendar().fromIso( period.getEndDate() ).getYear();
 
+        if ( period.getPeriodType() != null && period.getPeriodType().canStartOnPreviousYear() )
+        {
+            startYear = getYearOfFirstWeekFromPeriod( period );
+        }
+        
         while ( startYear <= endYear )
         {
             years.add( startYear );
@@ -251,11 +252,26 @@ public class PartitionUtils
      * Returns partition name. Aggregate only for now!
      *
      * @param tableName the table name.
-     * @param partitiont the partition.
+     * @param partition the partition.
      * @return the partition name.
      */
     public static String getPartitionName( String tableName, Integer partition )
     {
         return tableName + SEP + partition;
+    }
+
+    /**
+     * Returns the year of the first week of this period
+     *
+     * @param period a {@see Period}
+     *
+     * @return the 4 digits representation of an year
+     */
+    private static int getYearOfFirstWeekFromPeriod( Period period )
+    {
+        ZonedDateTime periodStartDate = ZonedDateTime.ofInstant( period.getStartDate().toInstant(),
+            ZoneId.systemDefault() );
+
+        return periodStartDate.with( DayOfWeek.MONDAY ).getYear();
     }
 }
