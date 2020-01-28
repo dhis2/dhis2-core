@@ -269,7 +269,7 @@ public class GetMetaDataAction
 
         for ( Category category : categories )
         {
-            List<CategoryOption> categoryOptions = new ArrayList<>( categoryService.getCategoryOptions( category ) );
+            List<CategoryOption> categoryOptions = new ArrayList<>( categoryService.getDataWriteCategoryOptions( category, user ) );
             Collections.sort( categoryOptions );
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }

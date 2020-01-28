@@ -294,6 +294,33 @@ public class DefaultCategoryService
 
     @Override
     @Transactional(readOnly = true)
+    public List<CategoryOption> getDataWriteCategoryOptions( Category category, User user )
+    {
+        if ( user == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        if( user.isSuper() )
+        {
+            return getCategoryOptions( category );
+        }
+
+        List<CategoryOption> options = new ArrayList<>();
+
+        for( CategoryOption categoryOption : getCategoryOptions( category ) )
+        {
+            if ( aclService.canDataWrite( user, categoryOption ) )
+            {
+                options.add( categoryOption );
+            }
+        }
+
+        return options;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
     {
         Set<CategoryOption> options = null;
