@@ -28,23 +28,32 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.time.DayOfWeek;
-import java.util.*;
-import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
-
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
-import org.hisp.dhis.calendar.*;
-import org.hisp.dhis.calendar.impl.Iso8601Calendar;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.calendar.DateInterval;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.DateUnitPeriodTypeParser;
+import org.hisp.dhis.calendar.DateUnitType;
+import org.hisp.dhis.calendar.PeriodTypeParser;
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+
+import java.io.Serializable;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The superclass of all PeriodTypes.

@@ -28,12 +28,20 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.time.DayOfWeek;
-import java.time.ZoneId;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.time.ZoneId;
+import java.time.DayOfWeek;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
