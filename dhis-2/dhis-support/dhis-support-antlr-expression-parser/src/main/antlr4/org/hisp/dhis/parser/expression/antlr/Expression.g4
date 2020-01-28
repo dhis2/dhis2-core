@@ -81,46 +81,48 @@ expr
     |   'V{' fun='zero_pos_value_count' '}'
 
     //  Program functions (alphabetical)
-    |   fun='d2:ceil(' expr ')'
-    |   fun='d2:floor(' expr ')'
+
     |   fun='d2:addDays(' expr ',' expr ')'
-    |   fun='d2:concatenate(' expr ',' expr * ')'
-    |   fun='d2:countIfZeroPos(' expr ')'
-    |   fun='d2:substring(' expr ',' expr ',' expr ')'
-    |   fun='d2:length(' expr ')'
-    |   fun='d2:left(' expr ',' expr ')'
-    |   fun='d2:right(' expr ',' expr ')'
-    |   fun='d2:modulus(' expr ',' expr ')'
-    |   fun='d2:round(' expr ')'
+    |   fun='d2:ceil(' expr ')'
+    |   fun='d2:concatenate(' expr (',' expr )* ')'
     |   fun='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
-    |   fun='d2:zScoreHFA(' expr ',' expr ',' expr ')'
-    |   fun='d2:zScoreWFA(' expr ',' expr ',' expr ')'
-    |   fun='d2:zScoreWFH(' expr ',' expr ',' expr ')'
-    |   fun='d2:split(' expr ',' expr ',' expr ')'
     |   fun='d2:count(' ( WS* stageDataElement WS* | expr ) ')'
     |   fun='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
     |   fun='d2:countIfValue(' ( WS* stageDataElement WS* | expr ) ',' ( WS* numStringLiteral WS* | expr ) ')'
+    |   fun='d2:countIfZeroPos(' expr ')'
     |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
+    |   fun='d2:floor(' expr ')'
+    |   fun='d2:hasUserRole(' expr ')'
     |   fun='d2:hasValue(' ( WS* item WS* | expr ) ')'
+    |   fun='d2:inOrgUnitGroup(' expr ')'
+    |   fun='d2:lastEventDate(' expr ')'
+    |   fun='d2:left(' expr ',' expr ')'
+    |   fun='d2:length(' expr ')'
     |   fun='d2:maxValue(' ( item | expr | compareDate ) ')'
     |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
     |   fun='d2:minValue(' ( item | expr | compareDate ) ')'
+    |   fun='d2:modulus(' expr ',' expr ')'
     |   fun='d2:monthsBetween(' compareDate ',' compareDate ')'
     |   fun='d2:oizp(' expr ')'
     |   fun='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
+    |   fun='d2:right(' expr ',' expr ')'
+    |   fun='d2:round(' expr ')'
+    |   fun='d2:split(' expr ',' expr ',' expr ')'
+    |   fun='d2:substring(' expr ',' expr ',' expr ')'
+    |   fun='d2:validatePattern(' expr ',' expr ')'
     |   fun='d2:weeksBetween(' compareDate ',' compareDate ')'
     |   fun='d2:yearsBetween(' compareDate ',' compareDate ')'
     |   fun='d2:zing(' expr ')'
     |   fun='d2:zpvc(' ( WS* item WS* | expr) (',' ( WS* item WS* | expr ) )* ')'
-    |   fun='d2:validatePattern(' expr ',' expr ')'
-    |   fun='d2:hasUserRole(' expr ')'
-    |   fun='d2:inOrgUnitGroup(' expr ')'
-    |   fun='d2:lastEventDate(' expr ')'
+    |   fun='d2:zScoreHFA(' expr ',' expr ',' expr ')'
+    |   fun='d2:zScoreWFA(' expr ',' expr ',' expr ')'
+    |   fun='d2:zScoreWFH(' expr ',' expr ',' expr ')'
 
     //  Other
 
     |   item
     |   programRuleVariable
+    |   constantValue
     |   numericLiteral
     |   stringLiteral
     |   booleanLiteral
@@ -144,10 +146,10 @@ item
     ;
 
 programRuleVariable
-    : var='X{' uid0=variableName '}'
-    | var='C{' uid0=variableName '}'
-    | var='${' uid0=variableName '}'
-    | var='A{' uid0=variableName '}';
+    : var='X{' variableName '}';
+
+constantValue
+    : var='C{' variableName '}';
 
 stageDataElement
     :   '#{' uid0=UID '.' uid1=UID '}'
@@ -183,8 +185,7 @@ stringLiteral
 
 variableName
     : UID
-    | IDENTIFIER
-    | UNQUOTED_STRING;
+    | IDENTIFIER;
 
 booleanLiteral
     :   BOOLEAN_LITERAL
@@ -306,8 +307,6 @@ D2_ZSCOREHFA            : 'd2:zScoreHFA(';
 D2_ZSCOREWFA            : 'd2:zScoreWFA(';
 D2_ZSCOREWFH            : 'd2:zScoreWFH(';
 
-
-
 // Items (alphabetical by symbol)
 
 HASH_BRACE  : '#{';
@@ -373,14 +372,11 @@ UID :   Alpha
 // for example disallows notisNull (should be not isNull),
 // but allows !isNull.
 IDENTIFIER
-    : [a-zA-Z]+
+    : [a-zA-Z_]+
     ;
 
 EMPTY
     : EOF;
-
-UNQUOTED_STRING
-    :   [a-zA-Z0-9_]+;
 
 WS  :   [ \t\n\r]+
     ;
