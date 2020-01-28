@@ -192,13 +192,6 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
-//        String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
-
-//        for ( TrackedEntityInstance tei : trackedEntityInstances )
-//        {
-//            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
-//        }
-
         return trackedEntityInstances;
     }
 
