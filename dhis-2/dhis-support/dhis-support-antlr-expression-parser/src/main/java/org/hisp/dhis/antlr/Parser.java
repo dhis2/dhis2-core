@@ -33,8 +33,9 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.java7.Cache;
+import org.hisp.dhis.cache.java7.MappingFunction;
+import org.hisp.dhis.cache.java7.SimpleCacheBuilder;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
 import org.hisp.dhis.parser.expression.antlr.ExpressionLexer;
@@ -104,7 +105,14 @@ public class Parser
      */
     private static ParseTree getParseTree( String expr )
     {
-        return EXPRESSION_PARSE_TREES.get( expr, e -> createParseTree( e ) ).orElse( null );
+        return EXPRESSION_PARSE_TREES.get( expr, new MappingFunction<ParseTree>()
+        {
+            @Override
+            public ParseTree getValue( String key )
+            {
+                return createParseTree( key );
+            }
+        } ).orNull();
     }
 
     /**
