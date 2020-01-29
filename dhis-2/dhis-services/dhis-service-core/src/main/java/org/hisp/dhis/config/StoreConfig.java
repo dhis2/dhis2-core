@@ -43,6 +43,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.predictor.PredictorGroup;
@@ -209,14 +210,6 @@ public class StoreConfig
             jdbcTemplate, publisher, ReportTable.class, currentUserService, deletedObjectService, aclService, true );
     }
 
-    @Bean( "org.hisp.dhis.visualization.VisualizationStore" )
-    public HibernateAnalyticalObjectStore<Visualization> visualizationStore()
-    {
-        return new HibernateAnalyticalObjectStore<>( sessionFactory, jdbcTemplate, publisher,
-            Visualization.class, currentUserService, deletedObjectService, aclService,
-            true );
-    }
-
     @Bean( "org.hisp.dhis.dashboard.DashboardStore" )
     public HibernateIdentifiableObjectStore<Dashboard> dashboardStore()
     {
@@ -264,5 +257,12 @@ public class StoreConfig
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
             ProgramNotificationInstance.class, currentUserService, deletedObjectService, aclService, true );
+    }
+
+    @Bean( "org.hisp.dhis.interpretation.InterpretationCommentStore" )
+    public HibernateIdentifiableObjectStore<InterpretationComment> interpretationCommentStore()
+    {
+        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+            InterpretationComment.class, currentUserService, deletedObjectService, aclService, true );
     }
 }

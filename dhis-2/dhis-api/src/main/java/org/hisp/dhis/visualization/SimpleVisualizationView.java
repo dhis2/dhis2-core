@@ -1,5 +1,3 @@
-package org.hisp.dhis.interpretation;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,21 +26,26 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.visualization.Visualization;
+package org.hisp.dhis.visualization;
 
-/**
- * @author Lars Helge Overland
- */
-public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
-{
-    int countMapInterpretations( Map map );
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.annotation.Description;
 
-    int countVisualizationInterpretations( Visualization visualization );
+public class SimpleVisualizationView extends BaseIdentifiableObject {
 
-    Interpretation getByChartId( long id );
+    private VisualizationType type;
 
-    Interpretation getByVisualizationId( long id );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Description( "The type of the Visualization object. Only used for Visualization objects." )
+    public VisualizationType getType() {
+        return type;
+    }
+
+    public void setType(VisualizationType type) {
+        this.type = type;
+    }
 }
