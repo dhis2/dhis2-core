@@ -49,6 +49,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.appmanager.AppManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,6 +91,9 @@ public class ConfigurationController
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private AppManager appManager;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -398,5 +402,11 @@ public class ConfigurationController
     public @ResponseBody boolean getSystemReadOnlyMode( Model model, HttpServletRequest request )
     {
         return config.isReadOnlyMode();
+    }
+
+    @RequestMapping( value = "/appStoreUrl", method = RequestMethod.GET )
+    public @ResponseBody String getAppStoreUrl( Model model, HttpServletRequest request )
+    {
+        return (String) appManager.getAppStoreUrl();
     }
 }
