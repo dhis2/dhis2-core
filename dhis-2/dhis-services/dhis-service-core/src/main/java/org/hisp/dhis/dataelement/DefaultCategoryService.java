@@ -301,14 +301,14 @@ public class DefaultCategoryService
             return Lists.newArrayList();
         }
 
-        if( user.isSuper() )
+        if ( user.isSuper() )
         {
             return getCategoryOptions( category );
         }
 
         List<CategoryOption> options = new ArrayList<>();
 
-        for( CategoryOption categoryOption : getCategoryOptions( category ) )
+        for ( CategoryOption categoryOption : getCategoryOptions( category ) )
         {
             if ( aclService.canDataWrite( user, categoryOption ) )
             {
