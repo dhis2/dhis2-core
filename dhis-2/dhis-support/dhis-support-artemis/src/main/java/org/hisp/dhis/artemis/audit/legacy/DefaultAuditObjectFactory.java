@@ -74,8 +74,8 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
     {
         cachedAuditAttributeFields = cacheProvider.newCacheBuilder( Field.class, Method.class )
             .forRegion( "auditAttributeFields" )
-            .withInitialCapacity( 100 )
-            .withMaximumSize( 500 )
+            .withInitialCapacity( 500 )
+            .withMaximumSize( 1000 )
             .build();
     }
 
@@ -122,9 +122,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 
     private Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
     {
-        Optional<Map<Field, Method>> listFields = cachedAuditAttributeFields.get( auditClass.getName(), a -> AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class ) );
-
-        return listFields.orElse( new HashMap<>() );
+        return cachedAuditAttributeFields.get( auditClass.getName(), a -> AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class ) ).orElse( new HashMap<>() );
     }
 
     private Object handleTracker( AuditType auditType, Object object, String user )
