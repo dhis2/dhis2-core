@@ -88,17 +88,15 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" )
-            .setParameter( "map", map )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
+        query.setParameter( "map", map );
+        return query.uniqueResult();
     }
 
     @Override
-    public int countVisualizationInterpretations( Visualization visualization )
+    public long countVisualizationInterpretations( Visualization visualization )
     {
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
             .setParameter( "visualization", visualization )
@@ -108,22 +106,10 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public Interpretation getByChartId( long id )
-    {
-        String hql = "from Interpretation i where i.chart.id = " + id;
-
-        Query<Interpretation> query = getQuery( hql );
-
-        return query.uniqueResult();
-    }
-
-    @Override
     public Interpretation getByVisualizationId( long id )
     {
         String hql = "from Interpretation i where i.visualization.id = " + id;
-
-        Query<Interpretation> query = getSession().createQuery( hql, Interpretation.class ).setCacheable( cacheable );
-
+        Query<Interpretation> query = getQuery( hql );
         return query.uniqueResult();
     }
 }

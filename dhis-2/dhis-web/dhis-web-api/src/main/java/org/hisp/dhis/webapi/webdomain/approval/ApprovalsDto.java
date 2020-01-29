@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.webapi.webdomain.approval;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,53 +28,75 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
-
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.common.DxfNamespaces;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Component
-public class TrackedEntityDataElementDimensionDeletionHandler
-    extends DeletionHandler
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+@JacksonXmlRootElement( localName = "approvals", namespace = DxfNamespaces.DXF_2_0 )
+public class ApprovalsDto
 {
-    private final SessionFactory sessionFactory;
+    private List<String> wf = new ArrayList<>();
 
-    public TrackedEntityDataElementDimensionDeletionHandler( SessionFactory sessionFactory )
+    private List<String> ds = new ArrayList<>();
+
+    private List<String> pe = new ArrayList<>();
+    
+    private List<ApprovalDto> approvals = new ArrayList<>();
+
+    public ApprovalsDto()
     {
-        checkNotNull( sessionFactory );
-        this.sessionFactory = sessionFactory;
     }
 
-    @Override
-    protected String getClassName()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getWf()
     {
-        return TrackedEntityDataElementDimension.class.getSimpleName();
+        return wf;
     }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public void deleteLegendSet( LegendSet legendSet )
+    public void setWf( List<String> wf )
     {
-        //TODO Move this get-method to service layer
+        this.wf = wf;
+    }
 
-        Query query = sessionFactory.getCurrentSession()
-            .createQuery( "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet" );
-        query.setParameter( "legendSet", legendSet );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getDs()
+    {
+        return ds;
+    }
 
-        List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
+    public void setDs( List<String> ds )
+    {
+        this.ds = ds;
+    }
 
-        for ( TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions )
-        {
-            dataElementDimension.setLegendSet( null );
-            sessionFactory.getCurrentSession().update( dataElementDimension );
-        }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getPe()
+    {
+        return pe;
+    }
+
+    public void setPe( List<String> pe )
+    {
+        this.pe = pe;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<ApprovalDto> getApprovals()
+    {
+        return approvals;
+    }
+
+    public void setApprovals( List<ApprovalDto> approvals )
+    {
+        this.approvals = approvals;
     }
 }

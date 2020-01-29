@@ -36,12 +36,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -64,7 +61,6 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,31 +81,27 @@ public class DefaultInterpretationService
 
     private final InterpretationStore interpretationStore;
 
-    private final HibernateIdentifiableObjectStore<InterpretationComment> interpretationCommentStore;
-
     private CurrentUserService currentUserService;
-    
+
     private UserService userService;
-    
+
     private final PeriodService periodService;
 
     private final MessageService messageService;
 
     private final AclService aclService;
-    
+
     private final I18nManager i18nManager;
-    
+
     private final DhisConfigurationProvider configurationProvider;
 
     public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
-        @Qualifier( "org.hisp.dhis.interpretation.InterpretationCommentStore" ) HibernateIdentifiableObjectStore<InterpretationComment> interpretationCommentStore,
         CurrentUserService currentUserService, UserService userService, PeriodService periodService,
         MessageService messageService, AclService aclService, I18nManager i18nManager,
         DhisConfigurationProvider configurationProvider )
     {
         checkNotNull( schemaService );
         checkNotNull( interpretationStore );
-        checkNotNull( interpretationCommentStore );
         checkNotNull( currentUserService );
         checkNotNull( userService );
         checkNotNull( periodService );
@@ -119,7 +111,6 @@ public class DefaultInterpretationService
         checkNotNull( configurationProvider );
         this.schemaService = schemaService;
         this.interpretationStore = interpretationStore;
-        this.interpretationCommentStore = interpretationCommentStore;
         this.currentUserService = currentUserService;
         this.userService = userService;
         this.periodService = periodService;
@@ -497,21 +488,15 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
         return interpretationStore.countMapInterpretations( map );
     }
 
     @Override
-    public int countVisualizationInterpretations( Visualization visualization )
+    public long countVisualizationInterpretations( Visualization visualization )
     {
         return interpretationStore.countVisualizationInterpretations( visualization );
-    }
-
-    @Override
-    public Interpretation getInterpretationByChart( long id )
-    {
-        return interpretationStore.getByChartId( id );
     }
 
     @Override
