@@ -127,7 +127,7 @@ public class DataStatisticsController
         return dataStatisticsService.getFavoriteStatistics( uid );
     }
     
-    //@PreAuthorize( "hasRole('ALL')" )
+    @PreAuthorize( "hasRole('ALL')" )
     @ResponseStatus( HttpStatus.CREATED )
     @PostMapping( "/snapshot" )
     public void saveSnapshot()
