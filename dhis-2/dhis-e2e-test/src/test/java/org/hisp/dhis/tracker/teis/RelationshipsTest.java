@@ -124,8 +124,8 @@ public class RelationshipsTest
         ApiResponse response = relationshipActions.post( object );
 
         response.validate().statusCode( 200 );
-        assertNotNull( createdRelationship, "First relationship was not created." );
         createdRelationship = response.extractUid();
+        assertNotNull( createdRelationship, "First relationship was not created." );
 
         // create a second relationship
         response = relationshipActions.post( object );
