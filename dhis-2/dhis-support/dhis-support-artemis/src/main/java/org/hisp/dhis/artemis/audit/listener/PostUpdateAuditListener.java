@@ -88,5 +88,6 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdateCommitFailed( PostUpdateEvent event )
     {
+        System.out.println( "onPostUpdateCommitFailed event = " + event );
     }
 }
