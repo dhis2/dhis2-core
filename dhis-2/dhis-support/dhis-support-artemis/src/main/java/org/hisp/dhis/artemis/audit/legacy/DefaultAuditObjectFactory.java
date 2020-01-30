@@ -28,12 +28,14 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself
