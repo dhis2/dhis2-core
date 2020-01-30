@@ -36,6 +36,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -66,6 +67,17 @@ public class HibernateCategoryOptionStore
 
         return getList( builder, newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) ) );
+
+    }
+
+    @Override
+    public List<CategoryOption> getDataWriteCategoryOptions( Category category, User user )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicates( getDataSharingPredicates( builder, user, AclService.LIKE_WRITE_DATA ) )
             .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) ) );
 
     }

@@ -306,17 +306,7 @@ public class DefaultCategoryService
             return getCategoryOptions( category );
         }
 
-        List<CategoryOption> options = new ArrayList<>();
-
-        for ( CategoryOption categoryOption : getCategoryOptions( category ) )
-        {
-            if ( aclService.canDataWrite( user, categoryOption ) )
-            {
-                options.add( categoryOption );
-            }
-        }
-
-        return options;
+        return user.isSuper() ? getCategoryOptions( category ) : categoryOptionStore.getDataWriteCategoryOptions( category, user );
     }
 
     @Override
