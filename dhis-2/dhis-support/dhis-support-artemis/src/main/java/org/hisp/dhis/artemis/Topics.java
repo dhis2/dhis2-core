@@ -39,5 +39,5 @@ public interface Topics
 
     String TRACKER_TOPIC_NAME = "dhis2.topic.tracker";
 
-    String TRACKER_JOB_TOPIC_NAME = "dhis2.jobs.tracker";
+    String TRACKER_IMPORT_JOB_TOPIC_NAME = "dhis2.jobs.tracker";
 }

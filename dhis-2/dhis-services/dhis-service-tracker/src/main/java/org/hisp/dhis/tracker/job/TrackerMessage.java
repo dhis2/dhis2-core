@@ -35,7 +35,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerImportParams;
 
 /**
@@ -47,7 +46,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 public class TrackerMessage implements Message
 {
     @JsonProperty
-    private final String uid = CodeGenerator.generateUid();
+    private final String uid;
 
     @JsonProperty
     private final TrackerImportParams trackerImportParams;

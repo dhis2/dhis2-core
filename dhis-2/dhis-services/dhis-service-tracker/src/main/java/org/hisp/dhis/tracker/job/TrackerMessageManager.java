@@ -32,7 +32,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -46,42 +49,61 @@ import javax.jms.TextMessage;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class TrackerManager
+public class TrackerMessageManager
 {
     private final MessageManager messageManager;
     private final ObjectMapper objectMapper;
     private final TrackerImportService trackerImportService;
+    private final Notifier notifier;
 
-    public TrackerManager(
+    public TrackerMessageManager(
         MessageManager messageManager,
         ObjectMapper objectMapper,
-        TrackerImportService trackerImportService )
+        TrackerImportService trackerImportService,
+        Notifier notifier )
     {
         this.messageManager = messageManager;
         this.objectMapper = objectMapper;
         this.trackerImportService = trackerImportService;
+        this.notifier = notifier;
     }
 
     public String addJob( TrackerImportParams params )
     {
-        TrackerMessage trackerMessage = TrackerMessage.builder().trackerImportParams( params ).build();
-        messageManager.sendQueue( Topics.TRACKER_JOB_TOPIC_NAME, trackerMessage );
+        String jobId = CodeGenerator.generateUid();
 
-        return trackerMessage.getUid();
+        TrackerMessage trackerMessage = TrackerMessage.builder()
+            .uid( jobId ).trackerImportParams( params )
+            .build();
+
+        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
+
+        return jobId;
     }
 
-    @JmsListener( destination = Topics.TRACKER_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
+    @JmsListener( destination = Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
     public void consume( TextMessage message ) throws JMSException, JsonProcessingException
     {
         String payload = message.getText();
         TrackerMessage trackerMessage = objectMapper.readValue( payload, TrackerMessage.class );
+        TrackerImportParams trackerImportParams = trackerMessage.getTrackerImportParams();
 
-        System.err.println( "GOT:" );
-        System.err.println( trackerMessage );
+        JobConfiguration jobConfiguration = new JobConfiguration(
+            "",
+            JobType.TRACKER_IMPORT_JOB,
+            trackerImportParams.getUserId(),
+            true
+        );
 
-        TrackerImportReport importReport = trackerImportService.importTracker( trackerMessage.getTrackerImportParams() );
+        jobConfiguration.setUid( trackerMessage.getUid() );
+        trackerImportParams.setJobConfiguration( jobConfiguration );
 
-        System.err.println( "IR:" );
-        System.err.println( importReport );
+        TrackerImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+
+        notifier.notify( jobConfiguration, "Import started" );
+        notifier.update( jobConfiguration, "Doing import stuff" );
+
+        notifier.addJobSummary( jobConfiguration, importReport, TrackerImportReport.class );
+        notifier.update( jobConfiguration, "More import stuff", true );
     }
 }

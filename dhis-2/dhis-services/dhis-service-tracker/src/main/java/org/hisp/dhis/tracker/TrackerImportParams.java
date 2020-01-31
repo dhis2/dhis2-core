@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -98,6 +99,11 @@ public class TrackerImportParams
      * Give full report, or only include errors.
      */
     private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
+
+    /**
+     * Job id to use for threaded imports.
+     */
+    private JobConfiguration jobConfiguration;
 
     /**
      * Tracked entities to import.
@@ -251,6 +257,22 @@ public class TrackerImportParams
     {
         this.reportMode = reportMode;
         return this;
+    }
+
+    public JobConfiguration getJobConfiguration()
+    {
+        return jobConfiguration;
+    }
+
+    public TrackerImportParams setJobConfiguration( JobConfiguration jobConfiguration )
+    {
+        this.jobConfiguration = jobConfiguration;
+        return this;
+    }
+
+    public boolean hasJobConfiguration()
+    {
+        return jobConfiguration != null;
     }
 
     public List<TrackedEntity> getTrackedEntities()
