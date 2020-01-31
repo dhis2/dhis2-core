@@ -35,7 +35,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
+import org.hisp.dhis.actions.tracker.TrackedEntityInstanceActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
@@ -55,7 +55,7 @@ public class TEIimportTest
 {
     JsonObject object;
 
-    private TEIActions teiActions;
+    private TrackedEntityInstanceActions teiActions;
 
     private EventActions eventActions;
 
@@ -65,7 +65,7 @@ public class TEIimportTest
     public void before()
         throws Exception
     {
-        teiActions = new TEIActions();
+        teiActions = new TrackedEntityInstanceActions();
         eventActions = new EventActions();
         enrollmentActions = new RestApiActions( "/enrollments" );
 

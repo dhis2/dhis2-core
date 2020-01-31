@@ -69,6 +69,17 @@
       <version>4.4</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.10</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+      <version>1.5.0</version>
+    </dependency>
   </dependencies>
 
   <build>

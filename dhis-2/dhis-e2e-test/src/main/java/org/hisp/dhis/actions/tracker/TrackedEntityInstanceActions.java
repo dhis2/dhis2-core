@@ -29,15 +29,35 @@
 package org.hisp.dhis.actions.tracker;
 
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TEIActions
+public class TrackedEntityInstanceActions
     extends RestApiActions
 {
-    public TEIActions()
+    public TrackedEntityInstanceActions()
     {
         super( "/trackedEntityInstances" );
+    }
+
+
+    public ApiResponse getTrackedEntityInstances( String ou, String ouMode, TeiFields fields, boolean paging,
+        int pageSize, boolean includeAllAttributes, boolean includeDeleted, boolean fast )
+    {
+
+        QueryParamsBuilder param = new QueryParamsBuilder();
+        param.add( "ou=" + ou );
+        param.add( "ouMode=" + ouMode );
+        param.add( "fields=" + fields.toString() );
+        param.add( "paging=" + paging );
+        param.add( "pageSize=" + pageSize );
+        param.add( "includeAllAttributes=" + includeAllAttributes );
+        param.add( "includeDeleted=" + includeDeleted );
+        param.add( "useFast=" + fast );
+        return get( "", param );
+
     }
 }
