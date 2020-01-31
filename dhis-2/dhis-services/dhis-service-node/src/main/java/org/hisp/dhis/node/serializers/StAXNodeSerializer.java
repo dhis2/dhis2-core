@@ -1,7 +1,7 @@
 package org.hisp.dhis.node.serializers;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -215,9 +215,10 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     /**
-     * @param simpleNode
-     * @param writer
-     * @return TRUE if given simpleNode has been serialized using custom JsonSerializer
+     * @param simpleNode the {@link SimpleNode}.
+     * @param writer the {@link XMLStreamWriter}.
+     *
+     * @return true if given simpleNode has been serialized using custom JsonSerializer
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException

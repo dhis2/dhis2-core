@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,8 @@ public class TrackedEntityDataElementDimensionDeletionHandler
     @SuppressWarnings( "unchecked" )
     public void deleteLegendSet( LegendSet legendSet )
     {
+        //TODO Move this get-method to service layer
+
         Query query = sessionFactory.getCurrentSession()
             .createQuery( "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet" );
         query.setParameter( "legendSet", legendSet );

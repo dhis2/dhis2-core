@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,7 +123,15 @@ public class DashboardItem
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public DashboardItemType getType()
     {
-        if ( visualization != null )
+        if ( chart != null )
+        {
+            return DashboardItemType.CHART;
+        }
+        else if ( reportTable != null )
+        {
+            return DashboardItemType.REPORT_TABLE;
+        }
+        else if ( visualization != null )
         {
             return DashboardItemType.VISUALIZATION;
         }
@@ -173,7 +181,15 @@ public class DashboardItem
      */
     public InterpretableObject getEmbeddedItem()
     {
-        if ( visualization != null )
+        if ( chart != null )
+        {
+            return chart;
+        }
+        else if ( reportTable != null )
+        {
+            return reportTable;
+        }
+        else if ( visualization != null )
         {
             return visualization;
         }

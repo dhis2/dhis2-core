@@ -1,7 +1,7 @@
 package org.hisp.dhis.report;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.reporttable.ReportParams;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.visualization.ReportingParams;
 import org.hisp.dhis.visualization.Visualization;
 

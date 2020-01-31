@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,7 +113,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
     private Program program;
-    private ProgramInstance programInstance;
 
     private OrganisationUnit organisationUnit;
     private User user;
@@ -148,8 +147,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
             message = (String) invocation.getArguments()[1];
             return response;
         });
-
-
     }
 
     @Test

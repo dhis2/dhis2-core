@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -80,9 +79,6 @@ public class ValidationResultStoreTest
 {
     private static final String ACCESS_NONE = "--------";
     private static final String ACCESS_READ = "r-------";
-
-    @Autowired
-    private ExpressionService expressionService;
 
     @Autowired
     private ValidationRuleStore validationRuleStore;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalPermissions;
 import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataapproval.DataApprovalStateRequest;
-import org.hisp.dhis.dataapproval.DataApprovalStateRequests;
 import org.hisp.dhis.dataapproval.DataApprovalStateResponse;
 import org.hisp.dhis.dataapproval.DataApprovalStateResponses;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
@@ -61,13 +59,13 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.approval.Approval;
-import org.hisp.dhis.webapi.webdomain.approval.Approvals;
+import org.hisp.dhis.webapi.webdomain.approval.ApprovalDto;
+import org.hisp.dhis.webapi.webdomain.approval.ApprovalStatusDto;
+import org.hisp.dhis.webapi.webdomain.approval.ApprovalsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -103,12 +101,10 @@ import java.util.stream.Collectors;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataApprovalController
 {
-    public static final String APPROVALS_PATH = "/dataApprovals";
+    private static final String APPROVALS_PATH = "/dataApprovals";
     private static final String STATUS_PATH = APPROVALS_PATH + "/status";
+    private static final String ACCEPTANCES_PATH = "/dataAcceptances";
     private static final String MULTIPLE_APPROVALS_PATH = APPROVALS_PATH + "/multiple";
-
-    public static final String ACCEPTANCES_PATH = "/dataAcceptances";
-    private static final String MULTIPLE_ACCEPTANCES_PATH = ACCEPTANCES_PATH + "/multiple";
 
     @Autowired
     private DataApprovalService dataApprovalService;
@@ -124,9 +120,6 @@ public class DataApprovalController
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -175,7 +168,7 @@ public class DataApprovalController
         renderService.toJson( response.getOutputStream(), status.getPermissions() );
     }
 
-    @RequestMapping( value = MULTIPLE_APPROVALS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @RequestMapping( value = { MULTIPLE_APPROVALS_PATH, APPROVALS_PATH + "/approvals" } , method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getMultipleApprovalPermissions(
         @RequestParam Set<String> wf,
         @RequestParam( required = false ) Set<String> pe,
@@ -189,6 +182,7 @@ public class DataApprovalController
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( null, wf );
 
         List<Period> periods = null;
+
         if ( pe == null )
         {
             if ( startDate == null || endDate == null )
@@ -205,33 +199,35 @@ public class DataApprovalController
 
             periods = new ArrayList<>();
 
-            for ( String p : pe )
+            for ( String period : pe )
             {
-                Period period = periodService.getPeriod( getAndValidatePeriod( p ).getIsoDate() );
+                Period periodObj = periodService.getPeriod( getAndValidatePeriod( period ).getIsoDate() );
 
-                if ( period != null )
+                if ( periodObj != null )
                 {
-                    periods.add( period );
+                    periods.add( periodObj );
                 }
             }
         }
 
         List<OrganisationUnit> orgUnits = new ArrayList<>();
-        for ( String o : ou )
+
+        for ( String orgUnit : ou )
         {
-            orgUnits.add( getAndValidateOrgUnit( o ) );
+            orgUnits.add( getAndValidateOrgUnit( orgUnit ) );
         }
 
         List<CategoryOptionCombo> optionCombos = new ArrayList<>();
+
         if ( aoc == null )
         {
             optionCombos.add( getAndValidateAttributeOptionCombo( null ) );
         }
         else
         {
-            for ( String a : aoc )
+            for ( String optionCombo : aoc )
             {
-                optionCombos.add( getAndValidateAttributeOptionCombo( a ) );
+                optionCombos.add( getAndValidateAttributeOptionCombo( optionCombo ) );
             }
         }
 
@@ -239,9 +235,8 @@ public class DataApprovalController
 
         for ( DataApprovalWorkflow workflow : workflows )
         {
-            List<Period> workflowPeriods = periods != null
-                ? periods
-                : periodService.getPeriodsBetweenDates( workflow.getPeriodType(), startDate, endDate );
+            List<Period> workflowPeriods = periods != null ? periods :
+                periodService.getPeriodsBetweenDates( workflow.getPeriodType(), startDate, endDate );
 
             for ( Period period : workflowPeriods )
             {
@@ -260,7 +255,7 @@ public class DataApprovalController
 
         Map<DataApproval, DataApprovalStatus> statusMap = dataApprovalService.getDataApprovalStatuses( dataApprovals );
 
-        List<Map<String, Object>> list = new ArrayList<>();
+        List<ApprovalStatusDto> approvalStatuses = new ArrayList<>();
 
         for ( Map.Entry<DataApproval, DataApprovalStatus> entry : statusMap.entrySet() )
         {
@@ -268,25 +263,23 @@ public class DataApprovalController
 
             DataApprovalStatus status = entry.getValue();
 
-            Map<String, Object> item = new HashMap<>();
+            ApprovalStatusDto approvalStatus = new ApprovalStatusDto();
 
-            item.put( "wf", da.getWorkflow().getUid() );
-            item.put( "pe", da.getPeriod().getIsoDate() );
-            item.put( "ou", da.getOrganisationUnit().getUid() );
-            item.put( "aoc", da.getAttributeOptionCombo().getUid() );
-            item.put( "state", status == null ? null : status.getState() );
-            item.put( "level", status == null || status.getApprovedLevel() == null ? null : status.getApprovedLevel().getUid() );
-            item.put( "permissions", status == null ? null : status.getPermissions() );
+            approvalStatus.setWf( da.getWorkflow().getUid() );
+            approvalStatus.setPe( da.getPeriod().getIsoDate() );
+            approvalStatus.setOu( da.getOrganisationUnit().getUid() );
+            approvalStatus.setAoc( da.getAttributeOptionCombo().getUid() );
+            approvalStatus.setState( status != null ? status.getState() : null );
+            approvalStatus.setLevel( status != null && status.getApprovedLevel() != null ? status.getApprovedLevel().getUid() : null );
+            approvalStatus.setPermissions( status != null ? status.getPermissions() : null );
 
-            list.add( item );
+            approvalStatuses.add( approvalStatus );
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), list );
+        renderService.toJson( response.getOutputStream(), approvalStatuses );
     }
 
-    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
-    // Note that it does not accept wf or aoc parameter input, because the response cannot include them.
     @RequestMapping( value = STATUS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getApproval(
         @RequestParam Set<String> ds,
@@ -468,7 +461,7 @@ public class DataApprovalController
 
     @RequestMapping( value = APPROVALS_PATH + "/approvals", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveApprovalBatch( @RequestBody Approvals approvals,
+    public void saveApprovalBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.approveData( getDataApprovalList( approvals ) );
@@ -476,41 +469,10 @@ public class DataApprovalController
 
     @RequestMapping( value = APPROVALS_PATH + "/unapprovals", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeApprovalBatch( @RequestBody Approvals approvals,
+    public void removeApprovalBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.unapproveData( getDataApprovalList( approvals ) );
-    }
-
-    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = MULTIPLE_APPROVALS_PATH, method = RequestMethod.POST )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveApprovalMultiple( @RequestBody DataApprovalStateRequests dataApprovalStateRequests,
-        HttpServletResponse response ) throws WebMessageException
-    {
-        List<DataApproval> dataApprovalList = new ArrayList<>();
-
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-
-        for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
-        {
-            DataApprovalWorkflow workflow = getAndValidateWorkflow( approvalStateRequest.getDs(), null );
-            Period period = getAndValidatePeriod( approvalStateRequest.getPe() );
-            OrganisationUnit organisationUnit = getAndValidateOrgUnit( approvalStateRequest.getOu() );
-            DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-
-            User user = approvalStateRequest.getAb() == null ?
-                currentUserService.getCurrentUser() :
-                userService.getUserCredentialsByUsername( approvalStateRequest.getAb() ).getUserInfo();
-
-            Date approvalDate = approvalStateRequest.getAd() == null ? new Date() : approvalStateRequest.getAd();
-
-            dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, optionCombo, false, approvalDate, user ) );
-        }
-
-        dataApprovalService.approveData( dataApprovalList );
     }
 
     // -------------------------------------------------------------------------
@@ -544,7 +506,7 @@ public class DataApprovalController
 
     @RequestMapping( value = ACCEPTANCES_PATH + "/acceptances", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveAcceptanceBatch( @RequestBody Approvals approvals,
+    public void saveAcceptanceBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.acceptData( getDataApprovalList( approvals ) );
@@ -552,40 +514,10 @@ public class DataApprovalController
 
     @RequestMapping( value = ACCEPTANCES_PATH + "/unacceptances", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeAcceptancesBatch( @RequestBody Approvals approvals,
+    public void removeAcceptancesBatch( @RequestBody ApprovalsDto approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         dataApprovalService.unacceptData( getDataApprovalList( approvals ) );
-    }
-
-    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = MULTIPLE_ACCEPTANCES_PATH, method = RequestMethod.POST )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void acceptApprovalMultiple( @RequestBody DataApprovalStateRequests dataApprovalStateRequests,
-        HttpServletResponse response ) throws WebMessageException
-    {
-        List<DataApproval> dataApprovalList = new ArrayList<>();
-
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-
-        for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
-        {
-            DataApprovalWorkflow workflow = getAndValidateWorkflow( approvalStateRequest.getDs(), null );
-            Period period = getAndValidatePeriod( approvalStateRequest.getPe() );
-            OrganisationUnit organisationUnit = getAndValidateOrgUnit( approvalStateRequest.getOu() );
-            DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-
-            User user = approvalStateRequest.getAb() == null ?
-                currentUserService.getCurrentUser() : userService.getUserCredentialsByUsername( approvalStateRequest.getAb() ).getUserInfo();
-
-            Date approvalDate = (approvalStateRequest.getAd() == null) ? new Date() : approvalStateRequest.getAd();
-
-            dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, optionCombo, false, approvalDate, user ) );
-        }
-
-        dataApprovalService.acceptData( dataApprovalList );
     }
 
     // -------------------------------------------------------------------------
@@ -681,7 +613,7 @@ public class DataApprovalController
         return approvals;
     }
 
-    private List<DataApproval> getDataApprovalList( Approvals approvals ) throws WebMessageException
+    private List<DataApproval> getDataApprovalList( ApprovalsDto approvals ) throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( approvals.getDs(), approvals.getWf() );
         List<Period> periods = PeriodType.getPeriodsFromIsoStrings( approvals.getPe() );
@@ -704,7 +636,7 @@ public class DataApprovalController
 
         Map<String, OrganisationUnit> ouCache = new HashMap<>();
 
-        for ( Approval approval : approvals.getApprovals() )
+        for ( ApprovalDto approval : approvals.getApprovals() )
         {
             CategoryOptionCombo atributeOptionCombo = comboMap.get( approval.getAoc() );
             atributeOptionCombo = ObjectUtils.firstNonNull( atributeOptionCombo, defaultOptionCombo );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,8 @@ import org.springframework.stereotype.Service;
         org.hisp.dhis.validation.config.ServiceConfig.class,
         org.hisp.dhis.validation.config.StoreConfig.class,
         org.hisp.dhis.reporting.config.StoreConfig.class,
-        org.hisp.dhis.analytics.config.ServiceConfig.class} )
+        org.hisp.dhis.analytics.config.ServiceConfig.class,
+        org.hisp.dhis.commons.config.CommonsConfig.class} )
 public class WebTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )

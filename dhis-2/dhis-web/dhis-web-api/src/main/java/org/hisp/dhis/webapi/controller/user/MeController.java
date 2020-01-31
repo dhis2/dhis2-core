@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -236,11 +235,6 @@ public class MeController
         User user = renderService.fromJson( request.getInputStream(), User.class );
         merge( currentUser, user );
 
-        if ( user.getUserCredentials() != null )
-        {
-            updatePassword( currentUser, user.getUserCredentials().getPassword() );
-        }
-
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
@@ -339,27 +333,10 @@ public class MeController
         renderService.toJson( response.getOutputStream(), value );
     }
 
-    @RequestMapping( value = "/password", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = "text/*" )
-    public @ResponseBody RootNode changePassword( @RequestBody String password, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser == null )
-        {
-            throw new NotAuthenticatedException();
-        }
-
-        updatePassword( currentUser, password );
-        manager.update( currentUser );
-
-        return null;
-    }
-
-    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
+    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT, consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException
+        throws WebMessageException, NotAuthenticatedException, IOException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -528,14 +505,6 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
-
-        if ( user.getUserCredentials() != null && currentUser.getUserCredentials() != null )
-        {
-            UserCredentials userCredentials = user.getUserCredentials();
-            currentUser.getUserCredentials().setOpenId( userCredentials.getOpenId() );
-            currentUser.getUserCredentials().setLdapId( userCredentials.getLdapId() );
-            currentUser.getUserCredentials().setTwoFA( userCredentials.isTwoFA() );
-        }
     }
 
     private void updatePassword( User currentUser, String password ) throws WebMessageException

@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -95,9 +94,6 @@ public class PredictionServiceTest
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     @Autowired
     private DataValueService dataValueService;

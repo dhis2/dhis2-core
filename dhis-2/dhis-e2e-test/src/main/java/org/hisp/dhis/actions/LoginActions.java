@@ -28,13 +28,13 @@
 
 package org.hisp.dhis.actions;
 
-import io.restassured.RestAssured;
+import static io.restassured.RestAssured.oauth2;
+import static org.hamcrest.CoreMatchers.equalTo;
+
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.config.TestConfiguration;
 
-import static io.restassured.RestAssured.oauth2;
-import static io.restassured.RestAssured.preemptive;
-import static org.hamcrest.CoreMatchers.equalTo;
+import io.restassured.RestAssured;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -53,8 +53,8 @@ public class LoginActions
         ApiResponse loggedInUser = getLoggedInUserInfo();
 
         if ( loggedInUser.getContentType().contains( "json" ) &&
-             loggedInUser.extract( "userCredentials.username" ) != null &&
-             loggedInUser.extract( "userCredentials.username" ).equals( username ) )
+            loggedInUser.extract( "userCredentials.username" ) != null &&
+            loggedInUser.extract( "userCredentials.username" ).equals( username ) )
         {
             return;
         }
@@ -93,7 +93,7 @@ public class LoginActions
     {
         return getLoggedInUserInfo().extractString( "id" );
     }
-  
+
     /**
      * Adds authentication header that is used in all consecutive requests
      *
@@ -103,6 +103,14 @@ public class LoginActions
     public void addAuthenticationHeader( final String username, final String password )
     {
         RestAssured.authentication = RestAssured.preemptive().basic( username, password );
+    }
+
+    /**
+     * Removes authentication header
+     */
+    public void removeAuthenticationHeader()
+    {
+        RestAssured.authentication = RestAssured.DEFAULT_AUTH;
     }
 
     /**

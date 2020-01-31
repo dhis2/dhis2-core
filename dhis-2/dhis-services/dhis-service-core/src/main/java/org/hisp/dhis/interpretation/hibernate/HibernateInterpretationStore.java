@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,26 +62,24 @@ public class HibernateInterpretationStore
         super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, deletedObjectService, aclService, false );
     }
 
-    @SuppressWarnings("unchecked")
     public List<Interpretation> getInterpretations( User user )
     {
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql )
+        Query<Interpretation> query = getQuery( hql )
             .setParameter( "user", user )
             .setCacheable( cacheable );
 
         return query.list();
     }
 
-    @SuppressWarnings("unchecked")
     public List<Interpretation> getInterpretations( User user, int first, int max )
     {
         String hql = "select distinct i from Interpretation i left join i.comments c " +
             "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-        Query query = getQuery( hql )
+        Query<Interpretation> query = getQuery( hql )
             .setParameter( "user", user )
             .setMaxResults( first )
             .setMaxResults( max )
@@ -91,53 +89,42 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" )
-            .setParameter( "map", map )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
+        query.setParameter( "map", map );
+        return query.uniqueResult();
     }
 
     @Override
-    public int countChartInterpretations( Chart chart )
+    public long countChartInterpretations( Chart chart )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" )
-            .setParameter( "chart", chart )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" );
+        query.setParameter( "chart", chart ).setCacheable( cacheable );
+        return query.uniqueResult();
     }
 
     @Override
-    public int countReportTableInterpretations( ReportTable reportTable )
+    public long countReportTableInterpretations( ReportTable reportTable )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" )
-            .setParameter( "reportTable", reportTable )
-            .setCacheable( cacheable );
-
-        return ((Long) query.uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" );
+        query.setParameter( "reportTable", reportTable );
+        return query.uniqueResult();
     }
 
     @Override
     public Interpretation getByChartId( long id )
     {
         String hql = "from Interpretation i where i.chart.id = " + id;
-
-        Query query = getSession().createQuery( hql )
-            .setCacheable( cacheable );
-
-        return (Interpretation) query.uniqueResult();
+        Query<Interpretation> query = getQuery( hql );
+        return query.uniqueResult();
     }
 
     @Override
     public Interpretation getByVisualizationId( long id )
     {
         String hql = "from Interpretation i where i.visualization.id = " + id;
-
-        Query<Interpretation> query = getSession().createQuery( hql, Interpretation.class ).setCacheable( cacheable );
-
+        Query<Interpretation> query = getQuery( hql );
         return query.uniqueResult();
     }
 }
