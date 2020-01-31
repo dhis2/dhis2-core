@@ -28,6 +28,7 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
@@ -42,15 +43,19 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.visualization.VisualizationType.PIE;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -320,6 +325,11 @@ public class Visualization
      * The title for a possible tabulated data.
      */
     private transient String gridTitle;
+
+    /**
+     * The name of the reporting month based on the report param.
+     */
+    private transient String reportingPeriodName;
 
     /*
      * Collections mostly used for analytics tabulated data, like pivots or reports.
@@ -1028,6 +1038,54 @@ public class Visualization
         final List<OrganisationUnit> organisationUnitsAtLevel, final List<OrganisationUnit> organisationUnitsInGroups,
         final I18nFormat format )
     {
+        if ( type == PIVOT_TABLE )
+        {
+            initializePivotTable( user, date, organisationUnit, organisationUnitsAtLevel, organisationUnitsInGroups,
+                format );
+        }
+        else
+        {
+            // It's a CHART type
+            initializeChart( user, date, organisationUnit, organisationUnitsAtLevel, organisationUnitsInGroups,
+                format );
+        }
+    }
+
+    private void initializePivotTable(User user, Date date, OrganisationUnit organisationUnit, List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format) {
+        verify((periods != null && !periods.isEmpty()) || hasRelativePeriods(), "Must contain periods or relative periods");
+
+        this.relativePeriodDate = date;
+        this.relativeOrganisationUnit = organisationUnit;
+
+        // Handle report parameters
+        if (hasRelativePeriods()) {
+            this.reportingPeriodName = relatives.getReportingPeriodName(date, format);
+        }
+
+        if (organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit()) {
+            organisationUnit.setCurrentParent(true);
+            addTransientOrganisationUnits(organisationUnit.getChildren());
+            addTransientOrganisationUnit(organisationUnit);
+        }
+
+        if (organisationUnit != null && hasReportingParams() && reportingParams.isOrganisationUnit()) {
+            addTransientOrganisationUnit(organisationUnit);
+        }
+
+        // Handle special dimension
+        if (isDimensional()) {
+            transientCategoryOptionCombos.addAll(Objects.requireNonNull(getFirstCategoryCombo()).getSortedOptionCombos());
+            verify(nonEmptyLists(transientCategoryOptionCombos) == 1, "Category option combos size must be larger than 0");
+        }
+
+        // Populate grid
+        this.populateGridColumnsAndRows(date, user, organisationUnitsAtLevel, organisationUnitsInGroups, format);
+    }
+
+    private void initializeChart( User user, Date date, OrganisationUnit organisationUnit,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
+    {
         this.relativeUser = user;
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
@@ -1043,8 +1101,8 @@ public class Visualization
             columns.add(getDimensionalObject(column));
         }
 
-        // PIE does not have rows.
-        if ( type != PIE )
+        // PIE, GAUGE and others don't not have rowsDimensions.
+        if (CollectionUtils.isNotEmpty( rowDimensions ))
         {
             for ( String row : rowDimensions )
             {
@@ -1082,6 +1140,37 @@ public class Visualization
     // Business logic
     // -------------------------------------------------------------------------
 
+    public void populateGridColumnsAndRows( Date date, User user,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
+    {
+        List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
+        List<DimensionalItemObject> filterItems = new ArrayList<>();
+
+        for ( String dimension : columnDimensions )
+        {
+            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+        }
+
+        for ( String dimension : rowDimensions )
+        {
+            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+        }
+
+        for ( String filter : filterDimensions )
+        {
+            filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+        }
+
+        gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
+        gridRows = CombinationGenerator.newInstance( tableRows ).getCombinations();
+
+        addListIfEmpty( gridColumns );
+        addListIfEmpty( gridRows );
+
+        gridTitle = IdentifiableObjectUtils.join( filterItems );
+    }
+
     public List<OrganisationUnit> getAllOrganisationUnits()
     {
         if ( transientOrganisationUnits != null && !transientOrganisationUnits.isEmpty() )
@@ -1112,8 +1201,39 @@ public class Visualization
     }
 
     // -------------------------------------------------------------------------
-    // Display supportive methods
+    // Display and supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns the category combo of the first data element.
+     */
+    private CategoryCombo getFirstCategoryCombo()
+    {
+        if ( !getDataElements().isEmpty() )
+        {
+            return getDataElements().get( 0 ).getCategoryCombos().iterator().next();
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the number of empty lists among the argument lists.
+     */
+    private static int nonEmptyLists( List<?>... lists )
+    {
+        int nonEmpty = 0;
+
+        for ( List<?> list : lists )
+        {
+            if ( list != null && list.size() > 0 )
+            {
+                ++nonEmpty;
+            }
+        }
+
+        return nonEmpty;
+    }
 
     /**
      * Tests whether this visualization has reporting parameters.

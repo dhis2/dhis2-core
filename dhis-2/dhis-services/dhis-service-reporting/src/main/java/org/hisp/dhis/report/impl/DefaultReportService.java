@@ -189,7 +189,7 @@ public class DefaultReportService
             {
                 Visualization visualization = report.getVisualization();
 
-                Grid grid = visualizationService.getVisualizationGrid( visualization, reportDate, organisationUnitUid );
+                Grid grid = visualizationService.getVisualizationGrid( visualization.getUid(), reportDate, organisationUnitUid );
 
                 print = JasperFillManager.fillReport( jasperReport, params, grid );
             }

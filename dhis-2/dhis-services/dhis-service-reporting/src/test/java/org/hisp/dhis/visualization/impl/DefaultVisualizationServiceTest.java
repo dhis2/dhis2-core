@@ -110,8 +110,9 @@ public class DefaultVisualizationServiceTest
         final Visualization visualizationSpy = spy( visualizationStub );
 
         // When
+        when( visualizationStore.getByUid( anyVisualizationUid ) ).thenReturn( visualizationSpy );
         when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = defaultVisualizationService.getVisualizationGridByUser( visualizationSpy,
+        final Grid expectedGrid = defaultVisualizationService.getVisualizationGridByUser( anyVisualizationUid,
             anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
 
         // Then
@@ -144,8 +145,9 @@ public class DefaultVisualizationServiceTest
         final Visualization visualizationSpy = spy( visualizationStub );
 
         // When
+        when( visualizationStore.getByUid( anyVisualizationUid ) ).thenReturn( visualizationSpy );
         when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = defaultVisualizationService.getVisualizationGridByUser( visualizationSpy,
+        final Grid expectedGrid = defaultVisualizationService.getVisualizationGridByUser( anyVisualizationUid,
             anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
 
         // Then

@@ -464,7 +464,7 @@ public class DefaultPushAnalysisService
     {
         StringWriter stringWriter = new StringWriter();
 
-        GridUtils.toHtmlInlineCss( visualizationService.getVisualizationGridByUser( visualization, new Date(),
+        GridUtils.toHtmlInlineCss( visualizationService.getVisualizationGridByUser( visualization.getUid(), new Date(),
             user.getOrganisationUnit().getUid(), user ), stringWriter );
 
         return stringWriter.toString().replaceAll( "\\R", "" );

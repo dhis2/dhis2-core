@@ -76,23 +76,23 @@ public interface VisualizationService
     /**
      * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param visualization the Visualization.
+     * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @return a Grid.
      */
-    Grid getVisualizationGrid( Visualization visualization, Date relativePeriodDate, String organisationUnitUid );
+    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid );
 
     /**
      * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param visualization the Visualization.
+     * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @param user the current user.
      * @return a Grid.
      */
-    Grid getVisualizationGridByUser( Visualization visualization, Date relativePeriodDate, String organisationUnitUid, User user );
+    Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
 
     /**
      * Retrieves the Visualization with the given uid. Bypasses the ACL system.
