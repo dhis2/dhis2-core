@@ -18,6 +18,8 @@ jobs:
         BASE_BRANCH: ${{ github.base_ref }}
         BRANCH: ${{ github.ref }}
         PR: ${{ github.event.number }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: mvn -f dhis-2/pom.xml sonar:sonar
         -Dsonar.pullrequest.key=${PR}
         -Dsonar.pullrequest.branch=${BRANCH}
