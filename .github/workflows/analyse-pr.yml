@@ -22,3 +22,4 @@ jobs:
         -Dsonar.pullrequest.key=${PR}
         -Dsonar.pullrequest.branch=${BRANCH}
         -Dsonar.pullrequest.base=${BASE_BRANCH}
+        -Dsonar.projectKey=dhis2_dhis2-core
