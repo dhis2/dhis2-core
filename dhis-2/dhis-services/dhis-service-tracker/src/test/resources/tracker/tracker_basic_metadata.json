@@ -454,6 +454,128 @@
       "surname": "admin",
       "id": "M5zQapPyTZI",
       "attributeValues": [ ]
+    },
+
+    {
+      "dataViewOrganisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "teiSearchOrganisationUnits": [ ],
+      "created": "2019-03-25T13:58:35.560",
+      "code": "netroms",
+      "organisationUnits": [
+
+      ],
+      "lastUpdated": "2019-03-29T08:57:41.890",
+      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+      "userCredentials": {
+        "attributeValues": [ ],
+        "favorite": false,
+        "catDimensionConstraints": [ ],
+        "userAccesses": [ ],
+        "disabled": false,
+        "userRoles": [
+          {
+            "id": "yrB6vc5Ip3r"
+          }
+        ],
+        "lastUpdated": "2019-03-29T08:57:41.766",
+        "userInfo": {
+          "id": "--netroms--"
+        },
+        "name": "netroms netroms",
+        "displayName": "netroms netroms",
+        "favorites": [ ],
+        "selfRegistered": false,
+        "externalAccess": false,
+        "externalAuth": false,
+        "twoFA": false,
+        "username": "netroms",
+        "id": "__netroms__",
+        "userGroupAccesses": [ ],
+        "created": "2019-03-29T08:57:41.766",
+        "access": {
+          "externalize": true,
+          "read": true,
+          "manage": true,
+          "delete": true,
+          "write": true,
+          "update": true
+        },
+        "cogsDimensionConstraints": [ ],
+        "invitation": false,
+        "lastLogin": "2019-03-29T12:42:06.495",
+        "translations": [ ],
+        "passwordLastUpdated": "2019-03-29T08:57:41.766"
+      },
+      "firstName": "netroms",
+      "surname": "netroms",
+      "id": "--netroms--",
+      "attributeValues": [ ]
+    },
+
+    {
+      "dataViewOrganisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "teiSearchOrganisationUnits": [ ],
+      "created": "2019-03-25T13:58:35.560",
+      "code": "morten",
+      "organisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "lastUpdated": "2019-03-29T08:57:41.890",
+      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+      "userCredentials": {
+        "attributeValues": [ ],
+        "favorite": false,
+        "catDimensionConstraints": [ ],
+        "userAccesses": [ ],
+        "disabled": false,
+        "userRoles": [
+          {
+            "id": "---user----"
+          }
+        ],
+        "lastUpdated": "2019-03-29T08:57:41.766",
+        "userInfo": {
+          "id": "--morten---"
+        },
+        "name": "morten morten",
+        "displayName": "morten morten",
+        "favorites": [ ],
+        "selfRegistered": false,
+        "externalAccess": false,
+        "externalAuth": false,
+        "twoFA": false,
+        "username": "morten",
+        "id": "__morten___",
+        "userGroupAccesses": [ ],
+        "created": "2019-03-29T08:57:41.766",
+        "access": {
+          "externalize": true,
+          "read": true,
+          "manage": true,
+          "delete": true,
+          "write": true,
+          "update": true
+        },
+        "cogsDimensionConstraints": [ ],
+        "invitation": false,
+        "lastLogin": "2019-03-29T12:42:06.495",
+        "translations": [ ],
+        "passwordLastUpdated": "2019-03-29T08:57:41.766"
+      },
+      "firstName": "morten",
+      "surname": "morten",
+      "id": "--morten---",
+      "attributeValues": [ ]
     }
   ],
   "userRoles": [
@@ -503,7 +625,57 @@
       "id": "yrB6vc5Ip3r",
       "userGroupAccesses": [ ],
       "publicAccess": "--------"
+    },
+
+    {
+      "created": "2019-03-25T13:58:35.567",
+      "code": "normaluser",
+      "description": "normaluser",
+      "lastUpdated": "2019-03-25T13:58:35.567",
+      "userAccesses": [ ],
+      "name": "normaluser",
+      "translations": [ ],
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_USER_VIEW",
+        "F_GENERATE_MIN_MAX_VALUES",
+        "F_ORGANISATIONUNIT_MOVE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_PREDICTOR_RUN",
+        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
+        "F_SKIP_DATA_IMPORT_AUDIT",
+        "F_RUN_VALIDATION",
+        "F_IMPORT_DATA",
+        "F_LOCALE_ADD",
+        "F_REPLICATE_USER",
+        "F_SEND_EMAIL",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_ENROLLMENT_CASCADE_DELETE",
+        "F_METADATA_IMPORT",
+        "F_EXPORT_EVENTS",
+        "F_VIEW_EVENT_ANALYTICS",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_IMPORT_EVENTS",
+        "F_PERFORM_MAINTENANCE",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_TEI_CASCADE_DELETE",
+        "F_EXPORT_DATA",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_EDIT_EXPIRED",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_UNCOMPLETE_EVENT",
+        "F_TRACKED_ENTITY_INSTANCE_ADD"
+      ],
+      "id": "---user----",
+      "userGroupAccesses": [ ],
+      "publicAccess": "--------"
     }
+
+
   ],
   "trackedEntityAttributes": [
     {
@@ -683,7 +855,7 @@
       },
       "id": "bPJ0FMtcnEh",
       "userGroupAccesses": [ ],
-      "publicAccess": "rw------",
+      "publicAccess": "rwrw----",
       "minAttributesRequiredToSearch": 1,
       "lastUpdated": "2019-03-29T09:20:08.103",
       "trackedEntityTypeAttributes": [

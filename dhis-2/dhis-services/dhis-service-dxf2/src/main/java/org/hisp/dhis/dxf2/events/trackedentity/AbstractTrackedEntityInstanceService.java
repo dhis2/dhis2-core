@@ -1182,7 +1182,7 @@ public abstract class AbstractTrackedEntityInstanceService
         Set<ImportConflict> importConflicts )
     {
         String errorMessage = trackedEntityAttributeService
-            .validateAttributeUniquenessWithinScope( trackedEntityAttribute, value, entityInstance,
+            .validateAttributeUniquenessWithinScope( trackedEntityAttribute, value, entityInstance.getUid(),
                 organisationUnit );
 
         if ( errorMessage != null )

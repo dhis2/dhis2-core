@@ -36,6 +36,9 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.tracker.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerErrorMessage;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -50,7 +53,7 @@ public class TrackerErrorReport
 
     protected Class<?> errorKlass;
 
-    protected String errorProperty;
+    protected String[] errorProperties = new String[0]; // En array isteden for en streng, default til tom TOM array, for å slippe null sjekk!!!
 
     protected Object value;
 
@@ -115,14 +118,14 @@ public class TrackerErrorReport
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getErrorProperty()
+    public String[] getErrorProperties()
     {
-        return errorProperty;
+        return errorProperties;
     }
 
-    public TrackerErrorReport setErrorProperty( String errorProperty )
+    public TrackerErrorReport setErrorProperties( String... errorProperties )
     {
-        this.errorProperty = errorProperty;
+        this.errorProperties = errorProperties;
         return this;
     }
 
@@ -149,5 +152,29 @@ public class TrackerErrorReport
             .add( "errorKlass", errorKlass )
             .add( "value", value )
             .toString();
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        TrackerErrorReport that = (TrackerErrorReport) o;
+        return Objects.equals( message, that.message ) &&
+            Objects.equals( mainKlass, that.mainKlass ) &&
+            Objects.equals( mainId, that.mainId ) &&
+            Objects.equals( errorKlass, that.errorKlass ) &&
+            Arrays.equals( errorProperties, that.errorProperties ) &&
+            Objects.equals( value, that.value );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = Objects.hash( message, mainKlass, mainId, errorKlass, value );
+        result = 31 * result + Arrays.hashCode( errorProperties );
+        return result;
     }
 }

@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker;
  */
 
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,5 +55,25 @@ public class TrackerErrorMessage
     public String getMessage()
     {
         return MessageFormat.format( errorCode.getMessage(), args );
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        TrackerErrorMessage that = (TrackerErrorMessage) o;
+        return errorCode == that.errorCode &&
+            Arrays.equals( args, that.args );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = Objects.hash( errorCode );
+        result = 31 * result + Arrays.hashCode( args );
+        return result;
     }
 }

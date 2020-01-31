@@ -69,4 +69,8 @@ public enum TrackerImportStrategy
     {
         return UPDATE == this || CREATE_AND_UPDATE == this;
     }
+    public boolean isDelete()
+    {
+        return DELETE == this;
+    }
 }

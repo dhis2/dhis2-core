@@ -32,7 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +45,8 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-public class DefaultTrackerValidationService implements TrackerValidationService
+public class DefaultTrackerValidationService
+    implements TrackerValidationService
 {
     private static final Log log = LogFactory.getLog( DefaultTrackerValidationService.class );
 
@@ -60,20 +63,28 @@ public class DefaultTrackerValidationService implements TrackerValidationService
     {
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
+        User user = bundle.getUser();
+        if ( (user == null || bundle.getUser().isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
-            log.warn( "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
+            log.warn( "Skipping validation for metadata import by user '" +
+                bundle.getUsername() + "'. Not recommended." );
             return validationReport;
         }
 
-        for ( TrackerValidationHook hook : validationHooks )
+        try
         {
-            validationReport.add( hook.validate( bundle ) );
-
-            if ( !validationReport.isEmpty() && ValidationMode.FAIL_FAST == bundle.getValidationMode() )
+            for ( TrackerValidationHook hook : validationHooks )
             {
-                break;
+                List<TrackerErrorReport> errors = hook.validate( bundle );
+                if ( errors != null )
+                {
+                    validationReport.add( errors );
+                }
             }
+        }
+        catch ( ValidationFailFastException e )
+        {
+            validationReport.add( e.getErrors() );
         }
 
         return validationReport;
