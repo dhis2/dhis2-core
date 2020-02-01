@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -402,23 +402,6 @@ public abstract class AbstractEnrollmentService
         linkEventSummaries( importSummaries, eventImportSummaries, events );
 
         return importSummaries;
-    }
-
-    /**
-     * Filters out Enrollments which are already present in the database (regardless of the 'deleted' state)
-     *
-     * @param enrollments Enrollments to import
-     * @param importSummaries ImportSummaries used for import
-     * @return Enrollments that is possible to import (pass validation)
-     */
-    private List<Enrollment> resolveImportableEnrollments( List<Enrollment> enrollments, ImportSummaries importSummaries ) {
-
-        List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments,
-            importSummaries );
-
-        return enrollments.stream()
-            .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
-            .collect( Collectors.toList() );
     }
 
     private List<String> checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )

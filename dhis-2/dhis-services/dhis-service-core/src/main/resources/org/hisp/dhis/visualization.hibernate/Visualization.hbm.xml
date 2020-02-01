@@ -1,0 +1,345 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+    [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+    >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.visualization.Visualization" table="visualization">
+
+    <cache usage="read-write"/>
+
+    <id name="id" column="visualizationid">
+      <generator class="native"/>
+    </id>
+    &identifiableProperties;
+
+    <property name="measureCriteria"/>
+
+    <property name="regression"/>
+
+    <property name="cumulative"/>
+
+    <list name="dataElementGroupSetDimensions" table="visualization_dataelementgroupsetdimensions"
+          cascade="all-delete-orphan">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_dataelementgroupsetdimensions_visualizationid"/>
+      <list-index column="sort_order"/>
+      <many-to-many column="dataelementgroupsetdimensionid"
+                    class="org.hisp.dhis.dataelement.DataElementGroupSetDimension"
+                    foreign-key="fk_visualization_dimensions_dataelementgroupsetdimensionid"/>
+    </list>
+
+    <list name="organisationUnitGroupSetDimensions" table="visualization_orgunitgroupsetdimensions"
+          cascade="all-delete-orphan">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_orgunitgroupsetdimensions_visualizationid"/>
+      <list-index column="sort_order"/>
+      <many-to-many column="orgunitgroupsetdimensionid"
+                    class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
+                    foreign-key="fk_visualization_dimensions_orgunitgroupsetdimensionid"/>
+    </list>
+
+    <list name="columnDimensions" table="visualization_columns">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_columns_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <element type="string" column="dimension"/>
+    </list>
+
+    <list name="rowDimensions" table="visualization_rows">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_rows_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <element type="string" column="dimension"/>
+    </list>
+
+    <list name="filterDimensions" table="visualization_filters">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_filters_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <element type="string" column="dimension"/>
+    </list>
+
+    <component name="reportingParams">
+      <property name="reportingPeriod" column="paramreportingperiod"/>
+      <property name="organisationUnit" column="paramorganisationunit"/>
+      <property name="parentOrganisationUnit" column="paramparentorganisationunit"/>
+      <property name="grandParentOrganisationUnit" column="paramgrandparentorganisationunit"/>
+    </component>
+
+    <property name="topLimit"/>
+
+    <property name="rowTotals"/>
+
+    <property name="colTotals"/>
+
+    <property name="rowSubTotals"/>
+
+    <property name="colSubTotals"/>
+
+    <property name="numberType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.NumberType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="type" length="40" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.visualization.VisualizationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <list name="optionalAxes" table="visualization_axis" cascade="all, delete-orphan">
+      <cache usage="read-write" />
+      <key column="visualizationid" foreign-key="fk_visualization_axis_visualizationid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="axisid" class="org.hisp.dhis.visualization.Axis"
+        foreign-key="fk_visualization_axis_axisid" />
+    </list>
+
+    <list name="yearlySeries" table="visualization_yearlyseries">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_yearlyseries_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <element type="string" column="yearlyseries"/>
+    </list>
+
+    <property name="regressionType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.RegressionType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <list name="dataDimensionItems" table="visualization_datadimensionitems" cascade="all, delete-orphan">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_datadimensionitems_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <many-to-many column="datadimensionitemid" class="org.hisp.dhis.common.DataDimensionItem"
+                    foreign-key="fk_visualization_datadimensionitems_datadimensionitemid"/>
+    </list>
+
+    <list name="organisationUnits" table="visualization_organisationunits">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_organisationunits_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <many-to-many column="organisationunitid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+                    foreign-key="fk_visualization_organisationunits_organisationunitid"/>
+    </list>
+
+    <list name="categoryOptionGroupSetDimensions" table="visualization_categoryoptiongroupsetdimensions"
+          cascade="all-delete-orphan">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_catoptiongroupsetdimensions_visualizationid"/>
+      <list-index column="sort_order"/>
+      <many-to-many column="categoryoptiongroupsetdimensionid"
+                    class="org.hisp.dhis.category.CategoryOptionGroupSetDimension"
+                    foreign-key="fk_visualization_dimensions_catoptiongroupsetdimensionid"/>
+    </list>
+
+    <list name="organisationUnitLevels" table="visualization_orgunitlevels">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_orgunitlevels_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <element column="orgunitlevel" type="integer"/>
+    </list>
+
+    <list name="itemOrganisationUnitGroups" table="visualization_itemorgunitgroups">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_itemorgunitunitgroups_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
+                    foreign-key="fk_visualization_itemorgunitgroups_orgunitgroupid"/>
+    </list>
+
+    <property name="aggregationType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="completedOnly" column="completedonly"/>
+
+    <set name="interpretations" inverse="true">
+      <key column="visualizationid"/>
+      <one-to-many class="org.hisp.dhis.interpretation.Interpretation"/>
+    </set>
+
+    <list name="categoryDimensions" table="visualization_categorydimensions" cascade="all-delete-orphan">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_categorydimensions_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <many-to-many column="categorydimensionid" class="org.hisp.dhis.category.CategoryDimension"
+                    foreign-key="fk_visualization_categorydimensions_categorydimensionid"/>
+    </list>
+
+    <property name="favorites" type="jbSet"/>
+
+    <property name="subscribers" type="jbSet"/>
+
+    <property name="userOrganisationUnit"/>
+
+    <property name="userOrganisationUnitChildren"/>
+
+    <property name="userOrganisationUnitGrandChildren"/>
+
+    <property name="userOrgUnitType" length="12">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.UserOrgUnitType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <list name="periods" table="visualization_periods">
+      <cache usage="read-write"/>
+      <key column="visualizationid" foreign-key="fk_visualization_periods_visualizationid"/>
+      <list-index column="sort_order" base="0"/>
+      <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
+                    foreign-key="fk_visualization_periods_periodid"/>
+    </list>
+
+    <property name="startDate"/>
+
+    <property name="endDate"/>
+
+    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+                 cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
+
+    <property name="percentStackedValues"/>
+
+    <property name="rangeAxisMaxValue"/>
+
+    <property name="rangeAxisMinValue"/>
+
+    <property name="rangeAxisSteps"/>
+
+    <property name="rangeAxisDecimals"/>
+
+    <property name="targetLineValue"/>
+
+    <property name="baseLineValue"/>
+
+    <property name="title"/>
+
+    <property name="subtitle"/>
+
+    <property name="name" column="name" not-null="true" unique="false" length="230"/>
+
+    <property name="description" type="text"/>
+
+    <property name="hideTitle"/>
+
+    <property name="hideSubtitle"/>
+
+    <property name="hideEmptyRows"/>
+
+    <property name="hideEmptyColumns"/>
+
+    <property name="hideLegend"/>
+
+    <property name="noSpaceBetweenColumns"/>
+
+    <property name="targetLineLabel"/>
+
+    <property name="baseLineLabel"/>
+
+    <property name="domainAxisLabel"/>
+
+    <property name="rangeAxisLabel"/>
+
+    <many-to-one name="colorSet" class="org.hisp.dhis.color.ColorSet" column="colorsetid"
+                 foreign-key="fk_visualization_colorsetid"/>
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+                 foreign-key="fk_visualization_legendsetid"/>
+
+    <property name="showHierarchy"/>
+
+    <property name="showDimensionLabels"/>
+
+    <property name="skipRounding"/>
+
+    <property name="showData"/>
+
+    <property name="sortOrder"/>
+
+    <property name="hideEmptyRowItems" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.HideEmptyItemStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="digitGroupSeparator" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.DigitGroupSeparator</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="displayDensity" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.DisplayDensity</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="fontSize" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.FontSize</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="legendDisplayStyle" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStyle</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="legendDisplayStrategy" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="translations" type="jblTranslations"/>
+
+    <property name="externalAccess"/>
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_visualization_userid"/>
+
+    <property name="publicAccess" length="8"/>
+
+    <set name="userGroupAccesses" table="visualization_usergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write"/>
+      <key column="visualizationid"/>
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true"/>
+    </set>
+
+    <set name="userAccesses" table="visualization_useraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write"/>
+      <key column="visualizationid"/>
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true"/>
+    </set>
+
+  </class>
+</hibernate-mapping>

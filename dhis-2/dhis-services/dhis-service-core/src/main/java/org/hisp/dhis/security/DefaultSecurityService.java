@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -105,23 +106,23 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
 
     private final CurrentUserService currentUserService;
-    
+
     private final UserSettingService userSettingService;
 
     private final AclService aclService;
 
     private final RestTemplate restTemplate;
-    
+
     private final CacheProvider cacheProvider;
-    
+
     private final PasswordManager passwordManager;
 
     private final MessageSender emailMessageSender;
 
     private final UserService userService;
-    
+
     private final SystemSettingManager systemSettingManager;
-    
+
     private final I18nManager i18nManager;
 
     public DefaultSecurityService( CurrentUserService currentUserService, UserSettingService userSettingService,
@@ -156,7 +157,7 @@ public class DefaultSecurityService
     // Initialization
     // -------------------------------------------------------------------------
 
-    
+
     @PostConstruct
     public void init()
     {
@@ -203,11 +204,11 @@ public class DefaultSecurityService
         {
             return;
         }
-        
+
         Integer attempts = userFailedLoginAttemptCache.get( username ).orElse( 0 );
-        
+
         attempts++;
-        
+
         userFailedLoginAttemptCache.put( username, attempts );
     }
 
@@ -218,8 +219,8 @@ public class DefaultSecurityService
         {
             return;
         }
-        
-        userFailedLoginAttemptCache.invalidate( username );        
+
+        userFailedLoginAttemptCache.invalidate( username );
     }
 
     @Override
@@ -229,15 +230,15 @@ public class DefaultSecurityService
         {
             return false;
         }
-        
+
         return userFailedLoginAttemptCache.get( username ).orElse( 0 ) > LOGIN_MAX_FAILED_ATTEMPTS;
     }
-    
+
     private boolean isBlockFailedLogins()
     {
         return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
     }
-    
+
     @Override
     public boolean prepareUserForInvite( User user )
     {
@@ -345,7 +346,7 @@ public class DefaultSecurityService
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
         vars.put( "token", result[0] );
-        vars.put( "username", credentials.getUsername() );
+        vars.put( "username", CodecUtils.utf8UrlEncode( credentials.getUsername() ) );
         vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
         User user = credentials.getUserInfo();
@@ -626,11 +627,11 @@ public class DefaultSecurityService
     public boolean hasAnyAuthority( String... authorities )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user != null && user.getUserCredentials() != null )
         {
             UserCredentials userCredentials = user.getUserCredentials();
-    
+
             for ( String authority : authorities )
             {
                 if ( userCredentials.isAuthorized( authority ) )

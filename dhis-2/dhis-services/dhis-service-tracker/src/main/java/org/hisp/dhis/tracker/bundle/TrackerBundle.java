@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
@@ -109,8 +108,6 @@ public class TrackerBundle
      * Events to import.
      */
     private List<Event> events = new ArrayList<>();
-
-    private List<Relationship> relationships = new ArrayList<>();
 
     public TrackerBundle()
     {

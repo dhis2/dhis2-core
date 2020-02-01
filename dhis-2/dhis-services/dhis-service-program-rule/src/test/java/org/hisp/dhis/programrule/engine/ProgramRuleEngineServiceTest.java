@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,17 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -49,13 +52,6 @@ import org.junit.Test;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * Created by zubair@dhis2.org on 04.02.18.
@@ -105,42 +101,20 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
     private List<RuleEffect> ruleEffects;
 
+
     @Before
     public void initTest()
     {
         ruleEffects = new ArrayList<>();
-        List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+
 
         setUpInstances();
 
         // fill up the spy
         ruleActionImplementers.add( ruleActionSendMessage );
 
-        // stub for programRuleEngine
-        when( programRuleEngine.evaluateEnrollment( any() ) ).thenReturn( effects );
-        when( programRuleEngine.evaluateEvent( any() ) ).thenReturn( effects );
-
         // stub for ruleActionSendMessage
-        when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
-
-        doAnswer( invocationOnMock ->
-        {
-            ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
-            return ruleEffects;
-        }).when( ruleActionSendMessage ).implement( any(), any( ProgramInstance.class ) );
-
-        doAnswer( invocationOnMock ->
-        {
-            ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
-            return ruleEffects;
-        }).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
-
-        when( programRuleService.getProgramRule( any( Program.class ) ) ).thenReturn( programRules );
-
-        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
-
-        when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
+        Mockito.lenient().when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
     }
 
     @Test
@@ -155,15 +129,27 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @Test
     public void testWithImplementableActionExist_programInstance()
     {
+        doAnswer( invocationOnMock ->
+        {
+            ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
+            return ruleEffects;
+        }).when( ruleActionSendMessage ).implement( any(), any( ProgramInstance.class ) );
+
+        List<RuleEffect> effects = new ArrayList<>();
+        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+        when( programRuleEngine.evaluateEnrollment( any() ) ).thenReturn( effects );
+
         setProgramRuleActionType_SendMessage();
 
         ArgumentCaptor<ProgramInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
-        List<RuleEffect> effects = service.evaluateEnrollment( programInstance.getId() );
+        List<RuleEffect> ruleEffects = service.evaluateEnrollment( programInstance.getId() );
 
-        assertEquals( 1, effects.size() );
+        assertEquals( 1, ruleEffects.size() );
 
-        RuleAction action = effects.get( 0 ).ruleAction();
+        RuleAction action = ruleEffects.get( 0 ).ruleAction();
         if ( action instanceof  RuleActionSendMessage )
         {
             RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) action;
@@ -184,6 +170,18 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @Test
     public void testWithImplementableActionExist_programStageInstance()
     {
+        doAnswer( invocationOnMock ->
+        {
+            ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
+            return ruleEffects;
+        }).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
+
+        List<RuleEffect> effects = new ArrayList<>();
+        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+
+        when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
+        when( programRuleEngine.evaluateEvent( any() ) ).thenReturn( effects );
+
         setProgramRuleActionType_SendMessage();
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );

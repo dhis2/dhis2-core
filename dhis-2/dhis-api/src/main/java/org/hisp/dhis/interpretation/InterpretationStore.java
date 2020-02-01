@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,13 @@ import org.hisp.dhis.reporttable.ReportTable;
 public interface InterpretationStore
     extends IdentifiableObjectStore<Interpretation>
 {
-    int countMapInterpretations( Map map );
+    long countMapInterpretations( Map map );
 
-    int countChartInterpretations( Chart chart );
+    long countChartInterpretations( Chart chart );
 
-    int countReportTableInterpretations( ReportTable reportTable );
+    long countReportTableInterpretations( ReportTable reportTable );
 
     Interpretation getByChartId( long id );
 
+    Interpretation getByVisualizationId( long id );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -263,10 +263,6 @@ public class AnalyticsValidationServiceTest
         expressionASliding.setSlidingWindow( true );
         expressionDSliding.setSlidingWindow( true );
         expressionISliding.setSlidingWindow( true );
-
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionD );
-        expressionService.addExpression( expressionI );
 
         validationRuleA = createValidationRule( "A", not_equal_to, expressionA, expressionA, periodTypeMonthly ); // A - ProgramTrackedEntityAttribute
         validationRuleD = createValidationRule( "D", not_equal_to, expressionD, expressionD, periodTypeMonthly ); // D - ProgramDataElement

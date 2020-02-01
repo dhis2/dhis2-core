@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -142,9 +141,6 @@ public class EventPredictionServiceTest
 
     @Autowired
     private AnalyticsService analyticsService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -301,10 +297,6 @@ public class EventPredictionServiceTest
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );
         Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicators" );
         Expression expressionT = new Expression( EXPRESSION_T, "Two things" );
-
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionD );
-        expressionService.addExpression( expressionI );
 
         OrganisationUnitLevel orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );

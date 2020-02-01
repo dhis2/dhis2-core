@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,6 +134,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.springframework.aop.framework.Advised;
@@ -172,6 +173,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 /**
  * @author Lars Helge Overland
@@ -1236,6 +1239,16 @@ public abstract class DhisConvenienceTest
         }
 
         return colorSet;
+    }
+
+    public static Visualization createVisualization( final String name )
+    {
+        final Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setName( name );
+        visualization.setType(PIVOT_TABLE);
+
+        return visualization;
     }
 
     public static Chart createChart( char uniqueCharacter )

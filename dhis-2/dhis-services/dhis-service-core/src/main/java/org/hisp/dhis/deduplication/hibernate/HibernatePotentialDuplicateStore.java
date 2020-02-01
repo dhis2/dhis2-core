@@ -1,7 +1,7 @@
 package org.hisp.dhis.deduplication.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,8 @@ public class HibernatePotentialDuplicateStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
+            deletedObjectService,
             aclService, false );
     }
 
@@ -79,7 +80,8 @@ public class HibernatePotentialDuplicateStore
     {
         if ( query.getTeis() != null && query.getTeis().size() > 0 )
         {
-            Query<PotentialDuplicate> hibernateQuery = getTypedQuery( "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
+            Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
+                "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
             hibernateQuery.setParameterList( "uids", query.getTeis() );
             return hibernateQuery.getResultList();
         }

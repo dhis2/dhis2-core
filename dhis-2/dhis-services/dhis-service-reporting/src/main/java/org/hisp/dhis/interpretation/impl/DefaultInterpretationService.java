@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation.impl;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ package org.hisp.dhis.interpretation.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -64,8 +66,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Lars Helge Overland
  */
@@ -83,17 +83,17 @@ public class DefaultInterpretationService
     private final InterpretationStore interpretationStore;
 
     private CurrentUserService currentUserService;
-    
+
     private UserService userService;
-    
+
     private final PeriodService periodService;
 
     private final MessageService messageService;
 
     private final AclService aclService;
-    
+
     private final I18nManager i18nManager;
-    
+
     private final DhisConfigurationProvider configurationProvider;
 
     public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
@@ -347,17 +347,21 @@ public class DefaultInterpretationService
             path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
+        case VISUALIZATION:
+            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid() + "/interpretation/"
+                    + interpretation.getUid();
+            break;
         case REPORT_TABLE:
             path = "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
                 + interpretation.getUid();
             break;
         case CHART:
             path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getChart().getUid() + "/interpretation/"
-                    + interpretation.getUid();
+                + interpretation.getUid();
             break;
         case EVENT_REPORT:
-            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid() + "&interpretationid="
-                + interpretation.getUid();
+            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
+                + "&interpretationid=" + interpretation.getUid();
             break;
         case EVENT_CHART:
             path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
@@ -485,19 +489,19 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
         return interpretationStore.countMapInterpretations( map );
     }
 
     @Override
-    public int countChartInterpretations( Chart chart )
+    public long countChartInterpretations( Chart chart )
     {
         return interpretationStore.countChartInterpretations( chart );
     }
 
     @Override
-    public int countReportTableInterpretations( ReportTable reportTable )
+    public long countReportTableInterpretations( ReportTable reportTable )
     {
         return interpretationStore.countReportTableInterpretations( reportTable );
     }
@@ -506,5 +510,11 @@ public class DefaultInterpretationService
     public Interpretation getInterpretationByChart( long id )
     {
         return interpretationStore.getByChartId( id );
+    }
+
+    @Override
+    public Interpretation getInterpretationByVisualization( long id )
+    {
+        return interpretationStore.getByVisualizationId( id );
     }
 }

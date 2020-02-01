@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -164,11 +164,11 @@ public class HibernateProgramStageInstanceStore
     public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
     {
         String hql = "update ProgramStageInstance set lastSynchronized = :lastSynchronized WHERE uid in :programStageInstances";
-        Query query = getQuery( hql );
-        query.setParameter( "lastSynchronized", lastSynchronized );
-        query.setParameter( "programStageInstances", programStageInstanceUIDs );
 
-        query.executeUpdate();
+        getQuery( hql )
+            .setParameter( "lastSynchronized", lastSynchronized )
+            .setParameter( "programStageInstances", programStageInstanceUIDs )
+            .executeUpdate();
     }
 
     @Override

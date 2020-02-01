@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.variable;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@ public class vEventDate
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return "executiondate";
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( 
+            null, "executiondate", visitor.getReportingStartDate(), visitor.getReportingEndDate(), 
+            visitor.getProgramIndicator() );
     }
 }

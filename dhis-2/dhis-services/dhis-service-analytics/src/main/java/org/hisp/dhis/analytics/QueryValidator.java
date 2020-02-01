@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,11 @@ import java.util.List;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Service interface which provides methods for validation analytics queries.
- * 
+ *
 * @author Lars Helge Overland
 */
 public interface QueryValidator
@@ -44,18 +45,28 @@ public interface QueryValidator
      * Validates the given query. Throws an IllegalQueryException if the query
      * is not valid with a descriptive message. Returns normally if the query is
      * valid.
-     * 
+     *
      * @param params the data query parameters.
      * @throws IllegalQueryException if the query is invalid.
      */
     void validate( DataQueryParams params )
         throws IllegalQueryException;
-    
+
     /**
-     * Validates whether the given table layout is valid for the given query. 
-     * Throws an IllegalQueryException if the query is not valid with a 
+     * Validates the given query. Returns null if the query is valid, or an
+     * {@link ErrorMessage} describing the validation violation if the query
+     * is invalid.
+     *
+     * @param params the data query parameters.
+     * @return null if valid or {@link ErrorMessage} if invalid.
+     */
+    ErrorMessage validateForErrorMessage( DataQueryParams params );
+
+    /**
+     * Validates whether the given table layout is valid for the given query.
+     * Throws an IllegalQueryException if the query is not valid with a
      * descriptive message. Returns normally if the query is valid.
-     * 
+     *
      * @param params the data query parameters.
      * @param columns the column dimension identifiers.
      * @param rows the row dimension identifiers.
@@ -63,13 +74,12 @@ public interface QueryValidator
      */
     void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
         throws IllegalQueryException;
-    
+
     /**
      * Checks whether the analytics engine is in maintenance mode.
-     * 
+     *
      * @throws MaintenanceModeException if analytics engine is in maintenance mode.
      */
     void validateMaintenanceMode()
         throws MaintenanceModeException;
-    
 }

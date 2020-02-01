@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
@@ -67,8 +67,6 @@ import static org.hisp.dhis.parser.expression.ParserUtils.*;
 public class CommonExpressionVisitor
     extends ExpressionBaseVisitor<Object>
 {
-    private ConstantService constantService;
-
     private DimensionService dimensionService;
 
     private OrganisationUnitGroupService organisationUnitGroupService;
@@ -125,7 +123,7 @@ public class CommonExpressionVisitor
     /**
      * Constants to use in evaluating an expression.
      */
-    private Map<String, Double> constantMap = new HashMap<>();
+    private Map<String, Constant> constantMap = new HashMap<>();
 
     /**
      * Used to collect the dimensional item ids in the expression.
@@ -447,11 +445,6 @@ public class CommonExpressionVisitor
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public ConstantService getConstantService()
-    {
-        return constantService;
-    }
-
     public DimensionService getDimensionService()
     {
         return dimensionService;
@@ -544,14 +537,9 @@ public class CommonExpressionVisitor
         return itemDescriptions;
     }
 
-    public Map<String, Double> getConstantMap()
+    public Map<String, Constant> getConstantMap()
     {
         return constantMap;
-    }
-
-    public void setConstantMap( Map<String, Double> constantMap )
-    {
-        this.constantMap = constantMap;
     }
 
     public boolean getReplaceNulls()
@@ -684,12 +672,6 @@ public class CommonExpressionVisitor
             return this;
         }
 
-        public Builder withConstantService( ConstantService constantService )
-        {
-            this.visitor.constantService = constantService;
-            return this;
-        }
-
         public Builder withDimensionService( DimensionService dimensionService )
         {
             this.visitor.dimensionService = dimensionService;
@@ -744,6 +726,12 @@ public class CommonExpressionVisitor
             return this;
         }
 
+        public Builder withConstantMap( Map<String, Constant> constantMap )
+        {
+            this.visitor.constantMap = constantMap;
+            return this;
+        }
+
         public Builder withSamplePeriods( List<Period> samplePeriods )
         {
             this.visitor.samplePeriods = samplePeriods;
@@ -753,7 +741,8 @@ public class CommonExpressionVisitor
         public CommonExpressionVisitor buildForExpressions()
         {
             Validate.notNull( this.visitor.dimensionService, "Missing required property 'dimensionService'" );
-            Validate.notNull( this.visitor.organisationUnitGroupService, "Missing required property 'organisationUnitGroupService'" );
+            Validate.notNull( this.visitor.organisationUnitGroupService,
+                "Missing required property 'organisationUnitGroupService'" );
 
             return validateCommonProperties();
         }
@@ -774,6 +763,7 @@ public class CommonExpressionVisitor
         private CommonExpressionVisitor validateCommonProperties()
         {
             Validate.notNull( this.visitor.functionMap, "Missing required property 'functionMap'" );
+            Validate.notNull( this.visitor.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.visitor.itemMap, "Missing required property 'itemMap'" );
             Validate.notNull( this.visitor.functionMethod, "Missing required property 'functionMethod'" );
             Validate.notNull( this.visitor.itemMethod, "Missing required property 'itemMethod'" );

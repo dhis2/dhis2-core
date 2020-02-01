@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,8 @@ public enum DhisApiVersion
     V31( 31 ),
     V32( 32 ),
     V33( 33 ),
-    DEFAULT( V33.getVersion() );
+    V34( 34 ),
+    DEFAULT( V34.getVersion() );
 
     final int version;
 

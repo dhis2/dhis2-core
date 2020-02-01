@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset.hibernate;
  */
 
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
@@ -134,11 +133,10 @@ public class HibernateLockExceptionStore
     {
         final String hql = "delete from LockException where dataSet=:dataSet and period=:period";
 
-        Query query = getQuery( hql );
-        query.setParameter( "dataSet", dataSet );
-        query.setParameter( "period", period );
-
-        query.executeUpdate();
+        getQuery( hql )
+            .setParameter( "dataSet", dataSet )
+            .setParameter( "period", period )
+            .executeUpdate();
     }
 
 
@@ -147,12 +145,11 @@ public class HibernateLockExceptionStore
     {
         final String hql = "delete from LockException where dataSet=:dataSet and period=:period and organisationUnit=:organisationUnit";
 
-        Query query = getQuery( hql );
-        query.setParameter( "dataSet", dataSet );
-        query.setParameter( "period", period );
-        query.setParameter( "organisationUnit", organisationUnit );
-
-        query.executeUpdate();
+        getQuery( hql )
+            .setParameter( "dataSet", dataSet )
+            .setParameter( "period", period )
+            .setParameter( "organisationUnit", organisationUnit )
+            .executeUpdate();
     }
 
     @Override

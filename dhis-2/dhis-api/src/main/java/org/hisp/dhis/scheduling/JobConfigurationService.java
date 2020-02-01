@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,6 +105,13 @@ public interface JobConfigurationService
      * @return map with parameters classes
      */
     Map<String, Map<String, Property>> getJobParametersSchema();
+
+    /**
+     * Returns a list of all configurable and available job types.
+     *
+     * @return a list of {@link JobTypeInfo}.
+     */
+    List<JobTypeInfo> getJobTypeInfo();
 
     /**
      * Update the state of the jobConfiguration.

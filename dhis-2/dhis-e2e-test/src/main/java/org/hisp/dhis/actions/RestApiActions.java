@@ -28,12 +28,9 @@
 
 package org.hisp.dhis.actions;
 
-import io.restassured.RestAssured;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.http.ContentType;
-import io.restassured.mapper.ObjectMapperType;
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
+import java.io.File;
+import java.util.List;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.TestRunStorage;
@@ -42,8 +39,12 @@ import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import java.io.File;
-import java.util.List;
+import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.http.ContentType;
+import io.restassured.mapper.ObjectMapperType;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -173,6 +174,43 @@ public class RestApiActions
             .get( resourceId + path );
 
         return new ApiResponse( response );
+    }
+
+    /**
+     * Sends get request with provided path, contentType, accepting content type and queryParams appended to URL.
+     *
+     * @param resourceId            Id of resource
+     * @param contentType           Content type of the request
+     * @param accept                Accepted response Content type
+     * @param queryParamsBuilder    Query params to append to url
+     * @return
+     */
+    public ApiResponse get( String resourceId, String contentType, String accept, QueryParamsBuilder queryParamsBuilder )
+    {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+        Response response = this.given()
+            .contentType( contentType )
+            .accept( accept )
+            .when()
+            .get( resourceId + path );
+
+        return new ApiResponse( response );
+    }
+
+    /**
+     * Sends delete request to specified resource.
+     * If delete request successful, removes entity from TestRunStorage.
+     *
+     * @param resourceId            Id of resource
+     * @param queryParamsBuilder    Query params to append to url
+     * @return
+     */
+    public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
+    {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+        return delete( resourceId + path );
     }
 
     /**

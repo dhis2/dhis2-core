@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,11 +36,11 @@ import java.util.List;
 public interface OptionService
 {
     String ID = OptionService.class.getName();
-   
+
     // -------------------------------------------------------------------------
     // OptionSet
     // -------------------------------------------------------------------------
-  
+
     long saveOptionSet( OptionSet optionSet );
 
     void updateOptionSet( OptionSet optionSet );
@@ -58,19 +58,19 @@ public interface OptionService
     List<OptionSet> getAllOptionSets();
 
     List<Option> getOptions( long optionSetId, String name, Integer max );
-    
+
     // -------------------------------------------------------------------------
     // Option
     // -------------------------------------------------------------------------
 
     void updateOption( Option option );
-    
+
     Option getOption( long id );
-    
+
     Option getOptionByCode( String code );
-        
+
     void deleteOption( Option option  );
-    
+
     // -------------------------------------------------------------------------
     // OptionGroup
     // -------------------------------------------------------------------------

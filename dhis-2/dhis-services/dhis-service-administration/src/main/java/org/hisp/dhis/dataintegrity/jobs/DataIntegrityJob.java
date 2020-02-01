@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity.jobs;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,14 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Service
+@Component( "dataIntegrityJob" )
 public class DataIntegrityJob
     extends AbstractJob
 {
@@ -96,5 +96,4 @@ public class DataIntegrityJob
                 .addJobSummary( jobConfiguration, report, FlattenedDataIntegrityReport.class );
         }
     }
-
 }

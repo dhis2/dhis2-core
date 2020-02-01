@@ -1,7 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ package org.hisp.dhis.pushanalysis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -89,8 +91,6 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Stian Sandvold
  */
@@ -125,7 +125,7 @@ public class DefaultPushAnalysisService
     private final I18nManager i18nManager;
 
     private final MessageSender messageSender;
-    
+
     private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
     public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
@@ -347,7 +347,7 @@ public class DefaultPushAnalysisService
     //--------------------------------------------------------------------------
 
     /**
-     * Finds the dashboardItem's type and calls the associated method for generating the resource (either URL og HTML)
+     * Finds the dashboardItem's type and calls the associated method for generating the resource (either URL or HTML)
      *
      * @param item   to generate resource
      * @param user   to generate for
@@ -360,6 +360,9 @@ public class DefaultPushAnalysisService
         {
             case MAP:
                 return generateMapHtml( item.getMap(), user );
+            case VISUALIZATION:
+                // NOT SUPPORTED
+                return "";
             case CHART:
                 return generateChartHtml( item.getChart(), user );
             case REPORT_TABLE:
@@ -390,7 +393,10 @@ public class DefaultPushAnalysisService
                 result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
                 break;
             case CHART:
-                result += "/dhis-web-visualizer/index.html?id=" + item.getChart().getUid();
+                result += "/dhis-web-data-visualizer/index.html?id=" + item.getChart().getUid();
+                break;
+            case VISUALIZATION:
+                result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
                 break;
             default:
                 break;

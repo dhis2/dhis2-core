@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.resolver;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.analytics.resolver;
 
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
@@ -102,7 +102,6 @@ public class CategoryOptionGroupResolverTest
     /**
      * case: #{DEUID.COGUID.AOCUID} resolves to: #{DEUID.COCUID1.AOCUID} +
      * #{DEUID.COCUID2.AOCUID} + #{DEUID.COCUID3.AOCUID}
-     *
      */
     @Test
     public void verifySecondElementIsCogThirdElementIsAoc()

@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling.parameters;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,8 @@ import java.util.Optional;
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = TrackerProgramsDataSynchronizationJobParametersDeserializer.class )
-public class TrackerProgramsDataSynchronizationJobParameters implements JobParameters
+public class TrackerProgramsDataSynchronizationJobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 368325562301563469L;
 
@@ -55,7 +56,6 @@ public class TrackerProgramsDataSynchronizationJobParameters implements JobParam
 
     public TrackerProgramsDataSynchronizationJobParameters()
     {
-
     }
 
     public TrackerProgramsDataSynchronizationJobParameters( final int pageSize )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,16 @@ import org.hisp.dhis.common.Grid;
  */
 public interface EnrollmentAnalyticsManager
 {
+    /**
+     * Retrieves aggregated data based on enrollments.
+     * 
+     * @param params the query to retrieve aggregated data for.
+     * @param grid the grid to insert data into.
+     * @param maxLimit the max number of records to retrieve.
+     * @return a grid with data.
+     */
+    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
+
      /**
      * Retrieves aggregated data based on enrollments.
      *

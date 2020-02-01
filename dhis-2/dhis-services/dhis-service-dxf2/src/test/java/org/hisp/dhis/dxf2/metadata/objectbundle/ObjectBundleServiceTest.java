@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1121,6 +1121,46 @@ public class ObjectBundleServiceTest
         ValidationRule validationRule2 = manager.get( ValidationRule.class, "TGvH4Hiyduc" );
         assertNotNull( validationRule2.getLeftSide() );
         assertNotNull( validationRule2.getRightSide() );
+    }
+
+    @Test
+    public void testCreateMetadataWithInvalidExpressionValidationRules()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_invalid_expression.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "leftSide.description", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4001, validate.getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void testUpdateMetadataWithMissingExpressionValidationRules()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_missing_expression.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertFalse( validate.getErrorReports().isEmpty() );
+        assertEquals( "rightSide", validate.getErrorReports().get( 0 ).getErrorProperty() );
+        assertEquals( ErrorCode.E4000, validate.getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test

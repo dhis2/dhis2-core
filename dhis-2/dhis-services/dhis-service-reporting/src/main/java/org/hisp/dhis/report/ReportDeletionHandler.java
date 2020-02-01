@@ -1,7 +1,7 @@
 package org.hisp.dhis.report;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ public class ReportDeletionHandler
     {
         for ( Report report : reportService.getAllReports() )
         {
-            if ( report.getReportTable() != null && report.getReportTable().equals( reportTable ) )
+            if ( report.getVisualization() != null && report.getVisualization().equals( reportTable ) )
             {
                 return report.getName();
             }

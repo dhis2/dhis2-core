@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,12 +101,11 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params );
 
-        Query query = getQuery( hql );
+        Query<ProgramInstance> query = getQuery( hql );
 
         if ( params.isPaging() )
         {
@@ -296,12 +295,11 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> getByType( ProgramType type )
     {
         String hql = "from ProgramInstance pi where pi.program.programType = :type";
 
-        Query query = getQuery( hql );
+        Query<ProgramInstance> query = getQuery( hql );
         query.setParameter( "type", type );
 
         return query.list();

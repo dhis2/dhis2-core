@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -71,9 +70,6 @@ public class PredictorServiceTest
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private ExpressionService expressionService;
-
     private OrganisationUnitLevel orgUnitLevel1;
 
     private DataElement dataElementA;
@@ -94,6 +90,8 @@ public class PredictorServiceTest
     private Expression expressionA;
     private Expression expressionB;
     private Expression expressionC;
+
+    private Expression expressionD;
 
     private PeriodType periodTypeMonthly;
 
@@ -164,17 +162,14 @@ public class PredictorServiceTest
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
         expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
         expressionC = new Expression( "135.79", "descriptionC" );
-
-        expressionService.addExpression( expressionA );
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionC );
+        expressionD = new Expression( "34.98", "descriptionD" );
     }
 
     private void setUpPredictorGroups()
     {
         predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionB, expressionD,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         predictorService.addPredictor( predictorA );
@@ -283,7 +278,7 @@ public class PredictorServiceTest
     {
         predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         long idA = predictorService.addPredictor( predictorA );
@@ -308,7 +303,7 @@ public class PredictorServiceTest
     {
         predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD,
             periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         predictorService.addPredictor( predictorA );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,23 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -48,13 +54,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.DEFAULT } )
 @RequestMapping( value = DashboardSchemaDescriptor.API_ENDPOINT )
 public class DashboardController
     extends AbstractCrudController<Dashboard>
@@ -68,7 +78,8 @@ public class DashboardController
 
     @RequestMapping( value = "/q/{query}", method = RequestMethod.GET )
     public @ResponseBody DashboardSearchResult search( @PathVariable String query,
-        @RequestParam( required = false ) Set<DashboardItemType> max, @RequestParam( required = false ) Integer count,
+        @RequestParam( required = false ) Set<DashboardItemType> max,
+        @RequestParam( required = false ) Integer count,
         @RequestParam( required = false ) Integer maxCount )
     {
         return dashboardService.search( query, max, count, maxCount );
@@ -98,5 +109,105 @@ public class DashboardController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
+    }
+
+    /**
+     * Logic required to keep the backward compatibility with Chart and ReporTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
+     *
+     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
+     * Once the Visualization API is fully enabled this logic should be removed.
+     *
+     * @param dashboards
+     * @param options
+     * @param parameters
+     */
+    @Override
+    @Deprecated
+    protected void postProcessResponseEntities(final List<Dashboard> dashboards, final WebOptions options,
+                                               final java.util.Map<String, String> parameters )
+    {
+        if ( isNotEmpty( dashboards ) )
+        {
+            for ( final Dashboard dashboard : dashboards )
+            {
+                postProcessResponseEntity( dashboard, options, parameters );
+            }
+        }
+    }
+
+    /**
+     * Logic required to keep the backward compatibility with Chart and ReportTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
+     *
+     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
+     * Once the Visualization API is fully enabled this logic should be removed.
+     *
+     * @param dashboard
+     * @param options
+     * @param parameters
+     */
+    @Override
+    @Deprecated
+    protected void postProcessResponseEntity( final Dashboard dashboard, final WebOptions options,
+        final Map<String, String> parameters )
+    {
+        if ( dashboard != null && isNotEmpty( dashboard.getItems() ) )
+        {
+            final List<DashboardItem> dashboardItems = dashboard.getItems();
+
+            for ( final DashboardItem dashboardItem : dashboardItems )
+            {
+                if ( dashboardItem.getVisualization() != null )
+                {
+                    final VisualizationType type = dashboardItem.getVisualization().getType();
+
+                    switch ( type )
+                    {
+                    case PIVOT_TABLE:
+                        dashboardItem.setReportTable( convertToReportTable ( dashboardItem.getVisualization()) );
+                        break;
+                    case AREA:
+                    case BAR:
+                    case COLUMN:
+                    case GAUGE:
+                    case LINE:
+                    case PIE:
+                    case RADAR:
+                    case SINGLE_VALUE:
+                    case STACKED_BAR:
+                    case STACKED_COLUMN:
+                    case YEAR_OVER_YEAR_COLUMN:
+                    case YEAR_OVER_YEAR_LINE:
+                        dashboardItem.setChart( convertToChart ( dashboardItem.getVisualization() ) );
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private Chart convertToChart( final Visualization visualization )
+    {
+        final Chart chart = new Chart();
+        copyProperties( visualization, chart, "type" );
+
+        // Set the correct type
+        if ( visualization.getType() != null && !"PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
+        {
+            chart.setType( ChartType.valueOf( visualization.getType().name() ) );
+        }
+
+        chart.setCumulativeValues( visualization.isCumulative() );
+
+        return chart;
+    }
+
+    private ReportTable convertToReportTable( final Visualization visualization )
+    {
+        final ReportTable reportTable = new ReportTable();
+        BeanUtils.copyProperties( visualization, reportTable );
+
+        return reportTable;
     }
 }

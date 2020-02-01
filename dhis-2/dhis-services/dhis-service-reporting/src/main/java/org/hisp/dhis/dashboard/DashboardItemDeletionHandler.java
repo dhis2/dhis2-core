@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -36,9 +38,8 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,6 +83,12 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     public String allowDeleteReportTable( ReportTable reportTable )
     {
         return dashboardService.countReportTableDashboardItems( reportTable ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    public String allowDeleteVisualization( Visualization visualization )
+    {
+        return dashboardService.countVisualizationDashboardItems( visualization ) == 0 ? null : ERROR;
     }
 
     @Override

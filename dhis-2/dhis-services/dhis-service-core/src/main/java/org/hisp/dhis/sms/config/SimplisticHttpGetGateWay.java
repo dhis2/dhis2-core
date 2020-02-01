@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,17 +146,17 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValueForKey() ) );
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
                 continue;
             }
 
             if ( parameter.isEncode() )
             {
-                valueStore.put( parameter.getKey(), encodeUrl( parameter.getValueForKey() ) );
+                valueStore.put( parameter.getKey(), encodeUrl( parameter.getDisplayValue() ) );
                 continue;
             }
 
-            valueStore.put( parameter.getKey(), parameter.getValueForKey() );
+            valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
         }
 
         valueStore.put( KEY_TEXT, text );
