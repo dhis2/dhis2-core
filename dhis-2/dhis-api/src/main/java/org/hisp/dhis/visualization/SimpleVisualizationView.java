@@ -34,18 +34,23 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.annotation.Description;
 
-public class SimpleVisualizationView extends BaseIdentifiableObject {
+public class SimpleVisualizationView
+    extends
+    BaseIdentifiableObject
+{
 
     private VisualizationType type;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Description( "The type of the Visualization object. Only used for Visualization objects." )
-    public VisualizationType getType() {
+    public VisualizationType getType()
+    {
         return type;
     }
 
-    public void setType(VisualizationType type) {
+    public void setType( VisualizationType type )
+    {
         this.type = type;
     }
 }
