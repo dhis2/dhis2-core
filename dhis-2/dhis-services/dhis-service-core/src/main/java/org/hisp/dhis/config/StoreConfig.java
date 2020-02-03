@@ -43,7 +43,6 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.predictor.PredictorGroup;
@@ -59,7 +58,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -257,12 +255,5 @@ public class StoreConfig
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
             ProgramNotificationInstance.class, currentUserService, deletedObjectService, aclService, true );
-    }
-
-    @Bean( "org.hisp.dhis.interpretation.InterpretationCommentStore" )
-    public HibernateIdentifiableObjectStore<InterpretationComment> interpretationCommentStore()
-    {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
-            InterpretationComment.class, currentUserService, deletedObjectService, aclService, true );
     }
 }

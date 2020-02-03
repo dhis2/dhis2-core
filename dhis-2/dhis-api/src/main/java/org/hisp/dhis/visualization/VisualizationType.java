@@ -30,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum VisualizationType
 {
     COLUMN,
