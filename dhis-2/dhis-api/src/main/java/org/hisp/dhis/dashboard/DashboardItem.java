@@ -29,12 +29,17 @@ package org.hisp.dhis.dashboard;
  */
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.chart.Series;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -45,8 +50,11 @@ import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportParams;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Axis;
+import org.hisp.dhis.visualization.ReportingParams;
 import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -54,6 +62,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.visualization.VisualizationType;
+import org.springframework.util.StringUtils;
 
 /**
  * Represents an item in the dashboard. An item can represent an embedded object
@@ -337,6 +347,7 @@ public class DashboardItem
     public void setChart( Chart chart )
     {
         this.chart = chart;
+        this.visualization = convertToVisualization ( chart );
     }
 
     @JsonProperty
@@ -350,6 +361,7 @@ public class DashboardItem
     public void setReportTable( ReportTable reportTable )
     {
         this.reportTable = reportTable;
+        this.visualization = convertToVisualization ( reportTable );
     }
 
     @JsonProperty
@@ -527,5 +539,97 @@ public class DashboardItem
     public void setWidth( Integer width )
     {
         this.width = width;
+    }
+
+    /******************************
+     * Deprecated methods required to keep ReportTable and Chart backward compatible
+     ******************************/
+
+    private Visualization convertToVisualization( final Chart chart )
+    {
+        final Visualization visualization = new Visualization();
+
+        if ( chart != null )
+        {
+            copyProperties( chart, visualization );
+
+            if ( chart.getType() != null )
+            {
+                visualization.setType( VisualizationType.valueOf( chart.getType().name() ) );
+            }
+
+            // Copy seriesItems
+            if ( CollectionUtils.isNotEmpty( chart.getSeriesItems() ) )
+            {
+                final List<Series> seriesItems = chart.getSeriesItems();
+                final List<Axis> axes = visualization.getOptionalAxes();
+
+                for ( final Series seriesItem : seriesItems )
+                {
+                    final Axis axis = new Axis();
+                    axis.setDimensionalItem( seriesItem.getSeries() );
+                    axis.setAxis( seriesItem.getAxis() );
+                    axis.setId( seriesItem.getId() );
+
+                    axes.add( axis );
+                }
+                visualization.setOptionalAxes( axes );
+            }
+
+            // Add series into columns
+            if ( !StringUtils.isEmpty( chart.getSeries() ) )
+            {
+                if ( visualization.getColumnDimensions() != null )
+                {
+                    visualization.getColumnDimensions().add( chart.getSeries() );
+                }
+                else
+                {
+                    visualization.setColumnDimensions( Arrays.asList( chart.getSeries() ) );
+                }
+            }
+
+            // Add category into rows
+            if ( !StringUtils.isEmpty( chart.getCategory() ) )
+            {
+                if ( visualization.getRowDimensions() != null )
+                {
+                    visualization.getRowDimensions().add( chart.getCategory() );
+                }
+                else
+                {
+                    visualization.setRowDimensions( Arrays.asList( chart.getCategory() ) );
+                }
+            }
+
+            visualization.setCumulative( chart.isCumulativeValues() );
+        }
+        return visualization;
+    }
+
+    private Visualization convertToVisualization( final ReportTable reportTable )
+    {
+        final Visualization visualization = new Visualization();
+
+        if ( reportTable != null )
+        {
+            copyProperties( reportTable, visualization );
+            visualization.setType( PIVOT_TABLE );
+
+            // Copy report params
+            if ( reportTable.hasReportParams() )
+            {
+                final ReportingParams reportingParams = new ReportingParams();
+                final ReportParams reportParams = reportTable.getReportParams();
+
+                reportingParams.setGrandParentOrganisationUnit( reportParams.isParamGrandParentOrganisationUnit() );
+                reportingParams.setOrganisationUnit( reportParams.isParamOrganisationUnit() );
+                reportingParams.setParentOrganisationUnit( reportParams.isParamParentOrganisationUnit() );
+                reportingParams.setReportingPeriod( reportParams.isParamReportingMonth() );
+
+                visualization.setReportingParams( reportingParams );
+            }
+        }
+        return visualization;
     }
 }

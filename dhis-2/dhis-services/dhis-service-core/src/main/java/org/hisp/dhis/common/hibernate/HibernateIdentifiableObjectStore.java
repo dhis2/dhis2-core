@@ -76,6 +76,7 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -582,6 +583,41 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             conjunction.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
         }
+
+        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
+
+        return getList( builder, param );
+    }
+
+    public List<T> getAllLikeNameAndEqualsAttribute( Set<String> nameWords, String attribute, String attributeValue, int first, int max )
+    {
+
+        if ( StringUtils.isEmpty( attribute ) || StringUtils.isEmpty( attributeValue ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addOrder( root -> builder.asc( root.get( "name" ) ) )
+            .setFirstResult( first )
+            .setMaxResults( max );
+
+        if ( nameWords.isEmpty() )
+        {
+            return getList( builder, param );
+        }
+
+        List<Function<Root<T>, Predicate>> conjunction = new ArrayList<>();
+
+        for ( String word : nameWords )
+        {
+            conjunction.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
+        }
+
+        conjunction.add( root -> builder.equal( builder.lower( root.get( attribute ) ), attributeValue ) );
 
         param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
 

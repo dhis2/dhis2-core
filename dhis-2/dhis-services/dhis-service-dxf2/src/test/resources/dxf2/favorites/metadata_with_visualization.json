@@ -47,7 +47,6 @@
         "F_INDICATORGROUPSET_PUBLIC_ADD",
         "F_USER_ADD_WITHIN_MANAGED_GROUP",
         "F_PROGRAM_ENROLLMENT",
-        "F_VISUALIZATION_EXTERNAL",
         "F_CATEGORY_OPTION_PRIVATE_ADD",
         "F_GIS_ADMIN",
         "F_CATEGORY_OPTION_GROUP_PUBLIC_ADD",
@@ -68,7 +67,6 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_CATEGORY_OPTION_PUBLIC_ADD",
         "F_CATEGORY_OPTION_DELETE",
-        "F_VISUALIZATION_PUBLIC_ADD",
         "F_CATEGORY_COMBO_PRIVATE_ADD",
         "F_TRACKED_ENTITY_INSTANCE_DELETE",
         "F_DATAELEMENT_PUBLIC_ADD",
@@ -83,7 +81,9 @@
         "F_METADATA_IMPORT",
         "F_INDICATORGROUPSET_PRIVATE_ADD",
         "F_CATEGORY_PUBLIC_ADD",
+        "F_VISUALIZATION_PUBLIC_ADD",
         "F_CATEGORY_COMBO_PUBLIC_ADD",
+        "F_VISUALIZATION_EXTERNAL",
         "F_METADATA_EXPORT",
         "F_PROGRAM_UNENROLLMENT",
         "F_DATAELEMENTGROUP_PRIVATE_ADD",
@@ -210,25 +210,8 @@
       "attributeValues": [ ]
     }
   ],
-  "charts": [
+  "visualizations": [
     {
-      "userGroupAccesses": [
-        {
-          "userGroup": {
-            "id": "ugabcdefghA",
-            "code": "UserGroupCodeA"
-          },
-          "access": "rwrw----"
-        }
-      ],
-      "userAccesses":[
-        {
-          "user": {
-            "id": "userabcdefA"
-          },
-          "access":"rwrw----"
-        }
-      ],
       "completedOnly": false,
       "externalAccess": false,
       "showData": true,
@@ -262,7 +245,7 @@
       "userOrganisationUnitChildren": false,
       "hideEmptyRows": false,
       "organisationUnitGroups": [ ],
-      "name": "VisualizationA",
+      "name": "ChartA",
       "sortOrder": 0,
       "publicAccess": "rw------",
       "category": "pe",
@@ -301,6 +284,7 @@
       },
       "categoryDimensions": [ ],
       "userOrganisationUnit": false,
+      "userGroupAccesses": [ ],
       "hideSubtitle": false,
       "hideTitle": false,
       "regression": false,
@@ -388,7 +372,7 @@
       "category": "pe",
       "organisationUnitLevels": [ ],
       "organisationUnitGroups": [ ],
-      "name": "VisualizationB",
+      "name": "ChartB",
       "user": {
         "id": "M5zQapPyTZI"
       },
@@ -505,7 +489,7 @@
       },
       "userOrganisationUnitChildren": false,
       "organisationUnitGroups": [ ],
-      "name": "VisualizationC",
+      "name": "ChartC",
       "organisationUnitLevels": [ ]
     }
   ],
