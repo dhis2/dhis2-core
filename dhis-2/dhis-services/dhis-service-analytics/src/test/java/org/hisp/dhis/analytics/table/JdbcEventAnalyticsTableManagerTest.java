@@ -69,7 +69,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
-
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import java.util.Date;
 import java.util.Collections;
 import java.util.List;
@@ -545,6 +545,8 @@ public class JdbcEventAnalyticsTableManagerTest
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
+        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
@@ -569,9 +571,12 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private String getYearsQuery( Program p, AnalyticsTableUpdateParams params )
     {
-        return "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join " +
-            "programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = " + p.getId() +
-            " and psi.executiondate is not null and psi.deleted is false " + (params.getFromDate() != null
-                ? "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'" : "" );
+        return "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
+            + "programinstance pi on psi.programinstanceid = pi.programinstanceid where " + "psi.lastupdated <= '"
+            + getLongDateString( params.getStartTime() ) + "' " + "and pi.programid = " + p.getId()
+            + " and psi.executiondate is not null and psi.deleted is false "
+            + (params.getFromDate() != null
+            ? "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'"
+            : "");
     }
 }
