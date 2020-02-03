@@ -40,6 +40,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
@@ -73,19 +74,22 @@ public class TrackerController
     private final ContextService contextService;
     private final TrackerMessageManager trackerMessageManager;
     private final Notifier notifier;
+    private final CurrentUserService currentUserService;
 
     public TrackerController(
         TrackerImportService trackerImportService,
         RenderService renderService,
         ContextService contextService,
         TrackerMessageManager trackerMessageManager,
-        Notifier notifier )
+        Notifier notifier,
+        CurrentUserService currentUserService )
     {
         this.trackerImportService = trackerImportService;
         this.renderService = renderService;
         this.contextService = contextService;
         this.trackerMessageManager = trackerMessageManager;
         this.notifier = notifier;
+        this.currentUserService = currentUserService;
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -97,6 +101,7 @@ public class TrackerController
         params.setTrackedEntities( trackerBundle.getTrackedEntities() );
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
+        params.setUser( currentUserService.getCurrentUser() );
 
         String jobId = trackerMessageManager.addJob( params );
 

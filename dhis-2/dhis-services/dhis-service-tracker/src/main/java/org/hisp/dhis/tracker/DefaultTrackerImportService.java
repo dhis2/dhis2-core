@@ -85,6 +85,8 @@ public class DefaultTrackerImportService implements TrackerImportService
     @Transactional
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
+        params.setUser( getUser( params.getUser(), params.getUserId() ) );
+
         Timer timer = new SystemTimer().start();
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
@@ -93,8 +95,6 @@ public class DefaultTrackerImportService implements TrackerImportService
         {
             notifier.notify( params.getJobConfiguration(), message );
         }
-
-        params.setUser( getUser( params.getUser(), params.getUserId() ) );
 
         TrackerImportReport importReport = new TrackerImportReport();
 

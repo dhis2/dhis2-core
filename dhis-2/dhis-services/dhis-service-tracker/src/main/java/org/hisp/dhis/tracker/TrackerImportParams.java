@@ -145,6 +145,12 @@ public class TrackerImportParams
     public TrackerImportParams setUser( User user )
     {
         this.user = user;
+
+        if ( user != null )
+        {
+            this.userId = user.getUid();
+        }
+
         return this;
     }
 

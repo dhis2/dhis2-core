@@ -88,6 +88,7 @@ public class TrackerMessageManager
     public void consume( TextMessage message ) throws JMSException, JsonProcessingException
     {
         String payload = message.getText();
+
         TrackerMessage trackerMessage = objectMapper.readValue( payload, TrackerMessage.class );
         TrackerImportParams trackerImportParams = trackerMessage.getTrackerImportParams();
 
