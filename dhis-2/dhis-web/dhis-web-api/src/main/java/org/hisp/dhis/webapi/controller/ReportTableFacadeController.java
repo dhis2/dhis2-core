@@ -1156,19 +1156,20 @@ public abstract class ReportTableFacadeController {
                     BeanUtils.copyProperties( visualization, reportTable );
 
                     // Copy report params
-                    if (visualization.hasReportingParams()) {
+                    if ( visualization.hasReportingParams() ) 
+                    {
                         final ReportingParams reportingParams = visualization.getReportingParams();
                         final ReportParams reportParams = new ReportParams();
 
-                        reportParams.setParamGrandParentOrganisationUnit(reportingParams.isGrandParentOrganisationUnit());
-                        reportParams.setParamOrganisationUnit(reportingParams.isOrganisationUnit());
-                        reportParams.setParamParentOrganisationUnit(reportingParams.isParentOrganisationUnit());
-                        reportParams.setParamReportingMonth(reportingParams.isReportingPeriod());
+                        reportParams.setParamGrandParentOrganisationUnit( reportingParams.isGrandParentOrganisationUnit() );
+                        reportParams.setParamOrganisationUnit( reportingParams.isOrganisationUnit() );
+                        reportParams.setParamParentOrganisationUnit( reportingParams.isParentOrganisationUnit() );
+                        reportParams.setParamReportingMonth( reportingParams.isReportingPeriod() );
 
-                        reportTable.setReportParams(reportParams);
+                        reportTable.setReportParams( reportParams );
                     }
 
-                    reportTables.add(reportTable);
+                    reportTables.add( reportTable );
                 }
             }
         }
