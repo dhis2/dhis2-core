@@ -35,6 +35,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -51,12 +55,15 @@ public class ErrorReport
 
     protected String errorProperty;
 
+    protected List<Object> errorProperties = new ArrayList<>();
+
     protected Object value;
 
     public ErrorReport( Class<?> mainKlass, ErrorCode errorCode, Object... args )
     {
         this.mainKlass = mainKlass;
         this.message = new ErrorMessage( errorCode, args );
+        this.errorProperties.addAll( Arrays.asList( args ) );
     }
 
     public ErrorReport( Class<?> mainKlass, ErrorMessage message )
@@ -64,9 +71,11 @@ public class ErrorReport
         this.mainKlass = mainKlass;
         this.message = message;
     }
-    
+
     @JsonCreator
-    public ErrorReport( @JsonProperty( "message" ) String message, @JsonProperty( "mainKlass" ) Class<?> mainKlass,
+    public ErrorReport(
+        @JsonProperty( "message" ) String message,
+        @JsonProperty( "mainKlass" ) Class<?> mainKlass,
         @JsonProperty( "errorCode" ) ErrorCode errorCode )
     {
         this.mainKlass = mainKlass;
@@ -131,6 +140,18 @@ public class ErrorReport
     {
         this.errorProperty = errorProperty;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<Object> getErrorProperties()
+    {
+        return errorProperties;
+    }
+
+    public void setErrorProperties( List<Object> errorProperties )
+    {
+        this.errorProperties = errorProperties;
     }
 
     @JsonProperty
