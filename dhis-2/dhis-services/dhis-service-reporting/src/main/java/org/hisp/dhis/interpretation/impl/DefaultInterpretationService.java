@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -52,7 +51,6 @@ import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -61,6 +59,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -495,21 +494,9 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public long countChartInterpretations( Chart chart )
+    public long countVisualizationInterpretations( Visualization visualization )
     {
-        return interpretationStore.countChartInterpretations( chart );
-    }
-
-    @Override
-    public long countReportTableInterpretations( ReportTable reportTable )
-    {
-        return interpretationStore.countReportTableInterpretations( reportTable );
-    }
-
-    @Override
-    public Interpretation getInterpretationByChart( long id )
-    {
-        return interpretationStore.getByChartId( id );
+        return interpretationStore.countVisualizationInterpretations( visualization );
     }
 
     @Override

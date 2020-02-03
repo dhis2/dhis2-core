@@ -49,6 +49,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +62,7 @@ public class DefaultVisualizationService
     VisualizationService
 {
 
-    private final AnalyticalObjectStore<Visualization> visualizationStore;
+    private final VisualizationStore visualizationStore;
 
     private final AnalyticsService analyticsService;
 
@@ -72,10 +73,8 @@ public class DefaultVisualizationService
     private final I18nManager i18nManager;
 
     public DefaultVisualizationService( final AnalyticsService analyticsService,
-        @Qualifier( "org.hisp.dhis.visualization.VisualizationStore" )
-        final AnalyticalObjectStore<Visualization> visualizationStore,
-        final OrganisationUnitService organisationUnitService, final CurrentUserService currentUserService,
-        final I18nManager i18nManager )
+        final VisualizationStore visualizationStore, final OrganisationUnitService organisationUnitService,
+        final CurrentUserService currentUserService, final I18nManager i18nManager )
     {
         checkNotNull( analyticsService );
         checkNotNull( visualizationStore );
@@ -93,7 +92,7 @@ public class DefaultVisualizationService
     @Override
     protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()
     {
-        return visualizationStore;
+        return (AnalyticalObjectStore<Visualization>) visualizationStore;
     }
 
     @Override

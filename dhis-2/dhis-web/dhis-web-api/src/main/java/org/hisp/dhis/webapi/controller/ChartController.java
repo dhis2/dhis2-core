@@ -346,7 +346,7 @@ public class ChartController
             // Copy rows into category
             if ( isNotEmpty( visualization.getRowDimensions() ) )
             {
-                final List<String> rows = visualization.getColumnDimensions();
+                final List<String> rows = visualization.getRowDimensions();
                 chart.setCategory( rows.get( 0 ) );
             }
         }
