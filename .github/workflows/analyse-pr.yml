@@ -1,6 +1,14 @@
 name: SonarQube analysis
 
-on: [pull_request]
+on:
+  push:
+    branches:
+    - master
+    - '2.3[1-9]'
+  pull_request:
+    branches:
+    - master
+    - '2.3[1-9]'
 
 jobs:
   sonarqube:
@@ -17,13 +25,23 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
-    - name: Analyse
+    - name: Analyse PR
       env:
         BASE_BRANCH: ${{ github.base_ref }}
         BRANCH: ${{ github.ref }}
         PR: ${{ github.event.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      if: github.event_name == 'pull_request'
       run: |
         mvn -f dhis-2/pom.xml clean install -Psonarqube
         mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.pullrequest.key=${PR} -Dsonar.pullrequest.branch=${BRANCH} -Dsonar.pullrequest.base=${BASE_BRANCH} -Dsonar.projectKey=dhis2_dhis2-core
+    - name: Analyse long-living branch
+      env:
+        BRANCH: ${{ github.ref }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      if: github.event_name != 'pull_request'
+      run: |
+        mvn -f dhis-2/pom.xml clean install -Psonarqube
+        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.branch.name=${BRANCH} -Dsonar.projectKey=dhis2_dhis2-core
