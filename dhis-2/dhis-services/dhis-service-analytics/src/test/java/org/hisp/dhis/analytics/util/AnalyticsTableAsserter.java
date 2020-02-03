@@ -79,8 +79,8 @@ public class AnalyticsTableAsserter
         // verify default columns
 
         Map<String, AnalyticsTableColumn> tableColumnMap = Stream
-            .concat( table.getDimensionColumns().stream(), table.getValueColumns().stream() )
-            .collect( Collectors.toMap( AnalyticsTableColumn::getName, c -> c ) );
+                .concat( table.getDimensionColumns().stream(), table.getValueColumns().stream() )
+                .collect( Collectors.toMap( AnalyticsTableColumn::getName, c -> c ) );
 
         for ( AnalyticsTableColumn col : defaultColumns )
         {
@@ -177,12 +177,21 @@ public class AnalyticsTableAsserter
 
         public Builder addColumn( String name, ColumnDataType dataType, String alias )
         {
-            return addColumnUnquoted( quote( name ), dataType, alias );
+            return addColumnUnquoted( quote( name ), dataType, alias, null );
         }
 
-        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias )
+        public Builder addColumn( String name, ColumnDataType dataType, String alias, String indexType )
+        {
+            return addColumnUnquoted( quote( name ), dataType, alias, indexType );
+        }
+
+        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias, String indexType )
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
+            if ( indexType != null )
+            {
+                col.withIndexType( indexType );
+            }
             this._columns.add( col );
 
             return this;
