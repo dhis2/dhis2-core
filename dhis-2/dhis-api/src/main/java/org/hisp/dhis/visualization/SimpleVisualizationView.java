@@ -34,6 +34,11 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.annotation.Description;
 
+/**
+ * This class is just a wrapper class to provide a simplified summary view of
+ * the Visualization object. It will only contains the BaseIdentifiableObject
+ * attributes plus a minimum amount of attributes from Visualization.
+ */
 public class SimpleVisualizationView
     extends
     BaseIdentifiableObject
