@@ -30,7 +30,6 @@ package org.hisp.dhis.startup;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -41,8 +40,8 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.mapping.MapView;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -73,15 +72,10 @@ public class FavoriteDataItemUpgrader
     {
         try
         {
-            upgradeFavorites( ReportTable.class, "reporttable", Indicator.class, "indicator" );
-            upgradeFavorites( ReportTable.class, "reporttable", DataElement.class, "dataelement" );
-            upgradeFavorites( ReportTable.class, "reporttable", DataElementOperand.class, "dataelementoperand" );
-            upgradeFavorites( ReportTable.class, "reporttable", DataSet.class, "dataset" );
-
-            upgradeFavorites( Chart.class, "chart", Indicator.class, "indicator" );
-            upgradeFavorites( Chart.class, "chart", DataElement.class, "dataelement" );
-            upgradeFavorites( Chart.class, "chart", DataElementOperand.class, "dataelementoperand" );
-            upgradeFavorites( Chart.class, "chart", DataSet.class, "dataset" );
+            upgradeFavorites( Visualization.class, "visualization", Indicator.class, "indicator" );
+            upgradeFavorites( Visualization.class, "visualization", DataElement.class, "dataelement" );
+            upgradeFavorites( Visualization.class, "visualization", DataElementOperand.class, "dataelementoperand" );
+            upgradeFavorites( Visualization.class, "visualization", DataSet.class, "dataset" );
 
             upgradeFavorites( MapView.class, "mapview", Indicator.class, "indicator" );
             upgradeFavorites( MapView.class, "mapview", DataElement.class, "dataelement" );

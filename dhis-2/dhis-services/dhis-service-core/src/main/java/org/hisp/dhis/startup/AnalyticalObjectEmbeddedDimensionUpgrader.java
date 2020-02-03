@@ -34,7 +34,6 @@ import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -52,7 +51,6 @@ import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -111,14 +109,6 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
             upgradeGrupSetDimensions( "visualization", "orgunitgroupset", "orgunitgroup", Visualization.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
             upgradeGrupSetDimensions( "visualization", "dataelementgroupset", "dataelementgroup", Visualization.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
             upgradeGrupSetDimensions( "visualization", "categoryoptiongroupset", "categoryoptiongroup", Visualization.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );
-
-            upgradeGrupSetDimensions( "reporttable", "orgunitgroupset", "orgunitgroup", ReportTable.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
-            upgradeGrupSetDimensions( "reporttable", "dataelementgroupset", "dataelementgroup", ReportTable.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
-            upgradeGrupSetDimensions( "reporttable", "categoryoptiongroupset", "categoryoptiongroup", ReportTable.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );
-
-            upgradeGrupSetDimensions( "chart", "orgunitgroupset", "orgunitgroup", Chart.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
-            upgradeGrupSetDimensions( "chart", "dataelementgroupset", "dataelementgroup", Chart.class, DataElementGroupSet.class, DataElementGroup.class, dataElementGroupSetConsumer );
-            upgradeGrupSetDimensions( "chart", "categoryoptiongroupset", "categoryoptiongroup", Chart.class, CategoryOptionGroupSet.class, CategoryOptionGroup.class, categoryOptionGroupSetConsumer );
 
             upgradeGrupSetDimensions( "eventreport", "orgunitgroupset", "orgunitgroup", EventReport.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
             upgradeGrupSetDimensions( "eventchart", "orgunitgroupset", "orgunitgroup", EventChart.class, OrganisationUnitGroupSet.class, OrganisationUnitGroup.class, orgUnitGroupSetConsumer );
