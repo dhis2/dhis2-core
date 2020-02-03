@@ -115,7 +115,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
-        new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ),
+        new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( GEOMETRY_INDEX_TYPE ),
         // TODO latitude and longitude deprecated in 2.30, should be removed after 2.33
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
@@ -384,7 +384,7 @@ public class JdbcEventAnalyticsTableManager
             String geoSql = selectForInsert( attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ), ColumnDataType.GEOMETRY, geoSql )
-                .withSkipIndex( skipIndex ) );
+                .withSkipIndex( skipIndex ).withIndexType( GEOMETRY_INDEX_TYPE ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType,
@@ -430,8 +430,8 @@ public class JdbcEventAnalyticsTableManager
         {
             String geoSql = selectForInsert( dataElement, "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
 
-            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ), ColumnDataType.GEOMETRY, geoSql )
-                .withSkipIndex( true ) );
+            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
+                    ColumnDataType.GEOMETRY, geoSql ).withSkipIndex( true ).withIndexType( GEOMETRY_INDEX_TYPE ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ),
