@@ -18,19 +18,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
     - name: Test core
-      run: mvn clean install -DskipTests=false --update-snapshots -q -f ./dhis-2/pom.xml -Psonarqube
+      run: mvn clean install -DskipTests=false --update-snapshots -q -f ./dhis-2/pom.xml
     - name: Test dhis-web
       run: mvn clean install -DskipTests=false --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
-    - name: Analyse with SQ
-      env:
-        BASE_BRANCH: ${{ github.base_ref }}
-        BRANCH: ${{ github.ref }}
-        PR: ${{ github.event.number }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.pullrequest.key=${PR} -Dsonar.pullrequest.branch=${BRANCH} -Dsonar.pullrequest.base=${BASE_BRANCH} -Dsonar.projectKey=dhis2_dhis2-core
-
+  
   integration-test:
     runs-on: ubuntu-latest
     steps:
