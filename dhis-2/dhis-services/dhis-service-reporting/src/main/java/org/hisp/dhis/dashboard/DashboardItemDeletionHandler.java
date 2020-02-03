@@ -68,21 +68,9 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     }
 
     @Override
-    public String allowDeleteChart( Chart chart )
-    {
-        return dashboardService.countChartDashboardItems( chart ) == 0 ? null : ERROR;
-    }
-
-    @Override
     public String allowDeleteEventChart( EventChart eventChart )
     {
         return dashboardService.countEventChartDashboardItems( eventChart ) == 0 ? null : ERROR;
-    }
-
-    @Override
-    public String allowDeleteReportTable( ReportTable reportTable )
-    {
-        return dashboardService.countReportTableDashboardItems( reportTable ) == 0 ? null : ERROR;
     }
 
     @Override

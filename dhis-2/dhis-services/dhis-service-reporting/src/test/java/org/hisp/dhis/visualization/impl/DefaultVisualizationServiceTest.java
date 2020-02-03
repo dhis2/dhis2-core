@@ -55,6 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationStore;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class DefaultVisualizationServiceTest
 {
 
     @Mock
-    private AnalyticalObjectStore<Visualization> visualizationStore;
+    private VisualizationStore visualizationStore;
 
     @Mock
     private AnalyticsService analyticsService;

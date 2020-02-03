@@ -42,7 +42,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.visualization.VisualizationType.PIE;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.util.ArrayList;
@@ -1097,8 +1096,9 @@ public class Visualization
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions ) {
-            columns.add(getDimensionalObject(column));
+        for ( String column : columnDimensions )
+        {
+            columns.add( getDimensionalObject( column ) );
         }
 
         // PIE, GAUGE and others don't not have rowsDimensions.
