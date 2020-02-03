@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -64,17 +65,20 @@ public class DefaultTrackerImportService implements TrackerImportService
     private final TrackerValidationService trackerValidationService;
     private final CurrentUserService currentUserService;
     private final IdentifiableObjectManager manager;
+    private final Notifier notifier;
 
     public DefaultTrackerImportService(
         TrackerBundleService trackerBundleService,
         TrackerValidationService trackerValidationService,
         CurrentUserService currentUserService,
-        IdentifiableObjectManager manager )
+        IdentifiableObjectManager manager,
+        Notifier notifier )
     {
         this.trackerBundleService = trackerBundleService;
         this.trackerValidationService = trackerValidationService;
         this.currentUserService = currentUserService;
         this.manager = manager;
+        this.notifier = notifier;
     }
 
     @Override
@@ -85,6 +89,11 @@ public class DefaultTrackerImportService implements TrackerImportService
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
+        if ( params.hasJobConfiguration() )
+        {
+            notifier.notify( params.getJobConfiguration(), message );
+        }
+
         params.setUser( getUser( params.getUser(), params.getUserId() ) );
 
         TrackerImportReport importReport = new TrackerImportReport();
@@ -92,8 +101,18 @@ public class DefaultTrackerImportService implements TrackerImportService
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
         List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
+        Timer validationTimer = new SystemTimer().start();
+
         TrackerValidationReport validationReport = new TrackerValidationReport();
         trackerBundles.forEach( tb -> validationReport.add( trackerValidationService.validate( tb ) ) );
+
+        message = "(" + params.getUsername() + ") Import:Validation took " + validationTimer.toString();
+        log.info( message );
+
+        if ( params.hasJobConfiguration() )
+        {
+            notifier.update( params.getJobConfiguration(), message );
+        }
 
         if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
         {
@@ -109,7 +128,13 @@ public class DefaultTrackerImportService implements TrackerImportService
                 importReport.setStatus( TrackerStatus.WARNING );
             }
 
-            log.info( "(" + params.getUsername() + ") Import:Commit took " + commitTimer.toString() );
+            message = "(" + params.getUsername() + ") Import:Commit took " + commitTimer.toString();
+            log.info( message );
+
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), message );
+            }
         }
         else
         {
@@ -120,6 +145,12 @@ public class DefaultTrackerImportService implements TrackerImportService
         log.info( message );
 
         TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
+
+        if ( params.hasJobConfiguration() )
+        {
+            notifier.update( params.getJobConfiguration(), message, true );
+            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+        }
 
         return importReport;
     }

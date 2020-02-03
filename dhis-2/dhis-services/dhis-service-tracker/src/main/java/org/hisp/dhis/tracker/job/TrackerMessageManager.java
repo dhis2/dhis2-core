@@ -35,10 +35,10 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
@@ -53,19 +53,22 @@ public class TrackerMessageManager
 {
     private final MessageManager messageManager;
     private final ObjectMapper objectMapper;
+    private final SchedulingManager schedulingManager;
     private final TrackerImportService trackerImportService;
-    private final Notifier notifier;
+    private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
 
     public TrackerMessageManager(
         MessageManager messageManager,
         ObjectMapper objectMapper,
+        SchedulingManager schedulingManager,
         TrackerImportService trackerImportService,
-        Notifier notifier )
+        ObjectFactory<TrackerImportThread> trackerImportThreadFactory )
     {
         this.messageManager = messageManager;
         this.objectMapper = objectMapper;
+        this.schedulingManager = schedulingManager;
         this.trackerImportService = trackerImportService;
-        this.notifier = notifier;
+        this.trackerImportThreadFactory = trackerImportThreadFactory;
     }
 
     public String addJob( TrackerImportParams params )
@@ -98,12 +101,9 @@ public class TrackerMessageManager
         jobConfiguration.setUid( trackerMessage.getUid() );
         trackerImportParams.setJobConfiguration( jobConfiguration );
 
-        TrackerImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();
+        trackerImportThread.setTrackerImportParams( trackerImportParams );
 
-        notifier.notify( jobConfiguration, "Import started" );
-        notifier.update( jobConfiguration, "Doing import stuff" );
-
-        notifier.addJobSummary( jobConfiguration, importReport, TrackerImportReport.class );
-        notifier.update( jobConfiguration, "More import stuff", true );
+        schedulingManager.executeJob( trackerImportThread );
     }
 }
