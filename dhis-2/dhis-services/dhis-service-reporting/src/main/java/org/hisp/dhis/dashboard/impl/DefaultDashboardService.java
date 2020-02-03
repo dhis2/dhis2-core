@@ -206,7 +206,7 @@ public class DefaultDashboardService
         }
         else if ( DashboardItemType.CHART.equals( type ) )
         {
-            item.setChart( objectManager.get( Chart.class, contentUid ) );
+            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
         else if ( DashboardItemType.EVENT_CHART.equals( type ) )
@@ -221,7 +221,7 @@ public class DefaultDashboardService
         }
         else if ( DashboardItemType.REPORT_TABLE.equals( type ) )
         {
-            item.setReportTable( objectManager.get( ReportTable.class, contentUid ) );
+            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
         else if ( DashboardItemType.EVENT_REPORT.equals( type ) )
