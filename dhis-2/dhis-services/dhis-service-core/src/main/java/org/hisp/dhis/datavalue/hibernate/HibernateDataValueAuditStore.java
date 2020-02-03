@@ -174,7 +174,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             return getCount( builder, newJpaParameters()
                 .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
                     Collectors.toList() ).toArray( new Predicate[ predicates.size() ] ) ) )
-                .count( root -> builder.countDistinct( root.get( "id" ) ) )).intValue();
+                .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
+
         }
         else
         {
