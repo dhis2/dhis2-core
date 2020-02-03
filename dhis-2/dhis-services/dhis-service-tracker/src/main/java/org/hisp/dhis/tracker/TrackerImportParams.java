@@ -281,6 +281,8 @@ public class TrackerImportParams
         return jobConfiguration != null;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntity> getTrackedEntities()
     {
         return trackedEntities;
@@ -292,6 +294,8 @@ public class TrackerImportParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Enrollment> getEnrollments()
     {
         return enrollments;
@@ -303,6 +307,8 @@ public class TrackerImportParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Event> getEvents()
     {
         return events;
