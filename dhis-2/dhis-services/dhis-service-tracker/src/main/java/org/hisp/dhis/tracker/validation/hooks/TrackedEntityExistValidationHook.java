@@ -9,6 +9,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -60,7 +61,7 @@ public class TrackedEntityExistValidationHook
         // cant we just try to delete and check for update result from DB?
         if ( bundle.getImportStrategy().isDelete() )
         {
-            return null;
+            return Collections.emptyList();
         }
 
         ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,

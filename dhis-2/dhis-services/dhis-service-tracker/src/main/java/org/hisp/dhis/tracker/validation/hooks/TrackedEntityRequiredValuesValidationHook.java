@@ -6,6 +6,9 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -55,7 +58,7 @@ public class TrackedEntityRequiredValuesValidationHook
     {
         if ( bundle.getImportStrategy().isDelete() )
         {
-            return null;
+            return Collections.emptyList();
         }
 
         ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,

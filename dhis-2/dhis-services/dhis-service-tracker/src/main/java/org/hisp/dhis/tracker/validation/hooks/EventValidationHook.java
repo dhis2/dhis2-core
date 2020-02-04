@@ -67,14 +67,13 @@ public class EventValidationHook
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
-        ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
-            EventValidationHook.class );
-
         if ( !bundle.getImportStrategy().isCreate() )
         {
-            //skip
-            return errorReporter.getReportList();
+            return Collections.emptyList();
         }
+
+        ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
+            EventValidationHook.class );
 
         TrackerPreheat preheat = bundle.getPreheat();
         User user = preheat.getUser();

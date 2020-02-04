@@ -76,7 +76,7 @@ public class DefaultTrackerValidationService
             for ( TrackerValidationHook hook : validationHooks )
             {
                 List<TrackerErrorReport> errors = hook.validate( bundle );
-                if ( errors != null )
+                if ( !errors.isEmpty() )
                 {
                     validationReport.add( errors );
                 }

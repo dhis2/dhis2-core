@@ -67,7 +67,9 @@ public class AddEnrollmentValidationHook
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
         if ( !bundle.getImportStrategy().isCreate() )
-            return null;
+        {
+            return Collections.emptyList();
+        }
 
         ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
             AddEnrollmentValidationHook.class );

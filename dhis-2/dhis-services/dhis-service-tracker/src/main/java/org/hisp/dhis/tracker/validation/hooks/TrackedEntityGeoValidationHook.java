@@ -8,6 +8,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -57,7 +58,7 @@ public class TrackedEntityGeoValidationHook
     {
         if ( bundle.getImportStrategy().isDelete() )
         {
-            return null;
+            return Collections.emptyList();
         }
 
         ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
