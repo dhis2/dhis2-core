@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,14 @@ package org.hisp.dhis.parser.expression;
  */
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.parser.expression.function.*;
 import org.hisp.dhis.parser.expression.operator.*;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 
 import java.util.Date;
+import java.util.List;
 
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
@@ -87,7 +91,7 @@ public class ParserUtils
 
         .build();
 
-
+    public final static ExprFunctionMethod FUNCTION_GET_IDS = ExprFunction::getItemId;
     public final static ExprFunctionMethod FUNCTION_EVALUATE = ExprFunction::evaluate;
     public final static ExprFunctionMethod FUNCTION_EVALUATE_ALL_PATHS = ExprFunction::evaluateAllPaths;
     public final static ExprFunctionMethod FUNCTION_GET_SQL = ExprFunction::getSql;
@@ -97,6 +101,14 @@ public class ParserUtils
     public final static ExprItemMethod ITEM_GET_ORG_UNIT_GROUPS = ExprItem::getOrgUnitGroup;
     public final static ExprItemMethod ITEM_EVALUATE = ExprItem::evaluate;
     public final static ExprItemMethod ITEM_GET_SQL = ExprItem::getSql;
+    public final static ExprItemMethod ITEM_REGENERATE = ExprItem::regenerate;
+
+    /**
+     * Used for syntax checking when we don't have a list of actual
+     * periods for collecting samples.
+     */
+    public final static List<Period> DEFAULT_SAMPLE_PERIODS =
+        Lists.newArrayList( PeriodType.getPeriodFromIsoString( "20010101" ) );
 
     /**
      * Does an item of the form #{...} have the syntax of a

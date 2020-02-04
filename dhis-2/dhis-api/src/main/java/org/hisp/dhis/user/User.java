@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -47,7 +47,6 @@ import org.hisp.dhis.security.Authorities;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -202,15 +201,6 @@ public class User
     public OrganisationUnit getOrganisationUnit()
     {
         return CollectionUtils.isEmpty( organisationUnits ) ? null : organisationUnits.iterator().next();
-    }
-
-    public List<OrganisationUnit> getSortedOrganisationUnits()
-    {
-        List<OrganisationUnit> sortedOrgUnits = new ArrayList<>( organisationUnits );
-
-        Collections.sort( sortedOrgUnits );
-
-        return sortedOrgUnits;
     }
 
     public boolean hasOrganisationUnit()
@@ -703,7 +693,6 @@ public class User
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-
     public String getWhatsApp()
     {
         return whatsApp;
@@ -726,7 +715,6 @@ public class User
         this.facebookMessenger = facebookMessenger;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSkype()
@@ -739,7 +727,6 @@ public class User
         this.skype = skype;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getTelegram()
@@ -751,7 +738,6 @@ public class User
     {
         this.telegram = telegram;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

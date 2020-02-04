@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event.data.programIndicator;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,9 +28,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.event.data.programIndicator;
-
 import org.hisp.dhis.program.AnalyticsType;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -48,7 +49,7 @@ public class RelationshipTypeJoinGenerator
     /**
      * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one or more related entities, based
      * on the selected relationship type
-     * 
+     *
      * @param alias the table alias to use for the main analytics table
      * @param relationshipType the type of relationship to fetch data for
      * @param programIndicatorType the type or Program Indicator that is used for
@@ -122,7 +123,7 @@ public class RelationshipTypeJoinGenerator
 
     private static String addRelationshipWhereClause( Long relationshipTypeId, RelationshipEntity toRelationshipEntity )
     {
-        String sql = new org.apache.commons.text.StrSubstitutor(
+        String sql = new StringSubstitutor(
             ImmutableMap.<String, Long> builder().put( "relationshipid", relationshipTypeId ).build() )
                 .replace( RELATIONSHIP_JOIN );
         sql += " AND ";

@@ -1,7 +1,7 @@
 package org.hisp.dhis.mock;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,7 @@ package org.hisp.dhis.mock;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -39,7 +36,9 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
 
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -50,7 +49,7 @@ public class MockCurrentUserService
     private User currentUser;
 
     private boolean superUserFlag;
-    
+
     public MockCurrentUserService( User currentUser )
     {
         this.currentUser = currentUser;
@@ -72,7 +71,7 @@ public class MockCurrentUserService
         credentials.setUsername( "currentUser" );
         credentials.getUserAuthorityGroups().add( userRole );
         credentials.setAutoFields();
-        
+
         User user = new User();
         user.setFirstName( "Current" );
         user.setSurname( "User" );
@@ -81,10 +80,11 @@ public class MockCurrentUserService
         user.setUserCredentials( credentials );
         user.setAutoFields();
         credentials.setUserInfo( user );
-        
+        credentials.setUser( user );
+
         this.currentUser = user;
     }
-    
+
     @Override
     public String getCurrentUsername()
     {
@@ -96,7 +96,7 @@ public class MockCurrentUserService
     {
         return Sets.newHashSet( currentUser.getUserCredentials().getAllAuthorities() );
     }
-    
+
     @Override
     public User getCurrentUser()
     {
@@ -106,7 +106,7 @@ public class MockCurrentUserService
     @Override
     public UserInfo getCurrentUserInfo()
     {
-        return new UserInfo( currentUser.getId(), 
+        return new UserInfo( currentUser.getId(),
             currentUser.getUsername(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
@@ -132,5 +132,17 @@ public class MockCurrentUserService
     public boolean currentUserIsAuthorized( String auth )
     {
         return true;
+    }
+
+    @Override
+    public UserCredentials getCurrentUserCredentials()
+    {
+        return currentUser.getUserCredentials();
+    }
+
+    @Override
+    public void expireUserSessions()
+    {
+        currentUser = null;
     }
 }

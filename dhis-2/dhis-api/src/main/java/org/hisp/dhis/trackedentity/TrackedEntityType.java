@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,14 @@ package org.hisp.dhis.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.organisationunit.FeatureType;
 
 import java.util.ArrayList;
@@ -53,27 +58,27 @@ public class TrackedEntityType
     private ObjectStyle style;
 
     private String formName;
-    
+
     /**
      * Property indicating minimum number of attributes required to fill
      * before search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
-    
+
     /**
      * Property indicating maximum number of TEI to return after search
      */
-    private int maxTeiCountToReturn = 0;    
-    
+    private int maxTeiCountToReturn = 0;
+
     /**
      * Property indicating whether to allow (read) audit log or not
      */
     private boolean allowAuditLog;
-    
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-    
+
     public TrackedEntityType()
     {
 
@@ -84,11 +89,11 @@ public class TrackedEntityType
         this.name = name;
         this.description = description;
     }
-    
+
     // -------------------------------------------------------------------------
     // Logic methods
     // -------------------------------------------------------------------------
-    
+
     /**
      * Returns TrackedEntityAttributes from TrackedEntityTypeAttributes.
      */
@@ -96,14 +101,15 @@ public class TrackedEntityType
     {
         return trackedEntityTypeAttributes.stream().map( TrackedEntityTypeAttribute::getTrackedEntityAttribute ).collect( Collectors.toList() );
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------    
-    
+
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "trackedEntityTypeAttributes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityTypeAttribute", namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityTypeAttribute> getTrackedEntityTypeAttributes()
     {
         return trackedEntityTypeAttributes;
@@ -113,7 +119,7 @@ public class TrackedEntityType
     {
         this.trackedEntityTypeAttributes = trackedEntityTypeAttributes;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMinAttributesRequiredToSearch()
@@ -125,7 +131,7 @@ public class TrackedEntityType
     {
         this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMaxTeiCountToReturn()
@@ -137,7 +143,7 @@ public class TrackedEntityType
     {
         this.maxTeiCountToReturn = maxTeiCountToReturn;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isAllowAuditLog()
@@ -149,7 +155,7 @@ public class TrackedEntityType
     {
         this.allowAuditLog = allowAuditLog;
     }
-    
+
     // -------------------------------------------------------------------------
     // Logic methods
     // -------------------------------------------------------------------------    
@@ -160,10 +166,10 @@ public class TrackedEntityType
     public List<String> getSearchableAttributeIds()
     {
         List<String> searchableAttributes = new ArrayList<>();
-        
+
         for ( TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes )
         {
-            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique()  )
+            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique() )
             {
                 searchableAttributes.add( trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid() );
             }

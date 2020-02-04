@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.operator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,13 @@ package org.hisp.dhis.parser.expression.operator;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+
+import java.util.List;
+
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression compare operator: greater than or equal
+ * Compare operator: greater than or equal
  *
  * @author Jim Grace
  */
@@ -40,9 +43,9 @@ public class OperatorCompareGreaterThanOrEqual
     extends OperatorCompare
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object compute( List<Object> values )
     {
-        return compare( ctx, visitor ) >= 0;
+        return compare( values ) >= 0;
     }
 
     @Override

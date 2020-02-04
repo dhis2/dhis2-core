@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 
 import java.io.Serializable;
 
@@ -54,7 +55,7 @@ import java.io.Serializable;
  */
 @JacksonXmlRootElement( localName = "expression", namespace = DxfNamespaces.DXF_2_0 )
 public class Expression
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -64,8 +65,6 @@ public class Expression
     public static final String SEPARATOR = ".";
     public static final String EXP_OPEN = "#{";
     public static final String EXP_CLOSE = "}";
-    public static final String PAR_OPEN = "(";
-    public static final String PAR_CLOSE = ")";
 
     /**
      * The unique identifier for this Expression.
@@ -200,46 +199,6 @@ public class Expression
             "\"expression\":\"" + expression + "\", " +
             "\"description\":\"" + description + "\" " +
             "}";
-    }
-
-    public static int matchExpression( String s, int start )
-    {
-        int i = start, depth = 0, len = s.length();
-
-        while ( i < len )
-        {
-            char c = s.charAt( i );
-
-            if ( (c == ')') || (c == ']') )
-            {
-                if ( depth == 0 )
-                {
-                    return i;
-                }
-                else
-                {
-                    depth--;
-                }
-            }
-            else if ( (c == '(') || (c == '[') )
-            {
-                depth++;
-            }
-            else if ( c == ',' )
-            {
-                if ( depth == 0 )
-                {
-                    return i;
-                }
-            }
-            else
-            {
-            }
-
-            i++;
-        }
-
-        return -1;
     }
 
     // -------------------------------------------------------------------------

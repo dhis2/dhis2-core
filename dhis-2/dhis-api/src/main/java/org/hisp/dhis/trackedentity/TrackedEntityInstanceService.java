@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,10 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -36,10 +40,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 /**
  * <p>This interface is responsible for retrieving tracked entity instances (TEI).
@@ -264,6 +264,12 @@ public interface TrackedEntityInstanceService
      */
     boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
 
+    /**
+     * Returns UIDs of existing TrackedEntityInstances (including deleted) from the provided UIDs
+     *
+     * @param uids TEI UIDs to check
+     * @return Set containing UIDs of existing TEIs (including deleted)
+     */
     List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids );
 
     /**

@@ -2,7 +2,7 @@ package org.hisp.dhis.datastatistics.hibernate;
 
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -254,7 +254,7 @@ public class HibernateDataStatisticsStore
             "cast(round(cast(sum(indicators) as numeric),0) as int) as savedIndicators," +
             "cast(round(cast(sum(datavalues) as numeric),0) as int) as savedDataValues," +
             "max(users) as users from datastatistics " +
-            "where created >= '" + DateUtils.getMediumDateString( start ) + "' " +
-            "and created <= '" + DateUtils.getMediumDateString( end ) + "' ";
+            "where created >= '" + DateUtils.getLongDateString( start ) + "' " +
+            "and created <= '" + DateUtils.getLongDateString( end ) + "' ";
     }
 }

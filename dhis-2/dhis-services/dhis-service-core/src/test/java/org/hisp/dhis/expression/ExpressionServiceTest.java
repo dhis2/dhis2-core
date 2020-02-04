@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
+import static org.hisp.dhis.expression.ParseType.*;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
@@ -187,7 +188,7 @@ public class ExpressionServiceTest
 
     private Map<DimensionalItemObject, Double> valueMap;
 
-    private Map<String, Double> constantMap;
+    private Map<String, Constant> constantMap;
 
     private static final Map<String, Integer> ORG_UNIT_COUNT_MAP =
         new ImmutableMap.Builder<String, Integer>()
@@ -500,20 +501,20 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Evaluates a test expression, both against getItemsInExpression and
-     * getExpressionValueRegEx. Returns a string containing first the returned
-     * value from getExpressionValueRegEx, and then the items returned from
-     * getItemsInExpression, if any, separated by spaces.
+     * Evaluates a test expression, against getExpressionDimensionalItemObjects
+     * and getExpressionValue. Returns a string containing first the returned
+     * value from getExpressionValue, and then the items returned from
+     * getExpressionDimensionalItemObjects, if any, separated by spaces.
      *
      * @param expr expression to evaluate
      * @param missingValueStrategy strategy to use if item value is missing
-     * @return result from getItemsInExpression and getExpressionValueRegEx
+     * @return result from testing the expression
      */
     private String eval( String expr, MissingValueStrategy missingValueStrategy )
     {
         try
         {
-            expressionService.getIndicatorExpressionDescription( expr );
+            expressionService.getExpressionDescription( expr, INDICATOR_EXPRESSION );
         }
         catch ( ParserException ex )
         {
@@ -521,11 +522,10 @@ public class ExpressionServiceTest
         }
 
         Set<DimensionalItemObject> items = expressionService
-            .getExpressionDimensionalItemObjects( expr );
+            .getExpressionDimensionalItemObjects( expr, INDICATOR_EXPRESSION );
 
-        Object value = expressionService
-            .getExpressionValue( expr, valueMap, constantMap,
-                ORG_UNIT_COUNT_MAP, DAYS, missingValueStrategy );
+        Object value = expressionService.getExpressionValue( expr, INDICATOR_EXPRESSION,
+            valueMap, constantMap, ORG_UNIT_COUNT_MAP, DAYS, missingValueStrategy );
 
         return result( value, items );
     }
@@ -534,7 +534,7 @@ public class ExpressionServiceTest
      * Evaluates a test expression, returns NULL if any values are missing.
      *
      * @param expr expression to evaluate
-     * @return result from getItemsInExpression and getExpressionValueRegEx
+     * @return result from testing the expression
      */
     private String eval( String expr )
     {
@@ -542,7 +542,7 @@ public class ExpressionServiceTest
     }
 
     /**
-     * Formats the result from getItemsInExpression and getExpressionValueRegEx
+     * Formats the result from testing the expression
      *
      * @param value the value retuned from getExpressionValueRegEx
      * @param items the items returned from getExpressionItems
@@ -602,7 +602,7 @@ public class ExpressionServiceTest
 
         try
         {
-            description = expressionService.getIndicatorExpressionDescription( expr );
+            description = expressionService.getExpressionDescription( expr, INDICATOR_EXPRESSION );
         }
         catch ( ParserException ex )
         {
@@ -620,7 +620,7 @@ public class ExpressionServiceTest
      */
     private String getOrgUnitGroups( String expr )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getExpressionOrgUnitGroups( expr );
+        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getExpressionOrgUnitGroups( expr, INDICATOR_EXPRESSION );
 
         List<String> orgUnitGroupNames = orgUnitGroups.stream()
             .map(BaseIdentifiableObject::getName)
@@ -637,7 +637,7 @@ public class ExpressionServiceTest
      */
     private String desc( String expr )
     {
-        return expressionService.getIndicatorExpressionDescription( expr );
+        return expressionService.getExpressionDescription( expr, INDICATOR_EXPRESSION );
     }
 
     // -------------------------------------------------------------------------
@@ -1106,7 +1106,6 @@ public class ExpressionServiceTest
 
     }
 
-
     @Test
     public void testGetIndicatorDimensionalItemObjects()
     {
@@ -1203,6 +1202,7 @@ public class ExpressionServiceTest
         return indicator;
 
     }
+
     // -------------------------------------------------------------------------
     // Valid expression tests
     // -------------------------------------------------------------------------
@@ -1210,24 +1210,27 @@ public class ExpressionServiceTest
     @Test
     public void testIndicatorExpressionIsValid()
     {
-        assertEquals( VALID, expressionService.indicatorExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.indicatorExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
-        assertEquals( VALID, expressionService.indicatorExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", INDICATOR_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "1*", INDICATOR_EXPRESSION ) );
     }
 
     @Test
     public void testValidationRuleExpressionIsValid()
     {
-        assertEquals( VALID, expressionService.validationRuleExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.validationRuleExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
-        assertEquals( VALID, expressionService.validationRuleExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "1*", VALIDATION_RULE_EXPRESSION ) );
     }
 
     @Test
     public void testPredictorExpressionIsValid()
     {
-        assertEquals( VALID, expressionService.predictorExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
-        assertEquals( VALID, expressionService.predictorExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.predictorExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", PREDICTOR_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", PREDICTOR_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", PREDICTOR_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "1*", PREDICTOR_EXPRESSION ) );
     }
 }

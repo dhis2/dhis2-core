@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 /**
  * @author Margrethe Store
@@ -184,8 +185,11 @@ public class DefaultValidationRuleService
 
         for ( ValidationRule rule : getAllFormValidationRules() )
         {
-            if ( !Sets.intersection( expressionService.getElementsAndOptionCombosInExpression( rule.getLeftSide().getExpression() ), elementsAndOptionCombos ).isEmpty() ||
-                !Sets.intersection( expressionService.getElementsAndOptionCombosInExpression( rule.getRightSide().getExpression() ), elementsAndOptionCombos ).isEmpty() )
+            Set<String> leftSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+            Set<String> rightSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+
+            if ( !Sets.intersection( leftSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() ||
+                !Sets.intersection( rightSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() )
             {
                 rulesForDataSet.add( rule );
             }
@@ -198,8 +202,8 @@ public class DefaultValidationRuleService
     public Set<DataElement> getDataElements( ValidationRule validationRule )
     {
         Set<DataElement> elements = new HashSet<>();
-        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getLeftSide().getExpression() ) );
-        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getRightSide().getExpression() ) );
+        elements.addAll( expressionService.getExpressionDataElements( validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) );
+        elements.addAll( expressionService.getExpressionDataElements( validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) );
         return elements;
     }
 

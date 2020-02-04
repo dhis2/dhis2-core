@@ -106,6 +106,7 @@ public class DataElementsTest
     public void shouldCreate( String domainType, String valueType, String aggregationType, boolean withCategoryCombo,
         String categoryComboDimensionType )
     {
+        // arrange
         JsonObject body = generateBaseBody();
         body.addProperty( "domainType", domainType );
         body.addProperty( "valueType", valueType );
@@ -121,8 +122,10 @@ public class DataElementsTest
             body.add( "categoryCombo", categoryCombo );
         }
 
+        // act
         ApiResponse response = dataElementActions.post( body );
 
+        // assert
         ResponseValidationHelper.validateObjectCreation( response );
     }
 

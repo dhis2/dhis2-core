@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -201,7 +201,8 @@ public class ProgramRuleEngine
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
 
-        Map<String, String> constantMap = constantService.getConstantMap().entrySet().stream().collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
+        Map<String, String> constantMap = constantService.getConstantMap().entrySet().stream()
+            .collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
 
         List<String> orgUnitGroups = new ArrayList<>();
 
@@ -211,7 +212,7 @@ public class ProgramRuleEngine
         {
             Rule rule = programRuleEntityMapperService.toMappedProgramRule( programRule );
 
-            if( rule != null )
+            if ( rule != null )
             {
                 rules.add( rule );
 

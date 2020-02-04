@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Chau Thu Tran
@@ -92,18 +92,21 @@ public class TrackedEntityInstanceServiceTest
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         long idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
 
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
+        TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
+        TrackedEntityInstance teiB = entityInstanceService.getTrackedEntityInstance( idB );
+
+        assertNotNull( teiA );
+        assertNotNull( teiB );
 
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
 
-        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ) == null );
-        assertFalse( entityInstanceService.getTrackedEntityInstance( idB ) == null );
+        assertNull( entityInstanceService.getTrackedEntityInstance( teiA.getUid() ) );
+        assertNotNull( entityInstanceService.getTrackedEntityInstance( teiB.getUid() ) );
 
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceB1 );
 
-        assertTrue( entityInstanceService.getTrackedEntityInstance( idA ) == null );
-        assertTrue( entityInstanceService.getTrackedEntityInstance( idB ) == null );
+        assertNull( entityInstanceService.getTrackedEntityInstance( teiA.getUid() ) );
+        assertNull( entityInstanceService.getTrackedEntityInstance( teiB.getUid() ) );
     }
 
     @Test

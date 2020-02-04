@@ -28,21 +28,23 @@
 
 package org.hisp.dhis.actions;
 
+import java.io.File;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.hamcrest.Matchers;
+import org.hisp.dhis.TestRunStorage;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
+import org.hisp.dhis.dto.ObjectReport;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import org.apache.commons.collections.CollectionUtils;
-import org.hamcrest.Matchers;
-import org.hisp.dhis.TestRunStorage;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
-import org.hisp.dhis.dto.ObjectReport;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -51,14 +53,25 @@ public class RestApiActions
 {
     protected String endpoint;
 
+    private String baseUri;
+
     public RestApiActions( final String endpoint )
     {
+        this.baseUri = RestAssured.baseURI;
         this.endpoint = endpoint;
+    }
+
+    public RestApiActions setBaseUri( String baseUri )
+    {
+        this.baseUri = baseUri;
+
+        return this;
     }
 
     protected RequestSpecification given()
     {
         return RestAssured.given()
+            .baseUri( this.baseUri )
             .basePath( endpoint )
             .config( RestAssured.config()
                 .objectMapperConfig( new ObjectMapperConfig( ObjectMapperType.GSON ) ) );
@@ -73,21 +86,33 @@ public class RestApiActions
      */
     public ApiResponse post( Object object )
     {
-        return post( "", object );
+        return post( "", object, null );
     }
 
     public ApiResponse post( String resource, Object object )
     {
-        return post( resource, object, ContentType.JSON.toString() );
+        return post( resource, ContentType.JSON.toString(), object, null );
     }
 
-    public ApiResponse post( String resource, Object object, String contentType )
+    public ApiResponse post( String resource, Object object, QueryParamsBuilder queryParams )
     {
+        return post( resource, ContentType.JSON.toString(), object, queryParams );
+    }
+
+    public ApiResponse post( Object object, QueryParamsBuilder queryParamsBuilder )
+    {
+        return post( "", ContentType.JSON.toString(), object, queryParamsBuilder );
+    }
+
+    public ApiResponse post( String resource, String contentType, Object object, QueryParamsBuilder queryParams )
+    {
+        String path = queryParams == null ? "" : queryParams.build();
+
         ApiResponse response = new ApiResponse( this.given()
             .body( object )
             .contentType( contentType )
             .when()
-            .post( resource ) );
+            .post( resource + path ) );
 
         saveCreatedObjects( response );
 
@@ -119,12 +144,7 @@ public class RestApiActions
      */
     public ApiResponse get( String path )
     {
-        Response response = this.given()
-            .contentType( ContentType.TEXT )
-            .when()
-            .get( path );
-
-        return new ApiResponse( response );
+        return get( path, null );
     }
 
     /**
@@ -134,29 +154,63 @@ public class RestApiActions
      */
     public ApiResponse get()
     {
-        Response response = this.given()
-            .contentType( ContentType.TEXT )
-            .when()
-            .get();
-
-        return new ApiResponse( response );
+        return get( "" );
     }
 
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param path        Id of resource
-     * @param queryParams Query params to append to url
+     * @param resourceId         Id of resource
+     * @param queryParamsBuilder Query params to append to url
      * @return
      */
-    public ApiResponse get( String path, String queryParams )
+    public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
         Response response = this.given()
             .contentType( ContentType.TEXT )
             .when()
-            .get( path + "?" + queryParams );
+            .get( resourceId + path );
 
         return new ApiResponse( response );
+    }
+
+    /**
+     * Sends get request with provided path, contentType, accepting content type and queryParams appended to URL.
+     *
+     * @param resourceId            Id of resource
+     * @param contentType           Content type of the request
+     * @param accept                Accepted response Content type
+     * @param queryParamsBuilder    Query params to append to url
+     * @return
+     */
+    public ApiResponse get( String resourceId, String contentType, String accept, QueryParamsBuilder queryParamsBuilder )
+    {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+        Response response = this.given()
+            .contentType( contentType )
+            .accept( accept )
+            .when()
+            .get( resourceId + path );
+
+        return new ApiResponse( response );
+    }
+
+    /**
+     * Sends delete request to specified resource.
+     * If delete request successful, removes entity from TestRunStorage.
+     *
+     * @param resourceId            Id of resource
+     * @param queryParamsBuilder    Query params to append to url
+     * @return
+     */
+    public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
+    {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+        return delete( resourceId + path );
     }
 
     /**
@@ -183,26 +237,33 @@ public class RestApiActions
     /**
      * Sends PUT request to specified resource.
      *
-     * @param path   Id of resource
-     * @param object Body of request
+     * @param resourceId Id of resource
+     * @param object     Body of request
      * @return
      */
-    public ApiResponse update( String path, Object object )
+    public ApiResponse update( String resourceId, Object object )
     {
         Response response =
             this.given().body( object, ObjectMapperType.GSON )
                 .when()
-                .put( path );
+                .put( resourceId );
 
         return new ApiResponse( response );
     }
 
-    public ApiResponse postFile( File file, String queryParams )
+    public ApiResponse postFile( File file )
     {
+        return this.postFile( file, null );
+    }
+
+    public ApiResponse postFile( File file, QueryParamsBuilder queryParamsBuilder )
+    {
+        String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
         ApiResponse response = new ApiResponse( this.given()
             .body( file )
             .when()
-            .post( queryParams ) );
+            .post( url ) );
 
         saveCreatedObjects( response );
 
@@ -212,6 +273,10 @@ public class RestApiActions
 
     private void saveCreatedObjects( ApiResponse response )
     {
+        if ( !response.getContentType().contains( "json" ) )
+        {
+            return;
+        }
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();

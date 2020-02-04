@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,7 @@ public class Validator
     public static Collection<ValidationResult> validate( ValidationRunContext context,
         ApplicationContext applicationContext, AnalyticsService analyticsService )
     {
-        CategoryService categoryService = (CategoryService)
-            applicationContext.getBean( CategoryService.class );
+        CategoryService categoryService = applicationContext.getBean( CategoryService.class );
                 
         int threadPoolSize = getThreadPoolSize( context );
 

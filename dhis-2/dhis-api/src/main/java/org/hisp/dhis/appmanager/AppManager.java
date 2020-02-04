@@ -1,9 +1,7 @@
 package org.hisp.dhis.appmanager;
 
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
@@ -141,13 +141,6 @@ public interface AppManager
      * @return url of appstore
      */
     String getAppStoreUrl();
-
-    /**
-     * Saves the URL of the apps repository
-     *
-     * @param appStoreUrl
-     */
-    void setAppStoreUrl( String appStoreUrl );
 
     /**
      * Indicates whether the given app is accessible to the current user.

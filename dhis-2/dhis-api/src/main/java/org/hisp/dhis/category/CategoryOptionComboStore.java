@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@ public interface CategoryOptionComboStore
     CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
     
     void updateNames();
+
+    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
 
     /**
      * Fetch all {@see CategoryOptionCombo} from a given {@see CategoryOptionGroup} uid.

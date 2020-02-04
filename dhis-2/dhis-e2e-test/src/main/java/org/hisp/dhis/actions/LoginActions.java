@@ -28,49 +28,58 @@
 
 package org.hisp.dhis.actions;
 
-import com.google.gson.JsonObject;
-import io.restassured.RestAssured;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ConfigurationHelper;
+import static io.restassured.RestAssured.oauth2;
+import static org.hamcrest.CoreMatchers.equalTo;
 
-import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.preemptive;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.config.TestConfiguration;
+
+import io.restassured.RestAssured;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class LoginActions
 {
+    /**
+     * Makes sure user with given name is logged in.
+     * Will throw assertion exception if authentication is not successful.
+     *
+     * @param username
+     * @param password
+     */
     public void loginAsUser( final String username, final String password )
     {
-        ApiResponse loggedInUser =  getLoggedInUserInfo();
+        ApiResponse loggedInUser = getLoggedInUserInfo();
 
-        if ( loggedInUser.getContentType().contains( "json" ) && loggedInUser.extract( "userCredentials.username" ) != null && loggedInUser.extract( "userCredentials.username" ).equals( username ) ) {
+        if ( loggedInUser.getContentType().contains( "json" ) &&
+            loggedInUser.extract( "userCredentials.username" ) != null &&
+            loggedInUser.extract( "userCredentials.username" ).equals( username ) )
+        {
             return;
         }
 
-        RestAssured.authentication = preemptive().basic( username, password );
+        addAuthenticationHeader( username, password );
 
-        getLoggedInUserInfo().validate().statusCode( 200 );
+        getLoggedInUserInfo().validate().statusCode( 200 ).body( "userCredentials.username", equalTo( username ) );
     }
 
     /**
-     * Logs in with superuser configured in test run time.
-     * If properties are not set default user will be used.
+     * Makes sure user configured in env variables is logged in.
+     * Will throw assertion exception if authentication is not successful.
      */
     public void loginAsSuperUser()
     {
-        loginAsUser( ConfigurationHelper.SUPER_USER_USERNAME, ConfigurationHelper.SUPER_USER_PASS );
+        loginAsUser( TestConfiguration.get().superUserUsername(), TestConfiguration.get().superUserPassword() );
     }
 
     /**
-     * Logs in with default user created by dhis2 setup.
-     * Username: admin
+     * Makes sure user admin:district is logged in.
+     * Will throw assertion exception if authentication is not successful.
      */
     public void loginAsDefaultUser()
     {
-        loginAsUser( "admin", "district" );
+        loginAsUser( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
     }
 
     public ApiResponse getLoggedInUserInfo()
@@ -78,5 +87,38 @@ public class LoginActions
         ApiResponse response = new RestApiActions( "/me" ).get();
 
         return response;
+    }
+
+    public String getLoggedInUserId()
+    {
+        return getLoggedInUserInfo().extractString( "id" );
+    }
+
+    /**
+     * Adds authentication header that is used in all consecutive requests
+     *
+     * @param username
+     * @param password
+     */
+    public void addAuthenticationHeader( final String username, final String password )
+    {
+        RestAssured.authentication = RestAssured.preemptive().basic( username, password );
+    }
+
+    /**
+     * Removes authentication header
+     */
+    public void removeAuthenticationHeader()
+    {
+        RestAssured.authentication = RestAssured.DEFAULT_AUTH;
+    }
+
+    /**
+     * Logs in with oAuth2 token
+     * @param token
+     */
+    public void loginWithToken( String token )
+    {
+        RestAssured.authentication = oauth2( token );
     }
 }

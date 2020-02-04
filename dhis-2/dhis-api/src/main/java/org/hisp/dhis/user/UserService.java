@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -379,4 +379,12 @@ public interface UserService
     List<User> getExpiringUsers();
 
     void set2FA( User user, Boolean twoFA );
+
+    /**
+     * Expire a user's active sessions retrieved from the Spring security's
+     * org.springframework.security.core.session.SessionRegistry
+     *
+     * @param credentials the user credentials
+     */
+    void expireActiveSessions( UserCredentials credentials );
 }

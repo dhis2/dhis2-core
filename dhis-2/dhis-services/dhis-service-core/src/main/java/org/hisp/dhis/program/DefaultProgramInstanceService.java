@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -320,7 +320,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null )
         {
-            addProrgamInstanceAudits( programInstances, user.getUsername() );
+            addProgramInstanceAudits( programInstances, user.getUsername() );
         }
 
         return programInstances;
@@ -664,7 +664,7 @@ public class DefaultProgramInstanceService
         }
     }
 
-    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
+    private void addProgramInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
     {
         for ( ProgramInstance programInstance : programInstances )
         {

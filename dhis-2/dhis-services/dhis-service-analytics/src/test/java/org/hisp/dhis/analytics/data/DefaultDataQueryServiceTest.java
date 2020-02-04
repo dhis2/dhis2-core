@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -59,6 +60,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,6 +70,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
 /**
@@ -118,9 +121,9 @@ public class DefaultDataQueryServiceTest
     private RequestBuilder rb;
 
     private OrganisationUnit rootOu;
-    
+
     private BeanRandomizer beanRandomizer;
-    
+
     @Before
     public void setUp()
     {
@@ -129,13 +132,13 @@ public class DefaultDataQueryServiceTest
 
         rb = new RequestBuilder();
 
-        when(i18nManager.getI18n()).thenReturn(i18n);
-        when (i18n.getString( "LAST_12_MONTHS")).thenReturn("Last 12 months");
+        Mockito.lenient().when( i18nManager.getI18n() ).thenReturn( i18n );
+        Mockito.lenient().when( i18n.getString( "LAST_12_MONTHS") ).thenReturn( "Last 12 months" );
 
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );
         rootOu.setCode( "OU_525" );
-        
+
         beanRandomizer = new BeanRandomizer();
     }
 
@@ -150,7 +153,6 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
         mockDimensionService();
@@ -158,7 +160,7 @@ public class DefaultDataQueryServiceTest
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) ).thenReturn( 2 );
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
         rb.addOuFilter( "LEVEL-2;ImspTQPwCqd" );
@@ -191,7 +193,7 @@ public class DefaultDataQueryServiceTest
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) )
             .thenReturn( 2 );
 
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 
         rb.addOuFilter( "LEVEL-2;LEVEL-3;ImspTQPwCqd" );
@@ -302,8 +304,8 @@ public class DefaultDataQueryServiceTest
 
         when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
 
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ),
-            Mockito.any( Collection.class ) ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(),
+            Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
             .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
@@ -333,12 +335,12 @@ public class DefaultDataQueryServiceTest
     {
         OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
         OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
-        
+
         OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
         OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
-        
+
         OrganisationUnitGroup groupOu = beanRandomizer.randomObject(OrganisationUnitGroup.class, "geometry");
-        
+
 
         mockDimensionService();
 
@@ -347,8 +349,8 @@ public class DefaultDataQueryServiceTest
         when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, "tDZVQ1WtwpA" ) ).thenReturn( groupOu );
 
-        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ),
-                Mockito.any( Collection.class ) ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(),
+                Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
                 .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
@@ -366,17 +368,15 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
 
-        List<DimensionalKeywords.Keyword> x = filter.getDimensionalKeywords().getGroupBy();
-
         assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 3 ) );
         assertThat( filter.getDimensionalKeywords().getGroupBy(),
-                IsIterableContainingInAnyOrder.containsInAnyOrder(
-                        allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                                hasProperty( "code", is( nullValue() ) ) ),
-                        allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
-                                hasProperty( "code", is( groupOu.getCode() ) ) ),
-                        allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                                hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
+                allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
+                    hasProperty( "code", is( groupOu.getCode() ) ) ),
+                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
+                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
 
     }
 
@@ -526,14 +526,55 @@ public class DefaultDataQueryServiceTest
                     hasProperty( "code", is( nullValue() ) ) ) ) );
     }
 
-    @SuppressWarnings("unchecked")
+    @Test
+    public void verifyGetOrgUnitsBasedOnUserOrgUnitType()
+    {
+        testGetUserOrgUnits( UserOrgUnitType.DATA_CAPTURE );
+        testGetUserOrgUnits( UserOrgUnitType.TEI_SEARCH );
+        testGetUserOrgUnits( UserOrgUnitType.DATA_OUTPUT );
+    }
+
+    private void testGetUserOrgUnits( UserOrgUnitType userOrgUnitType )
+    {
+        int orgUnitSize = 10;
+        User user = new User();
+
+        Set<OrganisationUnit> orgUnits = new HashSet<>(
+            beanRandomizer.randomObjects( OrganisationUnit.class, orgUnitSize, "geometry", "parent", "groups", "children" ) );
+
+        switch ( userOrgUnitType )
+        {
+        case DATA_CAPTURE:
+            user.setOrganisationUnits( orgUnits );
+            break;
+        case DATA_OUTPUT:
+            user.setDataViewOrganisationUnits( orgUnits );
+            break;
+        case TEI_SEARCH:
+            user.setTeiSearchOrganisationUnits( orgUnits );
+            break;
+        }
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().userOrgUnitType( userOrgUnitType ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+
+        when( securityManager.getCurrentUser( params ) ).thenReturn( user );
+
+        List<OrganisationUnit> result = target.getUserOrgUnits( params, null );
+        assertThat( result, hasSize( orgUnitSize ) );
+
+        // Check collection is sorted
+        assertTrue( Ordering.natural().isOrdered( result ) );
+    }
+
     private void initOrgUnitGroup( String ouGroupUID )
     {
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )
             .thenReturn( buildOrganizationalUnitGroup( ouGroupUID, "Chiefdom", "CODE_001" ) );
         when( idObjectManager.getObject( OrganisationUnit.class, UID, this.rootOu.getUid() ) )
             .thenReturn( rootOu );
-        when( organisationUnitService.getOrganisationUnits( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
+        when( organisationUnitService.getOrganisationUnits( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
     }
 

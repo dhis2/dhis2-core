@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.webmessage;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.springframework.http.HttpStatus;
 
@@ -66,6 +67,11 @@ public class WebMessage
     protected HttpStatus httpStatus = HttpStatus.OK;
 
     /**
+     * The {@link ErrorCode} which describes a potential error. Only relevant for {@link Status#ERROR}.
+     */
+    protected ErrorCode errorCode;
+
+    /**
      * Non-technical message, should be simple and could possibly be used to display message
      * to an end-user.
      */
@@ -87,7 +93,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Constructors
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     public WebMessage()
     {
@@ -106,7 +112,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Logic
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     public boolean isOk()
     {
@@ -125,7 +131,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Get and set methods
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -168,6 +174,18 @@ public class WebMessage
     public Integer getHttpStatusCode()
     {
         return httpStatus.value();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
+    }
+
+    public void setErrorCode( ErrorCode errorCode )
+    {
+        this.errorCode = errorCode;
     }
 
     @JsonProperty

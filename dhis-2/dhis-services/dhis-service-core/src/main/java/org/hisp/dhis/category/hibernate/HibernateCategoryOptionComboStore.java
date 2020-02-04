@@ -1,7 +1,7 @@
 package org.hisp.dhis.category.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -45,7 +46,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -78,7 +78,7 @@ public class HibernateCategoryOptionComboStore
             hql += " and :option" + option.getId() + " in elements (co.categoryOptions)";
         }
 
-        Query query = getQuery( hql );
+        Query<CategoryOptionCombo> query = getQuery( hql );
 
         query.setParameter( "categoryCombo", categoryCombo );
 
@@ -87,7 +87,7 @@ public class HibernateCategoryOptionComboStore
             query.setParameter( "option" + option.getId(), option );
         }
 
-        return (CategoryOptionCombo) query.uniqueResult();
+        return query.uniqueResult();
     }
 
     @Override
@@ -119,5 +119,16 @@ public class HibernateCategoryOptionComboStore
         Join<Object, Object> joinCatOptionGroup = joinCatOption.join( "groups", JoinType.INNER );
         query.where( builder.equal( joinCatOptionGroup.get( "uid" ), groupUid ) );
         return getSession().createQuery( query ).list();
+    }
+
+    @Override
+    public void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo )
+    {
+        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( categoryOptionCombo );
+        event.setShouldRollBack( false );
+
+        publisher.publishEvent( event );
+
+        getSession().delete( categoryOptionCombo );
     }
 }

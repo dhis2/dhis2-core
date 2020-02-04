@@ -33,9 +33,10 @@ import org.hisp.dhis.actions.RestApiActions;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TEIActions extends RestApiActions
+public class TEIActions
+    extends RestApiActions
 {
-    public TEIActions( )
+    public TEIActions()
     {
         super( "/trackedEntityInstances" );
     }

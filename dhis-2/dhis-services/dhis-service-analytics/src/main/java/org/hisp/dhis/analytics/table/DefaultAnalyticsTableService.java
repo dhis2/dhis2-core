@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,8 +141,8 @@ public class DefaultAnalyticsTableService
 
         if ( tables.isEmpty() )
         {
-            clock.logTime( String.format( "Table update aborted, no table or partitions found: '%s'", tableType.getTableName() ) );
-            notifier.notify( jobId, "Table updated aborted, no table or partitions found" );
+            clock.logTime( String.format( "Table update aborted, no table or partitions to be updated: '%s'", tableType.getTableName() ) );
+            notifier.notify( jobId, "Table updated aborted, no table or partitions to be updated" );
             return;
         }
 

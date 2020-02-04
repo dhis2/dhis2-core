@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,22 @@ import java.io.IOException;
  */
 public interface SecurityService
 {
+    /**
+     * Register a account recovery attempt for the given user account.
+     *
+     * @param username the username of the user account.
+     */
+    void registerRecoveryAttempt( String username );
+
+    /**
+     * Indicates whether the recovery of the user account is locked due
+     * to too many recovery attempts within a specific time span.
+     * The max number of attempts is 5 and the time span is 15 minutes.
+     *
+     * @param username the username of the user account.
+     */
+    boolean isRecoveryLocked( String username );
+
     /**
      * Register a failed login attempt for the given user account.
      * 

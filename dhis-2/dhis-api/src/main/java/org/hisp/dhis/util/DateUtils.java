@@ -1,7 +1,7 @@
 package org.hisp.dhis.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -441,6 +441,34 @@ public class DateUtils
     }
 
     /**
+     * Returns the nearest date forward in time with the given hour of day,
+     * with the minute, second and millisecond to zero. If the hour equals
+     * the current hour of day, the next following day is used.
+     *
+     * @param hourOfDay the hour of the day.
+     * @param now the date representing the current time, if null, the current
+     *         time is used.
+     * @return the nearest date forward in time with the given hour of day.
+     */
+    public static Date getNextDate( int hourOfDay, Date now )
+    {
+        now = now != null ? now : new Date();
+
+        DateTime date = new DateTime( now ).plusHours( 1 );
+
+        while ( date.getHourOfDay() != hourOfDay )
+        {
+            date = date.plusHours( 1 );
+        }
+
+        return date
+            .withMinuteOfHour( 0 )
+            .withSecondOfMinute( 0 )
+            .withMillisOfSecond( 0 )
+            .toDate();
+    }
+
+    /**
      * Returns Epoch date, ie. 01/01/1970.
      *
      * @return Epoch date, ie. 01/01/1970.
@@ -574,6 +602,25 @@ public class DateUtils
 
         cal.setTime( date );
         cal.add( Calendar.DATE, days );
+
+        return cal.getTime();
+    }
+
+    /**
+     * Method responsible for adding a positive or negative number based in a chronological unit.
+     *
+     * @param date the date to be modified. It's the input date for the calculation.
+     * @param addend a positive or negative integer to be added to the date.
+     * @param chronoUnit the unit of time to be used in the calculation. It's fully based in the Calendar API.
+     *                   Valid values could be: Calendar.DATE, Calendar.MILLISECOND, etc..
+     * @return the resultant date after the addition.
+     */
+    public static Date calculateDateFrom( final Date date, final int addend, final int chronoUnit ) {
+        Calendar cal = Calendar.getInstance();
+
+        cal.setLenient( false );
+        cal.setTime( date );
+        cal.add( chronoUnit, addend );
 
         return cal.getTime();
     }

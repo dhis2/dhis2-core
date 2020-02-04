@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 /**
@@ -512,7 +513,7 @@ public class DataAnalysisController
         ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
     {
         for ( DataElementOperand operand : expressionService
-            .getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
+            .getExpressionOperands( validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
                 .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
@@ -527,7 +528,7 @@ public class DataAnalysisController
         ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
     {
         for ( DataElementOperand operand : expressionService
-            .getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
+            .getExpressionOperands( validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
                 .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
@@ -672,6 +673,8 @@ public class DataAnalysisController
             {
                 validationResultView.setOrganisationUnitId( organisationUnit.getUid() );
                 validationResultView.setOrganisationUnitDisplayName( organisationUnit.getDisplayName() );
+                validationResultView.setOrganisationUnitPath( organisationUnit.getPath() );
+                validationResultView.setOrganisationUnitAncestorNames( organisationUnit.getAncestorNames() );
             }
 
             Period period = validationResult.getPeriod();

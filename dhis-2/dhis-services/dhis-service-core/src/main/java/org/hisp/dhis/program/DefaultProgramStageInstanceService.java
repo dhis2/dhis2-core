@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,11 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.*;
+
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -55,8 +53,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew
@@ -188,6 +184,13 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional( readOnly = true )
+    public List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids )
+    {
+        return programStageInstanceStore.getUidsIncludingDeleted( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public long getProgramStageInstanceCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -293,7 +296,7 @@ public class DefaultProgramStageInstanceService
     @Transactional
     public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue )
+        Cache<DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue )
     {
         Set<EventDataValue> updatedOrNewDataValues = Sets.union( newDataValues, updatedDataValues );
 
@@ -324,7 +327,7 @@ public class DefaultProgramStageInstanceService
         Map<DataElement, EventDataValue> dataElementEventDataValueMap )
     {
         validateEventDataValues( dataElementEventDataValueMap );
-        Set<EventDataValue> eventDataValues = new HashSet<EventDataValue>( dataElementEventDataValueMap.values() );
+        Set<EventDataValue> eventDataValues = new HashSet<>( dataElementEventDataValueMap.values() );
         programStageInstance.setEventDataValues( eventDataValues );
         addProgramStageInstance( programStageInstance );
 
@@ -380,22 +383,27 @@ public class DefaultProgramStageInstanceService
     }
 
     // ---- Audit ----
+    
     private void auditDataValuesChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache,
+        Set<EventDataValue> removedDataValues, Cache<DataElement> dataElementsCache,
         ProgramStageInstance programStageInstance )
     {
 
-        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ).orElse( null ),
             programStageInstance, AuditType.CREATE ) );
-        updatedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+        updatedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ).orElse( null ),
             programStageInstance, AuditType.UPDATE ) );
-        removedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ),
+        removedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.get( dv.getDataElement() ).orElse( null ),
             programStageInstance, AuditType.DELETE ) );
     }
 
     private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
         ProgramStageInstance programStageInstance, AuditType auditType )
     {
+        if ( dataElement == null )
+        {
+            return;
+        }
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, programStageInstance,
             dataValue.getValue(), dataValue.getStoredBy(), dataValue.getProvidedElsewhere(), auditType );
         dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
@@ -403,17 +411,21 @@ public class DefaultProgramStageInstanceService
 
     // ---- File Data Values Handling ----
     private void handleFileDataValueChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache )
+        Set<EventDataValue> removedDataValues, Cache<DataElement> dataElementsCache )
     {
         removedDataValues
-            .forEach( dv -> handleFileDataValueDelete( dv, dataElementsCache.get( dv.getDataElement() ) ) );
+            .forEach( dv -> handleFileDataValueDelete( dv, dataElementsCache.get( dv.getDataElement() ).orElse( null ) ) );
         updatedDataValues
-            .forEach( dv -> handleFileDataValueUpdate( dv, dataElementsCache.get( dv.getDataElement() ) ) );
-        newDataValues.forEach( dv -> handleFileDataValueSave( dv, dataElementsCache.get( dv.getDataElement() ) ) );
+            .forEach( dv -> handleFileDataValueUpdate( dv, dataElementsCache.get( dv.getDataElement() ).orElse( null ) ) );
+        newDataValues.forEach( dv -> handleFileDataValueSave( dv, dataElementsCache.get( dv.getDataElement() ).orElse( null ) ) );
     }
 
     private void handleFileDataValueUpdate( EventDataValue dataValue, DataElement dataElement )
     {
+        if ( dataElement == null )
+        {
+            return;
+        }
         String previousFileResourceUid = dataValue.getAuditValue();
 
         if ( previousFileResourceUid == null || previousFileResourceUid.equals( dataValue.getValue() ) )
@@ -438,6 +450,11 @@ public class DefaultProgramStageInstanceService
      */
     private void handleFileDataValueSave( EventDataValue dataValue, DataElement dataElement )
     {
+        if ( dataElement == null )
+        {
+            return;
+        }
+
         FileResource fileResource = fetchFileResource( dataValue, dataElement );
 
         if ( fileResource == null )
@@ -451,8 +468,11 @@ public class DefaultProgramStageInstanceService
     /**
      * Delete associated FileResource if it exists.
      */
-    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement )
-    {
+    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement ) {
+        if ( dataElement == null )
+        {
+            return;
+        }
         FileResource fileResource = fetchFileResource( dataValue, dataElement );
 
         if ( fileResource == null )

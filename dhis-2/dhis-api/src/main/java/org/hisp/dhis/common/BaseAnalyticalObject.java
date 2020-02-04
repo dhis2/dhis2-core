@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,22 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -60,12 +60,15 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.User;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically
@@ -151,6 +154,8 @@ public abstract class BaseAnalyticalObject
     protected Set<Interpretation> interpretations = new HashSet<>();
 
     protected Set<String> subscribers = new HashSet<>();
+
+    protected UserOrgUnitType userOrgUnitType;
 
     // -------------------------------------------------------------------------
     // Analytical properties
@@ -743,7 +748,6 @@ public abstract class BaseAnalyticalObject
     {
         dataDimensionItems.clear();
         periods.clear();
-        relatives = null;
         organisationUnits.clear();
         dataElementGroupSetDimensions.clear();
         organisationUnitGroupSetDimensions.clear();
@@ -753,10 +757,11 @@ public abstract class BaseAnalyticalObject
         attributeDimensions.clear();
         dataElementDimensions.clear();
         programIndicatorDimensions.clear();
+        itemOrganisationUnitGroups.clear();
+        relatives = null;
         userOrganisationUnit = false;
         userOrganisationUnitChildren = false;
         userOrganisationUnitGrandChildren = false;
-        itemOrganisationUnitGroups.clear();
     }
 
     // -------------------------------------------------------------------------
@@ -1254,7 +1259,19 @@ public abstract class BaseAnalyticalObject
     {
         User user = UserContext.getUser();
 
-        return user != null && subscribers != null ? subscribers.contains( user.getUid() ) : false;
+        return (user != null && subscribers != null) && subscribers.contains( user.getUid() );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserOrgUnitType getUserOrgUnitType()
+    {
+        return userOrgUnitType;
+    }
+
+    public void setUserOrgUnitType( UserOrgUnitType userOrgUnitType )
+    {
+        this.userOrgUnitType = userOrgUnitType;
     }
 
     @Override

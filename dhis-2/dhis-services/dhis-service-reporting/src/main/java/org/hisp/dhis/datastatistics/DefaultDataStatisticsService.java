@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationStore;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,6 +84,9 @@ public class DefaultDataStatisticsService
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
+    @Autowired
+    private VisualizationStore visualizationStore;
+
     // -------------------------------------------------------------------------
     // DataStatisticsService implementation
     // -------------------------------------------------------------------------
@@ -111,9 +116,10 @@ public class DefaultDataStatisticsService
         long diff = now.getTime() - startDate.getTime();
         int days = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
+        double savedCharts = visualizationStore.countChartsCreated( startDate );
+        double savedReportTables = visualizationStore.countPivotTablesCreated( startDate );
         double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
-        double savedCharts = idObjectManager.getCountByCreated( Chart.class, startDate );
-        double savedReportTables = idObjectManager.getCountByCreated( ReportTable.class, startDate );
+        double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
         double savedEventReports = idObjectManager.getCountByCreated( EventReport.class, startDate );
         double savedEventCharts = idObjectManager.getCountByCreated( EventChart.class, startDate );
         double savedDashboards = idObjectManager.getCountByCreated( Dashboard.class, startDate );
@@ -128,12 +134,13 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
             eventCountMap.get( DataStatisticsEventType.CHART_VIEW ),
             eventCountMap.get( DataStatisticsEventType.REPORT_TABLE_VIEW ),
+            eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedCharts, savedReportTables, savedEventReports,
+            savedMaps, savedCharts, savedReportTables, savedVisualizations, savedEventReports,
             savedEventCharts, savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
         
         return dataStatistics;

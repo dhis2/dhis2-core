@@ -37,12 +37,14 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
@@ -51,13 +53,13 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 public class TEIimportTest
     extends ApiTest
 {
+    JsonObject object;
+
     private TEIActions teiActions;
 
     private EventActions eventActions;
 
     private RestApiActions enrollmentActions;
-
-    JsonObject object;
 
     @BeforeAll
     public void before()
@@ -93,11 +95,12 @@ public class TEIimportTest
         tei2enrollment.addProperty( "status", "COMPLETED" );
 
         // act
-        ApiResponse response = teiActions.post( "?strategy=SYNC", object );
-        response.validate().statusCode( 200 );
+        ApiResponse response = teiActions.post( object, new QueryParamsBuilder().addAll( "strategy=SYNC" ) );
 
         // assert
         String eventId = response.validate()
+            .statusCode( 200 )
+            .body( "response", notNullValue() )
             .rootPath( "response" )
             .body( "updated", Matchers.greaterThanOrEqualTo( 2 ) )
             .appendRootPath( "importSummaries[0]" )
@@ -105,7 +108,7 @@ public class TEIimportTest
             .appendRootPath( "enrollments.importSummaries[0].events.importSummaries[0]" )
             .body(
                 "status", Matchers.equalTo( "SUCCESS" ),
-                "reference", Matchers.notNullValue(),
+                "reference", notNullValue(),
                 "importCount.deleted", Matchers.equalTo( 1 ),
                 "description", Matchers.stringContainsInOrder( "Deletion of event", "was successful" )
             )
@@ -115,7 +118,7 @@ public class TEIimportTest
             .rootPath( "response.importSummaries[1].enrollments.importSummaries[0]" )
             .body(
                 "status", Matchers.equalTo( "SUCCESS" ),
-                "reference", Matchers.notNullValue(),
+                "reference", notNullValue(),
                 "importCount.updated", Matchers.equalTo( 1 )
             ).extract().path( "response.importSummaries[1].enrollments.importSummaries[0].reference" );
 

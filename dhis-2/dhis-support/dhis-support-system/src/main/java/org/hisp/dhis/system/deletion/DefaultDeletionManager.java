@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,8 +69,20 @@ public class DefaultDeletionManager
     // -------------------------------------------------------------------------
 
     @Transactional
-    @EventListener
+    @EventListener( condition = "#event.shouldRollBack" )
     public void objectDeletionListener( ObjectDeletionRequestedEvent event )
+    {
+       deleteObjects( event );
+    }
+
+    @Transactional ( noRollbackFor = DeleteNotAllowedException.class )
+    @EventListener( condition = "!#event.shouldRollBack" )
+    public void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event )
+    {
+        deleteObjects( event );
+    }
+
+    private void deleteObjects( ObjectDeletionRequestedEvent event )
     {
         if ( deletionHandlers == null || deletionHandlers.isEmpty() )
         {

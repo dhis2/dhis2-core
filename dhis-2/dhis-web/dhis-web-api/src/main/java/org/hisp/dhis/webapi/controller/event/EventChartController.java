@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -44,8 +45,7 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -131,7 +131,7 @@ public class EventChartController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, attachment );
 
-        ChartUtilities.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
+        ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
     //--------------------------------------------------------------------------
@@ -140,7 +140,6 @@ public class EventChartController
 
     @Override
     protected void postProcessResponseEntity( EventChart eventChart, WebOptions options, Map<String, String> parameters )
-        throws Exception
     {
         eventChart.populateAnalyticalProperties();
 

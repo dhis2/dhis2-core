@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,19 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeId;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
+
+import java.util.Date;
+
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -51,12 +53,13 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
-import javax.annotation.Nonnull;
-import java.util.Date;
-
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
-import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeId;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * This class defines configuration for a job in the system. The job is defined with general identifiers, as well as job
@@ -66,7 +69,8 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
  * <p>
  * The class uses a custom deserializer to handle several potential {@link JobParameters}.
  *
- * The configurable property in the configurable property in the method based on the job type we are adding.
+ * Note that this class uses {@link JobConfigurationSanitizer} for serialization which needs to be update when new
+ * properties are added.
  *
  * @author Henning Håkonsen
  */
@@ -75,25 +79,50 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 public class JobConfiguration
     extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
+    // -------------------------------------------------------------------------
+    // Externally configurable properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * The type of job.
+     */
+    private JobType jobType;
+
+    /**
+     * The cron expression used for scheduling the job. Relevant for scheduling
+     * type {@link SchedulingType#CRON}.
+     */
     private String cronExpression;
 
-    private JobType jobType;
+    /**
+     * The delay in seconds between the completion of one job execution and the
+     * start of the next. Relevant for scheduling type {@link SchedulingType#FIXED_DELAY}.
+     */
+    private Integer delay;
+
+    /**
+     * Parameters of the job. Jobs can use their own implementation of the {@link JobParameters} class.
+     */
+    private JobParameters jobParameters;
+
+    /**
+     * Indicates whether this job is currently enabled or disabled.
+     */
+    private boolean enabled = true;
+
+    // -------------------------------------------------------------------------
+    // Internally managed properties
+    // -------------------------------------------------------------------------
 
     private JobStatus jobStatus;
 
     private Date nextExecutionTime;
 
-    private JobStatus lastExecutedStatus;
+    private JobStatus lastExecutedStatus = JobStatus.NOT_STARTED;
 
     private Date lastExecuted;
 
     private String lastRuntimeExecution;
-
-    private JobParameters jobParameters;
-
-    private boolean continuousExecution = false;
-
-    private boolean enabled = true;
 
     private boolean inMemoryJob = false;
 
@@ -105,6 +134,14 @@ public class JobConfiguration
     {
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param userUid the user UID.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String userUid, boolean inMemoryJob )
     {
         this.name = name;
@@ -114,37 +151,45 @@ public class JobConfiguration
         init();
     }
 
+    /**
+     * Constructor which implies enabled true and in-memory job false.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     */
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters )
+    {
+        this( name, jobType, cronExpression, jobParameters, true, false );
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name the job name.
+     * @param jobType the {@link JobType}.
+     * @param cronExpression the cron expression.
+     * @param jobParameters the job parameters.
+     * @param enabled whether this job is enabled.
+     * @param inMemoryJob whether this is an in-memory job.
+     */
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled )
-    {
-        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
-    }
-
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled, boolean inMemoryJob )
-    {
-        this.inMemoryJob = inMemoryJob;
-        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
-    }
-
-    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean leaderOnlyJob)
-    {
-        this.leaderOnlyJob = leaderOnlyJob;
-        constructor( name, jobType, cronExpression, jobParameters, false, true );
-    }
-
-    private void constructor( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
-        boolean continuousExecution, boolean enabled )
+        boolean enabled, boolean inMemoryJob )
     {
         this.name = name;
         this.cronExpression = cronExpression;
         this.jobType = jobType;
         this.jobParameters = jobParameters;
-        this.continuousExecution = continuousExecution;
         this.enabled = enabled;
+        this.inMemoryJob = inMemoryJob;
         setJobStatus( enabled ? SCHEDULED : DISABLED );
         init();
     }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
     private void init()
     {
@@ -154,9 +199,81 @@ public class JobConfiguration
         }
     }
 
-    public void setCronExpression( String cronExpression )
+    /**
+     * Checks if this job has changes compared to the specified job configuration that are only
+     * allowed for configurable jobs.
+     *
+     * @param other the job configuration that should be checked.
+     * @return <code>true</code> if this job configuration has changes in fields that are only
+     *          allowed for configurable jobs, <code>false</code> otherwise.
+     */
+    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration other )
     {
-        this.cronExpression = cronExpression;
+        if ( this.jobType != other.getJobType() )
+        {
+            return true;
+        }
+        if ( this.jobStatus != other.getJobStatus() )
+        {
+            return true;
+        }
+        if ( this.jobParameters != other.getJobParameters() )
+        {
+            return true;
+        }
+        return this.enabled != other.isEnabled();
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    public boolean isConfigurable()
+    {
+        return jobType.isConfigurable();
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    public SchedulingType getSchedulingType()
+    {
+        return jobType.getSchedulingType();
+    }
+
+    public boolean hasCronExpression()
+    {
+        return cronExpression != null && !cronExpression.isEmpty();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "JobConfiguration{" +
+            "uid='" + uid + '\'' +
+            ", name='" + name + '\'' +
+            ", jobType=" + jobType +
+            ", cronExpression='" + cronExpression + '\'' +
+            ", delay='" + delay + '\'' +
+            ", jobParameters=" + jobParameters +
+            ", enabled=" + enabled +
+            ", inMemoryJob=" + inMemoryJob +
+            ", lastRuntimeExecution='" + lastRuntimeExecution + '\'' +
+            ", userUid='" + userUid + '\'' +
+            ", leaderOnlyJob=" + leaderOnlyJob +
+            ", jobStatus=" + jobStatus +
+            ", nextExecutionTime=" + nextExecutionTime +
+            ", lastExecutedStatus=" + lastExecutedStatus +
+            ", lastExecuted=" + lastExecuted + '}';
+    }
+
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
+
+    @JacksonXmlProperty
+    @JsonProperty
+    @JsonTypeId
+    public JobType getJobType()
+    {
+        return jobType;
     }
 
     public void setJobType( JobType jobType )
@@ -164,29 +281,87 @@ public class JobConfiguration
         this.jobType = jobType;
     }
 
-    public void setJobStatus( JobStatus jobStatus )
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getCronExpression()
     {
-        this.jobStatus = jobStatus;
+        return cronExpression;
     }
 
-    public void setLastExecuted( Date lastExecuted )
+    public void setCronExpression( String cronExpression )
     {
-        this.lastExecuted = lastExecuted;
+        this.cronExpression = cronExpression;
     }
 
-    public void setLastExecutedStatus( JobStatus lastExecutedStatus )
+    @JacksonXmlProperty
+    @JsonProperty
+    public Integer getDelay()
     {
-        this.lastExecutedStatus = lastExecutedStatus;
+        return delay;
     }
 
-    public void setLastRuntimeExecution( String lastRuntimeExecution )
+    public void setDelay( Integer delay )
     {
-        this.lastRuntimeExecution = lastRuntimeExecution;
+        this.delay = delay;
+    }
+
+    /**
+     * The sub type names refer to the {@link JobType} enumeration.
+     */
+    @JacksonXmlProperty
+    @JsonProperty
+    @Property( required = FALSE )
+    @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
+    @JsonSubTypes( value = {
+        @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
+        @JsonSubTypes.Type( value = ContinuousAnalyticsJobParameters.class, name = "CONTINUOUS_ANALYTICS_TABLE" ),
+        @JsonSubTypes.Type( value = MonitoringJobParameters.class, name = "MONITORING" ),
+        @JsonSubTypes.Type( value = PredictorJobParameters.class, name = "PREDICTOR" ),
+        @JsonSubTypes.Type( value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS" ),
+        @JsonSubTypes.Type( value = SmsJobParameters.class, name = "SMS_SEND" ),
+        @JsonSubTypes.Type( value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC" ),
+        @JsonSubTypes.Type( value = EventProgramsDataSynchronizationJobParameters.class, name = "EVENT_PROGRAMS_DATA_SYNC" ),
+        @JsonSubTypes.Type( value = TrackerProgramsDataSynchronizationJobParameters.class, name = "TRACKER_PROGRAMS_DATA_SYNC" ),
+    } )
+    public JobParameters getJobParameters()
+    {
+        return jobParameters;
     }
 
     public void setJobParameters( JobParameters jobParameters )
     {
         this.jobParameters = jobParameters;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    public JobStatus getJobStatus()
+    {
+        return jobStatus;
+    }
+
+    public void setJobStatus( JobStatus jobStatus )
+    {
+        this.jobStatus = jobStatus;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    public Date getNextExecutionTime()
+    {
+        return nextExecutionTime;
     }
 
     /**
@@ -209,58 +384,16 @@ public class JobConfiguration
         }
     }
 
-    public void setContinuousExecution( boolean continuousExecution )
-    {
-        this.continuousExecution = continuousExecution;
-    }
-
-    public void setEnabled( boolean enabled )
-    {
-        this.enabled = enabled;
-    }
-
-    public void setLeaderOnlyJob( boolean leaderOnlyJob )
-    {
-        this.leaderOnlyJob = leaderOnlyJob;
-    }
-
-    public void setInMemoryJob( boolean inMemoryJob )
-    {
-        this.inMemoryJob = inMemoryJob;
-    }
-
-    public void setUserUid( String userUid )
-    {
-        this.userUid = userUid;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public String getCronExpression()
-    {
-        return cronExpression;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    @JsonTypeId
-    public JobType getJobType()
-    {
-        return jobType;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
-    public JobStatus getJobStatus()
-    {
-        return jobStatus;
-    }
-
     @JacksonXmlProperty
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public Date getLastExecuted()
     {
         return lastExecuted;
+    }
+
+    public void setLastExecuted( Date lastExecuted )
+    {
+        this.lastExecuted = lastExecuted;
     }
 
     @JacksonXmlProperty
@@ -270,6 +403,11 @@ public class JobConfiguration
         return lastExecutedStatus;
     }
 
+    public void setLastExecutedStatus( JobStatus lastExecutedStatus )
+    {
+        this.lastExecutedStatus = lastExecutedStatus;
+    }
+
     @JacksonXmlProperty
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public String getLastRuntimeExecution()
@@ -277,51 +415,9 @@ public class JobConfiguration
         return lastRuntimeExecution;
     }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    @Property( required = FALSE )
-    @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
-    @JsonSubTypes( value = {
-        @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
-        @JsonSubTypes.Type( value = MonitoringJobParameters.class, name = "MONITORING" ),
-        @JsonSubTypes.Type( value = PredictorJobParameters.class, name = "PREDICTOR" ),
-        @JsonSubTypes.Type( value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS" ),
-        @JsonSubTypes.Type( value = SmsJobParameters.class, name = "SMS_SEND" ),
-        @JsonSubTypes.Type( value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC" ),
-        @JsonSubTypes.Type( value = EventProgramsDataSynchronizationJobParameters.class, name = "EVENT_PROGRAMS_DATA_SYNC" ),
-        @JsonSubTypes.Type( value = TrackerProgramsDataSynchronizationJobParameters.class, name = "TRACKER_PROGRAMS_DATA_SYNC" ),
-    } )
-    public JobParameters getJobParameters()
+    public void setLastRuntimeExecution( String lastRuntimeExecution )
     {
-        return jobParameters;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
-    public Date getNextExecutionTime()
-    {
-        return nextExecutionTime;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public boolean isContinuousExecution()
-    {
-        return continuousExecution;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
-    public boolean isConfigurable()
-    {
-        return jobType.isConfigurable();
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public boolean isEnabled()
-    {
-        return enabled;
+        this.lastRuntimeExecution = lastRuntimeExecution;
     }
 
     @JacksonXmlProperty
@@ -331,9 +427,19 @@ public class JobConfiguration
         return leaderOnlyJob;
     }
 
+    public void setLeaderOnlyJob( boolean leaderOnlyJob )
+    {
+        this.leaderOnlyJob = leaderOnlyJob;
+    }
+
     public boolean isInMemoryJob()
     {
         return inMemoryJob;
+    }
+
+    public void setInMemoryJob( boolean inMemoryJob )
+    {
+        this.inMemoryJob = inMemoryJob;
     }
 
     @JacksonXmlProperty
@@ -343,53 +449,8 @@ public class JobConfiguration
         return userUid;
     }
 
-    /**
-     * Checks if this job has changes compared to the specified job configuration that are only
-     * allowed for configurable jobs.
-     *
-     * @param jobConfiguration the job configuration that should be checked.
-     * @return <code>true</code> if this job configuration has changes in fields that are only
-     * allowed for configurable jobs, <code>false</code> otherwise.
-     */
-    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration jobConfiguration )
+    public void setUserUid( String userUid )
     {
-        if ( jobType != jobConfiguration.getJobType() )
-        {
-            return true;
-        }
-        if ( jobStatus != jobConfiguration.getJobStatus() )
-        {
-            return true;
-        }
-        if ( jobParameters != jobConfiguration.getJobParameters() )
-        {
-            return true;
-        }
-        if ( continuousExecution != jobConfiguration.isContinuousExecution() )
-        {
-            return true;
-        }
-        return enabled != jobConfiguration.isEnabled();
-    }
-
-    @Override
-    public String toString()
-    {
-        return "JobConfiguration{" +
-            "uid='" + uid + '\'' +
-            ", displayName='" + displayName + '\'' +
-            ", cronExpression='" + cronExpression + '\'' +
-            ", jobType=" + jobType +
-            ", jobParameters=" + jobParameters +
-            ", enabled=" + enabled +
-            ", continuousExecution=" + continuousExecution +
-            ", inMemoryJob=" + inMemoryJob +
-            ", lastRuntimeExecution='" + lastRuntimeExecution + '\'' +
-            ", userUid='" + userUid + '\'' +
-            ", leaderOnlyJob=" + leaderOnlyJob +
-            ", jobStatus=" + jobStatus +
-            ", nextExecutionTime=" + nextExecutionTime +
-            ", lastExecutedStatus=" + lastExecutedStatus +
-            ", lastExecuted=" + lastExecuted + '}';
+        this.userUid = userUid;
     }
 }

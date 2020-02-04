@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -84,7 +85,6 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     public int countEventChartDashboardItems( EventChart eventChart )
     {
         Query<Long> query = getTypedQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
-
         query.setParameter( "eventChart", eventChart );
 
         return query.getSingleResult().intValue();
@@ -93,8 +93,18 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countReportTableDashboardItems( ReportTable reportTable )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
         query.setParameter( "reportTable", reportTable );
+
+        return query.getSingleResult().intValue();
+    }
+
+    @Override
+    public int countVisualizationDashboardItems( Visualization visualization )
+    {
+        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.visualization=:visualization" );
+        query.setParameter( "visualization", visualization );
 
         return query.getSingleResult().intValue();
     }

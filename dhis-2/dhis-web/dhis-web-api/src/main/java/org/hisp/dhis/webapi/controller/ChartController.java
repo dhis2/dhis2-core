@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
+import org.hisp.dhis.chart.ChartType;
+import org.hisp.dhis.chart.Series;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -48,9 +50,12 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.visualization.Axis;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -62,20 +67,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
+ * This controller is being deprecated. Please use the Visualization controller
+ * instead. Only compatibility changes should be done at this stage.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Deprecated
 @Controller
 @RequestMapping( value = ChartSchemaDescriptor.API_ENDPOINT )
 public class ChartController
-    extends AbstractCrudController<Chart>
+    extends ChartFacadeController
 {
+    @Autowired
+    private VisualizationService visualizationService;
+
     @Autowired
     private ChartService chartService;
 
@@ -127,7 +143,8 @@ public class ChartController
         @RequestParam( value = "attachment", required = false ) boolean attachment,
         HttpServletResponse response ) throws IOException, WebMessageException
     {
-        Chart chart = chartService.getChartNoAcl( uid );
+        final Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
+        final Chart chart = convertToChart( visualization );
 
         if ( chart == null )
         {
@@ -142,7 +159,7 @@ public class ChartController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, attachment );
 
-        ChartUtilities.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
+        ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
     @RequestMapping( value = { "/data", "/data.png" }, method = RequestMethod.GET )
@@ -172,7 +189,7 @@ public class ChartController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "chart.png", attachment );
 
-        ChartUtilities.writeChartAsPNG( response.getOutputStream(), chart, width, height );
+        ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
     @RequestMapping( value = { "/history/data", "/history/data.png" }, method = RequestMethod.GET )
@@ -225,7 +242,7 @@ public class ChartController
 
         JFreeChart chart = chartService.getJFreeChartHistory( dataElement, categoryOptionCombo, attributeOptionCombo, period, organisationUnit, 13, i18nManager.getI18nFormat() );
 
-        ChartUtilities.writeChartAsPNG( response.getOutputStream(), chart, width, height );
+        ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
     //--------------------------------------------------------------------------
@@ -275,5 +292,64 @@ public class ChartController
         {
             chart.setCategory( chart.getRows().get( 0 ).getDimension() );
         }
+    }
+
+        /**
+     * This method converts a Visualization into a Chart. It's required only during
+     * the merging process of Visualization. Even though this method could be broken
+     * down into smaller ones is preferable to leave it self-contained as this is
+     * just a temporary mapping.
+     *
+     * @param visualization
+     * @return a Chart object from the given Visualization
+     */
+    @Deprecated
+    private Chart convertToChart( final Visualization visualization )
+    {
+        final Chart chart = new Chart();
+
+        if ( visualization != null )
+        {
+            copyProperties( visualization, chart, "type" );
+
+            // Set the correct type
+            if ( visualization.getType() != null && !"PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
+            {
+                chart.setType( ChartType.valueOf( visualization.getType().name() ) );
+            }
+
+            // Copy seriesItems
+            if ( isNotEmpty( visualization.getOptionalAxes() ) )
+            {
+                final List<Series> seriesItems = new ArrayList<>();
+                final List<Axis> axes = visualization.getOptionalAxes();
+
+                for ( final Axis axis : axes )
+                {
+                    final Series series = new Series();
+                    series.setSeries( axis.getDimensionalItem() );
+                    series.setAxis( axis.getAxis() );
+                    series.setId( axis.getId() );
+
+                    seriesItems.add( series );
+                }
+                chart.setSeriesItems( seriesItems );
+            }
+
+            // Copy column into series
+            if ( isNotEmpty( visualization.getColumnDimensions() ) )
+            {
+                final List<String> columns = visualization.getColumnDimensions();
+                chart.setSeries( columns.get( 0 ) );
+            }
+
+            // Copy rows into category
+            if ( isNotEmpty( visualization.getRowDimensions() ) )
+            {
+                final List<String> rows = visualization.getRowDimensions();
+                chart.setCategory( rows.get( 0 ) );
+            }
+        }
+        return chart;
     }
 }

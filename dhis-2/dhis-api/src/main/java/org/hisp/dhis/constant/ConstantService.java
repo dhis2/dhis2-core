@@ -1,7 +1,7 @@
 package org.hisp.dhis.constant;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public interface ConstantService
 
     List<Constant> getAllConstants();
 
-    Map<String, Double> getConstantMap();
+    Map<String, Constant> getConstantMap();
 
     Map<String, Double> getConstantParameterMap();
 

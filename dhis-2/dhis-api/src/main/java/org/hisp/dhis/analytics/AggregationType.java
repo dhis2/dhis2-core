@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ public enum AggregationType
     private final String value;
 
     private boolean aggregateable;
-    
+
     AggregationType( String value )
     {
         this.value = value;
@@ -73,7 +73,7 @@ public enum AggregationType
     {
         return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
     }
-    
+
     public boolean isAggregateable()
     {
         return aggregateable;

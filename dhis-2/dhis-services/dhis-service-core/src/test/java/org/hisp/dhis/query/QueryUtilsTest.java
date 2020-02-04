@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,12 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.user.User;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,8 +54,12 @@ public class QueryUtilsTest
 {
     private Schema schema;
 
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
+
     @Before
-    public void setUp() throws Exception
+    public void setUp()
+        throws Exception
     {
         schema = new Schema( Attribute.class, "attribute", "attributes" );
 
@@ -155,6 +162,22 @@ public class QueryUtilsTest
     }
 
     @Test
+    public void testParserNotFound()
+    {
+        // Given
+        final Class<User> nonSupportedClass = User.class;
+        final String anyValue = "wewee-4343";
+
+        // Then
+        exceptionRule.expect( QueryParserException.class );
+        exceptionRule
+                .expectMessage( "Unable to parse `" + anyValue + "` to `" + nonSupportedClass.getSimpleName() + "`." );
+
+        // When
+        QueryUtils.parseValue( nonSupportedClass, anyValue );
+    }
+
+    @Test
     public void testParseSelectFields()
     {
         List<String> fields = new ArrayList<>();
@@ -185,15 +208,15 @@ public class QueryUtilsTest
 
         assertEquals( "= 'ABC'", QueryUtils.parseFilterOperator( "eq", "ABC" ) );
 
-        assertEquals( "like '%abc%'", QueryUtils.parseFilterOperator( "like", "abc") );
+        assertEquals( "like '%abc%'", QueryUtils.parseFilterOperator( "like", "abc" ) );
 
-        assertEquals( " like '%abc'", QueryUtils.parseFilterOperator( "$like", "abc") );
+        assertEquals( " like '%abc'", QueryUtils.parseFilterOperator( "$like", "abc" ) );
 
-        assertEquals( "in ('a','b','c')", QueryUtils.parseFilterOperator( "in", "[a,b,c]") );
+        assertEquals( "in ('a','b','c')", QueryUtils.parseFilterOperator( "in", "[a,b,c]" ) );
 
-        assertEquals( "in (1,2,3)", QueryUtils.parseFilterOperator( "in", "[1,2,3]") );
+        assertEquals( "in (1,2,3)", QueryUtils.parseFilterOperator( "in", "[1,2,3]" ) );
 
-        assertEquals( "is not null", QueryUtils.parseFilterOperator( "!null",  null) );
+        assertEquals( "is not null", QueryUtils.parseFilterOperator( "!null", null ) );
     }
 
     @Test
@@ -205,8 +228,8 @@ public class QueryUtilsTest
     @Test
     public void testConvertOrderStrings()
     {
-        List<Order> orders = QueryUtils.convertOrderStrings(
-            Arrays.asList( "value1:asc", "value2:asc", "value3:iasc", "value4:desc", "value5:idesc", "value6:xdesc", "value7" ), schema );
+        List<Order> orders = QueryUtils.convertOrderStrings( Arrays.asList( "value1:asc", "value2:asc", "value3:iasc",
+            "value4:desc", "value5:idesc", "value6:xdesc", "value7" ), schema );
         Assert.assertEquals( 5, orders.size() );
         Assert.assertEquals( orders.get( 0 ), Order.from( "asc", schema.getProperty( "value1" ) ) );
         Assert.assertEquals( orders.get( 1 ), Order.from( "iasc", schema.getProperty( "value3" ) ) );

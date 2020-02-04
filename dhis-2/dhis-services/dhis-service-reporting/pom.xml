@@ -2,21 +2,21 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
     <version>2.34-SNAPSHOT</version>
   </parent>
-  
+
   <artifactId>dhis-service-reporting</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Reporting Service</name>
-  
+
   <dependencies>
-    
+
     <!-- DHIS -->
-    
+
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
@@ -41,7 +41,7 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-dxf2</artifactId>
     </dependency>
-	
+
     <!-- JasperReports -->
 
     <dependency>
@@ -57,16 +57,16 @@
       <artifactId>jfreechart</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jfree</groupId>
-      <artifactId>jcommon</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
     </dependency>
-    
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+    </dependency>
+
     <!-- GeoTools -->
-    
+
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-render</artifactId>
@@ -79,9 +79,22 @@
       <groupId>org.geotools</groupId>
       <artifactId>gt-referencing</artifactId>
     </dependency>
-    
+
+    <!-- Testing -->
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Other -->
-    
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
@@ -95,7 +108,7 @@
       <artifactId>jsoup</artifactId>
       <version>1.11.3</version>
     </dependency>
-    
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

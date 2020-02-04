@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,10 @@ public interface ProgramRuleStore
     List<ProgramRule> getProgramRulesWithNoCondition();
 
     List<ProgramRule> getProgramRulesWithNoPriority();
+
+    List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime );
+
+    List<ProgramRule> getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment environment );
 
     List<ProgramRule> getProgramRulesWithNoAction();
 }

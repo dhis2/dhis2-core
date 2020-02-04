@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,8 @@ import org.hisp.dhis.user.User;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -125,12 +127,12 @@ public class Chart
     @Override
     public void populateAnalyticalProperties()
     {
-        if ( series != null )
+        if ( !isEmpty( series ) )
         {
             columns.add( getDimensionalObject( series ) );
         }
 
-        if ( category != null )
+        if ( !isEmpty( category ) )
         {
             rows.add( getDimensionalObject( category ) );
         }

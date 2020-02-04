@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.support;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.hisp.dhis.api.mobile.model.DataStreamSerializable;
-
-import com.jcraft.jzlib.JZlib;
-import com.jcraft.jzlib.ZOutputStream;
 
 public class DataStreamSerializer
 {
@@ -68,7 +66,7 @@ public class DataStreamSerializer
         throws IOException
     {
         ByteArrayOutputStream baos = serializePersistent( entity );
-        ZOutputStream gzip = new ZOutputStream( out, JZlib.Z_BEST_COMPRESSION );
+        GZIPOutputStream gzip = new GZIPOutputStream( out );
         DataOutputStream dos = new DataOutputStream( gzip );
 
         try
@@ -84,7 +82,7 @@ public class DataStreamSerializer
         {
             dos.flush();
             dos.close();
-            
+
             //gzip.finish();
         }
     }

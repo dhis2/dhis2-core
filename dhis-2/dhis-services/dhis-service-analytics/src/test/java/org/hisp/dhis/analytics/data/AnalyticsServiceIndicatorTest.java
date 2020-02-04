@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.data;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,24 +28,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.data;
-
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.Collections;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.category.*;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CyclicReferenceException;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -65,7 +65,7 @@ import com.google.common.collect.ImmutableList;
  * @author Luciano Fiandesio
  */
 public class AnalyticsServiceIndicatorTest
-    extends DhisSpringTest
+        extends DhisSpringTest
 {
     @Autowired
     private AnalyticsService analyticsService;
@@ -76,104 +76,22 @@ public class AnalyticsServiceIndicatorTest
     @Autowired
     private DataElementService dataElementService;
 
-    @Autowired
-    private CategoryService categoryService;
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private final static String ERROR_STRING = "Item of type INDICATOR with identifier '%s' has a cyclic reference to another item";
-
-    private DataElement dataElementA;
-    private CategoryOption coA;
-    private CategoryOption coB;
-    private CategoryOption coC;
-    private CategoryOption coD;
-    private CategoryOption coE;
-    private CategoryOption coF;
-    private CategoryOption coG;
-
-    private Category cA;
-    private Category cB;
-    private Category cC;
-
-    private CategoryCombo ccA;
-    private CategoryCombo ccB;
-
-    private CategoryOptionCombo cocA;
-    private CategoryOptionCombo cocB;
-    private CategoryOptionGroup cogA;
+    private final static String ERROR_STRING = "An Indicator with identifier '%s' has a cyclic reference to another Indicator in the Nominator or Denominator expression";
 
     @Before
     public void setUp()
     {
-        dataElementA = createDataElement( 'A' );
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementA.setUid( "dataElemenA" );
         dataElementA.setAggregationType( AggregationType.SUM );
         dataElementA.setDomainType( DataElementDomain.AGGREGATE );
         dataElementA.setName( "DeA" );
         dataElementService.addDataElement( dataElementA );
-
-        // Category options //
-        coA = new CategoryOption( "male" );
-        coB = new CategoryOption( "female" );
-        coC = new CategoryOption( "neutral" );
-
-        coD = new CategoryOption( "blue" );
-        coE = new CategoryOption( "brown" );
-        coF = new CategoryOption( "green" );
-
-        coG = new CategoryOption( "older than 5" );
-
-        saveCategoryOptions( coA, coB, coC, coD, coE, coF, coG );
-
-        // Categories -> group of Category options //
-        cA = createCategory( 'A' );
-        cA.setCategoryOptions( Lists.newArrayList( coA, coB, coC ) );
-        categoryService.addCategory( cA );
-
-        cB = createCategory( 'B' );
-        cA.setCategoryOptions( Lists.newArrayList( coD, coE, coF ) );
-        categoryService.addCategory( cB );
-
-        cC = createCategory( 'C' );
-        cA.setCategoryOptions( Lists.newArrayList( coG ) );
-        categoryService.addCategory( cC );
-
-        // Category Combination -> aggregation of categories //
-
-        ccA = createCategoryCombo( 'A', cA, cB );
-        categoryService.addCategoryCombo( ccA );
-
-        ccB = createCategoryCombo( 'B', cB, cC );
-        categoryService.addCategoryCombo( ccB );
-
-        // Category Option Combo -> combination of all possible Category Options in a
-        // Category Combination
-        cocA = createCategoryOptionCombo( 'A' );
-        cocA.setCategoryCombo( ccA );
-
-        cocB = createCategoryOptionCombo( 'B' );
-        cocB.setCategoryCombo( ccB );
-
-        ccA.getOptionCombos().add( cocA );
-        ccA.getOptionCombos().add( cocB );
-
-        categoryService.addCategoryOptionCombo( cocA );
-        categoryService.addCategoryOptionCombo( cocB );
-
-        cogA = createCategoryOptionGroup( 'A', coA, coB, coC, coD, coE, coF );
-        categoryService.saveCategoryOptionGroup( cogA );
-
-        dataElementA.setCategoryCombo( ccA );
     }
 
-    private void saveCategoryOptions( CategoryOption... cos )
-    {
-        for ( CategoryOption categoryOption : cos )
-        {
-            categoryService.addCategoryOption( categoryOption );
-        }
-    }
     /**
      * IndicatorF -> IndicatorG -> IndicatorH -> IndicatorI
      *
@@ -187,36 +105,258 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorG}" );
         createIndicator( 'G', indicatorTypeB, "N{mindicatorH}/6" );
         createIndicator( 'H', indicatorTypeB, "N{mindicatorI}+2" );
-        createIndicator( 'I', indicatorTypeB, "#{dataelemena}/3" );
+        createIndicator( 'I', indicatorTypeB, "#{dataElemenA}/3" );
 
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
     }
 
     /**
-     *       +------>IndicatorF
-     *      |            |
-     *      |            |
-     *      |            v
-     *      |       IndicatorG
-     *      |          +
-     *      +          |
-     * IndicatorH<-----+
+     *              IndicatorF
+     *                   |
+     *                   |
+     *                   v
+     *              IndicatorG
+     *                 + +  +
+     *                 | |  |
+     * IndicatorH<-----+ |  +----->IndicatorL
+     *    +   +          |
+     *    |   |          v
+     *    |   +------>IndicatorI
+     *    |
+     *    |
+     *    |
+     *    +------>IndicatorM
      *
      *
      */
     @Test
-    public void verifyIndicatorCyclicDependencyIsDetected()
+    public void verifyIndicatorCyclicDependencyIsNotTriggered2()
     {
         IndicatorType indicatorTypeB = createIndicatorType( 'B' );
         indicatorService.addIndicatorType( indicatorTypeB );
 
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorG}" );
+        createIndicator( 'G', indicatorTypeB, "N{mindicatorH}*N{mindicatorI}-N{mindicatorL}" );
+
+        createIndicator( 'H', indicatorTypeB, "N{mindicatorI}*N{indicatorM}" );
+        createIndicator( 'I', indicatorTypeB, "#{dataElemenA}/2" );
+        createIndicator( 'L', indicatorTypeB, "#{dataElemenA}/4" );
+
+        createIndicator( 'M', indicatorTypeB, "#{dataElemenA}/6" );
+
+        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
+        assertNotNull( grid );
+    }
+
+    /**
+     *  IndicatorY ----> dataElementA
+     *
+     *  IndicatorF ----> IndicatorY
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsNotTriggered3()
+    {
+        // Given
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        IndicatorType indicatorTypeY = createIndicatorType( 'Y' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+        indicatorService.addIndicatorType( indicatorTypeY );
+        Indicator indicatorY = createIndicator( 'Y', indicatorTypeY, "#{dataElemenA}+1" );
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorY}" );
+
+        // When
+        Grid grid = this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorF, indicatorY ) );
+
+        // Then
+        assertThat( grid, is( not ( nullValue() )));
+    }
+
+    /**
+     *  IndicatorY ----> dataElementA
+     *
+     *  IndicatorF ----> IndicatorY
+     *
+     *  IndicatorW ----> IndicatorY
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsNotTriggered4()
+    {
+        // Given
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        IndicatorType indicatorTypeY = createIndicatorType( 'Y' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+        indicatorService.addIndicatorType( indicatorTypeY );
+
+        Indicator indicatorY = createIndicator( 'Y', indicatorTypeY, "#{dataElemenA}+1" );
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorY}" );
+        Indicator indicatorW = createIndicator( 'W', indicatorTypeB, "N{mindicatorY}" );
+
+        // When
+        Grid grid = this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorF, indicatorY, indicatorW ) );
+
+        // Then
+        assertThat( grid, is( not ( nullValue() )));
+    }
+
+    /**
+     *  IndicatorF ----> IndicatorY
+     *
+     *  IndicatorW ----> IndicatorY
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsNotTriggered5()
+    {
+        // Given
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorY}" );
+        Indicator indicatorW = createIndicator( 'W', indicatorTypeB, "N{mindicatorY}" );
+
+        // When
+        Grid grid = this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorF, indicatorW ) );
+
+        // Then
+        assertThat( grid, is( not ( nullValue() )));
+    }
+
+    /**
+     *  IndicatorA ---> dataElementXYZ
+     *
+     *  IndicatorB ----> IndicatorA
+     *
+     *  IndicatorC ----> IndicatorB
+     *
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsNotTriggered6()
+    {
+        // Given
+        IndicatorType indicatorTypeA = createIndicatorType( 'A' );
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        IndicatorType indicatorTypeC = createIndicatorType( 'C' );
+
+        indicatorService.addIndicatorType( indicatorTypeA );
+        indicatorService.addIndicatorType( indicatorTypeB );
+        indicatorService.addIndicatorType( indicatorTypeC );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeA, "#{dataElemenXYZ}" );
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeB, "N{mindicatorA}" );
+        Indicator indicatorC = createIndicator( 'C', indicatorTypeC, "N{mindicatorB}" );
+
+        // When
+        Grid grid = this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB, indicatorC ) );
+
+        // Then
+        assertThat( grid, is( not ( nullValue() )));
+    }
+
+    /**
+     * IndicatorB <-------> anyElement
+     * IndicatorA <-------> IndicatorB + IndicatorC
+     * IndicatorC <-------> IndicatorB
+     * IndicatorD <-------> IndicatorB + IndicatorC
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsNotTriggered7()
+    {
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'X' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeAny, "#{anyElement}" );
+        Indicator indicatorC = createIndicator( 'C', indicatorTypeAny, "N{mindicatorB}" );
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "N{mindicatorB} + N{mindicatorC}" );
+        Indicator indicatorD = createIndicator( 'D', indicatorTypeAny, "N{mindicatorB} + N{mindicatorC}" );
+
+        // When
+        Grid grid = this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB, indicatorC, indicatorD ) );
+
+        // Then
+        assertThat( grid, is( not( nullValue() ) ) );
+    }
+
+
+    /**
+     * IndicatorB <-------> anyElement
+     * IndicatorA <-------> IndicatorB + IndicatorC
+     * IndicatorC <-------> IndicatorB
+     * IndicatorD <-------> IndicatorB
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsNotTriggered8()
+    {
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'X' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeAny, "#{anyElement}" );
+        Indicator indicatorC = createIndicator( 'C', indicatorTypeAny, "N{mindicatorB}" );
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "N{mindicatorB} + N{mindicatorC}" );
+        Indicator indicatorD = createIndicator( 'D', indicatorTypeAny, "N{mindicatorB}" );
+
+        // When
+        Grid grid = this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB, indicatorC, indicatorD ) );
+
+        // Then
+        assertThat( grid, is( not( nullValue() ) ) );
+    }
+
+    /**
+     * IndicatorB <-------> anyElement
+     * IndicatorA <-------> IndicatorB/IndicatorC
+     * IndicatorC <-------> 1/IndicatorB
+     * IndicatorD <-------> IndicatorB
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsNotTriggered9()
+    {
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'X' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeAny, "#{anyElement}" );
+        Indicator indicatorC = createIndicator( 'C', indicatorTypeAny, "1", "N{mindicatorB}" );
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "N{mindicatorB}", "N{mindicatorC}" );
+        Indicator indicatorD = createIndicator( 'D', indicatorTypeAny, "N{mindicatorB}" );
+
+        // When
+        Grid grid = this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB, indicatorC, indicatorD ) );
+
+        // Then
+        assertThat( grid, is( not( nullValue() ) ) );
+    }
+
+    /**
+     *   IndicatorF
+     *     ^  +
+     *     |  |
+     *     +  v
+     *   IndicatorH
+     *
+     *
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsDetected1()
+    {
+        // Given
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorH}" );
-        createIndicator( 'G', indicatorTypeB, "#{dataelemena}/6" );
         createIndicator( 'H', indicatorTypeB, "N{mindicatorF}" );
 
-        thrown.expect( CyclicReferenceException.class );
-        thrown.expectMessage( String.format(ERROR_STRING, "mindicatorF") );
+        // Then
+        thrown.expect( IllegalQueryException.class );
 
+        // When
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
     }
 
@@ -250,105 +390,201 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorG}" );
         createIndicator( 'G', indicatorTypeB, "N{mindicatorH}*N{mindicatorI}-N{mindicatorL}" );
         createIndicator( 'H', indicatorTypeB, "N{mindicatorM}" );
-        createIndicator( 'I', indicatorTypeB, "#{dataelemena}/2" );
-        createIndicator( 'L', indicatorTypeB, "#{dataelemena}/4" );
+        createIndicator( 'I', indicatorTypeB, "#{dataElemenA}/2" );
+        createIndicator( 'L', indicatorTypeB, "#{dataElemenA}/4" );
         createIndicator( 'M', indicatorTypeB, "N{mindicatorG}" );
 
-        thrown.expect( CyclicReferenceException.class );
+        thrown.expect( IllegalQueryException.class );
         thrown.expectMessage( String.format(ERROR_STRING, "mindicatorG") );
 
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
     }
 
-
     /**
-     *              IndicatorF
-     *                   |
-     *                   |
-     *                   v
-     *              IndicatorG
-     *                 + +  +
-     *                 | |  |
-     * IndicatorH<-----+ |  +----->IndicatorL
-     *    +   +          |
-     *    |   |          v
-     *    |   +------>IndicatorI
-     *    |
-     *    |
-     *    |
-     *    +------>IndicatorM
-     *
-     *
+     * IndicatorF <-------> IndicatorW
+     * IndicatorW
      */
     @Test
-    public void verifyIndicatorCyclicDependencyIsNotTriggered2()
+    public void verifyIndicatorCyclicDependencyIsDetected3()
     {
+        // Given
         IndicatorType indicatorTypeB = createIndicatorType( 'B' );
         indicatorService.addIndicatorType( indicatorTypeB );
 
-        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorG}" );
-        createIndicator( 'G', indicatorTypeB, "N{mindicatorH}*N{mindicatorI}-N{mindicatorL}" );
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorF}" );
+        Indicator indicatorW = createIndicator( 'W', indicatorTypeB, "#{dataElemenA}",
+                "N{mindicatorW}" );
 
-        createIndicator( 'H', indicatorTypeB, "N{mindicatorI}*N{indicatorM}" );
-        createIndicator( 'I', indicatorTypeB, "#{dataelemena}/2" );
-        createIndicator( 'L', indicatorTypeB, "#{dataelemena}/4" );
+        // Then
+        thrown.expect( IllegalQueryException.class );
 
-        createIndicator( 'M', indicatorTypeB, "#{dataelemena}/6" );
-
-        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
-        assertNotNull( grid );
+        // When
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF, indicatorW ) );
     }
 
-
+    /**
+     *     +------->IndicatorA
+     *     |            +
+     *     |            |
+     *     |            v
+     *     |        IndicatorB
+     *     |           +   +
+     *     +           |   |
+     * IndicatorC<-----+   +-->IndicatorD
+     *                             +
+     *                             |
+     *                             v
+     *                        DataElementA
+     */
     @Test
-    public void case1_COCUID_as_second_elem_works()
-    {
+    public void verifyIndicatorCyclicDependencyIsDetected4() {
         IndicatorType indicatorTypeB = createIndicatorType( 'B' );
         indicatorService.addIndicatorType( indicatorTypeB );
 
-        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, createIndicatorExp(dataElementA, cocA, cocB) );
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeB, "N{mindicatorB}" );
+        createIndicator( 'B', indicatorTypeB, "N{mindicatorC}*N{mindicatorD} " );
+        createIndicator( 'C', indicatorTypeB, "N{mindicatorA}" );
+        createIndicator( 'D', indicatorTypeB, "#{dataElemenA}/2" );
 
-        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
+        // Then
+        thrown.expect( IllegalQueryException.class );
+
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA  ) );
+
     }
 
+    /**
+     * IndicatorA <-------> 1/IndicatorB
+     * IndicatorB <-------> 1/IndicatorA
+     */
     @Test
-    public void case1_COGUID_as_second_elem_works()
+    public void verifyIndicatorCyclicDependencyIsDetected5()
     {
+        // Given
+        IndicatorType indicatorTypeA = createIndicatorType( 'A' );
+        indicatorService.addIndicatorType( indicatorTypeA );
 
         IndicatorType indicatorTypeB = createIndicatorType( 'B' );
         indicatorService.addIndicatorType( indicatorTypeB );
 
-        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, createIndicatorExp(dataElementA, cogA, cocA)  );
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeA, "1", "N{mindicatorB}" );
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeB, "1", "N{mindicatorA}" );
 
-        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
+        // Then
+        thrown.expect( IllegalQueryException.class );
+
+        // When
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB ) );
     }
 
-    private String createIndicatorExp( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-                                       CategoryOptionCombo attributeOptionCombo )
+    /**
+     * IndicatorA -> IndicatorB --> IndicatorC --> IndicatorD --|
+     *      /|\                                                 |
+     *      |___________________________________________________|
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsDetected6()
     {
-        return String.format("#{%s.%s.%s}", dataElement.getUid(), categoryOptionCombo.getUid(), attributeOptionCombo.getUid());
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'X' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "N{mindicatorB}" );
+        createIndicator( 'B', indicatorTypeAny, "N{mindicatorC}" );
+        createIndicator( 'C', indicatorTypeAny, "N{mindicatorD}" );
+        createIndicator( 'D', indicatorTypeAny, "N{mindicatorA}" );
+
+        // Then
+        thrown.expect( IllegalQueryException.class );
+
+        // When
+        this.analyticsService
+                .getAggregatedDataValues( createParamsWithRootIndicator( indicatorA ) );
     }
 
-    private String createIndicatorExp( DataElement dataElement, CategoryOptionGroup categoryOptionGroup,
-                                       CategoryOptionCombo attributeOptionCombo )
+    /**
+     * IndicatorA <-------> 1/IndicatorB
+     * IndicatorB <-------> IndicatorA/1
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsDetected7()
     {
-        return String.format("#{%s.%s.%s}", dataElement.getUid(), categoryOptionGroup.getUid(), attributeOptionCombo.getUid());
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "1", "N{mindicatorB}" );
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeAny, "N{mindicatorA}", "1" );
+
+        // Then
+        thrown.expect( IllegalQueryException.class );
+
+        // When
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB ) );
     }
 
-    private DataQueryParams createParamsWithRootIndicator( Indicator indicator )
+    /**
+     * IndicatorA <-------> 1/IndicatorA
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsDetected8()
     {
-        return DataQueryParams.newBuilder()
-            // PERIOD
-            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
-            // INDICATOR
-            .withIndicators( newArrayList( indicator ) )
-            .withDataElements(newArrayList( createDataElement( 'A', new CategoryCombo() ) ))
-            .withIgnoreLimit( true )
-            // FILTERS (OU)
-            .withFilters( Collections.singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
-            .build();
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "1", "N{mindicatorA}" );
+
+        // Then
+        thrown.expect( IllegalQueryException.class );
+        thrown.expectMessage( String.format( ERROR_STRING, "mindicatorA" ) );
+
+        // When
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA ) );
+    }
+
+    /**
+     * IndicatorA <-------> IndicatorA
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsDetected9()
+    {
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "N{mindicatorA}" );
+
+        // Then
+        thrown.expect( IllegalQueryException.class );
+        thrown.expectMessage( String.format( ERROR_STRING, "mindicatorA" ) );
+
+        // When
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA ) );
+    }
+
+    /**
+     * IndicatorA <-------> 1/IndicatorB
+     * IndicatorB <-------> IndicatorA + IndicatorC
+     * IndicatorC <-------> anyElement
+     */
+    @Test
+    public void verifyIndicatorCyclicDependencyIsDetected10()
+    {
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny, "1", "N{mindicatorB}" );
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeAny, "N{mindicatorA} + N{mindicatorC}", "1" );
+        Indicator indicatorC = createIndicator( 'C', indicatorTypeAny, "#{dataElemenXYZ}" );
+
+
+        // Then
+        thrown.expect( IllegalQueryException.class );
+
+        // When
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB, indicatorC ) );
     }
 
     private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator )
@@ -361,5 +597,29 @@ public class AnalyticsServiceIndicatorTest
 
         indicatorService.addIndicator( indicator );
         return indicator;
+    }
+
+    private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator, String denominator)
+    {
+        Indicator indicator = createIndicator(uniqueCharacter, type, numerator);
+        indicator.setDenominator(denominator);
+
+        return indicator;
+    }
+
+    private DataQueryParams createParamsWithRootIndicator( Indicator... indicator )
+    {
+        return DataQueryParams.newBuilder()
+            // PERIOD
+            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
+            // INDICATOR
+            .withIndicators( newArrayList( indicator ) )
+            .withDataElements(newArrayList( createDataElement( 'A', new CategoryCombo() ) ))
+            .withIgnoreLimit( true )
+            // FILTERS (OU)
+            .withFilters( Collections.singletonList(
+                    new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                            ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+            .build();
     }
 }

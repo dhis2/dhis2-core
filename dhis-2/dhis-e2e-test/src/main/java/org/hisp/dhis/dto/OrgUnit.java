@@ -44,7 +44,7 @@ public class OrgUnit
     @Expose( serialize = false, deserialize = false )
     private String parent;
 
-    private int level;
+    private Integer level;
 
     public String getName()
     {
@@ -86,12 +86,12 @@ public class OrgUnit
         this.parent = parent;
     }
 
-    public int getLevel()
+    public Integer getLevel()
     {
         return level;
     }
 
-    public void setLevel( int level )
+    public void setLevel( Integer level )
     {
         this.level = level;
     }

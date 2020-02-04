@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,7 +113,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
     private Program program;
-    private ProgramInstance programInstance;
 
     private OrganisationUnit organisationUnit;
     private User user;
@@ -138,13 +137,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( teiRegistrationCommand );
 
-        // Mock for trackedEntityInstanceService
-        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
-
-        // Mock for programInstanceService
-        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any() ) ).thenReturn( programInstance );
-
         // Mock for userService
         when( userService.getUser( anyString() ) ).thenReturn( user );
 
@@ -155,17 +147,21 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
             message = (String) invocation.getArguments()[1];
             return response;
         });
+    }
+
+    @Test
+    public void testTeiRegistration()
+    {
+        // Mock for trackedEntityInstanceService
+        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
 
         // Mock for incomingSmsService
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
             return updatedIncomingSms;
         }).when( incomingSmsService ).update( any() );
-    }
 
-    @Test
-    public void testTeiRegistration()
-    {
         subject.receive( incomingSms );
 
         assertNotNull( updatedIncomingSms );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@ package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -347,7 +349,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getNumerator() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator(), INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -366,7 +368,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getDenominator() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator(), INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -540,7 +542,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -559,7 +561,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -784,7 +786,7 @@ public class DefaultDataIntegrityService
     {
         try
         {
-            expressionService.getIndicatorExpressionDescription( expression );
+            expressionService.getExpressionDescription( expression, INDICATOR_EXPRESSION );
         }
         catch ( org.hisp.dhis.parser.expression.ParserException e )
         {

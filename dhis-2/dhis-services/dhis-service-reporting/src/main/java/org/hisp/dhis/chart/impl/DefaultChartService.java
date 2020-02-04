@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart.impl;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,20 @@ import org.apache.commons.math3.exception.MathRuntimeException;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.chart.BaseChart;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObjectStore;
+import org.hisp.dhis.common.AnalyticsType;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.GenericAnalyticalObjectService;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.NumericSortWrapper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -65,23 +72,43 @@ import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.category.*;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.DialShape;
+import org.jfree.chart.plot.Marker;
+import org.jfree.chart.plot.MeterInterval;
+import org.jfree.chart.plot.MeterPlot;
+import org.jfree.chart.plot.MultiplePiePlot;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.SpiderWebPlot;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.renderer.category.AreaRenderer;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.category.StackedAreaRenderer;
+import org.jfree.chart.renderer.category.StackedBarRenderer;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.util.TableOrder;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultValueDataset;
 import org.jfree.data.general.ValueDataset;
-import org.jfree.ui.RectangleInsets;
-import org.jfree.util.TableOrder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -167,7 +194,7 @@ public class DefaultChartService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreeChart( long id, I18nFormat format )
     {
         Chart chart = getChart( id );
@@ -176,21 +203,21 @@ public class DefaultChartService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreeChart( BaseChart chart, I18nFormat format )
     {
         return getJFreeChart( chart, null, null, format );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format )
     {
         return getJFreeChart( chart, date, organisationUnit, format, currentUserService.getCurrentUser() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format, User currentUser )
     {
         User user = (currentUser != null ? currentUser : currentUserService.getCurrentUser());
@@ -227,7 +254,7 @@ public class DefaultChartService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit unit, boolean title, I18nFormat format )
     {
         List<Period> periods = periodService.reloadPeriods(
@@ -253,7 +280,7 @@ public class DefaultChartService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreeOrganisationUnitChart( Indicator indicator, OrganisationUnit parent, boolean title,
         I18nFormat format )
     {
@@ -280,7 +307,7 @@ public class DefaultChartService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreeChart( String name, PlotOrientation orientation, CategoryLabelPositions labelPositions,
         Map<String, Double> categoryValues )
     {
@@ -300,7 +327,7 @@ public class DefaultChartService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public JFreeChart getJFreeChartHistory( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
         int historyLength, I18nFormat format )
@@ -340,7 +367,7 @@ public class DefaultChartService
             {
                 value = Double.parseDouble( dataValue.getValue() );
 
-                x.add((double) periodCount);
+                x.add( (double) periodCount );
                 y.add( value );
             }
 
@@ -714,7 +741,7 @@ public class DefaultChartService
             meterPlot.addInterval( new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
         }
 
-        meterPlot.setMeterAngle(180);
+        meterPlot.setMeterAngle( 180 );
         meterPlot.setDialBackgroundPaint( COLOR_LIGHT_GRAY );
         meterPlot.setDialShape( DialShape.CHORD );
         meterPlot.setNeedlePaint( COLORS[0] );
@@ -736,7 +763,7 @@ public class DefaultChartService
      * Sets basic configuration including title font, subtitle, background paint and
      * anti-alias on the given JFreeChart.
      */
-    private void setBasicConfig( JFreeChart jFreeChart, BaseChart chart)
+    private void setBasicConfig( JFreeChart jFreeChart, BaseChart chart )
     {
         jFreeChart.getTitle().setFont( TITLE_FONT );
 
@@ -779,7 +806,7 @@ public class DefaultChartService
 
             chart.setDataItemGrid( grid );
 
-            valueMap = GridUtils.getMetaValueMapping( grid, ( grid.getWidth() - 1 ) );
+            valueMap = GridUtils.getMetaValueMapping( grid, (grid.getWidth() - 1) );
         }
 
         DefaultCategoryDataset regularDataSet = new DefaultCategoryDataset();
@@ -875,9 +902,9 @@ public class DefaultChartService
 
             Object value = valueMap.get( key );
 
-            if (value instanceof Number)
+            if ( value instanceof Number )
             {
-                list.add(new NumericSortWrapper<>(category, (Double) value, sortOrder) );
+                list.add( new NumericSortWrapper<>( category, (Double) value, sortOrder ) );
             }
         }
 
@@ -900,21 +927,21 @@ public class DefaultChartService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Chart getChart( long id )
     {
         return chartStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Chart getChart( String uid )
     {
         return chartStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Chart getChartNoAcl( String uid )
     {
         return chartStore.getByUidNoAcl( uid );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 @Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
 public class DefaultEventQueryValidator
@@ -72,109 +75,119 @@ public class DefaultEventQueryValidator
     public void validate( EventQueryParams params )
         throws IllegalQueryException, MaintenanceModeException
     {
-        String violation = null;
+        queryValidator.validateMaintenanceMode();
+
+        ErrorMessage error = validateForErrorMessage( params );
+
+        if ( error != null )
+        {
+            log.warn( String.format( "Event analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(), error.getMessage() ) );
+
+            throw new IllegalQueryException( error );
+        }
+    }
+
+    @Override
+    public ErrorMessage validateForErrorMessage( EventQueryParams params )
+    {
+        ErrorMessage error = null;
 
         if ( params == null )
         {
-            throw new IllegalQueryException( "Params cannot be null" );
+            throw new IllegalQueryException( ErrorCode.E7100 );
         }
-
-        queryValidator.validateMaintenanceMode();
 
         if ( !params.hasOrganisationUnits() )
         {
-            violation = "At least one organisation unit must be specified";
+            error = new ErrorMessage( ErrorCode.E7200 );
         }
 
         if ( !params.getDuplicateDimensions().isEmpty() )
         {
-            violation = "Dimensions cannot be specified more than once: " + params.getDuplicateDimensions();
+            error = new ErrorMessage( ErrorCode.E7201, params.getDuplicateDimensions() );
         }
 
         if ( !params.getDuplicateQueryItems().isEmpty() )
         {
-            violation = "Query items cannot be specified more than once: " + params.getDuplicateQueryItems();
+            error = new ErrorMessage( ErrorCode.E7202, params.getDuplicateQueryItems() );
         }
 
         if ( params.hasValueDimension() && params.getDimensionalObjectItems().contains( params.getValue() ) )
         {
-            violation = "Value dimension cannot also be specified as an item or item filter";
+            error = new ErrorMessage( ErrorCode.E7203 );
         }
 
         if ( params.hasAggregationType() && !( params.hasValueDimension() || params.isAggregateData() ) )
         {
-            violation = "Value dimension or aggregate data must be specified when aggregation type is specified";
+            error = new ErrorMessage( ErrorCode.E7204 );
         }
 
         if ( !params.hasPeriods() && ( params.getStartDate() == null || params.getEndDate() == null ) )
         {
-            violation = "Start and end date or at least one period must be specified";
+            error = new ErrorMessage( ErrorCode.E7205 );
         }
 
         if ( params.getStartDate() != null && params.getEndDate() != null && params.getStartDate().after( params.getEndDate() ) )
         {
-            violation = "Start date is after end date: " + params.getStartDate() + " - " + params.getEndDate();
+            error = new ErrorMessage( ErrorCode.E7206, getMediumDateString( params.getStartDate() ), getMediumDateString( params.getEndDate() ) );
         }
 
         if ( params.getPage() != null && params.getPage() <= 0 )
         {
-            violation = "Page number must be a positive number: " + params.getPage();
+            error = new ErrorMessage( ErrorCode.E7207, params.getPage() );
         }
 
         if ( params.getPageSize() != null && params.getPageSize() < 0 )
         {
-            violation = "Page size must be zero or a positive number: " + params.getPageSize();
+            error = new ErrorMessage( ErrorCode.E7208, params.getPageSize() );
         }
 
         if ( params.hasLimit() && getMaxLimit() > 0 && params.getLimit() > getMaxLimit() )
         {
-            violation = "Limit of: " + params.getLimit() + " is larger than max limit: " + getMaxLimit();
+            error = new ErrorMessage( ErrorCode.E7209, params.getLimit(), getMaxLimit() );
         }
 
         if ( params.hasTimeField() && !params.timeFieldIsValid() )
         {
-            violation = "Time field is invalid: " + params.getTimeField();
+            error = new ErrorMessage( ErrorCode.E7210, params.getTimeField() );
         }
 
         if ( params.hasOrgUnitField() && !params.orgUnitFieldIsValid() )
         {
-            violation = "Org unit field is invalid: " + params.getOrgUnitField();
+            error = new ErrorMessage( ErrorCode.E7211, params.getOrgUnitField() );
         }
 
         if ( params.hasClusterSize() && params.getClusterSize() <= 0 )
         {
-            violation = "Cluster size must be a positive number: " + params.getClusterSize();
+            error = new ErrorMessage( ErrorCode.E7212, params.getClusterSize() );
         }
 
         if ( params.hasBbox() && !ValidationUtils.bboxIsValid( params.getBbox() ) )
         {
-            violation = "Bbox is invalid: " + params.getBbox() + ", must be on format: 'min-lng,min-lat,max-lng,max-lat'";
+            error = new ErrorMessage( ErrorCode.E7213, params.getBbox() );
         }
+
+        // TODO validate coordinate field
 
         if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
         {
-            violation = "Cluster field must be specified when bbox or cluster size are specified";
+            error = new ErrorMessage( ErrorCode.E7214 );;
         }
 
         for ( QueryItem item : params.getItemsAndItemFilters() )
         {
             if ( item.hasLegendSet() && item.hasOptionSet() )
             {
-                violation = "Query item cannot specify both legend set and option set: " + item.getItemId();
+                error = new ErrorMessage( ErrorCode.E7215, item.getItemId() );
             }
 
             if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
             {
-                violation = "Query item must be aggregateable when used in aggregate query: " + item.getItemId();
+                error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }
         }
 
-        if ( violation != null )
-        {
-            log.warn( String.format( "Event analytics validation failed: %s", violation ) );
-
-            throw new IllegalQueryException( violation );
-        }
+        return error;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.spring2fa;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,25 @@ package org.hisp.dhis.security.spring2fa;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
-
 import javax.servlet.http.HttpServletRequest;
+import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
  * @author Henning Håkonsen
  * @author Lars Helge Øverland
  */
 public class TwoFactorWebAuthenticationDetails
-    extends WebAuthenticationDetails
+    extends ForwardedIpAwareWebAuthenticationDetails
 {
-    private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
 
     private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
 
     private String code;
 
-    private String ip;
-
     public TwoFactorWebAuthenticationDetails( HttpServletRequest request )
     {
         super( request );
         code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
-        ip = ObjectUtils.firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
     }
 
     public String getCode()
@@ -60,9 +54,9 @@ public class TwoFactorWebAuthenticationDetails
         return code;
     }
 
-    public String getIp()
+    public void setCode( String code )
     {
-        return ip;
+        this.code = code;
     }
 }
 

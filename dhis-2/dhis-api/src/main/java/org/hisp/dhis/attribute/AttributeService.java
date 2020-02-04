@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,13 +51,6 @@ public interface AttributeService
      * @param attribute the attribute.
      */
     void addAttribute( Attribute attribute );
-
-    /**
-     * Updates an attribute.
-     *
-     * @param attribute the attribute.
-     */
-    void updateAttribute( Attribute attribute );
 
     /**
      * Deletes an attribute.
@@ -123,13 +116,6 @@ public interface AttributeService
     <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException;
 
     /**
-     * Updates an attribute value.
-     *
-     * @param attributeValue the attribute value.
-     */
-    <T extends IdentifiableObject> void updateAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException;
-
-    /**
      * Deletes an attribute value.
      *
      * @param object the object which the attributeValue belongs to.
@@ -144,10 +130,6 @@ public interface AttributeService
      * @param attributeValues the Set of attribute values.
      */
     <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues );
-
-    <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception;
-
-    <T extends IdentifiableObject> void updateAttributeValues( T object, Set<AttributeValue> attributeValues ) throws Exception;
 
     <T extends IdentifiableObject> void generateAttributes( List<T> entityList );
 }

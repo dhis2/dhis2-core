@@ -21,7 +21,7 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <set name="members" table="optiongroupmembers">
+    <set name="members" table="optiongroupmembers" cascade="all">
       <cache usage="read-write" />
       <key column="optiongroupid" foreign-key="fk_optiongroupmembers_optionid" />
       <many-to-many class="org.hisp.dhis.option.Option" column="optionid"

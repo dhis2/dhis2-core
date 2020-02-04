@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.operator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,26 @@ package org.hisp.dhis.parser.expression.operator;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.ComputeFunction;
 
+import java.util.List;
+
+import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression math operator: Multiply
+ * Math operator: Multiply
  *
  * @author Jim Grace
  */
 public class OperatorMathMultiply
-    extends AbstractExpressionFunction
+    extends ComputeFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object compute( List<Object> values )
     {
-        return visitor.castDoubleVisit( ctx.expr( 0 ) )
-            * visitor.castDoubleVisit( ctx.expr( 1 ) );
+        return castDouble( values.get( 0 ) )
+            * castDouble( values.get( 1 ) );
     }
 
     @Override

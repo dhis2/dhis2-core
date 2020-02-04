@@ -72,13 +72,13 @@ public class TestCleanUp
 {
     private Logger logger = Logger.getLogger( TestCleanUp.class.getName() );
 
+    private int deleteCount = 0;
+
     /**
      * Deletes entities created during test run. Entities deleted one by one starting from last created one.
      */
     public void deleteCreatedEntities()
     {
-        new LoginActions().loginAsSuperUser();
-
         Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
         List<String> reverseOrderedKeys = new ArrayList<>( createdEntities.keySet() );
         Collections.reverse( reverseOrderedKeys );
@@ -88,13 +88,20 @@ public class TestCleanUp
         while ( iterator.hasNext() )
         {
             String key = (String) iterator.next();
-            boolean deleted = deleteEntity( (String) createdEntities.get( key ), key );
+            boolean deleted = deleteEntity( createdEntities.get( key ), key );
             if ( deleted )
             {
-                createdEntities.remove( key );
+                TestRunStorage.removeEntity( createdEntities.get( key ), key );
+                createdEntities.remove( createdEntities.get( key ), key );
             }
 
             new MaintenanceActions().removeSoftDeletedMetadata();
+        }
+
+        while ( deleteCount < 2 && !createdEntities.isEmpty() )
+        {
+            deleteCount++;
+            deleteCreatedEntities();
         }
 
         TestRunStorage.removeAllEntities();
@@ -144,7 +151,7 @@ public class TestCleanUp
     {
         ApiResponse response = new RestApiActions( resource ).delete( id + "?force=true" );
 
-        if ( response.statusCode() == 200 )
+        if ( response.statusCode() == 200 || response.statusCode() == 404 )
         {
             logger.info( String.format( "Entity from resource %s with id %s deleted", resource, id ) );
 

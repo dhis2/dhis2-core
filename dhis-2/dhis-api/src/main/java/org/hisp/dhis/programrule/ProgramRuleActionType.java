@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,11 @@ package org.hisp.dhis.programrule;
  */
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import java.util.Set;
+
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
 
 /**
  * @author Markus Bekken
@@ -42,20 +45,22 @@ public enum ProgramRuleActionType
     HIDEFIELD( "hidefield" ),
     HIDESECTION( "hidesection" ),
     HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
+    ASSIGN( "assign", ON_DATA_ENTRY, ON_COMPLETE ),
     SHOWWARNING( "showwarning" ),
     WARNINGONCOMPLETE( "warningoncomplete" ),
     SHOWERROR( "showerror" ),
     ERRORONCOMPLETE( "erroroncomplete" ),
     CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" ),
-    SENDMESSAGE( "sendmessage" ),
-    SCHEDULEMESSAGE( "schedulemessage" ),
+    SETMANDATORYFIELD( "setmandatoryfield", ON_DATA_ENTRY ),
+    SENDMESSAGE( "sendmessage", ON_DATA_ENTRY, ON_COMPLETE ),
+    SCHEDULEMESSAGE( "schedulemessage", ON_DATA_ENTRY, ON_COMPLETE ),
     HIDEOPTION( "hideoption" ),
     SHOWOPTIONGROUP( "showoptiongroup" ),
     HIDEOPTIONGROUP( "hideoptiongroup" );
 
     final String value;
+
+    final Set<ProgramRuleActionEvaluationTime> whenToRun;
 
     private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
         new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
@@ -69,6 +74,13 @@ public enum ProgramRuleActionType
     ProgramRuleActionType( String value )
     {
         this.value = value;
+        this.whenToRun = getAll();
+    }
+
+    ProgramRuleActionType( String value, ProgramRuleActionEvaluationTime... whenToRun )
+    {
+        this.value = value;
+        this.whenToRun = Sets.newHashSet( whenToRun );
     }
 
     public static ProgramRuleActionType fromValue( String value )

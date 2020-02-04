@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRule
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * The description of the program rule
@@ -89,7 +90,8 @@ public class ProgramRule
 
     }
 
-    public ProgramRule( String name, String description, Program program, ProgramStage programStage, Set<ProgramRuleAction> programRuleActions, String condition, Integer priority )
+    public ProgramRule( String name, String description, Program program, ProgramStage programStage,
+        Set<ProgramRuleAction> programRuleActions, String condition, Integer priority )
     {
         this.name = name;
         this.description = description;

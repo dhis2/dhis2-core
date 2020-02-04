@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.lang.reflect.Method;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -38,18 +40,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Method;
-
 /**
- * @author Trygve Laugst&oslash;l
+ * @author Trygve Laugstoel
  * @author Lars Helge Overland
  */
 @RunWith( SpringRunner.class )
 @ContextConfiguration( classes = UnitTestConfig.class )
-@ActiveProfiles( profiles = {"test-h2"} )
+@ActiveProfiles( profiles = { "test-h2" } )
 @Transactional
 public abstract class DhisSpringTest
-    extends DhisConvenienceTest
+    extends
+    DhisConvenienceTest
 {
     // -------------------------------------------------------------------------
     // ApplicationContextAware implementation

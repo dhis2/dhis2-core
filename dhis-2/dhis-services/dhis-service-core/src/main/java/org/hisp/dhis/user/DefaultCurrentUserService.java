@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,26 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -71,20 +74,26 @@ public class DefaultCurrentUserService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final CurrentUserStore currentUserStore;
+    private final UserStore userStore;
 
     private final Environment env;
-    
+
     private final CacheProvider cacheProvider;
 
-    public DefaultCurrentUserService( CurrentUserStore currentUserStore, Environment env, CacheProvider cacheProvider )
-    {
-        checkNotNull( currentUserStore );
-        checkNotNull( env );
+    private final SessionRegistry sessionRegistry;
 
-        this.currentUserStore = currentUserStore;
+    public DefaultCurrentUserService( Environment env, CacheProvider cacheProvider,
+        @Lazy SessionRegistry sessionRegistry, @Lazy UserStore userStore )
+    {
+        checkNotNull( env );
+        checkNotNull( cacheProvider );
+        checkNotNull( sessionRegistry );
+        checkNotNull( userStore );
+
         this.env = env;
         this.cacheProvider = cacheProvider;
+        this.sessionRegistry = sessionRegistry;
+        this.userStore = userStore;
     }
 
     // -------------------------------------------------------------------------
@@ -121,7 +130,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        return currentUserStore.getUser( userId );
+        return userStore.getUser( userId );
     }
 
     @Override
@@ -151,7 +160,7 @@ public class DefaultCurrentUserService
 
     private Long getUserId( String username )
     {
-        UserCredentials credentials = currentUserStore.getUserCredentialsByUsername( username );
+        UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
 
         return credentials != null ? credentials.getId() : null;
     }
@@ -181,5 +190,24 @@ public class DefaultCurrentUserService
         User user = getCurrentUser();
 
         return user != null && user.getUserCredentials().isAuthorized( auth );
+    }
+
+    @Override
+    public UserCredentials getCurrentUserCredentials()
+    {
+        return userStore.getUserCredentialsByUsername( getCurrentUsername() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public void expireUserSessions()
+    {
+        UserDetails userDetails = getCurrentUserDetails();
+
+        if ( userDetails != null )
+        {
+            List<SessionInformation> sessions = sessionRegistry.getAllSessions( userDetails, false );
+            sessions.forEach( SessionInformation::expireNow );
+        }
     }
 }

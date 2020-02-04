@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression.item;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public abstract class DimensionalItem
-    extends ExpressionItem
+    extends ExpressionServiceItem
 {
     @Override
     public final Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
@@ -78,7 +78,9 @@ public abstract class DimensionalItem
     @Override
     public final Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.getItemValue( getId( ctx ) );
+        Double value = visitor.getItemValueMap().get( getId( ctx ) );
+
+        return visitor.handleNulls( value );
     }
 
     /**

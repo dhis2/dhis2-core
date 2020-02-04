@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,27 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+
+import java.util.Date;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.DataQueryRequest;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 
 /**
  * @author Lars Helge Overland
@@ -66,14 +61,19 @@ public class AnalyticsController
     private static final String DATA_VALUE_SET_PATH = "/dataValueSet";
     private static final String RAW_DATA_PATH = "/rawData";
 
-    @Autowired
-    private DataQueryService dataQueryService;
+    private final DataQueryService dataQueryService;
 
-    @Autowired
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
-    @Autowired
-    private ContextUtils contextUtils;
+    private final ContextUtils contextUtils;
+
+    public AnalyticsController( DataQueryService dataQueryService, AnalyticsService analyticsService,
+        ContextUtils contextUtils )
+    {
+        this.dataQueryService = dataQueryService;
+        this.analyticsService = analyticsService;
+        this.contextUtils = contextUtils;
+    }
 
     // -------------------------------------------------------------------------
     // Resources
@@ -88,6 +88,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -114,17 +115,16 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
-            .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
-            .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
-            .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
-            .ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows ).hideEmptyColumns( hideEmptyColumns )
-            .showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
+        DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).filter( filter )
+            .aggregationType( aggregationType ).measureCriteria( measureCriteria )
+            .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
+            .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
+            .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
+            .hideEmptyColumns( hideEmptyColumns ).showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
-            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).order( order )
+            .timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -141,6 +141,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -177,7 +178,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -195,6 +197,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -231,7 +234,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -249,6 +253,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -285,7 +290,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -303,6 +309,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -339,7 +346,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -357,6 +365,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -393,7 +402,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -411,6 +421,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
@@ -437,7 +448,7 @@ public class AnalyticsController
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
-            .apiVersion( apiVersion ).order( order ).build();
+            .apiVersion( apiVersion ).order( order ).userOrgUnitType( userOrgUnitType ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -456,6 +467,7 @@ public class AnalyticsController
         @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) UserOrgUnitType userOrgUnitType,
         @RequestParam( required = false ) SortOrder order,
         @RequestParam( required = false ) String timeField,
         @RequestParam( required = false ) String orgUnitField,
@@ -492,7 +504,8 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).build();
+            .order( order ).timeField( timeField ).orgUnitField( orgUnitField ).userOrgUnitType( userOrgUnitType )
+            .build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 

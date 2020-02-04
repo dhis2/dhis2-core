@@ -1,7 +1,7 @@
 package org.hisp.dhis.render.type;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,5 +35,18 @@ public enum SectionRenderingType
 {
     LISTING,
     SEQUENTIAL,
-    MATRIX
+    MATRIX;
+
+    public static SectionRenderingType fromValue( String value )
+    {
+        for ( SectionRenderingType renderingType : SectionRenderingType.values() )
+        {
+            if ( renderingType.name().equalsIgnoreCase( value ) )
+            {
+                return renderingType;
+            }
+        }
+
+        return null;
+    }
 }

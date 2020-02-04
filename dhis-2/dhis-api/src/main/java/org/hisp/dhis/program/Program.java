@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -288,7 +288,7 @@ public class Program
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
         return programAttributes.stream()
-            .map( at -> at.getAttribute() )
+            .map( ProgramTrackedEntityAttribute::getAttribute )
             .collect( Collectors.toList() );
     }
 
@@ -323,7 +323,7 @@ public class Program
         {
             for ( ProgramStageDataElement element : stage.getProgramStageDataElements() )
             {
-                if ( dataElement.equals( element.getDataElement() ) )
+                if ( dataElement.getUid().equals( element.getDataElement().getUid() ) )
                 {
                     return true;
                 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -98,6 +99,14 @@ public interface ProgramStageInstanceService
      * @param uid the identifier.
      */
     boolean programStageInstanceExistsIncludingDeleted( String uid );
+
+    /**
+     * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of existing PSIs (including deleted)
+     */
+    List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids );
 
     /**
      * Returns a {@link ProgramStageInstance}.
@@ -169,8 +178,9 @@ public interface ProgramStageInstanceService
      * @param programStageInstance programStageInstance to which the EventDataValues belongs to
      * @param singleValue specifies whether the update is a single value update
      */
-    void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,Set<EventDataValue> removedDataValues,
-        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+    void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
+        Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
+        Cache<DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
 
     /**
      * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.

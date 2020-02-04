@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,15 @@ package org.hisp.dhis.sms.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 
+@JsonTypeName( "bulksms" )
 public class BulkSmsGatewayConfig
     extends SmsGatewayConfig
 {
@@ -43,6 +47,7 @@ public class BulkSmsGatewayConfig
 
     @Override
     @JsonProperty( value = "urlTemplate" )
+    @JsonView( SmsConfigurationViews.Public.class )
     public String getUrlTemplate()
     {
         return this.JSON_API_URL;

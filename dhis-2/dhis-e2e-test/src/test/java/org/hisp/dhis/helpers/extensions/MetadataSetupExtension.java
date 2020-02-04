@@ -31,9 +31,8 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -65,54 +64,53 @@ public class MetadataSetupExtension
         {
             started = true;
             logger.info( "Importing metadata for tests" );
+
+            // The following line registers a callback hook when the root test context is shut down
+            context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
+
             MetadataActions metadataActions = new MetadataActions();
 
             new LoginActions().loginAsDefaultUser();
 
-            metadataActions.importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
+            String[] files = {
+                "src/test/resources/setup/userGroups.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/users.json"
+            };
 
-            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
-            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+            String queryParams = "async=false";
+            for ( String fileName : files )
+            {
+                metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
 
-            metadataActions.importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
+                createdData.putAll( TestRunStorage.getCreatedEntities() );
 
+                iterateCreatedData( id -> {
+                    TestRunStorage.removeEntity( createdData.get( id ), id );
+                } );
 
-            createdData = TestRunStorage.getCreatedEntities();
-
-            iterateCreatedData( id -> {
-                TestRunStorage.removeEntity( createdData.get( id ), id );
-            } );
+            }
 
             setupSuperuser();
 
-            // The following line registers a callback hook when the root test context is shut down
-            context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
         }
     }
 
-    @Override
-    public void close()
+    private void setupSuperuser()
     {
-        TestCleanUp testCleanUp = new TestCleanUp();
-
-        iterateCreatedData( id -> {
-            testCleanUp.deleteEntity( createdData.get( id ), id );
-        } );
-
-    }
-
-    private void setupSuperuser( ) {
         logger.info( "Setting up super user" );
         UserActions userActions = new UserActions();
         String userRoleId = "yrB6vc5Ip7r";
-        String userGroupId= "OPVIvvXzNTw";
+        String userGroupId = "OPVIvvXzNTw";
 
-        String userId = userActions.get( "?username=" + ConfigurationHelper.SUPER_USER_USERNAME ).extractString("users.id[0]");
+        String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
+            .extractString( "users.id[0]" );
 
-        userActions.addUserToUserGroup( userId , userGroupId);
+        userActions.addUserToUserGroup( userId, userGroupId );
         userActions.addURoleToUser( userId, userRoleId );
 
-        TestRunStorage.removeEntity( "/users", userId);
+        TestRunStorage.removeEntity( "/users", userId );
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )
@@ -124,5 +122,17 @@ public class MetadataSetupExtension
             String id = (String) iterator.next();
             stringConsumer.accept( id );
         }
+    }
+
+    @Override
+    public void close()
+        throws Throwable
+    {
+        TestCleanUp testCleanUp = new TestCleanUp();
+
+        iterateCreatedData( id -> {
+            testCleanUp.deleteEntity( createdData.get( id ), id );
+        } );
+
     }
 }

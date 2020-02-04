@@ -1,7 +1,7 @@
 package org.hisp.dhis.node;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,15 @@ public final class NodeUtils
     public static RootNode createRootNode( Node node )
     {
         RootNode rootNode = new RootNode( node );
+        rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
+        rootNode.setNamespace( DxfNamespaces.DXF_2_0 );
+
+        return rootNode;
+    }
+
+    public static RootNode createEvents()
+    {
+        RootNode rootNode = new RootNode( "events" );
         rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
         rootNode.setNamespace( DxfNamespaces.DXF_2_0 );
 

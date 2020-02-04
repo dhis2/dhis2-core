@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -69,7 +71,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -142,6 +143,9 @@ public class MeController
 
     @Autowired
     private DataSetService dataSetService;
+
+    @Autowired
+    private DataApprovalLevelService approvalLevelService;
 
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>( Sets.newHashSet( UserSettingKey.values() ) );
 
@@ -230,11 +234,6 @@ public class MeController
 
         User user = renderService.fromJson( request.getInputStream(), User.class );
         merge( currentUser, user );
-
-        if ( user.getUserCredentials() != null )
-        {
-            updatePassword( currentUser, user.getUserCredentials().getPassword() );
-        }
 
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
@@ -334,27 +333,10 @@ public class MeController
         renderService.toJson( response.getOutputStream(), value );
     }
 
-    @RequestMapping( value = "/password", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = "text/*" )
-    public @ResponseBody RootNode changePassword( @RequestBody String password, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser == null )
-        {
-            throw new NotAuthenticatedException();
-        }
-
-        updatePassword( currentUser, password );
-        manager.update( currentUser );
-
-        return null;
-    }
-
-    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
+    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT, consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException
+        throws WebMessageException, NotAuthenticatedException, IOException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -380,6 +362,8 @@ public class MeController
 
         updatePassword( currentUser, newPassword );
         manager.update( currentUser );
+
+        currentUserService.expireUserSessions();
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
@@ -427,6 +411,15 @@ public class MeController
     public void updateInterpretationsLastRead()
     {
         interpretationService.updateCurrentUserLastChecked();
+    }
+
+    @RequestMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
+    public void getApprovalLevels( HttpServletResponse response ) throws IOException
+    {
+        List<DataApprovalLevel> approvalLevels = approvalLevelService.getUserDataApprovalLevels( currentUserService.getCurrentUser() );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoStore( response );
+        renderService.toJson( response.getOutputStream(), approvalLevels );
     }
 
     //------------------------------------------------------------------------------------------------
@@ -512,14 +505,6 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
-
-        if ( user.getUserCredentials() != null && currentUser.getUserCredentials() != null )
-        {
-            UserCredentials userCredentials = user.getUserCredentials();
-            currentUser.getUserCredentials().setOpenId( userCredentials.getOpenId() );
-            currentUser.getUserCredentials().setLdapId( userCredentials.getLdapId() );
-            currentUser.getUserCredentials().setTwoFA( userCredentials.isTwoFA() );
-        }
     }
 
     private void updatePassword( User currentUser, String password ) throws WebMessageException

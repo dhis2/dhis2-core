@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.events.eventdatavalue;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,12 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,15 +57,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Sets;
 
 /**
  * @author David Katuscak
@@ -86,13 +83,13 @@ public class DefaultEventDataValueService implements EventDataValueService
 
     @Override
     public void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache ) {
+                                  ImportOptions importOptions, ImportSummary importSummary, Cache<DataElement> dataElementCache ) {
 
         Map<String, EventDataValue> dataElementValueMap = getDataElementToEventDataValueMap( programStageInstance.getEventDataValues() );
 
         boolean validateMandatoryAttributes = doValidationOfMandatoryAttributes( importOptions.getUser() );
         if ( validateMandatoryAttributes && !validatePresenceOfMandatoryDataElements( event, programStageInstance,
-            dataElementsCache, importOptions, importSummary, singleValue ) )
+            dataElementCache, importOptions, importSummary, singleValue ) )
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.incrementIgnored();
@@ -103,6 +100,7 @@ public class DefaultEventDataValueService implements EventDataValueService
         Set<EventDataValue> newDataValues = new HashSet<>();
         Set<EventDataValue> updatedDataValues = new HashSet<>();
         Set<EventDataValue> removedDataValuesDueToEmptyValue = new HashSet<>();
+
         String fallbackStoredBy =
             AbstractEventService.getValidUsername( event.getStoredBy(), importSummary,
                 importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
@@ -110,7 +108,7 @@ public class DefaultEventDataValueService implements EventDataValueService
         for ( DataValue dataValue : event.getDataValues() )
         {
             String storedBy = !StringUtils.isEmpty( dataValue.getStoredBy() ) ? dataValue.getStoredBy() : fallbackStoredBy;
-            DataElement dataElement = dataElementsCache.get( dataValue.getDataElement() );
+            DataElement dataElement = dataElementCache.get( dataValue.getDataElement() ).orElse( null );
 
             if ( dataElement == null )
             {
@@ -125,7 +123,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             }
         }
 
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementsCache, programStageInstance, singleValue );
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementCache, programStageInstance, singleValue );
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
@@ -180,7 +178,7 @@ public class DefaultEventDataValueService implements EventDataValueService
     }
 
     private boolean validatePresenceOfMandatoryDataElements( Event event, ProgramStageInstance programStageInstance,
-        Map<String, DataElement> dataElementsCache, ImportOptions importOptions, ImportSummary importSummary,
+                                                             Cache<DataElement> dataElementsCache, ImportOptions importOptions, ImportSummary importSummary,
         boolean isSingleValueUpdate )
     {
         ValidationStrategy validationStrategy = programStageInstance.getProgramStage().getValidationStrategy();
@@ -196,7 +194,7 @@ public class DefaultEventDataValueService implements EventDataValueService
 
             Set<String> presentDataElements = event.getDataValues().stream()
                 .filter( dv -> dv != null && dv.getValue() != null && !dv.getValue().trim().isEmpty() && !dv.getValue().trim().equals( "null" ) )
-                .map( dv -> dataElementsCache.get( dv.getDataElement() ).getUid() )
+                .map( dv -> dataElementsCache.get( dv.getDataElement() ).get().getUid() )
                 .collect( Collectors.toSet() );
 
             // When the request is update, then only changed data values can be in the payload and so I should take into
@@ -216,7 +214,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             if ( notPresentMandatoryDataElements.size() > 0 )
             {
                 notPresentMandatoryDataElements.stream()
-                    .map( dataElementsCache::get )
+                    .map( i -> dataElementsCache.get( i ).get() )
                     .forEach( de -> importSummary.getConflicts().add(
                         new ImportConflict( getDataElementIdentificator( de, importOptions.getIdSchemes().getDataElementIdScheme() ),
                             "value_required_but_not_provided" ) ) );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 
 /**
  * Holds the DimensionItemType of a DimensionalItemObject, and the identifier
@@ -118,6 +120,12 @@ public class DimensionalItemId
             default:
                 return false;
         }
+    }
+
+    public boolean isDataElementOrOperand()
+    {
+        return dimensionItemType == DATA_ELEMENT
+            || dimensionItemType == DATA_ELEMENT_OPERAND;
     }
 
     // -------------------------------------------------------------------------

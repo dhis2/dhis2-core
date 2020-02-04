@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,8 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -140,6 +142,10 @@ public class Metadata
     private List<Option> options = new ArrayList<>();
 
     private List<OptionSet> optionSets = new ArrayList<>();
+
+    private List<OptionGroup> optionGroups = new ArrayList<>();
+
+    private List<OptionGroupSet> optionGroupSets = new ArrayList<>();
 
     private List<Category> categories = new ArrayList<>();
 
@@ -423,6 +429,32 @@ public class Metadata
     public void setOptionSets( List<OptionSet> optionSets )
     {
         this.optionSets = optionSets;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "optionGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0 )
+    public List<OptionGroup> getOptionGroups()
+    {
+        return optionGroups;
+    }
+
+    public void setOptionGroups( List<OptionGroup> optionGroups )
+    {
+        this.optionGroups = optionGroups;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "optionGroupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "optionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public List<OptionGroupSet> getOptionGroupSets()
+    {
+        return optionGroupSets;
+    }
+
+    public void setOptionGroupSets( List<OptionGroupSet> optionGroupSets )
+    {
+        this.optionGroupSets = optionGroupSets;
     }
 
     @JsonProperty
@@ -1180,6 +1212,8 @@ public class Metadata
             ", userGroups=" + userGroups +
             ", interpretations=" + interpretations +
             ", optionSets=" + optionSets +
+            ", optionGroups=" + optionGroups +
+            ", optionGroupSets=" + optionGroupSets +
             ", categories=" + categories +
             ", categoryOptions=" + categoryOptions +
             ", categoryCombos=" + categoryCombos +

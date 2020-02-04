@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.database;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ public class HibernateDatabaseInfoProviderTest
         Mockito.when( resultSet.getString( Mockito.eq( 3 ) ) ).thenReturn( "dhis" );
 
         Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select version(),current_catalog,current_user" ), Mockito.isA( RowMapper.class ) ) )
-            .thenAnswer( invocation -> ( (RowMapper) invocation.getArgument( 1 ) ).mapRow( resultSet, 1 ) );
+            .thenAnswer( invocation -> ( (RowMapper<?>) invocation.getArgument( 1 ) ).mapRow( resultSet, 1 ) );
 
         provider.init();
 

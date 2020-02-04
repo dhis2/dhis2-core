@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.spring2fa;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,7 +108,7 @@ public class TwoFactorAuthenticationProvider
             String ip = authDetails.getIp();
             String code = StringUtils.deleteWhitespace( authDetails.getCode() );
 
-            if ( securityService.isLocked( ip ) )
+            if ( securityService.isLocked( username ) )
             {
                 log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
 
@@ -129,7 +129,7 @@ public class TwoFactorAuthenticationProvider
 
         Authentication result = super.authenticate( auth );
 
-        // Put detached state of the user credentials into the session as user 
+        // Put detached state of the user credentials into the session as user
         // credentials must not be updated during session execution
 
         userCredentials = SerializationUtils.clone( userCredentials );

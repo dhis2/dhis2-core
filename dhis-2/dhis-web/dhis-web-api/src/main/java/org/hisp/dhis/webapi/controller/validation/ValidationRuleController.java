@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -101,7 +103,7 @@ public class ValidationRuleController
     {
         I18n i18n = i18nManager.getI18n();
 
-        ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( expression );
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, VALIDATION_RULE_EXPRESSION );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
         message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
@@ -109,7 +111,7 @@ public class ValidationRuleController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getValidationRuleExpressionDescription( expression ) );
+            message.setDescription( expressionService.getExpressionDescription( expression, VALIDATION_RULE_EXPRESSION ) );
         }
 
         webMessageService.sendJson( message, response );

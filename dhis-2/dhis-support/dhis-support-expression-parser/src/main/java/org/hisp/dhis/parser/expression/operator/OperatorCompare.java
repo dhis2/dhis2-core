@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.operator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,31 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.InternalParserException;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.ComputeFunction;
+
+import java.util.List;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression compare operator
+ * Abstract class for compare operators
  *
  * @author Jim Grace
  */
 public abstract class OperatorCompare
-    extends AbstractExpressionFunction
+    extends ComputeFunction
 {
     /**
      * Compares two Doubles, Strings or Booleans.
      *
-     * @param ctx expr context
+     * @param values the values to compare
      * @return the results of the comparision.
      */
-    protected int compare( ExprContext ctx, CommonExpressionVisitor visitor )
+    protected int compare( List<Object> values )
     {
-        Object o1 = visitor.visit( ctx.expr( 0 ) );
-        Object o2 = visitor.visit( ctx.expr( 1 ) );
+        Object o1 = values.get( 0 );
+        Object o2 = values.get( 1 );
 
         if ( o1 == null || o2 == null )
         {

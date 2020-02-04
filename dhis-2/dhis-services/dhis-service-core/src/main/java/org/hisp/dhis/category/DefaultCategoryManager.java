@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,7 +118,6 @@ public class DefaultCategoryManager
 
                 iterator.remove();
                 categoryCombo.getOptionCombos().remove( persistedOptionCombo );
-                categoryService.deleteCategoryOptionCombo( persistedOptionCombo );
 
                 log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: " + categoryCombo.getName() );
                 modified = true;

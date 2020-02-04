@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,12 @@ import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -44,6 +47,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.*;
+import org.hisp.dhis.parser.expression.function.*;
 import org.hisp.dhis.parser.expression.item.ItemConstant;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.program.function.*;
@@ -84,6 +88,12 @@ public class  DefaultProgramIndicatorService
     private I18nManager i18nManager;
 
     private RelationshipTypeService relationshipTypeService;
+
+    private static Cache<String> ANALYTICS_SQL_CACHE = new SimpleCacheBuilder<String>().forRegion( "analyticsSql" )
+        .expireAfterAccess( 10, TimeUnit.HOURS )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
@@ -142,32 +152,32 @@ public class  DefaultProgramIndicatorService
 
         // Program functions
 
-        .put( D2_CONDITION, new d2Condition() )
-        .put( D2_COUNT, new d2Count() )
-        .put( D2_COUNT_IF_CONDITION, new d2CountIfCondition() )
-        .put( D2_COUNT_IF_VALUE, new d2CountIfValue() )
-        .put( D2_DAYS_BETWEEN, new d2DaysBetween() )
-        .put( D2_HAS_VALUE, new d2HasValue() )
-        .put( D2_MAX_VALUE, new d2MaxValue() )
-        .put( D2_MINUTES_BETWEEN, new d2MinutesBetween() )
-        .put( D2_MIN_VALUE, new d2MinValue() )
-        .put( D2_MONTHS_BETWEEN, new d2MonthsBetween() )
-        .put( D2_OIZP, new d2Oizp() )
-        .put( D2_RELATIONSHIP_COUNT, new d2RelationshipCount() )
-        .put( D2_WEEKS_BETWEEN, new d2WeeksBetween() )
-        .put( D2_YEARS_BETWEEN, new d2YearsBetween() )
-        .put( D2_ZING, new d2Zing() )
-        .put( D2_ZPVC, new d2Zpvc() )
+        .put( D2_CONDITION, new D2Condition() )
+        .put( D2_COUNT, new D2Count() )
+        .put( D2_COUNT_IF_CONDITION, new D2CountIfCondition() )
+        .put( D2_COUNT_IF_VALUE, new D2CountIfValue() )
+        .put( D2_DAYS_BETWEEN, new D2DaysBetween() )
+        .put( D2_HAS_VALUE, new D2HasValue() )
+        .put( D2_MAX_VALUE, new D2MaxValue() )
+        .put( D2_MINUTES_BETWEEN, new D2MinutesBetween() )
+        .put( D2_MIN_VALUE, new D2MinValue() )
+        .put( D2_MONTHS_BETWEEN, new D2MonthsBetween() )
+        .put( D2_OIZP, new D2Oizp() )
+        .put( D2_RELATIONSHIP_COUNT, new D2RelationshipCount() )
+        .put( D2_WEEKS_BETWEEN, new D2WeeksBetween() )
+        .put( D2_YEARS_BETWEEN, new D2YearsBetween() )
+        .put( D2_ZING, new D2Zing() )
+        .put( D2_ZPVC, new D2Zpvc() )
 
         // Program functions for custom aggregation
 
-        .put( AVG, new aggAvg() )
-        .put( COUNT, new aggCount() )
-        .put( MAX, new aggMax() )
-        .put( MIN, new aggMin() )
-        .put( STDDEV, new aggStddev() )
-        .put( SUM, new aggSum() )
-        .put( VARIANCE, new aggVariance() )
+        .put( AVG, new VectorAvg() )
+        .put( COUNT, new VectorCount() )
+        .put( MAX, new VectorMax() )
+        .put( MIN, new VectorMin() )
+        .put( STDDEV, new VectorStddevSamp() )
+        .put( SUM, new VectorSum() )
+        .put( VARIANCE, new VectorVariance() )
 
         .build();
 
@@ -178,6 +188,7 @@ public class  DefaultProgramIndicatorService
         .put( A_BRACE, new ProgramItemAttribute() )
 
         .build();
+
     // -------------------------------------------------------------------------
     // ProgramIndicator CRUD
     // -------------------------------------------------------------------------
@@ -293,7 +304,7 @@ public class  DefaultProgramIndicatorService
     @Transactional( readOnly = true )
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
-        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, null );
+        return getAnalyticsSqlCached( expression, programIndicator, startDate, endDate, null );
     }
 
     @Override
@@ -301,16 +312,32 @@ public class  DefaultProgramIndicatorService
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
         String tableAlias )
     {
-        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias );
+        return getAnalyticsSqlCached( expression, programIndicator, startDate, endDate, tableAlias );
     }
-    
-    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+
+    private String getAnalyticsSqlCached( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         if ( expression == null )
         {
             return null;
         }
 
+        String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate, tableAlias );
+
+        return ANALYTICS_SQL_CACHE.get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) ).orElse( null );
+    }
+
+    private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+    {
+        return expression
+            + "|" + programIndicator.getUid()
+            + "|" + startDate.getTime()
+            + "|" + endDate.getTime()
+            + "|" + ( tableAlias == null ? "" : tableAlias );
+    }
+
+    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
+    {
         Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
 
         CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
@@ -416,7 +443,7 @@ public class  DefaultProgramIndicatorService
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantService.getConstantMap() )
             .withProgramIndicatorService( this )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )
@@ -424,6 +451,7 @@ public class  DefaultProgramIndicatorService
             .withRelationshipTypeService( relationshipTypeService )
             .withStatementBuilder( statementBuilder )
             .withI18n( i18nManager.getI18n() )
+            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
             .buildForProgramIndicatorExpressions();
     }
 

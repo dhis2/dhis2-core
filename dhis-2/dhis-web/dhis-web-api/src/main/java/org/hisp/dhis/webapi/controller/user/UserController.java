@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -421,6 +421,22 @@ public class UserController
         webMessageService.send( WebMessageUtils.created( "User replica created" ), response, request );
     }
 
+    @RequestMapping(value = "/{uid}/enabled", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void enableUser( @PathVariable("uid") String uid )
+        throws Exception
+    {
+        setDisabled( uid, false );
+    }
+
+    @RequestMapping(value = "/{uid}/disabled", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void disableUser( @PathVariable("uid") String uid )
+        throws Exception
+    {
+        setDisabled( uid, true );
+    }
+
     // -------------------------------------------------------------------------
     // PUT
     // -------------------------------------------------------------------------
@@ -555,6 +571,18 @@ public class UserController
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+    }
+
+    @Override
+    protected void postPatchEntity( User entity )
+    {
+        UserCredentials credentials = entity.getUserCredentials();
+
+        // Make sure we always expire all of the user's active sessions if we have disabled the user.
+        if ( credentials != null && credentials.isDisabled() )
+        {
+            userService.expireActiveSessions( credentials );
         }
     }
 
@@ -755,5 +783,43 @@ public class UserController
         }
 
         return target;
+    }
+
+    /**
+     * Either disable or enable a user account
+     *
+     * @param uid the unique id of the user to enable or disable
+     * @param disable boolean value, true for disable, false for enable
+     * @throws WebMessageException thrown if "current" user is not allowed to modify the user
+     */
+    private void setDisabled( String uid, boolean disable )
+        throws WebMessageException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        User userToModify = userService.getUser( uid );
+
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+
+        UserCredentials credentials = userToModify.getUserCredentials();
+        if ( credentials.isDisabled() != disable )
+        {
+            credentials.setDisabled( disable );
+            userService.updateUserCredentials( credentials );
+        }
+
+        if ( disable )
+        {
+            userService.expireActiveSessions( credentials );
+        }
     }
 }

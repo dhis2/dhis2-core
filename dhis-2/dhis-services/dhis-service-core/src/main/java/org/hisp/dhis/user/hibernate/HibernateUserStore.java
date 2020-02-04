@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,32 @@ package org.hisp.dhis.user.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -266,7 +269,7 @@ public class HibernateUserStore
             hql += "order by " + StringUtils.defaultString( orderExpression, "u.surname, u.firstName" );
         }
 
-        Query query = sessionFactory.getCurrentSession().createQuery( hql );
+        Query query = getQuery( hql );
 
         if ( params.getQuery() != null )
         {
@@ -354,5 +357,28 @@ public class HibernateUserStore
     {
         Query<Long> query = getTypedQuery( "select count(*) from User" );
         return query.uniqueResult().intValue();
+    }
+
+    @Override
+    public User getUser( long id )
+    {
+        return sessionFactory.getCurrentSession().get( User.class, id );
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsByUsername( String username )
+    {
+        if ( username == null )
+        {
+            return null;
+        }
+
+        String hql = "from UserCredentials uc where uc.username = :username";
+
+        TypedQuery<UserCredentials> typedQuery = sessionFactory.getCurrentSession().createQuery( hql, UserCredentials.class );
+        typedQuery.setParameter( "username", username );
+        typedQuery.setHint( QueryHints.CACHEABLE, true );
+
+        return QueryUtils.getSingleResult( typedQuery );
     }
 }

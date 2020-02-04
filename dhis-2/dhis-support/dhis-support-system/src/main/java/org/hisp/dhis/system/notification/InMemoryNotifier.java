@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.notification;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,9 +112,12 @@ public class InMemoryNotifier implements Notifier
         {
             if ( lastId != null && lastId.equals( notification.getUid() ) )
             {
+                if ( list.isEmpty() )
+                {
+                    list.add( notification );
+                }
                 break;
             }
-
             list.add( notification );
         }
 

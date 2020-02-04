@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,8 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import java.util.Set;
 
 /**
  * @author Markus Bekken
@@ -179,6 +182,21 @@ public class ProgramRuleAction
      */
     private OptionGroup optionGroup;
 
+    /**
+     * The time when the rule is going to be evaluated. This field is used to run only the rules that
+     * makes sense at each stage of the rule validation.
+     * Default to {@link ProgramRuleActionEvaluationTime#ALWAYS}
+     */
+    private ProgramRuleActionEvaluationTime programRuleActionEvaluationTime = ProgramRuleActionEvaluationTime.ALWAYS;
+
+    /**
+     * The environments where the rule is going to be evaluated. This field is used to run only the rules that
+     * makes sense in each environment.
+     * Default to {@link ProgramRuleActionEvaluationEnvironment#getDefault()}
+     */
+    private Set<ProgramRuleActionEvaluationEnvironment> programRuleActionEvaluationEnvironments = ProgramRuleActionEvaluationEnvironment
+        .getDefault();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -207,6 +225,19 @@ public class ProgramRuleAction
         this.data = data;
         this.option = option;
         this.optionGroup = optionGroup;
+    }
+
+    public ProgramRuleAction( String name, ProgramRule programRule, ProgramRuleActionType programRuleActionType,
+        DataElement dataElement, TrackedEntityAttribute attribute,
+        ProgramStageSection programStageSection, ProgramStage programStage,
+        ProgramIndicator programIndicator, String location, String content, String data,
+        Option option, OptionGroup optionGroup, ProgramRuleActionEvaluationTime evaluationTime,
+        Set<ProgramRuleActionEvaluationEnvironment> environments )
+    {
+        this( name, programRule, programRuleActionType, dataElement, attribute, programStageSection, programStage,
+            programIndicator, location, content, data, option, optionGroup );
+        this.programRuleActionEvaluationTime = evaluationTime;
+        this.programRuleActionEvaluationEnvironments = environments;
     }
 
     // -------------------------------------------------------------------------
@@ -407,5 +438,32 @@ public class ProgramRuleAction
     public void setOptionGroup( OptionGroup optionGroup )
     {
         this.optionGroup = optionGroup;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "evaluationTime", namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramRuleActionEvaluationTime getProgramRuleActionEvaluationTime()
+    {
+        return programRuleActionEvaluationTime;
+    }
+
+    public void setProgramRuleActionEvaluationTime( ProgramRuleActionEvaluationTime programRuleActionEvaluationTime )
+    {
+        this.programRuleActionEvaluationTime = programRuleActionEvaluationTime;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "evaluationEnvironments", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "evaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramRuleActionEvaluationEnvironment> getProgramRuleActionEvaluationEnvironments()
+    {
+        return programRuleActionEvaluationEnvironments;
+    }
+
+    public void setProgramRuleActionEvaluationEnvironments(
+        Set<ProgramRuleActionEvaluationEnvironment> programRuleActionEvaluationEnvironments )
+    {
+        this.programRuleActionEvaluationEnvironments = programRuleActionEvaluationEnvironments;
     }
 }

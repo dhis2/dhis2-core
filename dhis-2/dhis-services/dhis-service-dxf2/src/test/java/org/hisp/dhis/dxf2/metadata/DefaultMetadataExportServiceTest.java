@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,6 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.stubbing.Answer;
@@ -105,16 +104,12 @@ public class DefaultMetadataExportServiceTest
         service = Mockito.spy( service );
         Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
 
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) ).then( new Answer<CollectionNode>()
+        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) ).then((Answer<CollectionNode>) invocation ->
         {
-            @Override
-            public CollectionNode answer( InvocationOnMock invocation )
-            {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertFalse( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            }
-        } );
+            FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
+            Assert.assertFalse( fieldFilterParams.getSkipSharing() );
+            return new CollectionNode( "test" );
+        });
 
         MetadataExportParams params = new MetadataExportParams();
         service.getMetadataWithDependenciesAsNode( attribute, params );
@@ -133,16 +128,12 @@ public class DefaultMetadataExportServiceTest
         service = Mockito.spy( service );
         Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
 
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) ).then( new Answer<CollectionNode>()
+        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) ).then((Answer<CollectionNode>) invocation ->
         {
-            @Override
-            public CollectionNode answer( InvocationOnMock invocation )
-            {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertTrue( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            }
-        } );
+            FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
+            Assert.assertTrue( fieldFilterParams.getSkipSharing() );
+            return new CollectionNode( "test" );
+        });
 
         MetadataExportParams params = new MetadataExportParams();
         params.setSkipSharing( true );
@@ -188,8 +179,6 @@ public class DefaultMetadataExportServiceTest
     @Test
     public void getParamsFromMapNoSecondary()
     {
-        Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
-            .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
         Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
             .thenReturn( new Schema( Option.class, "option", "options" ) );
 

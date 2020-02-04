@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,6 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.Lists;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
@@ -50,7 +48,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -137,35 +134,7 @@ public class AttributeValueServiceTest
         assertNotNull( dataElementB.getAttributeValue( attribute2 ) );
     }
 
-    @Test
-    public void testUpdateAttributeValue() throws NonUniqueAttributeValueException
-    {
-        AttributeValue avA = new AttributeValue( "valueA", attribute1 );
-        AttributeValue avB = new AttributeValue( "valueB", attribute2 );
-
-        attributeService.addAttributeValue( dataElementA, avA );
-        attributeService.addAttributeValue( dataElementB, avB );
-
-        avA.setValue( "updated value 1" );
-        avB.setValue( "updated value 2" );
-
-        attributeService.updateAttributeValue( dataElementA, avA );
-        attributeService.updateAttributeValue( dataElementB, avB );
-
-        DataElement deA = dataElementStore.get( dataElementA.getId() );
-        DataElement deB = dataElementStore.get( dataElementB.getId() );
-
-        avA = deA.getAttributeValue( attribute1 );
-        avB = deB.getAttributeValue( attribute2 );
-
-        assertNotNull( avA );
-        assertNotNull( avB );
-
-        assertEquals( "updated value 1", avA.getValue() );
-        assertEquals( "updated value 2", avB.getValue() );
-    }
-
-    @Test
+   @Test
     public void testDeleteAttributeValue()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
@@ -250,50 +219,6 @@ public class AttributeValueServiceTest
 
         AttributeValue attributeValueB = new AttributeValue( "A", attribute );
         attributeService.addAttributeValue( dataElementB, attributeValueB );
-    }
-
-    @Test( expected = NonUniqueAttributeValueException.class )
-    public void testUpdateNonUniqueAttributeValue() throws NonUniqueAttributeValueException
-    {
-        Attribute attribute = new Attribute( "ID", ValueType.TEXT );
-        attribute.setUnique( true );
-        attribute.setDataElementAttribute( true );
-
-        attributeService.addAttribute( attribute );
-
-        AttributeValue attributeValueA = new AttributeValue( "A", attribute );
-        attributeService.addAttributeValue( dataElementA, attributeValueA );
-
-        AttributeValue attributeValueB = new AttributeValue( "B", attribute );
-        attributeService.addAttributeValue( dataElementB, attributeValueB );
-
-        attributeValueB.setValue( "A" );
-        attributeService.updateAttributeValue( dataElementB, attributeValueB );
-    }
-
-    @Test
-    public void testGetJsonAttributeValues() throws Exception
-    {
-
-        Attribute attribute1 = new Attribute( "attribute1", ValueType.TEXT );
-        attribute1.setDataElementAttribute( true );
-        attributeService.addAttribute( attribute1 );
-
-        AttributeValue av = new AttributeValue( "value1", attribute1 );
-        attributeService.addAttributeValue( dataElementA, av );
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode node = mapper.createObjectNode();
-        node.put( "id",attribute1.getUid() );
-        node.put( "value", "updatedvalue1" );
-
-        List<String> jsonValues  = new ArrayList<>();
-        jsonValues.add( node.toString() );
-
-        attributeService.updateAttributeValues( dataElementA, jsonValues );
-
-        assertEquals( "updatedvalue1", dataElementA.getAttributeValue( av.getAttribute() ).getValue() );
     }
 
     @Test

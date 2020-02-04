@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,35 @@ import java.util.List;
  */
 public interface PredictionService
 {
+    /**
+     * Executes a predictor job run
+     *
+     * @param predictorJobParameters parameters for the predictor job run
+     * @param jobId associated with the task running (for notifier)
+     * @return a summary of what was predicted
+     */
     PredictionSummary predictJob( PredictorJobParameters predictorJobParameters, JobConfiguration jobId );
 
+    /**
+     * Executes predictors and/or predictor groups for a date range
+     *
+     * @param startDate the start date of the predictor run
+     * @param endDate the end date of the predictor run
+     * @param predictors predictor(s) to run
+     * @param predictorGroups predictor group(s) to run
+     * @param jobId associated with the task running (for notifier)
+     * @return a summary of what was predicted
+     */
     PredictionSummary predictTask( Date startDate, Date endDate,
         List<String> predictors, List<String> predictorGroups, JobConfiguration jobId );
 
+    /**
+     * Executes a single predictor for a date range
+     *
+     * @param predictor the predictor to run
+     * @param startDate the start date of the predictor run
+     * @param endDate the end date of the predictor run
+     * @param predictionSummary the prediction summary to add to
+     */
     void predict( Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary );
 }

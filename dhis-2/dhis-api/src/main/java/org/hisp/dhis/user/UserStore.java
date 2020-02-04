@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,4 +76,18 @@ public interface UserStore
     int getUserCount();
 
     List<User> getExpiringUsers( UserQueryParams userQueryParams );
+
+    /**
+     * Returns UserCredentials for given username
+     * @param username username for which the UserCredentials will be returned
+     * @return UserCredentials for given username or null
+     */
+    UserCredentials getUserCredentialsByUsername( String username );
+
+    /**
+     * Returns User with given userId
+     * @param userId UserId
+     * @return User with given userId
+     */
+    User getUser( long userId );
 }

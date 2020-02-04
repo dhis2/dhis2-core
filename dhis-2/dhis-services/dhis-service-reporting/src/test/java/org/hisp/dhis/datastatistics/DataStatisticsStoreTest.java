@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,10 +63,10 @@ public class DataStatisticsStoreTest
     public void setUpTest() throws Exception
     {
         ds1 = new DataStatistics();
-        ds2 = new DataStatistics( 2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 8.0, 11.0, 12.0, 13.0, 14.0, 11.0, 15.0, 16.0, 17.0, 11.0, 10, 18 );
-        ds3 = new DataStatistics( 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 12.0, 13.0, 14.0, 15.0, 12.0, 16.0, 17.0, 18.0, 11.0, 10, 19 );
-        ds4 = new DataStatistics( 2.0, 1.0, 6.0, 5.0, 4.0, 8.0, 10.0, 4.0, 4.0, 5.0, 9.0, 7.0, 14.0, 6.0, 4.0, 11.9, 3, 2 );
-        ds5 = new DataStatistics( 6.0, 4.0, 3.0, 5.0, 7.0, 8.0, 10.0, 1.6, 5.5, 6.4, 8.3, 8.2, 16.0, 9.4, 9.6, 11.0, 5, 9 );
+        ds2 = new DataStatistics( 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 8.0, 11.0, 12.0, 13.0, 14.0, 11.0, 15.0, 16.0, 17.0, 11.0, 10, 18 );
+        ds3 = new DataStatistics( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 12.0, 13.0, 14.0, 15.0, 12.0, 16.0, 17.0, 18.0, 11.0, 10, 19 );
+        ds4 = new DataStatistics( 1.0, 1.5, 2.0, 1.0, 6.0, 5.0, 4.0, 8.0, 10.0, 4.0, 4.0, 5.0, 9.0, 7.0, 14.0, 6.0, 4.0, 11.9, 3, 2 );
+        ds5 = new DataStatistics( 3.0, 3.5, 6.0, 4.0, 3.0, 5.0, 7.0, 8.0, 10.0, 1.6, 5.5, 6.4, 8.3, 8.2, 16.0, 9.4, 9.6, 11.0, 5, 9 );
 
         ds1Id = 0;
         ds2Id = 0;

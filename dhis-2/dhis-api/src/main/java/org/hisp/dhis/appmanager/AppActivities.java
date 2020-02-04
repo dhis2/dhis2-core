@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,17 @@ package org.hisp.dhis.appmanager;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import java.io.Serializable;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Saptarshi
  */
+@JacksonXmlRootElement( localName = "appActivities", namespace = DxfNamespaces.DXF_2_0 )
 public class AppActivities
     implements Serializable
 {
@@ -43,6 +49,7 @@ public class AppActivities
     private static final long serialVersionUID = 7530768303537807631L;
 
     @JsonProperty( "dhis" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private AppDhis dhis;
 
     public AppDhis getDhis()

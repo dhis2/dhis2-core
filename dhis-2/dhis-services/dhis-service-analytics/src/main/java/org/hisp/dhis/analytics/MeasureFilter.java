@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,38 @@ package org.hisp.dhis.analytics;
 
 /**
  * Filter operators for measures.
- * 
+ *
  * @author Lars Helge Overland
  */
 public enum MeasureFilter
 {
-    EQ, GT, GE, LT, LE;
+    EQ,
+    GT,
+    GE,
+    LT,
+    LE;
 
     /**
-     * Checks whether the measureFilter is valid for x and y as the values for comparison
-     * 
-     * @param x The first double value to be compared
-     * @param y The second double value to be compared
-     * @return true if the constraint/filter is valid when x is compared
-     *         with y.
+     * Tests whether the measureFilter is valid for x and y as the values for comparison.
+     *
+     * @param x The first double value to be compared.
+     * @param y The second double value to be compared.
+     * @return true if the constraint/filter is valid when x is compared with y.
      */
     public boolean measureIsValid( Double x, Double y )
     {
         switch ( this )
         {
         case EQ:
-
             return Double.compare( x, y ) == 0;
-
         case GT:
-
             return Double.compare( x, y ) > 0;
-
         case GE:
-
             return Double.compare( x, y ) >= 0;
-
         case LT:
-
             return Double.compare( x, y ) < 0;
-
         case LE:
-
             return Double.compare( x, y ) <= 0;
-
         default:
             return false;
         }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,16 @@ package org.hisp.dhis.user;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.junit.Test;
-
-import javax.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import static org.junit.Assert.*;
 
 public class UserAuthorityGroupTest
     extends DhisSpringTest
 {
-    @Resource(name="org.hisp.dhis.user.UserAuthorityGroupStore")
+    @Autowired
+    @Qualifier( "org.hisp.dhis.user.UserAuthorityGroupStore" )
     private IdentifiableObjectStore<UserAuthorityGroup> userAuthorityGroupStore;
 
     @Test
@@ -48,7 +49,7 @@ public class UserAuthorityGroupTest
         UserAuthorityGroup roleA = createUserAuthorityGroup( 'A' );
         UserAuthorityGroup roleB = createUserAuthorityGroup( 'B' );
         UserAuthorityGroup roleC = createUserAuthorityGroup( 'C' );
-        
+
         userAuthorityGroupStore.save( roleA );
         long idA = roleA.getId();
 
@@ -58,7 +59,7 @@ public class UserAuthorityGroupTest
         userAuthorityGroupStore.save( roleC );
         long idC = roleC.getId();
 
-            assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
+        assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );
         assertEquals( roleC, userAuthorityGroupStore.get( idC ) );
     }
@@ -78,13 +79,13 @@ public class UserAuthorityGroupTest
 
         userAuthorityGroupStore.save( roleC );
         long idC = roleC.getId();
-        
+
         assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );
         assertEquals( roleC, userAuthorityGroupStore.get( idC ) );
-        
+
         userAuthorityGroupStore.delete( roleB );
-        
+
         assertNotNull( userAuthorityGroupStore.get( idA ) );
         assertNull( userAuthorityGroupStore.get( idB ) );
         assertNotNull( userAuthorityGroupStore.get( idA ) );

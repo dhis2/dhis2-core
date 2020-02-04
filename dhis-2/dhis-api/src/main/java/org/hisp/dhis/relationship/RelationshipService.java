@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Abyot Asalefew
@@ -72,6 +73,18 @@ public interface RelationshipService
      * @return the relationship with the given identifier.
      */
     Relationship getRelationship( long id );
+
+    /**
+     * Fetches a {@see Relationship} based on a relationship identifying attributes:
+     *
+     * - relationship type
+     * - from
+     * - to
+     *
+     * @param relationship A valid Relationship
+     * @return an Optional Relationship
+     */
+    Optional<Relationship> getRelationshipByRelationship( Relationship relationship );
 
     Relationship getRelationship( String uid );
 

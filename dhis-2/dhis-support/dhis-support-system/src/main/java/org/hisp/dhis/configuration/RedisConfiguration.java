@@ -1,7 +1,7 @@
 package org.hisp.dhis.configuration;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -55,12 +58,17 @@ public class RedisConfiguration
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory()
     {
-        LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-        connectionFactory.setHostName( (String) redisHost().getObject() );
-        connectionFactory.setPassword( (String) redisPassword().getObject() );
-        connectionFactory.setPort( Integer.parseInt( (String) redisPort().getObject() ) );
-        connectionFactory.setUseSsl( Boolean.parseBoolean( (String) redisSslEnabled().getObject() ) );
-        return connectionFactory;
+        LettuceClientConfigurationBuilder builder = LettuceClientConfiguration.builder();
+        if(Boolean.parseBoolean( (String) redisSslEnabled().getObject()))
+        {
+            builder.useSsl();
+        }
+        LettuceClientConfiguration clientConfiguration = builder.build();
+        RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration();
+        standaloneConfig.setHostName( (String) redisHost().getObject() );
+        standaloneConfig.setPassword( (String) redisPassword().getObject() );
+        standaloneConfig.setPort( Integer.parseInt( (String) redisPort().getObject() ) );
+        return new LettuceConnectionFactory( standaloneConfig, clientConfiguration );
     }
 
     @Bean

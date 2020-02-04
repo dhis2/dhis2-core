@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.util;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.analytics.util;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -177,12 +177,23 @@ public class AnalyticsTableAsserter
 
         public Builder addColumn( String name, ColumnDataType dataType, String alias )
         {
-            return addColumnUnquoted( quote( name ), dataType, alias );
+            return addColumnUnquoted( quote( name ), dataType, alias, null );
         }
 
-        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias )
+        public Builder addColumn( String name, ColumnDataType dataType, String alias, String indexType )
+        {
+            return addColumnUnquoted( quote( name ), dataType, alias, indexType );
+        }
+
+        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias, String indexType )
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
+            
+            if ( indexType != null ) 
+            {
+                col.withIndexType( indexType );
+            }
+            
             this._columns.add( col );
 
             return this;

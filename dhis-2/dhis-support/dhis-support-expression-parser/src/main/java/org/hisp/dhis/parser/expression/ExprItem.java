@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,4 +85,14 @@ public interface ExprItem
      * @return the generated SQL (as a String) for the function
      */
     Object getSql( ItemContext ctx, CommonExpressionVisitor visitor );
+
+    /**
+     * Regenerates the original item syntax from the parse tree,
+     * or in some cases substitutes a value if one is present.
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return the regenerated expression (as a String) for the function
+     */
+    Object regenerate( ItemContext ctx, CommonExpressionVisitor visitor );
 }

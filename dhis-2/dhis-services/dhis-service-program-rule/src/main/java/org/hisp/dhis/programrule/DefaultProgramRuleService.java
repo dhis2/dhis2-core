@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ public class DefaultProgramRuleService
     {
         return programRuleStore.getByName( name, program );
     }
-    
+
     @Override
     public List<ProgramRule> getAllProgramRule()
     {
@@ -116,7 +116,7 @@ public class DefaultProgramRuleService
     {
         return programRuleStore.get( program );
     }
-    
+
     @Override
     public List<ProgramRule> getProgramRules( Program program, String key )
     {
@@ -133,6 +133,19 @@ public class DefaultProgramRuleService
     public List<ProgramRule> getProgramRulesWithNoCondition()
     {
         return programRuleStore.getProgramRulesWithNoCondition();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime )
+    {
+        return programRuleStore.getProgramRulesByEvaluationTime( evaluationTime );
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
+        ProgramRuleActionEvaluationEnvironment evaluationEnvironment )
+    {
+        return programRuleStore.getProgramRulesByEvaluationEnvironment( evaluationEnvironment );
     }
 
     @Override

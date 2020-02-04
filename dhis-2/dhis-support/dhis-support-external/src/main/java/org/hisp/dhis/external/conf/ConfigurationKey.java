@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,9 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +69,6 @@ public enum ConfigurationKey
     CLUSTER_MEMBERS( "cluster.members", "", false ),
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
-    METADATA_AUDIT_PERSIST( "metadata.audit.persist", "off", false ),
     METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
     REDIS_HOST( "redis.host", "localhost", false ),
     REDIS_PORT( "redis.port", "6379", false ),
@@ -77,20 +79,15 @@ public enum ConfigurationKey
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
-    AMQP_MODE( "amqp.mode", "EMBEDDED" ),
-    AMQP_HOST( "amqp.host", "127.0.0.1" ),
-    AMQP_PORT( "amqp.port", "15672" ),
-    AMQP_USERNAME( "amqp.username", "guest", true ),
-    AMQP_PASSWORD( "amqp.password", "guest", true ),
-    AMQP_EMBEDDED_SECURITY( "amqp.embedded.security", "false" ),
-    AMQP_EMBEDDED_PERSISTENCE( "amqp.embedded.persistence", "false" ),
-    LOGGING_LEVEL( "logging.level", "INFO" ),
-    LOGGING_FORMAT( "logging.format", "TEXT" ),
-    LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
-    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
-    LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
+    ARTEMIS_MODE( "artemis.mode", "EMBEDDED" ),
+    ARTEMIS_HOST( "artemis.host", "127.0.0.1" ),
+    ARTEMIS_PORT( "artemis.port", "15672" ),
+    ARTEMIS_USERNAME( "artemis.username", "guest", true ),
+    ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
+    ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", "false" ),
+    ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", "false" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
-    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
+    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
     SERVER_HTTPS( "server.https", "off" ),
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
@@ -99,7 +96,16 @@ public enum ConfigurationKey
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "off", false ),
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
-    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false );
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false ),
+    MONITORING_LOG_REQUESTID_ENABLED( "monitoring.requestidlog.enabled", "off", false ),
+    MONITORING_LOG_REQUESTID_HASHALGO( "monitoring.requestidlog.hash", "SHA-256", false ),
+    MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
+    APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
+    APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false ),
+    AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "on" ),
+    AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
+    AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
 
     private final String key;
 
@@ -141,5 +147,10 @@ public enum ConfigurationKey
     public boolean isConfidential()
     {
         return confidential;
+    }
+
+    public static Optional<ConfigurationKey> getByKey( String key )
+    {
+        return Arrays.stream( ConfigurationKey.values() ).filter( k -> k.key.equals( key ) ).findFirst();
     }
 }

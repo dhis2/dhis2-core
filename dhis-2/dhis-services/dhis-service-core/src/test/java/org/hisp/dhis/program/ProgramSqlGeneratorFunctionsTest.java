@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -156,20 +156,16 @@ public class ProgramSqlGeneratorFunctionsTest
 
         relTypeA = new RelationshipType();
         relTypeA.setUid( "RelatnTypeA");
-
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
-        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
-        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
-        when( relationshipTypeService.getRelationshipType( relTypeA.getUid() ) ).thenReturn( relTypeA );
-        when( programIndicatorService.getAnalyticsSql( anyString(), eq(programIndicator), eq(startDate), eq(endDate) ) )
-            .thenAnswer( i -> test( (String)i.getArguments()[0] ) );
     }
 
     @Test
     public void testCondition()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programIndicatorService.getAnalyticsSql( anyString(), eq(programIndicator), eq(startDate), eq(endDate) ) )
+                .thenAnswer( i -> test( (String)i.getArguments()[0] ) );
+
         String sql = test( "d2:condition('#{ProgrmStagA.DataElmentA} > 3',10 + 5,3 * 2)" );
         assertThat( sql, is( "case when (coalesce(\"DataElmentA\"::numeric,0) > 3) then 10 + 5 else 3 * 2 end" ) );
     }
@@ -177,6 +173,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testCount()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "d2:count(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
             "from analytics_event_Program000A " +
@@ -188,6 +187,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testCountWithStartEventBoundary()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         setStartEventBoundary();
 
         String sql = test( "d2:count(#{ProgrmStagA.DataElmentA})" );
@@ -202,6 +204,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testCountWithEndEventBoundary()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         setEndEventBoundary();
 
         String sql = test( "d2:count(#{ProgrmStagA.DataElmentA})" );
@@ -216,6 +221,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testCountWithStartAndEndEventBoundary()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         setStartAndEndEventBoundary();
 
         String sql = test( "d2:count(#{ProgrmStagA.DataElmentA})" );
@@ -230,6 +238,11 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testCountIfCondition()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programIndicatorService.getAnalyticsSql( anyString(), eq(programIndicator), eq(startDate), eq(endDate) ) )
+                .thenAnswer( i -> test( (String)i.getArguments()[0] ) );
+
         String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>5')" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
             "from analytics_event_Program000A " +
@@ -240,6 +253,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testCountIfValueNumeric()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "d2:countIfValue(#{ProgrmStagA.DataElmentA},55)");
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
             "from analytics_event_Program000A " +
@@ -251,6 +267,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testCountIfValueString()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         dataElementA.setValueType( TEXT );
 
         String sql = test( "d2:countIfValue(#{ProgrmStagA.DataElmentA},'ABC')");
@@ -264,6 +283,11 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testDaysBetween()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
+
         String sql = test( "d2:daysBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
         assertThat( sql, is( "(cast(\"DataElmentB\" as date) - cast(\"DataElmentA\" as date))" ) );
     }
@@ -271,6 +295,10 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testHasValueDataElement()
     {
+
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         String sql = test( "d2:hasValue(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "(\"DataElmentA\" is not null)" ) );
     }
@@ -278,6 +306,8 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testHasValueAttribute()
     {
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+
         String sql = test( "d2:hasValue(A{Attribute0A})" );
         assertThat( sql, is( "(\"Attribute0A\" is not null)" ) );
     }
@@ -285,6 +315,11 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testMinutesBetween()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
+
         String sql = test( "d2:minutesBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
         assertThat( sql, is( "(extract(epoch from (cast(\"DataElmentB\" as timestamp) - cast(\"DataElmentA\" as timestamp))) / 60)" ) );
     }
@@ -292,6 +327,11 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testMonthsBetween()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
+
         String sql = test( "d2:monthsBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
         assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date)))) * 12 +" +
            "date_part('month',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date))))" ) );
@@ -300,6 +340,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testOizp()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         String sql = test( "66 + d2:oizp(#{ProgrmStagA.DataElmentA} + 4)" );
         assertThat( sql, is( "66 + coalesce(case when \"DataElmentA\" + 4 >= 0 then 1 else 0 end, 0)" ) );
     }
@@ -316,6 +359,8 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testRelationshipCountWithRelationshipId()
     {
+        when( relationshipTypeService.getRelationshipType( relTypeA.getUid() ) ).thenReturn( relTypeA );
+
         String sql = test( "d2:relationshipCount('RelatnTypeA')" );
         assertThat( sql, is( "(select count(*) from relationship r " +
             "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' " +
@@ -326,6 +371,11 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testWeeksBetween()
     {
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
+
         String sql = test( "d2:weeksBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
         assertThat( sql, is( "((cast(\"DataElmentB\" as date) - cast(\"DataElmentA\" as date))/7)" ) );
     }
@@ -340,6 +390,8 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testYearsBetweenWithProgramStage()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         programIndicator.setAnalyticsType( ENROLLMENT );
 
         String sql = test( "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:ProgrmStagA)" );
@@ -352,6 +404,8 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testYearsBetweenWithProgramStageAndBoundaries()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+
         setAllBoundaries();
 
         String sql = test( "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:ProgrmStagA) < 1" );
@@ -365,6 +419,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testZing()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "d2:zing(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "greatest(0,coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
@@ -372,6 +429,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testZpvcOneArg()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "d2:zpvc(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "nullif(cast((" +
             "case when \"DataElmentA\" >= 0 then 1 else 0 end" +
@@ -381,6 +441,10 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testZpvcTwoArgs()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+
         String sql = test( "d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagA.DataElmentB})" );
         assertThat( sql, is( "nullif(cast((" +
             "case when \"DataElmentA\" >= 0 then 1 else 0 end + " +
@@ -396,50 +460,71 @@ public class ProgramSqlGeneratorFunctionsTest
     }
 
     @Test
-    public void testAggAvg()
+    public void testVectorAvg()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "avg(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "avg(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggCount()
+    public void testVectorCount()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "count(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "count(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggMax()
+    public void testVectorMax()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "max(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "max(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggMin()
+    public void testVectorMin()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "min(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "min(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggStddev()
+    public void testVectorStddev()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "stddev(#{ProgrmStagA.DataElmentA})" );
-        assertThat( sql, is( "stddev(coalesce(\"DataElmentA\"::numeric,0))" ) );
+        assertThat( sql, is( "stddev_samp(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggSum()
+    public void testVectorSum()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "sum(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "sum(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggVariance()
+    public void testVectorVariance()
     {
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
         String sql = test( "variance(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "variance(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
@@ -475,7 +560,7 @@ public class ProgramSqlGeneratorFunctionsTest
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantService.getConstantMap() )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )
@@ -483,6 +568,7 @@ public class ProgramSqlGeneratorFunctionsTest
             .withRelationshipTypeService( relationshipTypeService )
             .withStatementBuilder( statementBuilder )
             .withI18n( new I18n( null, null ) )
+            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
             .buildForProgramIndicatorExpressions();
 
         visitor.setExpressionLiteral( exprLiteral );
@@ -496,7 +582,7 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private void setStartEventBoundary()
     {
-        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
 
         setBoundaries( boundaries );
@@ -504,7 +590,7 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private void setEndEventBoundary()
     {
-        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
 
         setBoundaries( boundaries );
@@ -512,7 +598,7 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private void setStartAndEndEventBoundary()
     {
-        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
 
@@ -521,7 +607,7 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private void setAllBoundaries()
     {
-        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );

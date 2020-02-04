@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:sec="http://www.springframework.org/schema/security" xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
-    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
     http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2.xsd">
 
   <!-- OAuth2 -->
@@ -127,10 +127,15 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint" />
-    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
+    <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint"
+      authentication-details-source-ref="httpBasicWebAuthenticationDetailsSource"/>
+    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
+
+    <sec:session-management>
+      <sec:concurrency-control max-sessions="10" expired-url="/dhis-web-commons-security/logout.action" session-registry-ref="sessionRegistry" />
+    </sec:session-management>
 
     <!-- Account recovery -->
 
@@ -196,6 +201,10 @@
     <property name="defaultFailureUrl" value="/dhis-web-commons/security/login.action?failed=true" />
   </bean>
 
+  <!-- Security : Listener -->
+
+  <bean id="loggerListener" class="org.hisp.dhis.security.AuthenticationLoggerListener" />
+
   <!-- Security : Action -->
 
   <bean id="restrictOrganisationUnitsAction" class="org.hisp.dhis.security.action.RestrictOrganisationUnitsAction"
@@ -213,10 +222,6 @@
       </map>
     </property>
   </bean>
-
-  <!-- Security : Listener -->
-
-  <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
 
   <!-- Security : AccessProvider -->
 
@@ -474,4 +479,6 @@
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
   <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener" />
+
+  <bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
 </beans>

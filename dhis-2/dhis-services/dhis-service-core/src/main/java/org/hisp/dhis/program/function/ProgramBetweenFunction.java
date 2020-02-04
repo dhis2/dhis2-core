@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 import org.hisp.dhis.program.ProgramStage;
 
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
@@ -44,7 +44,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
  * @author Jim Grace
  */
 public abstract class ProgramBetweenFunction
-    extends AbstractExpressionFunction
+    extends SimpleScalarFunction
 {
     @Override
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )

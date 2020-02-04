@@ -1,7 +1,7 @@
 package org.hisp.dhis.dbms;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,6 +141,25 @@ public class HibernateDbmsManager
         emptyTable( "chartusergroupaccesses" );
         emptyTable( "chart" );
 
+        emptyTable( "visualization_yearlyseries" );
+        emptyTable( "visualization_usergroupaccesses" );
+        emptyTable( "visualization_useraccesses" );
+        emptyTable( "visualization_rows" );
+        emptyTable( "visualization_periods" );
+        emptyTable( "visualization_orgunitlevels" );
+        emptyTable( "visualization_orgunitgroupsetdimensions" );
+        emptyTable( "visualization_organisationunits" );
+        emptyTable( "visualization_itemorgunitgroups" );
+        emptyTable( "visualization_filters" );
+        emptyTable( "visualization_dataelementgroupsetdimensions" );
+        emptyTable( "visualization_datadimensionitems" );
+        emptyTable( "visualization_columns" );
+        emptyTable( "visualization_categoryoptiongroupsetdimensions" );
+        emptyTable( "visualization_categorydimensions" );
+        emptyTable( "visualization_axis" );
+        emptyTable( "axis" );
+        emptyTable( "visualization" );
+
         emptyTable( "eventreport_attributedimensions" );
         emptyTable( "eventreport_columns" );
         emptyTable( "eventreport_dataelementdimensions" );
@@ -251,7 +270,7 @@ public class HibernateDbmsManager
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "program" );
-        
+
         emptyTable( "programstageinstancefilter" );
 
         emptyTable( "trackedentityattributevalue" );
@@ -356,7 +375,9 @@ public class HibernateDbmsManager
 
         emptyTable( "reservedvalue" );
         emptyTable( "sequentialnumbercounter" );
-        
+
+        emptyTable( "audit" );
+
         log.debug( "Cleared database contents" );
 
         cacheManager.clearCache();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -146,23 +146,23 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValueForKey() ) );
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
                 continue;
             }
 
             if ( parameter.isEncode() )
             {
-                valueStore.put( parameter.getKey(), encodeUrl( parameter.getValueForKey() ) );
+                valueStore.put( parameter.getKey(), encodeUrl( parameter.getDisplayValue() ) );
                 continue;
             }
 
-            valueStore.put( parameter.getKey(), parameter.getValueForKey() );
+            valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
         }
 
         valueStore.put( KEY_TEXT, text );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
-        final StrSubstitutor substitutor = new StrSubstitutor( valueStore ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 

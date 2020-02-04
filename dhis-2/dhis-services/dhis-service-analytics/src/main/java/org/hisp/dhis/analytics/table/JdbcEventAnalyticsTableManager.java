@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
@@ -115,7 +115,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
-        new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ),
+        new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( GEOMETRY_INDEX_TYPE ),
         // TODO latitude and longitude deprecated in 2.30, should be removed after 2.33
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
@@ -274,7 +274,7 @@ public class JdbcEventAnalyticsTableManager
     @Override
     public List<AnalyticsTableColumn> getFixedColumns()
     {
-        return this.FIXED_COLS;
+        return FIXED_COLS;
     }
 
     @Override
@@ -384,7 +384,7 @@ public class JdbcEventAnalyticsTableManager
             String geoSql = selectForInsert( attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ), ColumnDataType.GEOMETRY, geoSql )
-                .withSkipIndex( skipIndex ) );
+                .withSkipIndex( skipIndex ).withIndexType( GEOMETRY_INDEX_TYPE ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType,
@@ -431,7 +431,7 @@ public class JdbcEventAnalyticsTableManager
             String geoSql = selectForInsert( dataElement, "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ), ColumnDataType.GEOMETRY, geoSql )
-                .withSkipIndex( true ) );
+                .withSkipIndex( true ).withIndexType( GEOMETRY_INDEX_TYPE ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ),
@@ -493,6 +493,7 @@ public class JdbcEventAnalyticsTableManager
             "where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and pi.programid = " + program.getId() + " " +
             "and psi.executiondate is not null " +
+            "and psi.executiondate > '1000-01-01' " +
             "and psi.deleted is false ";
 
         if ( params.getFromDate() != null )

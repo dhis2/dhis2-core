@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,6 +114,9 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -131,6 +134,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.springframework.aop.framework.Advised;
@@ -170,10 +174,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+
 /**
  * @author Lars Helge Overland
  */
-@ActiveProfiles( profiles = {"test"} )
+@ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
@@ -365,7 +371,6 @@ public abstract class DhisConvenienceTest
      * @param dependency    the dependency.
      * @param clazz         the interface type of the dependency.
      */
-    @Deprecated
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
         try
@@ -525,7 +530,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryCombo the category combo.
+     * @param categoryCombo   the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -825,11 +830,11 @@ public abstract class DhisConvenienceTest
         return unit;
     }
 
-    public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry)
+    public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, Geometry geometry )
     {
         OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
 
-        unit.setGeometry(geometry);
+        unit.setGeometry( geometry );
 
         return unit;
     }
@@ -1090,8 +1095,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter          A unique character to identify the object.
-     * @param expressionString         The expression string.
+     * @param uniqueCharacter  A unique character to identify the object.
+     * @param expressionString The expression string.
      */
     public static Expression createExpression2( char uniqueCharacter, String expressionString )
     {
@@ -1112,7 +1117,7 @@ public abstract class DhisConvenienceTest
      * @param generator             The right side expression.
      * @param skipTest              The skiptest expression
      * @param periodType            The period-type.
-     * @param organisationUnitLevel The unit level of organisations to be
+     * @param organisationUnitLevel The organisation unit level to be
      *                              evaluated by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
      * @param annualSampleCount     How many years of past periods to sample.
@@ -1123,8 +1128,32 @@ public abstract class DhisConvenienceTest
         OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
+        return createPredictor( output, combo, uniqueCharacter, generator,
+            skipTest, periodType, Sets.newHashSet( organisationUnitLevel ),
+            sequentialSampleCount, sequentialSkipCount, annualSampleCount );
+    }
+
+    /**
+     * Creates a Predictor
+     *
+     * @param output                 The data element where the predictor stores its predictions
+     * @param combo                  The category option combo (or null) under which the predictors are stored
+     * @param uniqueCharacter        A unique character to identify the object.
+     * @param generator              The right side expression.
+     * @param skipTest               The skiptest expression
+     * @param periodType             The period-type.
+     * @param organisationUnitLevels The organisation unit levels to be
+     *                               evaluated by this rule.
+     * @param sequentialSampleCount  How many sequential past periods to sample.
+     * @param annualSampleCount      How many years of past periods to sample.
+     * @param sequentialSkipCount    How many periods in the current year to skip
+     */
+    public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
+        String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
+        Set<OrganisationUnitLevel> organisationUnitLevels, int sequentialSampleCount,
+        int sequentialSkipCount, int annualSampleCount )
+    {
         Predictor predictor = new Predictor();
-        Set<OrganisationUnitLevel> orgUnitlevels = Sets.newHashSet( organisationUnitLevel );
         predictor.setAutoFields();
 
         predictor.setOutput( output );
@@ -1134,7 +1163,7 @@ public abstract class DhisConvenienceTest
         predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
-        predictor.setOrganisationUnitLevels( orgUnitlevels );
+        predictor.setOrganisationUnitLevels( organisationUnitLevels );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1212,6 +1241,16 @@ public abstract class DhisConvenienceTest
         return colorSet;
     }
 
+    public static Visualization createVisualization( final String name )
+    {
+        final Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setName( name );
+        visualization.setType(PIVOT_TABLE);
+
+        return visualization;
+    }
+
     public static Chart createChart( char uniqueCharacter )
     {
         Chart chart = new Chart();
@@ -1249,6 +1288,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
+        credentials.setUser( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
@@ -1298,7 +1338,7 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+        return createUserAuthorityGroup( uniqueCharacter, new String[]{} );
     }
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
@@ -1546,6 +1586,59 @@ public abstract class DhisConvenienceTest
         return section;
     }
 
+    public static RelationshipType createMalariaCaseLinkedToPersonRelationshipType( char uniqueCharacter,
+        Program program,
+        TrackedEntityType trackedEntityType )
+    {
+        RelationshipConstraint psiConstraint = new RelationshipConstraint();
+        psiConstraint.setProgram( program );
+        psiConstraint.setTrackedEntityType( trackedEntityType );
+        psiConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipConstraint teiConstraint = new RelationshipConstraint();
+        teiConstraint.setProgram( program );
+        teiConstraint.setTrackedEntityType( trackedEntityType );
+        teiConstraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Malaria case linked to person" );
+        relationshipType.setBidirectional( true );
+        relationshipType.setFromConstraint( psiConstraint );
+        relationshipType.setToConstraint( teiConstraint );
+        return relationshipType;
+    }
+
+    public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Person to person" );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createRelationshipType( char uniqueCharacter )
+    {
+        RelationshipType relationshipType = new RelationshipType();
+
+        relationshipType.setFromToName( "from_" + uniqueCharacter );
+        relationshipType.setToFromName( "to_" + uniqueCharacter );
+        relationshipType.setAutoFields();
+        relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
+        relationshipType.setFromConstraint( new RelationshipConstraint() );
+        relationshipType.setToConstraint( new RelationshipConstraint() );
+
+        return relationshipType;
+    }
+
     public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilter = new TrackedEntityInstanceFilter();
@@ -1668,7 +1761,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content The content of the file
+     * @param content    The content of the file
      * @return a fileResource object
      */
     public static FileResource createFileResource( char uniqueChar, byte[] content )
@@ -1687,7 +1780,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content The content of the file
+     * @param content    The content of the file
      * @return an externalFileResource object
      */
     public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
@@ -1752,17 +1845,17 @@ public abstract class DhisConvenienceTest
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
-            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
+        String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
     {
         return new ProgramNotificationTemplate(
-                name,
-                "Subject",
-                "Message",
-                trigger,
-                recipient,
-                Sets.newHashSet(),
-                days,
-                null, null
+            name,
+            "Subject",
+            "Message",
+            trigger,
+            recipient,
+            Sets.newHashSet(),
+            days,
+            null, null
         );
     }
 
@@ -1952,7 +2045,7 @@ public abstract class DhisConvenienceTest
         }
 
         @Override
-        public Iterator<?> getPrefixes( String namespaceURI )
+        public Iterator<String> getPrefixes( String namespaceURI )
         {
             return null;
         }

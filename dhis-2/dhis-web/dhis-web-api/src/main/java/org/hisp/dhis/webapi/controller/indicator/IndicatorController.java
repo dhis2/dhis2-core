@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.indicator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -67,7 +69,7 @@ public class IndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( expression );
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, INDICATOR_EXPRESSION );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
         message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
@@ -75,7 +77,7 @@ public class IndicatorController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getIndicatorExpressionDescription( expression ) );
+            message.setDescription( expressionService.getExpressionDescription( expression, INDICATOR_EXPRESSION ) );
         }
 
         webMessageService.sendJson( message, response );

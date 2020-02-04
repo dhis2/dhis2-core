@@ -1,7 +1,7 @@
 package org.hisp.dhis.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,6 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.sql.DataSource;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
@@ -44,8 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -61,6 +61,8 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+
+import javax.sql.DataSource;
 
 /**
  * @author Luciano Fiandesio
@@ -151,14 +153,18 @@ public class SecurityConfig
     }
 
     @Autowired
-    private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
-
-    @Autowired
     private DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
+
+    @Bean
+    public DefaultAuthenticationEventPublisher authenticationEventPublisher()
+    {
+        return new DefaultAuthenticationEventPublisher();
+    }
 
     @Autowired
     public void configureGlobal( AuthenticationManagerBuilder auth, UserService userService,
-        UserDetailsService userDetailsService, SecurityService securityService )
+        UserDetailsService userDetailsService, SecurityService securityService,
+        @Lazy CustomLdapAuthenticationProvider customLdapAuthenticationProvider )
         throws Exception
     {
         TwoFactorAuthenticationProvider twoFactorAuthenticationProvider = new TwoFactorAuthenticationProvider();

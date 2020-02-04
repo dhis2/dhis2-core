@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.csv;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,10 @@ public enum CsvImportClass
     ORGANISATION_UNIT,
     ORGANISATION_UNIT_GROUP,
     VALIDATION_RULE,
-    OPTION_SET;
+    OPTION_SET,
+    OPTION_GROUP,
+    OPTION_GROUP_SET,
+    OPTION_GROUP_SET_MEMBERSHIP;
 
     public static boolean classExists( String classKey )
     {

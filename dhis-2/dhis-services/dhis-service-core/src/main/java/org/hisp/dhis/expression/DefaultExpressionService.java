@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,28 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.lang.Boolean.FALSE;
 import static org.hisp.dhis.common.DimensionItemType.*;
-import static org.hisp.dhis.expression.MissingValueStrategy.*;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.ParseType.*;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.system.util.MathUtils.calculateExpression;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -65,12 +62,10 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.parser.expression.*;
+import org.hisp.dhis.parser.expression.function.*;
 import org.hisp.dhis.parser.expression.item.ItemConstant;
+import org.hisp.dhis.parser.expression.literal.RegenerateLiteral;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.jep.CustomFunctions;
-import org.hisp.dhis.system.jep.NoValueException;
-import org.hisp.dhis.system.util.ExpressionUtils;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -107,7 +102,9 @@ public class DefaultExpressionService
 
     private final DimensionService dimensionService;
 
-    private final IdentifiableObjectManager idObjectManager;
+    // -------------------------------------------------------------------------
+    // Static data
+    // -------------------------------------------------------------------------
 
     private final static ImmutableMap<Integer, ExprItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
         .put( HASH_BRACE, new DimItemDataElementAndOperand() )
@@ -120,24 +117,60 @@ public class DefaultExpressionService
         .put( DAYS, new ItemDays() )
         .build();
 
+    private final static ImmutableMap<Integer, ExprItem> PREDICTOR_EXPRESSION_ITEMS = VALIDATION_RULE_EXPRESSION_ITEMS;
+
     private final static ImmutableMap<Integer, ExprItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
         .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
         .put( N_BRACE, new DimItemIndicator() )
         .build();
 
+    private final static ImmutableMap<Integer, ExprFunction> PREDICTOR_EXPRESSION_FUNCTIONS = ImmutableMap.<Integer, ExprFunction>builder()
+        .putAll( COMMON_EXPRESSION_FUNCTIONS )
+        .put( AVG, new VectorAvg() )
+        .put( COUNT, new VectorCount() )
+        .put( MAX, new VectorMax() )
+        .put( MEDIAN, new VectorMedian() )
+        .put( MIN, new VectorMin() )
+        .put( PERCENTILE_CONT, new VectorPercentileCont() )
+        .put( STDDEV, new VectorStddevSamp() )
+        .put( STDDEV_POP, new VectorStddevPop() )
+        .put( STDDEV_SAMP, new VectorStddevSamp() )
+        .put( SUM, new VectorSum() )
+        .build();
+
+    private final static ImmutableMap<ParseType, ImmutableMap<Integer, ExprItem>> PARSE_TYPE_EXPRESSION_ITEMS =
+    ImmutableMap.<ParseType, ImmutableMap<Integer, ExprItem>>builder()
+        .put( INDICATOR_EXPRESSION, INDICATOR_EXPRESSION_ITEMS )
+        .put( VALIDATION_RULE_EXPRESSION, VALIDATION_RULE_EXPRESSION_ITEMS )
+        .put( PREDICTOR_EXPRESSION, PREDICTOR_EXPRESSION_ITEMS )
+        .put( PREDICTOR_SKIP_TEST, PREDICTOR_EXPRESSION_ITEMS )
+        .put( SIMPLE_TEST, ImmutableMap.<Integer, ExprItem>builder().build() )
+        .build();
+
+    private final static ImmutableMap<ParseType, ImmutableMap<Integer, ExprFunction>> PARSE_TYPE_EXPRESSION_FUNCTIONS =
+    ImmutableMap.<ParseType, ImmutableMap<Integer, ExprFunction>>builder()
+        .put( INDICATOR_EXPRESSION, COMMON_EXPRESSION_FUNCTIONS )
+        .put( VALIDATION_RULE_EXPRESSION, COMMON_EXPRESSION_FUNCTIONS )
+        .put( PREDICTOR_EXPRESSION, PREDICTOR_EXPRESSION_FUNCTIONS )
+        .put( PREDICTOR_SKIP_TEST, COMMON_EXPRESSION_FUNCTIONS )
+        .put( SIMPLE_TEST, COMMON_EXPRESSION_FUNCTIONS )
+        .build();
+
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
-        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
-        IdentifiableObjectManager idObjectManager )
+        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService )
     {
-        checkNotNull(expressionStore);
-        checkNotNull(dataElementService);
-        checkNotNull(constantService);
-        checkNotNull(categoryService);
-        checkNotNull(organisationUnitGroupService);
-        checkNotNull(dimensionService);
-        checkNotNull(idObjectManager);
+        checkNotNull( expressionStore );
+        checkNotNull( dataElementService );
+        checkNotNull( constantService );
+        checkNotNull( categoryService );
+        checkNotNull( organisationUnitGroupService );
+        checkNotNull( dimensionService );
 
         this.expressionStore = expressionStore;
         this.dataElementService = dataElementService;
@@ -145,7 +178,6 @@ public class DefaultExpressionService
         this.categoryService = categoryService;
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
-        this.idObjectManager = idObjectManager;
     }
 
     // -------------------------------------------------------------------------
@@ -163,6 +195,13 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
+    public void updateExpression( Expression expression )
+    {
+        expressionStore.update( expression );
+    }
+
+    @Override
+    @Transactional
     public void deleteExpression( Expression expression )
     {
         expressionStore.delete( expression );
@@ -173,13 +212,6 @@ public class DefaultExpressionService
     public Expression getExpression( long id )
     {
         return expressionStore.get( id );
-    }
-
-    @Override
-    @Transactional
-    public void updateExpression( Expression expression )
-    {
-        expressionStore.update( expression );
     }
 
     @Override
@@ -198,7 +230,7 @@ public class DefaultExpressionService
     {
         Set<DimensionalItemId> itemIds = indicators.stream()
             .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
-            .map( this::getExpressionDimensionalItemIds )
+            .map( e -> getExpressionDimensionalItemIds ( e, INDICATOR_EXPRESSION ) )
             .flatMap( Set::stream )
             .collect( Collectors.toSet() );
 
@@ -214,8 +246,8 @@ public class DefaultExpressionService
         {
             for ( Indicator indicator : indicators )
             {
-                groups.addAll( getExpressionOrgUnitGroups( indicator.getNumerator() ) );
-                groups.addAll( getExpressionOrgUnitGroups( indicator.getDenominator() ) );
+                groups.addAll( getExpressionOrgUnitGroups( indicator.getNumerator(), INDICATOR_EXPRESSION ) );
+                groups.addAll( getExpressionOrgUnitGroups( indicator.getDenominator(), INDICATOR_EXPRESSION ) );
             }
         }
 
@@ -224,7 +256,7 @@ public class DefaultExpressionService
 
     @Override
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap )
     {
         if ( indicator == null || indicator.getNumerator() == null || indicator.getDenominator() == null )
@@ -234,11 +266,11 @@ public class DefaultExpressionService
 
         Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
-        Double denominatorValue = getExpressionValue( indicator.getDenominator(),
-            valueMap, constantMap, orgUnitCountMap, days, MissingValueStrategy.NEVER_SKIP );
+        Double denominatorValue = getExpressionValue( indicator.getDenominator(), INDICATOR_EXPRESSION,
+            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
 
-        Double numeratorValue = getExpressionValue( indicator.getNumerator(),
-            valueMap, constantMap, orgUnitCountMap, days, MissingValueStrategy.NEVER_SKIP );
+        Double numeratorValue = getExpressionValue( indicator.getNumerator(), INDICATOR_EXPRESSION,
+            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {
@@ -266,32 +298,25 @@ public class DefaultExpressionService
     }
 
     @Override
-    public ExpressionValidationOutcome indicatorExpressionIsValid( String expression )
-    {
-        return expressionIsValid( INDICATOR_EXPRESSION_ITEMS, expression );
-    }
-
-    @Override
-    public String getIndicatorExpressionDescription( String expression )
-    {
-        return getExpressionDescription( INDICATOR_EXPRESSION_ITEMS, expression );
-    }
-
-    // -------------------------------------------------------------------------
-    // Validation Rule expression logic
-    // -------------------------------------------------------------------------
-
-    @Override
     @Transactional
-    public ExpressionValidationOutcome validationRuleExpressionIsValid( String expression )
+    public void substituteIndicatorExpressions( Collection<Indicator> indicators )
     {
-        return expressionIsValid( VALIDATION_RULE_EXPRESSION_ITEMS, expression );
-    }
+        if ( indicators != null && !indicators.isEmpty() )
+        {
+            Map<String, Constant> constantMap = constantService.getConstantMap();
 
-    @Override
-    public String getValidationRuleExpressionDescription( String expression )
-    {
-        return getExpressionDescription( VALIDATION_RULE_EXPRESSION_ITEMS, expression );
+            Map<String, Integer> orgUnitCountMap = getIndicatorOrgUnitGroups( indicators ).stream()
+                .collect(
+                    Collectors.toMap(
+                        OrganisationUnitGroup::getUid,
+                        oug -> oug.getMembers().size() ) );
+
+            for ( Indicator indicator : indicators )
+            {
+                indicator.setExplodedNumerator( regenerateIndicatorExpression( indicator.getNumerator(), constantMap, orgUnitCountMap ) );
+                indicator.setExplodedDenominator( regenerateIndicatorExpression( indicator.getDenominator(), constantMap, orgUnitCountMap ) );
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -299,79 +324,211 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression )
+    @Transactional
+    public ExpressionValidationOutcome expressionIsValid( String expression, ParseType parseType )
     {
-        Set<DimensionalItemId> itemIds = getExpressionDimensionalItemIds( expression );
+        try
+        {
+            getExpressionDescription( expression, parseType );
+
+            return ExpressionValidationOutcome.VALID;
+        }
+        catch ( IllegalStateException e )
+        {
+            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
+        }
+    }
+
+    @Override
+    public String getExpressionDescription( String expression, ParseType parseType )
+    {
+        if ( isEmpty( expression ) )
+        {
+            return "";
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( parseType,
+            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS, DEFAULT_SAMPLE_PERIODS,
+            constantService.getConstantMap() );
+
+        visit( expression, parseType.getDataType(), visitor, false );
+
+        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
+
+        String description = expression;
+
+        for ( Map.Entry<String, String> entry : itemDescriptions.entrySet() )
+        {
+            description = description.replace( entry.getKey(), entry.getValue() );
+        }
+
+        return description;
+    }
+
+    @Override
+    public Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType )
+    {
+        return getExpressionDimensionalItemIds( expression, parseType ).stream()
+            .filter( DimensionalItemId::isDataElementOrOperand )
+            .map( i -> i.getId0() + ( i.getId1() == null ? "" : Expression.SEPARATOR + i.getId1() ) )
+            .collect( Collectors.toSet());
+    }
+
+    @Override
+    public Set<DataElement> getExpressionDataElements( String expression, ParseType parseType )
+    {
+        return getExpressionDimensionalItemIds( expression, parseType ).stream()
+            .filter( DimensionalItemId::isDataElementOrOperand )
+            .map( i -> dataElementService.getDataElement( i.getId0() ) )
+            .collect( Collectors.toSet());
+    }
+
+    @Override
+    @Transactional
+    public Set<DataElementOperand> getExpressionOperands( String expression, ParseType parseType )
+    {
+        return getExpressionDimensionalItemIds( expression, parseType ).stream()
+            .filter( DimensionalItemId::isDataElementOrOperand )
+            .map( i -> new DataElementOperand( dataElementService.getDataElement( i.getId0() ),
+                i.getId1() == null ? null : categoryService.getCategoryOptionCombo( i.getId1() ) ) )
+            .collect( Collectors.toSet());
+    }
+
+    @Override
+    public Set<String> getExpressionOptionComboIds( String expression, ParseType parseType )
+    {
+        Set<String> categoryOptionComboIds = new HashSet<>();
+
+        for ( DimensionalItemId itemId : getExpressionDimensionalItemIds( expression, parseType ) )
+        {
+            if ( itemId.getDimensionItemType() == DATA_ELEMENT_OPERAND )
+            {
+                if ( itemId.getId1() != null )
+                {
+                    categoryOptionComboIds.add( itemId.getId1() );
+                }
+                if ( itemId.getId2() != null )
+                {
+                    categoryOptionComboIds.add( itemId.getId2() );
+                }
+            }
+        }
+
+        return categoryOptionComboIds;
+    }
+
+    @Override
+    public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression, ParseType parseType )
+    {
+        Set<DimensionalItemId> itemIds = getExpressionDimensionalItemIds( expression, parseType );
 
         return dimensionService.getDataDimensionalItemObjects( itemIds );
     }
 
     @Override
-    public Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression )
+    public void getExpressionDimensionalItemObjects( String expression, ParseType parseType,
+        Set<DimensionalItemObject> items,
+        Set<DimensionalItemObject> sampleItems )
     {
-        if ( expression == null )
-        {
-            return new HashSet<>();
-        }
+        Set<DimensionalItemId> itemIds = new HashSet<>();
+        Set<DimensionalItemId> sampleItemIds = new HashSet<>();
 
-        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION_ITEMS,
-            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_IDS );
+        getExpressionDimensionalItemIds( expression, parseType, itemIds, sampleItemIds );
 
-        visit( expression, visitor, true );
-
-        return visitor.getItemIds();
+        items.addAll( dimensionService.getDataDimensionalItemObjects( itemIds ) );
+        sampleItems.addAll( dimensionService.getDataDimensionalItemObjects( sampleItemIds ) );
     }
 
     @Override
-    public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression )
+    public Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression, ParseType parseType )
     {
-        if ( expression == null )
+        Set<DimensionalItemId> itemIds = new HashSet<>();
+
+        getExpressionDimensionalItemIds( expression, parseType, itemIds, itemIds );
+
+        return itemIds;
+    }
+
+    @Override
+    public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression, ParseType parseType )
+    {
+        if ( isEmpty( expression ) )
         {
             return new HashSet<>();
         }
 
-        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION_ITEMS,
-            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS );
+        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION,
+            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS, DEFAULT_SAMPLE_PERIODS,
+            constantService.getConstantMap() );
 
-        visit( expression, visitor, true );
+        visit( expression, parseType.getDataType(), visitor, true );
 
         Set<String> orgUnitGroupIds = visitor.getOrgUnitGroupIds();
 
         return orgUnitGroupIds.stream()
-            .map(organisationUnitGroupService::getOrganisationUnitGroup)
+            .map( organisationUnitGroupService::getOrganisationUnitGroup )
+            .filter( Objects::nonNull )
             .collect( Collectors.toSet() );
     }
 
     @Override
-    public Double getExpressionValue( String expression,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+    public Object getExpressionValue( String expression, ParseType parseType )
+    {
+        return getExpressionValue( expression, parseType,
+            new HashMap<>(), new HashMap<>(), new HashMap<>(),
+            null, NEVER_SKIP, DEFAULT_SAMPLE_PERIODS, new MapMap<>() );
+    }
+
+    @Override
+    public Double getExpressionValue( String expression, ParseType parseType,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
         Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy )
     {
-        if ( expression == null )
+        return castDouble( getExpressionValue( expression, parseType, valueMap, constantMap,
+            orgUnitCountMap, days, missingValueStrategy, DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) );
+    }
+
+    @Override
+    public Object getExpressionValue( String expression, ParseType parseType,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
+        Map<String, Integer> orgUnitCountMap, Integer days,
+        MissingValueStrategy missingValueStrategy,
+        List<Period> samplePeriods, MapMap<Period, DimensionalItemObject, Double> periodValueMap )
+    {
+        if ( isEmpty( expression ) )
         {
             return null;
         }
 
-        CommonExpressionVisitor expressionExprVisitor = newVisitor( INDICATOR_EXPRESSION_ITEMS,
-            FUNCTION_EVALUATE, ITEM_EVALUATE );
+        CommonExpressionVisitor visitor = newVisitor( parseType,
+            FUNCTION_EVALUATE, ITEM_EVALUATE, samplePeriods,
+            constantMap );
 
-        Map<String, Double> keyValueMap = valueMap.entrySet().stream().collect(
-            Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue) );
+        Map<String, Double> itemValueMap = valueMap.entrySet().stream().collect(
+            Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) );
 
-        expressionExprVisitor.setKeyValueMap( keyValueMap );
-        expressionExprVisitor.setConstantMap( constantMap );
-        expressionExprVisitor.setOrgUnitCountMap( orgUnitCountMap );
+        MapMap<Period, String, Double> periodItemValueMap = new MapMap<>();
+
+        for ( Period p : periodValueMap.keySet() )
+        {
+            periodItemValueMap.put( p, periodValueMap.get( p ).entrySet().stream().collect(
+                Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) ) );
+        }
+
+        visitor.setItemValueMap( itemValueMap );
+        visitor.setPeriodItemValueMap( periodItemValueMap );
+        visitor.setOrgUnitCountMap( orgUnitCountMap );
 
         if ( days != null )
         {
-            expressionExprVisitor.setDays( Double.valueOf( days ) );
+            visitor.setDays( Double.valueOf( days ) );
         }
 
-        Double value = visit ( expression, expressionExprVisitor, true );
+        Object value = visit( expression, parseType.getDataType(), visitor, true );
 
-        int itemsFound = expressionExprVisitor.getItemsFound();
-        int itemValuesFound = expressionExprVisitor.getItemValuesFound();
+        int itemsFound = visitor.getItemsFound();
+        int itemValuesFound = visitor.getItemValuesFound();
 
         switch ( missingValueStrategy )
         {
@@ -390,7 +547,17 @@ public class DefaultExpressionService
             case NEVER_SKIP:
                 if ( value == null )
                 {
-                    return 0d;
+                    switch( parseType.getDataType() )
+                    {
+                        case NUMERIC:
+                            return 0d;
+
+                        case BOOLEAN:
+                            return FALSE;
+
+                        case TEXT:
+                            return "";
+                    }
                 }
         }
 
@@ -402,80 +569,78 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     /**
-     * Tests whether the expression is valid
-     *
-     * @param exprItemMap the valid items in this expression.
-     * @param expression the expression formula.
-     * @return the ExpressionValidationOutcome of the validation.
-     */
-    private ExpressionValidationOutcome expressionIsValid( Map<Integer, ExprItem> exprItemMap, String expression )
-    {
-        try
-        {
-            getExpressionDescription( exprItemMap, expression );
-
-            return ExpressionValidationOutcome.VALID;
-        }
-        catch ( IllegalStateException e )
-        {
-            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
-        }
-    }
-
-    /**
-     * Creates an expression description containing the names of the
-     * DimensionalItemObjects from an expression string.
-     *
-     * @param exprItemMap the valid items in this expression.
-     * @param expression The expression string.
-     * @return An expression string containing DimensionalItemObjects names.
-     */
-
-    private String getExpressionDescription( Map<Integer, ExprItem> exprItemMap, String expression )
-    {
-        if ( expression == null )
-        {
-            return "";
-        }
-
-        CommonExpressionVisitor visitor = newVisitor( exprItemMap, FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS );
-
-        visit( expression, visitor, false );
-
-        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
-
-        String description = expression;
-
-        for ( Map.Entry<String, String> entry : itemDescriptions.entrySet() )
-        {
-            description = description.replace( entry.getKey(), entry.getValue() );
-        }
-
-        return description;
-    }
-
-    /**
      * Creates a new ExpressionItemsVisitor object.
      */
-    private CommonExpressionVisitor newVisitor( Map<Integer, ExprItem> exprItemMap,
-        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    private CommonExpressionVisitor newVisitor( ParseType parseType,
+        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod,
+        List<Period> samplePeriods, Map<String, Constant> constantMap )
     {
         return CommonExpressionVisitor.newBuilder()
-            .withFunctionMap( COMMON_EXPRESSION_FUNCTIONS )
-            .withItemMap( exprItemMap )
+            .withFunctionMap( PARSE_TYPE_EXPRESSION_FUNCTIONS.get( parseType ) )
+            .withItemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( parseType ) )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
-            .withConstantService( constantService )
+            .withConstantMap( constantMap )
             .withDimensionService( dimensionService )
             .withOrganisationUnitGroupService( organisationUnitGroupService )
+            .withSamplePeriods( samplePeriods )
             .buildForExpressions();
     }
 
-    private Double visit( String expression, CommonExpressionVisitor visitor, boolean logWarnings )
+    /**
+     * Returns all non-aggregated and all aggregated dimensional item object ids
+     * in the given expression.
+     *
+     * @param expression the expression to parse.
+     * @param parseType the type of expression to parse.
+     * @param itemIds Set to insert the itemIds into.
+     * @param sampleItemIds Set to insert the aggregatedItemIds into.
+     */
+    private void getExpressionDimensionalItemIds( String expression, ParseType parseType,
+        Set<DimensionalItemId> itemIds,
+        Set<DimensionalItemId> sampleItemIds )
+    {
+        if ( isEmpty( expression ) )
+        {
+            return;
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( parseType,
+            FUNCTION_GET_IDS, ITEM_GET_IDS, DEFAULT_SAMPLE_PERIODS,
+            constantService.getConstantMap() );
+
+        visitor.setItemIds( itemIds );
+        visitor.setSampleItemIds( sampleItemIds );
+
+        visit( expression, parseType.getDataType(), visitor, true );
+    }
+
+    /**
+     * Visits an expression and returns the expected expression type.
+     *
+     * @param expression the expresion to visit.
+     * @param dataType the expected data type of the expression value.
+     * @param visitor the visitor to use.
+     * @param logWarnings whether to log warnings or not.
+     * @return the expression value.
+     */
+    private Object visit( String expression, DataType dataType, CommonExpressionVisitor visitor, boolean logWarnings )
     {
         try
         {
-            return castDouble( Parser.visit( expression, visitor ) );
+            Object result = Parser.visit( expression, visitor );
+
+            switch( dataType )
+            {
+                case NUMERIC:
+                    return castDouble( result );
+
+                case BOOLEAN:
+                    return castBoolean( result );
+
+                case TEXT:
+                    return castString( result );
+            }
         }
         catch ( ParserException ex )
         {
@@ -494,801 +659,36 @@ public class DefaultExpressionService
         return DOUBLE_VALUE_IF_NULL;
     }
 
-    // -------------------------------------------------------------------------
-    // Expression logic based on regular expressions (to be refactored)
-    // -------------------------------------------------------------------------
-
-    @Override
-    public Double getExpressionValueRegEx( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
+    /**
+     * Regenerates an expression from the parse tree, with values
+     * substituted for constants and orgUnitCounts.
+     *
+     * @param expression the expresion to regenerate.
+     * @param constantMap map of constants to use for calculation.
+     * @param orgUnitCountMap the map of organisation unit group member counts.
+     * @return the regenerated expression string.
+     */
+    private String regenerateIndicatorExpression( String expression,
+        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap )
     {
-        return getExpressionValueRegEx( expression, valueMap, constantMap, orgUnitCountMap, days, null );
+        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION,
+            FUNCTION_EVALUATE, ITEM_REGENERATE, DEFAULT_SAMPLE_PERIODS,
+            constantMap );
 
-    }
+        visitor.setOrgUnitCountMap( orgUnitCountMap );
+        visitor.setExpressionLiteral( new RegenerateLiteral() );
 
-    @Override
-    public Double getExpressionValueRegEx( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        ListMap<String, Double> aggregateMap )
-    {
-        String expressionString = generateExpression( expression.getExpression(),
-            valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(),
-            aggregateMap );
-
-        if ( expressionString == null )
-        {
-            return null;
-        }
-
-        try
-        {
-            return calculateExpression( expressionString );
-        }
-        catch ( NoValueException ex )
-        {
-            return null;
-        }
-    }
-
-    @Override
-    public Set<DataElement> getDataElementsInExpression( String expression )
-    {
-        return getIdObjectsInExpression( OPERAND_PATTERN, expression,
-            ( m ) -> dataElementService.getDataElement( m.group( GROUP_DATA_ELEMENT ) ) );
-    }
-
-    @Override
-    public Set<CategoryOptionCombo> getOptionCombosInExpression( String expression )
-    {
-        return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression,
-            ( m ) -> categoryService.getCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
-    }
-
-    @Override
-    public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
-    {
-        return getIdObjectsInExpression( OU_GROUP_PATTERN, expression,
-            ( m ) -> organisationUnitGroupService.getOrganisationUnitGroup( m.group( GROUP_ID ) ) );
+        return castString( visit( expression, DataType.TEXT, visitor, true ) );
     }
 
     /**
-     * Returns a set of identifiable objects which are referenced in
-     * the given expression based on the given regular expression pattern.
+     * Finds the total number of days in a list of periods.
      *
-     * @param pattern the regular expression pattern to match identifiable objects on.
-     * @param expression the expression where identifiable objects are referenced.
-     * @param provider the provider of identifiable objects, accepts a matcher and
-     *        provides the object.
-     * @return a set of identifiable objects.
+     * @param periods the periods.
+     * @return the total number of days.
      */
-    private <T extends IdentifiableObject> Set<T> getIdObjectsInExpression( Pattern pattern, String expression, Function<Matcher, T> provider )
-    {
-        Set<T> objects = new HashSet<>();
-
-        if ( expression == null )
-        {
-            return  objects;
-        }
-
-        final Matcher matcher = pattern.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            final T object = provider.apply( matcher );
-
-            if ( object != null )
-            {
-                objects.add( object );
-            }
-        }
-
-        return objects;
-    }
-
-    @Override
-    @Transactional
-    public Set<DataElementOperand> getOperandsInExpression( String expression )
-    {
-        Set<DataElementOperand> operandsInExpression = new HashSet<>();
-
-        if ( expression != null )
-        {
-            final Matcher matcher = OPERAND_PATTERN.matcher( expression );
-
-            while ( matcher.find() )
-            {
-                String dataElementUid = StringUtils.trimToNull( matcher.group( GROUP_DATA_ELEMENT ) );
-                String optionComboUid = StringUtils.trimToNull( matcher.group( GROUP_CATEGORORY_OPTION_COMBO ) );
-                DataElement dataElement = dataElementService.getDataElement( dataElementUid );
-                CategoryOptionCombo optionCombo = optionComboUid == null ? null :
-                    categoryService.getCategoryOptionCombo( optionComboUid );
-
-                operandsInExpression.add ( new DataElementOperand( dataElement, optionCombo ) );
-            }
-        }
-
-        return operandsInExpression;
-    }
-
-    @Override
-    @Transactional
-    public void getAggregatesAndNonAggregatesInExpression( String expression,
-        Set<String> aggregates, Set<String> nonAggregates )
-    {
-        Pattern prefix = CustomFunctions.AGGREGATE_PATTERN_PREFIX;
-
-        if ( expression != null )
-        {
-            final Matcher matcher = prefix.matcher( expression );
-
-            int scan = 0;
-            int len = expression.length();
-
-            while ( (scan < len) && (matcher.find( scan )) )
-            {
-                int start = matcher.end();
-                int end = Expression.matchExpression( expression, start );
-
-                if ( end < 0 )
-                {
-                    log.warn( "Bad expression starting at " + start + " in " + expression );
-                }
-                else if ( end > 0 )
-                {
-                    if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
-                    {
-                        nonAggregates.add( expression.substring( start, end ) ); // Arg 1: non-aggregate
-                        start = end + 1;
-                        end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
-                        if ( end < 0 )
-                        {
-                            log.warn( "Bad expression starting at " + start + " in " + expression );
-                            continue;
-                        }
-                    }
-                    nonAggregates.add( expression.substring( scan, matcher.start() ) );
-                    aggregates.add( expression.substring( start, end ) );
-                    scan = end + 1;
-                }
-                else
-                {
-                    scan = start + 1;
-                }
-            }
-
-            if ( scan < len )
-            {
-                nonAggregates.add( expression.substring( scan, len ) );
-            }
-        }
-    }
-
-    @Override
-    public Set<String> getElementsAndOptionCombosInExpression( String expression )
-    {
-        Set<String> elementsAndCombos = new HashSet<>();
-
-        if ( expression == null || expression.isEmpty() )
-        {
-            return elementsAndCombos;
-        }
-
-        Matcher matcher = OPERAND_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String elementAndCombo = matcher.group( 1 );
-
-            if ( matcher.group( 2 ) != null && !matcher.group( 2 ).equals( SYMBOL_WILDCARD ) )
-            {
-                elementAndCombo += matcher.group( 2 );
-            }
-
-            elementsAndCombos.add( elementAndCombo );
-        }
-
-        return elementsAndCombos;
-    }
-
-    @Override
-    public Set<DimensionalItemId> getDimensionalItemIdsInExpression( String expression )
-    {
-        Set<DimensionalItemId> itemIds = new HashSet<>();
-
-        if ( expression == null || expression.isEmpty() )
-        {
-            return itemIds;
-        }
-
-        Matcher matcher = VARIABLE_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String key = matcher.group( GROUP_KEY );
-            String id1 = matcher.group( GROUP_ID1 );
-            String id2 = matcher.group( GROUP_ID2 );
-            String id3 = matcher.group( GROUP_ID3 );
-
-            DimensionItemType itemType =
-                "#".equals( key ) ? id2 == null && id3 == null ? DATA_ELEMENT : DATA_ELEMENT_OPERAND :
-                "D".equals( key ) ? PROGRAM_DATA_ELEMENT :
-                "A".equals( key ) ? PROGRAM_ATTRIBUTE :
-                "I".equals( key ) ? PROGRAM_INDICATOR :
-                "N".equals( key ) ? INDICATOR :
-                "R".equals( key ) ? REPORTING_RATE : null;
-
-            if ( itemType != null )
-            {
-                itemIds.add( new DimensionalItemId( itemType, id1, id2, id3 ) );
-            }
-        }
-
-        return itemIds;
-    }
-
-    @Override
-    public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression )
-    {
-        Set<DimensionalItemId> itemIds = getDimensionalItemIdsInExpression( expression );
-
-        return dimensionService.getDataDimensionalItemObjects( itemIds );
-    }
-
-    @Override
-    @Transactional
-    public ExpressionValidationOutcome predictorExpressionIsValid( String expression )
-    {
-        return expressionIsValid( expression, true );
-    }
-
-    private ExpressionValidationOutcome expressionIsValid( String expression, boolean customFunctions )
-    {
-        if ( expression == null || expression.isEmpty() )
-        {
-            return ExpressionValidationOutcome.EXPRESSION_IS_EMPTY;
-        }
-
-        // ---------------------------------------------------------------------
-        // Operands
-        // ---------------------------------------------------------------------
-
-        StringBuffer sb = new StringBuffer();
-        Matcher matcher = VARIABLE_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String dimensionItem = matcher.group( GROUP_ID );
-
-            if ( dimensionService.getDataDimensionalItemObject( dimensionItem ) == null )
-            {
-                return ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST;
-            }
-
-            matcher.appendReplacement( sb, "1.1" );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Constants
-        // ---------------------------------------------------------------------
-
-        matcher = CONSTANT_PATTERN.matcher( expression );
-        sb = new StringBuffer();
-
-        while ( matcher.find() )
-        {
-            String constant = matcher.group( GROUP_ID );
-
-            if ( idObjectManager.getNoAcl( Constant.class, constant ) == null )
-            {
-                return ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST;
-            }
-
-            matcher.appendReplacement( sb, "1.1" );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Org unit groups
-        // ---------------------------------------------------------------------
-
-        matcher = OU_GROUP_PATTERN.matcher( expression );
-        sb = new StringBuffer();
-
-        while ( matcher.find() )
-        {
-            String group = matcher.group( GROUP_ID );
-
-            if ( idObjectManager.getNoAcl( OrganisationUnitGroup.class, group ) == null )
-            {
-                return ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST;
-            }
-
-            matcher.appendReplacement( sb, "1.1" );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Days
-        // ---------------------------------------------------------------------
-
-        expression = expression.replaceAll( DAYS_EXPRESSION, "1.1" );
-
-        // ---------------------------------------------------------------------
-        // Well-formed expression
-        // ---------------------------------------------------------------------
-
-        if ( MathUtils.expressionHasErrors( expression, customFunctions ) )
-        {
-            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
-        }
-
-        return ExpressionValidationOutcome.VALID;
-    }
-
-    @Override
-    @Transactional
-    public String getExpressionDescriptionRegEx( String expression )
-    {
-        if ( expression == null || expression.isEmpty() )
-        {
-            return null;
-        }
-
-        // ---------------------------------------------------------------------
-        // Operands
-        // ---------------------------------------------------------------------
-
-        StringBuffer sb = new StringBuffer();
-        Matcher matcher = VARIABLE_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String dimensionItem = matcher.group( GROUP_ID );
-
-            DimensionalItemObject dimensionItemObject = dimensionService.getDataDimensionalItemObject( dimensionItem );
-
-            if ( dimensionItemObject == null )
-            {
-                throw new InvalidIdentifierReferenceException( "Identifier does not reference a dimensional item object: " + dimensionItem );
-            }
-
-            matcher.appendReplacement( sb, Matcher.quoteReplacement( dimensionItemObject.getDisplayName() ) );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Constants
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = CONSTANT_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String co = matcher.group( GROUP_ID );
-
-            Constant constant = constantService.getConstant( co );
-
-            if ( constant == null )
-            {
-                throw new InvalidIdentifierReferenceException( "Identifier does not reference a constant: " + co );
-            }
-
-            matcher.appendReplacement( sb, Matcher.quoteReplacement( constant.getDisplayName() ) );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Org unit groups
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = OU_GROUP_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String oug = matcher.group( GROUP_ID );
-
-            OrganisationUnitGroup group = organisationUnitGroupService.getOrganisationUnitGroup( oug );
-
-            if ( group == null )
-            {
-                throw new InvalidIdentifierReferenceException( "Identifier does not reference an organisation unit group: " + oug );
-            }
-
-            matcher.appendReplacement( sb, Matcher.quoteReplacement( group.getDisplayName() ) );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Days
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = DAYS_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            matcher.appendReplacement( sb, DAYS_DESCRIPTION );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        return expression;
-    }
-
-    @Override
-    @Transactional
-    public void substituteExpressions( Collection<Indicator> indicators, Integer days )
-    {
-        if ( indicators != null && !indicators.isEmpty() )
-        {
-            Map<String, Constant> constants = new CachingMap<String, Constant>()
-                .load( idObjectManager.getAllNoAcl( Constant.class ), BaseIdentifiableObject::getUid);
-
-            Map<String, OrganisationUnitGroup> orgUnitGroups = new CachingMap<String, OrganisationUnitGroup>()
-                .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), BaseIdentifiableObject::getUid);
-
-            for ( Indicator indicator : indicators )
-            {
-                indicator.setExplodedNumerator( substituteExpression(
-                    indicator.getNumerator(), constants, orgUnitGroups, days ) );
-                indicator.setExplodedDenominator( substituteExpression(
-                    indicator.getDenominator(), constants, orgUnitGroups, days ) );
-            }
-        }
-    }
-
-    private String substituteExpression( String expression, Map<String, Constant> constants,
-        Map<String, OrganisationUnitGroup> orgUnitGroups, Integer days )
-    {
-        if ( expression == null || expression.isEmpty() )
-        {
-            return null;
-        }
-
-        // ---------------------------------------------------------------------
-        // Constants
-        // ---------------------------------------------------------------------
-
-        StringBuffer sb = new StringBuffer();
-        Matcher matcher = CONSTANT_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String co = matcher.group( GROUP_ID );
-
-            Constant constant = constants.get( co );
-
-            String replacement = constant != null ? String.valueOf( constant.getValue() ) : NULL_REPLACEMENT;
-
-            matcher.appendReplacement( sb, Matcher.quoteReplacement( replacement ) );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Org unit groups
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = OU_GROUP_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String oug = matcher.group( GROUP_ID );
-
-            OrganisationUnitGroup group = orgUnitGroups.get( oug );
-
-            String replacement = group != null ? String.valueOf( group.getMembers().size() ) : NULL_REPLACEMENT;
-
-            matcher.appendReplacement( sb, replacement );
-
-            // TODO sub tree
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Days
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = DAYS_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String replacement = days != null ? String.valueOf( days ) : NULL_REPLACEMENT;
-
-            matcher.appendReplacement( sb, replacement );
-        }
-
-        return TextUtils.appendTail( matcher, sb );
-    }
-
-    @Override
-    public String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy )
-    {
-        return generateExpression( expression, valueMap, constantMap, orgUnitCountMap, days, missingValueStrategy, null );
-    }
-
-    /**
-     * Generates an expression based on the given data maps.
-     *
-     * @param expression the expression.
-     * @param valueMap the value map.
-     * @param constantMap the constant map.
-     * @param orgUnitCountMap the organisation unit count map.
-     * @param days the number of days.
-     * @param missingValueStrategy the missing value strategy.
-     * @param aggregateMap the aggregate map.
-     * @return an expression.
-     */
-    private String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy,
-        Map<String, List<Double>> aggregateMap )
-    {
-        if ( expression == null || expression.isEmpty() )
-        {
-            return null;
-        }
-
-        expression = ExpressionUtils.normalizeExpression( expression );
-
-        Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().
-            filter( e -> e.getValue() != null ).
-            collect( Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue) );
-
-        missingValueStrategy = ObjectUtils.firstNonNull( missingValueStrategy, NEVER_SKIP );
-
-        // ---------------------------------------------------------------------
-        // Aggregates
-        // ---------------------------------------------------------------------
-
-        StringBuffer sb = new StringBuffer();
-
-        Pattern prefix = CustomFunctions.AGGREGATE_PATTERN_PREFIX;
-        Matcher matcher = prefix.matcher( expression );
-
-        int scan = 0, len = expression.length(), tail = 0;
-
-        while ( scan < len && matcher.find( scan ) )
-        {
-            int start = matcher.end();
-            int end = Expression.matchExpression( expression, start );
-
-            sb.append(expression, scan, matcher.start());
-            sb.append( expression.substring( matcher.start(), start ).toUpperCase() );
-
-            if ( end < 0 )
-            {
-                scan = start + 1;
-                tail = start;
-            }
-            else if ( aggregateMap == null || expression.charAt( start ) == '<' )
-            {
-                sb.append(expression, start, end);
-                scan = end + 1;
-                tail = end;
-            }
-            else
-            {
-                if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
-                {
-                    sb.append( expression.substring( start, end + 1 ) ); // Arg 1: non-aggregate
-                    start = end + 1;
-                    end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
-                    if ( end < 0 )
-                    {
-                        scan = start + 1;
-                        tail = start;
-                        continue;
-                    }
-                }
-                String subExpression = expression.substring( start, end );
-                List<Double> samples = aggregateMap.get( subExpression );
-
-                if ( samples == null )
-                {
-                    if ( SKIP_IF_ANY_VALUE_MISSING.equals( missingValueStrategy ) )
-                    {
-                        return null;
-                    }
-
-                    sb.append( "0" );
-                }
-                else
-                {
-                    String literal = samples.toString();
-                    sb.append( literal );
-                }
-
-                scan = end;
-                tail = end;
-            }
-        }
-
-        sb.append( expression.substring( tail ) );
-        expression = sb.toString();
-
-        // ---------------------------------------------------------------------
-        // IsNull function (implemented here)
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = ISNULL_PATTERN.matcher( expression );
-
-        scan = 0;
-        len = expression.length();
-        List<String> isNullArgList = new ArrayList<>();
-
-        while ( scan < len && matcher.find( scan ) )
-        {
-            int start = matcher.end();
-            int end = Expression.matchExpression( expression, start );
-
-            sb.append(expression, scan, matcher.start());
-
-            scan = start + 1;
-
-            if ( end > 0 )
-            {
-                String arg = expression.substring( start, end );
-                Matcher argMatcher = VARIABLE_PATTERN.matcher( arg );
-
-                if ( argMatcher.find() )
-                {
-                    String dimItem = argMatcher.group( GROUP_ID );
-
-                    final Double value = dimensionItemValueMap.get( dimItem );
-
-                    if ( value == null )
-                    {
-                        sb.append( TRUE_VALUE );
-                        isNullArgList.add( arg.trim() );
-                    }
-                    else
-                    {
-                        sb.append( FALSE_VALUE );
-                    }
-
-                    scan = end + 1;
-                }
-            }
-        }
-
-        sb.append( expression.substring( scan ) );
-        expression = sb.toString();
-
-        // Replace any other instances of the isNull() args with zeros, to
-        // avoid the expression being disqualified because they are there.
-        for( String isNullArg : isNullArgList )
-        {
-            expression = expression.replace(isNullArg, "0" );
-        }
-
-        // ---------------------------------------------------------------------
-        // Other scalar custom functions (make them case-insensitive)
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = CustomFunctions.SCALAR_PATTERN_PREFIX.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            matcher.appendReplacement( sb,
-                expression.substring( matcher.start(), matcher.end() ).toUpperCase() );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // DimensionalItemObjects
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = VARIABLE_PATTERN.matcher( expression );
-
-        int matchCount = 0;
-        int valueCount = 0;
-
-        while ( matcher.find() )
-        {
-            matchCount++;
-
-            String dimItem = matcher.group( GROUP_ID );
-
-            final Double value = dimensionItemValueMap.get( dimItem );
-
-            boolean missingValue = value == null;
-
-            if ( missingValue && SKIP_IF_ANY_VALUE_MISSING.equals( missingValueStrategy ) )
-            {
-                return null;
-            }
-
-            if ( !missingValue )
-            {
-                valueCount++;
-            }
-
-            String replacement = value != null ? String.valueOf( value ) : NULL_REPLACEMENT;
-
-            matcher.appendReplacement( sb, Matcher.quoteReplacement( replacement ) );
-        }
-
-        if ( SKIP_IF_ALL_VALUES_MISSING.equals( missingValueStrategy ) && matchCount > 0 && valueCount == 0 )
-        {
-            return null;
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Constants
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = CONSTANT_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            final Double constant = constantMap != null ? constantMap.get( matcher.group( GROUP_ID ) ) : null;
-
-            String replacement = constant != null ? String.valueOf( constant ) : NULL_REPLACEMENT;
-
-            matcher.appendReplacement( sb, replacement );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Org unit groups
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = OU_GROUP_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            final Integer count = orgUnitCountMap != null ? orgUnitCountMap.get( matcher.group( GROUP_ID ) ) : null;
-
-            String replacement = count != null ? String.valueOf( count ) : NULL_REPLACEMENT;
-
-            matcher.appendReplacement( sb, replacement );
-        }
-
-        expression = TextUtils.appendTail( matcher, sb );
-
-        // ---------------------------------------------------------------------
-        // Days
-        // ---------------------------------------------------------------------
-
-        sb = new StringBuffer();
-        matcher = DAYS_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String replacement = days != null ? String.valueOf( days ) : NULL_REPLACEMENT;
-
-            matcher.appendReplacement( sb, replacement );
-        }
-
-        return TextUtils.appendTail( matcher, sb );
-    }
-
     private int getDaysFromPeriods( List<Period> periods )
     {
-        return periods.stream().mapToInt(Period::getDaysInPeriod).sum();
+        return periods.stream().mapToInt( Period::getDaysInPeriod ).sum();
     }
 }

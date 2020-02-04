@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.hisp.dhis.datastatistics;
 public enum DataStatisticsEventType
 {
     REPORT_TABLE_VIEW( "reporttable" ),
+    VISUALIZATION_VIEW( "visualization" ),
     CHART_VIEW( "chart" ),
     MAP_VIEW( "map" ),
     EVENT_REPORT_VIEW( "eventreport" ),

@@ -36,10 +36,12 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -48,8 +50,13 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -57,11 +64,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class RelationshipsTest
     extends ApiTest
 {
-    private RestApiActions trackedEntityInstanceActions;
-
     private static List<String> teis;
 
     private static List<String> events;
+
+    private RestApiActions trackedEntityInstanceActions;
 
     private MetadataActions metadataActions;
 
@@ -92,7 +99,7 @@ public class RelationshipsTest
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.postFile( new File( "src/test/resources/tracker/relationshipTypes.json" ), "" ).validate()
+        metadataActions.postFile( new File( "src/test/resources/tracker/relationshipTypes.json" ) ).validate()
             .statusCode( 200 );
 
         JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
@@ -104,6 +111,34 @@ public class RelationshipsTest
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
         events = eventActions.post( eventObject ).extractUids();
+    }
+
+    @Test
+    public void duplicateRelationshipsShouldNotBeAdded()
+    {
+        // create a relationship
+        JsonObject object = relationshipActions
+            .createRelationshipBody( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
+                teis.get( 1 ) );
+
+        ApiResponse response = relationshipActions.post( object );
+
+        response.validate().statusCode( 200 );
+        createdRelationship = response.extractUid();
+        assertNotNull( createdRelationship, "First relationship was not created." );
+
+        // create a second relationship
+        response = relationshipActions.post( object );
+
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "response.status", equalTo( "ERROR" ) )
+            .body( "response.ignored", equalTo( 1 ) )
+            .body( "response.total", equalTo( 1 ) )
+            .rootPath( "response.importSummaries[0]" )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "description", Matchers.stringContainsInOrder( "Relationship", "already exist" ) )
+            .body( "importCount.ignored", equalTo( 1 ) );
     }
 
     @MethodSource( "provideRelationshipData" )
@@ -121,6 +156,7 @@ public class RelationshipsTest
 
         createdRelationship = response.extractUid();
 
+        assertNotNull( createdRelationship, "Relationship id was not returned" );
         assertEquals( 1, response.getSuccessfulImportSummaries().size(), "Relationship import was not successful" );
 
         // validate created on both sides
@@ -137,7 +173,7 @@ public class RelationshipsTest
         {
         case "trackedEntityInstance":
         {
-            return trackedEntityInstanceActions.get( id, "fields=relationships" );
+            return trackedEntityInstanceActions.get( id, new QueryParamsBuilder().add( "fields=relationships" ) );
         }
 
         case "event":
@@ -157,11 +193,11 @@ public class RelationshipsTest
     {
         response.validate()
             .statusCode( 200 )
-            .body( "relationships", Matchers.hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
-            .body( "relationships.relationshipType", Matchers.hasItem( relationshipTypeId ) )
+            .body( "relationships", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "relationships.relationshipType", hasItem( relationshipTypeId ) )
             .body( String.format( "relationships.from.%s.%s", fromInstance, fromInstance ),
                 hasItem( Matchers.equalTo( fromInstanceId ) ) )
-            .body( String.format( "relationships.to.%s.%s", toInstance, toInstance ), hasItem( Matchers.equalTo( toInstanceId ) ) );
+            .body( String.format( "relationships.to.%s.%s", toInstance, toInstance ), hasItem( equalTo( toInstanceId ) ) );
     }
 
     @AfterEach

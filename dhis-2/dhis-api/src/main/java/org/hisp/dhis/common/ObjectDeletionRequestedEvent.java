@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,31 @@ import org.springframework.context.ApplicationEvent;
 public class ObjectDeletionRequestedEvent
     extends ApplicationEvent
 {
+    /**
+     * Should rollback the transaction if DeleteNotAllowedException is thrown
+     */
+    private boolean shouldRollBack = true;
+
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
     public ObjectDeletionRequestedEvent( Object source )
     {
         super( source );
+    }
+
+    // -------------------------------------------------------------------------
+    // Getter && Setter
+    // -------------------------------------------------------------------------
+
+    public boolean isShouldRollBack()
+    {
+        return shouldRollBack;
+    }
+
+    public void setShouldRollBack( boolean shouldRollBack )
+    {
+        this.shouldRollBack = shouldRollBack;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -303,8 +303,7 @@ public class OrganisationUnitController
         generator.writeStringField( "id", organisationUnit.getUid() );
 
         generator.writeObjectFieldStart( "geometry" );
-        generator.writeObjectField( "type",
-            FeatureType.getTypeFromName( organisationUnit.getGeometry().getGeometryType() ) );
+        generator.writeObjectField( "type", organisationUnit.getGeometry().getGeometryType() );
 
         generator.writeFieldName( "coordinates" );
         generator.writeRawValue( getCoordinatesFromGeometry( organisationUnit.getGeometry() ) );

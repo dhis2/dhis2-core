@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,20 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.*;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -52,14 +55,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -490,12 +487,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertEquals( "DataElementA", members.get( 0 ).getName() );
-        assertEquals( "DataElementCodeA", members.get( 0 ).getCode() );
-        assertEquals( "DataElementB", members.get( 1 ).getName() );
-        assertEquals( "DataElementCodeB", members.get( 1 ).getCode() );
-        assertEquals( "DataElementC", members.get( 2 ).getName() );
-        assertEquals( "DataElementCodeC", members.get( 2 ).getCode() );
+        assertContains(members, "DataElementA", "DataElementCodeA");
+        assertContains(members, "DataElementB", "DataElementCodeB");
+        assertContains(members, "DataElementC", "DataElementCodeC");
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -519,12 +513,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertEquals( "DataElementA", members.get( 0 ).getName() );
-        assertEquals( "DataElementCodeA", members.get( 0 ).getCode() );
-        assertEquals( "DataElementB", members.get( 1 ).getName() );
-        assertEquals( "DataElementCodeB", members.get( 1 ).getCode() );
-        assertEquals( "DataElementC", members.get( 2 ).getName() );
-        assertEquals( "DataElementCodeC", members.get( 2 ).getCode() );
+        assertContains(members, "DataElementA", "DataElementCodeA");
+        assertContains(members, "DataElementB", "DataElementCodeB");
+        assertContains(members, "DataElementC", "DataElementCodeC");
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -548,12 +539,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertEquals( "DataElementA", members.get( 0 ).getName() );
-        assertEquals( "DataElementCodeA", members.get( 0 ).getCode() );
-        assertEquals( "DataElementB", members.get( 1 ).getName() );
-        assertEquals( "DataElementCodeB", members.get( 1 ).getCode() );
-        assertEquals( "DataElementC", members.get( 2 ).getName() );
-        assertEquals( "DataElementCodeC", members.get( 2 ).getCode() );
+        assertContains(members, "DataElementA", "DataElementCodeA");
+        assertContains(members, "DataElementB", "DataElementCodeB");
+        assertContains(members, "DataElementC", "DataElementCodeC");
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -668,5 +656,20 @@ public class PreheatServiceTest
 
         User user = createUser( 'A' );
         manager.save( user );
+    }
+
+    private void assertContains( List<DataElement> dataElements, String name, String code )
+    {
+
+        for ( DataElement dataElement : dataElements )
+        {
+
+            if ( dataElement.getCode().equals( code ) && dataElement.getName().equals( name ) )
+            {
+
+                return;
+            }
+        }
+        fail( "The collection does not contain a DataElement with name: [" + name + "] and code: [" + code + "]" );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,15 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.Date;
+import java.util.HashSet;
+
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
@@ -49,11 +55,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
@@ -62,11 +64,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -248,6 +246,38 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
+    public void testDeleteEnrollmentWithEvents()
+    {
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
+        eventService.addEvent( event, null, false );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        enrollment.setEvents( Lists.newArrayList( event ) );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        Enrollment retrievedEnrlollment = enrollmentService
+            .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() );
+
+        EventSearchParams params = new EventSearchParams();
+        params.setProgram( programA );
+        params.setOrgUnit( organisationUnitA );
+        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.SELECTED );
+
+        Event retrievedEvent = enrollment.getEvents().get( 0 );
+
+        assertNotNull( retrievedEnrlollment );
+        assertNotNull( retrievedEvent );
+
+        enrollmentService.deleteEnrollment( retrievedEnrlollment.getEnrollment() );
+
+        assertNull( enrollmentService.getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() ) );
+        assertEquals( 0, eventService.getEvents( params ).getEvents().size() );
+    }
+
+    @Test
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
         ImportOptions importOptions = new ImportOptions();
@@ -369,6 +399,8 @@ public class RegistrationMultiEventsServiceTest
     private Event createEvent( String program, String programStage, String orgUnit, String person, String dataElement )
     {
         Event event = new Event();
+        event.setUid( CodeGenerator.generateUid() );
+        event.setEvent( event.getUid() );
         event.setProgram( program );
         event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );

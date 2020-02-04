@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,8 +114,6 @@ public class DefaultDataQueryService
     // DataQueryService implementation
     // -------------------------------------------------------------------------
 
-    // TODO introduce ExternalDataQueryParams and replace individual parameters
-
     @Override
     public DataQueryParams getFromRequest( DataQueryRequest request )
     {
@@ -174,6 +172,7 @@ public class DefaultDataQueryService
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
             .withApiVersion( request.getApiVersion() )
+            .withUserOrgUnitType( request.getUserOrgUnitType() )
             .build();
     }
 
@@ -281,7 +280,6 @@ public class DefaultDataQueryService
                         dataDimensionItems.addAll( group.getMembers() );
                         dimensionalKeywords.addGroupBy(group);
                     }
-
                 }
                 else
                 {
@@ -543,14 +541,31 @@ public class DefaultDataQueryService
 
         if ( userOrgUnit != null )
         {
-            DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
+            units.addAll(DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
                 .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
                 .filter( Objects::nonNull )
-                .forEach( ou -> units.add( ou ) );
+                .collect( Collectors.toList() ) );
         }
-        else if ( currentUser != null && currentUser.hasOrganisationUnit() )
+        else if ( currentUser != null && params != null && params.getUserOrgUnitType() != null )
         {
-            units.addAll( currentUser.getSortedOrganisationUnits() );
+            switch ( params.getUserOrgUnitType() )
+            {
+            case DATA_CAPTURE:
+                units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
+                break;
+            case DATA_OUTPUT:
+                units.addAll(
+                    currentUser.getDataViewOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
+                break;
+            case TEI_SEARCH:
+                units.addAll(
+                    currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
+                break;
+            }
+        }
+        else if ( currentUser != null )
+        {
+            units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
         }
 
         return units;

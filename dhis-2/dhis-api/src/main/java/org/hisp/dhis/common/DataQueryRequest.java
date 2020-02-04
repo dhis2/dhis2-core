@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 
 public class DataQueryRequest
 {
@@ -93,6 +94,8 @@ public class DataQueryRequest
     protected Date relativePeriodDate;
 
     protected String userOrgUnit;
+
+    protected UserOrgUnitType userOrgUnitType;
 
     protected DhisApiVersion apiVersion;
 
@@ -229,6 +232,11 @@ public class DataQueryRequest
     public String getUserOrgUnit()
     {
         return userOrgUnit;
+    }
+
+    public UserOrgUnitType getUserOrgUnitType()
+    {
+        return userOrgUnitType;
     }
 
     public DhisApiVersion getApiVersion()
@@ -426,6 +434,11 @@ public class DataQueryRequest
             return this;
         }
 
+        public DataQueryRequestBuilder userOrgUnitType( UserOrgUnitType userOrgUnitType )
+        {
+            this.request.userOrgUnitType = userOrgUnitType;
+            return this;
+        }
         public DataQueryRequestBuilder apiVersion( DhisApiVersion apiVersion )
         {
             this.request.apiVersion = apiVersion;

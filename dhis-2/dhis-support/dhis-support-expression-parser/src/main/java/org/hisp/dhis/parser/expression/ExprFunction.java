@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,17 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  */
 public interface ExprFunction
 {
+    /**
+     * Collects item ids inside the function for later database lookup.
+     * This is the same as the evaluate method for most functions, but for
+     * aggregation functions, it collects item ids as aggregation item ids.
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return a dummy value for the item
+     */
+    Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor );
+
     /**
      * Finds the value of an expression function, evaluating arguments only
      * when necessary (e.g., if, and, or, firstNonNull).

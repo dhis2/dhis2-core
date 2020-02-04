@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 
 /**
@@ -372,8 +373,8 @@ public class DefaultValidationService
             PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
 
             if ( periodX == null
-                || expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() ) != VALID
-                || expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() ) != VALID )
+                || expressionService.expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) != VALID
+                || expressionService.expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) != VALID )
             {
                 continue; // Don't include rule.
             }
@@ -386,8 +387,8 @@ public class DefaultValidationService
             periodX.setSlidingWindows( ruleX.getRightSlidingWindow() );
 
             Set<DimensionalItemId> itemIds = Sets.union(
-                expressionService.getExpressionDimensionalItemIds( rule.getLeftSide().getExpression() ),
-                expressionService.getExpressionDimensionalItemIds( rule.getRightSide().getExpression() ) );
+                expressionService.getExpressionDimensionalItemIds( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ),
+                expressionService.getExpressionDimensionalItemIds( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) );
 
             periodItemIds.putValues( periodX, itemIds );
 

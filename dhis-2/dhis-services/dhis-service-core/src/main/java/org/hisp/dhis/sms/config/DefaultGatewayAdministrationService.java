@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -331,21 +330,6 @@ public class DefaultGatewayAdministrationService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private String getUidByGatewayName( String gatewayName )
-    {
-        List<SmsGatewayConfig> list = getSmsConfiguration().getGateways();
-
-        for ( SmsGatewayConfig gw : list )
-        {
-            if ( gw.getName().equals( gatewayName ) )
-            {
-                return gw.getUid();
-            }
-        }
-
-        return null;
-    }
 
     private SmsConfiguration getSmsConfiguration()
     {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,9 @@ package org.hisp.dhis.setting.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.setting.DefaultSystemSettingManager;
 import org.hisp.dhis.setting.SystemSettingStore;
@@ -38,9 +41,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Luciano Fiandesio

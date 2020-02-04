@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
@@ -188,7 +187,7 @@ public class ProgramInstance
 
         return null;
     }
-    
+
     public boolean hasActiveProgramStageInstance( ProgramStage programStage )
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
@@ -198,10 +197,10 @@ public class ProgramInstance
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     public boolean hasProgramStageInstance( ProgramStage programStage )
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
@@ -211,8 +210,8 @@ public class ProgramInstance
                 return true;
             }
         }
-        
-        return false;        
+
+        return false;
     }
 
     // -------------------------------------------------------------------------
@@ -471,6 +470,8 @@ public class ProgramInstance
         this.comments = comments;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCompletedBy()
     {
         return completedBy;
@@ -481,6 +482,8 @@ public class ProgramInstance
         this.completedBy = completedBy;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()
     {
         return geometry;
@@ -516,7 +519,8 @@ public class ProgramInstance
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
     public Set<RelationshipItem> getRelationshipItems()
     {
         return relationshipItems;
@@ -527,8 +531,8 @@ public class ProgramInstance
         this.relationshipItems = relationshipItems;
     }
 
-
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "ProgramInstance{" +
             "id=" + id +

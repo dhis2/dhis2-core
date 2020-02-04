@@ -1,6 +1,6 @@
 package org.hisp.dhis.scheduling.parameters;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,8 @@ import java.util.Optional;
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = EventProgramsDataSynchronizationJobParametersDeserializer.class )
-public class EventProgramsDataSynchronizationJobParameters implements JobParameters
+public class EventProgramsDataSynchronizationJobParameters
+    implements JobParameters
 {
     private static final long serialVersionUID = 168332662397563659L;
 
@@ -55,7 +56,6 @@ public class EventProgramsDataSynchronizationJobParameters implements JobParamet
 
     public EventProgramsDataSynchronizationJobParameters()
     {
-
     }
 
     public EventProgramsDataSynchronizationJobParameters( final int pageSize )

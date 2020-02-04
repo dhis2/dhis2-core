@@ -1,7 +1,7 @@
 package org.hisp.dhis.category;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,9 @@ public class CategoryComboServiceTest
 {
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private CategoryManager categoryManager;
     
     private CategoryOption categoryOptionA;
     private CategoryOption categoryOptionB;
@@ -274,6 +277,43 @@ public class CategoryComboServiceTest
         assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG ) ) );
         assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG ) ) );
         assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG ) ) );
+    }
+
+    @Test
+    public void testAddAndPruneCategoryOptionCombo()
+    {
+        categories.clear();
+        categories.add( categoryA );
+        categories.add( categoryB );
+
+        CategoryCombo categoryComboT = new CategoryCombo( "CategoryComboT", DataDimensionType.DISAGGREGATION,
+            categories );
+
+        long id = categoryService.addCategoryCombo( categoryComboT );
+
+        categoryComboT = categoryService.getCategoryCombo( id );
+
+        assertNotNull( categoryComboT );
+
+        assertEquals( categories, categoryComboT.getCategories() );
+
+        categoryManager.addAndPruneAllOptionCombos();
+
+        assertTrue( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
+
+        assertFalse( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
+
+        categoryB.removeCategoryOption( categoryOptionC );
+        categoryB.addCategoryOption( categoryOptionE );
+        categoryService.updateCategory( categoryB );
+
+        categoryManager.addAndPruneAllOptionCombos();
+
+        categoryComboT = categoryService.getCategoryCombo( id );
+
+        assertFalse( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
+
+        assertTrue( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
     }
   
     private void assertOptionCombos( Set<CategoryOptionCombo> optionCombos )

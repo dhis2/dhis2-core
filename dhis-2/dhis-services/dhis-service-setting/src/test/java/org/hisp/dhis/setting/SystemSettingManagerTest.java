@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,6 @@ public class SystemSettingManagerTest
     @Test
     public void testSaveGetSettingWithDefault()
     {
-        assertEquals( APP_STORE_URL.getDefaultValue(), systemSettingManager.getSystemSetting( APP_STORE_URL ) );
         assertEquals( EMAIL_PORT.getDefaultValue(), systemSettingManager.getSystemSetting( EMAIL_PORT ) );
     }
 
@@ -112,19 +111,16 @@ public class SystemSettingManagerTest
     @Test
     public void testGetSystemSettingsAsMap()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.APP_STORE_URL, "valueA" );
-        systemSettingManager.saveSystemSetting( SettingKey.APPLICATION_TITLE, "valueB" );
-        systemSettingManager.saveSystemSetting( SettingKey.APPLICATION_NOTIFICATION, "valueC" );
+        systemSettingManager.saveSystemSetting( SettingKey.APPLICATION_TITLE, "valueA" );
+        systemSettingManager.saveSystemSetting( SettingKey.APPLICATION_NOTIFICATION, "valueB" );
 
         Map<String, Serializable> settingsMap = systemSettingManager.getSystemSettingsAsMap();
 
-        assertTrue( settingsMap.containsKey( SettingKey.APP_STORE_URL.getName() ) );
         assertTrue( settingsMap.containsKey( SettingKey.APPLICATION_TITLE.getName() ) );
         assertTrue( settingsMap.containsKey( SettingKey.APPLICATION_NOTIFICATION.getName() ) );
 
-        assertEquals( "valueA", settingsMap.get( SettingKey.APP_STORE_URL.getName() ) );
-        assertEquals( "valueB", settingsMap.get( SettingKey.APPLICATION_TITLE.getName() ) );
-        assertEquals( "valueC", settingsMap.get( SettingKey.APPLICATION_NOTIFICATION.getName() ) );
+        assertEquals( "valueA", settingsMap.get( SettingKey.APPLICATION_TITLE.getName() ) );
+        assertEquals( "valueB", settingsMap.get( SettingKey.APPLICATION_NOTIFICATION.getName() ) );
         assertEquals( SettingKey.CACHE_STRATEGY.getDefaultValue(), settingsMap.get( SettingKey.CACHE_STRATEGY.getName() ) );
         assertEquals( SettingKey.CREDENTIALS_EXPIRES.getDefaultValue(), settingsMap.get( SettingKey.CREDENTIALS_EXPIRES.getName() ) );
     }
@@ -133,13 +129,12 @@ public class SystemSettingManagerTest
     public void testGetSystemSettingsByCollection()
     {
         Collection<SettingKey> keys = ImmutableSet
-            .of( SettingKey.APP_STORE_URL, SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO );
+            .of( SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO );
 
-        systemSettingManager.saveSystemSetting( APP_STORE_URL, "valueA" );
-        systemSettingManager.saveSystemSetting( APPLICATION_TITLE, "valueB" );
-        systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueC" );
+        systemSettingManager.saveSystemSetting( APPLICATION_TITLE, "valueA" );
+        systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueB" );
 
-        assertEquals( systemSettingManager.getSystemSettings( keys ).size(), 3);
+        assertEquals( systemSettingManager.getSystemSettings( keys ).size(), 2 );
     }
 
     @Test

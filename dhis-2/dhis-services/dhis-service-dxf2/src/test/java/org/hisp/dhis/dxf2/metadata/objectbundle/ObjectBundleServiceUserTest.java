@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,13 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.util.List;
@@ -254,5 +256,58 @@ public class ObjectBundleServiceUserTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertEquals( 1, validate.getErrorReportsByCode( User.class, ErrorCode.E4005 ).size() );
+    }
+
+    @Test
+    public void testUpdateUserWithNoAccessUserRole()
+        throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user_userrole.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+
+        objectBundleService.commit( bundle );
+
+        User userB = manager.get( User.class, "MwhEJUnTHkn" );
+        User userA = manager.get( User.class, "sPWjoHSY03y" );
+
+        assertEquals( 2, userA.getUserCredentials().getUserAuthorityGroups().size() );
+        assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
+
+        UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
+        assertNotNull(  userManagerRole );
+        userManagerRole.getUserAccesses().clear();
+        userManagerRole.getUserAccesses().add( new UserAccess( userB, "rw------" ) );
+        userManagerRole.setPublicAccess( "--------" );
+        userManagerRole.setUser( userB );
+        manager.update( userManagerRole );
+
+        SecurityContextHolder.clearContext();
+        userA.getUserCredentials().setPassword( "passwordUserA" );
+        manager.update( userA );
+        injectSecurityContext( userA );
+
+       metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user_userrole_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        objectBundleService.commit( bundle );
+
+        assertEquals( 2, userA.getUserCredentials().getUserAuthorityGroups().size() );
+        assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
+
     }
 }

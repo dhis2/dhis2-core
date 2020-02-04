@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,26 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemNumStringLiteralContext;
 
 /**
- * Expression function firstNonNull
+ * Function firstNonNull
  *
  * @author Jim Grace
  */
 public class FunctionFirstNonNull
-    implements ExprFunction
+    extends ScalarFunction
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        for ( ExpressionParser.ItemNumStringLiteralContext c : ctx.itemNumStringLiteral() )
+        for ( ItemNumStringLiteralContext c : ctx.itemNumStringLiteral() )
         {
             Object value = visitor.getItemNumStringLiteral( c );
 
