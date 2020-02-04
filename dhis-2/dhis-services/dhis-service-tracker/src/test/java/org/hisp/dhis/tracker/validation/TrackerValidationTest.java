@@ -19,7 +19,7 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.validation.hooks.AddUpdateTrackedEntityValidationHook;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntitySecurityValidationHook;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -101,9 +101,7 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be no errors", 0, errors );
+        assertEquals( "There should be no errors", 0, report.getErrorReports().size() );
     }
 
     @Test
@@ -125,9 +123,7 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be 1 error", 1, errors );
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
         assertEquals( "TrackerErrorCode should be E1000", TrackerErrorCode.E1000,
             report.getErrorReports().get( 0 ).getErrorCode() );
 
@@ -147,16 +143,15 @@ public class TrackerValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be 13 errors", 13, errors );
+        assertEquals( "There should be 13 errors", 13, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(), everyItem( equalTo( new TrackerErrorReport(
-            AddUpdateTrackedEntityValidationHook.class, TrackerErrorCode.E1000, "QfUVllTs6cS" ) ) ) );
+            TrackedEntitySecurityValidationHook.class, TrackerErrorCode.E1000, "QfUVllTs6cS" ) ) ) );
     }
 
     @Test
@@ -177,9 +172,7 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be no errors", 0, errors );
+        assertEquals( "There should be no errors", 0, report.getErrorReports().size() );
     }
 
     @Test
@@ -196,15 +189,15 @@ public class TrackerValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
+        assertEquals( "There should be 1 errors", 1, report.getErrorReports().size() );
 
-        assertEquals( "There should be 1 error", 1, errors );
-        assertEquals( "TrackerErrorCode should be E1005", TrackerErrorCode.E1005,
-            report.getErrorReports().get( 0 ).getErrorCode() );
+        assertThat( "TrackerErrorCode should be E1005", report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1005 ) ) ) );
     }
 
     @Test
@@ -221,15 +214,15 @@ public class TrackerValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
-        assertEquals( "There should be 1 error", 1, errors );
-        assertEquals( "TrackerErrorCode should be E1004", TrackerErrorCode.E1004,
-            report.getErrorReports().get( 0 ).getErrorCode() );
+        assertThat( "TrackerErrorCode should be E1004", report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1004 ) ) ) );
     }
 
     @Test
@@ -250,11 +243,10 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
-        assertEquals( "There should be 1 error", 1, errors );
-        assertEquals( "TrackerErrorCode should be E1010", TrackerErrorCode.E1010,
-            report.getErrorReports().get( 0 ).getErrorCode() );
+        assertThat( "TrackerErrorCode should be E1010", report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1010 ) ) ) );
     }
 
     @Test
@@ -271,15 +263,15 @@ public class TrackerValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
-        assertEquals( "There should be 1 error", 1, errors );
-        assertEquals( "TrackerErrorCode should be E1010", TrackerErrorCode.E1010,
-            report.getErrorReports().get( 0 ).getErrorCode() );
+        assertThat( "TrackerErrorCode should be E1010", report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1010 ) ) ) );
     }
 
     @Test
@@ -297,13 +289,13 @@ public class TrackerValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
-        assertEquals( "There should be 1 error", 1, errors );
         assertEquals( "TrackerErrorCode should be E1011", TrackerErrorCode.E1011,
             report.getErrorReports().get( 0 ).getErrorCode() );
     }
@@ -326,12 +318,10 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be 1 error", 1, errors );
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1012 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1012 ) ) ) );
     }
 
     @Test
@@ -352,9 +342,7 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be 1 error", 1, errors );
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1012 ) ) ) );
@@ -378,9 +366,7 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be 1 error", 1, errors );
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1013 ) ) ) );
@@ -404,9 +390,7 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be 1 error", 1, errors );
+        assertEquals( "There should be 1 error", 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1013 ) ) ) );
@@ -429,16 +413,13 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be no errors", 0, errors );
+        assertEquals( "There should be no errors", 0, report.getErrorReports().size() );
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
 
         report = trackerValidationService.validate( trackerBundle );
-        errors = report.getErrorReports().size();
 
-        assertEquals( "There should be 13 errors", 13, errors );
+        assertEquals( "There should be 13 errors", 13, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1002 ) ) ) );
@@ -450,27 +431,24 @@ public class TrackerValidationTest
         throws IOException
     {
         TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_error_attr-non-existing.json" ).getInputStream(),
+            .fromJson(
+                new ClassPathResource( "tracker/validations/te-data_error_attr-non-existing.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be 2 errors", 2, errors );
+        assertEquals( "There should be 2 errors", 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
     }
-
-
-
 
     @Test
     public void testUpdate()
@@ -488,9 +466,7 @@ public class TrackerValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
 
-        int errors = report.getErrorReports().size();
-
-        assertEquals( "There should be no errors", 0, errors );
+        assertEquals( "There should be no errors", 0, report.getErrorReports().size() );
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( bundleReport.getStatus(), TrackerStatus.OK );
@@ -501,8 +477,7 @@ public class TrackerValidationTest
         report = trackerValidationService.validate( updateBundle );
         TrackerBundleReport bundleReport2 = trackerBundleService.commit( updateBundle );
 
-        errors = report.getErrorReports().size();
-        assertEquals( "There should be 0 errors", 0, errors );
+        assertEquals( "There should be 0 errors", 0, report.getErrorReports().size() );
         assertEquals( bundleReport2.getStatus(), TrackerStatus.OK );
     }
 }
