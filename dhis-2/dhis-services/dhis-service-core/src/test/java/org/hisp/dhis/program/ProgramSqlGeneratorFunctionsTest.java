@@ -333,8 +333,8 @@ public class ProgramSqlGeneratorFunctionsTest
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
         String sql = test( "d2:monthsBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
-        assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date)))) * 12 +" +
-           "date_part('month',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date))))" ) );
+        assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\" as date)))) * 12 + " +
+           "date_part('month',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\" as date))))" ) );
     }
 
     @Test
