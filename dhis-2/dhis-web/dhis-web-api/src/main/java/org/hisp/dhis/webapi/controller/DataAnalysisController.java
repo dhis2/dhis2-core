@@ -106,7 +106,7 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 @Controller
 @RequestMapping( value = DataAnalysisController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+@PreAuthorize( "hasRole('ALL') or hasRole('F_RUN_VALIDATION')" )
 public class DataAnalysisController
 {
     public static final String RESOURCE_PATH = "/dataAnalysis";
