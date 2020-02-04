@@ -53,6 +53,8 @@ import org.springframework.util.Assert;
 import java.util.*;
 import java.util.Objects;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
 
@@ -387,21 +389,35 @@ public class ReportTable
     }
 
     @Override
-    public void populateAnalyticalProperties()
-    {
-        for ( String column : columnDimensions )
+    public void populateAnalyticalProperties() {
+        if ( isNotEmpty( columnDimensions ) )
         {
-            columns.add( getDimensionalObject( column ) );
+            for ( String column : columnDimensions )
+            {
+                if ( isNotBlank( column ) )
+                {
+                    columns.add( getDimensionalObject( column ) );
+                }
+            }
         }
 
-        for ( String row : rowDimensions )
+        if (isNotEmpty( rowDimensions ))
         {
-            rows.add( getDimensionalObject( row ) );
+            for ( String row : rowDimensions )
+            {
+                if ( isNotBlank( row ) )
+                {
+                    rows.add( getDimensionalObject( row ) );
+                }
+            }
         }
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            if ( isNotBlank( filter ) )
+            {
+                filters.add( getDimensionalObject( filter ) );
+            }
         }
     }
 

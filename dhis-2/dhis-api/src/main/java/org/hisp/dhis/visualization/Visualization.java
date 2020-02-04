@@ -30,6 +30,8 @@ package org.hisp.dhis.visualization;
 
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -51,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
@@ -1096,23 +1097,36 @@ public class Visualization
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
+        // Some Visualizations may not have columnDimensions.
+        if ( isNotEmpty( columnDimensions ) )
         {
-            columns.add( getDimensionalObject( column ) );
+            for ( String column : columnDimensions )
+            {
+                if ( isNotBlank( column ) )
+                {
+                    columns.add( getDimensionalObject( column ) );
+                }
+            }
         }
 
         // PIE, GAUGE and others don't not have rowsDimensions.
-        if (CollectionUtils.isNotEmpty( rowDimensions ))
+        if (isNotEmpty( rowDimensions ))
         {
             for ( String row : rowDimensions )
             {
-                rows.add( getDimensionalObject( row ) );
+                if ( isNotBlank( row ) )
+                {
+                    rows.add( getDimensionalObject( row ) );
+                }
             }
         }
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            if ( isNotBlank( filter ) )
+            {
+                filters.add( getDimensionalObject( filter ) );
+            }
         }
     }
 
