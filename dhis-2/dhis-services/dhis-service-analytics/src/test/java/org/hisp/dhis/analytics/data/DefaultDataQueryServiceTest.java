@@ -132,8 +132,8 @@ public class DefaultDataQueryServiceTest
 
         rb = new RequestBuilder();
 
-        Mockito.lenient().when(i18nManager.getI18n()).thenReturn(i18n);
-        Mockito.lenient().when (i18n.getString( "LAST_12_MONTHS")).thenReturn("Last 12 months");
+        Mockito.lenient().when( i18nManager.getI18n() ).thenReturn( i18n );
+        Mockito.lenient().when( i18n.getString( "LAST_12_MONTHS") ).thenReturn( "Last 12 months" );
 
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );

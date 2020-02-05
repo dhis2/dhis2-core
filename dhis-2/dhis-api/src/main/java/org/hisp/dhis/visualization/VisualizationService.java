@@ -32,7 +32,6 @@ import java.util.Date;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 
 /**

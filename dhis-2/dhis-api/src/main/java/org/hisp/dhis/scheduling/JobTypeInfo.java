@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain.approval;
+package org.hisp.dhis.scheduling;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,44 +28,80 @@ package org.hisp.dhis.webapi.webdomain.approval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.schema.Property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@JacksonXmlRootElement( localName = "approval", namespace = DxfNamespaces.DXF_2_0 )
-public class Approval
+/**
+ * Class which represents information about a job type.
+ *
+ * @author Lars Helge Overland
+ */
+public class JobTypeInfo
 {
-    private String ou;
-    
-    private String aoc;
-    
-    public Approval()
+    private String name;
+
+    private JobType jobType;
+
+    private String key;
+
+    private SchedulingType schedulingType;
+
+    private List<Property> jobParameters = new ArrayList<>();
+
+    /**
+     * Default constructor.
+     */
+    public JobTypeInfo()
     {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name the job type name.
+     * @param jobType the {@link JobType}.
+     * @param jobParameters the list of {@link Property}.
+     */
+    public JobTypeInfo( String name, JobType jobType, List<Property> jobParameters )
+    {
+        this.name = name;
+        this.jobType = jobType;
+        this.key = jobType.getKey();
+        this.schedulingType = jobType.getSchedulingType();
+        this.jobParameters = jobParameters;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOu()
+    public String getName()
     {
-        return ou;
-    }
-
-    public void setOu( String ou )
-    {
-        this.ou = ou;
+        return name;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAoc()
+    public JobType getJobType()
     {
-        return aoc;
+        return jobType;
     }
 
-    public void setAoc( String aoc )
+    @JsonProperty
+    public String getKey()
     {
-        this.aoc = aoc;
+        return key;
+    }
+
+    @JsonProperty
+    public SchedulingType getSchedulingType()
+    {
+        return schedulingType;
+    }
+
+    @JsonProperty
+    public List<Property> getJobParameters()
+    {
+        return jobParameters;
     }
 }

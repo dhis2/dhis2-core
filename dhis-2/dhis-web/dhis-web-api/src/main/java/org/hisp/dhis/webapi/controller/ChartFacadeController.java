@@ -143,6 +143,7 @@ import com.google.common.collect.Lists;
  */
 @Deprecated
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@SuppressWarnings("unchecked")
 public abstract class ChartFacadeController {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
@@ -348,7 +349,7 @@ public abstract class ChartFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -360,7 +361,9 @@ public abstract class ChartFacadeController {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        Visualization object = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        Chart chart = renderService.fromJson( request.getInputStream(), Chart.class );
+
+        Visualization object = convertToVisualization( chart );
 
         TypeReport typeReport = new TypeReport( Translation.class );
 
@@ -418,7 +421,7 @@ public abstract class ChartFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -461,7 +464,7 @@ public abstract class ChartFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         if ( !getSchema().haveProperty( pvProperty ) )
@@ -496,7 +499,6 @@ public abstract class ChartFacadeController {
         manager.update( persistedObject );
     }
 
-    @SuppressWarnings( "unchecked" )
     private RootNode getObjectInternal( String uid, Map<String, String> parameters,
         List<String> filters, List<String> fields, User user ) throws Exception
     {
@@ -505,7 +507,7 @@ public abstract class ChartFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), uid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, uid ) );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(), options.getRootJunction() );
@@ -517,6 +519,11 @@ public abstract class ChartFacadeController {
 
         // Conversion point
         List<Chart> charts = convertToChartList( entities );
+
+        if ( CollectionUtils.isEmpty( charts ) )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, uid ) );
+        }
 
         handleLinksAndAccess( charts, fields, true, user );
 
@@ -657,7 +664,7 @@ public abstract class ChartFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         Visualization object = entity.get( 0 );
@@ -672,7 +679,6 @@ public abstract class ChartFacadeController {
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -684,7 +690,7 @@ public abstract class ChartFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -708,7 +714,7 @@ public abstract class ChartFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -747,7 +753,7 @@ public abstract class ChartFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -791,7 +797,7 @@ public abstract class ChartFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -825,7 +831,7 @@ public abstract class ChartFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         Visualization object = entity.get( 0 );
@@ -840,7 +846,6 @@ public abstract class ChartFacadeController {
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -852,7 +857,7 @@ public abstract class ChartFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -1022,7 +1027,7 @@ public abstract class ChartFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
         }
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
@@ -1072,7 +1077,6 @@ public abstract class ChartFacadeController {
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
-    @SuppressWarnings( "unchecked" )
     protected List<Visualization> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException
     {
@@ -1112,7 +1116,7 @@ public abstract class ChartFacadeController {
 
         return null;
     }
-    
+
     private Visualization convertToVisualization( final Chart chart )
     {
         final Visualization visualization = new Visualization();
@@ -1186,47 +1190,48 @@ public abstract class ChartFacadeController {
                 final Chart chart = new Chart();
                 copyProperties( visualization, chart, "type" );
 
-                // Set the correct type
+                // Consider only Visualization type that is a Chart
                 if ( visualization.getType() != null
                     && !"PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
                 {
+                    // Set the correct type
                     chart.setType( ChartType.valueOf( visualization.getType().name() ) );
-                }
 
-                // Copy seriesItems
-                if ( CollectionUtils.isNotEmpty( visualization.getOptionalAxes() ) )
-                {
-                    final List<Series> seriesItems = new ArrayList<>();
-                    final List<Axis> axes = visualization.getOptionalAxes();
-
-                    for ( final Axis axis : axes )
+                    // Copy seriesItems
+                    if ( CollectionUtils.isNotEmpty( visualization.getOptionalAxes() ) )
                     {
-                        final Series series = new Series();
-                        series.setSeries( axis.getDimensionalItem() );
-                        series.setAxis( axis.getAxis() );
-                        series.setId( axis.getId() );
+                        final List<Series> seriesItems = new ArrayList<>();
+                        final List<Axis> axes = visualization.getOptionalAxes();
 
-                        seriesItems.add( series );
+                        for ( final Axis axis : axes )
+                        {
+                            final Series series = new Series();
+                            series.setSeries( axis.getDimensionalItem() );
+                            series.setAxis( axis.getAxis() );
+                            series.setId( axis.getId() );
+
+                            seriesItems.add( series );
+                        }
+                        chart.setSeriesItems( seriesItems );
                     }
-                    chart.setSeriesItems( seriesItems );
-                }
 
-                // Copy column into series
-                if ( CollectionUtils.isNotEmpty( visualization.getColumnDimensions() ) )
-                {
-                    final List<String> columns = visualization.getColumnDimensions();
-                    chart.setSeries( columns.get( 0 ) );
-                }
+                    // Copy column into series
+                    if ( CollectionUtils.isNotEmpty( visualization.getColumnDimensions() ) )
+                    {
+                        final List<String> columns = visualization.getColumnDimensions();
+                        chart.setSeries( columns.get( 0 ) );
+                    }
 
-                // Copy rows into category
-                if ( CollectionUtils.isNotEmpty( visualization.getRowDimensions() ) )
-                {
-                    final List<String> rows = visualization.getRowDimensions();
-                    chart.setCategory( rows.get( 0 ) );
-                }
+                    // Copy rows into category
+                    if ( CollectionUtils.isNotEmpty( visualization.getRowDimensions() ) )
+                    {
+                        final List<String> rows = visualization.getRowDimensions();
+                        chart.setCategory( rows.get( 0 ) );
+                    }
 
-                chart.setCumulativeValues( visualization.isCumulative() );
-                charts.add( chart );
+                    chart.setCumulativeValues( visualization.isCumulative() );
+                    charts.add( chart );
+                }
             }
         }
         return charts;
@@ -1449,7 +1454,6 @@ public abstract class ChartFacadeController {
 
     private String entitySimpleName;
 
-    @SuppressWarnings( "unchecked" )
     protected Class<Visualization> getEntityClass()
     {
         return Visualization.class;

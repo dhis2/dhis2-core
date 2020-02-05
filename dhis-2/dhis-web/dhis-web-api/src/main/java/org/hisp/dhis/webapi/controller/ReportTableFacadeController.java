@@ -142,6 +142,7 @@ import com.google.common.collect.Lists;
  */
 @Deprecated
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@SuppressWarnings("unchecked")
 public abstract class ReportTableFacadeController {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
@@ -347,7 +348,7 @@ public abstract class ReportTableFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -417,7 +418,7 @@ public abstract class ReportTableFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -460,12 +461,12 @@ public abstract class ReportTableFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         if ( !getSchema().haveProperty( pvProperty ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + ReportTable.class.getName() ) );
         }
 
         Property property = getSchema().getProperty( pvProperty );
@@ -495,7 +496,6 @@ public abstract class ReportTableFacadeController {
         manager.update( persistedObject );
     }
 
-    @SuppressWarnings( "unchecked" )
     private RootNode getObjectInternal( String uid, Map<String, String> parameters,
         List<String> filters, List<String> fields, User user ) throws Exception
     {
@@ -504,7 +504,7 @@ public abstract class ReportTableFacadeController {
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), uid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, uid ) );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(), options.getRootJunction() );
@@ -516,6 +516,11 @@ public abstract class ReportTableFacadeController {
 
         // Conversion point
         List<ReportTable> reportTables = convertToReportTableList( entities );
+
+        if ( CollectionUtils.isEmpty( reportTables ) )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, uid ) );
+        }
 
         handleLinksAndAccess( reportTables, fields, true, user );
 
@@ -656,7 +661,7 @@ public abstract class ReportTableFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         Visualization object = entity.get( 0 );
@@ -671,7 +676,6 @@ public abstract class ReportTableFacadeController {
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -683,7 +687,7 @@ public abstract class ReportTableFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -746,7 +750,7 @@ public abstract class ReportTableFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -790,7 +794,7 @@ public abstract class ReportTableFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -824,7 +828,7 @@ public abstract class ReportTableFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         Visualization object = entity.get( 0 );
@@ -839,7 +843,6 @@ public abstract class ReportTableFacadeController {
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -851,7 +854,7 @@ public abstract class ReportTableFacadeController {
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -979,7 +982,7 @@ public abstract class ReportTableFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
@@ -1021,7 +1024,7 @@ public abstract class ReportTableFacadeController {
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
@@ -1071,7 +1074,6 @@ public abstract class ReportTableFacadeController {
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
-    @SuppressWarnings( "unchecked" )
     protected List<Visualization> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException
     {
@@ -1111,7 +1113,7 @@ public abstract class ReportTableFacadeController {
 
         return null;
     }
-    
+
     private Visualization convertToVisualization( final ReportTable reportTable )
     {
         final Visualization visualization = new Visualization();
@@ -1141,28 +1143,34 @@ public abstract class ReportTableFacadeController {
     private List<ReportTable> convertToReportTableList( List<Visualization> entities )
     {
         List<ReportTable> reportTables = new ArrayList<>();
+
         if ( CollectionUtils.isNotEmpty( entities ) )
         {
             for ( final Visualization visualization : entities )
             {
-                final ReportTable reportTable = new ReportTable();
-                BeanUtils.copyProperties( visualization, reportTable );
-
-                // Copy report params
-                if ( visualization.hasReportingParams() )
+                // Consider only Visualization types of Pivot Table
+                if ( visualization.getType() != null
+                    && "PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
                 {
-                    final ReportingParams reportingParams = visualization.getReportingParams();
-                    final ReportParams reportParams = new ReportParams();
+                    final ReportTable reportTable = new ReportTable();
+                    BeanUtils.copyProperties( visualization, reportTable );
 
-                    reportParams.setParamGrandParentOrganisationUnit( reportingParams.isGrandParentOrganisationUnit() );
-                    reportParams.setParamOrganisationUnit( reportingParams.isOrganisationUnit() );
-                    reportParams.setParamParentOrganisationUnit( reportingParams.isParentOrganisationUnit() );
-                    reportParams.setParamReportingMonth( reportingParams.isReportingPeriod() );
+                    // Copy report params
+                    if ( visualization.hasReportingParams() ) 
+                    {
+                        final ReportingParams reportingParams = visualization.getReportingParams();
+                        final ReportParams reportParams = new ReportParams();
 
-                    reportTable.setReportParams( reportParams );
+                        reportParams.setParamGrandParentOrganisationUnit( reportingParams.isGrandParentOrganisationUnit() );
+                        reportParams.setParamOrganisationUnit( reportingParams.isOrganisationUnit() );
+                        reportParams.setParamParentOrganisationUnit( reportingParams.isParentOrganisationUnit() );
+                        reportParams.setParamReportingMonth( reportingParams.isReportingPeriod() );
+
+                        reportTable.setReportParams( reportParams );
+                    }
+
+                    reportTables.add( reportTable );
                 }
-
-                reportTables.add( reportTable );
             }
         }
         return reportTables;
@@ -1385,7 +1393,6 @@ public abstract class ReportTableFacadeController {
 
     private String entitySimpleName;
 
-    @SuppressWarnings( "unchecked" )
     protected Class<Visualization> getEntityClass()
     {
         return Visualization.class;

@@ -32,6 +32,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Lars Helge Overland
@@ -39,13 +40,9 @@ import org.hisp.dhis.reporttable.ReportTable;
 public interface InterpretationStore
     extends IdentifiableObjectStore<Interpretation>
 {
-    int countMapInterpretations( Map map );
+    long countMapInterpretations( Map map );
 
-    int countChartInterpretations( Chart chart );
-
-    int countReportTableInterpretations( ReportTable reportTable );
-
-    Interpretation getByChartId( long id );
+    long countVisualizationInterpretations( Visualization visualization );
 
     Interpretation getByVisualizationId( long id );
 }

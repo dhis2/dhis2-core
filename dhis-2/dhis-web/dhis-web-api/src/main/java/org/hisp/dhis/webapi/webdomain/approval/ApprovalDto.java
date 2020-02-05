@@ -1,6 +1,4 @@
-package org.hisp.dhis.visualization;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
+package org.hisp.dhis.webapi.webdomain.approval;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,19 +28,44 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum VisualizationType
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+@JacksonXmlRootElement( localName = "approval", namespace = DxfNamespaces.DXF_2_0 )
+public class ApprovalDto
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE,
-    PIVOT_TABLE
+    private String ou;
+    
+    private String aoc;
+    
+    public ApprovalDto()
+    {
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOu()
+    {
+        return ou;
+    }
+
+    public void setOu( String ou )
+    {
+        this.ou = ou;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAoc()
+    {
+        return aoc;
+    }
+
+    public void setAoc( String aoc )
+    {
+        this.aoc = aoc;
+    }
 }

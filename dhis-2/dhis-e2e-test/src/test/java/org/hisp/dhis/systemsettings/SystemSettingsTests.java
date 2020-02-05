@@ -283,7 +283,7 @@ public class SystemSettingsTests extends ApiTest
     }
 
     @Test
-    public void getDefaultSystemSetting()
+    public void getDefaultSystemSettingAsText()
     {
         ApiResponse response = systemSettingActions.get(
             MAX_SYNC_ATTEMPTS_KEY,
@@ -309,9 +309,88 @@ public class SystemSettingsTests extends ApiTest
             .body( containsString( String.valueOf( MAX_PASSWORD_LENGTH_DEFAULT_VALUE ) ) );
 
         // -----------------------------------------
-        response = systemSettingActions.get( EMAIL_SENDER_KEY,
+        response = systemSettingActions.get(
+            EMAIL_SENDER_KEY,
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( EMAIL_SENDER_DEFAULT_VALUE ) );
+    }
+
+    @Test
+    public void getDefaultSystemSettingAsJson()
+    {
+        ApiResponse response = systemSettingActions.get(
+            MAX_SYNC_ATTEMPTS_KEY,
+            ContentType.JSON.toString(),
+            ContentType.JSON.toString(),
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( String.valueOf( MAX_SYNC_ATTEMPTS_DEFAULT_VALUE ) ) );
+
+        // -----------------------------------------
+        response = systemSettingActions.get(
+            MAX_PASSWORD_LENGTH_KEY,
+            ContentType.JSON.toString(),
+            ContentType.JSON.toString(),
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( String.valueOf( MAX_PASSWORD_LENGTH_DEFAULT_VALUE ) ) );
+
+        // -----------------------------------------
+        response = systemSettingActions.get(
+            EMAIL_SENDER_KEY,
+            ContentType.JSON.toString(),
+            ContentType.JSON.toString(),
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( EMAIL_SENDER_DEFAULT_VALUE ) );
+    }
+
+    @Test
+    public void getDefaultSystemSettingWithNonSpecifiedContentTypeAndAccept()
+    {
+        ApiResponse response = systemSettingActions.get(
+            MAX_SYNC_ATTEMPTS_KEY,
+            "",
+            "",
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( String.valueOf( MAX_SYNC_ATTEMPTS_DEFAULT_VALUE ) ) );
+
+        // -----------------------------------------
+        response = systemSettingActions.get(
+            MAX_PASSWORD_LENGTH_KEY,
+            "",
+            "",
+            new QueryParamsBuilder() );
+
+        response
+            .validate()
+            .statusCode( 200 )
+            .body( containsString( String.valueOf( MAX_PASSWORD_LENGTH_DEFAULT_VALUE ) ) );
+
+        // -----------------------------------------
+        response = systemSettingActions.get(
+            EMAIL_SENDER_KEY,
+            "",
+            "",
             new QueryParamsBuilder() );
 
         response

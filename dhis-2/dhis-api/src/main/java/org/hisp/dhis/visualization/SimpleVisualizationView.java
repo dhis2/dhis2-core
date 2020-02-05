@@ -1,7 +1,3 @@
-package org.hisp.dhis.visualization;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -30,19 +26,36 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum VisualizationType
+package org.hisp.dhis.visualization;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.annotation.Description;
+
+/**
+ * This class is just a wrapper class to provide a simplified summary view of
+ * the Visualization object. It will only contains the BaseIdentifiableObject
+ * attributes plus a minimum amount of attributes from Visualization.
+ */
+public class SimpleVisualizationView
+    extends
+    BaseIdentifiableObject
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE,
-    PIVOT_TABLE
+
+    private VisualizationType type;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Description( "The type of the Visualization object. Only used for Visualization objects." )
+    public VisualizationType getType()
+    {
+        return type;
+    }
+
+    public void setType( VisualizationType type )
+    {
+        this.type = type;
+    }
 }

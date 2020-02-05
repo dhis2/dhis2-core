@@ -135,65 +135,58 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     }
 
     @Override
-    public int countAnalyticalObjects( Indicator indicator )
+    public long countAnalyticalObjects( Indicator indicator )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.indicator = :indicator" );
         query.setParameter( "indicator", indicator );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return query.uniqueResult();
     }
 
     @Override
-    public int countAnalyticalObjects( DataElement dataElement )
+    public long countAnalyticalObjects( DataElement dataElement )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataElement = :dataElement" );
         query.setParameter( "dataElement", dataElement );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return query.uniqueResult();
     }
 
     @Override
-    public int countAnalyticalObjects( DataSet dataSet )
+    public long countAnalyticalObjects( DataSet dataSet )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataSet = :dataSet" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.dataSet = :dataSet" );
         query.setParameter( "dataSet", dataSet );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return query.uniqueResult();
     }
 
     @Override
-    public int countAnalyticalObjects( ProgramIndicator programIndicator )
+    public long countAnalyticalObjects( ProgramIndicator programIndicator )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c join c.dataDimensionItems d where d.programIndicator = :programIndicator" );
         query.setParameter( "dataSet", programIndicator );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return query.uniqueResult();
     }
 
     @Override
-    public int countAnalyticalObjects( Period period )
+    public long countAnalyticalObjects( Period period )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where :period in elements(c.periods)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where :period in elements(c.periods)" );
         query.setParameter( "period", period );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return query.uniqueResult();
     }
 
     @Override
-    public int countAnalyticalObjects( OrganisationUnit organisationUnit )
+    public long countAnalyticalObjects( OrganisationUnit organisationUnit )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where :organisationUnit in elements(c.organisationUnits)" );
         query.setParameter( "organisationUnit", organisationUnit );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return query.uniqueResult();
     }
 
     @Override
-    public int countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
+    public long countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where :categoryOptionGroup in elements(c.categoryOptionGroups)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where :categoryOptionGroup in elements(c.categoryOptionGroups)" );
         query.setParameter( "categoryOptionGroup", categoryOptionGroup );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return query.uniqueResult();
     }
 }

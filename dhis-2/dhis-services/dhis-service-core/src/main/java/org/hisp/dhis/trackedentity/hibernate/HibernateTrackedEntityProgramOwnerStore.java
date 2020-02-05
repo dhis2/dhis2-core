@@ -43,7 +43,9 @@ import org.springframework.stereotype.Repository;
  * @author Ameen Mohamed
  */
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore" )
-public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericStore<TrackedEntityProgramOwner> implements TrackedEntityProgramOwnerStore
+public class HibernateTrackedEntityProgramOwnerStore
+    extends HibernateGenericStore<TrackedEntityProgramOwner>
+        implements TrackedEntityProgramOwnerStore
 {
     public HibernateTrackedEntityProgramOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
@@ -58,21 +60,19 @@ public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericSto
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds )
     {
         String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
-        Query q = getQuery( hql );
+        Query<TrackedEntityProgramOwner> q = getQuery( hql );
         q.setParameterList( "teiIds", teiIds );
         return q.list();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds, long programId )
     {
         String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
-        Query q = getQuery( hql );
+        Query<TrackedEntityProgramOwner> q = getQuery( hql );
         q.setParameterList( "teiIds", teiIds );
         q.setParameter( "programId", programId );
         return q.list();

@@ -1,4 +1,4 @@
-package org.hisp.dhis.interpretation;
+package org.hisp.dhis.webapi.webdomain;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,62 +28,39 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
-import org.springframework.stereotype.Component;
-
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.scheduling.JobTypeInfo;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Wrapper DTO class for a list of {@link JobTypeInfo}.
+ *
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.interpretation.InterpretationDeletionHandler" )
-public class InterpretationDeletionHandler
-    extends DeletionHandler
+public class JobTypes
 {
-    private final InterpretationService interpretationService;
+    private List<JobTypeInfo> jobTypes = new ArrayList<>();
 
-    public InterpretationDeletionHandler( InterpretationService interpretationService )
+    public JobTypes()
     {
-        checkNotNull( interpretationService );
-
-        this.interpretationService = interpretationService;
     }
 
-    @Override
-    protected String getClassName()
+    public JobTypes( List<JobTypeInfo> jobTypes )
     {
-        return Interpretation.class.getSimpleName();
+        this.jobTypes = jobTypes;
     }
 
-    @Override
-    public void deleteUser( User user )
+    @JsonProperty
+    public List<JobTypeInfo> getJobTypes()
     {
-        List<Interpretation> interpretations = interpretationService.getInterpretations();
-
-        for ( Interpretation interpretation : interpretations )
-        {
-            if ( interpretation.getUser() != null && interpretation.getUser().equals( user ) )
-            {
-                interpretation.setUser( null );
-                interpretationService.updateInterpretation( interpretation );
-            }
-        }
+        return jobTypes;
     }
 
-    @Override
-    public String allowDeleteMap( Map map )
+    public void setJobTypes( List<JobTypeInfo> jobTypes )
     {
-        return interpretationService.countMapInterpretations( map ) == 0 ? null : ERROR;
-    }
-
-    @Override
-    public String allowDeleteVisualization( Visualization visualization )
-    {
-        return interpretationService.countVisualizationInterpretations( visualization ) == 0 ? null : ERROR;
+        this.jobTypes = jobTypes;
     }
 }

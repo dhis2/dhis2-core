@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.random;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,56 +28,22 @@ package org.hisp.dhis.webapi.webdomain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.period.PeriodType;
+import com.vividsolutions.jts.geom.Geometry;
+
+import com.vividsolutions.jts.shape.random.RandomPointsInGridBuilder;
+import io.github.benas.randombeans.api.Randomizer;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
-public class PeriodTypeDTO
+public class GeometryRandomizer
+    implements
+    Randomizer<Geometry>
 {
-    private final String name;
-    private final String isoDuration;
-    private final String isoFormat;
-    private final int frequencyOrder;
 
-    public PeriodTypeDTO( PeriodType periodType )
+    @Override
+    public Geometry getRandomValue()
     {
-        this.name = periodType.getName();
-        this.frequencyOrder = periodType.getFrequencyOrder();
-        this.isoDuration = periodType.getIso8601Duration();
-        this.isoFormat = periodType.getIsoFormat();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return name;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoDuration()
-    {
-        return isoDuration;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoFormat()
-    {
-        return isoFormat;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getFrequencyOrder()
-    {
-        return frequencyOrder;
+        return new RandomPointsInGridBuilder().getGeometry();
     }
 }
