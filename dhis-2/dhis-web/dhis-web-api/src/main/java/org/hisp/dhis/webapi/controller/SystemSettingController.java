@@ -199,9 +199,12 @@ public class SystemSettingController
 
         String systemSettingValue = getSystemSettingOrTranslation( key, locale );
 
+        Map<String, String> systemSettingsForJsonGeneration = new HashMap<>();
+        systemSettingsForJsonGeneration.put( key, systemSettingValue );
+
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJson( response.getOutputStream(), systemSettingValue );
+        renderService.toJson( response.getOutputStream(), systemSettingsForJsonGeneration );
     }
 
     private String getSystemSettingOrTranslation( String key, String locale )
