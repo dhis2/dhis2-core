@@ -61,6 +61,10 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 
     private final CacheProvider cacheProvider;
 
+    /**
+     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes
+     * Key is class name. Value is Map of {@link AuditAttribute} Fields and its getter Method
+     */
     private Cache<Map<Field, Method>> cachedAuditAttributeFields;
 
     public DefaultAuditObjectFactory( RenderService renderService, CacheProvider cacheProvider )
