@@ -404,8 +404,8 @@ public class ConfigurationController
         return config.isReadOnlyMode();
     }
 
-    @RequestMapping( value = "/appStoreUrl", method = RequestMethod.GET )
-    public @ResponseBody String getAppStoreUrl( Model model, HttpServletRequest request )
+    @RequestMapping( value = "/appHubUrl", method = RequestMethod.GET )
+    public @ResponseBody String getAppHubUrl( Model model, HttpServletRequest request )
     {
         return (String) appManager.getAppStoreUrl();
     }
