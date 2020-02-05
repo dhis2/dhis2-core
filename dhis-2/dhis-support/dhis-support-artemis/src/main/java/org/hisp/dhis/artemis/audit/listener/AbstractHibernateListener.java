@@ -28,6 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.StatelessSession;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
@@ -87,4 +89,17 @@ public abstract class AbstractHibernateListener
     }
 
     abstract AuditType getAuditType();
+
+    protected StatelessSession openSession( EntityPersister entityPersister )
+    {
+        StatelessSession session = entityPersister.getFactory().openStatelessSession();
+        session.getTransaction().begin();
+        return session;
+    }
+
+    protected void closeSession( StatelessSession session )
+    {
+        session.getTransaction().commit();
+        session.close();
+    }
 }

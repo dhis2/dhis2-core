@@ -28,13 +28,12 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
-import org.hibernate.Transaction;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
-import org.hibernate.event.spi.PostInsertEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -42,10 +41,8 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.dbms.DbmsUtils;
-import org.springframework.orm.hibernate5.SessionHolder;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 
@@ -56,6 +53,8 @@ import java.time.LocalDateTime;
 public class PostInsertAuditListener
     extends AbstractHibernateListener implements PostCommitInsertEventListener
 {
+    private static final Log log = LogFactory.getLog( PostInsertAuditListener.class );
+
     public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
@@ -71,13 +70,11 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-
         Object entity = postInsertEvent.getEntity();
 
         getAuditable( entity, "create" ).ifPresent( auditable ->
         {
-            Session session = postInsertEvent.getPersister().getFactory().openTemporarySession();
-            session.getTransaction().begin();
+            StatelessSession session = openSession( postInsertEvent.getPersister() );
             session.refresh( entity );
             try {
                 auditManager.send( Audit.builder()
@@ -91,14 +88,13 @@ public class PostInsertAuditListener
             }
             catch ( Exception ex )
             {
-                throw ex;
+                log.error( DebugUtils.getStackTrace( ex ) );
+                throw new RuntimeException( "Failed to send Audit object " + ex.getMessage(), ex );
             }
             finally
             {
-                session.getTransaction().commit();
-                session.close();
+                closeSession( session );
             }
-
         } );
     }
 
@@ -111,6 +107,6 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
-        System.out.println( "onPostInsertCommitFailed event = " + event );
+        log.warn( "PostInsertCommitFailed " + event.getEntity() );
     }
 }

@@ -28,6 +28,10 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
@@ -38,6 +42,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -49,6 +54,8 @@ import java.time.LocalDateTime;
 public class PostUpdateAuditListener
     extends AbstractHibernateListener implements PostCommitUpdateEventListener
 {
+    private static final Log log = LogFactory.getLog( PostUpdateAuditListener.class );
+
     public PostUpdateAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
@@ -69,14 +76,30 @@ public class PostUpdateAuditListener
         Object entity = postUpdateEvent.getEntity();
 
         getAuditable( entity, "update" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
-                .auditType( getAuditType() )
-                .auditScope( auditable.scope() )
-                .createdAt( LocalDateTime.now() )
-                .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
-                .build() ) );
+        {
+            StatelessSession session = openSession( postUpdateEvent.getPersister() );
+            session.refresh( entity );
+            try
+            {
+                auditManager.send( Audit.builder()
+                    .auditType( getAuditType() )
+                    .auditScope( auditable.scope() )
+                    .createdAt( LocalDateTime.now() )
+                    .createdBy( getCreatedBy() )
+                    .object( entity )
+                    .auditableEntity( new AuditableEntity( entity ) )
+                    .build() );
+            }
+            catch ( Exception ex )
+            {
+                log.error( DebugUtils.getStackTrace( ex ) );
+                throw new RuntimeException( "Failed to send Audit object " + ex.getMessage(), ex );
+            }
+            finally
+            {
+                closeSession( session );
+            }
+        } );
     }
 
     @Override
@@ -88,6 +111,6 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdateCommitFailed( PostUpdateEvent event )
     {
-        System.out.println( "onPostUpdateCommitFailed event = " + event );
+        log.warn( "PostUpdateCommitFailed " + event.getEntity() );
     }
 }
