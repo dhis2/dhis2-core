@@ -1051,35 +1051,45 @@ public class Visualization
         }
     }
 
-    private void initializePivotTable(User user, Date date, OrganisationUnit organisationUnit, List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format) {
-        verify((periods != null && !periods.isEmpty()) || hasRelativePeriods(), "Must contain periods or relative periods");
+    private void initializePivotTable( User user, Date date, OrganisationUnit organisationUnit,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
+    {
+        verify( (periods != null && !periods.isEmpty()) || hasRelativePeriods(),
+            "Must contain periods or relative periods" );
 
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
 
         // Handle report parameters
-        if (hasRelativePeriods()) {
-            this.reportingPeriodName = relatives.getReportingPeriodName(date, format);
+        if ( hasRelativePeriods() )
+        {
+            this.reportingPeriodName = relatives.getReportingPeriodName( date, format );
         }
 
-        if (organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit()) {
-            organisationUnit.setCurrentParent(true);
-            addTransientOrganisationUnits(organisationUnit.getChildren());
-            addTransientOrganisationUnit(organisationUnit);
+        if ( organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit() )
+        {
+            organisationUnit.setCurrentParent( true );
+            addTransientOrganisationUnits( organisationUnit.getChildren() );
+            addTransientOrganisationUnit( organisationUnit );
         }
 
-        if (organisationUnit != null && hasReportingParams() && reportingParams.isOrganisationUnit()) {
-            addTransientOrganisationUnit(organisationUnit);
+        if ( organisationUnit != null && hasReportingParams() && reportingParams.isOrganisationUnit() )
+        {
+            addTransientOrganisationUnit( organisationUnit );
         }
 
         // Handle special dimension
-        if (isDimensional()) {
-            transientCategoryOptionCombos.addAll(Objects.requireNonNull(getFirstCategoryCombo()).getSortedOptionCombos());
-            verify(nonEmptyLists(transientCategoryOptionCombos) == 1, "Category option combos size must be larger than 0");
+        if ( isDimensional() )
+        {
+            transientCategoryOptionCombos
+                .addAll( Objects.requireNonNull( getFirstCategoryCombo() ).getSortedOptionCombos() );
+            verify( nonEmptyLists( transientCategoryOptionCombos ) == 1,
+                "Category option combos size must be larger than 0" );
         }
 
         // Populate grid
-        this.populateGridColumnsAndRows(date, user, organisationUnitsAtLevel, organisationUnitsInGroups, format);
+        this.populateGridColumnsAndRows( date, user, organisationUnitsAtLevel, organisationUnitsInGroups, format );
     }
 
     private void initializeChart( User user, Date date, OrganisationUnit organisationUnit,
@@ -1110,7 +1120,7 @@ public class Visualization
         }
 
         // PIE, GAUGE and others don't not have rowsDimensions.
-        if (isNotEmpty( rowDimensions ))
+        if ( isNotEmpty( rowDimensions ) )
         {
             for ( String row : rowDimensions )
             {

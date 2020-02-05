@@ -405,7 +405,7 @@ public class ReportTable
             }
         }
 
-        if (isNotEmpty( rowDimensions ))
+        if ( isNotEmpty( rowDimensions ) )
         {
             for ( String row : rowDimensions )
             {
@@ -1142,7 +1142,7 @@ public class ReportTable
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The name of this Object. Required and unique." )
     @PropertyRange( min = 1 )
-    @Property(required= TRUE)
+    @Property( required = TRUE )
     public String getName()
     {
         return super.getName();
