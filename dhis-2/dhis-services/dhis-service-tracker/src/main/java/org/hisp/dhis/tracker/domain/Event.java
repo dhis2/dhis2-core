@@ -30,7 +30,10 @@ package org.hisp.dhis.tracker.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.event.EventStatus;
@@ -44,7 +47,10 @@ import java.util.Set;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
+@Builder
+@EqualsAndHashCode( callSuper = true )
 @NoArgsConstructor
+@AllArgsConstructor
 public class Event
     extends BaseLinkableObject
 {
@@ -54,6 +60,7 @@ public class Event
     private String event;
 
     @JsonProperty
+    @Builder.Default
     private EventStatus status = EventStatus.ACTIVE;
 
     @JsonProperty
@@ -93,12 +100,6 @@ public class Event
     private Coordinate coordinate;
 
     @JsonProperty
-    private Set<DataValue> dataValues = new HashSet<>();
-
-    @JsonProperty
-    private List<Note> notes = new ArrayList<>();
-
-    @JsonProperty
     private boolean followup;
 
     @JsonProperty
@@ -136,4 +137,12 @@ public class Event
 
     @JsonProperty
     private String assignedUserUsername;
+
+    @JsonProperty
+    @Builder.Default
+    private Set<DataValue> dataValues = new HashSet<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<Note> notes = new ArrayList<>();
 }

@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -36,7 +38,9 @@ import lombok.NoArgsConstructor;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class DataValue
 {
     @JsonProperty
@@ -49,10 +53,11 @@ public class DataValue
     private String value;
 
     @JsonProperty
+    @Builder.Default
     private String dataElement = "";
 
     @JsonProperty
-    private Boolean providedElsewhere = false;
+    private boolean providedElsewhere;
 
     @JsonProperty
     private String storedBy;

@@ -172,8 +172,9 @@ public class EnrollmentTrackerConverterService
 
     private TrackerPreheat preheat( List<Enrollment> enrollments )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setEnrollments( enrollments );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .enrollments( enrollments )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }

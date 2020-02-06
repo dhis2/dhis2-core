@@ -29,11 +29,9 @@ package org.hisp.dhis.tracker.job;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
 /**
@@ -42,7 +40,6 @@ import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 @Data
 @Builder
 @EqualsAndHashCode( callSuper = true )
-@JacksonXmlRootElement( localName = "trackerJob", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackerJobWebMessageResponse
     extends AbstractWebMessageResponse
 {

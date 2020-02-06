@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -43,7 +45,9 @@ import java.util.Set;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Enrollment
 {
     @JsonProperty
@@ -86,18 +90,6 @@ public class Enrollment
     private Date incidentDate;
 
     @JsonProperty
-    private List<Event> events = new ArrayList<>();
-
-    @JsonProperty
-    private Set<Relationship> relationships = new HashSet<>();
-
-    @JsonProperty
-    private List<Attribute> attributes = new ArrayList<>();
-
-    @JsonProperty
-    private List<Note> notes = new ArrayList<>();
-
-    @JsonProperty
     private boolean followup;
 
     @JsonProperty
@@ -117,4 +109,20 @@ public class Enrollment
 
     @JsonProperty
     private Geometry geometry;
+
+    @JsonProperty
+    @Builder.Default
+    private List<Event> events = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private Set<Relationship> relationships = new HashSet<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<Attribute> attributes = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<Note> notes = new ArrayList<>();
 }

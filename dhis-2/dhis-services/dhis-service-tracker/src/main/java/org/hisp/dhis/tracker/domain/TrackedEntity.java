@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -41,7 +43,9 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class TrackedEntity
 {
     @JsonProperty
@@ -66,24 +70,13 @@ public class TrackedEntity
     private String lastUpdatedAtClient;
 
     @JsonProperty
-    private List<Relationship> relationships = new ArrayList<>();
-
-    @JsonProperty
-    private List<Attribute> attributes = new ArrayList<>();
-
-    @JsonProperty
-    private List<Enrollment> enrollments = new ArrayList<>();
-
-    @JsonProperty
-    private List<ProgramOwner> programOwners = new ArrayList<>();
-
-    @JsonProperty
     private boolean inactive;
 
     @JsonProperty
     private boolean deleted;
 
     @JsonProperty
+    @Builder.Default
     private FeatureType featureType = FeatureType.NONE;
 
     @JsonProperty
@@ -91,4 +84,20 @@ public class TrackedEntity
 
     @JsonProperty
     private Geometry geometry;
+
+    @JsonProperty
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<Attribute> attributes = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<Enrollment> enrollments = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<ProgramOwner> programOwners = new ArrayList<>();
 }

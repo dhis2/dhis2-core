@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.ValueType;
@@ -37,7 +39,9 @@ import org.hisp.dhis.common.ValueType;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Attribute
 {
     @JsonProperty
