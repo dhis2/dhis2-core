@@ -763,6 +763,11 @@ public class User
         this.avatar = avatar;
     }
 
+    public static String username( User user )
+    {
+        return user != null ? user.getUsername() : "system-process";
+    }
+
     @Override
     public String toString()
     {

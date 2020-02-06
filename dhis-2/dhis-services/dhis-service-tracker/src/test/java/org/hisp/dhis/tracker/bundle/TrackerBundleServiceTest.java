@@ -100,7 +100,7 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testVerifyMetadata() throws IOException
+    public void testVerifyMetadata()
     {
         Program program = manager.get( Program.class, "E8o1E9tAppy" );
         OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );

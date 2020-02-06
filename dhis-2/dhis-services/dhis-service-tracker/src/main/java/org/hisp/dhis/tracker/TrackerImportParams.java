@@ -160,7 +160,7 @@ public class TrackerImportParams
     @JsonProperty
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
+        return User.username( user );
     }
 
     public boolean hasJobConfiguration()

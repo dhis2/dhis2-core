@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -126,8 +127,9 @@ public class TrackerBundle
     @Builder.Default
     private List<Event> events = new ArrayList<>();
 
+    @JsonProperty
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
+        return User.username( user );
     }
 }
