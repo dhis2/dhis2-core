@@ -822,7 +822,7 @@ public class DefaultPredictionService
             String dx = (String) row.get( dxInx );
             String ou = (String) row.get( ouInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
-            Double vl = (Double) row.get( vlInx );
+            Double vl = ( (Number)row.get( vlInx ) ).doubleValue();
 
             Period period = periodLookup.get( pe );
             DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );
