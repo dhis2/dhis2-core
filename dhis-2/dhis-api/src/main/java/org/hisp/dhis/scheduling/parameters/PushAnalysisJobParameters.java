@@ -1,9 +1,5 @@
 package org.hisp.dhis.scheduling.parameters;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,10 +28,17 @@ import org.hisp.dhis.scheduling.JobParameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Henning Håkonsen
+ * This class is retained only for deserialization support for old db entries serialized with this class. 
+ * For PushAnalysis job parameters from patch 2.31.7 onwards {@link PushAnalysisMultiJobParameters} is used.
+ * 
+ * @author Ameen Mohamed
  */
 @Deprecated
 public class PushAnalysisJobParameters
