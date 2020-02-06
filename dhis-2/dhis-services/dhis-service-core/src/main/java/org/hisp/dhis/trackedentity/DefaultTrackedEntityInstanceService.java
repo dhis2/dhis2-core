@@ -192,6 +192,13 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
+        String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
+
+        for ( TrackedEntityInstance tei : trackedEntityInstances )
+        {
+            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
+        }
+
         return trackedEntityInstances;
     }
 
@@ -320,15 +327,15 @@ public class DefaultTrackedEntityInstanceService
                 trackedEntityTypes.put( entity.get( TRACKED_ENTITY_ID ), te );
             }
 
-//            if ( te != null && te.isAllowAuditLog() && accessedBy != null )
-//            {
-//                TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
-//                    .trackedEntityInstance( entity.get( TRACKED_ENTITY_INSTANCE_ID ) )
-//                    .accessedBy( accessedBy )
-//                    .build();
-//
-//                sendAuditEvent( AuditType.SEARCH, auditPayload );
-//            }
+            if ( te != null && te.isAllowAuditLog() && accessedBy != null )
+            {
+                TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
+                    .trackedEntityInstance( entity.get( TRACKED_ENTITY_INSTANCE_ID ) )
+                    .accessedBy( accessedBy )
+                    .build();
+
+                sendAuditEvent( AuditType.SEARCH, auditPayload );
+            }
 
             for ( QueryItem item : params.getAttributes() )
             {
@@ -889,6 +896,8 @@ public class DefaultTrackedEntityInstanceService
 
         updateTrackedEntityInstance( instance ); // Update associations
 
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.CREATE );
+
         return id;
     }
 
@@ -917,6 +926,7 @@ public class DefaultTrackedEntityInstanceService
     @Transactional
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
+        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
     }
