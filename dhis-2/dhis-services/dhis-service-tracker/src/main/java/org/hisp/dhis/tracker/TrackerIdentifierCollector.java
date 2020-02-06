@@ -137,7 +137,7 @@ public class TrackerIdentifierCollector
     private static void collectAttributes(
         Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Attribute> attributes )
     {
-        if ( !attributes.isEmpty() )
+        if ( attributes.isEmpty() )
         {
             return;
         }
