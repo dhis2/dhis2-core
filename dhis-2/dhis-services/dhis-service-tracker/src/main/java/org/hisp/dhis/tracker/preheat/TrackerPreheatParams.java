@@ -43,6 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Used for setting up parameters for tracker preheat service. Normally not created directly, but rather
+ * created through {@see org.hisp.dhis.tracker.bundle.TrackerBundleParams#toTrackerPreheatParams}.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data

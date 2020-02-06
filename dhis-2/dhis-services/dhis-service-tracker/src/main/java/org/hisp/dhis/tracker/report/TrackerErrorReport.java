@@ -39,16 +39,21 @@ import org.hisp.dhis.tracker.TrackerErrorMessage;
 @Data
 public class TrackerErrorReport
 {
+    @JsonProperty
     private final Class<?> mainKlass;
 
     private final TrackerErrorMessage message;
 
+    @JsonProperty
     private String mainId;
 
+    @JsonProperty
     private Class<?> errorKlass;
 
+    @JsonProperty
     private String errorProperty;
 
+    @JsonProperty
     private Object value;
 
     public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )

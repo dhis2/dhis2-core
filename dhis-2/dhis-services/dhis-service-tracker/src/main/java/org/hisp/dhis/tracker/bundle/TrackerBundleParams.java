@@ -49,6 +49,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Used for setting up bundle parameters, closely modelled around {@see org.hisp.dhis.tracker.TrackerImportParams}
+ * and is usually not directly used (rather created by using {@see org.hisp.dhis.tracker.TrackerImportParams#toTrackerBundleParams}.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
