@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -100,6 +101,11 @@ public class TrackerImportParams
     private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
+     * Job id to use for threaded imports.
+     */
+    private JobConfiguration jobConfiguration;
+
+    /**
      * Tracked entities to import.
      */
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
@@ -139,6 +145,12 @@ public class TrackerImportParams
     public TrackerImportParams setUser( User user )
     {
         this.user = user;
+
+        if ( user != null )
+        {
+            this.userId = user.getUid();
+        }
+
         return this;
     }
 
@@ -253,6 +265,24 @@ public class TrackerImportParams
         return this;
     }
 
+    public JobConfiguration getJobConfiguration()
+    {
+        return jobConfiguration;
+    }
+
+    public TrackerImportParams setJobConfiguration( JobConfiguration jobConfiguration )
+    {
+        this.jobConfiguration = jobConfiguration;
+        return this;
+    }
+
+    public boolean hasJobConfiguration()
+    {
+        return jobConfiguration != null;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntity> getTrackedEntities()
     {
         return trackedEntities;
@@ -264,6 +294,8 @@ public class TrackerImportParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Enrollment> getEnrollments()
     {
         return enrollments;
@@ -275,6 +307,8 @@ public class TrackerImportParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Event> getEvents()
     {
         return events;

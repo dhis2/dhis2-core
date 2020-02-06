@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,12 +28,41 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MessageType
+@Component
+@Scope( BeanDefinition.SCOPE_PROTOTYPE )
+public class TrackerImportThread
+    extends SecurityContextRunnable
 {
-    AUDIT,
+    private final TrackerImportService trackerImportService;
+    private TrackerImportParams trackerImportParams;
 
-    TRACKER_JOB
+    public TrackerImportThread( TrackerImportService trackerImportService )
+    {
+        this.trackerImportService = trackerImportService;
+    }
+
+    @Override
+    public void call()
+    {
+        Assert.notNull( trackerImportParams, "Field trackerImportParams can not be null. " );
+
+        trackerImportParams.setUser( null ); // set user to null to force reload in importer
+        trackerImportService.importTracker( trackerImportParams ); // discard returned report, it has been put on the jobs endpoint
+    }
+
+    public void setTrackerImportParams( TrackerImportParams trackerImportParams )
+    {
+        this.trackerImportParams = trackerImportParams;
+    }
 }

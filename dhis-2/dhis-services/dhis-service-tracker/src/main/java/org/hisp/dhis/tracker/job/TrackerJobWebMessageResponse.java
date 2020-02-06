@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,12 +28,27 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MessageType
+@Data
+@Builder
+@EqualsAndHashCode( callSuper = true )
+@JacksonXmlRootElement( localName = "trackerJob", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackerJobWebMessageResponse
+    extends AbstractWebMessageResponse
 {
-    AUDIT,
+    @JsonProperty
+    private final String id;
 
-    TRACKER_JOB
+    @JsonProperty
+    private final String location;
 }

@@ -49,6 +49,8 @@ public interface Notifier
 
     Notifier update( JobConfiguration id, String message );
 
+    Notifier update( JobConfiguration id, String message, boolean completed );
+
     Notifier update( JobConfiguration id, NotificationLevel level, String message );
 
     Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
