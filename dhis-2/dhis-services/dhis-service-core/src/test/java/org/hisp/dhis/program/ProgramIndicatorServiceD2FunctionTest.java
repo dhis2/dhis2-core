@@ -269,7 +269,7 @@ public class ProgramIndicatorServiceD2FunctionTest
     @Test
     public void testD2Oizp()
     {
-        assertEquals("((date_part('year',age(cast(executiondate as date), cast(\"DataElmentA\"as date)))) * 12 +date_part('month',age(cast(executiondate as date), cast(\"DataElmentA\"as date))))",
+        assertEquals("((date_part('year',age(cast(executiondate as date), cast(\"DataElmentA\" as date)))) * 12 + date_part('month',age(cast(executiondate as date), cast(\"DataElmentA\" as date))))",
             getSql("d2:monthsBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
