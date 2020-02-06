@@ -153,7 +153,7 @@ public class EnrollmentTrackerConverterService
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
             programInstance.setEntityInstance( trackedEntityInstance );
-            programInstance.setFollowup( enrollment.getFollowup() );
+            programInstance.setFollowup( enrollment.isFollowup() );
             programInstance.setGeometry( enrollment.getGeometry() );
 
             if ( enrollment.getStatus() == null )

@@ -29,142 +29,37 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@NoArgsConstructor
 public class Relationship
 {
+    @JsonProperty
     private String relationshipType;
 
+    @JsonProperty
     private String relationshipName;
 
+    @JsonProperty
     private String relationship;
 
+    @JsonProperty
     private boolean bidirectional;
 
+    @JsonProperty
     private RelationshipItem from;
 
+    @JsonProperty
     private RelationshipItem to;
 
+    @JsonProperty
     private String created;
 
+    @JsonProperty
     private String lastUpdated;
-
-    public Relationship()
-    {
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRelationshipType()
-    {
-        return relationshipType;
-    }
-
-    public void setRelationshipType( String relationshipType )
-    {
-        this.relationshipType = relationshipType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRelationship()
-    {
-        return relationship;
-    }
-
-    public void setRelationship( String relationship )
-    {
-        this.relationship = relationship;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipItem getFrom()
-    {
-        return from;
-    }
-
-    public void setFrom( RelationshipItem from )
-    {
-        this.from = from;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipItem getTo()
-    {
-        return to;
-    }
-
-    public void setTo( RelationshipItem to )
-    {
-        this.to = to;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRelationshipName()
-    {
-        return relationshipName;
-    }
-
-    public void setRelationshipName( String relationshipName )
-    {
-        this.relationshipName = relationshipName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( String created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( String lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isBidirectional()
-    {
-        return bidirectional;
-    }
-
-    public void setBidirectional( boolean bidirectional )
-    {
-        this.bidirectional = bidirectional;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Relationship{" +
-            "relationshipType='" + relationshipType + '\'' +
-            ", relationshipName='" + relationshipName + '\'' +
-            ", relationship='" + relationship + '\'' +
-            ", from=" + from +
-            ", to=" + to +
-            '}';
-    }
 }

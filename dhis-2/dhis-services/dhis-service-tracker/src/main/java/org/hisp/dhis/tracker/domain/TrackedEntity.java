@@ -29,327 +29,66 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@NoArgsConstructor
 public class TrackedEntity
 {
+    @JsonProperty
     private String trackedEntityType;
 
+    @JsonProperty
     private String trackedEntity;
 
+    @JsonProperty
     private String orgUnit;
 
+    @JsonProperty
     private String created;
 
+    @JsonProperty
     private String lastUpdated;
 
+    @JsonProperty
     private String createdAtClient;
 
+    @JsonProperty
     private String lastUpdatedAtClient;
 
+    @JsonProperty
     private List<Relationship> relationships = new ArrayList<>();
 
+    @JsonProperty
     private List<Attribute> attributes = new ArrayList<>();
 
+    @JsonProperty
     private List<Enrollment> enrollments = new ArrayList<>();
 
+    @JsonProperty
     private List<ProgramOwner> programOwners = new ArrayList<>();
 
-    private Boolean inactive;
+    @JsonProperty
+    private boolean inactive;
 
-    private Boolean deleted = false;
+    @JsonProperty
+    private boolean deleted;
 
+    @JsonProperty
     private FeatureType featureType = FeatureType.NONE;
 
+    @JsonProperty
     private String coordinates;
 
+    @JsonProperty
     private Geometry geometry;
-
-    public TrackedEntity()
-    {
-    }
-
-    /**
-     * Trims the value property of attribute values to null.
-     */
-    public void trimValuesToNull()
-    {
-        if ( attributes != null )
-        {
-            for ( Attribute attribute : attributes )
-            {
-                attribute.setValue( StringUtils.trimToNull( attribute.getValue() ) );
-            }
-        }
-    }
-
-    public void clear()
-    {
-        this.setDeleted( null );
-        this.setFeatureType( null );
-        this.setEnrollments( null );
-        this.setRelationships( null );
-        this.setAttributes( null );
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntityType()
-    {
-        return trackedEntityType;
-    }
-
-    public void setTrackedEntityType( String trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntity()
-    {
-        return trackedEntity;
-    }
-
-    public void setTrackedEntity( String trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getOrgUnit()
-    {
-        return orgUnit;
-    }
-
-    public void setOrgUnit( String orgUnit )
-    {
-        this.orgUnit = orgUnit;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( String created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( String lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreatedAtClient()
-    {
-        return createdAtClient;
-    }
-
-    public void setCreatedAtClient( String createdAtClient )
-    {
-        this.createdAtClient = createdAtClient;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdatedAtClient()
-    {
-        return lastUpdatedAtClient;
-    }
-
-    public void setLastUpdatedAtClient( String lastUpdatedAtClient )
-    {
-        this.lastUpdatedAtClient = lastUpdatedAtClient;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Relationship> getRelationships()
-    {
-        return relationships;
-    }
-
-    public void setRelationships( List<Relationship> relationships )
-    {
-        this.relationships = relationships;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Attribute> getAttributes()
-    {
-        return attributes;
-    }
-
-    public void setAttributes( List<Attribute> attributes )
-    {
-        this.attributes = attributes;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Enrollment> getEnrollments()
-    {
-        return enrollments;
-    }
-
-    public void setEnrollments( List<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programOwner", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramOwner> getProgramOwners()
-    {
-        return programOwners;
-    }
-
-    public void setProgramOwners( List<ProgramOwner> programOwners )
-    {
-        this.programOwners = programOwners;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isInactive()
-    {
-        return inactive;
-    }
-
-    public void setInactive( Boolean inactive )
-    {
-        this.inactive = inactive;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isDeleted()
-    {
-        return deleted;
-    }
-
-    public void setDeleted( Boolean deleted )
-    {
-        this.deleted = deleted;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FeatureType getFeatureType()
-    {
-        return featureType;
-    }
-
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.GEOLOCATION )
-    public String getCoordinates()
-    {
-        return coordinates;
-    }
-
-    public void setCoordinates( String coordinates )
-    {
-        this.coordinates = coordinates;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Geometry getGeometry()
-    {
-        return geometry;
-    }
-
-    public void setGeometry( Geometry geometry )
-    {
-        this.geometry = geometry;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
-        TrackedEntity that = (TrackedEntity) o;
-        return Objects.equals( trackedEntityType, that.trackedEntityType ) &&
-            Objects.equals( trackedEntity, that.trackedEntity ) &&
-            Objects.equals( orgUnit, that.orgUnit ) &&
-            Objects.equals( created, that.created ) &&
-            Objects.equals( createdAtClient, that.createdAtClient ) &&
-            Objects.equals( lastUpdated, that.lastUpdated ) &&
-            Objects.equals( lastUpdatedAtClient, that.lastUpdatedAtClient ) &&
-            Objects.equals( relationships, that.relationships ) &&
-            Objects.equals( attributes, that.attributes ) &&
-            Objects.equals( enrollments, that.enrollments ) &&
-            Objects.equals( inactive, that.inactive );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( trackedEntityType, trackedEntity, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
-            relationships, attributes, enrollments, inactive );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "TrackedEntityInstance{" +
-            "trackedEntityType='" + trackedEntityType + '\'' +
-            ", trackedEntity='" + trackedEntity + '\'' +
-            ", orgUnit='" + orgUnit + '\'' +
-            ", created='" + created + '\'' +
-            ", lastUpdated='" + lastUpdated + '\'' +
-            ", createdAtClient='" + createdAtClient + '\'' +
-            ", lastUpdatedAtClient='" + lastUpdatedAtClient + '\'' +
-            ", relationships=" + relationships +
-            ", attributes=" + attributes +
-            ", enrollments=" + enrollments +
-            ", programOwners=" + programOwners +
-            ", inactive=" + inactive +
-            ", deleted=" + deleted +
-            ", featureType=" + featureType +
-            ", coordinates='" + coordinates + '\'' +
-            '}';
-    }
 }
