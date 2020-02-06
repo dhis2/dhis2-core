@@ -30,8 +30,6 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Session;
-import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -40,7 +38,6 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -74,10 +71,6 @@ public class PostLoadAuditListener
 
         getAuditable( entity, "read" ).ifPresent( auditable ->
         {
-            StatelessSession session = openSession( postLoadEvent.getPersister() );
-            session.refresh( entity );
-            try
-            {
                 auditManager.send( Audit.builder()
                     .auditType( getAuditType() )
                     .auditScope( auditable.scope() )
@@ -86,16 +79,6 @@ public class PostLoadAuditListener
                     .object( entity )
                     .auditableEntity( new AuditableEntity( entity ) )
                     .build() );
-            }
-            catch ( Exception ex )
-            {
-                log.error( DebugUtils.getStackTrace( ex ) );
-                throw new RuntimeException( "Failed to send Audit object " + ex.getMessage(), ex );
-            }
-            finally
-            {
-                closeSession( session );
-            }
         });
     }
 }

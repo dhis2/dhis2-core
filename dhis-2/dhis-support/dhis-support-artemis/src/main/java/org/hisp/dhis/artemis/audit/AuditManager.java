@@ -30,6 +30,7 @@ package org.hisp.dhis.artemis.audit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
@@ -47,6 +48,7 @@ public class AuditManager
     private final AuditProducerConfiguration config;
     private final AuditScheduler auditScheduler;
     private final AuditMatrix auditMatrix;
+    private final SessionFactory sessionFactory;
 
     private final AuditObjectFactory objectFactory;
 
@@ -57,7 +59,8 @@ public class AuditManager
         AuditScheduler auditScheduler,
         AuditProducerConfiguration config,
         AuditMatrix auditMatrix,
-        AuditObjectFactory auditObjectFactory )
+        AuditObjectFactory auditObjectFactory,
+        SessionFactory sessionFactory )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
@@ -69,6 +72,7 @@ public class AuditManager
         this.auditScheduler = auditScheduler;
         this.auditMatrix = auditMatrix;
         this.objectFactory = auditObjectFactory;
+        this.sessionFactory = sessionFactory;
     }
 
     public void send( Audit audit )
@@ -79,9 +83,11 @@ public class AuditManager
             return;
         }
 
-        audit.setData( (audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
-            : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(), audit.getAuditableEntity().getEntity(),
-            audit.getCreatedBy() )) );
+        sessionFactory.getCurrentSession().refresh( audit.getAuditableEntity().getEntity() );
+
+        audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ?
+            audit.getAuditableEntity() : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(),
+            audit.getAuditableEntity().getEntity(), audit.getCreatedBy() )) );
 
         if ( config.isUseQueue() )
         {
