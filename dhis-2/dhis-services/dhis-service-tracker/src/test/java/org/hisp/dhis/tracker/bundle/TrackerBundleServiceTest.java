@@ -100,7 +100,7 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testVerifyMetadata() throws IOException
+    public void testVerifyMetadata()
     {
         Program program = manager.get( Program.class, "E8o1E9tAppy" );
         OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
@@ -118,8 +118,9 @@ public class TrackerBundleServiceTest
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setTrackedEntities( trackerBundle.getTrackedEntities() ) );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .build() );
 
         assertEquals( 1, trackerBundles.size() );
 

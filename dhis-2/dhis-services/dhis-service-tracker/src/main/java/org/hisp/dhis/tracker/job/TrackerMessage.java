@@ -38,6 +38,9 @@ import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.tracker.TrackerImportParams;
 
 /**
+ * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the
+ * tracker import services.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data

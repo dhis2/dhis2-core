@@ -37,7 +37,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportService;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
@@ -54,20 +53,17 @@ public class TrackerMessageManager
     private final MessageManager messageManager;
     private final ObjectMapper objectMapper;
     private final SchedulingManager schedulingManager;
-    private final TrackerImportService trackerImportService;
     private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
 
     public TrackerMessageManager(
         MessageManager messageManager,
         ObjectMapper objectMapper,
         SchedulingManager schedulingManager,
-        TrackerImportService trackerImportService,
         ObjectFactory<TrackerImportThread> trackerImportThreadFactory )
     {
         this.messageManager = messageManager;
         this.objectMapper = objectMapper;
         this.schedulingManager = schedulingManager;
-        this.trackerImportService = trackerImportService;
         this.trackerImportThreadFactory = trackerImportThreadFactory;
     }
 
