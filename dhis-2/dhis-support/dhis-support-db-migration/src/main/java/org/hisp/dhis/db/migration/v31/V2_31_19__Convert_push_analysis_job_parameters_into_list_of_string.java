@@ -39,7 +39,7 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisMultiJobParameters;
 import org.postgresql.util.PGobject;
 
 import java.sql.PreparedStatement;
@@ -81,7 +81,7 @@ public class V2_31_19__Convert_push_analysis_job_parameters_into_list_of_string 
 
             try ( PreparedStatement ps = context.getConnection().prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
             {
-                PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters( pushAnalysisUid );
+                PushAnalysisMultiJobParameters jobParameters = new PushAnalysisMultiJobParameters( pushAnalysisUid );
 
                 PGobject pg = new PGobject();
                 pg.setType( "jsonb" );
