@@ -33,6 +33,7 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.postgresql.util.PGobject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -113,7 +114,17 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
             {
                 PGobject pg = new PGobject();
                 pg.setType( "jsonb" );
-                pg.setValue( convertObjectToJson( jobType.getJobParameters().cast( jParaB ) ) );
+                
+                //Fix for 8199
+                if ( jobType == JobType.PUSH_ANALYSIS )
+                {
+                    pg.setValue( convertObjectToJson( PushAnalysisJobParameters.class.cast( jParaB ) ) );
+                }
+                else
+                {
+                    pg.setValue( convertObjectToJson( jobType.getJobParameters().cast( jParaB ) ) );
+                }
+                
                 ps.setObject( 1, pg );
                 ps.setInt( 2, id );
                 

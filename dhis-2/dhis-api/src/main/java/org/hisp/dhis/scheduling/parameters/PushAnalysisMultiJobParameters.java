@@ -1,4 +1,5 @@
-package org.hisp.dhis.pushanalysis.scheduling;
+package org.hisp.dhis.scheduling.parameters;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -27,38 +28,61 @@ package org.hisp.dhis.pushanalysis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisMultiJobParameters;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author Stian Sandvold
+ * @author Henning Håkonsen
  */
-public class PushAnalysisJob
-    extends AbstractJob
+public class PushAnalysisMultiJobParameters
+    implements JobParameters
 {
-    @Autowired
-    private PushAnalysisService pushAnalysisService;
+    private static final long serialVersionUID = -1848833906375595488L;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    @JsonProperty( required = true )
+    private List<String> pushAnalysis = new ArrayList<>();
 
-    @Override
-    public JobType getJobType()
+    public PushAnalysisMultiJobParameters()
     {
-        return JobType.PUSH_ANALYSIS;
+    }
+
+    public PushAnalysisMultiJobParameters( String pushAnalysis )
+    {
+        this.pushAnalysis.add( pushAnalysis );
+    }
+
+    public PushAnalysisMultiJobParameters( List<String> pushAnalysis )
+    {
+        this.pushAnalysis = pushAnalysis;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getPushAnalysis()
+    {
+        return pushAnalysis;
+    }
+
+    public void setPushAnalysis( List<String> pushAnalysis )
+    {
+        this.pushAnalysis = pushAnalysis;
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public ErrorReport validate()
     {
-        PushAnalysisMultiJobParameters parameters = (PushAnalysisMultiJobParameters) jobConfiguration.getJobParameters();
+        if ( pushAnalysis == null || pushAnalysis.isEmpty() )
+        {
+            return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
+        }
 
-        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
+        return null;
     }
-
 }
