@@ -71,6 +71,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.notification.ProgramNotificationEventType;
+import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
+import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -93,6 +96,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -175,6 +179,12 @@ public abstract class AbstractEnrollmentService
 
     @Autowired
     protected Notifier notifier;
+
+    @Autowired
+    private ProgramNotificationPublisher programNotificationPublisher;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -518,6 +528,14 @@ public abstract class AbstractEnrollmentService
         {
             return importSummary;
         }
+
+        // -----------------------------------------------------------------
+        // Send enrollment notifications (if any)
+        // -----------------------------------------------------------------
+
+        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
+
+        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         updateFeatureType( program, enrollment, programInstance );
         updateAttributeValues( enrollment, importOptions );
