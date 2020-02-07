@@ -32,6 +32,5 @@ jobs:
         BASE_BRANCH: ${{ github.base_ref }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      if: github.event_name != 'pull_request'
       run: |
         echo ${BRANCH}
