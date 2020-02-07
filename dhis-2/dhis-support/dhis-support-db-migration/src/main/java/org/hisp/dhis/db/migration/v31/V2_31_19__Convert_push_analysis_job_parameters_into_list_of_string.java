@@ -60,9 +60,8 @@ public class V2_31_19__Convert_push_analysis_job_parameters_into_list_of_string 
 
         try ( Statement statement = context.getConnection().createStatement() )
         {
-            ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
-                JobType.PUSH_ANALYSIS.name() + "';" );
 
+            ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from jobconfiguration where jobtype is not null AND encode(jobtype,'hex') ='aced00057e7200206f72672e686973702e646869732e7363686564756c696e672e4a6f625479706500000000000000001200007872000e6a6176612e6c616e672e456e756d0000000000000000120000787074000d505553485f414e414c59534953';" );
             if ( resultSet.next() )
             {
                 pushAnalysisUid = resultSet.getString( 1 );
@@ -79,7 +78,7 @@ public class V2_31_19__Convert_push_analysis_job_parameters_into_list_of_string 
             JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
             ObjectWriter writer = mapper.writerFor( resultingJavaType );
 
-            try ( PreparedStatement ps = context.getConnection().prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
+            try ( PreparedStatement ps = context.getConnection().prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  encode(jobtype,'hex') = ? " ) )
             {
                 PushAnalysisMultiJobParameters jobParameters = new PushAnalysisMultiJobParameters( pushAnalysisUid );
 
@@ -88,7 +87,7 @@ public class V2_31_19__Convert_push_analysis_job_parameters_into_list_of_string 
                 pg.setValue( writer.writeValueAsString( jobParameters ) );
 
                 ps.setObject( 1, pg );
-                ps.setString( 2, JobType.PUSH_ANALYSIS.name() );
+                ps.setString( 2, "aced00057e7200206f72672e686973702e646869732e7363686564756c696e672e4a6f625479706500000000000000001200007872000e6a6176612e6c616e672e456e756d0000000000000000120000787074000d505553485f414e414c59534953" );
 
                 ps.execute();
 
