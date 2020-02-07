@@ -36,16 +36,16 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @Conditional( value = AuditEnabledCondition.class )
-public class TrackerAuditEventListener
+public class AuditEventListener
 {
     private final AuditManager auditManager;
 
-    public TrackerAuditEventListener( AuditManager auditManager )
+    public AuditEventListener( AuditManager auditManager )
     {
         this.auditManager = auditManager;
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( classes = Audit.class )
     public void processAuditEvent( Audit audit )
     {
         auditManager.send( audit );

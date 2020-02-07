@@ -291,12 +291,17 @@ public class DefaultTrackedEntityInstanceService
 
         for ( Map<String, String> entity : entities )
         {
+            TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
+
+            if ( tei == null )
+            {
+                continue;
+            }
+
             if ( params.getUser() != null && !params.getUser().isSuper() && params.hasProgram() &&
                 (params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) ||
                     params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED )) )
             {
-                TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
-
                 if ( !trackerOwnershipAccessManager.hasAccess( params.getUser(), tei, params.getProgram() ) )
                 {
                     continue;
@@ -329,12 +334,7 @@ public class DefaultTrackedEntityInstanceService
 
             if ( te != null && te.isAllowAuditLog() && accessedBy != null )
             {
-                TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
-                    .trackedEntityInstance( entity.get( TRACKED_ENTITY_INSTANCE_ID ) )
-                    .accessedBy( accessedBy )
-                    .build();
-
-                sendAuditEvent( AuditType.SEARCH, auditPayload );
+                addTrackedEntityInstanceAudit( tei , accessedBy, AuditType.SEARCH );
             }
 
             for ( QueryItem item : params.getAttributes() )
@@ -894,7 +894,7 @@ public class DefaultTrackedEntityInstanceService
             instance.getTrackedEntityAttributeValues().add( pav );
         }
 
-        updateTrackedEntityInstance( instance ); // Update associations
+        updateTrackedEntityInstanceNoAudit( instance ); // Update associations
 
         addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.CREATE );
 
@@ -911,6 +911,12 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional
     public void updateTrackedEntityInstance( TrackedEntityInstance instance )
+    {
+        trackedEntityInstanceStore.update( instance );
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.UPDATE );
+    }
+
+    private void updateTrackedEntityInstanceNoAudit( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.update( instance );
     }
@@ -1010,26 +1016,16 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
-            TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
-                .trackedEntityInstance( trackedEntityInstance.getUid() )
-                .accessedBy( user )
-                .build();
-
-            sendAuditEvent( auditType, auditPayload );
+            publisher.publishEvent( Audit.builder()
+                .auditType( mapAuditType( auditType ) )
+                .auditScope( AuditScope.TRACKER )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( user )
+                .klass( TrackedEntityInstance.class.getName() )
+                .uid( trackedEntityInstance.getUid() )
+                .auditableEntity( new AuditableEntity( trackedEntityInstance ) )
+                .build() );
         }
-    }
-
-    private void sendAuditEvent( AuditType auditType, TrackedEntityAuditPayload auditPayload )
-    {
-        publisher.publishEvent( Audit.builder()
-            .auditType( mapAuditType( auditType ) )
-            .auditScope( AuditScope.TRACKER )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( auditPayload.getAccessedBy() )
-            .klass( TrackedEntityInstance.class.getName() )
-            .uid( auditPayload.getTrackedEntityInstance() )
-            .auditableEntity( new AuditableEntity( auditPayload ) )
-            .build() );
     }
 
     private org.hisp.dhis.audit.AuditType mapAuditType( AuditType auditType )
@@ -1038,6 +1034,8 @@ public class DefaultTrackedEntityInstanceService
         {
             case SEARCH:
                 return org.hisp.dhis.audit.AuditType.SEARCH;
+            case UPDATE:
+                return org.hisp.dhis.audit.AuditType.UPDATE;
             case READ:
             default:
                 return org.hisp.dhis.audit.AuditType.READ;

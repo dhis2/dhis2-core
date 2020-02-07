@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
@@ -72,7 +71,7 @@ public abstract class AbstractHibernateListener
             Auditable auditable = AnnotationUtils.getAnnotation( object.getClass(), Auditable.class );
 
             boolean shouldAudit = Arrays.stream( auditable.eventType() )
-                .anyMatch( s -> s.contains( "all" ) || s.contains( type ) ) && shouldIgnoreScope( auditable.scope() );
+                .anyMatch( s -> s.contains( "all" ) || s.contains( type ) ) && !shouldIgnoreScope( auditable.scope() );
 
             if ( shouldAudit )
             {
@@ -91,7 +90,7 @@ public abstract class AbstractHibernateListener
     abstract AuditType getAuditType();
 
     /**
-     * Need to be handled by {@link TrackerAuditEventListener}
+     * Need to be handled by {@link AuditEventListener}
      * @param scope
      * @return
      */
