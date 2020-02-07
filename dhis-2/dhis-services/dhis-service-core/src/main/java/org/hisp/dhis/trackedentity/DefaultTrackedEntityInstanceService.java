@@ -28,33 +28,12 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-
-import java.time.LocalDateTime;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -83,6 +62,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -334,7 +323,7 @@ public class DefaultTrackedEntityInstanceService
 
             if ( te != null && te.isAllowAuditLog() && accessedBy != null )
             {
-                addTrackedEntityInstanceAudit( tei , accessedBy, AuditType.SEARCH );
+                addTrackedEntityInstanceAudit( tei , accessedBy, org.hisp.dhis.audit.AuditType.SEARCH );
             }
 
             for ( QueryItem item : params.getAttributes() )
@@ -1016,29 +1005,10 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
-            publisher.publishEvent( Audit.builder()
-                .auditType( mapAuditType( auditType ) )
-                .auditScope( AuditScope.TRACKER )
-                .createdAt( LocalDateTime.now() )
-                .createdBy( user )
-                .klass( TrackedEntityInstance.class.getName() )
-                .uid( trackedEntityInstance.getUid() )
-                .auditableEntity( new AuditableEntity( trackedEntityInstance ) )
-                .build() );
-        }
-    }
-
-    private org.hisp.dhis.audit.AuditType mapAuditType( AuditType auditType )
-    {
-        switch ( auditType )
-        {
-            case SEARCH:
-                return org.hisp.dhis.audit.AuditType.SEARCH;
-            case UPDATE:
-                return org.hisp.dhis.audit.AuditType.UPDATE;
-            case READ:
-            default:
-                return org.hisp.dhis.audit.AuditType.READ;
+            publisher.publishEvent( TrackedEntityAuditPayload.builder()
+                .trackedEntityInstance( trackedEntityInstance )
+                .accessedBy( user )
+                .auditType( auditType ).build() );
         }
     }
 }

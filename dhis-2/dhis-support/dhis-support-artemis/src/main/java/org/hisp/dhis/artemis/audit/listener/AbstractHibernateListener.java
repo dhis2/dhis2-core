@@ -70,16 +70,25 @@ public abstract class AbstractHibernateListener
         {
             Auditable auditable = AnnotationUtils.getAnnotation( object.getClass(), Auditable.class );
 
-            boolean shouldAudit = Arrays.stream( auditable.eventType() )
-                .anyMatch( s -> s.contains( "all" ) || s.contains( type ) ) && !shouldIgnoreScope( auditable.scope() );
-
-            if ( shouldAudit )
+            if ( shouldAudit( auditable, type ) )
             {
                 return Optional.of( auditable );
             }
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * AuditScope.TRACKER will be handled by {@link TrackedEntityAuditEventListener}
+     * @param auditable
+     * @param type
+     * @return
+     */
+    private boolean shouldAudit( Auditable auditable, String type )
+    {
+        return Arrays.stream( auditable.eventType() )
+            .anyMatch( s -> s.contains( "all" ) || s.contains( type ) ) && auditable.scope() != AuditScope.TRACKER;
     }
 
     public String getCreatedBy()
@@ -89,13 +98,5 @@ public abstract class AbstractHibernateListener
 
     abstract AuditType getAuditType();
 
-    /**
-     * Need to be handled by {@link AuditEventListener}
-     * @param scope
-     * @return
-     */
-    private boolean shouldIgnoreScope( AuditScope scope )
-    {
-        return scope == AuditScope.TRACKER;
-    }
+
 }

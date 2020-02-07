@@ -30,24 +30,45 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.payloads.AuditPayload;
+import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+/**
+ * Audit listener for TrackedEntityInstance that can't be handled by {@link AbstractHibernateListener}
+ * Use TransactionalEventListener so audit will only be sent if Transaction commit successfully
+ */
 @Component
 @Conditional( value = AuditEnabledCondition.class )
-public class AuditEventListener
+public class TrackedEntityAuditEventListener
 {
     private final AuditManager auditManager;
 
-    public AuditEventListener( AuditManager auditManager )
+    public TrackedEntityAuditEventListener( AuditManager auditManager )
     {
         this.auditManager = auditManager;
     }
 
-    @TransactionalEventListener( classes = Audit.class )
-    public void processAuditEvent( Audit audit )
+    @TransactionalEventListener
+    public void processAuditEvent( TrackedEntityAuditPayload audit )
     {
-        auditManager.send( audit );
+        auditManager.send( Audit.builder()
+            .auditType( audit.getAuditType() )
+            .auditScope( AuditScope.TRACKER )
+            .createdAt( LocalDateTime.now() )
+            .createdBy( audit.getAccessedBy() )
+            .klass( TrackedEntityInstance.class.getName() )
+            .uid( audit.getTrackedEntityInstance().getUid() )
+            .auditableEntity( new AuditableEntity( audit.getTrackedEntityInstance() ) )
+            .build() );
     }
 }

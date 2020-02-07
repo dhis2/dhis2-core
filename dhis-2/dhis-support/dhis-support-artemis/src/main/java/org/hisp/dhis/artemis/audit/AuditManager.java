@@ -30,6 +30,7 @@ package org.hisp.dhis.artemis.audit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
@@ -83,7 +84,10 @@ public class AuditManager
             return;
         }
 
-        sessionFactory.getCurrentSession().refresh( audit.getAuditableEntity().getEntity() );
+        if ( !sessionFactory.isOpen() )
+        {
+            sessionFactory.getCurrentSession().refresh( audit.getAuditableEntity().getEntity() );
+        }
 
         audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ?
             audit.getAuditableEntity() : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(),
