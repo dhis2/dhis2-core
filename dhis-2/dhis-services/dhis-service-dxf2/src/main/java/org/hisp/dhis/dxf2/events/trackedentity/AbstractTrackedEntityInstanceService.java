@@ -524,8 +524,6 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
-
-
         return importSummary;
     }
 
