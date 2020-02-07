@@ -28,7 +28,12 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,17 +55,65 @@ public enum TrackerIdentifier
      */
     AUTO;
 
-    @SuppressWarnings( "incomplete-switch" )
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
         switch ( this )
         {
-            case UID:
-                return object.getUid();
-            case CODE:
-                return object.getCode();
+        case UID:
+            return object.getUid();
+        case CODE:
+            return object.getCode();
         }
 
         throw new RuntimeException( "Unhandled identifier type." );
     }
+
+    public <T extends IdentifiableObject> List<String> getIdentifiers( T object )
+    {
+        switch ( this )
+        {
+        case UID:
+        {
+            return Lists.newArrayList( object.getUid() );
+        }
+        case CODE:
+        {
+            return Lists.newArrayList( object.getCode() );
+        }
+        case AUTO:
+        {
+            return Lists.newArrayList( object.getUid(), object.getCode() );
+        }
+        }
+
+        return new ArrayList<>();
+    }
+
+    public <T extends IdentifiableObject> String getIdAndNameAndClass( T object )
+    {
+        List<String> identifiers = getIdentifiers( object );
+        String name = StringUtils.isEmpty( object.getDisplayName() ) ? null : object.getDisplayName();
+
+        if ( name == null )
+        {
+            return identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
+        }
+
+        return name + " " + identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
+    }
+
+    public <T extends IdentifiableObject> String getIdAndName( T object )
+    {
+        List<String> identifiers = getIdentifiers( object );
+        String name = StringUtils.isEmpty( object.getDisplayName() ) ? null : object.getDisplayName();
+
+        if ( name == null )
+        {
+            return identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
+        }
+
+        return name + " " + identifiers.toString();
+    }
+
+
 }

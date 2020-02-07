@@ -1,5 +1,33 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
@@ -21,17 +49,14 @@ import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -41,6 +66,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public abstract class AbstractTrackerValidationHook
     implements TrackerValidationHook
 
@@ -105,19 +135,19 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected RelationshipService relationshipService;
 
-    protected boolean validateAttributes( ValidationHookErrorReporter errorReporter, TrackerPreheat preheat,
-        TrackedEntity te, TrackedEntityInstance tei,
-        OrganisationUnit trackedEntityOu )
+    protected boolean validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+        TrackedEntity te, TrackedEntityInstance tei, OrganisationUnit orgUnit )
     {
-        ValidationHookErrorReporter attrErrorReporter = new ValidationHookErrorReporter( errorReporter.isFailFast(),
-            errorReporter.getMainKlass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, errorReporter.getMainKlass() );
+        // Set main id the same for all errors in the report.
+        reporter.setMainId( te );
+        reporter.setLineNumber( errorReporter.getLineNumber() );
 
         // For looking up existing tei attr. ie. if it is an update. Could/should this be done in the preheater instead?
-        Map<String, TrackedEntityAttributeValue> teiAttributeValueMap = getTeiAttributeValueMap(
+        Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
             trackedEntityAttributeValueService.getTrackedEntityAttributeValues( tei ) );
 
-        List<Attribute> attributes = te.getAttributes();
-        for ( Attribute attr : attributes )
+        for ( Attribute attr : te.getAttributes() )
         {
             if ( StringUtils.isEmpty( attr.getValue() ) )
             {
@@ -125,33 +155,33 @@ public abstract class AbstractTrackerValidationHook
             }
             // no/empty value? should this qualify as an error?
 
-            TrackedEntityAttribute tea = preheat
-                .get( TrackerIdentifier.UID, TrackedEntityAttribute.class, attr.getAttribute() );
-            if ( tea == null )
+            TrackedEntityAttribute teAttr = PreheatHelper.getTrackedEntityAttribute( bundle, attr.getAttribute() );
+
+            if ( teAttr == null )
             {
-                attrErrorReporter.raiseError( TrackerErrorCode.E1006, attr.getAttribute() );
+                reporter.addError( newReport( TrackerErrorCode.E1006 ).addArg( attr.getAttribute() ) );
                 continue;
             }
 
-            TrackedEntityAttributeValue teiAttributeValue = teiAttributeValueMap.get( tea.getUid() );
+            TrackedEntityAttributeValue teAttrValue = valueMap.get( teAttr.getUid() );
 
-            validateTextPattern( attrErrorReporter, attr, tea, teiAttributeValue );
+            validateTextPattern( reporter, attr, teAttr, teAttrValue );
 
-            validateAttrValueType( attrErrorReporter, attr, tea );
+            validateAttrValueType( reporter, attr, teAttr );
 
             // This is a super expensive check, needs better optimization!
-            validateAttrUnique( attrErrorReporter, attr, tea, te, trackedEntityOu );
+            validateAttrUnique( reporter, attr, teAttr, te, orgUnit );
 
-            validateFileNotAlreadyAssigned( attrErrorReporter, attr, tei );
+            validateFileNotAlreadyAssigned( reporter, attr, tei );
         }
 
-        errorReporter.getReportList().addAll( attrErrorReporter.getReportList() );
-        return attrErrorReporter.getReportList().isEmpty();
+        errorReporter.getReportList().addAll( reporter.getReportList() );
+        return reporter.getReportList().isEmpty();
     }
 
-    protected boolean checkCanCreateGeo( ValidationHookErrorReporter errorReporter, TrackedEntity te )
+    protected boolean checkCanCreateGeo( ValidationErrorReporter errorReporter, TrackedEntity te )
     {
-        if ( !FeatureType.NONE.equals( te.getFeatureType() ) && te.getCoordinates() != null )
+        if ( te.getCoordinates() != null && !FeatureType.NONE.equals( te.getFeatureType() ) )
         {
             try
             {
@@ -159,42 +189,48 @@ public abstract class AbstractTrackerValidationHook
             }
             catch ( IOException e )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1013 );// Add exception message?
+                errorReporter.addError( newReport( TrackerErrorCode.E1013 )
+                    .withObject( te )
+                    .addArg( te.getCoordinates() )
+                    .addArg( e.getMessage() ) );
                 return false;
             }
-
         }
 
         return true;
     }
 
-    protected void validateOrganisationUnit( TrackerBundle bundle, ValidationHookErrorReporter errorReporter,
+    protected void validateOrganisationUnit( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity te )
     {
         if ( bundle.getImportStrategy().isCreate() )
         {
             if ( StringUtils.isEmpty( te.getOrgUnit() ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1010 );
+                errorReporter.addError( newReport( TrackerErrorCode.E1010 )
+                    .withObject( te ) );
                 return;
             }
 
-            OrganisationUnit ou = bundle.getPreheat()
-                .get( TrackerIdentifier.UID, OrganisationUnit.class, te.getOrgUnit() );
-            if ( ou == null )
+            OrganisationUnit organisationUnit = PreheatHelper.getOrganizationUnit( bundle, te.getOrgUnit() );
+
+            if ( organisationUnit == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1011, te.getOrgUnit() ).setErrorProperties( "orgUnit" );
+                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
+                    .withObject( te )
+                    .addArg( te.getOrgUnit() ) );
             }
 
         }
         else if ( bundle.getImportStrategy().isUpdate() )
         {
-            TrackedEntityInstance tei = bundle.getPreheat()
-                .getTrackedEntity( TrackerIdentifier.UID, te.getTrackedEntity() );
-            OrganisationUnit ou = tei.getOrganisationUnit();
-            if ( ou == null )
+            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+
+            if ( tei.getOrganisationUnit() == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1011, te.getOrgUnit() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
+                    .withObject( te )
+                    .addArg( tei ) );
             }
         }
     }
@@ -206,8 +242,8 @@ public abstract class AbstractTrackerValidationHook
             reservedValueService.isReserved( attribute.getTextPattern(), value );
     }
 
-    private boolean validateTextPattern( ValidationHookErrorReporter errorReporter,
-        Attribute attr, TrackedEntityAttribute teAttr,
+    private boolean validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
+        TrackedEntityAttribute teAttr,
         TrackedEntityAttributeValue teiAttributeValue )
     {
         if ( teAttr.isGenerated() && teAttr.getTextPattern() != null )
@@ -217,7 +253,8 @@ public abstract class AbstractTrackerValidationHook
             String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
             if ( !textPatternValueIsValid( teAttr, attr.getValue(), oldValue ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1008, attr.getAttribute() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1008 )
+                    .addArg( attr.getValue() ) );
                 return false;
             }
         }
@@ -225,7 +262,7 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateFileNotAlreadyAssigned( ValidationHookErrorReporter errorReporter, Attribute attr,
+    private boolean validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityInstance tei )
     {
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
@@ -241,7 +278,8 @@ public abstract class AbstractTrackerValidationHook
             FileResource fileResource = fileResourceService.getFileResource( attr.getValue() );
             if ( fileResource != null && fileResource.isAssigned() && !existingValues.contains( attr.getValue() ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1009, attr.getValue() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1009 )
+                    .addArg( attr.getValue() ) );
                 return false;
             }
         }
@@ -249,21 +287,23 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateAttrValueType( ValidationHookErrorReporter errorReporter,
-        Attribute attr, TrackedEntityAttribute teAttr )
+    private boolean validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
+        TrackedEntityAttribute teAttr )
     {
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
+
         if ( error != null )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1007, error );
+            errorReporter.addError( newReport( TrackerErrorCode.E1007 )
+                .addArg( error ) );
             return false;
         }
 
         return true;
     }
 
-    private boolean validateAttrUnique( ValidationHookErrorReporter errorReporter,
-        Attribute attr, TrackedEntityAttribute teAttr,
+    private boolean validateAttrUnique( ValidationErrorReporter errorReporter, Attribute attr,
+        TrackedEntityAttribute teAttr,
         TrackedEntity te, OrganisationUnit trackedEntityOu )
     {
         if ( teAttr.isUnique() )
@@ -277,7 +317,7 @@ public abstract class AbstractTrackerValidationHook
 
             if ( error != null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1007, error );
+                errorReporter.addError( newReport( TrackerErrorCode.E1064 ).addArg( error ) );
                 return false;
             }
         }
@@ -291,16 +331,18 @@ public abstract class AbstractTrackerValidationHook
         return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
     }
 
-    protected boolean validateGeo( ValidationHookErrorReporter errorReporter, TrackedEntity te,
+    protected boolean validateGeo( ValidationErrorReporter errorReporter, TrackedEntity te,
         FeatureType featureType )
     {
         if ( te.getGeometry() != null )
         {
             FeatureType typeFromName = FeatureType.getTypeFromName( te.getGeometry().getGeometryType() );
 
-            if ( featureType.equals( FeatureType.NONE ) || !featureType.equals( typeFromName ) )
+            if ( !featureType.equals( typeFromName ) || featureType.equals( FeatureType.NONE ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1012, featureType );
+                errorReporter.addError( newReport( TrackerErrorCode.E1012 )
+                    .withObject( te )
+                    .addArg( featureType.name() ) );
                 return false;
             }
         }
@@ -312,21 +354,25 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    protected void validateTrackedEntityType( TrackerBundle bundle, ValidationHookErrorReporter errorReporter,
+    protected void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity te )
     {
         if ( bundle.getImportStrategy().isCreate() )
         {
             if ( te.getTrackedEntityType() == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1004, te.getTrackedEntity() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1004 ).withObject( te ) );
+
                 return;
             }
 
-            if ( bundle.getPreheat()
-                .get( TrackerIdentifier.UID, TrackedEntityType.class, te.getTrackedEntityType() ) == null )
+            TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() );
+
+            if ( entityType == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1005, te.getTrackedEntityType() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1005 )
+                    .withObject( te )
+                    .addArg( te.getTrackedEntityType() ) );
             }
         }
     }
@@ -334,15 +380,14 @@ public abstract class AbstractTrackerValidationHook
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
     {
         return bundle.getImportStrategy().isCreate() ?
-            bundle.getPreheat().get( TrackerIdentifier.UID, OrganisationUnit.class, te.getOrgUnit() ) :
-            bundle.getPreheat()
-                .getTrackedEntity( TrackerIdentifier.UID, te.getTrackedEntity() ).getOrganisationUnit();
+            PreheatHelper.getOrganizationUnit( bundle, te.getOrgUnit() ) :
+            PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getOrganisationUnit();
     }
 
     protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
     {
-        return bundle.getImportStrategy().isCreate() ? bundle.getPreheat()
-            .get( TrackerIdentifier.UID, TrackedEntityType.class, te.getTrackedEntityType() ) : bundle.getPreheat()
-            .getTrackedEntity( TrackerIdentifier.UID, te.getTrackedEntity() ).getTrackedEntityType();
+        return bundle.getImportStrategy().isCreate() ?
+            PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() ) :
+            PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getTrackedEntityType();
     }
 }

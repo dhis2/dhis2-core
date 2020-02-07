@@ -1,24 +1,5 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
-import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -47,6 +28,26 @@ import java.util.stream.Collectors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -64,24 +65,30 @@ public class TrackedEntitySecurityValidationHook
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
-        ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
-            TrackedEntitySecurityValidationHook.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
         User actingUser = bundle.getPreheat().getUser();
 
-        List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
-        for ( TrackedEntity te : trackedEntities )
+        for ( TrackedEntity te : bundle.getTrackedEntities() )
         {
+            reporter.increment();
+
             TrackedEntityType entityType = getTrackedEntityType( bundle, te );
+
             if ( entityType != null && !aclService.canDataWrite( actingUser, entityType ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1001, entityType.getUid() );
+                reporter.addError( newReport( TrackerErrorCode.E1001 )
+                    .withObject( te )
+                    .addArg( actingUser ).addArg( entityType ) );
             }
 
-            OrganisationUnit ou = getOrganisationUnit( bundle, te );
-            if ( ou != null && !organisationUnitService.isInUserSearchHierarchyCached( actingUser, ou ) )
+            OrganisationUnit orgUnit = getOrganisationUnit( bundle, te );
+
+            if ( orgUnit != null && !organisationUnitService.isInUserSearchHierarchyCached( actingUser, orgUnit ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1000, ou.getUid() );
+                reporter.addError( newReport( TrackerErrorCode.E1000 )
+                    .withObject( te )
+                    .addArg( actingUser ).addArg( orgUnit ) );
             }
 
             if ( bundle.getImportStrategy().isDelete() )
@@ -89,15 +96,15 @@ public class TrackedEntitySecurityValidationHook
                 TrackedEntityInstance tei = bundle.getPreheat()
                     .getTrackedEntity( TrackerIdentifier.UID, te.getTrackedEntity() );
 
-                checkCanCascadeDeleteProgramInstances( errorReporter, actingUser, tei );
+                checkCanCascadeDeleteProgramInstances( reporter, actingUser, tei );
             }
         }
 
-        return errorReporter.getReportList();
+        return reporter.getReportList();
     }
 
-    private void checkCanCascadeDeleteProgramInstances( ValidationHookErrorReporter errorReporter,
-        User user, TrackedEntityInstance tei )
+    private void checkCanCascadeDeleteProgramInstances( ValidationErrorReporter errorReporter, User user,
+        TrackedEntityInstance tei )
     {
         Set<ProgramInstance> programInstances = tei.getProgramInstances().stream()
             .filter( pi -> !pi.isDeleted() )
@@ -105,8 +112,9 @@ public class TrackedEntitySecurityValidationHook
 
         if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
         {
-            errorReporter
-                .raiseError( TrackerErrorCode.NONE, tei.getUid(), Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+            errorReporter.addError( newReport( TrackerErrorCode.NONE )
+                .addArg( tei )
+                .addArg( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
         }
     }
 

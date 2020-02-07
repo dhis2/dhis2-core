@@ -1,32 +1,5 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
-import com.google.common.collect.Maps;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -55,6 +28,36 @@ import java.util.stream.Collectors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -71,7 +74,7 @@ public class UpdateEnrollmentValidationHook
             return Collections.emptyList();
         }
 
-        ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle,
             UpdateEnrollmentValidationHook.class );
 
         TrackerPreheat preheat = bundle.getPreheat();
@@ -84,14 +87,16 @@ public class UpdateEnrollmentValidationHook
                 .get( TrackerIdentifier.UID, ProgramInstance.class, enrollment.getEnrollment() );
             if ( pi == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1015, enrollment.getEnrollment() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1015 )
+                    .addArg( enrollment ).addArg( enrollment.getEnrollment() ) );
                 continue;
             }
 
             List<String> errors = trackerAccessManager.canUpdate( user, pi, false );
             if ( !errors.isEmpty() )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1000, errors );
+                errorReporter.addError( newReport( TrackerErrorCode.E1000 )
+                    .addArg( user ).addArg( pi ) );
                 continue;
             }
 
@@ -103,14 +108,14 @@ public class UpdateEnrollmentValidationHook
             if ( !validateAttributes( errorReporter, program, enrollment, tei, bundle ) )
                 continue;
 
-
             OrganisationUnit organisationUnit = preheat
                 .get( TrackerIdentifier.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
             // ----validateRequest
             // Enrollment(¶4.a) - can only enroll if registration!
             if ( !program.isRegistration() )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1014, program.getUid() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1014 )
+                    .addArg( program ) );
                 continue;
 
             }
@@ -137,8 +142,8 @@ public class UpdateEnrollmentValidationHook
                     !activeEnrollments.isEmpty() && enrollment.getStatus() == EnrollmentStatus.ACTIVE;
                 if ( isActiveEnrollment )
                 {
-                    errorReporter
-                        .raiseError( TrackerErrorCode.E1015, tei.getUid(), program.getUid() );
+                    errorReporter.addError( newReport( TrackerErrorCode.E1015 )
+                        .addArg( tei ).addArg( enrollment ) );
                     continue;
                 }
 
@@ -153,8 +158,8 @@ public class UpdateEnrollmentValidationHook
 
                     if ( !activeOrCompletedEnrollments.isEmpty() )
                     {
-                        errorReporter
-                            .raiseError( TrackerErrorCode.E1016, tei.getUid(), program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1016 )
+                            .addArg( tei ).addArg( program ) );
                         continue;
                     }
                 }
@@ -165,7 +170,9 @@ public class UpdateEnrollmentValidationHook
                 !program.getTrackedEntityType().equals( tei.getTrackedEntityType() );
             if ( isNotSameTrackedEntity )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1022, tei.getUid(), program.getUid() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1022 )
+                    .addArg( tei ).addArg( program ) );
+
                 continue;
             }
 
@@ -177,7 +184,9 @@ public class UpdateEnrollmentValidationHook
 
             if ( !trackerOwnershipManager.hasAccess( user, tei, program ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1028, tei.getUid(), program.getUid() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1028 )
+                    .addArg( user )
+                    .addArg( tei ).addArg( program ) );
                 continue;
             }
 
@@ -189,7 +198,8 @@ public class UpdateEnrollmentValidationHook
                     commentService.trackedEntityCommentExists( note.getNote() ) &&
                     !StringUtils.isEmpty( note.getValue() ) )
                 {
-                    errorReporter.raiseError( TrackerErrorCode.E1028, enrollment.getEnrollment(), note.getNote() );
+                    errorReporter.addError( newReport( TrackerErrorCode.E1029 )
+                        .addArg( note.getNote() ).addArg( enrollment ) );
                     continue;
                 }
             }
@@ -198,7 +208,7 @@ public class UpdateEnrollmentValidationHook
         return errorReporter.getReportList();
     }
 
-    private boolean validateAttributes( ValidationHookErrorReporter errorReporter,
+    private boolean validateAttributes( ValidationErrorReporter errorReporter,
         Program program,
         Enrollment enrollment,
         TrackedEntityInstance trackedEntityInstance,
@@ -228,14 +238,14 @@ public class UpdateEnrollmentValidationHook
                 .get( TrackerIdentifier.UID, TrackedEntityAttribute.class, attribute.getAttribute() );
             if ( teAttribute == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1017 );
+                errorReporter.addError( newReport( TrackerErrorCode.E1017 ) );
                 return false;
             }
 
             String errorMessage = teAttrService.validateValueType( teAttribute, attribute.getValue() );
             if ( errorMessage != null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1007, errorMessage );
+                errorReporter.addError( newReport( TrackerErrorCode.E1007 ).addArg( errorMessage ) );
                 return false;
             }
 
@@ -252,7 +262,7 @@ public class UpdateEnrollmentValidationHook
                 !attributeValueMap.containsKey( trackedEntityAttribute.getUid() );
             if ( hasMissingAttribute )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1007, trackedEntityAttribute.getUid() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1018 ).addArg( trackedEntityAttribute ) );
                 return false;
             }
 
@@ -264,7 +274,7 @@ public class UpdateEnrollmentValidationHook
                     trackedEntityInstance.getUid(), instance.getOrganisationUnit() );
                 if ( errorMessage != null )
                 {
-                    errorReporter.raiseError( TrackerErrorCode.E1007, errorMessage );
+                    errorReporter.addError( newReport( TrackerErrorCode.E1064 ).addArg( errorMessage ) );
                     return false;
                 }
             }
@@ -274,7 +284,8 @@ public class UpdateEnrollmentValidationHook
 
         if ( !attributeValueMap.isEmpty() )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1019, attributeValueMap );
+            errorReporter.addError( newReport( TrackerErrorCode.E1019 )
+                .addArg( Joiner.on( "," ).withKeyValueSeparator( "=" ).join( attributeValueMap ) ) );
             return false;
         }
 
@@ -284,7 +295,8 @@ public class UpdateEnrollmentValidationHook
                 enrollment.getEnrollmentDate().after( new Date() );
             if ( enrollmentIsInFuture )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1020, enrollment.getEnrollmentDate() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1020 )
+                    .addArg( enrollment.getEnrollmentDate() ) );
                 return false;
             }
         }
@@ -295,7 +307,8 @@ public class UpdateEnrollmentValidationHook
                 Objects.nonNull( enrollment.getIncidentDate() ) && enrollment.getIncidentDate().after( new Date() );
             if ( incidentIsInFuture )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1021, enrollment.getIncidentDate() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1021 )
+                    .addArg( enrollment.getIncidentDate() ) );
                 return false;
             }
         }
@@ -303,7 +316,7 @@ public class UpdateEnrollmentValidationHook
         return true;
     }
 
-    private boolean validateProgramInstance( ValidationHookErrorReporter errorReporter,
+    private boolean validateProgramInstance( ValidationErrorReporter errorReporter,
         Program program,
         ProgramInstance programInstance,
         Enrollment enrollment )
@@ -312,7 +325,7 @@ public class UpdateEnrollmentValidationHook
             programInstance.getIncidentDate() == null;
         if ( incidentDateIsNull )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1023 );
+            errorReporter.addError( newReport( TrackerErrorCode.E1023 ) );
             return false;
         }
 
@@ -320,7 +333,8 @@ public class UpdateEnrollmentValidationHook
             DateUtils.dateIsValid( DateUtils.getMediumDateString( programInstance.getIncidentDate() ) );
         if ( !validEnrollmentIncidentDate )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1024, programInstance.getIncidentDate(), program.getUid() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1024 )
+                .addArg( programInstance.getIncidentDate() ) );
             return false;
         }
 
@@ -328,7 +342,8 @@ public class UpdateEnrollmentValidationHook
             DateUtils.dateIsValid( DateUtils.getMediumDateString( programInstance.getEnrollmentDate() ) );
         if ( !validEnrollmentDate )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1025, programInstance.getIncidentDate(), program.getUid() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1025 )
+                .addArg( programInstance.getEnrollmentDate() ) );
             return false;
         }
 
@@ -336,7 +351,8 @@ public class UpdateEnrollmentValidationHook
             DateUtils.dateIsValid( enrollment.getCreatedAtClient() );
         if ( !validEnrollmentCreatedAtClientDate )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1026, programInstance.getCreatedAtClient(), program.getUid() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1026 )
+                .addArg( programInstance.getCreatedAtClient() ) );
             return false;
         }
 
@@ -344,7 +360,8 @@ public class UpdateEnrollmentValidationHook
             enrollment.getLastUpdatedAtClient() != null && DateUtils.dateIsValid( enrollment.getLastUpdatedAtClient() );
         if ( !validLastUpdatedAtClientDate )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1027, programInstance.getIncidentDate(), program.getUid() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1027 )
+                .addArg( programInstance.getIncidentDate() ) );
             return false;
         }
 

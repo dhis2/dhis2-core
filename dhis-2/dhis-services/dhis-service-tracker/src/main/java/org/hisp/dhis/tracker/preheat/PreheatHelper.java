@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.preheat;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,54 +28,38 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-public class TrackedEntityGeoValidationHook
-    extends AbstractTrackerValidationHook
+public class PreheatHelper
 {
 
-    @Override
-    public int getOrder()
+    public static OrganisationUnit getOrganizationUnit( TrackerBundle bundle, String orgUnit )
     {
-        return 4;
+        return bundle.getPreheat()
+            .get( TrackerIdentifier.UID, OrganisationUnit.class, orgUnit );
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public static TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String trackedEntity )
     {
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            return Collections.emptyList();
-        }
+        return bundle.getPreheat().getTrackedEntity( TrackerIdentifier.UID, trackedEntity );
+    }
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
+    public static TrackedEntityAttribute getTrackedEntityAttribute( TrackerBundle bundle, String attribute )
+    {
+        return bundle.getPreheat()
+            .get( TrackerIdentifier.UID, TrackedEntityAttribute.class, attribute );
+    }
 
-        for ( TrackedEntity te : bundle.getTrackedEntities() )
-        {
-            reporter.increment();
-
-            TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, te );
-
-            FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
-                trackedEntityType.getFeatureType() :
-                te.getFeatureType();
-
-            validateGeo( reporter, te, featureType );
-        }
-
-        return reporter.getReportList();
+    public static TrackedEntityType getTrackedEntityType( TrackerBundle bundle, String trackedEntityType )
+    {
+        return bundle.getPreheat().get( TrackerIdentifier.UID, TrackedEntityType.class, trackedEntityType );
     }
 }

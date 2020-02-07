@@ -64,7 +64,7 @@ public class DefaultTrackerValidationService
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
         User user = bundle.getUser();
-        if ( (user == null || bundle.getUser().isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
+        if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );

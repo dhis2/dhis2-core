@@ -576,6 +576,111 @@
       "surname": "morten",
       "id": "--morten---",
       "attributeValues": [ ]
+    },
+
+
+
+    {
+      "dataViewOrganisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "teiSearchOrganisationUnits": [ ],
+      "created": "2019-03-25T13:58:35.560",
+      "code": "nils",
+      "organisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "lastUpdated": "2019-03-29T08:57:41.890",
+      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+      "userCredentials": {
+        "attributeValues": [ ],
+        "favorite": false,
+        "catDimensionConstraints": [ ],
+        "userAccesses": [ ],
+        "disabled": false,
+        "userRoles": [
+          {
+            "id": "---user----"
+          }
+        ],
+        "lastUpdated": "2019-03-29T08:57:41.766",
+        "userInfo": {
+          "id": "---nils----"
+        },
+        "name": "nils nilsen",
+        "displayName": "nils nilsen",
+        "favorites": [ ],
+        "selfRegistered": false,
+        "externalAccess": false,
+        "externalAuth": false,
+        "twoFA": false,
+        "username": "nils",
+        "id": "___nils____",
+        "userGroupAccesses": [ ],
+        "created": "2019-03-29T08:57:41.766",
+        "access": {
+          "externalize": true,
+          "read": true,
+          "manage": true,
+          "delete": true,
+          "write": true,
+          "update": true
+        },
+        "cogsDimensionConstraints": [ ],
+        "invitation": false,
+        "lastLogin": "2019-03-29T12:42:06.495",
+        "translations": [ ],
+        "passwordLastUpdated": "2019-03-29T08:57:41.766"
+      },
+      "firstName": "nils",
+      "surname": "nilsen",
+      "id": "---nils----",
+      "attributeValues": [ ]
+    }
+
+
+
+  ],
+  "userGroups": [
+    {
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "lastUpdated": "2016-03-03T07:15:44.420+0000",
+      "name": "UGA",
+      "users": [
+        {
+          "id": "---nils----"
+        }
+      ],
+      "id": "hlXvBLHZwCt",
+      "created": "2016-03-03T07:15:44.419+0000",
+      "publicAccess": "rw------",
+      "user": {
+        "id": "---nils----"
+      },
+      "managedGroups": []
+    },
+    {
+      "userGroupAccesses": [],
+      "name": "UGB",
+      "lastUpdated": "2016-03-03T07:15:52.940+0000",
+      "attributeValues": [],
+      "users": [
+        {
+          "id": "---nils----"
+        }
+      ],
+      "managedGroups": [],
+      "publicAccess": "rw------",
+      "user": {
+        "id": "---nils----"
+      },
+      "created": "2016-03-03T07:15:52.940+0000",
+      "id": "jCDKJBruqjc"
     }
   ],
   "userRoles": [
@@ -854,8 +959,14 @@
         "id": "M5zQapPyTZI"
       },
       "id": "bPJ0FMtcnEh",
-      "userGroupAccesses": [ ],
-      "publicAccess": "rwrw----",
+      "userGroupAccesses": [
+        {
+          "displayName": "UGB",
+          "access": "rwrw----",
+          "userGroupUid": "jCDKJBruqjc",
+          "id": "jCDKJBruqjc"
+        } ],
+      "publicAccess": "rw------",
       "minAttributesRequiredToSearch": 1,
       "lastUpdated": "2019-03-29T09:20:08.103",
       "trackedEntityTypeAttributes": [

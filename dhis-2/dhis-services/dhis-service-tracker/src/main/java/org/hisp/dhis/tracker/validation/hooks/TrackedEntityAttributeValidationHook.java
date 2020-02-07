@@ -1,17 +1,5 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -40,6 +28,18 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -62,20 +62,18 @@ public class TrackedEntityAttributeValidationHook
             return Collections.emptyList();
         }
 
-        ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
-            TrackedEntityAttributeValidationHook.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
-        for ( TrackedEntity te : trackedEntities )
+        for ( TrackedEntity te : bundle.getTrackedEntities() )
         {
-            TrackedEntityInstance tei = bundle.getPreheat()
-                .getTrackedEntity( TrackerIdentifier.UID, te.getTrackedEntity() );
+            reporter.increment();
 
-            OrganisationUnit ou = getOrganisationUnit( bundle, te );
+            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+            OrganisationUnit orgUnit = getOrganisationUnit( bundle, te );
 
-            validateAttributes( errorReporter, bundle.getPreheat(), te, tei, ou );
+            validateAttributes( reporter, bundle, te, tei, orgUnit );
         }
 
-        return errorReporter.getReportList();
+        return reporter.getReportList();
     }
 }

@@ -1,17 +1,5 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -40,6 +28,18 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -64,25 +64,28 @@ public class TrackedEntityExistValidationHook
             return Collections.emptyList();
         }
 
-        ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
-            TrackedEntityExistValidationHook.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
-        for ( TrackedEntity te : trackedEntities )
+        for ( TrackedEntity te : bundle.getTrackedEntities() )
         {
+            reporter.increment();
+
             // This is a very expensive check... move out/optimize to preheater?
             boolean exists = trackedEntityInstanceStore.existsIncludingDeleted( te.getTrackedEntity() );
 
             if ( bundle.getImportStrategy().isCreate() && exists )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1002, te.getTrackedEntity() );
+                reporter.addError( newReport( TrackerErrorCode.E1002 )
+                    .withObject( te ).addArg( te.getTrackedEntity() ) );
             }
             else if ( bundle.getImportStrategy().isUpdate() && !exists )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1063, te.getTrackedEntity() );
+                reporter.addError( newReport( TrackerErrorCode.E1063 )
+                    .withObject( te )
+                    .addArg( te.getTrackedEntity() ) );
             }
         }
 
-        return errorReporter.getReportList();
+        return reporter.getReportList();
     }
 }

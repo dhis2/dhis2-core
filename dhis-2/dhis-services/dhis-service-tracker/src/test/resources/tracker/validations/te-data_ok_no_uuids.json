@@ -2,15 +2,23 @@
   "trackedEntityInstances": [
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "NCc1rCEOKaY",
-      "featureType": "POINT",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -11.4197,
-          8.1039
-        ]
-      },
+      "attributes": [
+        {
+          "attribute": "fmBIpOStKkF",
+          "value": "PersonA",
+          "storedBy": "admin"
+        },
+        {
+          "attribute": "sTJvSLN7Kcb",
+          "value": "AddressA",
+          "storedBy": "admin"
+        }
+      ],
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false
+    },
+    {
+      "trackedEntityType": "bPJ0FMtcnEh",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",

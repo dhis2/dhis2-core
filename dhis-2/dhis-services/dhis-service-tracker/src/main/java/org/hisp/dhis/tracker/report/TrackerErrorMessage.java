@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.report;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,22 +29,28 @@ package org.hisp.dhis.tracker;
  */
 
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class TrackerErrorMessage
 {
     private final TrackerErrorCode errorCode;
 
-    private final Object[] args;
+    private final List<String> args;
 
-    public TrackerErrorMessage( TrackerErrorCode errorCode, Object... args )
+    public TrackerErrorMessage( TrackerErrorCode errorCode )
     {
         this.errorCode = errorCode;
-        this.args = args;
+        this.args = new ArrayList<>();
+    }
+
+    public void addArgument( String arg )
+    {
+        args.add( arg );
     }
 
     public TrackerErrorCode getErrorCode()
@@ -54,26 +60,6 @@ public class TrackerErrorMessage
 
     public String getMessage()
     {
-        return MessageFormat.format( errorCode.getMessage(), args );
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        TrackerErrorMessage that = (TrackerErrorMessage) o;
-        return errorCode == that.errorCode &&
-            Arrays.equals( args, that.args );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = Objects.hash( errorCode );
-        result = 31 * result + Arrays.hashCode( args );
-        return result;
+        return MessageFormat.format( errorCode.getMessage(), args.toArray( new Object[0] ) );
     }
 }

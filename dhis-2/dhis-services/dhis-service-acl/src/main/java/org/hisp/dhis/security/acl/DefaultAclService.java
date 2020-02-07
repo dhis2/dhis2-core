@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
@@ -578,12 +579,21 @@ public class DefaultAclService implements AclService
 
     private boolean canAccess( User user, Collection<String> anyAuthorities )
     {
-        return haveOverrideAuthority( user ) || anyAuthorities.isEmpty() || haveAuthority( user, anyAuthorities );
+        if ( user == null )
+        {
+            return true;
+        }
+        boolean a = haveOverrideAuthority( user );
+        boolean b = anyAuthorities.isEmpty();
+        boolean c = haveAuthority( user, anyAuthorities );
+        return a || b || c;
     }
 
     private boolean haveAuthority( User user, Collection<String> anyAuthorities )
     {
-        return containsAny( user.getUserCredentials().getAllAuthorities(), anyAuthorities );
+        Set<String> allAuthorities = user.getUserCredentials().getAllAuthorities();
+        boolean a = containsAny( allAuthorities, anyAuthorities );
+        return a;
     }
 
     /**

@@ -31,16 +31,24 @@ package org.hisp.dhis.tracker.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerErrorMessage;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.util.ObjectUtils;
 
+import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @JacksonXmlRootElement( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackerErrorReport
@@ -49,24 +57,27 @@ public class TrackerErrorReport
 
     protected final Class<?> mainKlass;
 
-    protected String mainId;
+    protected final int lineNumber;
 
-    protected Class<?> errorKlass;
+    protected final String mainId;
 
-    protected String[] errorProperties = new String[0]; // En array isteden for en streng, default til tom TOM array, for å slippe null sjekk!!!
+    protected final Class<?> errorKlass;
+
+    protected final String[] errorProperties;
 
     protected Object value;
 
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )
-    {
-        this.mainKlass = mainKlass;
-        this.message = new TrackerErrorMessage( errorCode, args );
-    }
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message )
+    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
+        Class<?> errorKlass, String[] errorProperties, Object value )
     {
         this.mainKlass = mainKlass;
         this.message = message;
+        this.lineNumber = line;
+        this.mainId = mainId;
+        this.errorKlass = errorKlass;
+        this.errorProperties = errorProperties;
+        this.value = value;
+
     }
 
     @JsonProperty
@@ -97,12 +108,6 @@ public class TrackerErrorReport
         return mainId;
     }
 
-    public TrackerErrorReport setMainId( String mainId )
-    {
-        this.mainId = mainId;
-        return this;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Class<?> getErrorKlass()
@@ -110,23 +115,11 @@ public class TrackerErrorReport
         return errorKlass;
     }
 
-    public TrackerErrorReport setErrorKlass( Class<?> errorKlass )
-    {
-        this.errorKlass = errorKlass;
-        return this;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String[] getErrorProperties()
     {
         return errorProperties;
-    }
-
-    public TrackerErrorReport setErrorProperties( String... errorProperties )
-    {
-        this.errorProperties = errorProperties;
-        return this;
     }
 
     @JsonProperty
@@ -145,36 +138,133 @@ public class TrackerErrorReport
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "message", getMessage() )
-            .add( "errorCode", message.getErrorCode() )
-            .add( "mainKlass", mainKlass )
-            .add( "errorKlass", errorKlass )
-            .add( "value", value )
-            .toString();
+        return "TrackerErrorReport{" +
+            "message=" + message.getMessage() +
+            ", mainId='" + mainId + '\'' +
+            ", mainKlass=" + mainKlass +
+            ", errorKlass=" + errorKlass +
+            ", errorProperties=" + Arrays.toString( errorProperties ) +
+            ", value=" + value +
+            ", lineNumber=" + lineNumber +
+            '}';
     }
 
-    @Override
-    public boolean equals( Object o )
+    public static class Builder
     {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        TrackerErrorReport that = (TrackerErrorReport) o;
-        return Objects.equals( message, that.message ) &&
-            Objects.equals( mainKlass, that.mainKlass ) &&
-            Objects.equals( mainId, that.mainId ) &&
-            Objects.equals( errorKlass, that.errorKlass ) &&
-            Arrays.equals( errorProperties, that.errorProperties ) &&
-            Objects.equals( value, that.value );
-    }
+        protected TrackerErrorMessage message;
 
-    @Override
-    public int hashCode()
-    {
-        int result = Objects.hash( message, mainKlass, mainId, errorKlass, value );
-        result = 31 * result + Arrays.hashCode( errorProperties );
-        return result;
+        protected Class<?> mainKlass;
+
+        protected String mainId;
+
+        protected Class<?> errorKlass;
+
+        protected String[] errorProperties = new String[0]; // En array isteden for en streng, default til tom TOM array, for å slippe null sjekk!!!
+
+        protected Object value;
+
+        protected int lineNumber;
+
+        private TrackerErrorCode errorCode;
+
+        private Object mainObject;
+
+        private final List<Object> arguments = new ArrayList<>();
+
+        public Builder()
+        {
+        }
+
+        public Builder withErrorCode( TrackerErrorCode errorCode )
+        {
+            this.errorCode = errorCode;
+            return this;
+        }
+
+        public Builder addArg( Object arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
+
+        public Builder withEnrollment( Enrollment enrollment )
+        {
+            this.mainObject = enrollment;
+            return this;
+        }
+
+        public Builder withObject( Object mainObject )
+        {
+            this.mainObject = mainObject;
+            return this;
+        }
+
+        protected Builder withMainKlass( Class<?> mainKlass )
+        {
+            this.mainKlass = mainKlass;
+            return this;
+        }
+
+        protected Builder withLineNumber( int lineNumber )
+        {
+            this.lineNumber = lineNumber;
+            return this;
+        }
+
+        public Builder setMainId( String mainId )
+        {
+            this.mainId = mainId;
+            return this;
+        }
+
+        public TrackerErrorReport build( TrackerBundle bundle )
+        {
+            TrackerIdentifier identifier = bundle.getIdentifier();
+
+            TrackerErrorMessage trackerErrorMessage = new TrackerErrorMessage( this.errorCode );
+            for ( Object argument : arguments )
+            {
+                String s = parseArgs( identifier, argument );
+                trackerErrorMessage.addArgument( s );
+            }
+
+            this.mainId = parseArgs( identifier, this.mainObject );
+
+            return new TrackerErrorReport( this.mainKlass, trackerErrorMessage, this.lineNumber, this.mainId,
+                this.mainKlass, this.errorProperties, this.value );
+        }
+
+        public static String parseArgs( TrackerIdentifier identifier, Object argument )
+        {
+            if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
+            {
+                return (ObjectUtils.firstNonNull( argument, "NULL" ).toString());
+            }
+            else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return (identifier.getIdAndName( (IdentifiableObject) argument ));
+            }
+            else if ( Date.class.isAssignableFrom( argument.getClass() ) )
+            {
+                return (DateFormat.getInstance().format( argument ));
+            }
+            else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Enrollment enrollment = (Enrollment) argument;
+                return (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
+            }
+            else if ( Event.class.isAssignableFrom( argument.getClass() ) )
+            {
+                Event event = (Event) argument;
+                return (event.getEvent() + " (" + event.getClass().getSimpleName() + ")");
+            }
+            else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
+            {
+                TrackedEntity entity = (TrackedEntity) argument;
+                return (entity.getTrackedEntity() + " (" + entity.getClass().getSimpleName() + ")");
+            }
+
+            return "";
+        }
     }
 }

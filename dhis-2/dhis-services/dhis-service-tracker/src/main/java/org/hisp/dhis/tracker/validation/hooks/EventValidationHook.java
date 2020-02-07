@@ -1,33 +1,5 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.*;
-import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.validation.ValidationHookErrorReporter;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.util.*;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -56,6 +28,36 @@ import java.util.*;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.util.*;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -72,7 +74,7 @@ public class EventValidationHook
             return Collections.emptyList();
         }
 
-        ValidationHookErrorReporter errorReporter = new ValidationHookErrorReporter( bundle,
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle,
             EventValidationHook.class );
 
         TrackerPreheat preheat = bundle.getPreheat();
@@ -84,15 +86,15 @@ public class EventValidationHook
             if ( programStageInstanceService
                 .programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1030,
-                    event.getEvent() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1030 )
+                    .addArg( event ) );
                 continue;
             }
 
             boolean hasEventDate = EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null;
             if ( hasEventDate )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1031, event.getEvent() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1031 ).addArg( event ) );
                 continue;
             }
 
@@ -102,7 +104,7 @@ public class EventValidationHook
                 !CodeGenerator.isValidUid( event.getEvent() );
             if ( programStagePointToInvalidEvent )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1030, event.getEvent() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1030 ).addArg( event ) );
                 break;
             }
 
@@ -120,13 +122,13 @@ public class EventValidationHook
 
             if ( organisationUnit == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1033, event.getOrgUnit() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1011 ).addArg( event.getOrgUnit() ) );
                 continue;
             }
 
             if ( program == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1034, event.getProgram() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1034 ).addArg( event ) );
                 continue;
             }
 
@@ -136,7 +138,7 @@ public class EventValidationHook
 
             if ( programStage == null )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1035, event.getProgramStage() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1035 ).addArg( event ) );
                 continue;
             }
 
@@ -144,7 +146,7 @@ public class EventValidationHook
             {
                 if ( trackedEntityInstance == null )
                 {
-                    errorReporter.raiseError( TrackerErrorCode.E1036, event.getTrackedEntityInstance() );
+                    errorReporter.addError( newReport( TrackerErrorCode.E1036 ).addArg( event ) );
                     continue;
                 }
 
@@ -155,14 +157,14 @@ public class EventValidationHook
 
                     if ( activeProgramInstances.isEmpty() )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1037, trackedEntityInstance.getUid(),
-                            program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1037 )
+                            .addArg( trackedEntityInstance ).addArg( program ) );
                         continue;
                     }
                     else if ( activeProgramInstances.size() > 1 )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1038, trackedEntityInstance.getUid(),
-                            program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1038 )
+                            .addArg( trackedEntityInstance ).addArg( program ) );
                         continue;
                     }
                     else
@@ -173,7 +175,7 @@ public class EventValidationHook
 
                 if ( !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
                 {
-                    errorReporter.raiseError( TrackerErrorCode.E1039 );
+                    errorReporter.addError( newReport( TrackerErrorCode.E1039 ) );
                     continue;
                 }
             }
@@ -201,7 +203,7 @@ public class EventValidationHook
                 }
                 else if ( activeProgramInstances.size() > 1 )
                 {
-                    errorReporter.raiseError( TrackerErrorCode.E1040, program.getUid() );
+                    errorReporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
                     continue;
                 }
 
@@ -219,7 +221,7 @@ public class EventValidationHook
 
             if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1041, organisationUnit.getUid() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1041 ).addArg( organisationUnit ) );
                 continue;
             }
 
@@ -235,7 +237,8 @@ public class EventValidationHook
             List<String> errors = trackerAccessManager.canCreate( user, newProgramStageInstance, false );
             if ( !errors.isEmpty() )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1050, errors );
+                errorReporter.addError( newReport( TrackerErrorCode.E1050 )
+                    .addArg( user ).addArg( String.join( ",", errors ) ) );
                 continue;
             }
 
@@ -250,36 +253,36 @@ public class EventValidationHook
         return errorReporter.getReportList();
     }
 
-    private boolean validateDates( ValidationHookErrorReporter errorReporter, Event event )
+    private boolean validateDates( ValidationErrorReporter errorReporter, Event event )
     {
         if ( event.getDueDate() != null && !DateUtils.dateIsValid( event.getDueDate() ) )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1051, event.getDueDate() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1051 ).addArg( event.getDueDate() ) );
             return false;
         }
 
         if ( event.getEventDate() != null && !DateUtils.dateIsValid( event.getEventDate() ) )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1052, event.getEventDate() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1052 ).addArg( event.getEventDate() ) );
             return false;
         }
 
         if ( event.getCreatedAtClient() != null && !DateUtils.dateIsValid( event.getCreatedAtClient() ) )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1053, event.getCreatedAtClient() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1053 ).addArg( event.getCreatedAtClient() ) );
             return false;
         }
 
         if ( event.getLastUpdatedAtClient() != null && !DateUtils.dateIsValid( event.getLastUpdatedAtClient() ) )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1054, event.getLastUpdatedAtClient() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1054 ).addArg( event.getLastUpdatedAtClient() ) );
             return false;
         }
 
         return true;
     }
 
-    private void validateCatergoryOptionCombo( ValidationHookErrorReporter errorReporter, User user,
+    private void validateCatergoryOptionCombo( ValidationErrorReporter errorReporter, User user,
         Event event, Program program )
     {
         List<String> errors;
@@ -308,7 +311,7 @@ public class EventValidationHook
         if ( categoryOptionCombo != null && categoryOptionCombo.isDefault() && program.getCategoryCombo() != null &&
             !program.getCategoryCombo().isDefault() )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1055 );
+            errorReporter.addError( newReport( TrackerErrorCode.E1055 ) );
             return;
         }
 
@@ -328,13 +331,16 @@ public class EventValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1056, i18nFormat.formatDate( eventDate ),
-                    i18nFormat.formatDate( option.getStartDate() ), option.getName() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1056 )
+                    .addArg( i18nFormat.formatDate( eventDate ) )
+                    .addArg( i18nFormat.formatDate( option.getStartDate() ) )
+                    .addArg( option.getName() ) );
+
                 return;
             }
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1057, event.getLastUpdatedAtClient() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1057 ).addArg( event.getLastUpdatedAtClient() ) );
                 return;
             }
         }
@@ -342,12 +348,12 @@ public class EventValidationHook
         errors = trackerAccessManager.canWrite( user, categoryOptionCombo );
         if ( !errors.isEmpty() )
         {
-            errorReporter.raiseError( TrackerErrorCode.E1058, errors );
+            errorReporter.addError( newReport( TrackerErrorCode.E1058 ).addArg( String.join( ",", errors ) ) );
             return;
         }
     }
 
-    private boolean validateGeo( ValidationHookErrorReporter errorReporter,
+    private boolean validateGeo( ValidationErrorReporter errorReporter,
         Event event,
         ProgramStage programStage )
     {
@@ -356,8 +362,10 @@ public class EventValidationHook
             if ( programStage.getFeatureType().equals( FeatureType.NONE ) ||
                 !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1048, event.getGeometry().getGeometryType(),
-                    programStage.getFeatureType().value(), programStage.getUid() );
+                errorReporter.addError( newReport( TrackerErrorCode.E1048 )
+                    .addArg( event.getGeometry().getGeometryType() )
+                    .addArg( programStage.getFeatureType().value() )
+                    .addArg( programStage ) );
                 return false;
             }
 
@@ -372,7 +380,7 @@ public class EventValidationHook
             }
             catch ( IOException e )
             {
-                errorReporter.raiseError( TrackerErrorCode.E1049 );
+                errorReporter.addError( newReport( TrackerErrorCode.E1049 ) );
                 return false;
             }
         }
@@ -380,7 +388,7 @@ public class EventValidationHook
         return true;
     }
 
-    private boolean validateExpiryDays( ValidationHookErrorReporter errorReporter,
+    private boolean validateExpiryDays( ValidationErrorReporter errorReporter,
         Event event,
         Program program,
         ProgramStageInstance programStageInstance )
@@ -415,14 +423,14 @@ public class EventValidationHook
 
                     if ( referenceDate == null )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1042, program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1042 ).addArg( event ) );
                         return false;
                     }
 
                     if ( (new Date()).after(
                         DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1043, program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1043 ).addArg( event ) );
                         return false;
                     }
                 }
@@ -438,7 +446,7 @@ public class EventValidationHook
 
                     if ( programStageInstance.getExecutionDate() == null )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1044, program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1044 ).addArg( event ) );
                         return false;
                     }
 
@@ -446,7 +454,7 @@ public class EventValidationHook
 
                     if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1045, program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1045 ).addArg( event ) );
                         return false;
                     }
                 }
@@ -455,7 +463,7 @@ public class EventValidationHook
                     String referenceDate = event.getEventDate() != null ? event.getEventDate() : event.getDueDate();
                     if ( referenceDate == null )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1046, program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1046 ).addArg( event ) );
                         return false;
                     }
 
@@ -463,7 +471,8 @@ public class EventValidationHook
 
                     if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
                     {
-                        errorReporter.raiseError( TrackerErrorCode.E1047, program.getUid() );
+                        errorReporter.addError( newReport( TrackerErrorCode.E1047 ).addArg( event ) );
+
                         return false;
                     }
                 }
