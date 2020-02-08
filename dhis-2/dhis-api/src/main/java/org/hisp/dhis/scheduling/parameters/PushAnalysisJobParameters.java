@@ -28,26 +28,26 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Henning Håkonsen
+ * This class is retained only for deserialization support for old db entries serialized with this class. 
+ * For PushAnalysis job parameters from patch 2.31.7 onwards {@link PushAnalysisMultiJobParameters} is used.
+ * 
+ * @author Ameen Mohamed
  */
+@Deprecated
 public class PushAnalysisJobParameters
     implements JobParameters
 {
     private static final long serialVersionUID = -1848833906375595488L;
 
     @JsonProperty( required = true )
-    private List<String> pushAnalysis = new ArrayList<>();
+    private String pushAnalysis;
 
     public PushAnalysisJobParameters()
     {
@@ -55,30 +55,18 @@ public class PushAnalysisJobParameters
 
     public PushAnalysisJobParameters( String pushAnalysis )
     {
-        this.pushAnalysis.add( pushAnalysis );
-    }
-
-    public PushAnalysisJobParameters( List<String> pushAnalysis )
-    {
         this.pushAnalysis = pushAnalysis;
     }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getPushAnalysis()
+    public String getPushAnalysis()
     {
         return pushAnalysis;
-    }
-
-    public void setPushAnalysis( List<String> pushAnalysis )
-    {
-        this.pushAnalysis = pushAnalysis;
     }
 
     @Override
     public ErrorReport validate()
     {
-        if ( pushAnalysis == null || pushAnalysis.isEmpty() )
+        if ( pushAnalysis == null )
         {
             return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
         }

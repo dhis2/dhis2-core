@@ -39,7 +39,7 @@ import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisMultiJobParameters;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -113,7 +113,7 @@ public class PushAnalysisController
         }
 
         JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",
-            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), false, true, true );
+            JobType.PUSH_ANALYSIS, "", new PushAnalysisMultiJobParameters( uid ), false, true, true );
         schedulingManager.executeJob( pushAnalysisJobConfiguration );
     }
 }
