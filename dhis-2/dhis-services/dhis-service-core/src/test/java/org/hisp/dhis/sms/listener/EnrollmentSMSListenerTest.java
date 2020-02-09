@@ -43,6 +43,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -118,6 +119,9 @@ public class EnrollmentSMSListenerTest
     private CategoryService categoryService;
 
     @Mock
+    private ProgramStageService programStageService;
+
+    @Mock
     private ProgramStageInstanceService programStageInstanceService;
 
     // Needed for this test
@@ -173,7 +177,8 @@ public class EnrollmentSMSListenerTest
     {
         subject = new EnrollmentSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, teiService, programInstanceService, identifiableObjectManager );
+            programStageService, programStageInstanceService, teiService, programInstanceService,
+            identifiableObjectManager );
 
         setUpInstances();
 
