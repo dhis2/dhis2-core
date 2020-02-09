@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression.item;
+package org.hisp.dhis.expression.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,22 +28,28 @@ package org.hisp.dhis.parser.expression.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprItem;
+import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import org.hisp.dhis.common.DimensionalItemId;
 
 /**
- * Base ExprItem implementation
+ * Expression item Indicator
  *
- * @author Jim Grace
+ * @author Luciano Fiandesio
  */
-public abstract class BaseExprItem
-    implements ExprItem
+public class DimItemIndicator
+    extends DimensionalItem
 {
     @Override
-    public Object regenerate( ItemContext ctx, CommonExpressionVisitor visitor )
+    public DimensionalItemId getDimensionalItemId( ExprContext ctx )
     {
-        return ctx.getText();
+        return new DimensionalItemId( INDICATOR, ctx.uid0.getText() );
+    }
+
+    @Override
+    public String getId( ExprContext ctx )
+    {
+        return ctx.uid0.getText();
     }
 }

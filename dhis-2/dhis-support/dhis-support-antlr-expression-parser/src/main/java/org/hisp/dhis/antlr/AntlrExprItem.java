@@ -1,7 +1,7 @@
-package org.hisp.dhis.expression.item;
+package org.hisp.dhis.antlr;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,21 @@ package org.hisp.dhis.expression.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
-
-import org.hisp.dhis.common.DimensionalItemId;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression item Indicator
+ * Visits a parsed expression function.
  *
- * @author Luciano Fiandesio
+ * @author Jim Grace
  */
-public class DimItemIndicator
-    extends
-    DimensionalItem
+public interface AntlrExprItem
 {
-    @Override
-    public DimensionalItemId getDimensionalItemId( ItemContext ctx )
-    {
-        return new DimensionalItemId( INDICATOR, ctx.uid0.getText() );
-    }
-
-    @Override
-    public String getId( ItemContext ctx )
-    {
-        return ctx.uid0.getText();
-    }
+    /**
+     * Finds the value of an expression item.
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return the value of the function, evaluating necessary args
+     */
+    Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor );
 }

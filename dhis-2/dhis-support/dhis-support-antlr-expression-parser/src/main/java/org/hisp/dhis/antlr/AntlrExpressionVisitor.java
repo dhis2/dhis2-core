@@ -77,17 +77,17 @@ public abstract class AntlrExpressionVisitor
     @Override
     public Object visitExpr( ExpressionParser.ExprContext ctx )
     {
-        if ( ctx.fun != null )
+        if ( ctx.it != null )
         {
-            AntlrExprFunction function = AntlrParserUtils.COMMON_EXPRESSION_FUNCTIONS.get( ctx.fun.getType() );
+            AntlrExprItem item = AntlrParserUtils.ANTLR_EXPRESSION_ITEMS.get( ctx.it.getType() );
 
-            if ( function == null )
+            if ( item == null )
             {
                 throw new ParserExceptionWithoutContext(
-                    "Function " + ctx.fun.getText() + " not supported for this type of expression" );
+                    "Item " + ctx.it.getText() + " not supported for this type of expression" );
             }
 
-            return function.evaluate( ctx, this );
+            return item.evaluate( ctx, this );
         }
 
         if ( ctx.expr().size() > 0 ) // If there's an expr, visit the expr

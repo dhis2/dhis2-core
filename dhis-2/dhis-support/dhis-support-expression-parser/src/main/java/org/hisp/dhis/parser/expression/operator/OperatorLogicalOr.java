@@ -30,7 +30,7 @@ package org.hisp.dhis.parser.expression.operator;
 
 import org.hisp.dhis.antlr.operator.AntlrOperatorLogicalOr;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.ScalarFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -59,7 +59,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  */
 public class OperatorLogicalOr
     extends AntlrOperatorLogicalOr
-    implements ScalarFunction
+    implements ExpressionItem
 {
     @Override
     public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )

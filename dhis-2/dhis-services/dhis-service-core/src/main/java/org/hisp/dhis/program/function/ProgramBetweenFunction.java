@@ -28,15 +28,12 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramExpressionItem;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDate;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.CompareDateContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -45,22 +42,22 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramBetweenFunction
-    implements ScalarFunctionToEvaluate
+    extends ProgramExpressionItem
 {
     @Override
-    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        validateDateArg( ctx.compareDate( 0 ), visitor );
-        validateDateArg( ctx.compareDate( 1 ), visitor );
+        castDate( visitor.visit( ctx.expr( 0 ) ) );
+        castDate( visitor.visit( ctx.expr( 1 ) ) );
 
-        return DEFAULT_DOUBLE_VALUE;
+        return DEFAULT_DOUBLE_VALUE; // Always a number of months, days, etc.
     }
 
     @Override
     public final Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        String startDate = getCompareDate( ctx.compareDate( 0 ), visitor );
-        String endDate = getCompareDate( ctx.compareDate( 1 ), visitor );
+        String startDate = castString( visitor.visitAllowingNulls( ctx.expr( 0 ) ) );
+        String endDate = castString( visitor.visitAllowingNulls( ctx.expr( 1 ) ) );
 
         return getSqlBetweenDates( startDate, endDate );
     }
@@ -73,59 +70,4 @@ public abstract class ProgramBetweenFunction
      * @return the SQL to compare the dates based on the time/date unit
      */
     public abstract Object getSqlBetweenDates( String startDate, String endDate );
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Validates a compare date
-     *
-     * @param ctx     program function compare date context
-     * @param visitor the program indicator expression tree visitor
-     */
-    private void validateDateArg( CompareDateContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( ctx.uid0 != null )
-        {
-            String programStageUid = ctx.uid0.getText();
-
-            ProgramStage programStage = visitor.getProgramStageService().getProgramStage( programStageUid );
-
-            if ( programStage == null )
-            {
-                throw new ParserExceptionWithoutContext( "Program stage " + ctx.uid0.getText() + " not found" );
-            }
-
-            visitor.getItemDescriptions().put( programStageUid, programStage.getDisplayName() );
-
-            return;
-        }
-
-        castDate( visitor.visit( ctx.expr() ) );
-    }
-
-    /**
-     * Resolves a start or end date program function argument.
-     * Don't replace nulls while evaluating the sub-expression,
-     * because we don't have a good thing to replace null dates with;
-     * it's better to let null dates remain null so the date comparison
-     * for that event will not be evaluated and aggregated with the
-     * non-null date values.
-     *
-     * @param ctx program function compare date context
-     * @param visitor the program indicator expression tree visitor
-     * @return the resolved date
-     */
-    private String getCompareDate( CompareDateContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( ctx.uid0 != null )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                ctx.uid0.getText(), "executiondate",
-                visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
-        }
-
-        return castString( visitor.visitAllowingNulls( ctx.expr() ) );
-    }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.expression.item;
+package org.hisp.dhis.expression.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,10 +30,10 @@ package org.hisp.dhis.expression.item;
 
 import org.hisp.dhis.common.DimensionalItemId;
 
+import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
-import static org.hisp.dhis.parser.expression.ParserUtils.isDataElementOperandSyntax;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Expression items DataElement and DataElementOperand
@@ -44,7 +44,7 @@ public class DimItemDataElementAndOperand
     extends DimensionalItem
 {
     @Override
-    public DimensionalItemId getDimensionalItemId( ItemContext ctx )
+    public DimensionalItemId getDimensionalItemId( ExprContext ctx )
     {
         if ( isDataElementOperandSyntax( ctx ) )
         {
@@ -61,7 +61,7 @@ public class DimItemDataElementAndOperand
     }
 
     @Override
-    public String getId( ItemContext ctx )
+    public String getId( ExprContext ctx )
     {
         if ( isDataElementOperandSyntax( ctx ) )
         {
@@ -73,5 +73,21 @@ public class DimItemDataElementAndOperand
         {
             return ctx.uid0.getText();
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Does an item of the form #{...} have the syntax of a
+     * data element operand (as opposed to a data element)?
+     *
+     * @param ctx the item context
+     * @return true if data element operand syntax
+     */
+    private boolean isDataElementOperandSyntax( ExprContext ctx )
+    {
+        return anyNotNull( ctx.uid1, ctx.uid2 );
     }
 }

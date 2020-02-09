@@ -30,7 +30,7 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
+import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.relationship.RelationshipType;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
@@ -43,10 +43,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class D2RelationshipCount
-    implements ScalarFunctionToEvaluate
+    extends ProgramExpressionItem
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         if ( ctx.QUOTED_UID() != null )
         {
@@ -61,6 +61,7 @@ public class D2RelationshipCount
 
             visitor.getItemDescriptions().put( ctx.QUOTED_UID().getText(), relationshipType.getDisplayName() );
         }
+
         return DEFAULT_DOUBLE_VALUE;
     }
 

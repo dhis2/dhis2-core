@@ -29,8 +29,6 @@ package org.hisp.dhis.antlr;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.antlr.operator.*;
 
 import java.util.Date;
@@ -49,7 +47,7 @@ public class AntlrParserUtils
 
     public final static boolean BOOLEAN_VALUE_IF_NULL = false;
 
-    public final static ImmutableMap<Integer, AntlrExprFunction> COMMON_EXPRESSION_FUNCTIONS = ImmutableMap.<Integer, AntlrExprFunction>builder()
+    public final static ImmutableMap<Integer, AntlrExprItem> ANTLR_EXPRESSION_ITEMS = ImmutableMap.<Integer, AntlrExprItem>builder()
 
         // Non-comparison operators
 

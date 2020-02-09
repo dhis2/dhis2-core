@@ -30,7 +30,7 @@ package org.hisp.dhis.parser.expression.operator;
 
 import org.hisp.dhis.antlr.operator.AntlrOperatorCompareGreaterThan;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -41,7 +41,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  */
 public class OperatorCompareGreaterThan
     extends AntlrOperatorCompareGreaterThan
-    implements SimpleScalarFunction
+    implements ExpressionItem
 {
 
     @Override

@@ -30,7 +30,7 @@ package org.hisp.dhis.parser.expression.operator;
 
 import org.hisp.dhis.antlr.operator.AntlrOperatorLogicalNot;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -51,7 +51,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  */
 public class OperatorLogicalNot
     extends AntlrOperatorLogicalNot
-    implements SimpleScalarFunction
+    implements ExpressionItem
 {
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )

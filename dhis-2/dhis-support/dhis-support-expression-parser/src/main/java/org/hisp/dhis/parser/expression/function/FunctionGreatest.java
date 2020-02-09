@@ -28,7 +28,6 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 import java.util.stream.Collectors;
@@ -44,7 +43,7 @@ public class FunctionGreatest
     extends FunctionGreatestOrLeast
 {
     @Override
-    public Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return greatestOrLeast( ctx.expr(), visitor, 1.0 );
     }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.item;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -31,44 +31,51 @@ package org.hisp.dhis.program.item;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
-import org.hisp.dhis.parser.expression.item.BaseExprItem;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator expression item
+ * <p/>
+ * The only two methods that are used by program indicator-only items are
+ * {@ExpressionItem.getDescription} and {@ExpressionItem.getSql}.
+ * <p/>
+ * getDescription checks the expression item syntax, and returns the
+ * expected return data type. For data items, it also registers the
+ * translation of any UIDs into human-readable object names.
  *
  * @author Jim Grace
  */
-public abstract class ProgramItem
-    extends BaseExprItem
+public abstract class ProgramExpressionItem
+    implements ExpressionItem
 {
     @Override
-    public final Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )
+    public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "Internal parsing error: getItemId called for program indicator item" );
+        throw new ParserExceptionWithoutContext( "Internal parsing error: getItemId called for program indicator item " + ctx.getText() );
     }
 
     @Override
-    public final Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
+    public final Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "Internal parsing error: getOrgUnitGroup called for program indicator item" );
+        throw new ParserExceptionWithoutContext( "Internal parsing error: getOrgUnitGroup called for program indicator item " + ctx.getText() );
     }
 
     @Override
-    public final Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
+    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "Internal parsing error: evaluate called for program indicator item" );
+        throw new ParserExceptionWithoutContext( "Internal parsing error: evaluate called for program indicator item " + ctx.getText() );
     }
 
     /**
-     * Replace null values with 0 or ''.
+     * Replace null SQL query values with 0 or '', depending on the value type.
      *
      * @param column the column (may be a subquery)
      * @param valueType the type of value that might be null
      * @return SQL to replace a null value with 0 or '' depending on type
      */
-    protected String replaceNullValues( String column, ValueType valueType )
+    protected String replaceNullSqlValues( String column, ValueType valueType )
     {
         return valueType.isNumeric() || valueType.isBoolean()
             ? "coalesce(" + column + "::numeric,0)"

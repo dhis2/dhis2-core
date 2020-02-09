@@ -28,10 +28,7 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DATE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator date variable (uses default date for validity checking)
@@ -42,7 +39,7 @@ public abstract class ProgramDateVariable
     extends ProgramVariable
 {
     @Override
-    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object defaultVariableValue()
     {
         return DEFAULT_DATE_VALUE;
     }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.expression.item;
+package org.hisp.dhis.expression.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -32,7 +32,7 @@ import org.hisp.dhis.common.DimensionalItemId;
 
 import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeExpressionProgramAttribute;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Expression item ProgramAttribute
@@ -43,7 +43,7 @@ public class DimItemProgramAttribute
     extends DimensionalItem
 {
     @Override
-    public DimensionalItemId getDimensionalItemId( ItemContext ctx )
+    public DimensionalItemId getDimensionalItemId( ExprContext ctx )
     {
         assumeExpressionProgramAttribute( ctx );
 
@@ -53,7 +53,7 @@ public class DimItemProgramAttribute
     }
 
     @Override
-    public String getId( ItemContext ctx )
+    public String getId( ExprContext ctx )
     {
         assumeExpressionProgramAttribute( ctx );
 

@@ -18,118 +18,111 @@ expr
 
     //  Operators (in precidence order)
 
-    |   fun='(' expr ')'
-    |   <assoc=right> expr fun='^' expr
-    |   fun=('+' | '-' | '!' | 'not') expr
-    |   expr fun=('*' | '/' | '%') expr
-    |   expr fun=('+' | '-') expr
-    |   expr fun=('<' | '>' | '<=' | '>=') expr
-    |   expr fun=('==' | '!=') expr
-    |   expr fun=('&&' | 'and') expr
-    |   expr fun=('||' | 'or') expr
+    |   it='(' expr ')'
+    |   <assoc=right> expr it='^' expr
+    |   it=('+' | '-' | '!' | 'not') expr
+    |   expr it=('*' | '/' | '%') expr
+    |   expr it=('+' | '-') expr
+    |   expr it=('<' | '>' | '<=' | '>=') expr
+    |   expr it=('==' | '!=') expr
+    |   expr it=('&&' | 'and') expr
+    |   expr it=('||' | 'or') expr
 
     //  Functions (alphabetical)
 
-    |   fun='firstNonNull(' WS* itemNumStringLiteral WS* (',' WS* itemNumStringLiteral WS* )* ')'
-    |   fun='greatest(' expr (',' expr )* ')'
-    |   fun='if(' expr ',' expr ',' expr ')'
-    |   fun='isNotNull(' WS* item WS* ')'
-    |   fun='isNull(' WS* item WS* ')'
-    |   fun='least(' expr (',' expr )* ')'
+    |   it='firstNonNull(' expr (',' expr )* ')'
+    |   it='greatest(' expr (',' expr )* ')'
+    |   it='if(' expr ',' expr ',' expr ')'
+    |   it='isNotNull(' expr ')'
+    |   it='isNull(' expr ')'
+    |   it='least(' expr (',' expr )* ')'
 
     //  Aggergation functions (alphabetical)
 
-    |   fun='avg(' expr ')'
-    |   fun='count(' expr ')'
-    |   fun='max(' expr ')'
-    |   fun='median(' expr ')'
-    |   fun='min(' expr ')'
-    |   fun='percentileCont(' expr ',' expr ')'
-    |   fun='stddev(' expr ')'
-    |   fun='stddevPop(' expr ')'
-    |   fun='stddevSamp(' expr ')'
-    |   fun='sum(' expr ')'
-    |   fun='variance(' expr ')'
+    |   it='avg(' expr ')'
+    |   it='count(' expr ')'
+    |   it='max(' expr ')'
+    |   it='median(' expr ')'
+    |   it='min(' expr ')'
+    |   it='percentileCont(' expr ',' expr ')'
+    |   it='stddev(' expr ')'
+    |   it='stddevPop(' expr ')'
+    |   it='stddevSamp(' expr ')'
+    |   it='sum(' expr ')'
+    |   it='variance(' expr ')'
 
     //  Program variables (alphabtical)
 
-    |   'V{' fun='analytics_period_end' '}'
-    |   'V{' fun='analytics_period_start' '}'
-    |   'V{' fun='creation_date' '}'
-    |   'V{' fun='current_date' '}'
-    |   'V{' fun='due_date' '}'
-    |   'V{' fun='enrollment_count' '}'
-    |   'V{' fun='enrollment_date' '}'
-    |   'V{' fun='enrollment_id' '}'
-    |   'V{' fun='enrollment_status' '}'
-    |   'V{' fun='environment' '}'
-    |   'V{' fun='event_count' '}'
-    |   'V{' fun='event_date' '}'
-    |   'V{' fun='event_id' '}'
-    |   'V{' fun='event_status' '}'
-    |   'V{' fun='execution_date' '}'
-    |   'V{' fun='incident_date' '}'
-    |   'V{' fun='org_unit_count' '}'
-    |   'V{' fun='org_unit' '}'
-    |   'V{' fun='orgunit_code' '}'
-    |   'V{' fun='program_name' '}'
-    |   'V{' fun='program_stage_id' '}'
-    |   'V{' fun='program_stage_name' '}'
-    |   'V{' fun='sync_date' '}'
-    |   'V{' fun='tei_count' '}'
-    |   'V{' fun='value_count' '}'
-    |   'V{' fun='zero_pos_value_count' '}'
+    |   'V{' it='analytics_period_end' '}'
+    |   'V{' it='analytics_period_start' '}'
+    |   'V{' it='creation_date' '}'
+    |   'V{' it='current_date' '}'
+    |   'V{' it='due_date' '}'
+    |   'V{' it='enrollment_count' '}'
+    |   'V{' it='enrollment_date' '}'
+    |   'V{' it='enrollment_id' '}'
+    |   'V{' it='enrollment_status' '}'
+    |   'V{' it='environment' '}'
+    |   'V{' it='event_count' '}'
+    |   'V{' it='event_date' '}'
+    |   'V{' it='event_id' '}'
+    |   'V{' it='event_status' '}'
+    |   'V{' it='execution_date' '}'
+    |   'V{' it='incident_date' '}'
+    |   'V{' it='org_unit_count' '}'
+    |   'V{' it='org_unit' '}'
+    |   'V{' it='orgunit_code' '}'
+    |   'V{' it='program_name' '}'
+    |   'V{' it='program_stage_id' '}'
+    |   'V{' it='program_stage_name' '}'
+    |   'V{' it='sync_date' '}'
+    |   'V{' it='tei_count' '}'
+    |   'V{' it='value_count' '}'
+    |   'V{' it='zero_pos_value_count' '}'
 
     //  Program functions (alphabetical)
 
-    |   fun='d2:addDays(' expr ',' expr ')'
-    |   fun='d2:ceil(' expr ')'
-    |   fun='d2:concatenate(' expr (',' expr )* ')'
-    |   fun='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
-    |   fun='d2:count(' ( WS* stageDataElement WS* | expr ) ')'
-    |   fun='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
-    |   fun='d2:countIfValue(' ( WS* stageDataElement WS* | expr ) ',' ( WS* numStringLiteral WS* | expr ) ')'
-    |   fun='d2:countIfZeroPos(' expr ')'
-    |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:floor(' expr ')'
-    |   fun='d2:hasUserRole(' expr ')'
-    |   fun='d2:hasValue(' ( WS* item WS* | expr ) ')'
-    |   fun='d2:inOrgUnitGroup(' expr ')'
-    |   fun='d2:lastEventDate(' expr ')'
-    |   fun='d2:left(' expr ',' expr ')'
-    |   fun='d2:length(' expr ')'
-    |   fun='d2:maxValue(' ( item | expr | compareDate ) ')'
-    |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:minValue(' ( item | expr | compareDate ) ')'
-    |   fun='d2:modulus(' expr ',' expr ')'
-    |   fun='d2:monthsBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:oizp(' expr ')'
-    |   fun='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
-    |   fun='d2:right(' expr ',' expr ')'
-    |   fun='d2:round(' expr ')'
-    |   fun='d2:split(' expr ',' expr ',' expr ')'
-    |   fun='d2:substring(' expr ',' expr ',' expr ')'
-    |   fun='d2:validatePattern(' expr ',' expr ')'
-    |   fun='d2:weeksBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:yearsBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:zing(' expr ')'
-    |   fun='d2:zpvc(' ( WS* item WS* | expr) (',' ( WS* item WS* | expr ) )* ')'
-    |   fun='d2:zScoreHFA(' expr ',' expr ',' expr ')'
-    |   fun='d2:zScoreWFA(' expr ',' expr ',' expr ')'
-    |   fun='d2:zScoreWFH(' expr ',' expr ',' expr ')'
+    |   it='d2:addDays(' expr ',' expr ')'
+    |   it='d2:ceil(' expr ')'
+    |   it='d2:concatenate(' expr (',' expr )* ')'
+    |   it='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
+    |   it='d2:count(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
+    |   it='d2:countIfCondition(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ',' WS* stringLiteral WS* ')'
+    |   it='d2:countIfValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ',' expr ')'
+    |   it='d2:countIfZeroPos(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
+    |   it='d2:daysBetween(' expr ',' expr ')'
+    |   it='d2:floor(' expr ')'
+    |   it='d2:hasUserRole(' expr ')'
+    |   it='d2:hasValue(' expr ')'
+    |   it='d2:inOrgUnitGroup(' expr ')'
+    |   it='d2:lastEventDate(' expr ')'
+    |   it='d2:left(' expr ',' expr ')'
+    |   it='d2:length(' expr ')'
+    |   it='d2:maxValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
+    |   it='d2:maxValue(' WS* 'PS_EVENTDATE:' WS* uid0=UID WS* ')'
+    |   it='d2:minutesBetween(' expr ',' expr ')'
+    |   it='d2:minValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
+    |   it='d2:minValue(' WS* 'PS_EVENTDATE:' WS* uid0=UID WS* ')'
+    |   it='d2:modulus(' expr ',' expr ')'
+    |   it='d2:monthsBetween(' expr ',' expr ')'
+    |   it='d2:oizp(' expr ')'
+    |   it='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
+    |   it='d2:right(' expr ',' expr ')'
+    |   it='d2:round(' expr ')'
+    |   it='d2:split(' expr ',' expr ',' expr ')'
+    |   it='d2:substring(' expr ',' expr ',' expr ')'
+    |   it='d2:validatePattern(' expr ',' expr ')'
+    |   it='d2:weeksBetween(' expr ',' expr ')'
+    |   it='d2:yearsBetween(' expr ',' expr ')'
+    |   it='d2:zing(' expr ')'
+    |   it='d2:zpvc(' expr (',' expr )* ')'
+    |   it='d2:zScoreHFA(' expr ',' expr ',' expr ')'
+    |   it='d2:zScoreWFA(' expr ',' expr ',' expr ')'
+    |   it='d2:zScoreWFH(' expr ',' expr ',' expr ')'
 
-    //  Other
+    //  Data items
 
-    |   item
-    |   programRuleVariable
-    |   constantValue
-    |   numericLiteral
-    |   stringLiteral
-    |   booleanLiteral
-    ;
-
-item
-    :   it='#{' uid0=UID ('.*')? '}'
+    |   it='#{' uid0=UID ('.*')? '}'
     |   it='#{' uid0=UID '.' uid1=UID '}'
     |   it='#{' uid0=UID '.' uid1=UID wild2='.*' '}'
     |   it='#{' uid0=UID '.*.' uid2=UID '}'
@@ -141,38 +134,21 @@ item
     |   it='I{' uid0=UID '}'
     |   it='N{' uid0=UID '}' // Indicator
     |   it='OUG{' uid0=UID '}'
+    |   it='PS_EVENTDATE:' WS* uid0=UID
     |   it='R{' uid0=UID '.' REPORTING_RATE_TYPE '}'
+    |   it='X{' variableName '}' // Program rule variable
     |   it='[days]'
-    ;
 
-programRuleVariable
-    : var='X{' variableName '}';
+    //  Literals
 
-constantValue
-    : var='C{' variableName '}';
-
-stageDataElement
-    :   '#{' uid0=UID '.' uid1=UID '}'
-    ;
-
-programAttribute
-    :   'A{' uid0=UID '}'
-    ;
-
-compareDate
-    :   expr
-    |   WS* 'PS_EVENTDATE:' WS* uid0=UID WS*
-    ;
-
-itemNumStringLiteral
-    :   item
-    |   numStringLiteral
-    ;
-
-numStringLiteral
-    :   numericLiteral
+    |   numericLiteral
     |   stringLiteral
+    |   booleanLiteral
     ;
+
+variableName
+    : UID
+    | IDENTIFIER;
 
 numericLiteral
     :   NUMERIC_LITERAL
@@ -182,10 +158,6 @@ stringLiteral
     :   STRING_LITERAL
     |   QUOTED_UID // Resolve that quoted UID can also be a string literal
     ;
-
-variableName
-    : UID
-    | IDENTIFIER;
 
 booleanLiteral
     :   BOOLEAN_LITERAL
@@ -316,6 +288,7 @@ D_BRACE     : 'D{';
 I_BRACE     : 'I{';
 N_BRACE     : 'N{';
 OUG_BRACE   : 'OUG{';
+PS_EVENTDATE: 'PS_EVENTDATE:';
 R_BRACE     : 'R{';
 X_BRACE     : 'X{';
 DAYS        : '[days]';
@@ -368,8 +341,9 @@ UID :   Alpha
         AlphaNum AlphaNum AlphaNum AlphaNum AlphaNum
     ;
 
+// In addition to its use in parsing program rule variables,
 // IDENTIFIER has the effect of requiring spaces between words,
-// for example disallows notisNull (should be not isNull),
+// for example it disallows notisNull (should be not isNull),
 // but allows !isNull.
 IDENTIFIER
     : [a-zA-Z_]+

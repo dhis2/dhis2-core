@@ -42,7 +42,7 @@ public class vProgramStageId
     extends ProgramVariable
 {
     @Override
-    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object defaultVariableValue()
     {
         return "WZbXY0S00lP";
     }

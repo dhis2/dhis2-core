@@ -41,7 +41,7 @@ public class vEnrollmentStatus
     extends ProgramVariable
 {
     @Override
-    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object defaultVariableValue()
     {
         return "COMPLETED";
     }

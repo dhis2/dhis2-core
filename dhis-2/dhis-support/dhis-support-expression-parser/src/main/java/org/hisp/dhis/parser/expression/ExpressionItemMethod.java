@@ -28,46 +28,23 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.AntlrExprFunction;
-
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Visits a parsed expression function.
+ * Applies a method in an expression item class.
  *
  * @author Jim Grace
  */
-public interface ExprFunction
-    extends AntlrExprFunction
+@FunctionalInterface
+public interface ExpressionItemMethod
 {
     /**
-     * Collects item ids inside the function for later database lookup.
-     * This is the same as the evaluate method for most functions, but for
-     * aggregation functions, it collects item ids as aggregation item ids.
+     * Invokes a method in an expression item
      *
-     * @param ctx     the expression context
-     * @param visitor the tree visitor
-     * @return a dummy value for the item
+     * @param item the item to evaluate
+     * @param ctx the expression context in which to evaluate the item
+     * @param visitor the visitor class for supporting methods
+     * @return the method result from the expression item class
      */
-    Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor );
-
-    /**
-     * Finds the value of an expression function, evaluating all
-     * the arguments of logical functions (e.g. if, and, or, firstNonNull).
-     * Otherwise, this is the same as the evaluate method.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return the value of the function, evaluating all args
-     */
-    Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor );
-
-    /**
-     * Generates SQL for an expression function.
-     *
-     * @param ctx     the expression context
-     * @param visitor the tree visitor
-     * @return the generated SQL (as a String) for the function
-     */
-    Object getSql( ExprContext ctx, CommonExpressionVisitor visitor );
+    Object apply( ExpressionItem item, ExprContext ctx, CommonExpressionVisitor visitor );
 }

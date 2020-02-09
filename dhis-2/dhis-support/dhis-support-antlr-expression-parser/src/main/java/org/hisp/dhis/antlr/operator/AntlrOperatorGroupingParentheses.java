@@ -28,7 +28,7 @@ package org.hisp.dhis.antlr.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.AntlrExprFunction;
+import org.hisp.dhis.antlr.AntlrExprItem;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -39,7 +39,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class AntlrOperatorGroupingParentheses
-    implements AntlrExprFunction
+    implements AntlrExprItem
 {
     @Override
     public Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor )

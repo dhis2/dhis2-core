@@ -42,7 +42,7 @@ public class vProgramStageName
     extends ProgramVariable
 {
     @Override
-    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object defaultVariableValue()
     {
         return "First antenatal care visit";
     }

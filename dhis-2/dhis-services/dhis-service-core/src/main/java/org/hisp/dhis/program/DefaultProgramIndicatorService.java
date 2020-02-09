@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.antlr.AntlrExprFunction;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
@@ -42,10 +41,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
-import org.hisp.dhis.parser.expression.ExprFunctionMethod;
-import org.hisp.dhis.parser.expression.ExprItem;
-import org.hisp.dhis.parser.expression.ExprItemMethod;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
 import org.hisp.dhis.parser.expression.function.VectorMax;
@@ -53,11 +50,11 @@ import org.hisp.dhis.parser.expression.function.VectorMin;
 import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
 import org.hisp.dhis.parser.expression.function.VectorSum;
 import org.hisp.dhis.parser.expression.function.VectorVariance;
-import org.hisp.dhis.parser.expression.item.ItemConstant;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
 import org.hisp.dhis.program.function.*;
-import org.hisp.dhis.program.item.ProgramItemAttribute;
-import org.hisp.dhis.program.item.ProgramItemStageElement;
+import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 import org.hisp.dhis.program.variable.*;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -77,10 +74,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_FUNCTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_EVALUATE;
-import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
@@ -147,11 +142,11 @@ public class DefaultProgramIndicatorService
         this.relationshipTypeService = relationshipTypeService;
     }
 
-    public final static ImmutableMap<Integer, ExprFunction> PROGRAM_INDICATOR_FUNCTIONS = ImmutableMap.<Integer, ExprFunction>builder()
+    public final static ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap.<Integer, ExpressionItem>builder()
 
         // Common functions
 
-        .putAll( COMMON_EXPRESSION_FUNCTIONS )
+        .putAll( COMMON_EXPRESSION_ITEMS )
 
         // Program variables
 
@@ -204,13 +199,11 @@ public class DefaultProgramIndicatorService
         .put( SUM, new VectorSum() )
         .put( VARIANCE, new VectorVariance() )
 
-        .build();
+        // Data items
 
-    public final static ImmutableMap<Integer, ExprItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
-
-        .put( C_BRACE, new ItemConstant() )
         .put( HASH_BRACE, new ProgramItemStageElement() )
         .put( A_BRACE, new ProgramItemAttribute() )
+        .put( PS_EVENTDATE, new ProgramItemPsEventdate() )
 
         .build();
 
@@ -318,7 +311,7 @@ public class DefaultProgramIndicatorService
     @Transactional(readOnly = true)
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
-        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS );
 
         castClass( clazz, Parser.visit( expression, visitor ) );
 
@@ -365,7 +358,7 @@ public class DefaultProgramIndicatorService
     {
         Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
 
-        CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_SQL );
 
         visitor.setExpressionLiteral( new SqlLiteral() );
         visitor.setProgramIndicator( programIndicator );
@@ -461,12 +454,10 @@ public class DefaultProgramIndicatorService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private CommonExpressionVisitor newVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod )
     {
         return CommonExpressionVisitor.newBuilder()
-            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
             .withConstantMap( constantService.getConstantMap() )
             .withProgramIndicatorService( this )

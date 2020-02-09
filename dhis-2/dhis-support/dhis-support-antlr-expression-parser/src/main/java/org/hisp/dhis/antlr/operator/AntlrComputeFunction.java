@@ -28,7 +28,7 @@ package org.hisp.dhis.antlr.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.AntlrExprFunction;
+import org.hisp.dhis.antlr.AntlrExprItem;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class AntlrComputeFunction
-    implements AntlrExprFunction
+    implements AntlrExprItem
 {
     @Override
     public final Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor )

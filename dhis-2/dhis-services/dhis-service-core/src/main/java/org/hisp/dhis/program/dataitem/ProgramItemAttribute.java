@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.item;
+package org.hisp.dhis.program.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,26 +30,24 @@ package org.hisp.dhis.program.item;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Program indicator expression item ProgramAttribute
+ * Program indicator expression data item ProgramAttribute
  *
  * @author Jim Grace
  */
 public class ProgramItemAttribute
-    extends ProgramItem
+    extends ProgramExpressionItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        assumeProgramExpressionProgramAttribute( ctx );
-
-        String attributeId = ctx.uid0.getText();
+        String attributeId = getProgramAttributeId( ctx );
 
         TrackedEntityAttribute attribute = visitor.getAttributeService().getTrackedEntityAttribute( attributeId );
 
@@ -64,11 +62,9 @@ public class ProgramItemAttribute
     }
 
     @Override
-    public Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        assumeProgramExpressionProgramAttribute( ctx );
-
-        String attributeId = ctx.uid0.getText();
+        String attributeId = getProgramAttributeId( ctx );
 
         String column = visitor.getStatementBuilder().columnQuote( attributeId );
 
@@ -81,9 +77,31 @@ public class ProgramItemAttribute
                 throw new ParserExceptionWithoutContext( "Tracked entity attribute " + attributeId + " not found during SQL generation." );
             }
 
-            column = replaceNullValues( column, attribute.getValueType() );
+            column = replaceNullSqlValues( column, attribute.getValueType() );
         }
 
         return column;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Makes sure that the parsed A{...} has a syntax that could be used
+     * be used in an program expression for A{attributeUid}
+     *
+     * @param ctx the item context
+     * @return the attribute UID.
+     */
+    private String getProgramAttributeId( ExprContext ctx )
+    {
+        if ( ctx.uid1 != null )
+        {
+            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+                "Program attribute must have one UID: " + ctx.getText() );
+        }
+
+        return ctx.uid0.getText();
     }
 }

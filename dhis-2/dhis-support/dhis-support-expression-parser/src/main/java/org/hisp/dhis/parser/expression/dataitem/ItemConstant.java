@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression.item;
+package org.hisp.dhis.parser.expression.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -31,9 +31,10 @@ package org.hisp.dhis.parser.expression.item;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Expression item Constant
@@ -41,10 +42,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public class ItemConstant
-    extends BaseExprItem
+    implements ExpressionItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
 
@@ -59,19 +60,7 @@ public class ItemConstant
     }
 
     @Override
-    public Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )
-    {
-        return DOUBLE_VALUE_IF_NULL;
-    };
-
-    @Override
-    public Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
-    {
-        return DOUBLE_VALUE_IF_NULL;
-    };
-
-    @Override
-    public Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
 
@@ -84,7 +73,7 @@ public class ItemConstant
     }
 
     @Override
-    public Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
 
@@ -97,7 +86,7 @@ public class ItemConstant
     }
 
     @Override
-    public Object regenerate( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object regenerate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
 

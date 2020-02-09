@@ -1,4 +1,4 @@
-package org.hisp.dhis.expression.item;
+package org.hisp.dhis.expression.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,31 +28,31 @@ package org.hisp.dhis.expression.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.common.DimensionalItemId;
 
-import static org.hisp.dhis.expression.ExpressionService.DAYS_DESCRIPTION;
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression item Days
+ * Expression item ReportingRate
  *
  * @author Jim Grace
  */
-public class ItemDays
-    extends ExpressionServiceItem
+public class DimItemReportingRate
+    extends DimensionalItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
+    public DimensionalItemId getDimensionalItemId( ExprContext ctx )
     {
-        visitor.getItemDescriptions().put( ctx.getText(), DAYS_DESCRIPTION );
-
-        return DOUBLE_VALUE_IF_NULL;
+        return new DimensionalItemId( REPORTING_RATE,
+            ctx.uid0.getText(),
+            ctx.REPORTING_RATE_TYPE().getText() );
     }
 
     @Override
-    public Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
+    public String getId( ExprContext ctx )
     {
-        return visitor.getDays();
+        return ctx.uid0.getText() + "." +
+            ctx.REPORTING_RATE_TYPE().getText();
     }
 }

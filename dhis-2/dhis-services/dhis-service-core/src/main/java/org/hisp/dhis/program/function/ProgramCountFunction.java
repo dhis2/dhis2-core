@@ -30,9 +30,9 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 
 import java.util.Date;
 
@@ -44,9 +44,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramCountFunction
-    implements ScalarFunctionToEvaluate
+    extends ProgramExpressionItem
 {
-
     @Override
     public final Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
@@ -56,8 +55,8 @@ public abstract class ProgramCountFunction
         Date startDate = visitor.getReportingStartDate();
         Date endDate = visitor.getReportingEndDate();
 
-        String programStage = ctx.stageDataElement().uid0.getText();
-        String dataElement = ctx.stageDataElement().uid1.getText();
+        String programStage = ctx.uid0.getText();
+        String dataElement = ctx.uid1.getText();
 
         String eventTableName = "analytics_event_" + pi.getProgram().getUid();
         String columnName = "\"" + dataElement + "\"";
@@ -74,6 +73,19 @@ public abstract class ProgramCountFunction
             sb.getBoundaryCondition( pi.getStartEventBoundary(), pi,
                 startDate, endDate ) +
             " ") : "") + "and ps = '" + programStage + "')";
+    }
+
+    /**
+     * Get the description for the first arg #{programStageUid.dataElementUid}
+     * and return a value with its data type.
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return a dummy value for the item (of the right type, for type checking)
+     */
+    protected Object getProgramStageElementDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return ( new ProgramItemStageElement() ).getDescription( ctx, visitor );
     }
 
     /**

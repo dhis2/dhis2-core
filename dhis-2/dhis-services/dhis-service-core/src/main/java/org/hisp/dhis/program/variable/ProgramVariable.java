@@ -28,10 +28,8 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.program.ProgramExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -41,25 +39,23 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramVariable
-    implements ScalarFunctionToEvaluate
+    extends ProgramExpressionItem
 {
     @Override
-    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        String variableName = visitor.getI18n().getString( ctx.fun.getText() );
+        String variableName = visitor.getI18n().getString( ctx.it.getText() );
 
         visitor.getItemDescriptions().put( ctx.getText(), variableName );
 
-        return evaluateProgramVariable( ctx, visitor );
+        return defaultVariableValue();
     }
 
     /**
-     * Finds the value of program indicator variable.  It can be a dummy value;
+     * Finds the default value of program indicator variable.
      * it's just to check for validity.
      *
-     * @param ctx the expression context
-     * @param visitor the program indicator expression tree visitor
      * @return the value of the variable
      */
-    public abstract Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor );
+    public abstract Object defaultVariableValue();
 }

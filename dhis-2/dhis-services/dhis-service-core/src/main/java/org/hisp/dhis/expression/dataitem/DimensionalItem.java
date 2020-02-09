@@ -1,4 +1,4 @@
-package org.hisp.dhis.expression.item;
+package org.hisp.dhis.expression.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -32,9 +32,10 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Parsed dimensional item as handled by the expression service.
@@ -42,10 +43,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public abstract class DimensionalItem
-    extends ExpressionServiceItem
+    implements ExpressionItem
 {
     @Override
-    public final Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
+    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         DimensionalItemId itemId = getDimensionalItemId( ctx );
 
@@ -62,7 +63,7 @@ public abstract class DimensionalItem
     }
 
     @Override
-    public final Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )
+    public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         visitor.getItemIds().add( getDimensionalItemId( ctx ) );
 
@@ -70,13 +71,13 @@ public abstract class DimensionalItem
     }
 
     @Override
-    public final Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
+    public final Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override
-    public final Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
+    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Double value = visitor.getItemValueMap().get( getId( ctx ) );
 
@@ -89,15 +90,15 @@ public abstract class DimensionalItem
      * @param ctx the parser item context
      * @return the DimensionalItemId object for this item
      */
-    public abstract DimensionalItemId getDimensionalItemId( ItemContext ctx );
+    public abstract DimensionalItemId getDimensionalItemId( ExprContext ctx );
 
     /**
      * Returns the id for this item.
      * <p/>
-     * For example, uid, or uid1.uid2, etc.
+     * For example, uid, or uid0.uid1, etc.
      *
      * @param ctx the parser item context
      * @return the id for this item
      */
-    public abstract String getId( ItemContext ctx );
+    public abstract String getId( ExprContext ctx );
 }

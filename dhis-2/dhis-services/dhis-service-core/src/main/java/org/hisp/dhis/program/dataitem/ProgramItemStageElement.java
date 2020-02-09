@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.item;
+package org.hisp.dhis.program.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,38 +28,55 @@ package org.hisp.dhis.program.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Program indicator expression item ProgramItemStageElement
+ * Program indicator expression data item ProgramItemStageElement
  *
  * @author Jim Grace
  */
 public class ProgramItemStageElement
-    extends ProgramItem
+    extends ProgramExpressionItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         assumeStageElementSyntax( ctx );
 
         String programStageId = ctx.uid0.getText();
         String dataElementId = ctx.uid1.getText();
 
-        ValueType valueType = visitor.validateStageDataElement( ctx.getText(), programStageId, dataElementId );
+        ProgramStage programStage = visitor.getProgramStageService().getProgramStage( programStageId );
+        DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
 
-        return ValidationUtils.getSubstitutionValue( valueType );
+        if ( programStage == null )
+        {
+            throw new ParserExceptionWithoutContext( "Program stage " + programStageId + " not found" );
+        }
+
+        if ( dataElement == null )
+        {
+            throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
+        }
+
+        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID + dataElement.getDisplayName();
+
+        visitor.getItemDescriptions().put( ctx.getText(), description );
+
+        return ValidationUtils.getSubstitutionValue( dataElement.getValueType() );
     }
 
     @Override
-    public Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         assumeStageElementSyntax( ctx );
 
@@ -78,7 +95,7 @@ public class ProgramItemStageElement
                 throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found during SQL generation." );
             }
 
-            column = replaceNullValues( column, dataElement.getValueType() );
+            column = replaceNullSqlValues( column, dataElement.getValueType() );
         }
 
         return column;

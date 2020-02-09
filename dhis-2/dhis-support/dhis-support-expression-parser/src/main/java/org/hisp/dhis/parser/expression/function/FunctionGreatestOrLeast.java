@@ -29,6 +29,7 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class FunctionGreatestOrLeast
-    implements SimpleScalarFunction
+    implements ExpressionItem
 {
     /**
      * Returns the greatest or least value.

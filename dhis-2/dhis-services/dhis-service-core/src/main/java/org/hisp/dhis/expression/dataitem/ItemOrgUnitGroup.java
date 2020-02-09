@@ -1,4 +1,4 @@
-package org.hisp.dhis.expression.item;
+package org.hisp.dhis.expression.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,42 +28,68 @@ package org.hisp.dhis.expression.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.InternalParserException;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.item.BaseExprItem;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Parsed expression item as handled by the expression service.
- * <p/>
- * When getting item id and org unit group, just return default values
- * (because not every item implements these, only those that need to.)
- * <p/>
- * Throw an exception if getSql is called, because this is not expected
- * for items in the expression service.
+ * Expression item OrganisationUnitGroup
  *
  * @author Jim Grace
  */
-public abstract class ExpressionServiceItem
-    extends BaseExprItem
+public class ItemOrgUnitGroup
+    implements ExpressionItem
 {
     @Override
-    public Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        OrganisationUnitGroup orgUnitGroup = visitor.getOrganisationUnitGroupService().getOrganisationUnitGroup( ctx.uid0.getText() );
+
+        if ( orgUnitGroup == null )
+        {
+            throw new ParserExceptionWithoutContext( "No organization unit group defined for " + ctx.uid0.getText() );
+        }
+
+        visitor.getItemDescriptions().put( ctx.getText(), orgUnitGroup.getDisplayName() );
+
         return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override
-    public Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        visitor.getOrgUnitGroupIds().add( ctx.uid0.getText() );
+
         return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override
-    public final Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new InternalParserException( "getSql called for ExpressionItem" );
+        Integer count = visitor.getOrgUnitCountMap().get( ctx.uid0.getText() );
+
+        if ( count == null ) // Shouldn't happen for a valid expression.
+        {
+            throw new ParserExceptionWithoutContext( "Can't find count for organisation unit " + ctx.uid0.getText() );
+        }
+
+        return count.doubleValue();
+    }
+
+    @Override
+    public Object regenerate( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        Integer count = visitor.getOrgUnitCountMap().get( ctx.uid0.getText() );
+
+        if ( count == null )
+        {
+            return ctx.getText();
+        }
+
+        return count.toString();
     }
 }

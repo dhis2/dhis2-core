@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.program.dataitem;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,45 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.program.ProgramStage;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DATE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Scalar function (does not aggregate sample values).
- * <p/>
- * ItemIds inside this function are not collected as sampleItemIds.
- * Therefore getItemId has directly the same result as evaluate all paths.
+ * Program indicator expression data item PS_EVENTDATE: programStageUid
  *
  * @author Jim Grace
  */
-public interface ScalarFunction
-    extends ExprFunction
+public class ProgramItemPsEventdate
+    extends ProgramExpressionItem
 {
     @Override
-    default Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return evaluateAllPaths( ctx, visitor );
+        String programStageUid = ctx.uid0.getText();
+
+        ProgramStage programStage = visitor.getProgramStageService().getProgramStage( programStageUid );
+
+        if ( programStage == null )
+        {
+            throw new ParserExceptionWithoutContext( "Program stage " + ctx.uid0.getText() + " not found" );
+        }
+
+        visitor.getItemDescriptions().put( programStageUid, programStage.getDisplayName() );
+
+        return DEFAULT_DATE_VALUE;
+    }
+
+    @Override
+    public final Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+            ctx.uid0.getText(), "executiondate",
+            visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
     }
 }

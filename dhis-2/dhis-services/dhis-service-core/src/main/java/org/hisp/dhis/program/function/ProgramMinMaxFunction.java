@@ -30,78 +30,63 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 
 import java.util.Date;
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castDate;
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * @Author Zubair Asghar.
  */
 public abstract class ProgramMinMaxFunction
-    implements ScalarFunctionToEvaluate
+    extends ProgramExpressionItem
 {
     @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        if ( ctx.compareDate( 0 ) != null )
+        if ( ctx.uid1 == null ) // arg: PS_EVENTDATE:programStageUid
         {
-            validateProgramStage( ctx.compareDate( 0 ), visitor );
-
-            return DEFAULT_DOUBLE_VALUE;
+            return ( new ProgramItemPsEventdate() ).getDescription( ctx, visitor );
         }
-
-        visitor.validateStageDataElement( ctx.getText(),
-            ctx.item( 0 ).uid0.getText(),
-            ctx.item( 0 ).uid1.getText() );
-
-        return DEFAULT_DOUBLE_VALUE;
+        else //  arg: #{programStageUid.dataElementUid}
+        {
+            return ( new ProgramItemStageElement() ).getDescription( ctx, visitor );
+        }
     }
 
     @Override
-    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
 
+        String columnName = "";
+
+        if ( ctx.uid1 == null ) // arg: PS_EVENTDATE:programStageUid
+        {
+            columnName = "\"executiondate\"";
+        }
+        else //  arg: #{programStageUid.dataElementUid}
+        {
+            String dataElement = ctx.uid1.getText();
+            columnName = "\"" + dataElement + "\"";
+        }
+
         if ( AnalyticsType.EVENT == pi.getAnalyticsType() )
         {
-            if ( ctx.compareDate(0 ) != null )
-            {
-                return "executiondate";
-            }
-            else
-            {
-                return ctx.item( 0 ).uid1.getText();
-            }
+            return columnName;
         }
 
         Date startDate = visitor.getReportingStartDate();
         Date endDate = visitor.getReportingEndDate();
 
         String eventTableName = "analytics_event_" + pi.getProgram().getUid();
-        String programStage = "";
-        String columnName = "";
-
-        if ( ctx.compareDate( 0 ) != null ) // When latest or oldest event is needed i.e d2:maxValue(PS_EVENTDATE:<psUid0>)
-        {
-            columnName = "\"executiondate\"";
-            programStage = ctx.compareDate( 0 ).uid0.getText();
-        }
-        else  // When min/max value of data element is needed i.e d2:maxValue(#{uid0.uid1})
-        {
-            programStage = ctx.item( 0 ).uid0.getText();
-            String dataElement = ctx.item( 0 ).uid1.getText();
-            columnName = "\"" + dataElement + "\"";
-        }
+        String programStage = ctx.uid0.getText();
 
         return  "(select " + getAggregationOperator() + "(" + columnName + ") from " + eventTableName +
             " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
@@ -114,25 +99,4 @@ public abstract class ProgramMinMaxFunction
      * @return string sql min/max functions
      */
     public abstract String getAggregationOperator();
-
-    private void validateProgramStage( ExpressionParser.CompareDateContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( ctx.uid0 != null )
-        {
-            String psUid = ctx.uid0.getText();
-
-            ProgramStage ps = visitor.getProgramStageService().getProgramStage( psUid );
-
-            if ( ps == null )
-            {
-                throw new ParserExceptionWithoutContext( "Program stage " + ctx.uid0.getText() + " not found" );
-            }
-
-            visitor.getItemDescriptions().put( psUid, ps.getDisplayName() );
-
-            return;
-        }
-
-        castDate( visitor.visit( ctx.expr() ) );
-    }
 }

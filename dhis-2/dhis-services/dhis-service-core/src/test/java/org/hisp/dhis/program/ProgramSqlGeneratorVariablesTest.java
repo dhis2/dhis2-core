@@ -59,7 +59,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_FUNCTIONS;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -338,7 +337,7 @@ public class ProgramSqlGeneratorVariablesTest
         Token token = mock( Token.class );
 
         when( token.getType() ).thenReturn( programIndicatorVariable );
-        programVariableContext.fun = token;
+        programVariableContext.it = token;
 
         return programVariableContext;
     }
@@ -351,9 +350,7 @@ public class ProgramSqlGeneratorVariablesTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
         this.subject = CommonExpressionVisitor.newBuilder()
-            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withFunctionMethod( FUNCTION_GET_SQL )
             .withItemMethod( ITEM_GET_SQL )
             .withConstantMap( constantService.getConstantMap() )
             .withProgramIndicatorService( programIndicatorService )

@@ -43,8 +43,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunctionMethod;
-import org.hisp.dhis.parser.expression.ExprItemMethod;
+import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
@@ -68,12 +67,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_EVALUATE;
-import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_FUNCTIONS;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -91,6 +87,8 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private DataElement dataElementA;
     private DataElement dataElementB;
+    private DataElement dataElementC;
+    private DataElement dataElementD;
 
     private ProgramStage programStageA;
     private ProgramStage programStageB;
@@ -139,6 +137,16 @@ public class ProgramSqlGeneratorFunctionsTest
         dataElementB = createDataElement( 'B' );
         dataElementB.setDomainType( DataElementDomain.TRACKER );
         dataElementB.setUid( "DataElmentB" );
+
+        dataElementC = createDataElement( 'C' );
+        dataElementC.setDomainType( DataElementDomain.TRACKER );
+        dataElementC.setUid( "DataElmentC" );
+        dataElementC.setValueType( ValueType.DATE );
+
+        dataElementD = createDataElement( 'D' );
+        dataElementD.setDomainType( DataElementDomain.TRACKER );
+        dataElementD.setUid( "DataElmentD" );
+        dataElementD.setValueType( ValueType.DATE );
 
         attributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         attributeA.setUid( "Attribute0A" );
@@ -296,13 +304,13 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testDaysBetween()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
-        String sql = test( "d2:daysBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
-        assertThat( sql, is( "(cast(\"DataElmentB\" as date) - cast(\"DataElmentA\" as date))" ) );
+        String sql = test( "d2:daysBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})" );
+        assertThat( sql, is( "(cast(\"DataElmentD\" as date) - cast(\"DataElmentC\" as date))" ) );
     }
 
     @Test
@@ -328,26 +336,26 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testMinutesBetween()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
-        String sql = test( "d2:minutesBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
-        assertThat( sql, is( "(extract(epoch from (cast(\"DataElmentB\" as timestamp) - cast(\"DataElmentA\" as timestamp))) / 60)" ) );
+        String sql = test( "d2:minutesBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})" );
+        assertThat( sql, is( "(extract(epoch from (cast(\"DataElmentD\" as timestamp) - cast(\"DataElmentC\" as timestamp))) / 60)" ) );
     }
 
     @Test
     public void testMonthsBetween()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
-        String sql = test( "d2:monthsBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
-        assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date)))) * 12 +" +
-           "date_part('month',age(cast(\"DataElmentB\" as date), cast(\"DataElmentA\"as date))))" ) );
+        String sql = test( "d2:monthsBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})" );
+        assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date)))) * 12 + " +
+           "date_part('month',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date))))" ) );
     }
 
     @Test
@@ -384,13 +392,13 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testWeeksBetween()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
-        String sql = test( "d2:weeksBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
-        assertThat( sql, is( "((cast(\"DataElmentB\" as date) - cast(\"DataElmentA\" as date))/7)" ) );
+        String sql = test( "d2:weeksBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})" );
+        assertThat( sql, is( "((cast(\"DataElmentD\" as date) - cast(\"DataElmentC\" as date))/7)" ) );
     }
 
     @Test
@@ -555,13 +563,13 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private String test( String expression )
     {
-        test( expression, new DefaultLiteral(), FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
+        test( expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS );
 
-        return castString( test( expression, new SqlLiteral(), FUNCTION_GET_SQL, ITEM_GET_SQL ) );
+        return castString( test( expression, new SqlLiteral(), ITEM_GET_SQL ) );
     }
 
     private Object test( String expression, AntlrExprLiteral exprLiteral,
-        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+        ExpressionItemMethod itemMethod )
     {
         Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "a" );
@@ -569,9 +577,7 @@ public class ProgramSqlGeneratorFunctionsTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
         CommonExpressionVisitor visitor = CommonExpressionVisitor.newBuilder()
-            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
             .withConstantMap( constantService.getConstantMap() )
             .withProgramIndicatorService( programIndicatorService )

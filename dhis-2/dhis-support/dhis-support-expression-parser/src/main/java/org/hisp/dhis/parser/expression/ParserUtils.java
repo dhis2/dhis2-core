@@ -30,7 +30,8 @@ package org.hisp.dhis.parser.expression;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.hisp.dhis.antlr.AntlrExprFunction;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
 import org.hisp.dhis.parser.expression.function.FunctionFirstNonNull;
 import org.hisp.dhis.parser.expression.function.FunctionGreatest;
 import org.hisp.dhis.parser.expression.function.FunctionIf;
@@ -43,7 +44,6 @@ import org.hisp.dhis.period.PeriodType;
 
 import java.util.List;
 
-import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
@@ -55,9 +55,7 @@ public class ParserUtils
 {
     public final static double DOUBLE_VALUE_IF_NULL = 0.0;
 
-    public final static boolean BOOLEAN_VALUE_IF_NULL = false;
-
-    public final static ImmutableMap<Integer, ExprFunction> COMMON_EXPRESSION_FUNCTIONS = ImmutableMap.<Integer, ExprFunction>builder()
+    public final static ImmutableMap<Integer, ExpressionItem> COMMON_EXPRESSION_ITEMS = ImmutableMap.<Integer, ExpressionItem>builder()
 
         // Non-comparison operators
 
@@ -93,27 +91,23 @@ public class ParserUtils
         .put( IS_NULL, new FunctionIsNull() )
         .put( LEAST, new FunctionLeast() )
 
+        // Data items
+
+        .put( C_BRACE, new ItemConstant() )
+
         .build();
 
-    public final static ExprFunctionMethod FUNCTION_GET_IDS = ExprFunction::getItemId;
+    public final static ExpressionItemMethod ITEM_GET_DESCRIPTIONS = ExpressionItem::getDescription;
 
-    public final static ExprFunctionMethod FUNCTION_EVALUATE = AntlrExprFunction::evaluate;
+    public final static ExpressionItemMethod ITEM_GET_IDS = ExpressionItem::getItemId;
 
-    public final static ExprFunctionMethod FUNCTION_EVALUATE_ALL_PATHS = ExprFunction::evaluateAllPaths;
+    public final static ExpressionItemMethod ITEM_GET_ORG_UNIT_GROUPS = ExpressionItem::getOrgUnitGroup;
 
-    public final static ExprFunctionMethod FUNCTION_GET_SQL = ExprFunction::getSql;
+    public final static ExpressionItemMethod ITEM_EVALUATE = ExpressionItem::evaluate;
 
-    public final static ExprItemMethod ITEM_GET_DESCRIPTIONS = ExprItem::getDescription;
+    public final static ExpressionItemMethod ITEM_GET_SQL = ExpressionItem::getSql;
 
-    public final static ExprItemMethod ITEM_GET_IDS = ExprItem::getItemId;
-
-    public final static ExprItemMethod ITEM_GET_ORG_UNIT_GROUPS = ExprItem::getOrgUnitGroup;
-
-    public final static ExprItemMethod ITEM_EVALUATE = ExprItem::evaluate;
-
-    public final static ExprItemMethod ITEM_GET_SQL = ExprItem::getSql;
-
-    public final static ExprItemMethod ITEM_REGENERATE = ExprItem::regenerate;
+    public final static ExpressionItemMethod ITEM_REGENERATE = ExpressionItem::regenerate;
 
     /**
      * Used for syntax checking when we don't have a list of actual
@@ -123,29 +117,16 @@ public class ParserUtils
         Lists.newArrayList( PeriodType.getPeriodFromIsoString( "20010101" ) );
 
     /**
-     * Does an item of the form #{...} have the syntax of a
-     * data element operand (as opposed to a data element)?
-     *
-     * @param ctx the item context
-     * @return true if data element operand syntax
-     */
-    public static boolean isDataElementOperandSyntax( ItemContext ctx )
-    {
-        return anyNotNull( ctx.uid1, ctx.uid2 );
-    }
-
-    /**
      * Assume that an item of the form #{...} has a syntax that could be used
      * in a program indicator expression for #{programStageUid.dataElementUid}
      *
      * @param ctx the item context
      */
-    public static void assumeStageElementSyntax( ItemContext ctx )
+    public static void assumeStageElementSyntax( ExprContext ctx )
     {
         if ( ctx.uid1 == null || ctx.uid2 != null || ctx.wild2 != null )
         {
-            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
-                "Invalid Program Stage / DataElement syntax: " + ctx.getText() );
+            throw new ParserExceptionWithoutContext( "Invalid Program Stage / DataElement syntax: " + ctx.getText() );
         }
     }
 
@@ -155,12 +136,11 @@ public class ParserUtils
      *
      * @param ctx the item context
      */
-    public static void assumeExpressionProgramAttribute( ItemContext ctx )
+    public static void assumeExpressionProgramAttribute( ExprContext ctx )
     {
         if ( ctx.uid1 == null )
         {
-            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
-                "Program attribute must have two UIDs: " + ctx.getText() );
+            throw new ParserExceptionWithoutContext( "Program attribute must have two UIDs: " + ctx.getText() );
         }
     }
 
@@ -170,12 +150,11 @@ public class ParserUtils
      *
      * @param ctx the item context
      */
-    public static void assumeProgramExpressionProgramAttribute( ItemContext ctx )
+    public static void assumeProgramExpressionProgramAttribute( ExprContext ctx )
     {
         if ( ctx.uid1 != null )
         {
-            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
-                "Program attribute must have one UID: " + ctx.getText() );
+            throw new ParserExceptionWithoutContext( "Program attribute must have one UID: " + ctx.getText() );
         }
     }
 }

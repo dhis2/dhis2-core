@@ -30,6 +30,7 @@ package org.hisp.dhis.parser.expression.function;
 
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.period.Period;
 
 import java.util.ArrayList;
@@ -47,14 +48,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class VectorFunction
-    implements ScalarFunctionToEvaluate
+    implements ExpressionItem
 {
-    @Override
-    public final Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return evaluate( ctx, visitor );
-    }
-
     @Override
     public Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {

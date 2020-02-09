@@ -29,8 +29,7 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.ScalarFunctionToEvaluate;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.program.ProgramExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -40,12 +39,12 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class D2HasValue
-    implements ScalarFunctionToEvaluate
+    extends ProgramExpressionItem
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.visit( ctx.item( 0 ) );
+        visitor.visit( ctx.expr( 0 ) );
 
         return true;
     }
@@ -53,6 +52,6 @@ public class D2HasValue
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return "(" + visitor.visitAllowingNulls( ctx.item( 0 ) ) + " is not null)";
+        return "(" + visitor.visitAllowingNulls( ctx.expr( 0 ) ) + " is not null)";
     }
 }
