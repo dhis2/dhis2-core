@@ -43,6 +43,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSCompressionException;
@@ -113,6 +114,9 @@ public class SimpleEventSMSListenerTest
     private CategoryService categoryService;
 
     @Mock
+    private ProgramStageService programStageService;
+
+    @Mock
     private ProgramStageInstanceService programStageInstanceService;
 
     @Mock
@@ -153,7 +157,7 @@ public class SimpleEventSMSListenerTest
     {
         subject = new SimpleEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, programInstanceService, identifiableObjectManager );
+            programStageService, programStageInstanceService, programInstanceService, identifiableObjectManager );
 
         setUpInstances();
 

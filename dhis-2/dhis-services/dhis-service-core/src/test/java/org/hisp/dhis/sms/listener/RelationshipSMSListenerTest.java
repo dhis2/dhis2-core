@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -106,6 +107,9 @@ public class RelationshipSMSListenerTest
     private CategoryService categoryService;
 
     @Mock
+    private ProgramStageService programStageService;
+
+    @Mock
     private ProgramStageInstanceService programStageInstanceService;
 
     @Mock
@@ -147,8 +151,8 @@ public class RelationshipSMSListenerTest
     {
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
-            programInstanceService, identifiableObjectManager );
+            programStageService, programStageInstanceService, relationshipService, relationshipTypeService,
+            trackedEntityInstanceService, programInstanceService, identifiableObjectManager );
 
         setUpInstances();
 

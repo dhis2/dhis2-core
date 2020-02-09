@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
@@ -55,6 +56,7 @@ import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
+import org.hisp.dhis.smscompression.models.SMSEvent;
 import org.hisp.dhis.smscompression.models.SMSMetadata;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
@@ -106,6 +108,8 @@ public abstract class CompressionSMSListener
 
     protected final DataElementService dataElementService;
 
+    protected final ProgramStageService programStageService;
+
     protected final ProgramStageInstanceService programStageInstanceService;
 
     protected final IdentifiableObjectManager identifiableObjectManager;
@@ -114,8 +118,8 @@ public abstract class CompressionSMSListener
         UserService userService, TrackedEntityTypeService trackedEntityTypeService,
         TrackedEntityAttributeService trackedEntityAttributeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        IdentifiableObjectManager identifiableObjectManager )
+        DataElementService dataElementService, ProgramStageService programStageService,
+        ProgramStageInstanceService programStageInstanceService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender );
 
@@ -126,6 +130,8 @@ public abstract class CompressionSMSListener
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
         checkNotNull( dataElementService );
+        checkNotNull( programStageService );
+        checkNotNull( programStageInstanceService );
 
         this.userService = userService;
         this.trackedEntityTypeService = trackedEntityTypeService;
@@ -134,6 +140,7 @@ public abstract class CompressionSMSListener
         this.organisationUnitService = organisationUnitService;
         this.categoryService = categoryService;
         this.dataElementService = dataElementService;
+        this.programStageService = programStageService;
         this.programStageInstanceService = programStageInstanceService;
         this.identifiableObjectManager = identifiableObjectManager;
     }
@@ -247,6 +254,30 @@ public abstract class CompressionSMSListener
     {
         return identifiableObjectManager.getUidsCreatedBefore( klass, lastSyncDate ).stream()
             .map( o -> new SMSMetadata.ID( o ) ).collect( Collectors.toList() );
+    }
+
+    protected List<Object> processEvent( SMSEvent event, OrganisationUnit orgUnit, User user,
+        ProgramInstance programInstance, IncomingSms sms )
+    {
+        UID stageid = event.getProgramStage();
+        UID aocid = event.getAttributeOptionCombo();
+
+        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
+        if ( programStage == null )
+        {
+            throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
+        }
+
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        if ( aoc == null )
+        {
+            throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
+        }
+
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
+            user, event.getValues(), event.getEventStatus() );
+
+        return errorUIDs;
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,

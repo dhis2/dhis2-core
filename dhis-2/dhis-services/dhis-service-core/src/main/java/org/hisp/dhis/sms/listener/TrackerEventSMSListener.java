@@ -78,8 +78,8 @@ public class TrackerEventSMSListener
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
-            identifiableObjectManager );
+            programService, organisationUnitService, categoryService, dataElementService, programStageService,
+            programStageInstanceService, identifiableObjectManager );
 
         this.programStageService = programStageService;
         this.programInstanceService = programInstanceService;

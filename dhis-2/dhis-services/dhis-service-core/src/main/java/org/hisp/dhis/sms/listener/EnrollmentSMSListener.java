@@ -41,12 +41,14 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSAttributeValue;
+import org.hisp.dhis.smscompression.models.SMSEvent;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -56,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -77,20 +80,23 @@ public class EnrollmentSMSListener
 
     private final ProgramInstanceService programInstanceService;
 
+    private final UserService userService;
+
     public EnrollmentSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        TrackedEntityInstanceService teiService, ProgramInstanceService programInstanceService,
-        IdentifiableObjectManager identifiableObjectManager )
+        DataElementService dataElementService, ProgramStageService programStageService,
+        ProgramStageInstanceService programStageInstanceService, TrackedEntityInstanceService teiService,
+        ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
-            identifiableObjectManager );
+            programService, organisationUnitService, categoryService, dataElementService, programStageService,
+            programStageInstanceService, identifiableObjectManager );
 
         this.teiService = teiService;
         this.programInstanceService = programInstanceService;
+        this.userService = userService;
     }
 
     @Override
@@ -168,6 +174,13 @@ public class EnrollmentSMSListener
         {
             // TODO: Is this correct handling?
             return SMSResponse.WARN_AVEMPTY;
+        }
+
+        // We now check if the enrollment has events to process
+        User user = userService.getUser( subm.getUserID().uid );
+        for ( SMSEvent event : subm.getEvents() )
+        {
+            processEvent( event, orgUnit, user, enrollment, sms );
         }
 
         return SMSResponse.SUCCESS;

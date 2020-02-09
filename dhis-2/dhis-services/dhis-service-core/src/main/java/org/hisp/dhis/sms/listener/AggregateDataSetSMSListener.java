@@ -49,6 +49,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
@@ -87,13 +88,14 @@ public class AggregateDataSetSMSListener
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        DataSetService dataSetService, DataValueService dataValueService,
-        CompleteDataSetRegistrationService registrationService, IdentifiableObjectManager identifiableObjectManager )
+        DataElementService dataElementService, ProgramStageService programStageService,
+        ProgramStageInstanceService programStageInstanceService, DataSetService dataSetService,
+        DataValueService dataValueService, CompleteDataSetRegistrationService registrationService,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
-            identifiableObjectManager );
+            programService, organisationUnitService, categoryService, dataElementService, programStageService,
+            programStageInstanceService, identifiableObjectManager );
 
         this.dataSetService = dataSetService;
         this.dataValueService = dataValueService;

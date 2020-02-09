@@ -177,9 +177,9 @@
       <artifactId>velocity</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.dhis2</groupId>
+      <groupId>com.github.JasperTimm</groupId>
       <artifactId>sms-compression</artifactId>
-      <version>0.1.7</version>
+      <version>event-test-1</version>
     </dependency>
 
     <!-- Security -->
