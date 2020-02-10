@@ -29,8 +29,6 @@ package org.hisp.dhis.common.hibernate;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
@@ -63,6 +61,8 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
@@ -91,7 +91,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
 {
-    private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
+    private static final Logger log = LoggerFactory.getLogger( HibernateIdentifiableObjectStore.class );
 
     protected CurrentUserService currentUserService;
 

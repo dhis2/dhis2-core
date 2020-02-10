@@ -28,8 +28,7 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -54,11 +53,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component
 public class TrackerSynchronization extends DataSynchronization
 {
-    private static final Log log = LogFactory.getLog( TrackerSynchronization.class );
-
     private final TrackedEntityInstanceService teiService;
     private final SystemSettingManager systemSettingManager;
     private final RestTemplate restTemplate;

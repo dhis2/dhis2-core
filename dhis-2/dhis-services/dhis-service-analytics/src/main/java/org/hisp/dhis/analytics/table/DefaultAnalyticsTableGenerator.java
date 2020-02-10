@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -59,12 +60,11 @@ import org.springframework.stereotype.Service;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.analytics.AnalyticsTableGenerator" )
 public class DefaultAnalyticsTableGenerator
     implements AnalyticsTableGenerator
 {
-    private static final Log log = LogFactory.getLog( DefaultAnalyticsTableGenerator.class );
-
     private List<AnalyticsTableService> analyticsTableServices;
 
     private ResourceTableService resourceTableService;

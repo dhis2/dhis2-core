@@ -28,10 +28,11 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -60,22 +61,14 @@ import java.util.Map;
  *
  * @author vanyas
  */
+@Slf4j
 public class HttpUtils
 {
-    private static final Log log = LogFactory.getLog( HttpUtils.class );
-
     private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
     /**
      * Method to make an HTTP GET call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param authorize
-     * @param username
-     * @param password
-     * @param headers
-     * @param timeout
-     * @return
      * @throws Exception </pre>
      */
     public static DhisHttpResponse httpGET( String requestURL, boolean authorize, String username, String password,
@@ -88,7 +81,7 @@ public class HttpUtils
             .setSocketTimeout( timeout )
             .build();
 
-        DhisHttpResponse dhisHttpResponse = null;
+        DhisHttpResponse dhisHttpResponse;
 
         try
         {
@@ -138,14 +131,6 @@ public class HttpUtils
     /**
      * Method to make an HTTP POST call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param body
-     * @param authorize
-     * @param username
-     * @param password
-     * @param contentType
-     * @param timeout
-     * @return </pre>
      */
     public static DhisHttpResponse httpPOST( String requestURL, Object body, boolean authorize, String username, String password,
         String contentType, int timeout ) throws Exception
@@ -158,7 +143,7 @@ public class HttpUtils
             .build();
 
         List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-        DhisHttpResponse dhisHttpResponse = null;
+        DhisHttpResponse dhisHttpResponse;
 
         try
         {
@@ -217,13 +202,6 @@ public class HttpUtils
     /**
      * Method to make an HTTP DELETE call to a given URL with/without authentication.
      *
-     * @param requestURL
-     * @param authorize
-     * @param username
-     * @param password
-     * @param headers
-     * @param timeout
-     * @return
      * @throws Exception </pre>
      */
     public static DhisHttpResponse httpDELETE( String requestURL, boolean authorize, String username, String password,
@@ -279,18 +257,14 @@ public class HttpUtils
     /**
      * Processes the HttpResponse to create a DHisHttpResponse object.
      *
-     * @param requestURL
-     * @param username
-     * @param response
-     * @return
      * @throws IOException </pre>
      */
     private static DhisHttpResponse processResponse( String requestURL, String username, HttpResponse response )
         throws Exception
     {
-        DhisHttpResponse dhisHttpResponse = null;
-        String output = null;
-        int statusCode = 0;
+        DhisHttpResponse dhisHttpResponse;
+        String output;
+        int statusCode;
         if ( response != null )
         {
             HttpEntity responseEntity = response.getEntity();

@@ -36,8 +36,8 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -64,6 +64,7 @@ import com.google.common.collect.Lists;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "logInitializer" )
 public class Log4JLogConfigInitializer
     implements LogConfigInitializer
@@ -78,8 +79,6 @@ public class Log4JLogConfigInitializer
     private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
     private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
     private static final String LOG4J_CONF_PROP = "log4j.configuration";
-
-    private static final Log log = LogFactory.getLog( Log4JLogConfigInitializer.class );
 
     private final LocationManager locationManager;
 

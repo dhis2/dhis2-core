@@ -30,8 +30,6 @@ package org.hisp.dhis.user;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -45,6 +43,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -69,7 +69,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultUserService
     implements UserService
 {
-    private static final Log log = LogFactory.getLog( DefaultUserService.class );
+    private static final Logger log = LoggerFactory.getLogger( DefaultUserService.class );
 
     private static final int EXPIRY_THRESHOLD = 14;
 

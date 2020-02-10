@@ -52,8 +52,6 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -66,6 +64,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,7 +81,7 @@ import com.google.common.collect.Sets;
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
-    private static final Log log = LogFactory.getLog( DefaultValidationNotificationService.class );
+    private static final Logger log = LoggerFactory.getLogger( DefaultValidationNotificationService.class );
 
     private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr ->
         Objects.nonNull( vr ) &&

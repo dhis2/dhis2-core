@@ -36,11 +36,11 @@ import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.SerializationUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,8 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string extends BaseJavaMigration
 {
-    private static final Log log = LogFactory
-        .getLog( V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string.class );
 
     private static final String CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL = "SELECT data_type FROM information_schema.columns " +
         "WHERE table_name = 'systemsetting' AND column_name = 'value';";
