@@ -49,9 +49,9 @@ import java.sql.Statement;
 /**
  * @Author Zubair Asghar.
  */
-public class V2_32_31__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
+public class V2_32_32__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_32_31__Convert_push_analysis_job_parameters_into_list_of_string.class );
+    private static final Log log = LogFactory.getLog( V2_32_32__Convert_push_analysis_job_parameters_into_list_of_string.class );
 
     @Override
     public void migrate( Context context ) throws Exception
@@ -60,8 +60,7 @@ public class V2_32_31__Convert_push_analysis_job_parameters_into_list_of_string 
 
         try ( Statement statement = context.getConnection().createStatement() )
         {
-            try ( ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
-                JobType.PUSH_ANALYSIS.name() + "';" ) )
+            try ( ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from jobconfiguration where jobtype is not null AND encode(jobtype,'hex') ='aced00057e7200206f72672e686973702e646869732e7363686564756c696e672e4a6f625479706500000000000000001200007872000e6a6176612e6c616e672e456e756d0000000000000000120000787074000d505553485f414e414c59534953';" ) )
             {
                 if ( resultSet.next() )
                 {
@@ -89,7 +88,7 @@ public class V2_32_31__Convert_push_analysis_job_parameters_into_list_of_string 
                 pg.setValue( writer.writeValueAsString( jobParameters ) );
 
                 ps.setObject( 1, pg );
-                ps.setString( 2, JobType.PUSH_ANALYSIS.name() );
+                ps.setString( 2, "aced00057e7200206f72672e686973702e646869732e7363686564756c696e672e4a6f625479706500000000000000001200007872000e6a6176612e6c616e672e456e756d0000000000000000120000787074000d505553485f414e414c59534953" );
 
                 ps.execute();
 
