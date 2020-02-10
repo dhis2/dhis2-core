@@ -361,7 +361,7 @@ public class DefaultPushAnalysisService
         // Preventing NPE when DB data is not consistent
         if ( item.getType() != null )
         {
-            switch ( item.getType() ) // Dashboard item id: 1497651
+            switch ( item.getType() )
             {
                 case MAP:
                     return generateMapHtml( item.getMap(), user );
