@@ -97,7 +97,7 @@ pipeline {
                             script {
 
                                 dir("dhis-2/dhis-e2e-test") {
-                                    sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME}${DOCKER_VARIANT} docker-compose -p "${COMPOSE_PARAMETER}${DOCKER_VARIANT}" up -d"
+                                    sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME}${DOCKER_VARIANT} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} up -d"
                                 }
                             }
                          }
