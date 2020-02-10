@@ -37,8 +37,15 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +55,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -67,6 +75,9 @@ public class TrackedEntityAttributeTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private TrackerPreheatService trackerPreheatService;
 
     @Autowired
     private TrackerBundleService trackerBundleService;
@@ -99,8 +110,24 @@ public class TrackedEntityAttributeTest
     }
 
     @Test
-    public void testTrackedEntityAttributeValue()
+    public void testTrackedAttributePreheater() throws IOException
     {
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
 
+        TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
+
+        assertNotNull( preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, "cNEZTkdAvmg" ) );
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityType.class, "KrYIdvLxkMb" ) );
+
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
     }
 }
