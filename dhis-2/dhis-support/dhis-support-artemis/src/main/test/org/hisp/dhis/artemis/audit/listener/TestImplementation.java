@@ -28,11 +28,27 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.audit.AuditAttribute;
+
 /**
  * @author Luciano Fiandesio
  */
 public class TestImplementation
-    implements
-    TestInterface
+    implements TestInterface
 {
+    @AuditAttribute
+    private String testAttribute1;
+
+    private String testAttribute2;
+
+    public String getTestAttribute1()
+    {
+        return testAttribute1;
+    }
+
+    @AuditAttribute
+    public String getTestAttribute2()
+    {
+        return testAttribute2;
+    }
 }

@@ -52,6 +52,8 @@ import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
@@ -59,6 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.join;
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 /**
  * @author Lars Helge Overland
@@ -286,6 +289,8 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = TRUE, value = PropertyType.CONSTANT )
+    @PropertyRange( min = 1, max = 40)
     public ChartType getType()
     {
         return type;

@@ -28,6 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.audit.AuditAttribute;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -36,4 +38,11 @@ public class NestedTestImplementation
     extends
     TestImplementation
 {
+    private String testAttribute3;
+
+    @AuditAttribute
+    public String getTestAttribute3()
+    {
+        return testAttribute3;
+    }
 }

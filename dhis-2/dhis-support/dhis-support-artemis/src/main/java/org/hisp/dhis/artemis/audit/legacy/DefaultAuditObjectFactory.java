@@ -28,12 +28,25 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself
@@ -46,9 +59,28 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
     private final RenderService renderService;
 
-    public DefaultAuditObjectFactory( RenderService renderService )
+    private final CacheProvider cacheProvider;
+
+    /**
+     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes
+     * Key is class name. Value is Map of {@link AuditAttribute} Fields and its getter Method
+     */
+    private Cache<Map<Field, Method>> cachedAuditAttributeFields;
+
+    public DefaultAuditObjectFactory( RenderService renderService, CacheProvider cacheProvider )
     {
         this.renderService = renderService;
+        this.cacheProvider = cacheProvider;
+    }
+
+    @PostConstruct
+    public void initCache()
+    {
+        cachedAuditAttributeFields = cacheProvider.newCacheBuilder( Field.class, Method.class )
+            .forRegion( "auditAttributeFields" )
+            .withInitialCapacity( 500 )
+            .withMaximumSize( 1000 )
+            .build();
     }
 
     @Override
@@ -65,6 +97,36 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         }
 
         return null;
+    }
+
+    @Override
+    public AuditAttributes collectAuditAttributes( Object auditObject )
+    {
+        AuditAttributes auditAttributes = new AuditAttributes();
+
+        getAuditAttributeFields( auditObject.getClass() ).entrySet().forEach( entry -> {
+
+            Object attributeObject = ReflectionUtils.invokeMethod( auditObject, entry.getValue() );
+
+            if ( !ReflectionUtils.isCollection( attributeObject ) )
+            {
+                if ( attributeObject instanceof IdentifiableObject )
+                {
+                    auditAttributes.put( entry.getKey().getName(), ( ( IdentifiableObject ) attributeObject).getUid() );
+                }
+                else
+                {
+                    auditAttributes.put( entry.getKey().getName(), attributeObject );
+                }
+            }
+        } );
+
+        return auditAttributes;
+    }
+
+    private Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
+    {
+        return cachedAuditAttributeFields.get( auditClass.getName(), a -> AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class ) ).orElse( new HashMap<>() );
     }
 
     private Object handleTracker( AuditType auditType, Object object, String user )
