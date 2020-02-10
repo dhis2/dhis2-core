@@ -125,6 +125,15 @@ pipeline {
                                     }
                                 }
                             }
+                            always {
+                                script {
+                                    dir("dhis-2/dhis-e2e-test") {
+                                        sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} down --rmi all -v --remove-orphans"
+                                        sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} down --rmi all -v --remove-orphans"
+                                     }
+                                }
+
+                            }
                         }
                     }
                 }
@@ -136,11 +145,6 @@ pipeline {
 
     post {
         always {
-            dir("dhis-2/dhis-e2e-test") {
-                sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} down --rmi all -v --remove-orphans"
-                sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down --rmi all -v --remove-orphans"
-            }
-
             sh "docker image rm -f ${DOCKER_BASE_IMAGE_FULL_NAME}"
             sh "./docker/cleanup-images.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
 
