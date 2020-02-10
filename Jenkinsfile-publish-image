@@ -46,7 +46,7 @@ pipeline {
 
             steps {
                 script {
-                    DOCKER_IMAGE_TAG = "pipeline-test"
+                    DOCKER_IMAGE_TAG = "${env.BRANCH_NAME}"
                 }
             }
         }
@@ -139,6 +139,14 @@ pipeline {
 
         }
 
+        stage('Publish image') {
+            steps {
+                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                    sh "docker push ${DOCKER_BASE_IMAGE_FULL_NAME}"
+                    sh "./docker/publish-containers.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
+                }
+            }
+        }
     }
 
     post {
@@ -147,6 +155,14 @@ pipeline {
             sh "./docker/cleanup-images.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
 
             sh "docker image prune --force --filter label=identifier=${DOCKER_IMAGE_TAG}"
+        }
+
+        failure {
+            slackSend(
+                color: '#ff0000',
+                message: 'Publishing of docker images for branch ' + env.BRANCH_NAME + ' failed. Visit ' + env.BUILD_URL + ' for more information',
+                channel: 'jenkins'
+            )
         }
 
     }
