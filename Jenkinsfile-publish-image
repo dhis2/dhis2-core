@@ -46,7 +46,7 @@ pipeline {
 
             steps {
                 script {
-                    DOCKER_IMAGE_TAG = "${env.BRANCH_NAME}"
+                    DOCKER_IMAGE_TAG = "pipeline-test"
                 }
             }
         }
