@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -47,14 +48,19 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.Objects;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 /**
  * @author Lars Helge Overland
@@ -387,21 +393,35 @@ public class ReportTable
     }
 
     @Override
-    public void populateAnalyticalProperties()
-    {
-        for ( String column : columnDimensions )
+    public void populateAnalyticalProperties() {
+        if ( isNotEmpty( columnDimensions ) )
         {
-            columns.add( getDimensionalObject( column ) );
+            for ( String column : columnDimensions )
+            {
+                if ( isNotBlank( column ) )
+                {
+                    columns.add( getDimensionalObject( column ) );
+                }
+            }
         }
 
-        for ( String row : rowDimensions )
+        if ( isNotEmpty( rowDimensions ) )
         {
-            rows.add( getDimensionalObject( row ) );
+            for ( String row : rowDimensions )
+            {
+                if ( isNotBlank( row ) )
+                {
+                    rows.add( getDimensionalObject( row ) );
+                }
+            }
         }
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            if ( isNotBlank( filter ) )
+            {
+                filters.add( getDimensionalObject( filter ) );
+            }
         }
     }
 
@@ -1109,5 +1129,22 @@ public class ReportTable
     {
         this.gridTitle = gridTitle;
         return this;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Temporary overriding getters so the Schema properties are read as mandatory.
+    // Required in order to enable backward support during the migration to the
+    // new Visualization API
+    // -------------------------------------------------------------------------
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @Description( "The name of this Object. Required and unique." )
+    @PropertyRange( min = 1, max = 230)
+    @Property( required = TRUE )
+    public String getName()
+    {
+        return super.getName();
     }
 }

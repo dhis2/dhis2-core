@@ -44,15 +44,15 @@ import java.util.Date;
 public class Notification
 {
     private String uid; // FIXME expose as "id" externally in next API version as "uid" is internal
-    
+
     private NotificationLevel level;
-    
+
     private JobType category;
-    
+
     private Date time;
-    
+
     private String message;
-    
+
     private boolean completed;
 
     // -------------------------------------------------------------------------
@@ -64,7 +64,7 @@ public class Notification
         this.uid = CodeGenerator.generateUid();
     }
 
-    public Notification(NotificationLevel level, JobType category, Date time, String message, boolean completed )
+    public Notification( NotificationLevel level, JobType category, Date time, String message, boolean completed )
     {
         this.uid = CodeGenerator.generateUid();
         this.level = level;
@@ -88,6 +88,13 @@ public class Notification
     public void setLevel( NotificationLevel level )
     {
         this.level = level;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getId() // expose as ID also to be future proof, we should not expose UID fields
+    {
+        return uid;
     }
 
     @JsonProperty
@@ -167,19 +174,19 @@ public class Notification
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( getClass() != object.getClass() )
         {
             return false;
         }
-        
+
         final Notification other = (Notification) object;
-        
+
         return uid.equals( other.uid );
     }
 

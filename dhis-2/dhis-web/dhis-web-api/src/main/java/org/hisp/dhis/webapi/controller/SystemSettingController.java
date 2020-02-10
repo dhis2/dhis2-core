@@ -182,11 +182,33 @@ public class SystemSettingController
     }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
-    public @ResponseBody String getSystemSettingOrTranslation( @PathVariable( "key" ) String key,
+    public @ResponseBody String getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
+        return getSystemSettingOrTranslation( key, locale );
+    }
+
+    @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_HTML } )
+    public @ResponseBody void getSystemSettingOrTranslationAsJson( @PathVariable( "key" ) String key,
+        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response ) throws IOException
+    {
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+
+        String systemSettingValue = getSystemSettingOrTranslation( key, locale );
+
+        Map<String, String> systemSettingsForJsonGeneration = new HashMap<>();
+        systemSettingsForJsonGeneration.put( key, systemSettingValue );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        renderService.toJson( response.getOutputStream(), systemSettingsForJsonGeneration );
+    }
+
+    private String getSystemSettingOrTranslation( String key, String locale )
+    {
         Optional<SettingKey> settingKey = SettingKey.getByName( key );
         if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
         {

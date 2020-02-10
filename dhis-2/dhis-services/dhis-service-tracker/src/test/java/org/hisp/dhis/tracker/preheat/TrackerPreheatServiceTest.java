@@ -191,10 +191,11 @@ public class TrackerPreheatServiceTest
         assertTrue( trackerBundle.getEnrollments().isEmpty() );
         assertFalse( trackerBundle.getEvents().isEmpty() );
 
-        TrackerPreheatParams trackerPreheatParams = new TrackerPreheatParams()
-            .setTrackedEntities( trackerBundle.getTrackedEntities() )
-            .setEnrollments( trackerBundle.getEnrollments() )
-            .setEvents( trackerBundle.getEvents() );
+        TrackerPreheatParams trackerPreheatParams = TrackerPreheatParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
 
         trackerPreheatService.validate( trackerPreheatParams );
 

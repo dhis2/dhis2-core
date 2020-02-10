@@ -27,6 +27,8 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
@@ -42,10 +44,8 @@ import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobPa
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Component( "eventProgramsDataSyncJob" )
 public class EventProgramsDataSynchronizationJob extends AbstractJob
@@ -54,7 +54,7 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
 
     private final Notifier notifier;
     private final MessageService messageService;
-    private final EventSynchronization eventSync;
+    private final DataSynchronization eventSync;
     private final SynchronizationManager synchronizationManager;
 
     public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
@@ -83,7 +83,7 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
         {
             EventProgramsDataSynchronizationJobParameters jobParameters =
                 (EventProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
-            eventSync.syncEventProgramData( jobParameters.getPageSize() );
+            eventSync.synchronizeData( jobParameters.getPageSize() );
             notifier.notify( jobConfiguration, "Event programs data sync successful" );
         }
         catch ( Exception e )

@@ -28,10 +28,72 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface VisualizationStore
     extends
     IdentifiableObjectStore<Visualization>
 {
+
+    /**
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Chart.
+     *
+     * @param first the first result row
+     * @param max the maximum result row
+     * @return a list of Visualization containing only Charts
+     */
+    List<Visualization> getCharts( int first, int max );
+
+    /**
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Pivot Table.
+     *
+     * @param first the first result row
+     * @param max the maximum result row
+     * @return a list of Visualization containing only Pivot Table
+     */
+    List<Visualization> getPivotTables( int first, int max );
+
+    /**
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Chart comparing the name using the given "chars".
+     *
+     * @param words the characters describing the Visualization's name
+     * @param first the first result row
+     * @param max the maximum result row
+     * @return a list of Visualization containing only Charts
+     */
+    List<Visualization> getChartsLikeName( Set<String> words, int first, int max );
+
+    /**
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Pivot Table comparing the name using the given "chars".
+     *
+     * @param words the characters describing the Visualization's name
+     * @param first the first result row
+     * @param max the maximum result row
+     * @return a list of Visualization containing only Pivot Table
+     */
+    List<Visualization> getPivotTablesLikeName( Set<String> words, int first, int max );
+
+    /**
+     * Counts the number of Pivot Table created since the given date.
+     *
+     * @param startingAt
+     * @return the total of Pivot Table found.
+     */
+    int countPivotTablesCreated ( Date startingAt );
+
+    /**
+     * Counts the number of Chart created since the given date.
+     *
+     * @param startingAt
+     * @return the total of Chart found.
+     */
+    int countChartsCreated ( Date startingAt );
 }

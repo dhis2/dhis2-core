@@ -160,8 +160,9 @@ public class TrackedEntityTrackerConverterService
 
     private TrackerPreheat preheat( List<TrackedEntity> trackedEntities )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setTrackedEntities( trackedEntities );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .trackedEntities( trackedEntities )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }
