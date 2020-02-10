@@ -39,8 +39,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -77,13 +76,12 @@ import com.google.common.collect.Lists;
  */
 @Controller
 @RequestMapping( AppController.RESOURCE_PATH )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
     public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
-
-    private static final Log log = LogFactory.getLog( AppController.class );
 
     @Autowired
     private AppManager appManager;

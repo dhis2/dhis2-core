@@ -29,9 +29,8 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -82,11 +81,10 @@ import java.util.Set;
  */
 @Controller
 @RequestMapping( value = "/account" )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AccountController
 {
-    private static final Log log = LogFactory.getLog( AccountController.class );
-
     private static final int MAX_LENGTH = 80;
     private static final int MAX_PHONE_NO_LENGTH = 30;
 
@@ -161,7 +159,7 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.conflict( "Account recovery is not enabled" ) );
         }
 
-        if ( password == null || !ValidationUtils.passwordIsValid( password ) )
+        if ( !ValidationUtils.passwordIsValid( password ) )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified or invalid" ) );
         }

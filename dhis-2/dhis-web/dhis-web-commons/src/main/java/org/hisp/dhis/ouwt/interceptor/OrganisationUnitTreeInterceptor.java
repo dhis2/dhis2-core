@@ -85,8 +85,8 @@ public class OrganisationUnitTreeInterceptor
     public void executeBeforeResult( ActionInvocation actionInvocation, String result )
         throws Exception
     {
-        Collection<OrganisationUnit> selectedUnits = null;
-        List<OrganisationUnit> rootUnits = null;
+        Collection<OrganisationUnit> selectedUnits;
+        List<OrganisationUnit> rootUnits;
 
         selectedUnits = selectionManager.getSelectedOrganisationUnits();   
         

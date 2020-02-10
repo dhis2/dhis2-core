@@ -88,6 +88,11 @@
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>fop</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Test -->
 
