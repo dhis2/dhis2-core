@@ -119,7 +119,7 @@ public class Log4JLogConfigInitializer
 
         configureLoggers( DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2" ) );
 
-        configureLoggers( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.synch" ) );
+        configureLoggers( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.sync" ) );
 
         configureLoggers( METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.metadata" ) );
 
@@ -149,7 +149,7 @@ public class Log4JLogConfigInitializer
 
         for ( String loggerName : loggers )
         {
-            LoggerConfig loggerConfig = LoggerConfig.createLogger( false, Level.INFO, loggerName, "true", refs, null,
+            LoggerConfig loggerConfig = LoggerConfig.createLogger( true, Level.INFO, loggerName, "true", refs, null,
                 getLogConfiguration(), null );
 
             loggerConfig.addAppender(appender, null, null);
