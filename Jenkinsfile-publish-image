@@ -88,7 +88,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_VARIANT'
-                        values '-8.5-jdk8-openjdk-slim', '-tomcat-9.0.27-jdk11-openjdk-slim'
+                        values '-tomcat-8.5-jdk8-openjdk-slim', '-tomcat-9.0.27-jdk11-openjdk-slim'
                     }
                 }
                 stages {
