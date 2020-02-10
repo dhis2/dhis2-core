@@ -95,7 +95,6 @@ pipeline {
                     stage('Start instance') {
                          steps {
                             script {
-
                                 dir("dhis-2/dhis-e2e-test") {
                                     sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME}${DOCKER_VARIANT} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} up -d"
                                 }
@@ -105,7 +104,6 @@ pipeline {
                     stage('Run api tests') {
                         steps {
                             script {
-                                echo 'Running tests for variant: ${DOCKER_VARIANT}'
                                 TESTS_IMAGE_FULL_NAME = "core-api-tests:${DOCKER_IMAGE_TAG}${DOCKER_VARIANT}"
 
                                 dir("dhis-2/dhis-e2e-test") {
@@ -121,7 +119,7 @@ pipeline {
                                 script {
                                     dir("dhis-2/dhis-e2e-test") {
                                         sh "docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} logs web > ${DOCKER_VARIANT}logs.txt"
-                                        archiveArtifacts artifacts: '${DOCKER_VARIANT}logs.txt'
+                                        archiveArtifacts artifacts: "${DOCKER_VARIANT}logs.txt"
                                     }
                                 }
                             }
