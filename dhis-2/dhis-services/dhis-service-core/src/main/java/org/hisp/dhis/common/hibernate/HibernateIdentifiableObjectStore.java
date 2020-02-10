@@ -28,6 +28,7 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
@@ -88,11 +89,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author bobj
  */
+@Slf4j
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
 {
-    private static final Logger log = LoggerFactory.getLogger( HibernateIdentifiableObjectStore.class );
-
     protected CurrentUserService currentUserService;
 
     private DeletedObjectService deletedObjectService;

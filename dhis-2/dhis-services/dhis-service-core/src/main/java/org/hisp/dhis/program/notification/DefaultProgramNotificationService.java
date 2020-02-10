@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -61,8 +62,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,12 +73,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.program.notification.ProgramNotificationService" )
 public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
-    private static final Logger log = LoggerFactory.getLogger( DefaultProgramNotificationService.class );
-
     private static final Predicate<ProgramNotificationInstance> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
         Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getProgramNotificationTemplate().getNotificationTrigger() ) &&
             pnt.getScheduledAt() != null && DateUtils.isToday( pnt.getScheduledAt() );

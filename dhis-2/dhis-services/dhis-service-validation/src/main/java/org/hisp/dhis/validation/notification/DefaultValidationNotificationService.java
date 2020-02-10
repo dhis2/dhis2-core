@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -64,8 +65,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,13 +75,12 @@ import com.google.common.collect.Sets;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.validation.notification.ValidationNotificationService" )
 @Transactional
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
-    private static final Logger log = LoggerFactory.getLogger( DefaultValidationNotificationService.class );
-
     private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr ->
         Objects.nonNull( vr ) &&
             Objects.nonNull( vr.getValidationRule() ) &&
@@ -315,10 +313,7 @@ public class DefaultValidationNotificationService
         Map<User, SortedSet<MessagePair>> singleUserToMessagePairs = getMessagePairsPerSingleUser( messagePairs );
 
         // Group each distinct SortedSet of MessagePair for the distinct Set of recipient Users
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = groupRecipientsForMessagePairs(
-            singleUserToMessagePairs );
-
-        return groupedByRecipients;
+        return groupRecipientsForMessagePairs( singleUserToMessagePairs );
     }
 
     private static Map<User, SortedSet<MessagePair>> getMessagePairsPerSingleUser( SortedSet<MessagePair> messagePairs )

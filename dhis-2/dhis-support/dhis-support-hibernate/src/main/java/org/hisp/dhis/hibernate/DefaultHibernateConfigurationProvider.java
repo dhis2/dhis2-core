@@ -306,21 +306,21 @@ public class DefaultHibernateConfigurationProvider
 
         // Split using comma delimiter along with possible spaces in between
 
-        String clusterMemberList[] = clusterMembers.trim().split("\\s*,\\s*");
+        String[] clusterMemberList = clusterMembers.trim().split("\\s*,\\s*");
 
         List<String> cacheNames = getCacheNames();
 
         final StringBuilder rmiUrlBuilder = new StringBuilder();
 
-        for ( String s : clusterMemberList )
+        for ( String member : clusterMemberList )
         {
-            final String clusterUrl = "//" + s + "/";
+            final String clusterUrl = "//" + member + "/";
 
             cacheNames.forEach( name -> rmiUrlBuilder.append( clusterUrl ).append( name ).append( "|" ) );
 
-            clusterHostnames.add(s);
+            clusterHostnames.add( member );
 
-            log.info("Found cluster instance: " + s);
+            log.info("Found cluster instance: " + member);
         }
 
         String rmiUrls = StringUtils.removeEnd( rmiUrlBuilder.toString(), "|" );
