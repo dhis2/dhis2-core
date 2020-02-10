@@ -35,12 +35,7 @@ import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
-import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
-import org.hisp.dhis.dxf2.sync.EventSynchronization;
-import org.hisp.dhis.dxf2.sync.SynchronizationResult;
-import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
-import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
+import org.hisp.dhis.dxf2.sync.*;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
@@ -61,6 +56,7 @@ import java.util.List;
  * Performs the tasks before metadata sync happens
  *
  * @author aamerm
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Component( "metadataSyncPreProcessor" )
 @Scope("prototype")
@@ -71,9 +67,9 @@ public class MetadataSyncPreProcessor
     private final SystemSettingManager systemSettingManager;
     private final MetadataVersionService metadataVersionService;
     private final MetadataVersionDelegate metadataVersionDelegate;
-    private final TrackerSynchronization trackerSync;
-    private final EventSynchronization eventSync;
-    private final DataValueSynchronization dataValueSync;
+    private final DataSynchronization trackerSync;
+    private final DataSynchronization eventSync;
+    private final DataSynchronization dataValueSync;
     private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
 
     public MetadataSyncPreProcessor(
@@ -110,7 +106,7 @@ public class MetadataSyncPreProcessor
     public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
         SynchronizationResult dataValuesSynchronizationResult =
-            dataValueSync.syncDataValuesData( jobParameters.getDataValuesPageSize() );
+            dataValueSync.synchronizeData( jobParameters.getDataValuesPageSize() );
 
         if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -122,7 +118,7 @@ public class MetadataSyncPreProcessor
     public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
         SynchronizationResult trackerSynchronizationResult =
-            trackerSync.syncTrackerProgramData( jobParameters.getTrackerProgramPageSize() );
+            trackerSync.synchronizeData( jobParameters.getTrackerProgramPageSize() );
 
         if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -134,7 +130,7 @@ public class MetadataSyncPreProcessor
     public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
         SynchronizationResult eventsSynchronizationResult =
-            eventSync.syncEventProgramData( jobParameters.getEventProgramPageSize() );
+            eventSync.synchronizeData( jobParameters.getEventProgramPageSize() );
 
         if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
