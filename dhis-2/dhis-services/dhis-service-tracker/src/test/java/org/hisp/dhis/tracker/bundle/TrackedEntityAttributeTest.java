@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.bundle;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -38,11 +37,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,12 +48,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerBundleServiceTest
+public class TrackedEntityAttributeTest
     extends IntegrationTestBase
 {
     @Autowired
@@ -75,9 +71,6 @@ public class TrackerBundleServiceTest
     @Autowired
     private TrackerBundleService trackerBundleService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
-
     @Override
     protected void setUpTest() throws IOException
     {
@@ -85,7 +78,7 @@ public class TrackerBundleServiceTest
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "tracker/te_with_tea_metadata.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -106,33 +99,8 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testVerifyMetadata()
+    public void testTrackedEntityAttributeValue()
     {
-        Program program = manager.get( Program.class, "E8o1E9tAppy" );
-        OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
 
-        assertNotNull( program );
-        assertNotNull( organisationUnit );
-        assertFalse( program.getProgramStages().isEmpty() );
-    }
-
-    @Test
-    public void testTrackedEntityInstanceImport() throws IOException
-    {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
-
-        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
-
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .build() );
-
-        assertEquals( 1, trackerBundles.size() );
-
-        trackerBundleService.commit( trackerBundles.get( 0 ) );
-
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 13, trackedEntityInstances.size() );
     }
 }
