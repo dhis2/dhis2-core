@@ -1,4 +1,5 @@
-package org.hisp.dhis.cache;
+package org.hisp.dhis.tracker.job;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,48 +28,41 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
+import org.springframework.util.Assert;
 
 /**
- * Provides cache builder to build instances.
- *
- * @author Ameen Mohamed
- *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "cacheProvider" )
-public class DefaultCacheProvider implements CacheProvider
+@Component
+@Scope( BeanDefinition.SCOPE_PROTOTYPE )
+public class TrackerImportThread
+    extends SecurityContextRunnable
 {
-    private DhisConfigurationProvider configurationProvider;
+    private final TrackerImportService trackerImportService;
+    private TrackerImportParams trackerImportParams;
 
-    private RedisTemplate<String, ?> redisTemplate;
-
-    @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
+    public TrackerImportThread( TrackerImportService trackerImportService )
     {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
+        this.trackerImportService = trackerImportService;
     }
 
     @Override
-    public  <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
+    public void call()
     {
-        return new ExtendedCacheBuilder<Map<K,V>>( redisTemplate, configurationProvider );
+        Assert.notNull( trackerImportParams, "Field trackerImportParams can not be null. " );
+
+        trackerImportParams.setUser( null ); // set user to null to force reload in importer
+        trackerImportService.importTracker( trackerImportParams ); // discard returned report, it has been put on the jobs endpoint
     }
 
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    public void setTrackerImportParams( TrackerImportParams trackerImportParams )
     {
-        this.configurationProvider = configurationProvider;
+        this.trackerImportParams = trackerImportParams;
     }
-
-    @Autowired( required = false )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
-
 }

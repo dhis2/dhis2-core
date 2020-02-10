@@ -79,9 +79,9 @@ public class PushAnalysisController
     private SchedulingManager schedulingManager;
 
     @RequestMapping( value = "/{uid}/render", method = RequestMethod.GET )
-    public void renderPushAnalytics(
-        @PathVariable() String uid,
-        HttpServletResponse response ) throws WebMessageException, IOException
+    public void renderPushAnalytics( @PathVariable( ) String uid, HttpServletResponse response )
+        throws WebMessageException,
+        IOException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
 

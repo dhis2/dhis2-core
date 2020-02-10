@@ -29,59 +29,26 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "coordinate", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Coordinate
 {
+    @JsonProperty
     private Double latitude;
 
+    @JsonProperty
     private Double longitude;
-
-    public Coordinate()
-    {
-    }
-
-    public Coordinate( Double longitude, Double latitude )
-    {
-        this.longitude = longitude;
-        this.latitude = latitude;
-    }
-
-    public boolean hasLatitudeLongitude()
-    {
-        return latitude != null && longitude != null;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public Double getLongitude()
-    {
-        return longitude;
-    }
-
-    public void setLongitude( Double longitude )
-    {
-        this.longitude = longitude;
-    }
 
     public boolean isValid()
     {
@@ -91,14 +58,5 @@ public class Coordinate
     public String getCoordinateString()
     {
         return "[" + longitude + "," + latitude + "]";
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Coordinate{" +
-            "latitude=" + latitude +
-            ", longitude=" + longitude +
-            '}';
     }
 }

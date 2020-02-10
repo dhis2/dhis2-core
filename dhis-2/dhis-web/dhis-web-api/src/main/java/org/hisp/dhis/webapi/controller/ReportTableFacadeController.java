@@ -360,7 +360,9 @@ public abstract class ReportTableFacadeController {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        Visualization object = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        ReportTable reportTable = renderService.fromJson( request.getInputStream(), ReportTable.class );
+
+        Visualization object = convertToVisualization( reportTable );
 
         TypeReport typeReport = new TypeReport( Translation.class );
 
@@ -373,17 +375,17 @@ public abstract class ReportTableFacadeController {
 
             if ( translation.getLocale() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( ReportTable.class ) );
             }
 
             if ( translation.getProperty() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" ).setErrorKlass( ReportTable.class ) );
             }
 
             if ( translation.getValue() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( ReportTable.class ) );
             }
 
             typeReport.addObjectReport( objectReport );
@@ -1154,14 +1156,15 @@ public abstract class ReportTableFacadeController {
                 {
                     final ReportTable reportTable = new ReportTable();
                     BeanUtils.copyProperties( visualization, reportTable );
-
+                    
                     // Copy report params
-                    if ( visualization.hasReportingParams() ) 
+                    if ( visualization.hasReportingParams() )
                     {
                         final ReportingParams reportingParams = visualization.getReportingParams();
                         final ReportParams reportParams = new ReportParams();
 
-                        reportParams.setParamGrandParentOrganisationUnit( reportingParams.isGrandParentOrganisationUnit() );
+                        reportParams
+                            .setParamGrandParentOrganisationUnit( reportingParams.isGrandParentOrganisationUnit() );
                         reportParams.setParamOrganisationUnit( reportingParams.isOrganisationUnit() );
                         reportParams.setParamParentOrganisationUnit( reportingParams.isParentOrganisationUnit() );
                         reportParams.setParamReportingMonth( reportingParams.isReportingPeriod() );
