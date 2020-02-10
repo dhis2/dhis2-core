@@ -376,8 +376,8 @@ public class DefaultPushAnalysisService
                 // TODO: Add support for EventReports
                 return "";
             default:
-                log(jobId, NotificationLevel.WARN,
-                    "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null);
+                log( jobId, NotificationLevel.WARN,
+                    "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
                 return "";
         }
     }
