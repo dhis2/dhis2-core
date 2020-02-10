@@ -309,8 +309,13 @@ public class DefaultPushAnalysisService
 
         for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
         {
-            itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
-            itemLink.put( item.getUid(), getItemLink( item ));
+            // Preventing NPE when DB data is not consistent.
+            // In normal conditions all DashboardItem has a type.
+            if ( item.getType() != null )
+            {
+                itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
+                itemLink.put( item.getUid(), getItemLink( item ) );
+            }
         }
 
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
@@ -358,30 +363,22 @@ public class DefaultPushAnalysisService
     private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
         throws IOException
     {
-        // Preventing NPE when DB data is not consistent
-        if ( item.getType() != null )
+        switch ( item.getType() )
         {
-            switch ( item.getType() )
-            {
-                case MAP:
-                    return generateMapHtml( item.getMap(), user );
-                case VISUALIZATION:
-                    return generateVisualizationHtml( item.getVisualization(), user );
-                case EVENT_CHART:
-                    // TODO: Add support for EventCharts
-                    return "";
-                case EVENT_REPORT:
-                    // TODO: Add support for EventReports
-                    return "";
-                default:
-                    log(jobId, NotificationLevel.WARN,
-                        "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null);
-                    return "";
-            }
-        }
-        else
-        {
-            return EMPTY;
+            case MAP:
+                return generateMapHtml( item.getMap(), user );
+            case VISUALIZATION:
+                return generateVisualizationHtml( item.getVisualization(), user );
+            case EVENT_CHART:
+                // TODO: Add support for EventCharts
+                return "";
+            case EVENT_REPORT:
+                // TODO: Add support for EventReports
+                return "";
+            default:
+                log(jobId, NotificationLevel.WARN,
+                    "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null);
+                return "";
         }
     }
 
@@ -389,23 +386,20 @@ public class DefaultPushAnalysisService
     {
         String result = dhisConfigurationProvider.getServerBaseUrl();
 
-        // Preventing NPE when DB data is not consistent
-        if ( item.getType() != null )
+        switch ( item.getType() )
         {
-            switch ( item.getType() )
-            {
-                case MAP:
-                    result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
-                    break;
-                case CHART:
-                case REPORT_TABLE:
-                case VISUALIZATION:
-                    result += getVisualizationLink( item.getVisualization() );
-                    break;
-                default:
-                    break;
-            }
+            case MAP:
+                result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
+                break;
+            case CHART:
+            case REPORT_TABLE:
+            case VISUALIZATION:
+                result += getVisualizationLink( item.getVisualization() );
+                break;
+            default:
+                break;
         }
+
         return result;
     }
 
