@@ -98,6 +98,7 @@ public class TrackerController
         params.setTrackedEntities( trackerBundle.getTrackedEntities() );
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
+        params.setRelationships( trackerBundle.getRelationships() );
         params.setUser( currentUser );
 
         String jobId = trackerMessageManager.addJob( params );

@@ -1618,7 +1618,7 @@ public abstract class DhisConvenienceTest
         teiConstraintB.setTrackedEntityType( trackedEntityType );
         teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
-        relationshipType.setName( "Person to person" );
+        relationshipType.setName( "Person_to_person_" + uniqueCharacter );
         relationshipType.setBidirectional( isBidirectional );
         relationshipType.setFromConstraint( teiConstraintA );
         relationshipType.setToConstraint( teiConstraintB );

@@ -40,6 +40,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -63,16 +64,27 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-public class DefaultTrackerBundleService implements TrackerBundleService
+public class DefaultTrackerBundleService
+    implements TrackerBundleService
 {
     private final TrackerPreheatService trackerPreheatService;
+
     private final TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService;
+
     private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
+
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
+
+    private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipTrackerConverterService;
+
     private final CurrentUserService currentUserService;
+
     private final IdentifiableObjectManager manager;
+
     private final SessionFactory sessionFactory;
+
     private final HibernateCacheManager cacheManager;
+
     private final DbmsManager dbmsManager;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
@@ -88,6 +100,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
+        TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipTrackerConverterService,
         CurrentUserService currentUserService,
         IdentifiableObjectManager manager,
         SessionFactory sessionFactory,
@@ -98,6 +111,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
         this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
         this.eventTrackerConverterService = eventTrackerConverterService;
+        this.relationshipTrackerConverterService = relationshipTrackerConverterService;
         this.currentUserService = currentUserService;
         this.manager = manager;
         this.sessionFactory = sessionFactory;
@@ -137,10 +151,12 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         TrackerTypeReport trackedEntityReport = handleTrackedEntities( session, bundle );
         TrackerTypeReport enrollmentReport = handleEnrollments( session, bundle );
         TrackerTypeReport eventReport = handleEvents( session, bundle );
+        TrackerTypeReport relationshipReport = handleRelationships( session, bundle );
 
         bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY, trackedEntityReport );
         bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT, enrollmentReport );
         bundleReport.getTypeReportMap().put( TrackerType.EVENT, eventReport );
+        bundleReport.getTypeReportMap().put( TrackerType.RELATIONSHIP, relationshipReport );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
@@ -274,6 +290,49 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
         session.flush();
         events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
+
+        return typeReport;
+    }
+
+    private TrackerTypeReport handleRelationships( Session session, TrackerBundle bundle )
+    {
+        List<Relationship> relationships = bundle.getRelationships();
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
+
+        relationships.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Relationship.class, o, bundle ) ) );
+        session.flush();
+
+        for ( int idx = 0; idx < relationships.size(); idx++ )
+        {
+            Relationship relationship = relationships.get( idx );
+            org.hisp.dhis.relationship.Relationship toRelationship = relationshipTrackerConverterService
+                .from( bundle.getPreheat(), relationship );
+
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT,
+                toRelationship.getUid(), idx );
+            typeReport.addObjectReport( objectReport );
+
+            Date now = new Date();
+
+            if ( bundle.getImportStrategy().isCreate() )
+            {
+                toRelationship.setCreated( now );
+            }
+
+            toRelationship.setLastUpdated( now );
+            toRelationship.setLastUpdatedBy( bundle.getUser() );
+
+            session.persist( toRelationship );
+            typeReport.getStats().incCreated();
+
+            if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
+        }
+
+        session.flush();
+        relationships.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Relationship.class, o, bundle ) ) );
 
         return typeReport;
     }
