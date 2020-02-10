@@ -80,7 +80,7 @@ public abstract class AbstractHibernateListener
     }
 
     /**
-     * AuditScope.TRACKER will be handled by {@link TrackedEntityAuditEventListener}
+     * AuditScope.TRACKER will be handled by {@link AuditEventListener}
      * @param auditable
      * @param type
      * @return

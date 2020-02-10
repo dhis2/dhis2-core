@@ -30,7 +30,10 @@ package org.hisp.dhis.trackedentity;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.*;
@@ -54,6 +57,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -1005,10 +1009,15 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
-            publisher.publishEvent( TrackedEntityAuditPayload.builder()
-                .trackedEntityInstance( trackedEntityInstance )
-                .accessedBy( user )
-                .auditType( auditType ).build() );
+            publisher.publishEvent( Audit.builder()
+                .auditType( auditType )
+                .auditScope( AuditScope.TRACKER )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( user )
+                .klass( TrackedEntityInstance.class.getName() )
+                .uid( trackedEntityInstance.getUid() )
+                .auditableEntity( new AuditableEntity( trackedEntityInstance ) )
+                .build() );
         }
     }
 }

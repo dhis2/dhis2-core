@@ -44,31 +44,23 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Audit listener for TrackedEntityInstance that can't be handled by {@link AbstractHibernateListener}
- * Use TransactionalEventListener so audit will only be sent if Transaction commit successfully
+ * Audit listener for Objects that can't be handled by {@link AbstractHibernateListener}
+ * Use {@link TransactionalEventListener} so audit will only be sent if Transaction commit successfully
  */
 @Component
 @Conditional( value = AuditEnabledCondition.class )
-public class TrackedEntityAuditEventListener
+public class AuditEventListener
 {
     private final AuditManager auditManager;
 
-    public TrackedEntityAuditEventListener( AuditManager auditManager )
+    public AuditEventListener( AuditManager auditManager )
     {
         this.auditManager = auditManager;
     }
 
     @TransactionalEventListener
-    public void processAuditEvent( TrackedEntityAuditPayload audit )
+    public void processAuditEvent( Audit audit )
     {
-        auditManager.send( Audit.builder()
-            .auditType( audit.getAuditType() )
-            .auditScope( AuditScope.TRACKER )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( audit.getAccessedBy() )
-            .klass( TrackedEntityInstance.class.getName() )
-            .uid( audit.getTrackedEntityInstance().getUid() )
-            .auditableEntity( new AuditableEntity( audit.getTrackedEntityInstance() ) )
-            .build() );
+        auditManager.send( audit );
     }
 }

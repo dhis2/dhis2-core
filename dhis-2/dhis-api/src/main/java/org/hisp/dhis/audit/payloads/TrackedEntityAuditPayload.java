@@ -45,9 +45,6 @@ public class TrackedEntityAuditPayload implements AuditPayload
     private final TrackedEntityInstance trackedEntityInstance;
 
     @JsonProperty
-    private final AuditType auditType;
-
-    @JsonProperty
     private final String accessedBy;
 
     @Override

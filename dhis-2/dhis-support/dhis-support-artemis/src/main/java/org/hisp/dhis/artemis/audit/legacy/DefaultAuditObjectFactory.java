@@ -31,8 +31,10 @@ package org.hisp.dhis.artemis.audit.legacy;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
+import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
 
 /**
@@ -74,8 +76,8 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
             return null;
         }
 
-        return renderService.toJsonAsString( MetadataAuditPayload.builder()
-            .identifiableObject( (IdentifiableObject) object )
+        return renderService.toJsonAsString( TrackedEntityAuditPayload.builder()
+            .trackedEntityInstance( ( TrackedEntityInstance ) object )
             .build() );
     }
 
