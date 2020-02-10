@@ -52,6 +52,7 @@ import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
@@ -288,7 +289,8 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = TRUE )
+    @Property( required = TRUE, value = PropertyType.CONSTANT )
+    @PropertyRange( min = 1, max = 40)
     public ChartType getType()
     {
         return type;
