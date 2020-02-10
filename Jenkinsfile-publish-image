@@ -103,13 +103,15 @@ pipeline {
                          }
                     }
                     stage('Run api tests') {
-                        script {
-                            echo 'Running tests for variant: ${DOCKER_VARIANT}'
-                            TESTS_IMAGE_FULL_NAME = "core-api-tests:${DOCKER_IMAGE_TAG}${DOCKER_VARIANT}"
+                        steps {
+                            script {
+                                echo 'Running tests for variant: ${DOCKER_VARIANT}'
+                                TESTS_IMAGE_FULL_NAME = "core-api-tests:${DOCKER_IMAGE_TAG}${DOCKER_VARIANT}"
 
-                            dir("dhis-2/dhis-e2e-test") {
-                                sh "docker build -t ${TESTS_IMAGE_FULL_NAME} ."
-                                sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} -f docker-compose.e2e.yml up --exit-code-from e2e-test"
+                                dir("dhis-2/dhis-e2e-test") {
+                                    sh "docker build -t ${TESTS_IMAGE_FULL_NAME} ."
+                                    sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} -f docker-compose.e2e.yml up --exit-code-from e2e-test"
+                                }
                             }
                         }
 
