@@ -29,6 +29,8 @@ package org.hisp.dhis.pushanalysis;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -356,22 +358,30 @@ public class DefaultPushAnalysisService
     private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
         throws IOException
     {
-        switch ( item.getType() )
+        // Preventing NPE when DB data is not consistent
+        if ( item.getType() != null )
         {
-            case MAP:
-                return generateMapHtml( item.getMap(), user );
-            case VISUALIZATION:
-                return generateVisualizationHtml( item.getVisualization(), user );
-            case EVENT_CHART:
-                // TODO: Add support for EventCharts
-                return "";
-            case EVENT_REPORT:
-                // TODO: Add support for EventReports
-                return "";
-            default:
-                log( jobId, NotificationLevel.WARN,
-                    "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
-                return "";
+            switch ( item.getType() ) // Dashboard item id: 1497651
+            {
+                case MAP:
+                    return generateMapHtml( item.getMap(), user );
+                case VISUALIZATION:
+                    return generateVisualizationHtml( item.getVisualization(), user );
+                case EVENT_CHART:
+                    // TODO: Add support for EventCharts
+                    return "";
+                case EVENT_REPORT:
+                    // TODO: Add support for EventReports
+                    return "";
+                default:
+                    log(jobId, NotificationLevel.WARN,
+                        "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null);
+                    return "";
+            }
+        }
+        else
+        {
+            return EMPTY;
         }
     }
 
@@ -379,19 +389,40 @@ public class DefaultPushAnalysisService
     {
         String result = dhisConfigurationProvider.getServerBaseUrl();
 
-        switch ( item.getType() )
+        // Preventing NPE when DB data is not consistent
+        if ( item.getType() != null )
         {
-            case MAP:
-                result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
-                break;
-            case VISUALIZATION:
-                result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
-                break;
-            default:
-                break;
+            switch ( item.getType() )
+            {
+                case MAP:
+                    result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
+                    break;
+                case CHART:
+                case REPORT_TABLE:
+                case VISUALIZATION:
+                    result += getVisualizationLink( item.getVisualization() );
+                    break;
+                default:
+                    break;
+            }
         }
-
         return result;
+    }
+
+    private String getVisualizationLink( final Visualization visualization )
+    {
+        if ( visualization != null )
+        {
+            if ( visualization.getType() == PIVOT_TABLE )
+            {
+                return "/dhis-web-pivot/index.html?id=" + visualization.getUid();
+            }
+            else
+            {
+                return "/dhis-web-data-visualizer/index.html?id=" + visualization.getUid();
+            }
+        }
+        return EMPTY;
     }
 
     /**
