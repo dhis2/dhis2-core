@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -41,7 +42,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -55,8 +59,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,6 +84,12 @@ public class TrackedEntityAttributeTest
 
     @Autowired
     private TrackerBundleService trackerBundleService;
+
+    @Autowired
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     protected void setUpTest() throws IOException
@@ -129,5 +138,32 @@ public class TrackedEntityAttributeTest
         assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
         assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
         assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
+    }
+
+    @Test
+    public void testTrackedAttributeValueBundleImporter() throws IOException
+    {
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build() );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
+        assertEquals( 1, trackedEntityInstances.size() );
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
+            trackedEntityInstance );
+
+        assertEquals( 3, attributeValues.size() );
     }
 }

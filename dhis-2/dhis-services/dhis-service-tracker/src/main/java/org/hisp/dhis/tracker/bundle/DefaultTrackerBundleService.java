@@ -35,6 +35,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -74,6 +77,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private final SessionFactory sessionFactory;
     private final HibernateCacheManager cacheManager;
     private final DbmsManager dbmsManager;
+    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
@@ -85,14 +89,15 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
     public DefaultTrackerBundleService(
         TrackerPreheatService trackerPreheatService,
-        TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService,
+        TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
         CurrentUserService currentUserService,
         IdentifiableObjectManager manager,
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
-        DbmsManager dbmsManager )
+        DbmsManager dbmsManager,
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService )
     {
         this.trackerPreheatService = trackerPreheatService;
         this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
@@ -103,6 +108,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
+        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
     }
 
     @Override
@@ -180,6 +186,12 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             trackedEntityInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( trackedEntityInstance );
+
+            for ( TrackedEntityAttributeValue attributeValue : trackedEntityInstance.getTrackedEntityAttributeValues() )
+            {
+                attributeValue.setEntityInstance( trackedEntityInstance );
+                session.persist( attributeValue );
+            }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
