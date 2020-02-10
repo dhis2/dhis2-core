@@ -93,24 +93,24 @@ pipeline {
                 }
             }
             stages {
-        stage('Start instance') {
-            steps {
-                dir("dhis-2/dhis-e2e-test") {
+                stage('Start instance') {
+                     steps {
+                        dir("dhis-2/dhis-e2e-test") {
                             sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME}${DOCKER_VARIANT} docker-compose -p ${COMPOSE_PARAMETER} up -d"
+                        }
+                     }
                 }
-            }
-        }
-        stage('Run api tests') {
-                script {
+                stage('Run api tests') {
+                    script {
                         echo 'Running tests for variant: ${DOCKER_VARIANT}'
                         TESTS_IMAGE_FULL_NAME = "core-api-tests:${DOCKER_IMAGE_TAG}${DOCKER_VARIANT}"
 
-                    dir("dhis-2/dhis-e2e-test") {
-                        sh "docker build -t ${TESTS_IMAGE_FULL_NAME} ."
-                        sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} -f docker-compose.e2e.yml up --exit-code-from e2e-test"
+                        dir("dhis-2/dhis-e2e-test") {
+                            sh "docker build -t ${TESTS_IMAGE_FULL_NAME} ."
+                            sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} -f docker-compose.e2e.yml up --exit-code-from e2e-test"
+                        }
                     }
                 }
-            }
             }
 
             post {
@@ -125,14 +125,7 @@ pipeline {
             }
         }
 
-        stage('Publish image') {
-            steps {
-                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                    sh "docker push ${DOCKER_BASE_IMAGE_FULL_NAME}"
-                    sh "./docker/publish-containers.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
-                }
-            }
-        }
+     
     }
 
     post {
@@ -148,12 +141,5 @@ pipeline {
             sh "docker image prune --force --filter label=identifier=${DOCKER_IMAGE_TAG}"
         }
 
-        failure {
-            slackSend(
-                color: '#ff0000',
-                message: 'Publishing of docker images for branch ' + env.BRANCH_NAME + ' failed. Visit ' + env.BUILD_URL + ' for more information',
-                channel: 'jenkins'
-            )
-        }
     }
 }
