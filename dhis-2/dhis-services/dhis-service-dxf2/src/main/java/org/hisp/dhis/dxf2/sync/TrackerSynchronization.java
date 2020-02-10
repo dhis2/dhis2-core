@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Component
 public class TrackerSynchronization extends DataSynchronization
@@ -109,7 +109,7 @@ public class TrackerSynchronization extends DataSynchronization
     {
         clock = new Clock( log ).startClock().logTime( "Starting Tracker programs data synchronization job." );
         final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        queryParams = prepareQueryParams( skipChangedBefore );
+        prepareQueryParams( skipChangedBefore );
         objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 
         log.info( "TrackedEntityInstances last changed before " + skipChangedBefore + " will not be synchronized." );
@@ -129,14 +129,12 @@ public class TrackerSynchronization extends DataSynchronization
         }
     }
 
-    private TrackedEntityInstanceQueryParams prepareQueryParams( Date skipChangedBefore )
+    private void prepareQueryParams( Date skipChangedBefore )
     {
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
         queryParams.setSkipChangedBefore( skipChangedBefore );
-
-        return queryParams;
     }
 
     protected void synchronizePage( int page, int pageSize )

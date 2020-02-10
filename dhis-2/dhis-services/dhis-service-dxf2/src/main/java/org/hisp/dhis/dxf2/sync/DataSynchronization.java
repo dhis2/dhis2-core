@@ -42,7 +42,7 @@ public abstract class DataSynchronization
     protected int objectsToSynchronize;
     protected SystemInstance instance;
 
-    abstract public SynchronizationResult synchronizeData( final int pageSize );
+    public abstract SynchronizationResult synchronizeData( final int pageSize );
 
     protected void runSyncWithPaging( int pageSize )
     {
@@ -54,5 +54,5 @@ public abstract class DataSynchronization
         }
     }
 
-    abstract protected void synchronizePage( int page, int pageSize );
+    protected abstract void synchronizePage( int page, int pageSize );
 }
