@@ -96,6 +96,8 @@ public class AuditManager
             audit.getAuditableEntity() : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(),
             audit.getAuditableEntity().getEntity(), audit.getCreatedBy() )) );
 
+        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
+
         if ( config.isUseQueue() )
         {
             auditScheduler.addAuditItem( audit );

@@ -29,9 +29,6 @@ package org.hisp.dhis.scheduling;
  */
 
 import com.google.common.collect.ImmutableMap;
-
-import java.util.Map;
-
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
@@ -42,6 +39,8 @@ import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
+
+import java.util.Map;
 
 /**
  * Enum describing the different jobs in the system.
@@ -57,9 +56,9 @@ public enum JobType
     DATA_INTEGRITY( "dataIntegrityJob", true ),
     RESOURCE_TABLE( "resourceTableJob", true ),
     ANALYTICS_TABLE( "analyticsTableJob", true, SchedulingType.CRON, AnalyticsJobParameters.class, ImmutableMap.of(
-        "skipTableTypes", "/api/analytics/tableTypes"  ) ),
+        "skipTableTypes", "/api/analytics/tableTypes" ) ),
     CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY, ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
-        "skipTableTypes", "/api/analytics/tableTypes"  ) ),
+        "skipTableTypes", "/api/analytics/tableTypes" ) ),
     DATA_SYNC( "dataSyncJob", true ),
     TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, SchedulingType.CRON, TrackerProgramsDataSynchronizationJobParameters.class, null ),
     EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, SchedulingType.CRON, EventProgramsDataSynchronizationJobParameters.class, null ),
@@ -74,11 +73,12 @@ public enum JobType
     MONITORING( "monitoringJob", true, SchedulingType.CRON, MonitoringJobParameters.class, ImmutableMap.of(
         "relativePeriods", "/api/periodTypes/relativePeriodTypes", "validationRuleGroups", "/api/validationRuleGroups" ) ),
     PUSH_ANALYSIS( "pushAnalysisJob", true, SchedulingType.CRON, PushAnalysisJobParameters.class, ImmutableMap.of(
-        "pushAnalysis", "/api/pushAnalysis"  ) ),
+        "pushAnalysis", "/api/pushAnalysis" ) ),
     PREDICTOR( "predictorJob", true, SchedulingType.CRON, PredictorJobParameters.class, ImmutableMap.of(
         "predictors", "/api/predictors", "predictorGroups", "/api/predictorGroups" ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false ),
+    TRACKER_IMPORT_JOB( "trackerImportJob", false ),
 
     // Testing purposes
     MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),

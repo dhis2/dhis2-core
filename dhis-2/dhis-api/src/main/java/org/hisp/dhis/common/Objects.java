@@ -54,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Lars Helge Overland
@@ -81,6 +82,7 @@ public enum Objects
     USER( "user", User.class ),
     USERGROUP( "userGroup", UserGroup.class ),
     REPORTTABLE( "reportTable", ReportTable.class ),
+    VISUALIZATION( "visualization", Visualization.class ),
     REPORT( "report", Report.class ),
     CHART( "chart", Chart.class ),
     MAP( "map", Map.class ),

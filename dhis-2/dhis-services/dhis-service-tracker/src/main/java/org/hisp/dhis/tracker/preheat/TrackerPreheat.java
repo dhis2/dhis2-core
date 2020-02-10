@@ -129,7 +129,7 @@ public class TrackerPreheat
 
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
+        return User.username( user );
     }
 
     public void setUser( User user )
