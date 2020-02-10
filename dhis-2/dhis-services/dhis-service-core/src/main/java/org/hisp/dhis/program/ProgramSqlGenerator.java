@@ -301,8 +301,8 @@ public class ProgramSqlGenerator
                 return "(extract(epoch from (cast(" + dates.getEnd() + " as timestamp) - cast(" + dates.getStart() + " as timestamp))) / 60)";
 
             case D2_MONTHS_BETWEEN:
-                return "((date_part('year',age(cast(" + dates.getEnd() + " as date), cast(" + dates.getStart() + "as date)))) * 12 +" +
-                        "date_part('month',age(cast(" + dates.getEnd() + " as date), cast(" + dates.getStart() + "as date))))";
+                return "((date_part('year',age(cast(" + dates.getEnd() + " as date), cast(" + dates.getStart() + " as date)))) * 12 + " +
+                        "date_part('month',age(cast(" + dates.getEnd() + " as date), cast(" + dates.getStart() + " as date))))";
 
             case D2_OIZP:
                 return "coalesce(case when " + visitAllowingNulls( ctx.expr( 0 ) ) + " >= 0 then 1 else 0 end, 0)";
