@@ -30,6 +30,8 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -71,6 +73,10 @@ public class PostLoadAuditListener
 
         getAuditable( entity, "read" ).ifPresent( auditable ->
         {
+            Session session = postLoadEvent.getPersister().getFactory().openTemporarySession();
+            session.load( entity, postLoadEvent.getId() );
+            try
+            {
                 auditManager.send( Audit.builder()
                     .auditType( getAuditType() )
                     .auditScope( auditable.scope() )
@@ -79,6 +85,11 @@ public class PostLoadAuditListener
                     .object( entity )
                     .auditableEntity( new AuditableEntity( entity ) )
                     .build() );
+            }
+            finally
+            {
+                session.close();
+            }
         });
     }
 }

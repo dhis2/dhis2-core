@@ -670,7 +670,6 @@ public class AuditRepositoryTest extends IntegrationTestBase
         assertEquals( 2, audits.get( 0 ).getAttributes().size() );
         assertEquals( categoryComboUid, audits.get( 0 ).getAttributes().get( "categoryCombo" ) );
         assertEquals( "TEXT", audits.get( 0 ).getAttributes().get( "valueType" ) );
-
     }
 
     @Override

@@ -504,7 +504,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 .incrementIgnored();
         }
 
-        teiService.addTrackedEntityInstance( daoEntityInstance );
+        teiService.addTrackedEntityInstanceWithAudit( daoEntityInstance );
 
         addAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
 
@@ -662,7 +662,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
-        teiService.updateTrackedEntityInstance( daoEntityInstance );
+        teiService.updateTrackedEntityInstanceWithAudit( daoEntityInstance );
 
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();

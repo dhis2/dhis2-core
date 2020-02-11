@@ -30,6 +30,9 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -39,6 +42,8 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -73,6 +78,10 @@ public class PostUpdateAuditListener
 
         getAuditable( entity, "update" ).ifPresent( auditable ->
         {
+            Session session = postUpdateEvent.getPersister().getFactory().openTemporarySession();
+            session.load( entity, postUpdateEvent.getId() );
+            try
+            {
                 auditManager.send( Audit.builder()
                     .auditType( getAuditType() )
                     .auditScope( auditable.scope() )
@@ -81,18 +90,29 @@ public class PostUpdateAuditListener
                     .object( entity )
                     .auditableEntity( new AuditableEntity( entity ) )
                     .build() );
+            }
+            finally
+            {
+                session.close();
+            }
         } );
-    }
-
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return false;
     }
 
     @Override
     public void onPostUpdateCommitFailed( PostUpdateEvent event )
     {
         log.warn( "PostUpdateCommitFailed " + event.getEntity() );
+    }
+
+    @Override
+    public boolean requiresPostCommitHanding( EntityPersister persister )
+    {
+        return false;
+    }
+
+    @Override
+    public boolean requiresPostCommitHandling( EntityPersister persister )
+    {
+        return false;
     }
 }

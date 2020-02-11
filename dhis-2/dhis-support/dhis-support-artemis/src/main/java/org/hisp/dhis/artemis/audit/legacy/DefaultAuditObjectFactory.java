@@ -33,9 +33,9 @@ import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
+import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -48,7 +48,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself

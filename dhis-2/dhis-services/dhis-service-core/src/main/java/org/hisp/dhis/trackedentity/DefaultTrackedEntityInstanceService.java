@@ -868,6 +868,17 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
+    public long addTrackedEntityInstanceWithAudit( TrackedEntityInstance instance )
+    {
+        trackedEntityInstanceStore.save( instance );
+
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.CREATE );
+
+        return instance.getId();
+    }
+
+    @Override
+    @Transactional
     public long addTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.save( instance );
@@ -887,7 +898,7 @@ public class DefaultTrackedEntityInstanceService
             instance.getTrackedEntityAttributeValues().add( pav );
         }
 
-        updateTrackedEntityInstanceNoAudit( instance ); // Update associations
+        updateTrackedEntityInstance( instance ); // Update associations
 
         addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.CREATE );
 
@@ -903,13 +914,15 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstance( TrackedEntityInstance instance )
+    public void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.update( instance );
         addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.UPDATE );
     }
 
-    private void updateTrackedEntityInstanceNoAudit( TrackedEntityInstance instance )
+    @Override
+    @Transactional
+    public void updateTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.update( instance );
     }

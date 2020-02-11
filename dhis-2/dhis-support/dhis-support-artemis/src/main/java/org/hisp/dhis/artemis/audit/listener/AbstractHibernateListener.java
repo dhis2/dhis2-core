@@ -28,6 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
@@ -97,6 +99,4 @@ public abstract class AbstractHibernateListener
     }
 
     abstract AuditType getAuditType();
-
-
 }

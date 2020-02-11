@@ -30,6 +30,8 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -39,6 +41,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -71,6 +74,10 @@ public class PostInsertAuditListener
 
         getAuditable( entity, "create" ).ifPresent( auditable ->
         {
+            Session session = postInsertEvent.getPersister().getFactory().openTemporarySession();
+            session.load( entity, postInsertEvent.getId() );
+            try
+            {
                 auditManager.send( Audit.builder()
                    .auditType( getAuditType() )
                    .auditScope( auditable.scope() )
@@ -79,6 +86,11 @@ public class PostInsertAuditListener
                    .object( entity )
                    .auditableEntity( new AuditableEntity( entity ) )
                    .build() );
+            }
+            finally
+            {
+                session.close();
+            }
         } );
     }
 
@@ -91,6 +103,6 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
-        log.warn( "PostInsertCommitFailed " + event.getEntity() );
+        log.warn( "PostInsertCommitFailed: " + event.getEntity() );
     }
 }

@@ -87,11 +87,6 @@ public class AuditManager
 
         IdentifiableObject entity = (IdentifiableObject) audit.getAuditableEntity().getEntity();
 
-        if ( !sessionFactory.isOpen() )
-        {
-            sessionFactory.getCurrentSession().load( audit.getAuditableEntity().getEntity(), entity.getId() );
-        }
-
         audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ?
             audit.getAuditableEntity() : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(),
             audit.getAuditableEntity().getEntity(), audit.getCreatedBy() )) );

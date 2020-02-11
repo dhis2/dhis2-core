@@ -40,6 +40,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>This interface is responsible for retrieving tracked entity instances (TEI).
@@ -201,6 +202,9 @@ public interface TrackedEntityInstanceService
     void validate( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException;
 
+    @Transactional
+    long addTrackedEntityInstanceWithAudit( TrackedEntityInstance instance );
+
     /**
      * Adds an {@link TrackedEntityInstance}
      *
@@ -222,6 +226,9 @@ public interface TrackedEntityInstanceService
      * @param entityInstance the TrackedEntityInstance to update.
      */
     void updateTrackedEntityInstance( TrackedEntityInstance entityInstance );
+
+    @Transactional
+    void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance );
 
     /**
      * Updates a last sync timestamp on specified TrackedEntityInstances

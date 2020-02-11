@@ -45,7 +45,7 @@ import java.util.Objects;
 
 /**
  * Audit listener for Objects that can't be handled by {@link AbstractHibernateListener}
- * Use {@link TransactionalEventListener} so audit will only be sent if Transaction commit successfully
+ * Use {@link TransactionalEventListener} so audit will only be sent if the Transaction committed successfully
  */
 @Component
 @Conditional( value = AuditEnabledCondition.class )
