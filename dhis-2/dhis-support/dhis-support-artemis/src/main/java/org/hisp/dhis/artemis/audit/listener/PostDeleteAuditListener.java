@@ -28,8 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -39,6 +38,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.jgroups.annotations.Unsupported;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -47,21 +47,14 @@ import java.time.LocalDateTime;
  * @author Luciano Fiandesio
  */
 @Component
+@Slf4j
 public class PostDeleteAuditListener
     extends AbstractHibernateListener implements PostCommitDeleteEventListener
 {
-    private static final Log log = LogFactory.getLog( PostDeleteAuditListener.class );
-
     public PostDeleteAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
         super( auditManager, auditObjectFactory, userNameSupplier );
-    }
-
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return false;
     }
 
     @Override
@@ -91,5 +84,21 @@ public class PostDeleteAuditListener
     public void onPostDeleteCommitFailed( PostDeleteEvent event )
     {
         log.warn( "PostDeleteCommitFailed " + event.getEntity() );
+    }
+
+    @Override
+    public boolean requiresPostCommitHandling( EntityPersister entityPersister )
+    {
+        return true;
+    }
+
+    /**
+     * Typo issue for method name in Hibernate library
+     */
+    @Override
+    @Unsupported
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    {
+        return true;
     }
 }

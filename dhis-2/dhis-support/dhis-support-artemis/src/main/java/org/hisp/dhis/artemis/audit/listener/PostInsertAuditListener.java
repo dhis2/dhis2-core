@@ -28,10 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -41,7 +39,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.hibernate.HibernateUtils;
+import org.jgroups.annotations.Unsupported;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -50,11 +48,10 @@ import java.time.LocalDateTime;
  * @author Luciano Fiandesio
  */
 @Component
+@Slf4j
 public class PostInsertAuditListener
     extends AbstractHibernateListener implements PostCommitInsertEventListener
 {
-    private static final Log log = LogFactory.getLog( PostInsertAuditListener.class );
-
     public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
@@ -95,14 +92,24 @@ public class PostInsertAuditListener
     }
 
     @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    public void onPostInsertCommitFailed( PostInsertEvent event )
+    {
+        log.warn( "PostInsertCommitFailed: " + event.getEntity() );
+    }
+
+    @Override
+    public boolean requiresPostCommitHandling( EntityPersister entityPersister )
     {
         return true;
     }
 
+    /**
+     * Typo issue for method name in Hibernate library
+     */
     @Override
-    public void onPostInsertCommitFailed( PostInsertEvent event )
+    @Unsupported
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
-        log.warn( "PostInsertCommitFailed: " + event.getEntity() );
+        return true;
     }
 }

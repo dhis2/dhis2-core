@@ -28,10 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
-import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -51,8 +48,6 @@ import java.time.LocalDateTime;
 public class PostLoadAuditListener
     extends AbstractHibernateListener implements PostLoadEventListener
 {
-    private static final Log log = LogFactory.getLog( PostLoadAuditListener.class );
-
     public PostLoadAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
