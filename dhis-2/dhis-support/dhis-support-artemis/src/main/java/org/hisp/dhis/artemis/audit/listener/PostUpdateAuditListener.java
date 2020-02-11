@@ -29,7 +29,6 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -72,25 +71,15 @@ public class PostUpdateAuditListener
         Object entity = postUpdateEvent.getEntity();
 
         getAuditable( entity, "update" ).ifPresent( auditable ->
-        {
-            Session session = postUpdateEvent.getPersister().getFactory().openTemporarySession();
-            session.load( entity, postUpdateEvent.getId() );
-            try
-            {
-                auditManager.send( Audit.builder()
-                    .auditType( getAuditType() )
-                    .auditScope( auditable.scope() )
-                    .createdAt( LocalDateTime.now() )
-                    .createdBy( getCreatedBy() )
-                    .object( entity )
-                    .auditableEntity( new AuditableEntity( entity ) )
-                    .build() );
-            }
-            finally
-            {
-                session.close();
-            }
-        } );
+            auditManager.send( Audit.builder()
+                .auditType( getAuditType() )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() )
+        );
     }
 
     @Override
@@ -106,7 +95,7 @@ public class PostUpdateAuditListener
     }
 
     /**
-     * Typo issue for method name in Hibernate library
+     * Typo issue of method name in {@link org.hibernate.event.spi.PostActionEventListener}
      */
     @Override
     @Unsupported

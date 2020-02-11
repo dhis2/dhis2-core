@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
 import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -67,24 +66,14 @@ public class PostLoadAuditListener
         Object entity = postLoadEvent.getEntity();
 
         getAuditable( entity, "read" ).ifPresent( auditable ->
-        {
-            Session session = postLoadEvent.getPersister().getFactory().openTemporarySession();
-            session.load( entity, postLoadEvent.getId() );
-            try
-            {
-                auditManager.send( Audit.builder()
-                    .auditType( getAuditType() )
-                    .auditScope( auditable.scope() )
-                    .createdAt( LocalDateTime.now() )
-                    .createdBy( getCreatedBy() )
-                    .object( entity )
-                    .auditableEntity( new AuditableEntity( entity ) )
-                    .build() );
-            }
-            finally
-            {
-                session.close();
-            }
-        });
+            auditManager.send( Audit.builder()
+                .auditType( getAuditType() )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() )
+        );
     }
 }

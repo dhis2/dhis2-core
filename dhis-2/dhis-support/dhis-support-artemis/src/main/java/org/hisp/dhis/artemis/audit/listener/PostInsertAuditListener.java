@@ -70,25 +70,15 @@ public class PostInsertAuditListener
         Object entity = postInsertEvent.getEntity();
 
         getAuditable( entity, "create" ).ifPresent( auditable ->
-        {
-            Session session = postInsertEvent.getPersister().getFactory().openTemporarySession();
-            session.load( entity, postInsertEvent.getId() );
-            try
-            {
-                auditManager.send( Audit.builder()
-                   .auditType( getAuditType() )
-                   .auditScope( auditable.scope() )
-                   .createdAt( LocalDateTime.now() )
-                   .createdBy( getCreatedBy() )
-                   .object( entity )
-                   .auditableEntity( new AuditableEntity( entity ) )
-                   .build() );
-            }
-            finally
-            {
-                session.close();
-            }
-        } );
+            auditManager.send( Audit.builder()
+               .auditType( getAuditType() )
+               .auditScope( auditable.scope() )
+               .createdAt( LocalDateTime.now() )
+               .createdBy( getCreatedBy() )
+               .object( entity )
+               .auditableEntity( new AuditableEntity( entity ) )
+               .build() )
+        );
     }
 
     @Override
@@ -104,7 +94,7 @@ public class PostInsertAuditListener
     }
 
     /**
-     * Typo issue for method name in Hibernate library
+     * Typo issue of method name in {@link org.hibernate.event.spi.PostActionEventListener}
      */
     @Override
     @Unsupported

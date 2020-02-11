@@ -62,16 +62,15 @@ public class PostDeleteAuditListener
     {
         Object entity = postDeleteEvent.getEntity();
         getAuditable( entity, "delete" ).ifPresent( auditable ->
-        {
-                auditManager.send( Audit.builder()
-                    .auditType( getAuditType() )
-                    .auditScope( auditable.scope() )
-                    .createdAt( LocalDateTime.now() )
-                    .createdBy( getCreatedBy() )
-                    .object( entity )
-                    .auditableEntity( new AuditableEntity( entity ) )
-                    .build() );
-        });
+            auditManager.send( Audit.builder()
+                .auditType( getAuditType() )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() )
+        );
     }
 
     @Override
@@ -93,7 +92,7 @@ public class PostDeleteAuditListener
     }
 
     /**
-     * Typo issue for method name in Hibernate library
+     * Typo issue of method name in {@link org.hibernate.event.spi.PostActionEventListener}
      */
     @Override
     @Unsupported

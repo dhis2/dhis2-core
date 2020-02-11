@@ -31,12 +31,17 @@ package org.hisp.dhis.artemis.audit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -54,6 +59,8 @@ public class AuditManager
 
     private final AuditObjectFactory objectFactory;
 
+    private final TransactionTemplate transactionTemplate;
+
     private static final Log log = LogFactory.getLog( AuditManager.class );
 
     public AuditManager(
@@ -62,7 +69,8 @@ public class AuditManager
         AuditProducerConfiguration config,
         AuditMatrix auditMatrix,
         AuditObjectFactory auditObjectFactory,
-        SessionFactory sessionFactory )
+        SessionFactory sessionFactory,
+        TransactionTemplate transactionTemplate )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
@@ -75,6 +83,7 @@ public class AuditManager
         this.auditMatrix = auditMatrix;
         this.objectFactory = auditObjectFactory;
         this.sessionFactory = sessionFactory;
+        this.transactionTemplate = transactionTemplate;
     }
 
     public void send( Audit audit )
@@ -85,11 +94,25 @@ public class AuditManager
             return;
         }
 
-        audit.setData( ( audit.getAuditableEntity().getEntity() instanceof String ?
-            audit.getAuditableEntity() : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(),
-            audit.getAuditableEntity().getEntity(), audit.getCreatedBy() )) );
+        Object entity = audit.getAuditableEntity().getEntity();
 
-        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
+        if ( entity instanceof String )
+        {
+            audit.setData( entity );
+        }
+        else
+        {
+            Session session = sessionFactory.getCurrentSession();
+
+            if ( !session.contains( entity ) )
+            {
+                session.load( entity, ( ( IdentifiableObject ) entity).getId() );
+            }
+
+            audit.setData(  this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(),
+                audit.getAuditableEntity().getEntity(), audit.getCreatedBy() ) );
+            audit.setAttributes( this.objectFactory.collectAuditAttributes( entity ) );
+        }
 
         if ( config.isUseQueue() )
         {
