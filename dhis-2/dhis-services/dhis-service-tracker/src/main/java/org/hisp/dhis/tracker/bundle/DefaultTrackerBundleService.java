@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -76,11 +77,18 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private final DbmsManager dbmsManager;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
+    private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
     @Autowired( required = false )
     public void setBundleHooks( List<TrackerBundleHook> bundleHooks )
     {
         this.bundleHooks = bundleHooks;
+    }
+
+    @Autowired( required = false )
+    public void setSideEffectHandlers( List<SideEffectHandlerService> sideEffectHandlers )
+    {
+        this.sideEffectHandlers = sideEffectHandlers;
     }
 
     public DefaultTrackerBundleService(
@@ -227,6 +235,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             {
                 session.flush();
             }
+
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( programInstance ) );
         }
 
         session.flush();
@@ -270,6 +280,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             {
                 session.flush();
             }
+
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( programStageInstance ) );
         }
 
         session.flush();
