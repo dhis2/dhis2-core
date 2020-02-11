@@ -70,7 +70,6 @@ public class TrackerErrorReport
 
     protected final int lineNumber;
 
-
     public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
         Class<?> errorKlass, String[] errorProperties, Object value )
     {
@@ -131,10 +130,6 @@ public class TrackerErrorReport
         private Object mainObject;
 
         private final List<Object> arguments = new ArrayList<>();
-
-        public Builder()
-        {
-        }
 
         public Builder withErrorCode( TrackerErrorCode errorCode )
         {
