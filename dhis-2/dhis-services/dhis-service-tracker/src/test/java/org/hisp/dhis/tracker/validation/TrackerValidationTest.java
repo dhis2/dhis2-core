@@ -545,7 +545,7 @@ public class TrackerValidationTest
         assertEquals( 0, report.getErrorReports().size() );
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
-        assertEquals( bundleReport.getStatus(), TrackerStatus.OK );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         TrackerBundle updateBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -553,6 +553,6 @@ public class TrackerValidationTest
         report = trackerValidationService.validate( updateBundle );
         TrackerBundleReport bundleReport2 = trackerBundleService.commit( updateBundle );
         assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( bundleReport2.getStatus(), TrackerStatus.OK );
+        assertEquals( TrackerStatus.OK, bundleReport2.getStatus() );
     }
 }

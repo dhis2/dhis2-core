@@ -29,14 +29,13 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -71,31 +70,32 @@ public class TrackedEntitySecurityValidationHook
 
         User actingUser = bundle.getPreheat().getUser();
 
-        for ( TrackedEntity te : bundle.getTrackedEntities() )
+        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
             reporter.increment();
 
-            TrackedEntityType entityType = getTrackedEntityType( bundle, te );
+            TrackedEntityType entityType = getTrackedEntityType( bundle, trackedEntity );
 
             if ( entityType != null && !aclService.canDataWrite( actingUser, entityType ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1001 )
-                    .withObject( te )
+                    .withObject( trackedEntity )
                     .addArg( actingUser ).addArg( entityType ) );
             }
 
-            OrganisationUnit orgUnit = getOrganisationUnit( bundle, te );
+            OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
 
             if ( orgUnit != null && !organisationUnitService.isInUserSearchHierarchyCached( actingUser, orgUnit ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1000 )
-                    .withObject( te )
+                    .withObject( trackedEntity )
                     .addArg( actingUser ).addArg( orgUnit ) );
             }
 
             if ( bundle.getImportStrategy().isDelete() )
             {
-                TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+                TrackedEntityInstance tei = PreheatHelper
+                    .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
 
                 checkCanCascadeDeleteProgramInstances( reporter, actingUser, tei );
             }

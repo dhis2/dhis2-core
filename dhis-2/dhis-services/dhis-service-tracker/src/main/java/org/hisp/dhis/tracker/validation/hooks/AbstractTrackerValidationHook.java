@@ -49,6 +49,7 @@ import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -124,10 +125,10 @@ public abstract class AbstractTrackerValidationHook
     protected OrganisationUnitService organisationUnitService;
 
     @Autowired
-    protected TrackedEntityTypeService defaultTrackedEntityTypeService;
+    protected TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    public AclService aclService;
+    protected AclService aclService;
 
     @Autowired
     protected ProgramInstanceService programInstanceService;
@@ -212,7 +213,8 @@ public abstract class AbstractTrackerValidationHook
                 return;
             }
 
-            OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() );
+            OrganisationUnit organisationUnit = PreheatHelper
+                .getOrganisationUnit( bundle, te.getOrgUnit() );
 
             if ( organisationUnit == null )
             {
@@ -267,12 +269,14 @@ public abstract class AbstractTrackerValidationHook
     {
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
 
-        if ( attrIsFile && tei != null )
+        if ( tei != null && attrIsFile )
         {
             List<String> existingValues = new ArrayList<>();
 
             tei.getTrackedEntityAttributeValues().stream()
                 .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
+                .filter( attrVal -> attrVal.getAttribute().getUid()
+                    .equals( attr.getAttribute() ) ) // << Unsure about this, this differs from the original "old" code.
                 .forEach( attrVal -> existingValues.add( attrVal.getValue() ) );
 
             FileResource fileResource = fileResourceService.getFileResource( attr.getValue() );
@@ -306,7 +310,7 @@ public abstract class AbstractTrackerValidationHook
         TrackedEntityAttribute teAttr,
         TrackedEntity te, OrganisationUnit trackedEntityOu )
     {
-        if ( teAttr.isUnique() )
+        if ( Boolean.TRUE.equals( teAttr.isUnique() ) )
         {
             String error = teAttrService
                 .validateAttributeUniquenessWithinScope(
@@ -362,7 +366,6 @@ public abstract class AbstractTrackerValidationHook
             if ( te.getTrackedEntityType() == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1004 ).withObject( te ) );
-
                 return;
             }
 

@@ -63,17 +63,17 @@ public class TrackedEntityGeoValidationHook
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        for ( TrackedEntity te : bundle.getTrackedEntities() )
+        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
             reporter.increment();
 
-            TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, te );
+            TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, trackedEntity );
 
             FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
                 trackedEntityType.getFeatureType() :
-                te.getFeatureType();
+                trackedEntity.getFeatureType();
 
-            validateGeo( reporter, te, featureType );
+            validateGeo( reporter, trackedEntity, featureType );
         }
 
         return reporter.getReportList();

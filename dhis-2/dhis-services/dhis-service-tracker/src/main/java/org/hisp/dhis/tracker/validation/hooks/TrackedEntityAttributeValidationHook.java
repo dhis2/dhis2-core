@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
@@ -64,14 +65,16 @@ public class TrackedEntityAttributeValidationHook
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        for ( TrackedEntity te : bundle.getTrackedEntities() )
+        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
             reporter.increment();
 
-            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
-            OrganisationUnit orgUnit = getOrganisationUnit( bundle, te );
+            TrackedEntityInstance tei = PreheatHelper
+                .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
 
-            validateAttributes( reporter, bundle, te, tei, orgUnit );
+            OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
+
+            validateAttributes( reporter, bundle, trackedEntity, tei, orgUnit );
         }
 
         return reporter.getReportList();

@@ -61,12 +61,12 @@ public class TrackedEntityRequiredValuesValidationHook
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        for ( TrackedEntity te : bundle.getTrackedEntities() )
+        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
             reporter.increment();
 
-            validateTrackedEntityType( reporter, bundle, te );
-            validateOrganisationUnit( reporter, bundle, te );
+            validateTrackedEntityType( reporter, bundle, trackedEntity );
+            validateOrganisationUnit( reporter, bundle, trackedEntity );
         }
 
         return reporter.getReportList();

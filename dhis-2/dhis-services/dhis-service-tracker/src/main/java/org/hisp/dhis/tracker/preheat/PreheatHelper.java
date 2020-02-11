@@ -41,25 +41,30 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 public class PreheatHelper
 {
 
+    private PreheatHelper()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     public static OrganisationUnit getOrganisationUnit( TrackerBundle bundle, String orgUnit )
     {
         return bundle.getPreheat()
-            .get( TrackerIdentifier.UID, OrganisationUnit.class, orgUnit );
+            .get( bundle.getIdentifier(), OrganisationUnit.class, orgUnit );
     }
 
     public static TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String trackedEntity )
     {
-        return bundle.getPreheat().getTrackedEntity( TrackerIdentifier.UID, trackedEntity );
+        return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), trackedEntity );
     }
 
     public static TrackedEntityAttribute getTrackedEntityAttribute( TrackerBundle bundle, String attribute )
     {
         return bundle.getPreheat()
-            .get( TrackerIdentifier.UID, TrackedEntityAttribute.class, attribute );
+            .get( bundle.getIdentifier(), TrackedEntityAttribute.class, attribute );
     }
 
     public static TrackedEntityType getTrackedEntityType( TrackerBundle bundle, String trackedEntityType )
     {
-        return bundle.getPreheat().get( TrackerIdentifier.UID, TrackedEntityType.class, trackedEntityType );
+        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, trackedEntityType );
     }
 }
