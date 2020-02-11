@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 public class PreheatHelper
 {
 
-    public static OrganisationUnit getOrganizationUnit( TrackerBundle bundle, String orgUnit )
+    public static OrganisationUnit getOrganisationUnit( TrackerBundle bundle, String orgUnit )
     {
         return bundle.getPreheat()
             .get( TrackerIdentifier.UID, OrganisationUnit.class, orgUnit );

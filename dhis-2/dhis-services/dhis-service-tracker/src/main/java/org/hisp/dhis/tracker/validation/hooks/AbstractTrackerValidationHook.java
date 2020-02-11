@@ -181,7 +181,7 @@ public abstract class AbstractTrackerValidationHook
 
     protected boolean checkCanCreateGeo( ValidationErrorReporter errorReporter, TrackedEntity te )
     {
-        if ( te.getCoordinates() != null && !FeatureType.NONE.equals( te.getFeatureType() ) )
+        if ( te.getCoordinates() != null && FeatureType.NONE != te.getFeatureType() )
         {
             try
             {
@@ -212,7 +212,7 @@ public abstract class AbstractTrackerValidationHook
                 return;
             }
 
-            OrganisationUnit organisationUnit = PreheatHelper.getOrganizationUnit( bundle, te.getOrgUnit() );
+            OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() );
 
             if ( organisationUnit == null )
             {
@@ -338,7 +338,7 @@ public abstract class AbstractTrackerValidationHook
         {
             FeatureType typeFromName = FeatureType.getTypeFromName( te.getGeometry().getGeometryType() );
 
-            if ( !featureType.equals( typeFromName ) || featureType.equals( FeatureType.NONE ) )
+            if ( !featureType.equals( typeFromName ) || FeatureType.NONE == featureType )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1012 )
                     .withObject( te )
@@ -380,7 +380,7 @@ public abstract class AbstractTrackerValidationHook
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
     {
         return bundle.getImportStrategy().isCreate() ?
-            PreheatHelper.getOrganizationUnit( bundle, te.getOrgUnit() ) :
+            PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() ) :
             PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getOrganisationUnit();
     }
 

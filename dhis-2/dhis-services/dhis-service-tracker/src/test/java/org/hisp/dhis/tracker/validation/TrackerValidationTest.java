@@ -57,7 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -128,7 +127,7 @@ public class TrackerValidationTest
     {
         for ( TrackerErrorReport errorReport : report.getErrorReports() )
         {
-            log.error( errorReport.toString() );
+            log.info( errorReport.toString() );
         }
     }
 
