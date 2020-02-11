@@ -29,7 +29,6 @@ package org.hisp.dhis.config;
  */
 
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
@@ -52,7 +51,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -119,28 +117,6 @@ public class StartupConfig
         ModelUpgrader upgrader = new ModelUpgrader( organisationUnitService, categoryService );
         upgrader.setName( "ModelUpgrader" );
         upgrader.setRunlevel( 7 );
-        upgrader.setSkipInTests( true );
-        return upgrader;
-    }
-
-    @Bean( "org.hisp.dhis.startup.FavoriteDataItemUpgrader" )
-    public FavoriteDataItemUpgrader favoriteDataItemUpgrader( JdbcTemplate jdbcTemplate,
-        IdentifiableObjectManager idObjectManager )
-    {
-        FavoriteDataItemUpgrader upgrader = new FavoriteDataItemUpgrader( jdbcTemplate, idObjectManager );
-        upgrader.setName( "FavoriteDataItemUpgrader" );
-        upgrader.setRunlevel( 9 );
-        upgrader.setSkipInTests( true );
-        return upgrader;
-    }
-
-    @Bean( "org.hisp.dhis.startup.AnalyticalObjectEmbeddedDimensionUpgrader" )
-    public AnalyticalObjectEmbeddedDimensionUpgrader analyticalObjectEmbeddedDimensionUpgrader(
-        JdbcTemplate jdbcTemplate, IdentifiableObjectManager idObjectManager )
-    {
-        AnalyticalObjectEmbeddedDimensionUpgrader upgrader = new AnalyticalObjectEmbeddedDimensionUpgrader(
-            jdbcTemplate, idObjectManager );
-        upgrader.setRunlevel( 9 );
         upgrader.setSkipInTests( true );
         return upgrader;
     }

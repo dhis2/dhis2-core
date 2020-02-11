@@ -29,10 +29,12 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -93,8 +95,7 @@ public class TrackedEntitySecurityValidationHook
 
             if ( bundle.getImportStrategy().isDelete() )
             {
-                TrackedEntityInstance tei = bundle.getPreheat()
-                    .getTrackedEntity( TrackerIdentifier.UID, te.getTrackedEntity() );
+                TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
 
                 checkCanCascadeDeleteProgramInstances( reporter, actingUser, tei );
             }

@@ -29,10 +29,7 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
 
 import java.util.ArrayList;
@@ -43,22 +40,25 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
 public class TrackerObjectReport
 {
     /**
      * Type of object this @{@link TrackerObjectReport} represents.
      */
+    @JsonProperty
     private final TrackerType trackerType;
 
     /**
      * Index into list.
      */
+    @JsonProperty
     private Integer index;
 
     /**
      * UID of object (if object is id object).
      */
+    @JsonProperty
     private String uid;
 
     private Map<TrackerErrorCode, List<TrackerErrorReport>> errorReportsByCode = new HashMap<>();
@@ -75,6 +75,15 @@ public class TrackerObjectReport
         this.index = index;
     }
 
+    @JsonProperty
+    public List<TrackerErrorReport> getErrorReports()
+    {
+        List<TrackerErrorReport> errorReports = new ArrayList<>();
+        errorReportsByCode.values().forEach( errorReports::addAll );
+
+        return errorReports;
+    }
+
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
@@ -89,59 +98,8 @@ public class TrackerObjectReport
         return errorReportsByCode.size();
     }
 
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Integer getIndex()
-    {
-        return index;
-    }
-
-    public void setIndex( Integer index )
-    {
-        this.index = index;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerErrorReport> getErrorReports()
-    {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
-        errorReportsByCode.values().forEach( errorReports::addAll );
-
-        return errorReports;
-    }
-
     public List<TrackerErrorCode> getErrorCodes()
     {
         return new ArrayList<>( errorReportsByCode.keySet() );
-    }
-
-    public Map<TrackerErrorCode, List<TrackerErrorReport>> getErrorReportsByCode()
-    {
-        return errorReportsByCode;
     }
 }

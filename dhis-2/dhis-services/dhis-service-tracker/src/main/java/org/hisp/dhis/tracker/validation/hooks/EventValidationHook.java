@@ -371,7 +371,7 @@ public class EventValidationHook
 
             event.getGeometry().setSRID( GeoUtils.SRID );
         }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+        else if ( event.getCoordinate() != null  ) // && event.getCoordinate().hasLatitudeLongitude()
         {
             Coordinate coordinate = event.getCoordinate();
             try

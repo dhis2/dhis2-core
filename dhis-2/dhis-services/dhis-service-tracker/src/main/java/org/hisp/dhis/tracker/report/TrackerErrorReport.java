@@ -29,9 +29,7 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -48,24 +46,30 @@ import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
 public class TrackerErrorReport
 {
+
     protected final TrackerErrorMessage message;
 
+    @JsonProperty
     protected final Class<?> mainKlass;
+
+    @JsonProperty
+    protected String mainId;
+
+    @JsonProperty
+    protected Class<?> errorKlass;
+
+    @JsonProperty
+    protected final String[] errorProperties;
+
+    @JsonProperty
+    protected Object value;
 
     protected final int lineNumber;
 
-    protected final String mainId;
-
-    protected final Class<?> errorKlass;
-
-    protected final String[] errorProperties;
-
-    protected Object value;
 
     public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
         Class<?> errorKlass, String[] errorProperties, Object value )
@@ -81,58 +85,15 @@ public class TrackerErrorReport
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerErrorCode getErrorCode()
     {
         return message.getErrorCode();
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getMessage()
     {
         return message.getMessage();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getMainKlass()
-    {
-        return mainKlass;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMainId()
-    {
-        return mainId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getErrorKlass()
-    {
-        return errorKlass;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String[] getErrorProperties()
-    {
-        return errorProperties;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Object getValue()
-    {
-        return value;
-    }
-
-    public TrackerErrorReport setValue( Object value )
-    {
-        this.value = value;
-        return this;
     }
 
     @Override
