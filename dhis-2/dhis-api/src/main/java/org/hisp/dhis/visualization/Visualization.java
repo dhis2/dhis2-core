@@ -30,7 +30,9 @@ package org.hisp.dhis.visualization;
 
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
@@ -1163,6 +1165,55 @@ public class Visualization
     // -------------------------------------------------------------------------
     // Business logic
     // -------------------------------------------------------------------------
+
+    /**
+     * Based on the Chart dimension, this method will bring the collection of
+     * child items related to its series.
+     *
+     * @return a list of DimensionalItemObject representing the Chart series
+     */
+    public List<DimensionalItemObject> chartSeries()
+    {
+        // Chart must have one column dimension (series). This is a protective checking.
+        if ( isEmpty( columnDimensions ) || isBlank( columnDimensions.get( 0 ) ) )
+        {
+            return null;
+        }
+
+        return getDimensionalItemObjects( columnDimensions.get( 0 ) );
+    }
+
+    /**
+     * Based on the Chart dimension, this method will bring the collection of
+     * child items related to its category.
+     *
+     * @return a list of DimensionalItemObject representing the Chart category
+     */
+    public List<DimensionalItemObject> chartCategory()
+    {
+        // Chart must have one row dimension (category). This is a protective checking.
+        if ( isEmpty( rowDimensions ) || isBlank( rowDimensions.get( 0 ) ) )
+        {
+            return null;
+        }
+
+        return getDimensionalItemObjects( rowDimensions.get( 0 ) );
+    }
+
+    /**
+     * Returns a list of dimensional items based on the given dimension and internal
+     * attributes of the current Visualization object.
+     *
+     * @param dimension a given dimension
+     * @return the list of DimensionalItemObject's
+     */
+    private List<DimensionalItemObject> getDimensionalItemObjects( final String dimension )
+    {
+        DimensionalObject object = getDimensionalObject( dimension, relativePeriodDate, relativeUser, true,
+            organisationUnitsAtLevel, organisationUnitsInGroups, format );
+
+        return object != null ? object.getItems() : null;
+    }
 
     public void populateGridColumnsAndRows( Date date, User user,
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
