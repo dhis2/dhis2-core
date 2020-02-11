@@ -29,10 +29,14 @@ package org.hisp.dhis.common;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import com.google.common.collect.ImmutableMap;
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
@@ -48,8 +52,6 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
-
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -59,17 +61,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import com.google.common.collect.ImmutableMap;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -78,12 +72,11 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.common.IdentifiableObjectManager" )
 public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
-    private static final Log log = LogFactory.getLog( DefaultIdentifiableObjectManager.class );
-
     /**
      * Cache for default category objects. Disabled during test phase.
      */

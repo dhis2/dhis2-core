@@ -28,9 +28,11 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.File;
+import java.util.Map;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -42,18 +44,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.io.File;
-import java.util.Map;
-import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author Zubair Asghar.
  */
+@Slf4j
 @Component( "org.hisp.dhis.fileresource.FileResourceEventListener" )
 public class FileResourceEventListener
 {
-    private static final Log log = LogFactory.getLog( FileResourceEventListener.class );
-
     private final FileResourceService fileResourceService;
 
     private final FileResourceContentStore fileResourceContentStore;

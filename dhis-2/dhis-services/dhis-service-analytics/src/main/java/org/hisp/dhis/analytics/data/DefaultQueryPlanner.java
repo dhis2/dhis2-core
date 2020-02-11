@@ -36,8 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
@@ -54,15 +52,16 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.analytics.QueryPlanner" )
 public class DefaultQueryPlanner
     implements QueryPlanner
 {
-    private static final Log log = LogFactory.getLog( DefaultQueryPlanner.class );
-
     private final QueryValidator queryValidator;
 
     private final PartitionManager partitionManager;
