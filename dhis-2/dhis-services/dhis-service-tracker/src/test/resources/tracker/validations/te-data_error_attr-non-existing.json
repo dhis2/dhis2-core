@@ -1,8 +1,8 @@
 {
-  "trackedEntityInstances": [
+  "trackedEntities": [
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "NCc1rCEOKaY",
+      "trackedEntities": "NCc1rCEOKaY",
       "attributes": [
         {
           "attribute": "--BIpOStK--",
@@ -20,7 +20,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "PB9VMezGkwA",
+      "trackedEntities": "PB9VMezGkwA",
       "attributes": [
         {
           "attribute": "--BIpOStK--",

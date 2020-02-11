@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.validation;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -56,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -116,7 +118,10 @@ public class TrackerValidationTest
         List<ErrorReport> errorReports = validationReport.getErrorReports();
         assertTrue( errorReports.isEmpty() );
 
-        objectBundleService.commit( bundle );
+        ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
+        List<ErrorReport> errorReports1 = commit.getErrorReports();
+        assertTrue( errorReports1.isEmpty() );
+
     }
 
     private void printErrors( TrackerValidationReport report )
