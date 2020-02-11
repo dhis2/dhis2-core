@@ -147,32 +147,32 @@ public abstract class AbstractTrackerValidationHook
         Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
             trackedEntityAttributeValueService.getTrackedEntityAttributeValues( tei ) );
 
-        for ( Attribute attr : te.getAttributes() )
+        for ( Attribute attribute : te.getAttributes() )
         {
-            if ( StringUtils.isEmpty( attr.getValue() ) )
+            if ( StringUtils.isEmpty( attribute.getValue() ) )
             {
                 continue;
             }
             // no/empty value? should this qualify as an error?
 
-            TrackedEntityAttribute teAttr = PreheatHelper.getTrackedEntityAttribute( bundle, attr.getAttribute() );
+            TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
+                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
 
-            if ( teAttr == null )
+            if ( trackedEntityAttribute == null )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1006 ).addArg( attr.getAttribute() ) );
+                reporter.addError( newReport( TrackerErrorCode.E1006 ).addArg( attribute.getAttribute() ) );
                 continue;
             }
 
-            TrackedEntityAttributeValue teAttrValue = valueMap.get( teAttr.getUid() );
+            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
 
-            validateTextPattern( reporter, attr, teAttr, teAttrValue );
+            validateTextPattern( reporter, attribute, trackedEntityAttribute, trackedEntityAttributeValue );
 
-            validateAttrValueType( reporter, attr, teAttr );
+            validateAttrValueType( reporter, attribute, trackedEntityAttribute );
 
-            // This is a super expensive check, needs better optimization!
-            validateAttrUnique( reporter, attr, teAttr, te, orgUnit );
+            validateAttrUnique( reporter, attribute, trackedEntityAttribute, te, orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, attr, tei );
+            validateFileNotAlreadyAssigned( reporter, attribute, tei );
         }
 
         errorReporter.getReportList().addAll( reporter.getReportList() );
@@ -246,7 +246,7 @@ public abstract class AbstractTrackerValidationHook
         TrackedEntityAttribute teAttr,
         TrackedEntityAttributeValue teiAttributeValue )
     {
-        if ( teAttr.isGenerated() && teAttr.getTextPattern() != null )
+        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() )
         //&& ??? !importOptions.isSkipPatternValidation()
         // MortenO: How should we deal with this in the new importer?
         {
@@ -338,7 +338,7 @@ public abstract class AbstractTrackerValidationHook
         {
             FeatureType typeFromName = FeatureType.getTypeFromName( te.getGeometry().getGeometryType() );
 
-            if ( !featureType.equals( typeFromName ) || FeatureType.NONE == featureType )
+            if ( FeatureType.NONE == featureType || featureType != typeFromName )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1012 )
                     .withObject( te )
