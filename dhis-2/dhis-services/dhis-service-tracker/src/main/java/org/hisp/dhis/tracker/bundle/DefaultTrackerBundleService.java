@@ -158,6 +158,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( TrackedEntity.class, o, bundle ) ) );
         session.flush();
 
+        Date now = new Date();
+
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
             TrackedEntity trackedEntity = trackedEntities.get( idx );
@@ -166,8 +168,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, trackedEntityInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
-
-            Date now = new Date();
 
             if ( bundle.getImportStrategy().isCreate() )
             {
@@ -201,6 +201,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Enrollment.class, o, bundle ) ) );
         session.flush();
 
+        Date now = new Date();
+
         for ( int idx = 0; idx < enrollments.size(); idx++ )
         {
             Enrollment enrollment = enrollments.get( idx );
@@ -208,8 +210,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
-
-            Date now = new Date();
 
             if ( bundle.getImportStrategy().isCreate() )
             {
