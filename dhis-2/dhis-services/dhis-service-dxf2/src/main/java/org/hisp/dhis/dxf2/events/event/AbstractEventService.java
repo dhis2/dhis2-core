@@ -2362,7 +2362,7 @@ public abstract class AbstractEventService
 
     private void updateEntities( User user )
     {
-        trackedEntityInstancesToUpdate.forEach( tei -> manager.update( tei, user ) );
+        trackedEntityInstancesToUpdate.forEach( tei -> entityInstanceService.updateTrackedEntityInstanceWithAudit( tei, user ) );
         trackedEntityInstancesToUpdate.clear();
     }
 
@@ -2420,7 +2420,7 @@ public abstract class AbstractEventService
                 {
                     if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
                     {
-                        manager.update( programStageInstance.getProgramInstance().getEntityInstance(), user );
+                        entityInstanceService.updateTrackedEntityInstanceWithAudit( programStageInstance.getProgramInstance().getEntityInstance(), user );
                     }
                 }
                 else

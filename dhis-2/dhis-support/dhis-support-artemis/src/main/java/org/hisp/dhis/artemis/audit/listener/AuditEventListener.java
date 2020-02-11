@@ -44,8 +44,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Audit listener for Objects that can't be handled by {@link AbstractHibernateListener}
- * Use {@link TransactionalEventListener} so audit will only be sent if the Transaction committed successfully
+ * Audit listener for Objects with complex logic that can't be handled by {@link AbstractHibernateListener}
+ * It will handle all events published with {@link Audit} payload
+ * Use {@link TransactionalEventListener} so audit will only be sent after the Transaction committed successfully
  */
 @Component
 @Conditional( value = AuditEnabledCondition.class )

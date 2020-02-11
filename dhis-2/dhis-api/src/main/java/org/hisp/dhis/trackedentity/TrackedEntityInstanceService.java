@@ -230,6 +230,9 @@ public interface TrackedEntityInstanceService
     @Transactional
     void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance );
 
+    @Transactional
+    void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user );
+
     /**
      * Updates a last sync timestamp on specified TrackedEntityInstances
      *

@@ -928,6 +928,14 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
+    public void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user )
+    {
+        trackedEntityInstanceStore.update( instance, user );
+        addTrackedEntityInstanceAudit( instance, user.getUsername(), AuditType.UPDATE );
+    }
+
+    @Override
+    @Transactional
     public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized )
     {
         trackedEntityInstanceStore.updateTrackedEntityInstancesSyncTimestamp( trackedEntityInstanceUIDs, lastSynchronized );
