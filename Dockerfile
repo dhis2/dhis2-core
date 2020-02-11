@@ -25,7 +25,7 @@
 # BUILD STAGE 1
 # Build the DHIS2 Core server from source (Maven)
 ##########
-FROM maven:3.5.3-jdk-8-slim as build
+FROM maven:3.6.3-jdk-8-slim as build
 LABEL stage=intermediate
 
 ARG IDENTIFIER=unknown
@@ -34,7 +34,7 @@ LABEL identifier=${IDENTIFIER}
 #NB - maven-surefire-plugin fails with maven:3.5.4-jdk-8-slim and later.
 #     This is a recent issue possibly traced to an OpenJDK bug - https://github.com/carlossg/docker-maven/issues/90
 
-RUN apt-get update && apt-get install --no-install-recommends -y git=1:2.11.0-3+deb9u4 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y git && rm -rf /var/lib/apt/lists/*
 #NB - web-apps build uses `git rev-parse` to tag the build, so just copy over the whole tree for now
 COPY . /src
 
