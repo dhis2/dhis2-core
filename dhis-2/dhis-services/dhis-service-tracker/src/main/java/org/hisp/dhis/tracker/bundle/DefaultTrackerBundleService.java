@@ -187,11 +187,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
             session.persist( trackedEntityInstance );
 
-            for ( TrackedEntityAttributeValue attributeValue : trackedEntityInstance.getTrackedEntityAttributeValues() )
-            {
-                attributeValue.setEntityInstance( trackedEntityInstance );
-                session.persist( attributeValue );
-            }
+            handleTrackedEntityAttributeValues( session, trackedEntityInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -203,6 +199,15 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
+    }
+
+    private void handleTrackedEntityAttributeValues( Session session, TrackedEntityInstance trackedEntityInstance )
+    {
+        for ( TrackedEntityAttributeValue attributeValue : trackedEntityInstance.getTrackedEntityAttributeValues() )
+        {
+            attributeValue.setEntityInstance( trackedEntityInstance );
+            session.persist( attributeValue );
+        }
     }
 
     private TrackerTypeReport handleEnrollments( Session session, TrackerBundle bundle )
