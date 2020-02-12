@@ -38,7 +38,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -86,14 +85,14 @@ public class RelationshipSMSListener
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageService programStageService,
-        ProgramStageInstanceService programStageInstanceService, RelationshipService relationshipService,
-        RelationshipTypeService relationshipTypeService, TrackedEntityInstanceService trackedEntityInstanceService,
-        ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
+        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        RelationshipService relationshipService, RelationshipTypeService relationshipTypeService,
+        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageService,
-            programStageInstanceService, identifiableObjectManager );
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            identifiableObjectManager );
 
         this.relationshipService = relationshipService;
         this.relationshipTypeService = relationshipTypeService;

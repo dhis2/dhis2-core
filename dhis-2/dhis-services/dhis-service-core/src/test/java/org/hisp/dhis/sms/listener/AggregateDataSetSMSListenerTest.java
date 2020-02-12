@@ -160,7 +160,7 @@ public class AggregateDataSetSMSListenerTest
     {
         subject = new AggregateDataSetSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, programStageInstanceService, dataSetService, dataValueService, registrationService,
+            programStageInstanceService, dataSetService, dataValueService, registrationService,
             identifiableObjectManager );
 
         setUpInstances();

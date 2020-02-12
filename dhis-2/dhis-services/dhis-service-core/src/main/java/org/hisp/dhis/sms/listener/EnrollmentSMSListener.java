@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -40,6 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -64,7 +66,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,6 +84,8 @@ public class EnrollmentSMSListener
 
     private final ProgramInstanceService programInstanceService;
 
+    private final ProgramStageService programStageService;
+
     private final UserService userService;
 
     public EnrollmentSMSListener( IncomingSmsService incomingSmsService,
@@ -91,10 +97,11 @@ public class EnrollmentSMSListener
         ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageService,
-            programStageInstanceService, identifiableObjectManager );
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            identifiableObjectManager );
 
         this.teiService = teiService;
+        this.programStageService = programStageService;
         this.programInstanceService = programInstanceService;
         this.userService = userService;
     }
@@ -178,9 +185,15 @@ public class EnrollmentSMSListener
 
         // We now check if the enrollment has events to process
         User user = userService.getUser( subm.getUserID().uid );
+        List<Object> errorUIDs = new ArrayList<>();
         for ( SMSEvent event : subm.getEvents() )
         {
-            processEvent( event, orgUnit, user, enrollment, sms );
+            errorUIDs.addAll( processEvent( event, orgUnit, user, enrollment, sms ) );
+        }
+
+        if ( !errorUIDs.isEmpty() )
+        {
+            return SMSResponse.WARN_DVERR.setList( errorUIDs );
         }
 
         return SMSResponse.SUCCESS;
@@ -220,5 +233,29 @@ public class EnrollmentSMSListener
         trackedEntityAttributeValue.setEntityInstance( tei );
         trackedEntityAttributeValue.setValue( val );
         return trackedEntityAttributeValue;
+    }
+
+    protected List<Object> processEvent( SMSEvent event, OrganisationUnit orgUnit, User user,
+        ProgramInstance programInstance, IncomingSms sms )
+    {
+        UID stageid = event.getProgramStage();
+        UID aocid = event.getAttributeOptionCombo();
+
+        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
+        if ( programStage == null )
+        {
+            throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
+        }
+
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        if ( aoc == null )
+        {
+            throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
+        }
+
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
+            user, event.getValues(), event.getEventStatus() );
+
+        return errorUIDs;
     }
 }

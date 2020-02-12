@@ -151,8 +151,8 @@ public class RelationshipSMSListenerTest
     {
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, programStageInstanceService, relationshipService, relationshipTypeService,
-            trackedEntityInstanceService, programInstanceService, identifiableObjectManager );
+            programStageInstanceService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
+            programInstanceService, identifiableObjectManager );
 
         setUpInstances();
 
