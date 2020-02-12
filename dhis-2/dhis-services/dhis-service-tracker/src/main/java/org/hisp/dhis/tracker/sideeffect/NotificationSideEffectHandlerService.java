@@ -61,11 +61,13 @@ public class NotificationSideEffectHandlerService implements SideEffectHandlerSe
     }
 
     @Override
-    public void handleSideEffect( Class<? extends BaseIdentifiableObject> klass, BaseIdentifiableObject object )
+    public void handleSideEffect( SideEffectDataBundle sideEffectDataBundle )
     {
+        Class<? extends BaseIdentifiableObject> klass = sideEffectDataBundle.getKlass();
+
         if ( EVENT_MAPPER.containsKey( klass ) )
         {
-            eventPublisher.publishEvent( EVENT_MAPPER.get( klass ).apply( object.getId() ) );
+            eventPublisher.publishEvent( EVENT_MAPPER.get( klass ).apply( sideEffectDataBundle.getObject().getId() ) );
         }
     }
 }

@@ -28,10 +28,14 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 /**
  * @author Zubair Asghar
  */
-public interface SideEffectHandlerService
+public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService
 {
-    void handleSideEffect( SideEffectDataBundle sideEffectDataBundle );
+    @Override
+    public void handleSideEffect( SideEffectDataBundle sideEffectDataBundle )
+    {
+    }
 }

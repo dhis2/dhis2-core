@@ -28,10 +28,29 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.user.User;
+
+import java.util.List;
+
 /**
  * @author Zubair Asghar
  */
-public interface SideEffectHandlerService
+@Data
+@Builder
+public class SideEffectDataBundle
 {
-    void handleSideEffect( SideEffectDataBundle sideEffectDataBundle );
+    private Class<? extends BaseIdentifiableObject> klass;
+
+    private BaseIdentifiableObject object;
+
+    private List<RuleEffect> ruleEffects;
+
+    private TrackerImportStrategy importStrategy;
+
+    private User createdBy;
 }

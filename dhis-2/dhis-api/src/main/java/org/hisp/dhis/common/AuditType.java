@@ -33,6 +33,7 @@ package org.hisp.dhis.common;
  *
  * @author Halvdan Hoem Grelland
  */
+@Deprecated
 public enum AuditType
 {
     CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" ), READ( "read" ), SEARCH( "search" );

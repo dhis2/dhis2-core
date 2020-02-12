@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.sideeffect.SideEffectDataBundle;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -236,7 +237,12 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( ProgramInstance.class, programInstance ) );
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( SideEffectDataBundle.builder()
+                .klass( ProgramInstance.class )
+                .object( programInstance )
+                .importStrategy( bundle.getImportStrategy() )
+                .createdBy( bundle.getUser() )
+                .build() ) );
         }
 
         session.flush();
@@ -281,7 +287,12 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( ProgramStageInstance.class, programStageInstance ) );
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( SideEffectDataBundle.builder()
+                .klass( ProgramInstance.class )
+                .object( programStageInstance )
+                .importStrategy( bundle.getImportStrategy() )
+                .createdBy( bundle.getUser() )
+                .build() ) );
         }
 
         session.flush();

@@ -28,8 +28,15 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Zubair Asghar
@@ -38,9 +45,33 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuditSideEffectHandlerService implements SideEffectHandlerService
 {
-    @Override
-    public void handleSideEffect( Class<? extends BaseIdentifiableObject> klass, BaseIdentifiableObject object )
-    {
+    private final ImmutableMap<TrackerImportStrategy, AuditType> TYPE_MAPPER =
+        new ImmutableMap.Builder<TrackerImportStrategy, AuditType>()
+        .put( TrackerImportStrategy.CREATE, AuditType.CREATE )
+        .put( TrackerImportStrategy.UPDATE, AuditType.UPDATE )
+        .put( TrackerImportStrategy.DELETE, AuditType.DELETE )
+        .build();
 
+    private final AuditManager auditManager;
+
+    public AuditSideEffectHandlerService( AuditManager auditManager )
+    {
+        this.auditManager = auditManager;
+    }
+
+    @Override
+    public void handleSideEffect( SideEffectDataBundle sideEffectDataBundle )
+    {
+        AuditType auditType = TYPE_MAPPER.getOrDefault( sideEffectDataBundle.getImportStrategy(), AuditType.READ );
+
+        Audit audit = Audit.builder()
+            .auditType( auditType )
+            .auditScope( AuditScope.TRACKER )
+            .createdAt( LocalDateTime.now() )
+            .createdBy( sideEffectDataBundle.getCreatedBy().getUserCredentials().getUsername() )
+            .klass( sideEffectDataBundle.getKlass().getName() )
+            .build();
+
+        auditManager.send( audit );
     }
 }
