@@ -157,7 +157,7 @@ public class SimpleEventSMSListenerTest
     {
         subject = new SimpleEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, programStageInstanceService, programInstanceService, identifiableObjectManager );
+            programStageInstanceService, programInstanceService, identifiableObjectManager );
 
         setUpInstances();
 
