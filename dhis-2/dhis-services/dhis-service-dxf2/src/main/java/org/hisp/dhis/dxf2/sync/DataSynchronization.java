@@ -28,37 +28,31 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.dxf2.synch.SystemInstance;
+import org.hisp.dhis.system.util.Clock;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public enum SyncEndpoint
+public abstract class DataSynchronization
 {
-    TRACKED_ENTITY_INSTANCES( "/api/trackedEntityInstances", ImportSummaries.class ),
-    ENROLLMENTS( "/api/enrollments", ImportSummaries.class ),
-    EVENTS( "/api/events", ImportSummaries.class ),
-    COMPLETE_DATA_SET_REGISTRATIONS( "/api/completeDataSetRegistrations", ImportSummary.class ),
-    DATA_VALUE_SETS( "/api/dataValueSets", ImportSummary.class );
+    protected boolean syncResult = false;
+    protected int pages;
+    protected Clock clock;
+    protected int objectsToSynchronize;
+    protected SystemInstance instance;
 
-    private String path;
-    private Class<? extends AbstractWebMessageResponse> klass;
+    public abstract SynchronizationResult synchronizeData( final int pageSize );
 
-    SyncEndpoint( String path, Class<? extends AbstractWebMessageResponse> klass )
+    protected void runSyncWithPaging( int pageSize )
     {
-        this.path = path;
-        this.klass = klass;
+        syncResult = true;
+
+        for ( int page = 1; page <= pages; page++ )
+        {
+            synchronizePage( page, pageSize );
+        }
     }
 
-    public String getPath()
-    {
-        return path;
-    }
-
-    public Class<? extends AbstractWebMessageResponse> getKlass()
-    {
-        return klass;
-    }
+    protected abstract void synchronizePage( int page, int pageSize );
 }

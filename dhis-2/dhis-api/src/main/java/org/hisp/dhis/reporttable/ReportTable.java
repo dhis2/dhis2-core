@@ -1141,7 +1141,7 @@ public class ReportTable
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The name of this Object. Required and unique." )
-    @PropertyRange( min = 1 )
+    @PropertyRange( min = 1, max = 230)
     @Property( required = TRUE )
     public String getName()
     {
