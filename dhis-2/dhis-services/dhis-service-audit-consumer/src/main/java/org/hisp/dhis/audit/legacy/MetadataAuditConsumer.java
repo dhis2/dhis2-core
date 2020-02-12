@@ -28,7 +28,12 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Objects;
+
+import javax.jms.TextMessage;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.Topics;
@@ -42,10 +47,7 @@ import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import javax.jms.TextMessage;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Objects;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A MetadataAudit object consumer.
@@ -81,19 +83,22 @@ public class MetadataAuditConsumer implements AuditConsumer
     {
         try
         {
-            String payload = message.getText();
-
-            Audit auditMessage = renderService.fromJson( payload, Audit.class );
-            MetadataAudit audit = toMetadataAudit( auditMessage.getData() );
-
-            if ( metadataAuditLog )
+            if ( metadataAuditLog || metadataAuditPersist )
             {
-                log.info( renderService.toJsonAsString( audit ) );
-            }
+                String payload = message.getText();
 
-            if ( metadataAuditPersist )
-            {
-                metadataAuditService.addMetadataAudit( audit );
+                Audit auditMessage = renderService.fromJson( payload, Audit.class );
+                MetadataAudit audit = toMetadataAudit( auditMessage.getData() );
+
+                if ( metadataAuditLog )
+                {
+                    log.info( renderService.toJsonAsString( audit ) );
+                }
+
+                if ( metadataAuditPersist )
+                {
+                    metadataAuditService.addMetadataAudit( audit );
+                }
             }
         }
         catch ( IOException e )
