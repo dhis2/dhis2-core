@@ -35,12 +35,15 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.FlushMode;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -187,7 +190,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
             session.persist( trackedEntityInstance );
 
-            handleTrackedEntityAttributeValues( session, trackedEntityInstance );
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), trackedEntity.getAttributes(), trackedEntityInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -199,15 +202,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
-    }
-
-    private void handleTrackedEntityAttributeValues( Session session, TrackedEntityInstance trackedEntityInstance )
-    {
-        for ( TrackedEntityAttributeValue attributeValue : trackedEntityInstance.getTrackedEntityAttributeValues() )
-        {
-            attributeValue.setEntityInstance( trackedEntityInstance );
-            session.persist( attributeValue );
-        }
     }
 
     private TrackerTypeReport handleEnrollments( Session session, TrackerBundle bundle )
@@ -239,6 +233,9 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             programInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programInstance );
+
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), enrollment.getAttributes(),
+                programInstance.getEntityInstance() );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -298,6 +295,27 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
+
+    private void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
+        List<Attribute> attributes, TrackedEntityInstance trackedEntityInstance )
+    {
+        for ( Attribute at : attributes )
+        {
+            TrackedEntityAttribute attribute = preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, at.getAttribute() );
+            TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue()
+                .setAttribute( attribute )
+                .setValue( at.getValue() )
+                .setStoredBy( at.getStoredBy() );
+
+            trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
+        }
+
+        for ( TrackedEntityAttributeValue attributeValue : trackedEntityInstance.getTrackedEntityAttributeValues() )
+        {
+            attributeValue.setEntityInstance( trackedEntityInstance );
+            session.persist( attributeValue );
+        }
+    }
 
     private User getUser( User user, String userUid )
     {

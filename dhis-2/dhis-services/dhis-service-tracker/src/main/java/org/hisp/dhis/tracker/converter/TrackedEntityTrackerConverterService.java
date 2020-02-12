@@ -30,11 +30,8 @@ package org.hisp.dhis.tracker.converter;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -154,17 +151,6 @@ public class TrackedEntityTrackerConverterService
             trackedEntity.setInactive( te.isInactive() );
             trackedEntity.setDeleted( te.isDeleted() );
             trackedEntity.setGeometry( te.getGeometry() );
-
-            for ( Attribute at : te.getAttributes() )
-            {
-                TrackedEntityAttribute attribute = preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, at.getAttribute() );
-                TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue()
-                    .setAttribute( attribute )
-                    .setValue( at.getValue() )
-                    .setStoredBy( at.getStoredBy() );
-
-                trackedEntity.getTrackedEntityAttributeValues().add( attributeValue );
-            }
 
             trackedEntities.add( trackedEntity );
         } );
