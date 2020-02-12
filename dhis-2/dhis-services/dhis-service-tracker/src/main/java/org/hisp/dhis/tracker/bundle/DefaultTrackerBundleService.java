@@ -236,7 +236,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( programInstance ) );
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( ProgramInstance.class, programInstance ) );
         }
 
         session.flush();
@@ -281,7 +281,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( programStageInstance ) );
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( ProgramStageInstance.class, programStageInstance ) );
         }
 
         session.flush();
