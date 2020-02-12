@@ -140,7 +140,6 @@ public abstract class AbstractTrackerValidationHook
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, errorReporter.getMainKlass() );
         // Set main id the same for all errors in the report.
-        reporter.setMainId( te );
         reporter.setLineNumber( errorReporter.getLineNumber() );
 
         // For looking up existing tei attr. ie. if it is an update. Could/should this be done in the preheater instead?

@@ -65,7 +65,7 @@ public class TrackedEntityGeoValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment();
+            reporter.increment(trackedEntity);
 
             TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, trackedEntity );
 

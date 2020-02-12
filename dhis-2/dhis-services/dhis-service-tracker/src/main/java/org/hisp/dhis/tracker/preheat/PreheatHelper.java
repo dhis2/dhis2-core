@@ -29,9 +29,11 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
@@ -65,5 +67,10 @@ public class PreheatHelper
     public static TrackedEntityType getTrackedEntityType( TrackerBundle bundle, String trackedEntityType )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, trackedEntityType );
+    }
+
+    public static Program getProgram( TrackerBundle bundle, String program )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), Program.class, program );
     }
 }

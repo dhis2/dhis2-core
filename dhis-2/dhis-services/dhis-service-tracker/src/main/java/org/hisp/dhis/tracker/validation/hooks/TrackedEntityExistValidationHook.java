@@ -68,7 +68,7 @@ public class TrackedEntityExistValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment();
+            reporter.increment(trackedEntity);
 
             // This is a very expensive check... move out/optimize to preheater?
             boolean exists = trackedEntityInstanceStore.existsIncludingDeleted( trackedEntity.getTrackedEntity() );

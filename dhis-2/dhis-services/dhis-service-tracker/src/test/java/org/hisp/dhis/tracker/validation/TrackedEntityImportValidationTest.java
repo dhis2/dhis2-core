@@ -70,11 +70,11 @@ import static org.hamcrest.core.Every.everyItem;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TrackerValidationTest
+public class TrackedEntityImportValidationTest
     extends DhisSpringTest
 
 {
-    private static final Logger log = LoggerFactory.getLogger( TrackerValidationTest.class );
+    private static final Logger log = LoggerFactory.getLogger( TrackedEntityImportValidationTest.class );
 
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;

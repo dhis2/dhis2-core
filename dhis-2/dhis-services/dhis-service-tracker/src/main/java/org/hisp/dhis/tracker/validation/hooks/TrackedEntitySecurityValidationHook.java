@@ -71,15 +71,15 @@ public class TrackedEntitySecurityValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment();
+            reporter.increment(trackedEntity);
 
             TrackedEntityType entityType = getTrackedEntityType( bundle, trackedEntity );
 
             if ( entityType != null && !aclService.canDataWrite( actingUser, entityType ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1001 )
-                    .withObject( trackedEntity )
-                    .addArg( actingUser ).addArg( entityType ) );
+                    .addArg( actingUser )
+                    .addArg( entityType ) );
             }
 
             OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
@@ -87,8 +87,8 @@ public class TrackedEntitySecurityValidationHook
             if ( orgUnit != null && !organisationUnitService.isInUserSearchHierarchyCached( actingUser, orgUnit ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1000 )
-                    .withObject( trackedEntity )
-                    .addArg( actingUser ).addArg( orgUnit ) );
+                    .addArg( actingUser )
+                    .addArg( orgUnit ) );
             }
 
             if ( bundle.getImportStrategy().isDelete() )
