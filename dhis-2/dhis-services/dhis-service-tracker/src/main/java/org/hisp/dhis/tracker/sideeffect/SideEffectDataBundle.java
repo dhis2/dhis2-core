@@ -33,7 +33,6 @@ import lombok.Data;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.user.User;
 
 import java.util.List;
 
@@ -52,5 +51,5 @@ public class SideEffectDataBundle
 
     private TrackerImportStrategy importStrategy;
 
-    private User createdBy;
+    private String accessedBy;
 }

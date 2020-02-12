@@ -68,7 +68,7 @@ public class AuditSideEffectHandlerService implements SideEffectHandlerService
             .auditType( auditType )
             .auditScope( AuditScope.TRACKER )
             .createdAt( LocalDateTime.now() )
-            .createdBy( sideEffectDataBundle.getCreatedBy().getUserCredentials().getUsername() )
+            .createdBy( sideEffectDataBundle.getAccessedBy() )
             .klass( sideEffectDataBundle.getKlass().getName() )
             .build();
 

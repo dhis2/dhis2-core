@@ -241,7 +241,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 .klass( ProgramInstance.class )
                 .object( programInstance )
                 .importStrategy( bundle.getImportStrategy() )
-                .createdBy( bundle.getUser() )
+                .accessedBy( bundle.getUsername() )
                 .build() ) );
         }
 
@@ -291,7 +291,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 .klass( ProgramInstance.class )
                 .object( programStageInstance )
                 .importStrategy( bundle.getImportStrategy() )
-                .createdBy( bundle.getUser() )
+                .accessedBy( bundle.getUsername() )
                 .build() ) );
         }
 
