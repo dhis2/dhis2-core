@@ -138,9 +138,9 @@ public interface AppManager
     /**
      * Returns the url of the app repository
      *
-     * @return url of appstore
+     * @return url of app hub
      */
-    String getAppStoreUrl();
+    String getAppHubUrl();
 
     /**
      * Indicates whether the given app is accessible to the current user.

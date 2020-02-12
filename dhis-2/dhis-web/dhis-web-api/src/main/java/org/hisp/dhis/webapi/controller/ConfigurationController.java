@@ -407,6 +407,6 @@ public class ConfigurationController
     @RequestMapping( value = "/appHubUrl", method = RequestMethod.GET )
     public @ResponseBody String getAppHubUrl( Model model, HttpServletRequest request )
     {
-        return (String) appManager.getAppStoreUrl();
+        return appManager.getAppHubUrl();
     }
 }
