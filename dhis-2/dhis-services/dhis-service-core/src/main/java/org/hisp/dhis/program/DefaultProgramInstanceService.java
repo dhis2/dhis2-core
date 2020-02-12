@@ -548,7 +548,7 @@ public class DefaultProgramInstanceService
         // -----------------------------------------------------------------
 
         updateProgramInstance( programInstance );
-        trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance );
+        trackedEntityInstanceService.updateTrackedEntityInstanceWithAudit( trackedEntityInstance );
 
         return programInstance;
     }

@@ -30,15 +30,28 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.UnitTestConfig;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Collection;
 import java.util.Date;
@@ -54,6 +67,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Chau Thu Tran
  */
+@ContextConfiguration( classes = { UnitTestConfig.class, ProgramInstanceServiceTest.ApplicationEventPublisherConfig.class } )
 public class ProgramInstanceServiceTest
     extends DhisSpringTest
 {
@@ -64,6 +78,9 @@ public class ProgramInstanceServiceTest
     private TrackedEntityInstanceService entityInstanceService;
 
     @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
@@ -71,6 +88,12 @@ public class ProgramInstanceServiceTest
 
     @Autowired
     private ProgramStageService programStageService;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    private UserService _userService;
 
     private Date incidenDate;
 
@@ -101,6 +124,8 @@ public class ProgramInstanceServiceTest
     @Override
     public void setUpTest()
     {
+        userService = _userService;
+        createAndInjectAdminUser();
         organisationUnitA = createOrganisationUnit( 'A' );
         long idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
 
@@ -135,7 +160,12 @@ public class ProgramInstanceServiceTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
 
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType.setAllowAuditLog( true );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
         entityInstanceA = createTrackedEntityInstance( organisationUnitA );
+        entityInstanceA.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
         TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
@@ -297,6 +327,11 @@ public class ProgramInstanceServiceTest
             incidenDate, organisationUnitA );
 
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
+
+        // Check if audit event is published
+        ArgumentCaptor<Audit> argument = ArgumentCaptor.forClass( Audit.class );
+        Mockito.verify( applicationEventPublisher ).publishEvent( argument.capture() );
+        assertEquals( AuditType.UPDATE, argument.getValue().getAuditType() );
     }
 
     @Test
@@ -350,5 +385,15 @@ public class ProgramInstanceServiceTest
 
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idD ).getStatus() );
+    }
+
+    @Configuration
+    static class ApplicationEventPublisherConfig
+    {
+        @Bean
+        @Primary
+        public ApplicationEventPublisher applicationEventPublisher() {
+            return Mockito.mock( ApplicationEventPublisher.class );
+        }
     }
 }

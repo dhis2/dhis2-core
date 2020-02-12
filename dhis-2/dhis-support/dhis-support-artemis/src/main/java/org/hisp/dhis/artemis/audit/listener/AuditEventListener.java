@@ -28,25 +28,11 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.payloads.AuditPayload;
-import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * Audit listener for Objects with complex logic that can't be handled by {@link AbstractHibernateListener}
@@ -59,12 +45,9 @@ public class AuditEventListener
 {
     private final AuditManager auditManager;
 
-    private final SessionFactory sessionFactory;
-
-    public AuditEventListener( AuditManager auditManager, SessionFactory sessionFactory )
+    public AuditEventListener( AuditManager auditManager )
     {
         this.auditManager = auditManager;
-        this.sessionFactory = sessionFactory;
     }
 
     @TransactionalEventListener

@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events;
 
 import static org.junit.Assert.*;
 import static junit.framework.TestCase.assertTrue;
+import static org.mockito.ArgumentMatchers.matches;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,6 +42,9 @@ import java.util.List;
 
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.UnitTestConfig;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -65,13 +69,21 @@ import org.hisp.dhis.user.UserService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
+@ContextConfiguration( classes = { UnitTestConfig.class, EventImportTest.ApplicationEventPublisherConfig.class } )
 public class EventImportTest
     extends DhisSpringTest
 {
@@ -98,6 +110,9 @@ public class EventImportTest
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     private UserService _userService;
@@ -140,6 +155,7 @@ public class EventImportTest
         manager.save( organisationUnitB );
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType.setAllowAuditLog( true );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
@@ -286,6 +302,7 @@ public class EventImportTest
     public void testAddEventOnProgramWithRegistration()
         throws IOException
     {
+        trackedEntityInstanceMaleA.getTrackedEntityType();
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
@@ -295,6 +312,11 @@ public class EventImportTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // Check if audit event is published
+        ArgumentCaptor<Audit> argument = ArgumentCaptor.forClass( Audit.class );
+        Mockito.verify( applicationEventPublisher ).publishEvent( argument.capture() );
+        assertEquals( AuditType.UPDATE, argument.getValue().getAuditType() );
     }
 
     @Test
@@ -512,5 +534,15 @@ public class EventImportTest
         event.setDeleted( false );
 
         return event;
+    }
+
+    @Configuration
+    static class ApplicationEventPublisherConfig
+    {
+        @Bean
+        @Primary
+        public ApplicationEventPublisher applicationEventPublisher() {
+            return Mockito.mock( ApplicationEventPublisher.class );
+        }
     }
 }

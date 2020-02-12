@@ -75,6 +75,10 @@ public class Audit implements Message
     @JsonProperty
     private String code;
 
+    /**
+     * Map of the Audited Entity's attribute values which are marked with {@link org.hisp.dhis.audit.AuditAttribute}
+     * This property will be stored in database as JSONB
+     */
     @JsonProperty
     @Builder.Default
     private AuditAttributes attributes = new AuditAttributes();
