@@ -36,7 +36,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
@@ -61,12 +60,12 @@ public class DeleteEventSMSListener
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageService programStageService,
-        ProgramStageInstanceService programStageInstanceService, IdentifiableObjectManager identifiableObjectManager )
+        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageService,
-            programStageInstanceService, identifiableObjectManager );
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            identifiableObjectManager );
     }
 
     @Override

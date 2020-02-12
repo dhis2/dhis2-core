@@ -1,55 +1,5 @@
 package org.hisp.dhis.sms.listener;
 
-import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
-import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.SMSResponse;
-import org.hisp.dhis.smscompression.SMSSubmissionReader;
-import org.hisp.dhis.smscompression.models.SMSDataValue;
-import org.hisp.dhis.smscompression.models.SMSEvent;
-import org.hisp.dhis.smscompression.models.SMSMetadata;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
-import org.hisp.dhis.smscompression.models.UID;
-import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -78,6 +28,53 @@ import com.google.gson.GsonBuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
+import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SMSResponse;
+import org.hisp.dhis.smscompression.SMSSubmissionReader;
+import org.hisp.dhis.smscompression.models.SMSDataValue;
+import org.hisp.dhis.smscompression.models.SMSMetadata;
+import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
+import org.hisp.dhis.smscompression.models.UID;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
@@ -107,8 +104,6 @@ public abstract class CompressionSMSListener
 
     protected final DataElementService dataElementService;
 
-    protected final ProgramStageService programStageService;
-
     protected final ProgramStageInstanceService programStageInstanceService;
 
     protected final IdentifiableObjectManager identifiableObjectManager;
@@ -117,8 +112,8 @@ public abstract class CompressionSMSListener
         UserService userService, TrackedEntityTypeService trackedEntityTypeService,
         TrackedEntityAttributeService trackedEntityAttributeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageService programStageService,
-        ProgramStageInstanceService programStageInstanceService, IdentifiableObjectManager identifiableObjectManager )
+        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender );
 
@@ -129,7 +124,6 @@ public abstract class CompressionSMSListener
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
         checkNotNull( dataElementService );
-        checkNotNull( programStageService );
         checkNotNull( programStageInstanceService );
 
         this.userService = userService;
@@ -139,7 +133,6 @@ public abstract class CompressionSMSListener
         this.organisationUnitService = organisationUnitService;
         this.categoryService = categoryService;
         this.dataElementService = dataElementService;
-        this.programStageService = programStageService;
         this.programStageInstanceService = programStageInstanceService;
         this.identifiableObjectManager = identifiableObjectManager;
     }
@@ -253,30 +246,6 @@ public abstract class CompressionSMSListener
     {
         return identifiableObjectManager.getUidsCreatedBefore( klass, lastSyncDate ).stream()
             .map( o -> new SMSMetadata.ID( o ) ).collect( Collectors.toList() );
-    }
-
-    protected List<Object> processEvent( SMSEvent event, OrganisationUnit orgUnit, User user,
-        ProgramInstance programInstance, IncomingSms sms )
-    {
-        UID stageid = event.getProgramStage();
-        UID aocid = event.getAttributeOptionCombo();
-
-        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
-        if ( programStage == null )
-        {
-            throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
-        }
-
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
-        if ( aoc == null )
-        {
-            throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
-        }
-
-        List<Object> errorUIDs = saveNewEvent( event.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
-            user, event.getValues(), event.getEventStatus() );
-
-        return errorUIDs;
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,

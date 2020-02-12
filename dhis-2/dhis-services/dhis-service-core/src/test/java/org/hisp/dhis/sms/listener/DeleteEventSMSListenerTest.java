@@ -130,7 +130,7 @@ public class DeleteEventSMSListenerTest
     {
         subject = new DeleteEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, programStageInstanceService, identifiableObjectManager );
+            programStageInstanceService, identifiableObjectManager );
 
         setUpInstances();
 
