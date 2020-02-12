@@ -28,10 +28,17 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+
+import java.util.function.Function;
 
 /**
  * @author Zubair Asghar
@@ -40,6 +47,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationSideEffectHandlerService implements SideEffectHandlerService
 {
+    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Function<Long, ApplicationEvent>> EVENT_MAPPER =
+        new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Function<Long, ApplicationEvent>>()
+        .put( ProgramInstance.class, id -> new ProgramEnrollmentNotificationEvent( this, id ) )
+        .put( ProgramStageInstance.class, id -> new ProgramStageCompletionNotificationEvent( this, id ) )
+        .build();
+
     private final ApplicationEventPublisher eventPublisher;
 
     public NotificationSideEffectHandlerService( ApplicationEventPublisher eventPublisher )
@@ -48,8 +61,11 @@ public class NotificationSideEffectHandlerService implements SideEffectHandlerSe
     }
 
     @Override
-    public void handleSideEffect( BaseIdentifiableObject object )
+    public void handleSideEffect( Class<? extends BaseIdentifiableObject> klass, BaseIdentifiableObject object )
     {
-        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, object.getId() ) );
+        if ( EVENT_MAPPER.containsKey( klass ) )
+        {
+            eventPublisher.publishEvent( EVENT_MAPPER.get( klass ).apply( object.getId() ) );
+        }
     }
 }

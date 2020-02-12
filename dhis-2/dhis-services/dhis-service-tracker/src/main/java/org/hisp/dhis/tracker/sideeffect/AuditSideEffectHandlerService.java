@@ -39,7 +39,8 @@ import org.springframework.stereotype.Service;
 public class AuditSideEffectHandlerService implements SideEffectHandlerService
 {
     @Override
-    public void handleSideEffect( BaseIdentifiableObject object )
+    public void handleSideEffect( Class<? extends BaseIdentifiableObject> klass, BaseIdentifiableObject object )
     {
+
     }
 }

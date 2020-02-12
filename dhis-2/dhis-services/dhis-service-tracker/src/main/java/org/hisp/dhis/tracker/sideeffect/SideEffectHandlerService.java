@@ -35,5 +35,5 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
  */
 public interface SideEffectHandlerService
 {
-    void handleSideEffect( BaseIdentifiableObject object );
+    void handleSideEffect( Class<? extends BaseIdentifiableObject> klass, BaseIdentifiableObject object );
 }
