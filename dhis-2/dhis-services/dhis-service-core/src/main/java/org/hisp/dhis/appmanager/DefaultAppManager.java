@@ -275,9 +275,9 @@ public class DefaultAppManager
     }
 
     @Override
-    public String getAppStoreUrl()
+    public String getAppHubUrl()
     {
-        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
+        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_HUB_URL ) );
     }
 
     /**
