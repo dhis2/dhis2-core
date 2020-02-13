@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.base.Strings;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -80,6 +81,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.io.InputStream;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -563,13 +565,13 @@ public class DataValueController
         }
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
         setNoStore( response );
-
         try
         {
-            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
+            InputStream file = fileResourceService.getFileResourceContent( fileResource );
+            response.setContentLength( file.available() );
+            IOUtils.copy( file, response.getOutputStream() );
         }
         catch ( IOException e )
         {
