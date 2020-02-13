@@ -128,7 +128,7 @@ public class TrackerIdentifierCollector
     private static void collectRelationships(
         Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Relationship> relationships )
     {
-        relationships.forEach( relationship -> {
+        relationships.parallelStream().forEach( relationship -> {
             addIdentifier( map, Relationship.class, identifier, relationship.getRelationship() );
             collectTrackedEntities( map, identifier,
                 getEntities( relationship.getFrom().getTrackedEntity(), relationship.getTo().getTrackedEntity() ) );

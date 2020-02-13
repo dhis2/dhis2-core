@@ -300,7 +300,6 @@ public class DefaultTrackerBundleService
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
 
         relationships.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Relationship.class, o, bundle ) ) );
-        session.flush();
 
         for ( int idx = 0; idx < relationships.size(); idx++ )
         {
@@ -331,7 +330,6 @@ public class DefaultTrackerBundleService
             }
         }
 
-        session.flush();
         relationships.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Relationship.class, o, bundle ) ) );
 
         return typeReport;
