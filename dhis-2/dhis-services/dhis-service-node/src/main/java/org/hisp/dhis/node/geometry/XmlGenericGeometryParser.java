@@ -35,18 +35,16 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Enrico Colasante
  */
+@Slf4j
 public class XmlGenericGeometryParser
     extends BaseParser
     implements GeometryParser<Geometry>
 {
-    private final static Log log = LogFactory.getLog( XmlGenericGeometryParser.class );
-
     public XmlGenericGeometryParser( GeometryFactory geometryFactory )
     {
         super( geometryFactory );

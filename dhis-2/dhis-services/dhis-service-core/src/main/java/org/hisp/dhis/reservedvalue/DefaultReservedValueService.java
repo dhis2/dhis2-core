@@ -30,8 +30,7 @@ package org.hisp.dhis.reservedvalue;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternMethod;
@@ -56,6 +55,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Stian Sandvold
  */
+@Slf4j
 @Service( "org.hisp.dhis.reservedvalue.ReservedValueService" )
 public class DefaultReservedValueService
     implements ReservedValueService
@@ -79,8 +79,6 @@ public class DefaultReservedValueService
         this.reservedValueStore = reservedValueStore;
         this.sequentialNumberCounterStore = sequentialNumberCounterStore;
     }
-
-    private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
     @Transactional
