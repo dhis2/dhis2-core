@@ -56,7 +56,7 @@ public enum TrackerErrorCode
     E1016(
         "TrackedEntityInstance: `{0}`, already has an active enrollment in program: `{1}`, and this " +
             "program only allows enrolling one time." ),
-    E1017( "Attribute uid does not point to a valid attribute." ),
+    E1017( "Attribute does not exist." ),
     E1018( "Missing mandatory attribute: `{0}`." ),
     E1019( "Only program attributes is allowed for enrollment; Non valid attributes: `{0}`." ),
     E1020( "Enrollment date: `{0}`, can`t be future date." ),
@@ -110,6 +110,8 @@ public enum TrackerErrorCode
     E1067( "Could not find organization unit in tracked entity instance: `{0}`." ),
 
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to enrollment." ),
+    E1069( "Could not find Program: `{0}`, linked to enrollment." ),
+    E1070( "Could not find OrganisationUnit: `{0}`, linked to enrollment." ),
 
     E9999( "N/A" );
 

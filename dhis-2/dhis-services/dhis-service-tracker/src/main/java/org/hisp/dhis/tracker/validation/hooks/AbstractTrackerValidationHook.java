@@ -28,7 +28,10 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -39,9 +42,9 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
@@ -49,6 +52,8 @@ import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -57,13 +62,12 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -135,48 +139,6 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected RelationshipService relationshipService;
 
-    protected boolean validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te, TrackedEntityInstance tei, OrganisationUnit orgUnit )
-    {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, errorReporter.getMainKlass() );
-        // Set main id the same for all errors in the report.
-        reporter.setLineNumber( errorReporter.getLineNumber() );
-
-        // For looking up existing tei attr. ie. if it is an update. Could/should this be done in the preheater instead?
-        Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
-            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( tei ) );
-
-        for ( Attribute attribute : te.getAttributes() )
-        {
-            if ( StringUtils.isEmpty( attribute.getValue() ) )
-            {
-                continue;
-            }
-
-            TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
-                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
-
-            if ( trackedEntityAttribute == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1006 ).addArg( attribute.getAttribute() ) );
-                continue;
-            }
-
-            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
-
-            validateTextPattern( reporter, attribute, trackedEntityAttribute, trackedEntityAttributeValue );
-
-            validateAttrValueType( reporter, attribute, trackedEntityAttribute );
-
-            validateAttrUnique( reporter, attribute, trackedEntityAttribute, te, orgUnit );
-
-            validateFileNotAlreadyAssigned( reporter, attribute, tei );
-        }
-
-        errorReporter.getReportList().addAll( reporter.getReportList() );
-        return reporter.getReportList().isEmpty();
-    }
-
     protected boolean checkCanCreateGeo( ValidationErrorReporter errorReporter, TrackedEntity te )
     {
         if ( te.getCoordinates() != null && FeatureType.NONE != te.getFeatureType() )
@@ -236,7 +198,7 @@ public abstract class AbstractTrackerValidationHook
             reservedValueService.isReserved( attribute.getTextPattern(), value );
     }
 
-    private boolean validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
+    protected boolean validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr,
         TrackedEntityAttributeValue teiAttributeValue )
     {
@@ -258,7 +220,7 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
+    protected boolean validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityInstance tei )
     {
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
@@ -285,7 +247,7 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
+    protected boolean validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
@@ -299,15 +261,15 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateAttrUnique( ValidationErrorReporter errorReporter, Attribute attr,
-        TrackedEntityAttribute teAttr, TrackedEntity te, OrganisationUnit trackedEntityOu )
+    protected boolean validateAttrUnique( ValidationErrorReporter errorReporter, String value,
+        TrackedEntityAttribute teAttr, String uid, OrganisationUnit trackedEntityOu )
     {
         if ( Boolean.TRUE.equals( teAttr.isUnique() ) )
         {
             String error = teAttrService.validateAttributeUniquenessWithinScope(
                 teAttr,
-                attr.getValue(),
-                te.getTrackedEntity(),
+                value,
+                uid,
                 trackedEntityOu );
 
             if ( error != null )
