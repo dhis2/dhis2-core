@@ -87,22 +87,30 @@ expr
     |   it='d2:concatenate(' expr (',' expr )* ')'
     |   it='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
     |   it='d2:count(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
+    |   it='d2:count(' WS* '#{' variableName '}' WS* ')'
     |   it='d2:countIfCondition(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ',' WS* stringLiteral WS* ')'
+    |   it='d2:countIfCondition(' WS* '#{' variableName '}' WS* ',' WS* stringLiteral WS* ')'
     |   it='d2:countIfValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ',' expr ')'
+    |   it='d2:countIfValue(' WS* '#{' variableName '}' WS* ',' expr ')'
     |   it='d2:countIfZeroPos(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
+    |   it='d2:countIfZeroPos(' WS* '#{' variableName '}' WS* ')'
     |   it='d2:daysBetween(' expr ',' expr ')'
     |   it='d2:floor(' expr ')'
     |   it='d2:hasUserRole(' expr ')'
-    |   it='d2:hasValue(' expr ')'
+    |   it='d2:hasValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
+    |   it='d2:hasValue(' WS* '#{' variableName '}' WS* ')'
+    |   it='d2:hasValue(' WS* 'A{' uid0=UID '}' WS* ')'
     |   it='d2:inOrgUnitGroup(' expr ')'
     |   it='d2:lastEventDate(' expr ')'
     |   it='d2:left(' expr ',' expr ')'
     |   it='d2:length(' expr ')'
     |   it='d2:maxValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
     |   it='d2:maxValue(' WS* 'PS_EVENTDATE:' WS* uid0=UID WS* ')'
+    |   it='d2:maxValue(' WS* '#{' variableName '}' WS* ')'
     |   it='d2:minutesBetween(' expr ',' expr ')'
     |   it='d2:minValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
     |   it='d2:minValue(' WS* 'PS_EVENTDATE:' WS* uid0=UID WS* ')'
+    |   it='d2:minValue(' WS* '#{' variableName '}' WS* ')'
     |   it='d2:modulus(' expr ',' expr ')'
     |   it='d2:monthsBetween(' expr ',' expr ')'
     |   it='d2:oizp(' expr ')'
@@ -122,11 +130,12 @@ expr
 
     //  Data items
 
-    |   it='#{' uid0=UID ('.*')? '}'
+    |   it='#{' uid0=UID (wild1='.*')? '}'
     |   it='#{' uid0=UID '.' uid1=UID '}'
     |   it='#{' uid0=UID '.' uid1=UID wild2='.*' '}'
     |   it='#{' uid0=UID '.*.' uid2=UID '}'
     |   it='#{' uid0=UID '.' uid1=UID '.' uid2=UID '}'
+    |   it='#{' variableName '}'
     |   it='A{' uid0=UID '.' uid1=UID '}' // Program attribute in expressions (indicator, etc.)
     |   it='A{' uid0=UID '}' // Program attribute in program indicator expressions
     |   it='C{' uid0=UID '}'
@@ -136,7 +145,6 @@ expr
     |   it='OUG{' uid0=UID '}'
     |   it='PS_EVENTDATE:' WS* uid0=UID
     |   it='R{' uid0=UID '.' REPORTING_RATE_TYPE '}'
-    |   it='X{' variableName '}' // Program rule variable
     |   it='[days]'
 
     //  Literals
