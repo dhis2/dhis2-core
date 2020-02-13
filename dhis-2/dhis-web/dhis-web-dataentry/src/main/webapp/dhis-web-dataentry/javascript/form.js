@@ -2106,7 +2106,7 @@ function getPreviousEntryField( field )
 
 function registerCompleteDataSet( completedStatus )
 {
-	if ( !confirm( i18n_confirm_complete ) )
+	if ( !confirm( completedStatus ? i18n_confirm_complete : i18n_confirm_undo ) )
 	{
 		return false;
     }
