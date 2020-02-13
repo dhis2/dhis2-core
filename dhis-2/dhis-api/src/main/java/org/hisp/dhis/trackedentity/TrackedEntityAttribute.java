@@ -178,7 +178,7 @@ public class TrackedEntityAttribute
 
         for ( Option option : getOptionSet().getOptions() )
         {
-            if ( value.equals( option.getCode() ) )
+            if ( option != null && value.equals( option.getCode() ) )
             {
                 return true;
             }
