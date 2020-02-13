@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,10 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -50,12 +47,11 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.core.env.Environment;
-import com.google.common.collect.Lists;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -69,7 +65,7 @@ public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-            SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
 
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
@@ -147,14 +143,40 @@ public class DefaultSystemSettingManager
             setting = new SystemSetting();
 
             setting.setName( key.getName() );
-            setting.setValue( value );
+            setting.setDisplayValue( value );
 
             systemSettingStore.save( setting );
         }
         else
         {
-            setting.setValue( value );
+            setting.setDisplayValue( value );
 
+            systemSettingStore.update( setting );
+        }
+    }
+
+    @Override
+    @Transactional
+    public void saveSystemSettingTranslation( SettingKey key, String locale, String translation )
+    {
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
+        if ( setting == null && !translation.isEmpty() )
+        {
+            throw new IllegalStateException( "No entry found for key: " + key );
+        }
+        else if ( setting != null )
+        {
+            if ( translation.isEmpty() )
+            {
+                setting.getTranslations().remove( locale );
+            }
+            else
+            {
+                setting.getTranslations().put( locale, translation );
+            }
+
+            settingCache.invalidate( key.getName() );
             systemSettingStore.update( setting );
         }
     }
@@ -214,7 +236,7 @@ public class DefaultSystemSettingManager
             {
                 try
                 {
-                    return Optional.of( pbeStringEncryptor.decrypt( (String) setting.getValue() ) );
+                    return Optional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
                 catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing
                 {
@@ -224,13 +246,25 @@ public class DefaultSystemSettingManager
             }
             else
             {
-                return Optional.of( setting.getValue() );
+                return Optional.ofNullable( setting.getDisplayValue() );
             }
         }
         else
         {
             return Optional.ofNullable( defaultValue );
         }
+    }
+
+    @Override
+    public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
+    {
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
+        if ( setting != null )
+        {
+            return setting.getTranslation( locale );
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -259,7 +293,7 @@ public class DefaultSystemSettingManager
 
         for ( SystemSetting systemSetting : systemSettings )
         {
-            Serializable settingValue = systemSetting.getValue();
+            Serializable settingValue = systemSetting.getDisplayValue();
 
             if ( settingValue == null )
             {
@@ -407,5 +441,11 @@ public class DefaultSystemSettingManager
     public boolean isConfidential( String name )
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+    }
+
+    @Override
+    public boolean isTranslatable( final String name )
+    {
+        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
     }
 }

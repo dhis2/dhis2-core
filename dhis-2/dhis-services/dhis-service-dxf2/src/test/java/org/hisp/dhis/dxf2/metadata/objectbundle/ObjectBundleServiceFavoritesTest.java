@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -81,6 +83,7 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
+    @Ignore
     public void testCreateMetadataWithCharts1() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
@@ -108,6 +111,34 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
+    public void testCreateMetadataWithVisualization() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/favorites/metadata_with_visualization.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertTrue( validate.getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<DataSet> dataSets = manager.getAll( DataSet.class );
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        List<DataElement> dataElements = manager.getAll( DataElement.class );
+        List<Visualization> visualizations = manager.getAll( Visualization.class );
+
+        assertEquals( 1, dataSets.size() );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( 4, dataElements.size() );
+        assertEquals( 3, visualizations.size() );
+    }
+
+    @Test
+    @Ignore
     public void testCreateMetadataWithChartsWithPeriods1() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
@@ -140,6 +171,39 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
+    public void testCreateMetadataWithVisualizationsWithPeriods() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/favorites/metadata_with_visualization_periods.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertTrue( validate.getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<DataSet> dataSets = manager.getAll( DataSet.class );
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        List<DataElement> dataElements = manager.getAll( DataElement.class );
+        List<Visualization> visualizations = manager.getAll( Visualization.class );
+
+        assertEquals( 1, dataSets.size() );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( 4, dataElements.size() );
+        assertEquals( 4, visualizations.size() );
+
+        Visualization visualization = manager.get( Visualization.class, "ziCoxdcXRQz" );
+
+        assertNotNull( visualization );
+        assertEquals( 5, visualization.getPeriods().size() );
+    }
+
+    @Test
+    @Ignore
     public void testCreateMetadataWithReportTables1() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(

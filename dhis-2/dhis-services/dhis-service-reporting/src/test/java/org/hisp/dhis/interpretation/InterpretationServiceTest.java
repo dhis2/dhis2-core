@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,16 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.mock.MockUserService;
@@ -42,16 +48,14 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +70,7 @@ public class InterpretationServiceTest
     private UserGroupService userGroupService;
 
     @Autowired
-    private ChartService chartService;
+    private VisualizationService visualizationService;
 
     @Autowired
     private InterpretationService interpretationService;
@@ -80,7 +84,7 @@ public class InterpretationServiceTest
     
     private User userC;
 
-    private Chart chartA;
+    private Visualization visualizationA;
 
     private Interpretation interpretationA;
 
@@ -110,24 +114,29 @@ public class InterpretationServiceTest
         setDependency( interpretationService, "userService", new MockUserService( Arrays.asList(userA, userB, userC) ),
             UserService.class );
 
-        chartA = createChart( 'A' );
-        chartService.addChart( chartA );
+        visualizationA = createVisualization( "Visualization-A" );
+        visualizationService.save(visualizationA);
 
-        interpretationA = new Interpretation( chartA, null, "Interpration of chart A" );
-        interpretationB = new Interpretation( chartA, null, "Interpration of chart B" );
-        interpretationC = new Interpretation( chartA, null, "Interpration of chart C" );
+        interpretationA = new Interpretation( visualizationA, null, "Interpration of chart A" );
+        interpretationB = new Interpretation( visualizationA, null, "Interpration of chart B" );
+        interpretationC = new Interpretation( visualizationA, null, "Interpration of chart C" );
     }
 
     @Test
     public void testConstruct()
     {
-        Interpretation interprA = new Interpretation( chartA, null, "Interpretation" );
-        Interpretation interprB = new Interpretation( chartA, null, "Interpretation" );
+        // Given
+        final Visualization aVisualizationA = createVisualization( "Visualization-A" );
 
-        assertEquals( chartA, interprA.getChart() );
-        assertEquals( chartA, interprB.getChart() );
-        assertTrue( chartA.getInterpretations().contains( interprA ) );
-        assertTrue( chartA.getInterpretations().contains( interprB ) );
+        // When
+        final Interpretation anInterpretationA = new Interpretation( aVisualizationA, null, "InterpretationA" );
+        final Interpretation anInterpretationB = new Interpretation( aVisualizationA, null, "InterpretationB" );
+
+        // Then
+        assertEquals( aVisualizationA, anInterpretationA.getVisualization() );
+        assertEquals( aVisualizationA, anInterpretationB.getVisualization() );
+        assertTrue( aVisualizationA.getInterpretations().contains( anInterpretationA ) );
+        assertTrue( aVisualizationA.getInterpretations().contains( anInterpretationB ) );
     }
 
     @Test
@@ -188,42 +197,6 @@ public class InterpretationServiceTest
     }
 
     @Test
-    @Ignore
-    public void testGetLastByUserA()
-    {
-        interpretationService.saveInterpretation( interpretationA );
-        interpretationService.saveInterpretation( interpretationB );
-        interpretationService.saveInterpretation( interpretationC );
-
-        List<Interpretation> interpretations = interpretationService.getInterpretations( 0, 50 );
-
-        assertEquals( 3, interpretations.size() );
-
-        assertTrue( interpretations.contains( interpretationA ) );
-        assertTrue( interpretations.contains( interpretationB ) );
-        assertTrue( interpretations.contains( interpretationC ) );
-    }
-
-    @Test
-    @Ignore
-    public void testGetLastByUserB()
-    {
-        interpretationA.addComment( new InterpretationComment( "Comment", userB ) );
-        interpretationB.addComment( new InterpretationComment( "Comment", userB ) );
-
-        interpretationService.saveInterpretation( interpretationA );
-        interpretationService.saveInterpretation( interpretationB );
-        interpretationService.saveInterpretation( interpretationC );
-
-        List<Interpretation> interpretations = interpretationService.getInterpretations( 0, 50 );
-
-        assertEquals( 2, interpretations.size() );
-
-        assertTrue( interpretations.contains( interpretationA ) );
-        assertTrue( interpretations.contains( interpretationB ) );
-    }
-
-    @Test
     public void testAddComment()
     {
         interpretationService.saveInterpretation( interpretationA );
@@ -257,7 +230,7 @@ public class InterpretationServiceTest
     {
         String text;
         // Testing with mentions 
-        interpretationA = new Interpretation( chartA, null, "Interpration of chart A with Mentions @" + userA.getUsername() );
+        interpretationA = new Interpretation(visualizationA, null, "Interpration of chart A with Mentions @" + userA.getUsername() );
         interpretationService.saveInterpretation( interpretationA );
 
         String uid = interpretationA.getUid();
@@ -293,7 +266,7 @@ public class InterpretationServiceTest
         assertEquals( 2, interpretationA.getComments().size() );
         
         // Testing with no mention or non real mentions
-        interpretationB = new Interpretation( chartA, null, "Interpration of chart B with no mentions");
+        interpretationB = new Interpretation(visualizationA, null, "Interpration of chart B with no mentions");
         interpretationService.saveInterpretation( interpretationB );      
         uid = interpretationB.getUid();
         assertNotNull( uid );
@@ -370,22 +343,22 @@ public class InterpretationServiceTest
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
         userGroupService.addUserGroup( userGroup );
 
-        Chart chart = createChart( 'A' );
-        manager.save( chart );
+        Visualization visualization = createVisualization( "Visualization-A" );
+        manager.save( visualization );
 
-        chart.setPublicAccess( AccessStringHelper.READ_WRITE );
-        chart.getUserGroupAccesses().add( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
-        assertEquals( 1, chart.getUserGroupAccesses().size() );
-        manager.update( chart );
+        visualization.setPublicAccess( AccessStringHelper.READ_WRITE );
+        visualization.getUserGroupAccesses().add( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
+        assertEquals( 1, visualization.getUserGroupAccesses().size() );
+        manager.update( visualization );
 
-        assertEquals( AccessStringHelper.READ_WRITE, chart.getPublicAccess() );
-        assertEquals( 1, chart.getUserGroupAccesses().size() );
+        assertEquals( AccessStringHelper.READ_WRITE, visualization.getPublicAccess() );
+        assertEquals( 1, visualization.getUserGroupAccesses().size() );
 
-        Interpretation interpretation = new Interpretation( chart, null, "test" );
+        Interpretation interpretation = new Interpretation( visualization, null, "test" );
         interpretationService.saveInterpretation( interpretation );
         interpretationService.updateInterpretation( interpretation );
 
         assertEquals( AccessStringHelper.READ_WRITE, interpretation.getPublicAccess() );
-        assertEquals( interpretation.getUserGroupAccesses().size(), chart.getUserGroupAccesses().size() );
+        assertEquals( interpretation.getUserGroupAccesses().size(), visualization.getUserGroupAccesses().size() );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -748,7 +748,6 @@ public abstract class BaseAnalyticalObject
     {
         dataDimensionItems.clear();
         periods.clear();
-        relatives = null;
         organisationUnits.clear();
         dataElementGroupSetDimensions.clear();
         organisationUnitGroupSetDimensions.clear();
@@ -758,10 +757,11 @@ public abstract class BaseAnalyticalObject
         attributeDimensions.clear();
         dataElementDimensions.clear();
         programIndicatorDimensions.clear();
+        itemOrganisationUnitGroups.clear();
+        relatives = null;
         userOrganisationUnit = false;
         userOrganisationUnitChildren = false;
         userOrganisationUnitGrandChildren = false;
-        itemOrganisationUnitGroups.clear();
     }
 
     // -------------------------------------------------------------------------

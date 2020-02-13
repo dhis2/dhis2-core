@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
@@ -86,15 +85,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     private final DeletedObjectService deletedObjectService;
 
-    private final RenderService renderService;
-
     private List<ObjectBundleHook> objectBundleHooks;
 
     public DefaultObjectBundleService( CurrentUserService currentUserService, PreheatService preheatService,
         SchemaService schemaService, SessionFactory sessionFactory, IdentifiableObjectManager manager,
         DbmsManager dbmsManager, HibernateCacheManager cacheManager, Notifier notifier, MergeService mergeService,
-        DeletedObjectService deletedObjectService, RenderService renderService,
-        List<ObjectBundleHook> objectBundleHooks )
+        DeletedObjectService deletedObjectService, List<ObjectBundleHook> objectBundleHooks )
     {
         checkNotNull( currentUserService );
         checkNotNull( preheatService );
@@ -106,7 +102,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         checkNotNull( notifier );
         checkNotNull( mergeService );
         checkNotNull( deletedObjectService );
-        checkNotNull( renderService );
 
         this.objectBundleHooks = (objectBundleHooks != null) ? objectBundleHooks : new ArrayList<>();
 
@@ -120,7 +115,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         this.notifier = notifier;
         this.mergeService = mergeService;
         this.deletedObjectService = deletedObjectService;
-        this.renderService = renderService;
     }
 
     @Override
@@ -190,7 +184,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
 
-            if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
+            if ( FlushMode.AUTO == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
         }
 
         if ( !bundle.getImportMode().isDelete() )
@@ -261,7 +258,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -335,7 +334,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -393,7 +394,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         return typeReport;

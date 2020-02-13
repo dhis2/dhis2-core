@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.job;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,15 +39,13 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-@Component
-@Scope( value = "prototype" )
+@Component( "sendSmsJob" )
 public class SendSmsJob
     extends AbstractJob
 {

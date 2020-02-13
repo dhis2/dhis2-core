@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -533,6 +533,34 @@ public class TextUtils
         }
 
         return name.toString();
+    }
+
+    /**
+     * Returns a human friendly name of the given enum.
+     *
+     * @param enumeration the enum.
+     * @return a human friendly name.
+     */
+    public static String getPrettyEnumName( Enum<?> enumeration )
+    {
+        return StringUtils.capitalize( enumeration.name().replaceAll( "_", " " ).toLowerCase() );
+    }
+
+    /**
+     * Returns a human friendly name of the given property value.
+     *
+     * @param property the property value.
+     * @return a human friendly name.
+     */
+    public static String getPrettyPropertyName( String property )
+    {
+        List<String> fieldStrings = Arrays.stream( property.split( "(?=[A-Z])" ) )
+            .map( String::toLowerCase )
+            .collect( Collectors.toList() );
+
+        fieldStrings.set( 0, StringUtils.capitalize( fieldStrings.get( 0 ) ) );
+
+        return String.join( " ", fieldStrings );
     }
 
     /**

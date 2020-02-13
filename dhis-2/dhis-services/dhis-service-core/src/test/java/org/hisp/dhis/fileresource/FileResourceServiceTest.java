@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.fileresource;
 
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
@@ -96,8 +96,6 @@ public class FileResourceServiceTest
     {
         subject = new DefaultFileResourceService( fileResourceStore, sessionFactory, fileResourceContentStore,
             imageProcessingService, fileEventPublisher );
-
-        when( sessionFactory.getCurrentSession() ).thenReturn( session );
     }
 
     @Test
@@ -109,6 +107,8 @@ public class FileResourceServiceTest
         fileResource.setUid( "fileRes1" );
 
         File file = new File( "" );
+
+        when( sessionFactory.getCurrentSession() ).thenReturn( session );
 
         subject.saveFileResource( fileResource, file );
 
@@ -134,6 +134,8 @@ public class FileResourceServiceTest
         Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
 
         when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
+
+        when( sessionFactory.getCurrentSession() ).thenReturn( session );
 
         fileResource.setUid( "imageUid1" );
 

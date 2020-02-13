@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentitydatavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -81,7 +82,9 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaQuery<TrackedEntityDataValueAudit> query = builder.createQuery( TrackedEntityDataValueAudit.class );
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
         query.select( root );
-        query = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, query, root );
+
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, root );
+        query.where( predicates.toArray( new Predicate[ predicates.size() ] ) );
         query.orderBy( builder.desc( root.get( "created" ) ) );
 
         return sessionFactory.getCurrentSession().createQuery( query ).getResultList();
@@ -95,7 +98,9 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaQuery<TrackedEntityDataValueAudit> query = builder.createQuery( TrackedEntityDataValueAudit.class );
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
         query.select( root );
-        query = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, query, root );
+
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, root );
+        query.where( predicates.toArray( new Predicate[ predicates.size() ] ) );
         query.orderBy( builder.desc( root.get( "created" ) ) );
 
         return sessionFactory.getCurrentSession().createQuery( query )
@@ -111,33 +116,37 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
         query.select( builder.countDistinct( root.get( "id" ) ) );
-        query = getTrackedEntityDataValueAuditCriteria(dataElements, programStageInstances, auditType, builder, query, root );
+
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, root );
+        query.where( predicates.toArray( new Predicate[ predicates.size() ] ) );
 
         return sessionFactory.getCurrentSession().createQuery( query ).getSingleResult().intValue();
     }
 
-    private CriteriaQuery getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances,
-        AuditType auditType, CriteriaBuilder builder, CriteriaQuery query, Root<TrackedEntityDataValueAudit> root )
+    private  List<Predicate> getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances,
+        AuditType auditType, CriteriaBuilder builder, Root<TrackedEntityDataValueAudit> root )
     {
+        List<Predicate> predicates = new ArrayList<>();
+
         if ( dataElements != null && !dataElements.isEmpty() )
         {
             Expression<DataElement> dataElementExpression = root.get( "dataElement" );
             Predicate dataElementPredicate = dataElementExpression.in( dataElements );
-            query.where( dataElementPredicate );
+            predicates.add( dataElementPredicate );
         }
 
         if ( programStageInstances != null && !programStageInstances.isEmpty() )
         {
             Expression<DataElement> psiExpression = root.get( "programStageInstance" );
             Predicate psiPredicate = psiExpression.in( programStageInstances );
-            query.where( psiPredicate );
+            predicates.add( psiPredicate );
         }
 
         if ( auditType != null )
         {
-            query.where( builder.equal( root.get( "auditType" ), auditType ) );
+            predicates.add( builder.equal( root.get( "auditType" ), auditType ) );
         }
 
-        return query;
+        return predicates;
     }
 }

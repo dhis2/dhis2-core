@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.converter;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.converter;
  */
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -56,14 +55,10 @@ public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>
 {
     private final TrackerPreheatService trackerPreheatService;
-    private final IdentifiableObjectManager manager;
 
-    public EnrollmentTrackerConverterService(
-        TrackerPreheatService trackerPreheatService,
-        IdentifiableObjectManager manager )
+    public EnrollmentTrackerConverterService( TrackerPreheatService trackerPreheatService )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.manager = manager;
     }
 
     @Override
@@ -158,7 +153,7 @@ public class EnrollmentTrackerConverterService
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
             programInstance.setEntityInstance( trackedEntityInstance );
-            programInstance.setFollowup( enrollment.getFollowup() );
+            programInstance.setFollowup( enrollment.isFollowup() );
             programInstance.setGeometry( enrollment.getGeometry() );
 
             if ( enrollment.getStatus() == null )
@@ -177,8 +172,9 @@ public class EnrollmentTrackerConverterService
 
     private TrackerPreheat preheat( List<Enrollment> enrollments )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setEnrollments( enrollments );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .enrollments( enrollments )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }

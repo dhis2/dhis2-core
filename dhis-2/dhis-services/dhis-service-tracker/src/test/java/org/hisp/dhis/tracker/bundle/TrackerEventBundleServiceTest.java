@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,6 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +71,6 @@ public class TrackerEventBundleServiceTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private TrackerPreheatService trackerPreheatService;
 
     @Autowired
     private TrackerBundleService trackerBundleService;
@@ -112,12 +107,13 @@ public class TrackerEventBundleServiceTest
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setEvents( trackerBundle.getEvents() ) );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .events( trackerBundle.getEvents() )
+            .build() );
 
         assertEquals( 1, trackerBundles.size() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
@@ -129,15 +125,17 @@ public class TrackerEventBundleServiceTest
         TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .setEvents( trackerBundle.getEvents() ) );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .events( trackerBundle.getEvents() )
+            .build() );
 
         trackerBundleService.commit( trackerBundles.get( 0 ) );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
-        trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setEvents( trackerBundle.getEvents() ) );
+        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .events( trackerBundle.getEvents() )
+            .build() );
 
         trackerBundleService.commit( trackerBundles.get( 0 ) );
         assertEquals( 8, programStageInstanceStore.getAll().size() );

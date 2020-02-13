@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,11 @@ public class AnalyticsJobParameters
         return lastYears;
     }
 
+    public void setLastYears( Integer lastYears )
+    {
+        this.lastYears = lastYears;
+    }
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "skipTableTypes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "skipTableType", namespace = DxfNamespaces.DXF_2_0 )
@@ -85,21 +90,16 @@ public class AnalyticsJobParameters
         return skipTableTypes;
     }
 
+    public void setSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
+    {
+        this.skipTableTypes = skipTableTypes;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipResourceTables()
     {
         return skipResourceTables;
-    }
-
-    public void setLastYears( Integer lastYears )
-    {
-        this.lastYears = lastYears;
-    }
-
-    public void setSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
-    {
-        this.skipTableTypes = skipTableTypes;
     }
 
     public void setSkipResourceTables( boolean skipResourceTables )
@@ -112,5 +112,4 @@ public class AnalyticsJobParameters
     {
         return Optional.empty();
     }
-
 }

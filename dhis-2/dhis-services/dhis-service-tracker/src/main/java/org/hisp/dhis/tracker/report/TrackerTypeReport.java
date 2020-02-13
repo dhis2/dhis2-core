@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,7 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
 
 import java.util.ArrayList;
@@ -43,11 +40,13 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
 public class TrackerTypeReport
 {
+    @JsonProperty
     private final TrackerType trackerType;
 
+    @JsonProperty
     private TrackerStats stats = new TrackerStats();
 
     private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
@@ -55,6 +54,12 @@ public class TrackerTypeReport
     public TrackerTypeReport( TrackerType trackerType )
     {
         this.trackerType = trackerType;
+    }
+
+    @JsonProperty
+    public List<TrackerObjectReport> getObjectReports()
+    {
+        return new ArrayList<>( objectReportMap.values() );
     }
 
     //-----------------------------------------------------------------------------------
@@ -74,37 +79,6 @@ public class TrackerTypeReport
     public void addObjectReport( TrackerObjectReport objectReport )
     {
         this.objectReportMap.put( objectReport.getIndex(), objectReport );
-    }
-
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStats getStats()
-    {
-        return stats;
-    }
-
-    public void setStats( TrackerStats stats )
-    {
-        this.stats = stats;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerObjectReport> getObjectReports()
-    {
-        return new ArrayList<>( objectReportMap.values() );
     }
 
     public List<TrackerErrorReport> getErrorReports()

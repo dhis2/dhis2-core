@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,13 +60,12 @@ public class PredictorJob
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
-        throws Exception
     {
         PredictorJobParameters predictorJobParameters = ( PredictorJobParameters ) jobConfiguration.getJobParameters();
 
         if ( predictorJobParameters == null )
         {
-            throw new Exception( "No job parameters present in predictor job" );
+            throw new IllegalStateException( "No job parameters present in predictor job" );
         }
 
         predictionService.predictJob( predictorJobParameters, null );

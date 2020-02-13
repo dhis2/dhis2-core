@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,6 +99,14 @@ public interface ProgramStageInstanceService
      * @param uid the identifier.
      */
     boolean programStageInstanceExistsIncludingDeleted( String uid );
+
+    /**
+     * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of existing PSIs (including deleted)
+     */
+    List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids );
 
     /**
      * Returns a {@link ProgramStageInstance}.

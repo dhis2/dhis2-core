@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -180,7 +180,7 @@ public class GenericSmsGatewayTest
             if ( parameter.isHeader() )
             {
                 assertTrue( httpHeaders.containsKey( parameter.getKey() ) );
-                assertEquals( parameter.getValueForKey(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
+                assertEquals( parameter.getDisplayValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
             }
         }
     }
@@ -191,8 +191,8 @@ public class GenericSmsGatewayTest
         username.setHeader( false );
         password.setHeader( false );
 
-        valueStore.put( username.getKey(), username.getValueForKey() );
-        valueStore.put( password.getKey(), password.getValueForKey() );
+        valueStore.put( username.getKey(), username.getDisplayValue() );
+        valueStore.put( password.getKey(), password.getDisplayValue() );
 
         strSubstitutor = new StrSubstitutor( valueStore );
 

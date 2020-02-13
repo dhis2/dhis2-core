@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -242,8 +242,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         // Query parameters
         // ---------------------------------------------------------------------
 
-        Query<DataValue> query = getSession()
-            .createQuery( hql )
+        Query<DataValue> query = getQuery( hql )
             .setParameterList( "dataElements", getIdentifiers( dataElements ) );
 
         if ( params.hasPeriods() )
@@ -316,7 +315,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
         }
 
-        Query query = getQuery( hql )
+        Query<DataValue> query = getQuery( hql )
             .setParameter( "dataElements", dataElements )
             .setParameter( "period", storedPeriod );
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
@@ -43,7 +42,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -51,6 +49,8 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -178,25 +178,26 @@ public class AclServiceTest
     }
 
     @Test
-    public void testCanCreatePrivatePublicChart()
+    public void testCanCreatePrivatePublicVisualization()
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canMakePublic( user, Chart.class ) );
-        assertTrue( aclService.canMakePrivate( user, Chart.class ) );
+        assertFalse( aclService.canMakePublic( user, Visualization.class ) );
+        assertTrue( aclService.canMakePrivate( user, Visualization.class ) );
     }
 
     @Test
-    public void testCanUpdatePrivateChart()
+    public void testCanUpdatePrivateVisualization()
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        Chart chart = new Chart( "Chart" );
-        chart.setAutoFields();
-        chart.setUser( user );
-        chart.setPublicAccess( AccessStringHelper.DEFAULT );
+        Visualization visualization = new Visualization( "Visualization" );
+        visualization.setAutoFields();
+        visualization.setUser( user );
+        visualization.setType( VisualizationType.COLUMN );
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
 
-        assertTrue( aclService.canUpdate( user, chart ) );
+        assertTrue( aclService.canUpdate( user, visualization ) );
     }
 
     @Test
@@ -219,28 +220,6 @@ public class AclServiceTest
         map.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, map ) );
-    }
-
-    @Test
-    public void testCanCreatePrivatePublicReportTable()
-    {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
-
-        assertFalse( aclService.canMakePublic( user, ReportTable.class ) );
-        assertTrue( aclService.canMakePrivate( user, ReportTable.class ) );
-    }
-
-    @Test
-    public void testCanUpdatePrivateReportTable()
-    {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
-
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setUser( user );
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-
-        assertTrue( aclService.canUpdate( user, reportTable ) );
     }
 
     @Test
@@ -354,16 +333,17 @@ public class AclServiceTest
     }
 
     @Test
-    public void testVerifyReportTableCantExternalize()
+    public void testVerifyVisualizationCantExternalize()
     {
-        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
+        User user = createAdminUser( "F_VISUALIZATION_PUBLIC_ADD" );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        reportTable.setExternalAccess( true );
+        Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        visualization.setExternalAccess( true );
+        visualization.setType( VisualizationType.COLUMN );
 
-        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+        assertFalse( aclService.verifySharing( visualization, user ).isEmpty() );
     }
 
     @Test
@@ -371,39 +351,41 @@ public class AclServiceTest
     {
         User user = createAdminUser();
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        reportTable.setExternalAccess( true );
+        Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        visualization.setExternalAccess( true );
+        visualization.setType( VisualizationType.COLUMN );
 
-        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+        assertFalse( aclService.verifySharing( visualization, user ).isEmpty() );
 
-        aclService.resetSharing( reportTable, user );
+        aclService.resetSharing( visualization, user );
 
-        assertTrue( AccessStringHelper.DEFAULT.equals( reportTable.getPublicAccess() ) );
-        assertFalse( reportTable.getExternalAccess() );
-        assertTrue( reportTable.getUserAccesses().isEmpty() );
-        assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
+        assertTrue( AccessStringHelper.DEFAULT.equals( visualization.getPublicAccess() ) );
+        assertFalse( visualization.getExternalAccess() );
+        assertTrue( visualization.getUserAccesses().isEmpty() );
+        assertTrue( visualization.getUserGroupAccesses().isEmpty() );
     }
 
     @Test
     public void testResetSharingPropsPublic()
     {
-        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
+        User user = createAdminUser( "F_VISUALIZATION_PUBLIC_ADD" );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        reportTable.setExternalAccess( true );
+        Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        visualization.setExternalAccess( true );
+        visualization.setType( VisualizationType.COLUMN );
 
-        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+        assertFalse( aclService.verifySharing( visualization, user ).isEmpty() );
 
-        aclService.resetSharing( reportTable, user );
+        aclService.resetSharing( visualization, user );
 
-        assertTrue( AccessStringHelper.READ_WRITE.equals( reportTable.getPublicAccess() ) );
-        assertFalse( reportTable.getExternalAccess() );
-        assertTrue( reportTable.getUserAccesses().isEmpty() );
-        assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
+        assertTrue( AccessStringHelper.READ_WRITE.equals( visualization.getPublicAccess() ) );
+        assertFalse( visualization.getExternalAccess() );
+        assertTrue( visualization.getUserAccesses().isEmpty() );
+        assertTrue( visualization.getUserGroupAccesses().isEmpty() );
     }
 
     @Test
@@ -895,19 +877,20 @@ public class AclServiceTest
         User userNoAuthorities = createUser( "user1" );
         manager.save( userNoAuthorities );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setName( "RT" );
-        reportTable.setUser( adminUser );
-        reportTable.setAutoFields();
-        reportTable.setPublicAccess( AccessStringHelper.READ );
-        reportTable.setExternalAccess( true );
+        Visualization visualization = new Visualization();
+        visualization.setName( "RT" );
+        visualization.setUser( adminUser );
+        visualization.setAutoFields();
+        visualization.setPublicAccess( AccessStringHelper.READ );
+        visualization.setExternalAccess( true );
+        visualization.setType( VisualizationType.COLUMN );
 
-        manager.save( reportTable );
+        manager.save( visualization );
 
         injectSecurityContext( userNoAuthorities );
         assertEquals( userNoAuthorities, currentUserService.getCurrentUser() );
 
-        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, userNoAuthorities );
+        List<ErrorReport> errorReports = aclService.verifySharing( visualization, userNoAuthorities );
         assertFalse( errorReports.isEmpty() );
     }
 
@@ -923,20 +906,21 @@ public class AclServiceTest
         injectSecurityContext( user1 );
         assertEquals( user1, currentUserService.getCurrentUser() );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setName( "RT" );
-        reportTable.setUser( user1 );
-        reportTable.setAutoFields();
-        reportTable.setExternalAccess( false );
+        Visualization visualization = new Visualization();
+        visualization.setName( "RT" );
+        visualization.setUser( user1 );
+        visualization.setAutoFields();
+        visualization.setExternalAccess( false );
+        visualization.setType( VisualizationType.COLUMN );
 
-        manager.save( reportTable );
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        manager.update( reportTable );
+        manager.save( visualization );
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( visualization );
 
         injectSecurityContext( user2 );
         assertEquals( user2, currentUserService.getCurrentUser() );
 
-        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, user2 );
+        List<ErrorReport> errorReports = aclService.verifySharing( visualization, user2 );
         assertFalse( errorReports.isEmpty() );
     }
 
@@ -950,20 +934,21 @@ public class AclServiceTest
         injectSecurityContext( user1 );
         assertEquals( user1, currentUserService.getCurrentUser() );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setName( "RT" );
-        reportTable.setUser( user1 );
-        reportTable.setAutoFields();
-        reportTable.setExternalAccess( false );
+        Visualization visualization = new Visualization();
+        visualization.setName( "RT" );
+        visualization.setUser( user1 );
+        visualization.setAutoFields();
+        visualization.setExternalAccess( false );
+        visualization.setType( VisualizationType.COLUMN );
 
-        manager.save( reportTable );
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
-        manager.update( reportTable );
+        manager.save( visualization );
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( visualization );
 
         injectSecurityContext( adminUser );
         assertEquals( adminUser, currentUserService.getCurrentUser() );
 
-        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, adminUser );
+        List<ErrorReport> errorReports = aclService.verifySharing( visualization, adminUser );
         assertTrue( errorReports.isEmpty() );
     }
 
@@ -1084,31 +1069,32 @@ public class AclServiceTest
         User userA = createUser( 'A' );
         manager.save( userA );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setName( "FavA" );
-        reportTable.setUser( userA );
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setName( "FavA" );
+        visualization.setUser( userA );
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        visualization.setType( VisualizationType.COLUMN );
 
-        assertTrue( aclService.canUpdate( userA, reportTable ) );
+        assertTrue( aclService.canUpdate( userA, visualization ) );
 
-        manager.save( reportTable );
+        manager.save( visualization );
 
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
         userAuthorityGroup.setAutoFields();
         userAuthorityGroup.setName( "UR" );
 
-        userAuthorityGroup.getAuthorities().add( "F_REPORTTABLE_PUBLIC_ADD" );
+        userAuthorityGroup.getAuthorities().add( "F_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userAuthorityGroup );
 
         User userB = createUser( 'B' );
         userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
         manager.save( userB );
 
-        reportTable.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
-        manager.update( reportTable );
+        visualization.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
+        manager.update( visualization );
 
-        assertTrue( aclService.canUpdate( userB, reportTable ) );
+        assertTrue( aclService.canUpdate( userB, visualization ) );
     }
 
     @Test
@@ -1117,55 +1103,57 @@ public class AclServiceTest
         User userA = createUser( 'A' );
         manager.save( userA );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setName( "FavA" );
-        reportTable.setUser( userA );
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setName( "FavA" );
+        visualization.setUser( userA );
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        visualization.setType( VisualizationType.COLUMN );
 
-        assertTrue( aclService.canUpdate( userA, reportTable ) );
+        assertTrue( aclService.canUpdate( userA, visualization ) );
 
-        manager.save( reportTable );
+        manager.save( visualization );
 
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
         userAuthorityGroup.setAutoFields();
         userAuthorityGroup.setName( "UR" );
 
-        userAuthorityGroup.getAuthorities().add( "F_REPORTTABLE_PUBLIC_ADD" );
+        userAuthorityGroup.getAuthorities().add( "F_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userAuthorityGroup );
 
         User userB = createUser( 'B' );
         userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
         manager.save( userB );
 
-        manager.update( reportTable );
+        manager.update( visualization );
 
-        assertFalse( aclService.canUpdate( userB, reportTable ) );
+        assertFalse( aclService.canUpdate( userB, visualization ) );
     }
 
     @Test
-    public void testUserBCanUpdateReportTableWithoutAuthority()
+    public void testUserBCanUpdateVisualizationWithoutAuthority()
     {
         User userA = createUser( 'A' );
         manager.save( userA );
 
-        ReportTable reportTable = new ReportTable();
-        reportTable.setAutoFields();
-        reportTable.setName( "FavA" );
-        reportTable.setUser( userA );
-        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setName( "FavA" );
+        visualization.setUser( userA );
+        visualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        visualization.setType( VisualizationType.COLUMN );
 
-        assertTrue( aclService.canUpdate( userA, reportTable ) );
+        assertTrue( aclService.canUpdate( userA, visualization ) );
 
-        manager.save( reportTable );
+        manager.save( visualization );
 
         User userB = createUser( 'B' );
         manager.save( userB );
 
-        reportTable.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
-        manager.update( reportTable );
+        visualization.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
+        manager.update( visualization );
 
-        assertTrue( aclService.canUpdate( userB, reportTable ) );
+        assertTrue( aclService.canUpdate( userB, visualization ) );
     }
 
     @Test

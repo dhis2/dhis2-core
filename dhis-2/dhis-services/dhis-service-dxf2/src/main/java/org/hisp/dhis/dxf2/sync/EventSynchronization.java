@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
@@ -51,10 +50,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Component
-public class EventSynchronization
+public class EventSynchronization extends DataSynchronization
 {
     private static final Log log = LogFactory.getLog( EventSynchronization.class );
 
@@ -63,6 +62,9 @@ public class EventSynchronization
     private final RestTemplate restTemplate;
     private final RenderService renderService;
     private final ProgramStageDataElementService programStageDataElementService;
+
+    private Date skipChangedBefore;
+    private Map<String, Set<String>> psdesWithSkipSyncTrue;
 
     public EventSynchronization( EventService eventService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService,
         ProgramStageDataElementService programStageDataElementService )
@@ -80,23 +82,14 @@ public class EventSynchronization
         this.programStageDataElementService = programStageDataElementService;
     }
 
-    public SynchronizationResult syncEventProgramData( final int pageSize )
+    public SynchronizationResult synchronizeData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
             return SynchronizationResult.newFailureResultWithMessage( "Event programs data synchronization failed. Remote server is unavailable." );
         }
 
-        // ---------------------------------------------------------------------
-        // Set time for last success to start of process to make data saved
-        // subsequently part of next sync process without being ignored
-        // ---------------------------------------------------------------------
-
-        final Clock clock = new Clock( log ).startClock().logTime( "Starting Event programs data synchronization job." );
-        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        final int objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount( skipChangedBefore );
-
-        log.info( "Events last changed before " + skipChangedBefore + " will not be synchronized." );
+        initializeSyncVariables( pageSize );
 
         if ( objectsToSynchronize == 0 )
         {
@@ -104,14 +97,7 @@ public class EventSynchronization
             return SynchronizationResult.newSuccessResultWithMessage( "Event programs data synchronization skipped. No new or updated events found." );
         }
 
-        final SystemInstance instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.EVENTS );
-        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
-
-        log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );
-        log.info( "Remote server URL for Event programs POST synchronization: " + instance.getUrl() );
-        log.info( "Event programs data synchronization job has " + pages + " pages to synchronize. With page size: " + pageSize );
-
-        boolean syncResult = runEventSyncWithPaging( instance, clock, skipChangedBefore, pageSize, pages );
+        runSyncWithPaging( pageSize );
 
         if ( syncResult )
         {
@@ -122,38 +108,51 @@ public class EventSynchronization
         return SynchronizationResult.newFailureResultWithMessage( "Event programs data synchronization failed." );
     }
 
-    private boolean runEventSyncWithPaging( SystemInstance instance,  Clock clock, Date skipChangedBefore,
-        int pageSize, int pages )
+    private void initializeSyncVariables( final int pageSize )
     {
-        final Map<String, Set<String>> psdesWithSkipSyncTrue = programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-        boolean syncResult = true;
+        clock = new Clock( log ).startClock().logTime( "Starting Event programs data synchronization job." );
+        skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount( skipChangedBefore );
 
-        for ( int i = 1; i <= pages; i++ )
+        log.info( "Events last changed before " + skipChangedBefore + " will not be synchronized." );
+
+        if ( objectsToSynchronize != 0 )
         {
-            Events events = eventService.getAnonymousEventsForSync( pageSize, skipChangedBefore, psdesWithSkipSyncTrue );
-            filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
-            log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
+            instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager, SyncEndpoint.EVENTS );
+            pages = ( objectsToSynchronize / pageSize ) + (( objectsToSynchronize % pageSize == 0 ) ? 0 : 1 );  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
 
-            if ( log.isDebugEnabled() )
-            {
-                log.debug( "Events that are going to be synchronized are: " + events );
-            }
+            log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );
+            log.info( "Remote server URL for Event programs POST synchronization: " + instance.getUrl() );
+            log.info( "Event programs data synchronization job has " + pages + " pages to synchronize. With page size: " +
+                pageSize );
 
-            if ( sendEventsSyncRequest( events, instance ) )
-            {
-                List<String> eventsUIDs = events.getEvents().stream()
-                    .map( Event::getEvent )
-                    .collect( Collectors.toList() );
-                log.info( "The lastSynchronized flag of these Events will be updated: " + eventsUIDs );
-                eventService.updateEventsSyncTimestamp( eventsUIDs, new Date( clock.getStartTime() ) );
-            }
-            else
-            {
-                syncResult = false;
-            }
+            psdesWithSkipSyncTrue = programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+        }
+    }
+
+    protected void synchronizePage( int page, int pageSize )
+    {
+        Events events = eventService.getAnonymousEventsForSync( pageSize, skipChangedBefore, psdesWithSkipSyncTrue );
+        filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
+        log.info( String.format( "Synchronizing page %d with page size %d", page, pageSize ) );
+
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( "Events that are going to be synchronized are: " + events );
         }
 
-        return syncResult;
+        if ( sendSyncRequest( events ) )
+        {
+            List<String> eventsUIDs = events.getEvents().stream()
+                .map( Event::getEvent )
+                .collect( Collectors.toList() );
+            log.info( "The lastSynchronized flag of these Events will be updated: " + eventsUIDs );
+            eventService.updateEventsSyncTimestamp( eventsUIDs, new Date( clock.getStartTime() ) );
+        }
+        else
+        {
+            syncResult = false;
+        }
     }
 
     private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
@@ -168,7 +167,7 @@ public class EventSynchronization
         }
     }
 
-    private boolean sendEventsSyncRequest( Events events, SystemInstance instance )
+    private boolean sendSyncRequest( Events events )
     {
         final RequestCallback requestCallback = request ->
         {

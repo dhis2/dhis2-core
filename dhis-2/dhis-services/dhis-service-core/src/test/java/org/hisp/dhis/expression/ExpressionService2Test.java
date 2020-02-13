@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,7 +157,7 @@ public class ExpressionService2Test
     private String expressionM;
     private String expressionN;
     private String expressionO;
-
+    private String expressionP;
     private String expressionR;
 
     private BeanRandomizer rnd;
@@ -168,9 +168,8 @@ public class ExpressionService2Test
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
             categoryService, organisationUnitGroupService, dimensionService );
-        rnd = new BeanRandomizer();
 
-        // SETUP FIXTURES
+        rnd = new BeanRandomizer();
 
         categoryOptionA = new CategoryOption( "Under 5" );
         categoryOptionB = new CategoryOption( "Over 5" );
@@ -221,7 +220,6 @@ public class ExpressionService2Test
         pdeA = rnd.randomObject( ProgramDataElementDimensionItem.class );
         piA = rnd.randomObject( ProgramIndicator.class );
 
-
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C' );
@@ -249,23 +247,31 @@ public class ExpressionService2Test
         reportingRate = new ReportingRate( dataSetA );
 
         expressionA = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
-        expressionB = "#{" + deC.getUid() + SEPARATOR + coc.getUid() + "}-#{" + deD.getUid() + SEPARATOR
-                + coc.getUid() + "}";
+        expressionB = "#{" + deC.getUid() + SEPARATOR + coc.getUid() + "}-#{" + deD.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionC = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+#{" + deE.getUid() + "}-10";
         expressionD = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}+" + SYMBOL_DAYS;
         expressionE = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}*C{" + constantA.getUid() + "}";
         expressionF = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionG = expressionF + "+#{" + deB.getUid() + "}-#{" + deC.getUid() + "}";
         expressionH = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "}*OUG{" + groupA.getUid() + "}";
-        expressionI = "#{" + opA.getDimensionItem() + "}*" + "#{" + deB.getDimensionItem() + "}+" + "C{" + constantA.getUid() + "}+5-" +
-                "D{" + pdeA.getDimensionItem() + "}+" + "A{" + pteaA.getDimensionItem() + "}-10+" + "I{" + piA.getDimensionItem() + "}";
+        expressionI =
+            "#{" + opA.getDimensionItem() + "}*" + "#{" + deB.getDimensionItem() + "}+" + "C{" + constantA.getUid() +
+                "}+5-" +
+                "D{" + pdeA.getDimensionItem() + "}+" + "A{" + pteaA.getDimensionItem() + "}-10+" + "I{" +
+                piA.getDimensionItem() + "}";
         expressionJ = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
         expressionK = "1.5*avg(" + expressionJ + ")";
-        expressionL = expressionA + "+avg("+expressionJ+")+1.5*stddev("+expressionJ+")+" + expressionB;
-        expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
-        expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + SEPARATOR + cocA.getUid() + "}";
+        expressionL = expressionA + "+avg(" + expressionJ + ")+1.5*stddev(" + expressionJ + ")+" + expressionB;
+        expressionM =
+            "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
+        expressionN =
+            "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() +
+                SEPARATOR + cocA.getUid() + "}";
         expressionO = "#{" + opA.getDimensionItem() + "}+sum(#{" + opB.getDimensionItem() + "})";
-        expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() + ".REPORTING_RATE}";
+        expressionP = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
+        expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() +
+            ".REPORTING_RATE}";
+
     }
 
     private DimensionalItemId getId( DimensionalItemObject o )
@@ -475,6 +481,11 @@ public class ExpressionService2Test
     @Test
     public void testExpressionIsValid()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
         when( dimensionService.getDataDimensionalItemObject( getId( deA ) ) ).thenReturn( deA );
         when( dimensionService.getDataDimensionalItemObject( getId( deE ) ) ).thenReturn( deE );
         when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
@@ -484,7 +495,6 @@ public class ExpressionService2Test
         when( dimensionService.getDataDimensionalItemObject( getId( opE ) ) ).thenReturn( opE );
         when( dimensionService.getDataDimensionalItemObject( getId( opF ) ) ).thenReturn( opF );
         when( dimensionService.getDataDimensionalItemObject( getId( reportingRate ) ) ).thenReturn( reportingRate );
-        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
         when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
 
         assertTrue( target.expressionIsValid( expressionA, VALIDATION_RULE_EXPRESSION ).isValid() );
@@ -535,6 +545,11 @@ public class ExpressionService2Test
     @Test
     public void testGetExpressionDescription()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
         when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
         when( dimensionService.getDataDimensionalItemObject( getId( opB ) ) ).thenReturn( opB );
 
@@ -544,7 +559,6 @@ public class ExpressionService2Test
         description = target.getExpressionDescription( expressionD, INDICATOR_EXPRESSION );
         assertThat( description, is( opA.getDisplayName() + "+" + ExpressionService.DAYS_DESCRIPTION ) );
 
-        when(constantService.getConstant(constantA.getUid())).thenReturn( constantA );
         description = target.getExpressionDescription( expressionE, INDICATOR_EXPRESSION );
         assertThat( description, is( opA.getDisplayName() + "*" + constantA.getDisplayName() ) );
 
@@ -571,18 +585,28 @@ public class ExpressionService2Test
         valueMap.put( new DataElementOperand( deB, cocA ), 16d );
         valueMap.put( reportingRate, 20d );
 
-        Map<String, Double> constantMap = new HashMap<>();
-        constantMap.put( constantA.getUid(), 2.0 );
-
         Map<String, Integer> orgUnitCountMap = new HashMap<>();
         orgUnitCountMap.put( groupA.getUid(), groupA.getMembers().size() );
 
-        assertEquals( 46d, target.getExpressionValue( expressionA, INDICATOR_EXPRESSION, valueMap, constantMap, null, null, NEVER_SKIP ), DELTA );
-        assertEquals( 17d, target.getExpressionValue( expressionD, INDICATOR_EXPRESSION, valueMap, constantMap, null, 5, NEVER_SKIP ), DELTA );
-        assertEquals( 24d, target.getExpressionValue( expressionE, INDICATOR_EXPRESSION, valueMap, constantMap, null, null, NEVER_SKIP ), DELTA );
-        assertEquals( 36d, target.getExpressionValue( expressionH, INDICATOR_EXPRESSION, valueMap, constantMap, orgUnitCountMap, null, NEVER_SKIP ), DELTA );
-        assertEquals( 10d, target.getExpressionValue( expressionN, INDICATOR_EXPRESSION, valueMap, constantMap, orgUnitCountMap, null, NEVER_SKIP ), DELTA );
-        assertEquals( 54d, target.getExpressionValue( expressionR, INDICATOR_EXPRESSION, valueMap, constantMap, orgUnitCountMap, null, NEVER_SKIP ), DELTA );
+        assertEquals( 46d, target
+                .getExpressionValue( expressionA, INDICATOR_EXPRESSION, valueMap, constantMap(), null, null, NEVER_SKIP ),
+            DELTA );
+        assertEquals( 17d,
+            target
+                .getExpressionValue( expressionD, INDICATOR_EXPRESSION, valueMap, constantMap(), null, 5, NEVER_SKIP ),
+            DELTA );
+        assertEquals( 24d, target
+                .getExpressionValue( expressionE, INDICATOR_EXPRESSION, valueMap, constantMap(), null, null, NEVER_SKIP ),
+            DELTA );
+        assertEquals( 36d, target
+            .getExpressionValue( expressionH, INDICATOR_EXPRESSION, valueMap, constantMap(), orgUnitCountMap, null,
+                NEVER_SKIP ), DELTA );
+        assertEquals( 10d, target
+            .getExpressionValue( expressionN, INDICATOR_EXPRESSION, valueMap, constantMap(), orgUnitCountMap, null,
+                NEVER_SKIP ), DELTA );
+        assertEquals( 54d, target
+            .getExpressionValue( expressionR, INDICATOR_EXPRESSION, valueMap, constantMap(), orgUnitCountMap, null,
+                NEVER_SKIP ), DELTA );
     }
 
     @Test
@@ -601,11 +625,8 @@ public class ExpressionService2Test
         valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
         valueMap.put( new DataElementOperand( deB, cocA ), 10d );
 
-        Map<String, Double> constantMap = new HashMap<>();
-        constantMap.put( constantA.getUid(), 2.0 );
-
         IndicatorValue value = target.getIndicatorValueObject( indicatorA, Collections.singletonList( period ),
-            valueMap, constantMap, null );
+            valueMap, constantMap(), null );
 
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -621,8 +642,9 @@ public class ExpressionService2Test
         indicatorB.setDenominator( expressionF );
         indicatorB.setAnnualized( true );
 
-        value = target.getIndicatorValueObject( indicatorB, Collections.singletonList( period ), valueMap, constantMap,
-            null );
+        value = target
+            .getIndicatorValueObject( indicatorB, Collections.singletonList( period ), valueMap, constantMap(),
+                null );
 
         assertEquals( 36d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -635,6 +657,11 @@ public class ExpressionService2Test
     @Test
     public void testSubstituteIndicatorExpressions()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
         String expressionZ = "if(\"A\" < 'B' and true,C{notFound123},OUG{notFound456})";
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
@@ -650,12 +677,6 @@ public class ExpressionService2Test
         List<Indicator> indicators = Lists.newArrayList( indicatorA, indicatorB );
 
         when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
-
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Double>builder()
-                .put( constantA.getUid(), constantA.getValue() )
-                .put( constantB.getUid(), constantB.getValue() )
-                .build() );
 
         target.substituteIndicatorExpressions( indicators );
 
@@ -743,10 +764,7 @@ public class ExpressionService2Test
         valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
         valueMap.put( new DataElementOperand( deB, cocA ), 10d );
 
-        Map<String, Double> constantMap = new HashMap<>();
-        constantMap.put( constantA.getUid(), 2.0 );
-
-        IndicatorValue value = target.getIndicatorValueObject( indicatorA, periods, valueMap, constantMap, null );
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, periods, valueMap, constantMap(), null );
 
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -773,10 +791,7 @@ public class ExpressionService2Test
         valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
         valueMap.put( new DataElementOperand( deB, cocA ), 10d );
 
-        Map<String, Double> constantMap = new HashMap<>();
-        constantMap.put( constantA.getUid(), 2.0 );
-
-        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap, null );
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap(), null );
 
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -784,5 +799,50 @@ public class ExpressionService2Test
         assertEquals( 1, value.getDivisor() );
         assertEquals( 100.0d, Precision.round( value.getFactor(), 2 ), DELTA );
         assertEquals( 200.0d, Precision.round( value.getValue(), 2 ), DELTA );
+    }
+
+    @Test
+    public void testGetNullWithoutNumeratorDataWithDenominatorData()
+    {
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setNumerator( expressionF );
+        indicatorA.setDenominator( expressionP );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deB, coc ), 12d );
+        valueMap.put( new DataElementOperand( deC, coc ), 18d );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap(), null );
+
+        assertNull( value );
+    }
+
+    @Test
+    public void testGetNullWithNumeratorDataWithZeroDenominatorData()
+    {
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setNumerator( expressionF );
+        indicatorA.setDenominator( expressionP );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 0d );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap(), null );
+
+        assertNull( value );
+    }
+
+    private Map<String, Constant> constantMap()
+    {
+        Map<String, Constant> constantMap = new HashMap<>();
+        constantMap.put( constantA.getUid(), new Constant( "two", 2.0 ) );
+        return constantMap;
     }
 }

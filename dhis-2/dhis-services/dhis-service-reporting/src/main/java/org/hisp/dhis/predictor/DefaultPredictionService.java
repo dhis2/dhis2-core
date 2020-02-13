@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -283,7 +284,7 @@ public class DefaultPredictionService
         {
             expressionService.getExpressionDimensionalItemObjects( skipTest.getExpression(), PREDICTOR_SKIP_TEST, sampleItems, new HashSet<>() );
         }
-        Map<String, Double> constantMap = constantService.getConstantMap();
+        Map<String, Constant> constantMap = constantService.getConstantMap();
         Set<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
@@ -463,7 +464,7 @@ public class DefaultPredictionService
      */
     private MapMap<Period, DimensionalItemObject, Double> applySkipTest(
         MapMap<Period, DimensionalItemObject, Double> sampleMap2,
-        Expression skipTest, Map<String, Double> constantMap )
+        Expression skipTest, Map<String, Constant> constantMap )
     {
         if ( skipTest == null || isEmpty( skipTest.getExpression() ) )
         {
@@ -824,7 +825,7 @@ public class DefaultPredictionService
             String dx = (String) row.get( dxInx );
             String ou = (String) row.get( ouInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
-            Double vl = (Double) row.get( vlInx );
+            Double vl = ( (Number)row.get( vlInx ) ).doubleValue();
 
             Period period = periodLookup.get( pe );
             DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );

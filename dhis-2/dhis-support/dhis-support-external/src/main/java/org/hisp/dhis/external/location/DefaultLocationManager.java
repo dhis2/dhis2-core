@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.location;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@ import java.io.OutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.external.util.LogOnceLogger;
+import org.slf4j.event.Level;
 
 import javax.annotation.PostConstruct;
 
@@ -47,7 +49,7 @@ import static java.io.File.separator;
 /**
  * @author Lars Helge Overland
  */
-public class DefaultLocationManager
+public class DefaultLocationManager extends LogOnceLogger
     implements LocationManager
 {
     private static final Log log = LogFactory.getLog( DefaultLocationManager.class );
@@ -85,7 +87,7 @@ public class DefaultLocationManager
 
         if ( path != null )
         {
-            log.info( "System property " + systemProperty + " points to " + path );
+            log( log, Level.INFO, "System property " + systemProperty + " points to " + path );
 
             if ( directoryIsValid( new File( path ) ) )
             {
@@ -94,13 +96,13 @@ public class DefaultLocationManager
         }
         else
         {
-            log.info( "System property " + systemProperty + " not set" );
+            log( log, Level.INFO, "System property " + systemProperty + " not set" );
 
             path = System.getenv( environmentVariable );
 
             if ( path != null )
             {
-                log.info( "Environment variable " + environmentVariable + " points to " + path );
+                log( log, Level.INFO, "Environment variable " + environmentVariable + " points to " + path );
 
                 if ( directoryIsValid( new File( path ) ) )
                 {
@@ -109,14 +111,15 @@ public class DefaultLocationManager
             }
             else
             {
-                log.info( "Environment variable " + environmentVariable + " not set" );
+                log( log, Level.INFO, "Environment variable " + environmentVariable + " not set" );
 
                 path = DEFAULT_DHIS2_HOME;
 
                 if ( directoryIsValid( new File( path ) ) )
                 {
                     externalDir = path;
-                    log.info( "Home directory set to " + DEFAULT_DHIS2_HOME );
+                    log( log, Level.INFO, "Home directory set to " + DEFAULT_DHIS2_HOME );
+
                 }
             }
         }
@@ -302,14 +305,13 @@ public class DefaultLocationManager
     {
         if ( !file.exists() )
         {
-            log.info( "File " + file.getAbsolutePath() + " does not exist" );
-
+            log( log, Level.INFO, "File " + file.getAbsolutePath() + " does not exist" );
             return false;
         }
 
         if ( !file.canRead() )
         {
-            log.info( "File " + file.getAbsolutePath() + " cannot be read" );
+            log( log, Level.INFO, "File " + file.getAbsolutePath() + " cannot be read" );
 
             return false;
         }
@@ -329,8 +331,7 @@ public class DefaultLocationManager
         {
             if( !directory.canWrite() )
             {
-                log.info( "Directory " + directory.getAbsolutePath() + " is not writeable" );
-
+                log( log, Level.INFO, "Directory " + directory.getAbsolutePath() + " is not writeable" );
                 return false;
             }
         }
@@ -340,15 +341,13 @@ public class DefaultLocationManager
             {
                 if ( !directory.mkdirs() )
                 {
-                    log.info( "Directory " + directory.getAbsolutePath() + " cannot be created" );
-
+                    log( log, Level.INFO, "Directory " + directory.getAbsolutePath() + " cannot be created" );
                     return false;
                 }
             }
             catch ( SecurityException ex )
             {
-                log.info( "Directory " + directory.getAbsolutePath() + " cannot be accessed" );
-
+                log( log, Level.INFO, "Directory " + directory.getAbsolutePath() + " cannot be accessed" );
                 return false;
             }
         }

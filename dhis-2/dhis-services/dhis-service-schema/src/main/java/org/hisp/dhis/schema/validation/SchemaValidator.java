@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,15 @@ import java.util.List;
  */
 public interface SchemaValidator
 {
+    /**
+     * Validate embedded object against its schema, the object is required to be non-null and have a schema associated with it.
+     *
+     * @param object      Object to validate
+     * @param parentClass Only include persisted properties
+     * @return WebMessage   containing validation response
+     */
+    List<ErrorReport> validateEmbeddedObject( Object object, Class<?> parentClass );
+
     /**
      * Validate object against its schema, the object is required to be non-null and have a schema associated with it.
      *

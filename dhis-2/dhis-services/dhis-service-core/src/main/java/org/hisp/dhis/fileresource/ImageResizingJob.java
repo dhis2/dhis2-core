@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,13 +45,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- *
  * Job will fetch all the image FileResources with flag hasMultiple set to false. It will process those image FileResources create three images files for each of them.
  * Once created, images will be stored at EWS and flag hasMultiple is set to true.
  *
  * @Author Zubair Asghar.
  */
-
 @Component( "imageResizingJob" )
 public class ImageResizingJob extends AbstractJob
 {

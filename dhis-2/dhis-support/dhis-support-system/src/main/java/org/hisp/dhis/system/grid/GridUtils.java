@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.grid;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,17 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.system.util.PDFUtils.addTableToDocument;
-import static org.hisp.dhis.system.util.PDFUtils.closeDocument;
-import static org.hisp.dhis.system.util.PDFUtils.getEmptyCell;
-import static org.hisp.dhis.system.util.PDFUtils.getItalicCell;
-import static org.hisp.dhis.system.util.PDFUtils.getSubtitleCell;
-import static org.hisp.dhis.system.util.PDFUtils.getTextCell;
-import static org.hisp.dhis.system.util.PDFUtils.getTitleCell;
-import static org.hisp.dhis.system.util.PDFUtils.openDocument;
-import static org.hisp.dhis.system.util.PDFUtils.resetPaddings;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.csvreader.CsvWriter;
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfPTable;
+import net.sf.jasperreports.engine.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
@@ -78,23 +63,15 @@ import org.htmlparser.tags.TableRow;
 import org.htmlparser.tags.TableTag;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.csvreader.CsvWriter;
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfPTable;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.system.util.PDFUtils.*;
 
 /**
  * @author Lars Helge Overland
@@ -107,17 +84,9 @@ public class GridUtils
     private static final char CSV_DELIMITER = ',';
     private static final String XLS_SHEET_PREFIX = "Sheet ";
     private static final int JXL_MAX_COLS = 256;
+    private static final String FONT_ARIAL = "Arial";
 
     private static final NodeFilter HTML_ROW_FILTER = new OrFilter( new TagNameFilter( "td" ), new TagNameFilter( "th" ) );
-
-    private static final WritableCellFormat XLS_FORMAT_TTTLE = new WritableCellFormat( new WritableFont(
-        WritableFont.ARIAL, 10, WritableFont.BOLD, false ) );
-
-    private static final WritableCellFormat XLS_FORMAT_LABEL = new WritableCellFormat( new WritableFont(
-        WritableFont.ARIAL, 10, WritableFont.BOLD, false ) );
-
-    private static final WritableCellFormat XLS_FORMAT_TEXT = new WritableCellFormat( new WritableFont(
-        WritableFont.ARIAL, 10, WritableFont.NO_BOLD, false ) );
 
     private static final Encoder ENCODER = new Encoder();
 
@@ -236,7 +205,10 @@ public class GridUtils
     public static void toXls( List<Grid> grids, OutputStream out )
         throws Exception
     {
-        WritableWorkbook workbook = openWorkbook( out );
+        Workbook workbook = new HSSFWorkbook();
+
+        CellStyle headerCellStyle = createHeaderCellStyle( workbook );
+        CellStyle cellStyle = createCellStyle( workbook );
 
         for ( int i = 0; i < grids.size(); i++ )
         {
@@ -244,10 +216,10 @@ public class GridUtils
 
             String sheetName = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), XLS_SHEET_PREFIX + (i + 1) ) );
 
-            toXlsInternal( grid, workbook, sheetName, i );
+            toXlsInternal( grid,  workbook.createSheet( sheetName ),headerCellStyle, cellStyle );
         }
 
-        workbook.write();
+        workbook.write( out );
         workbook.close();
     }
 
@@ -257,18 +229,17 @@ public class GridUtils
     public static void toXls( Grid grid, OutputStream out )
         throws Exception
     {
-        WritableWorkbook workbook = openWorkbook( out );
+        Workbook workbook = new HSSFWorkbook();
 
         String sheetName = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), XLS_SHEET_PREFIX + 1 ) );
 
-        toXlsInternal( grid, workbook, sheetName, 0 );
+        toXlsInternal( grid, workbook.createSheet( sheetName ), createHeaderCellStyle( workbook ), createCellStyle( workbook ) );
 
-        workbook.write();
+        workbook.write( out );
         workbook.close();
     }
 
-    private static void toXlsInternal( Grid grid, WritableWorkbook workbook, String sheetName, int sheetNo )
-        throws Exception
+    private static void toXlsInternal( Grid grid, Sheet sheet, CellStyle headerCellStyle, CellStyle cellStyle )
     {
         if ( grid == null )
         {
@@ -282,50 +253,55 @@ public class GridUtils
             log.warn( "Grid will be truncated, no of columns is greater than JXL max limit: " + cols + "/" + JXL_MAX_COLS );
         }
 
-        WritableSheet sheet = workbook.createSheet( sheetName, sheetNo );
-
         int rowNumber = 0;
 
         int columnIndex = 0;
 
         if ( StringUtils.isNotEmpty( grid.getTitle() ) )
         {
-            sheet.addCell( new Label( 0, rowNumber++, grid.getTitle(), XLS_FORMAT_TTTLE ) );
+            Cell cell = sheet.createRow( rowNumber ).createCell( columnIndex, CellType.STRING );
+            cell.setCellValue( grid.getTitle() );
+            cell.setCellStyle( headerCellStyle );
+
             rowNumber++;
         }
 
         if ( StringUtils.isNotEmpty( grid.getSubtitle() ) )
         {
-            sheet.addCell( new Label( 0, rowNumber++, grid.getSubtitle(), XLS_FORMAT_TTTLE ) );
+            Cell cell  = sheet.createRow( ++rowNumber ).createCell( columnIndex, CellType.STRING );
+            cell.setCellValue( grid.getSubtitle() );
+            cell.setCellStyle( headerCellStyle );
             rowNumber++;
         }
 
         List<GridHeader> headers = ListUtils.subList( grid.getVisibleHeaders(), 0, JXL_MAX_COLS );
-
+        Row headerRow = sheet.createRow( ++rowNumber );
         for ( GridHeader header : headers )
         {
-            sheet.addCell( new Label( columnIndex++, rowNumber, header.getColumn(), XLS_FORMAT_LABEL ) );
+            Cell cell = headerRow.createCell( columnIndex++, CellType.STRING );
+            cell.setCellStyle( headerCellStyle );
+            cell.setCellValue( header.getColumn() );
         }
 
         rowNumber++;
 
         for ( List<Object> row : grid.getVisibleRows() )
         {
+            Row xlsRow = sheet.createRow( rowNumber );
+            xlsRow.setRowStyle( cellStyle );
             columnIndex = 0;
 
-            List<Object> colums = ListUtils.subList( row, 0, JXL_MAX_COLS );
+            List<Object> columns = ListUtils.subList( row, 0, JXL_MAX_COLS );
 
-            for ( Object column : colums )
+            for ( Object column : columns )
             {
                 if ( column != null && MathUtils.isNumeric( String.valueOf( column ) ) )
                 {
-                    sheet.addCell( new Number( columnIndex++, rowNumber, Double.valueOf( String.valueOf( column ) ), XLS_FORMAT_TEXT ) );
+                    xlsRow.createCell( columnIndex++, CellType.NUMERIC ).setCellValue(  Double.valueOf( String.valueOf( column ) )  );
                 }
                 else
                 {
-                    String content = column != null ? String.valueOf( column ) : EMPTY;
-
-                    sheet.addCell( new Label( columnIndex++, rowNumber, content, XLS_FORMAT_TEXT ) );
+                    xlsRow.createCell( columnIndex++, CellType.STRING ).setCellValue( column != null ? String.valueOf( column ) : EMPTY );
                 }
             }
 
@@ -705,15 +681,24 @@ public class GridUtils
         return grid != null && grid.getVisibleWidth() > 0;
     }
 
-    /**
-     * Opens a workbook with UTF-8 encoding.
-     */
-    private static WritableWorkbook openWorkbook( OutputStream outputStream )
-        throws IOException
+    private static CellStyle createHeaderCellStyle( Workbook workbook )
     {
-        WorkbookSettings ws = new WorkbookSettings();
-        ws.setEncoding( "UTF-8" );
+        CellStyle headerCellStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold( true );
+        headerFont.setFontHeightInPoints( ( short ) 10 );
+        headerFont.setFontName( FONT_ARIAL );
+        headerCellStyle.setFont( headerFont );
+        return headerCellStyle;
+    }
 
-        return Workbook.createWorkbook( outputStream, ws );
+    private static CellStyle createCellStyle( Workbook workbook )
+    {
+        CellStyle cellStyle = workbook.createCellStyle();
+        Font cellFont = workbook.createFont();
+        cellFont.setFontHeightInPoints( ( short ) 10 );
+        cellFont.setFontName( FONT_ARIAL );
+        cellStyle.setFont( cellFont );
+        return cellStyle;
     }
 }

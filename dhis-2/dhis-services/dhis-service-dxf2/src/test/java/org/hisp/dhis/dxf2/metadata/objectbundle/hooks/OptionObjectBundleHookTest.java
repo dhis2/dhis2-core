@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,6 @@ public class OptionObjectBundleHookTest
         Option option = new Option();
         option.setName( "optionName" );
         option.setCode( "optionCode" );
-        option.setOptionSet( optionSet );
         optionSet.addOption( option );
 
         OptionSet persistedOptionSet = new OptionSet();
@@ -112,14 +111,14 @@ public class OptionObjectBundleHookTest
         Option persistedOption = new Option();
         persistedOption.setName( "optionName" );
         persistedOption.setCode( "optionCode" );
-        persistedOption.setOptionSet( persistedOptionSet );
         persistedOptionSet.addOption( persistedOption );
 
         preheat.put( PreheatIdentifier.UID, persistedOptionSet );
 
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
-        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections.singletonMap( OptionSet.class, Collections.singletonList( persistedOptionSet ) ) );
+        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat,
+            Collections.singletonMap( OptionSet.class, Collections.singletonList( persistedOptionSet ) ) );
 
         List<ErrorReport> errors = hook.validate( option, bundle );
 

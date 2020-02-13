@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard.impl;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,16 +51,23 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.visualization.SimpleVisualizationView;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationStore;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
  * Note: The remove associations methods must be altered if caching is introduced.
@@ -86,23 +93,27 @@ public class DefaultDashboardService
 
     private final DashboardItemStore dashboardItemStore;
 
+    private final VisualizationStore visualizationStore;
+
     private final AppManager appManager;
 
     public DefaultDashboardService(
         @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" ) HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
         IdentifiableObjectManager objectManager, UserService userService, DashboardItemStore dashboardItemStore,
-        AppManager appManager )
+        VisualizationStore visualizationStore, AppManager appManager )
     {
         checkNotNull( dashboardStore );
         checkNotNull( objectManager );
         checkNotNull( userService );
         checkNotNull( dashboardItemStore );
+        checkNotNull( visualizationStore );
         checkNotNull( appManager );
 
         this.dashboardStore = dashboardStore;
         this.objectManager = objectManager;
         this.userService = userService;
         this.dashboardItemStore = dashboardItemStore;
+        this.visualizationStore = visualizationStore;
         this.appManager = appManager;
     }
 
@@ -132,10 +143,11 @@ public class DefaultDashboardService
         DashboardSearchResult result = new DashboardSearchResult();
 
         result.setUsers( userService.getAllUsersBetweenByName( query, 0, getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
-        result.setCharts( objectManager.getBetweenLikeName( Chart.class, words, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
+        result.setVisualizations( convertFrom( visualizationStore.getAllLikeName( words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setCharts( visualizationStore.getChartsLikeName( words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setReportTables( objectManager.getBetweenLikeName( ReportTable.class, words, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes, count, maxCount ) ) );
+        result.setReportTables( visualizationStore.getPivotTablesLikeName( words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
@@ -150,10 +162,11 @@ public class DefaultDashboardService
     {
         DashboardSearchResult result = new DashboardSearchResult();
 
-        result.setCharts( objectManager.getBetweenSorted( Chart.class, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
+        result.setVisualizations( convertFrom( objectManager.getBetweenSorted( Visualization.class, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setCharts( visualizationStore.getCharts( 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setReportTables( objectManager.getBetweenSorted( ReportTable.class, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes, count, maxCount ) ) );
+        result.setReportTables( visualizationStore.getPivotTables( 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
@@ -186,9 +199,14 @@ public class DefaultDashboardService
 
         DashboardItem item = new DashboardItem();
 
-        if ( DashboardItemType.CHART.equals( type ) )
+        if ( DashboardItemType.VISUALIZATION.equals( type ) )
         {
-            item.setChart( objectManager.get( Chart.class, contentUid ) );
+            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
+            dashboard.getItems().add( 0, item );
+        }
+        else if ( DashboardItemType.CHART.equals( type ) )
+        {
+            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
         else if ( DashboardItemType.EVENT_CHART.equals( type ) )
@@ -203,7 +221,7 @@ public class DefaultDashboardService
         }
         else if ( DashboardItemType.REPORT_TABLE.equals( type ) )
         {
-            item.setReportTable( objectManager.get( ReportTable.class, contentUid ) );
+            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
         else if ( DashboardItemType.EVENT_REPORT.equals( type ) )
@@ -273,9 +291,14 @@ public class DefaultDashboardService
     @Transactional(readOnly = true)
     public void mergeDashboardItem( DashboardItem item )
     {
+        if ( item.getVisualization() != null )
+        {
+            item.setVisualization( objectManager.get( Visualization.class, item.getVisualization().getUid() ) );
+        }
+
         if ( item.getChart() != null )
         {
-            item.setChart( objectManager.get( Chart.class, item.getChart().getUid() ) );
+            item.setVisualization( objectManager.get( Visualization.class, item.getChart().getUid() ) );
         }
 
         if ( item.getEventChart() != null )
@@ -290,7 +313,7 @@ public class DefaultDashboardService
 
         if ( item.getReportTable() != null )
         {
-            item.setReportTable( objectManager.get( ReportTable.class, item.getReportTable().getUid() ) );
+            item.setVisualization( objectManager.get( Visualization.class, item.getReportTable().getUid() ) );
         }
 
         if ( item.getEventReport() != null )
@@ -394,16 +417,23 @@ public class DefaultDashboardService
 
     @Override
     @Transactional(readOnly = true)
-    public int countMapDashboardItems( Map map )
+    public int countChartDashboardItems( Chart chart )
     {
-        return dashboardItemStore.countMapDashboardItems( map );
+        return dashboardItemStore.countChartDashboardItems( chart );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countChartDashboardItems( Chart chart )
+    public int countReportTableDashboardItems( ReportTable reportTable )
     {
-        return dashboardItemStore.countChartDashboardItems( chart );
+        return dashboardItemStore.countReportTableDashboardItems( reportTable );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int countMapDashboardItems( Map map )
+    {
+        return dashboardItemStore.countMapDashboardItems( map );
     }
 
     @Override
@@ -415,9 +445,9 @@ public class DefaultDashboardService
 
     @Override
     @Transactional(readOnly = true)
-    public int countReportTableDashboardItems( ReportTable reportTable )
+    public int countVisualizationDashboardItems( Visualization visualization )
     {
-        return dashboardItemStore.countReportTableDashboardItems( reportTable );
+        return dashboardItemStore.countVisualizationDashboardItems( visualization );
     }
 
     @Override
@@ -451,5 +481,26 @@ public class DefaultDashboardService
         int dashboardsCount = ObjectUtils.firstNonNull( count, HITS_PER_OBJECT );
 
         return maxTypes != null && maxTypes.contains( type ) ? dashboardsMax : dashboardsCount;
+    }
+
+    private List<SimpleVisualizationView> convertFrom( final List<Visualization> visualizations )
+    {
+        final List<SimpleVisualizationView> views = new ArrayList<>( 1 );
+
+        if ( isNotEmpty( visualizations ) )
+        {
+            for ( final Visualization visualization : visualizations )
+            {
+                views.add( convertFrom( visualization ) );
+            }
+        }
+        return views;
+    }
+
+    private SimpleVisualizationView convertFrom( final Visualization visualization )
+    {
+        final SimpleVisualizationView view = new SimpleVisualizationView();
+        BeanUtils.copyProperties( visualization, view );
+        return view;
     }
 }

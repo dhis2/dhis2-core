@@ -1,6 +1,6 @@
 package org.hisp.dhis.program;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -449,6 +449,14 @@ public class ProgramIndicatorServiceTest
         String expected = "coalesce(\"" + deA.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid() + "\"::numeric,0) > 10";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), indicatorE, new Date(), new Date() ) );
+    }
+
+    @Test
+    public void testGetAnalyticsSQl2()
+    {
+        String expected = "((cast(incidentdate as date) - cast(enrollmentdate as date))) / 7.0";
+
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorA.getExpression(), indicatorA, new Date(), new Date() ) );
     }
 
     @Test

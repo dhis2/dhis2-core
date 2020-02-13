@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,20 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-
-import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.util.DateUtils;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Class representing parameters for the analytics table generation process.
@@ -80,6 +80,12 @@ public class AnalyticsTableUpdateParams
      * Time of last successful analytics table update.
      */
     private Date lastSuccessfulUpdate;
+
+    /**
+     * Current date, only used for testing
+     */
+    private Date today;
+
 
     private AnalyticsTableUpdateParams()
     {
@@ -166,7 +172,7 @@ public class AnalyticsTableUpdateParams
         if ( lastYears != null )
         {
             Calendar calendar = PeriodType.getCalendar();
-            DateTimeUnit dateTimeUnit = calendar.today();
+            DateTimeUnit dateTimeUnit = today == null ? calendar.today() : DateTimeUnit.fromJdkDate( today );
             dateTimeUnit = calendar.minusYears( dateTimeUnit, lastYears - 1 );
             dateTimeUnit.setMonth( 1 );
             dateTimeUnit.setDay( 1 );
@@ -264,6 +270,17 @@ public class AnalyticsTableUpdateParams
         public Builder withStartTime( Date startTime )
         {
             this.params.startTime = startTime;
+            return this;
+        }
+
+        /**
+         * This builder property is only used for testing purposes.
+         *
+         * @param date A mock Date
+         */
+        public Builder withToday( Date date ) {
+
+            this.params.today = date;
             return this;
         }
 

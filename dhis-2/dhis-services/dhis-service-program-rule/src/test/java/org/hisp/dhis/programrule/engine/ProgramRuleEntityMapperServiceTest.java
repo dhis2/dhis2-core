@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,25 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.*;
-import org.hisp.dhis.rules.models.Rule;
-import org.hisp.dhis.rules.models.RuleDataValue;
-import org.hisp.dhis.rules.models.RuleEnrollment;
-import org.hisp.dhis.rules.models.RuleEvent;
-import org.hisp.dhis.rules.models.RuleVariable;
-import org.hisp.dhis.rules.models.RuleVariableAttribute;
-import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
+import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -59,17 +57,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static org.junit.Assert.*;
-
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 {
@@ -134,15 +125,13 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
             dataElementService );
 
         setUpProgramRules();
-
-        when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
-        when( programRuleVariableService.getAllProgramRuleVariable() ).thenReturn( programRuleVariables );
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
     }
 
     @Test
     public void testMappedProgramRules()
     {
+        when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
+
         List<Rule> rules = subject.toMappedProgramRules();
 
         assertEquals( 3, rules.size() );
@@ -151,6 +140,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testWhenProgramRuleConditionIsNull()
     {
+        when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
+
         programRules.get( 0 ).setCondition( null );
 
         List<Rule> rules = subject.toMappedProgramRules();
@@ -163,6 +154,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testWhenProgramRuleActionIsNull()
     {
+        when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
+
         programRules.get( 0 ).setProgramRuleActions( null );
 
         List<Rule> rules = subject.toMappedProgramRules();
@@ -175,6 +168,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedRuleVariableValues()
     {
+        when( programRuleVariableService.getAllProgramRuleVariable() ).thenReturn( programRuleVariables );
         RuleVariableAttribute ruleVariableAttribute;
         RuleVariableCalculatedValue ruleVariableCalculatedValue;
 
@@ -221,6 +215,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedRuleEvent()
     {
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+
         RuleEvent ruleEvent = subject.toMappedRuleEvent( programStageInstanceA );
 
         assertEquals( ruleEvent.event(), programStageInstanceA.getUid() );
@@ -241,6 +237,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedRuleEventsWithFilter()
     {
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+
         List<RuleEvent> ruleEvents = subject.toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA  );
 
         assertEquals( ruleEvents.size(), 1 );
@@ -264,6 +262,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testMappedRuleEvents()
     {
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+
         List<RuleEvent> ruleEvents = subject.toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB )  );
 
         assertEquals( ruleEvents.size(), 2 );

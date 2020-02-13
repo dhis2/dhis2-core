@@ -26,10 +26,15 @@ TOMCAT_IMAGE="tomcat"
 DEFAULT_TOMCAT_TAG="8.5-jdk8-openjdk-slim"
 
 TOMCAT_DEBIAN_TAGS=(
-    "9.0-jdk8-openjdk-slim"
+    "8.5-jdk11-openjdk-slim"
+    "8.5.47-jdk11-openjdk-slim"
+    "9.0-jdk11-openjdk-slim"
+    "9.0.27-jdk11-openjdk-slim"
+
+    "8.0-jre8-slim"
     "8.5-jdk8-openjdk-slim"
     "8.5.46-jdk8-openjdk-slim"
-    "8.0-jre8-slim"
+    "9.0-jdk8-openjdk-slim"
 )
 
 TOMCAT_ALPINE_TAGS=(

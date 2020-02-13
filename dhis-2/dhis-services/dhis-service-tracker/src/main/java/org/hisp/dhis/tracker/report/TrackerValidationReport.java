@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +40,15 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "validationReport", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TrackerValidationReport
 {
+    @JsonProperty
+    @Builder.Default
     private List<TrackerErrorReport> errorReports = new ArrayList<>();
-
-    public TrackerValidationReport()
-    {
-    }
 
     //-----------------------------------------------------------------------------------
     // Utility Methods
@@ -66,22 +67,5 @@ public class TrackerValidationReport
     public boolean isEmpty()
     {
         return errorReports == null || errorReports.isEmpty();
-    }
-
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerErrorReport> getErrorReports()
-    {
-        return errorReports;
-    }
-
-    public void setErrorReports( List<TrackerErrorReport> errorReports )
-    {
-        this.errorReports = errorReports;
     }
 }

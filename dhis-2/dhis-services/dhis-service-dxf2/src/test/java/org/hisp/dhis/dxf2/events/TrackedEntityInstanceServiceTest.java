@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,14 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
@@ -40,6 +46,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -63,17 +70,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -86,6 +84,9 @@ public class TrackedEntityInstanceServiceTest
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
@@ -113,6 +114,10 @@ public class TrackedEntityInstanceServiceTest
     private ProgramStage programStageA1;
 
     private ProgramStage programStageA2;
+
+    private TrackedEntityInstance teiMaleA;
+    private TrackedEntityInstance teiMaleB;
+    private TrackedEntityInstance teiFemaleA;
 
     private TrackedEntityAttribute uniqueIdAttribute;
 
@@ -178,6 +183,10 @@ public class TrackedEntityInstanceServiceTest
         manager.save( programA );
         manager.save( programStageA1 );
         manager.save( programStageA2 );
+
+        teiMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
+        teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance( maleB );
+        teiFemaleA = trackedEntityInstanceService.getTrackedEntityInstance( femaleA );
 
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( uniqueId );
 
@@ -477,6 +486,9 @@ public class TrackedEntityInstanceServiceTest
 
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
+
+        boolean existsDeleted = teiDaoService.trackedEntityInstanceExistsIncludingDeleted( maleA.getUid() );
+        assertTrue( existsDeleted );
     }
 
     @Test
@@ -489,5 +501,63 @@ public class TrackedEntityInstanceServiceTest
 
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
+    }
+
+    @Test
+    public void testAddAlreadyDeletedTei()
+    {
+        ImportOptions importOptions = new ImportOptions();
+
+        trackedEntityInstanceService.addTrackedEntityInstance( teiMaleA, importOptions );
+        trackedEntityInstanceService.deleteTrackedEntityInstance( teiMaleA.getTrackedEntityInstance() );
+
+        manager.flush();
+
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        teiMaleA.setDeleted( true );
+        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( teiMaleA, importOptions );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getIgnored() );
+        assertTrue( importSummary.getDescription().contains( "already exists or was deleted earlier" ) );
+    }
+
+    @Test
+    public void testAddAlreadyDeletedTeiInBulk()
+    {
+        ImportOptions importOptions = new ImportOptions();
+
+        trackedEntityInstanceService.addTrackedEntityInstance( teiMaleA, importOptions );
+        trackedEntityInstanceService.deleteTrackedEntityInstance( teiMaleA.getTrackedEntityInstance() );
+
+        manager.flush();
+
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        teiMaleA.setDeleted( true );
+
+        teiMaleB.setTrackedEntityInstance( "teiUid00002" );
+        teiFemaleA.setTrackedEntityInstance( "teiUid00003" );
+
+        List<TrackedEntityInstance> teis = new ArrayList<>();
+        teis.add( teiMaleA );
+        teis.add( teiMaleB );
+        teis.add( teiFemaleA );
+
+        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
+
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
+        assertEquals( 1, importSummaries.getIgnored() );
+        assertEquals( 2, importSummaries.getImported() );
+        assertTrue( importSummaries.getImportSummaries().stream()
+            .anyMatch( is -> is.getDescription().contains( "already exists or was deleted earlier" ) ) );
+
+        manager.flush();
+        List<String> uids = new ArrayList<>();
+        uids.add( teiMaleA.getTrackedEntityInstance() );
+        uids.add( teiMaleB.getTrackedEntityInstance() );
+        uids.add( teiFemaleA.getTrackedEntityInstance() );
+        List<String> fetchedUids = teiDaoService.getTrackedEntityInstancesUidsIncludingDeleted( uids );
+
+        assertTrue( Sets.difference( new HashSet<>( uids ), new HashSet<>( fetchedUids ) ).isEmpty() );
     }
 }

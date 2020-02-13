@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,4 +38,6 @@ public interface Topics
     String AGGREGATE_TOPIC_NAME = "dhis2.topic.aggregate";
 
     String TRACKER_TOPIC_NAME = "dhis2.topic.tracker";
+
+    String TRACKER_IMPORT_JOB_TOPIC_NAME = "dhis2.jobs.tracker";
 }

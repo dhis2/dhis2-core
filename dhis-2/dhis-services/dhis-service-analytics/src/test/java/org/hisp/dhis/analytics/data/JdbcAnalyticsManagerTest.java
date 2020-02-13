@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,9 @@ public class JdbcAnalyticsManagerTest
     @Mock
     private SqlRowSet rowSet;
 
+    @Mock
+    private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
+
     @Captor
     private ArgumentCaptor<String> sql;
 
@@ -84,7 +87,8 @@ public class JdbcAnalyticsManagerTest
     @Before
     public void setUp()
     {
-        QueryPlanner queryPlanner = new DefaultQueryPlanner( new DefaultQueryValidator( this.systemSettingManager ),
+        QueryPlanner queryPlanner = new DefaultQueryPlanner(
+            new DefaultQueryValidator( this.systemSettingManager, nestedIndicatorCyclicDependencyInspector ),
             partitionManager );
 
         mockRowSet();
@@ -127,11 +131,11 @@ public class JdbcAnalyticsManagerTest
         Period peA = PeriodType.getPeriodFromIsoString( "201501" );
 
         return DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
-                .withTableName( "analytics" )
-                .withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) )
-                .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA ) ) )
-                .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
-                .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
+            .withTableName( "analytics" )
+            .withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA ) ) )
+            .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
     }
 
     private void assertExpectedSql(String sortOrder) {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ package org.hisp.dhis.message;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -63,13 +65,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -123,7 +123,8 @@ public class EmailMessageSender
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
-            status.setResponseObject( EmailResponse.NOT_CONFIGURED );
+            status.setDescription( EmailResponse.HOST_CONFIG_NOT_FOUND.getResponseMessage() );
+            status.setResponseObject( EmailResponse.HOST_CONFIG_NOT_FOUND );
             return status;
         }
 
@@ -203,7 +204,8 @@ public class EmailMessageSender
         if ( emailConfig.getHostName() == null )
         {
             status.setOk( false );
-            status.setResponseObject( EmailResponse.NOT_CONFIGURED );
+            status.setDescription( EmailResponse.HOST_CONFIG_NOT_FOUND.getResponseMessage() );
+            status.setResponseObject( EmailResponse.HOST_CONFIG_NOT_FOUND );
             return status;
         }
 

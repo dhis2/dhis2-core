@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,20 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 /**
  * @author Lars Helge Overland
@@ -125,12 +131,12 @@ public class Chart
     @Override
     public void populateAnalyticalProperties()
     {
-        if ( series != null )
+        if ( !isEmpty( series ) )
         {
             columns.add( getDimensionalObject( series ) );
         }
 
-        if ( category != null )
+        if ( !isEmpty( category ) )
         {
             rows.add( getDimensionalObject( category ) );
         }
@@ -251,5 +257,22 @@ public class Chart
     public void setSeriesItems( List<Series> seriesItems )
     {
         this.seriesItems = seriesItems;
+    }
+
+    // -------------------------------------------------------------------------
+    // Temporary overriding getters so the Schema properties are read as mandatory.
+    // Required in order to enable backward support during the migration to the
+    // new Visualization API
+    // -------------------------------------------------------------------------
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @Description( "The name of this Object. Required and unique." )
+    @PropertyRange( min = 1, max = 230)
+    @Property( required = TRUE )
+    public String getName()
+    {
+        return super.getName();
     }
 }

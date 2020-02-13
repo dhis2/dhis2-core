@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,13 @@ import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author Morten Olav Hansen
@@ -48,10 +49,15 @@ public class PostLoadAuditListener
 {
     public PostLoadAuditListener(
         AuditManager auditManager,
-        AuditLegacyObjectFactory auditLegacyObjectFactory,
+        AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
     {
-        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier );
+    }
+
+    AuditType getAuditType()
+    {
+        return AuditType.READ;
     }
 
     @Override
@@ -59,15 +65,14 @@ public class PostLoadAuditListener
     {
         Object entity = postLoadEvent.getEntity();
 
-        getAuditable( entity, "read" ).ifPresent( auditable -> {
+        getAuditable( entity, "read" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
-                .withAuditType( AuditType.READ )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( new Date() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
-                .build() );
-        } );
+                .auditType( getAuditType() )
+                .auditScope( auditable.scope() )
+                .createdAt( LocalDateTime.now() )
+                .createdBy( getCreatedBy() )
+                .object( entity )
+                .auditableEntity( new AuditableEntity( entity ) )
+                .build() ) );
     }
 }

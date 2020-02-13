@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.programrule.hibernate;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
@@ -140,7 +139,7 @@ public class HibernateProgramRuleStore
     {
         List<BigInteger> bigIntegerList = getSession().createNativeQuery(
             "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid " +
-                "where environments@> '[\"" + environment + "\"]';" )
+                "where environments@> '[\"" + environment + "\"]';")
             .list();
         List<Long> idList = bigIntegerList
             .stream()
@@ -150,7 +149,7 @@ public class HibernateProgramRuleStore
         Session session = getSession();
         session.clear();
         return session.createQuery(
-            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)" )
+            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)", ProgramRule.class )
             .setParameterList( "ids", idList )
             .getResultList();
     }

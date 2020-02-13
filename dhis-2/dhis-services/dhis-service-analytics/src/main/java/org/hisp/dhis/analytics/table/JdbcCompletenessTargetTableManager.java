@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,14 +89,14 @@ public class JdbcCompletenessTargetTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
         new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
         new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
         new AnalyticsTableColumn( quote( "coenddate" ), DATE, "doc.coenddate" ),
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
         new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
-    
+
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {

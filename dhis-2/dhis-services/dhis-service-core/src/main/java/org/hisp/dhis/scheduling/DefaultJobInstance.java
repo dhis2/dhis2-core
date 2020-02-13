@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,13 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Date;
 
@@ -41,34 +44,56 @@ import java.util.Date;
  * @author Henning Håkonsen
  */
 @Component( "org.hisp.dhis.scheduling.JobInstance" )
-public class DefaultJobInstance 
+public class DefaultJobInstance
     implements JobInstance
 {
     private static final Log log = LogFactory.getLog( DefaultJobInstance.class );
-    
+
     private static final String NOT_LEADER_SKIP_LOG = "Not a leader, skipping job with jobType:%s and name:%s";
-    
-    public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
-        MessageService messageService, LeaderManager leaderManager )
+
+    private SchedulingManager schedulingManager;
+
+    private MessageService messageService;
+
+    private LeaderManager leaderManager;
+
+    @SuppressWarnings("unused")
+    private DefaultJobInstance()
+    {
+    }
+
+    public DefaultJobInstance( SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager )
+    {
+        this.schedulingManager = schedulingManager;
+        this.messageService = messageService;
+        this.leaderManager = leaderManager;
+
+        Preconditions.checkNotNull( schedulingManager );
+        Preconditions.checkNotNull( messageService );
+        Preconditions.checkNotNull( leaderManager );
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isEnabled() )
         {
             return;
         }
-        
+
         if ( jobConfiguration.isLeaderOnlyJob() && !leaderManager.isLeader() )
         {
-            log.debug(
-                String.format( NOT_LEADER_SKIP_LOG, jobConfiguration.getJobType(), jobConfiguration.getName() ) );
+            log.debug( String.format( NOT_LEADER_SKIP_LOG, jobConfiguration.getJobType(), jobConfiguration.getName() ) );
             return;
         }
-        
+
         final Clock clock = new Clock().startClock();
+
         try
         {
             if ( jobConfiguration.isInMemoryJob() )
             {
-                executeJob( jobConfiguration, schedulingManager, clock );
+                executeJob( jobConfiguration, clock );
             }
             else if ( !schedulingManager.isJobConfigurationRunning( jobConfiguration ) )
             {
@@ -76,34 +101,32 @@ public class DefaultJobInstance
                 schedulingManager.jobConfigurationStarted( jobConfiguration );
                 jobConfiguration.setNextExecutionTime( null );
 
-                executeJob( jobConfiguration, schedulingManager, clock );
+                executeJob( jobConfiguration, clock );
 
                 jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
             }
             else
             {
-                log.error(
-                    "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() +
-                        "' is already running." );
-
-                messageService.sendSystemErrorNotification(
-                    "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() +
-                        "' is already running.",
-                    new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
+                String message = String.format( "Job failed: '%s', job type already running: '%s'",
+                    jobConfiguration.getName(), jobConfiguration.getJobType() );
+                log.error( message );
+                messageService.sendSystemErrorNotification( message, new RuntimeException( message ) );
 
                 jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
             }
         }
         catch ( Exception ex )
         {
-            messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
-            log.error( "Job '" + jobConfiguration.getName() + "' failed", ex );
+            String message = String.format( "Job failed: '%s'", jobConfiguration.getName() );
+            messageService.sendSystemErrorNotification( message, ex );
+            log.error( message, ex );
+            log.error( DebugUtils.getStackTrace( ex ) );
 
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
         }
         finally
         {
-            setFinishingStatus( clock, schedulingManager, jobConfiguration );
+            setFinishingStatus( clock, jobConfiguration );
         }
     }
 
@@ -111,25 +134,23 @@ public class DefaultJobInstance
      * Set status properties of job after finish. If the job was executed manually and the job is disabled we want
      * to set the status back to DISABLED.
      *
-     * @param clock Clock for keeping track of time usage
-     * @param schedulingManager reference to scheduling manager
-     * @param jobConfiguration the job configuration
+     * @param clock Clock for keeping track of time usage.
+     * @param jobConfiguration the job configuration.
      */
-    private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    private void setFinishingStatus( Clock clock, JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isInMemoryJob() )
         {
             return;
         }
 
-        if ( !jobConfiguration.isContinuousExecution() )
-        {
-            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
-        }
-
         if ( !jobConfiguration.isEnabled() )
         {
             jobConfiguration.setJobStatus( JobStatus.DISABLED );
+        }
+        else
+        {
+            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
         }
 
         jobConfiguration.setNextExecutionTime( null );
@@ -140,22 +161,18 @@ public class DefaultJobInstance
     }
 
     /**
-     * Method which calls the execute method in the job. The job will run in this thread and finish, either with success
-     * or with an exception.
+     * Method which calls the execute method in the job. The job will run in this thread and finish,
+     * either with success or with an exception.
      *
-     * @param jobConfiguration the configuration to execute
-     * @param schedulingManager a reference to the scheduling manager
-     * @param clock refers to start time
-     * @throws Exception if the job fails
+     * @param jobConfiguration the configuration to execute.
+     * @param clock refers to start time.
      */
-    private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
-        Clock clock )
-        throws Exception
+    private void executeJob( JobConfiguration jobConfiguration, Clock clock )
     {
-        log.debug( "Job '" + jobConfiguration.getName() + "' started" );
+        log.debug( String.format( "Job started: '%s'", jobConfiguration.getName() ) );
 
         schedulingManager.getJob( jobConfiguration.getJobType() ).execute( jobConfiguration );
 
-        log.debug( "Job '" + jobConfiguration.getName() + "' executed successfully. Time used: " + clock.time() );
+        log.debug( String.format( "Job executed successfully: '%s'. Time used: '%s'", jobConfiguration.getName(), clock.time() ) );
     }
 }

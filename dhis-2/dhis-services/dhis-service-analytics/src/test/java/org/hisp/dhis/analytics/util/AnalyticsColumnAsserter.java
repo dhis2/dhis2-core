@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.util;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.util;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -51,7 +51,8 @@ public class AnalyticsColumnAsserter
         assertThat( "Column alias does not match!", expected.getAlias(), is( actual.getAlias() ) );
         assertThat( "Column creation date does not match!", expected.getCreated(), is( actual.getCreated() ) );
         assertThat( expected.getDataType(), is( actual.getDataType() ) );
-        assertThat( expected.getIndexType(), is( actual.getIndexType() ) );
+        assertThat( String.format( "Index type for column %s does not match!", expected.getName() ),
+            expected.getIndexType(), is( actual.getIndexType() ) );
         // assertThat(actual.getIndexColumns(), is(expected.getIndexColumns()));
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.converter;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.converter;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -67,14 +66,10 @@ public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
     private final TrackerPreheatService trackerPreheatService;
-    private final IdentifiableObjectManager manager;
 
-    public EventTrackerConverterService(
-        TrackerPreheatService trackerPreheatService,
-        IdentifiableObjectManager manager )
+    public EventTrackerConverterService( TrackerPreheatService trackerPreheatService )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.manager = manager;
     }
 
     @Override
@@ -251,7 +246,7 @@ public class EventTrackerConverterService
             e.getDataValues().forEach( dv -> {
                 EventDataValue dataValue = new EventDataValue( dv.getDataElement(), dv.getValue() );
                 dataValue.setAutoFields();
-                dataValue.setProvidedElsewhere( dv.getProvidedElsewhere() );
+                dataValue.setProvidedElsewhere( dv.isProvidedElsewhere() );
                 dataValue.setStoredBy( dv.getStoredBy() );
 
                 eventDataValues.add( dataValue );
@@ -283,8 +278,9 @@ public class EventTrackerConverterService
 
     private TrackerPreheat preheat( List<Event> events )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setEvents( events );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .events( events )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }

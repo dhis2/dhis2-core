@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,6 +134,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.springframework.aop.framework.Advised;
@@ -173,10 +174,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+
 /**
  * @author Lars Helge Overland
  */
-@ActiveProfiles( profiles = {"test"} )
+@ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
@@ -368,7 +371,6 @@ public abstract class DhisConvenienceTest
      * @param dependency    the dependency.
      * @param clazz         the interface type of the dependency.
      */
-    @Deprecated
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
         try
@@ -528,7 +530,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryCombo the category combo.
+     * @param categoryCombo   the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -828,11 +830,11 @@ public abstract class DhisConvenienceTest
         return unit;
     }
 
-    public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry)
+    public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, Geometry geometry )
     {
         OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
 
-        unit.setGeometry(geometry);
+        unit.setGeometry( geometry );
 
         return unit;
     }
@@ -1093,8 +1095,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter          A unique character to identify the object.
-     * @param expressionString         The expression string.
+     * @param uniqueCharacter  A unique character to identify the object.
+     * @param expressionString The expression string.
      */
     public static Expression createExpression2( char uniqueCharacter, String expressionString )
     {
@@ -1239,6 +1241,16 @@ public abstract class DhisConvenienceTest
         return colorSet;
     }
 
+    public static Visualization createVisualization( final String name )
+    {
+        final Visualization visualization = new Visualization();
+        visualization.setAutoFields();
+        visualization.setName( name );
+        visualization.setType(PIVOT_TABLE);
+
+        return visualization;
+    }
+
     public static Chart createChart( char uniqueCharacter )
     {
         Chart chart = new Chart();
@@ -1326,7 +1338,7 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+        return createUserAuthorityGroup( uniqueCharacter, new String[]{} );
     }
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
@@ -1749,7 +1761,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content The content of the file
+     * @param content    The content of the file
      * @return a fileResource object
      */
     public static FileResource createFileResource( char uniqueChar, byte[] content )
@@ -1768,7 +1780,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content The content of the file
+     * @param content    The content of the file
      * @return an externalFileResource object
      */
     public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
@@ -1833,17 +1845,17 @@ public abstract class DhisConvenienceTest
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
-            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
+        String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
     {
         return new ProgramNotificationTemplate(
-                name,
-                "Subject",
-                "Message",
-                trigger,
-                recipient,
-                Sets.newHashSet(),
-                days,
-                null, null
+            name,
+            "Subject",
+            "Message",
+            trigger,
+            recipient,
+            Sets.newHashSet(),
+            days,
+            null, null
         );
     }
 
@@ -2033,7 +2045,7 @@ public abstract class DhisConvenienceTest
         }
 
         @Override
-        public Iterator<?> getPrefixes( String namespaceURI )
+        public Iterator<String> getPrefixes( String namespaceURI )
         {
             return null;
         }

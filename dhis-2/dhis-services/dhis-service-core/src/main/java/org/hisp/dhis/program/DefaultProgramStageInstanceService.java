@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -180,6 +180,13 @@ public class DefaultProgramStageInstanceService
     public boolean programStageInstanceExistsIncludingDeleted( String uid )
     {
         return programStageInstanceStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids )
+    {
+        return programStageInstanceStore.getUidsIncludingDeleted( uids );
     }
 
     @Override

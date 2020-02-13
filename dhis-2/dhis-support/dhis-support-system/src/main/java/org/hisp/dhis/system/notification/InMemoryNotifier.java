@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.notification;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,6 +73,11 @@ public class InMemoryNotifier implements Notifier
         {
             Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed );
 
+            if ( id.isInMemoryJob() && !StringUtils.isEmpty( id.getUid() ) )
+            {
+                notification.setUid( id.getUid() );
+            }
+
             notificationMap.add( id, notification );
 
             log.info( notification );
@@ -84,6 +90,12 @@ public class InMemoryNotifier implements Notifier
     public Notifier update( JobConfiguration id, String message )
     {
         return update( id, NotificationLevel.INFO, message, false );
+    }
+
+    @Override
+    public Notifier update( JobConfiguration id, String message, boolean completed )
+    {
+        return update( id, NotificationLevel.INFO, message, completed );
     }
 
     @Override

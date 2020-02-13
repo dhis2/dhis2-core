@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,16 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
+import java.util.stream.IntStream;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -41,13 +46,12 @@ import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.stream.IntStream;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 public class DashboardServiceTest
     extends DhisSpringTest
@@ -56,7 +60,7 @@ public class DashboardServiceTest
     private DashboardService dashboardService;
 
     @Autowired
-    private ChartService chartService;
+    private VisualizationService visualizationService;
 
     @Autowired
     private DocumentService documentService;
@@ -75,19 +79,19 @@ public class DashboardServiceTest
     private DashboardItem diC;
     private DashboardItem diD;
 
-    private Chart chartA;
-    private Chart chartB;
+    private Visualization visualizationA;
+    private Visualization visualizationB;
 
     private Document docA;
 
     @Override
     public void setUpTest()
     {
-        chartA = createChart( 'A' );
-        chartB = createChart( 'B' );
+        visualizationA = createVisualization( "A" );
+        visualizationB = createVisualization( "B" );
 
-        chartService.addChart( chartA );
-        chartService.addChart( chartB );
+        visualizationService.save( visualizationA );
+        visualizationService.save( visualizationB );
 
         docA = new Document( "A", "url", false, null );
         Document docB = new Document( "B", "url", false, null );
@@ -101,11 +105,11 @@ public class DashboardServiceTest
 
         diA = new DashboardItem();
         diA.setAutoFields();
-        diA.setChart( chartA );
+        diA.setVisualization( visualizationA );
 
         diB = new DashboardItem();
         diB.setAutoFields();
-        diB.setChart( chartB );
+        diB.setVisualization( visualizationB );
 
         diC = new DashboardItem();
         diC.setAutoFields();
@@ -140,8 +144,8 @@ public class DashboardServiceTest
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
 
-        assertEquals( 1, dashboardService.countChartDashboardItems( chartA ) );
-        assertEquals( 1, dashboardService.countChartDashboardItems( chartB ) );
+        assertEquals( 1, dashboardService.countVisualizationDashboardItems( visualizationA ) );
+        assertEquals( 1, dashboardService.countVisualizationDashboardItems( visualizationB ) );
         assertEquals( 1, dashboardService.countDocumentDashboardItems( docA ) );
     }
 
@@ -185,7 +189,7 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dA );
         dashboardService.saveDashboard( dB );
 
-        DashboardItem itemA = dashboardService.addItemContent( dA.getUid(), DashboardItemType.CHART, chartA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dA.getUid(), DashboardItemType.VISUALIZATION, visualizationA.getUid() );
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
@@ -223,16 +227,16 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dA );
         dashboardService.saveDashboard( dB );
 
-        DashboardSearchResult result = dashboardService.search( "C" );
-        assertEquals(2, result.getChartCount() );
+        DashboardSearchResult result = dashboardService.search( "A" );
+        assertEquals(1, result.getVisualizationCount() );
         assertEquals(1, result.getResourceCount() );
 
-        result = dashboardService.search( "A" );
-        assertEquals(2, result.getChartCount() );
+        result = dashboardService.search( "B" );
+        assertEquals(1, result.getVisualizationCount() );
         assertEquals(1, result.getResourceCount() );
 
         result = dashboardService.search( "Z" );
-        assertEquals(0, result.getChartCount() );
+        assertEquals(0, result.getVisualizationCount() );
         assertEquals(0, result.getResourceCount() );
     }
 
@@ -243,27 +247,27 @@ public class DashboardServiceTest
         objectManager.save( prA );
 
         IntStream.range(1, 30).forEach( i -> {
-            Chart chart = createChart( 'A' );
-            chart.setName( RandomStringUtils.randomAlphabetic( 5 ) );
-            chartService.addChart( createChart( ) );
+            Visualization visualization = createVisualization( "A" );
+            visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
+            visualizationService.save( visualization );
 
         });
 
-        IntStream.range(1, 30).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ));
+        IntStream.range(1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
 
-        DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ) );
+        DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ) );
 
-        assertThat(result.getChartCount(), is(25));
-        assertThat(result.getEventChartCount(), is(6));
+        assertThat( result.getVisualizationCount(), is( 25 ) );
+        assertThat( result.getEventChartCount(), is( 6 ) );
 
-        result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ), 3, null );
+        result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 3, null );
 
-        assertThat(result.getChartCount(), is(25));
-        assertThat(result.getEventChartCount(), is(3));
+        assertThat( result.getVisualizationCount(), is( 25 ) );
+        assertThat( result.getEventChartCount(), is( 3 ) );
 
-        result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ), 3, 29 );
+        result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 3, 29 );
 
-        assertThat( result.getChartCount(), is( 29 ) );
+        assertThat( result.getVisualizationCount(), is( 29 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
 
     }
@@ -274,12 +278,5 @@ public class DashboardServiceTest
         eventChart.setProgram( program );
         eventChart.setType( ChartType.COLUMN );
         return eventChart;
-    }
-    
-    private Chart createChart( )
-    {
-        Chart chart = createChart( 'A' );
-        chart.setName( RandomStringUtils.randomAlphabetic( 5 ) );
-        return chart;
     }
 }

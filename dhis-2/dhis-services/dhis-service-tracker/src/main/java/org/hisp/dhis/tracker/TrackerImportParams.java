@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,11 @@ package org.hisp.dhis.tracker;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -45,259 +47,140 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackerImportParams", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TrackerImportParams
 {
     /**
      * User uid to use for import job.
      */
+    @JsonProperty
     private String userId;
 
     /**
      * User to use for import job.
      */
-
     private User user;
 
     /**
      * Should import be imported or just validated.
      */
+    @JsonProperty
+    @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
      * What identifiers to match on.
      */
+    @JsonProperty
+    @Builder.Default
     private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Sets import strategy (create, update, etc).
      */
+    @JsonProperty
+    @Builder.Default
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
      * Should import be treated as a atomic import (all or nothing).
      */
+    @JsonProperty
+    @Builder.Default
     private AtomicMode atomicMode = AtomicMode.ALL;
 
     /**
      * Flush for every object or per type.
      */
+    @JsonProperty
+    @Builder.Default
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
      * Validation mode to use, defaults to fully validated objects.
      */
+    @JsonProperty
+    @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
      * Name of file that was used for import (if available).
      */
+    @JsonProperty
     private String filename;
 
     /**
      * Give full report, or only include errors.
      */
+    @JsonProperty
+    @Builder.Default
     private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
+
+    /**
+     * Job id to use for threaded imports.
+     */
+    private JobConfiguration jobConfiguration;
 
     /**
      * Tracked entities to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
-    private List<Event> events = new ArrayList<>();
-
-    public TrackerImportParams()
-    {
-    }
-
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    public TrackerImportParams setUserId( String userId )
-    {
-        this.userId = userId;
-        return this;
-    }
-
-    public User getUser()
-    {
-        return user;
-    }
+    @Builder.Default
+    private List<Event> events = new ArrayList<>();
 
     public TrackerImportParams setUser( User user )
     {
         this.user = user;
+
+        if ( user != null )
+        {
+            this.userId = user.getUid();
+        }
+
         return this;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
+        return User.username( user );
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleMode getImportMode()
+    public boolean hasJobConfiguration()
     {
-        return importMode;
-    }
-
-    public TrackerImportParams setImportMode( TrackerBundleMode importMode )
-    {
-        this.importMode = importMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerIdentifier getIdentifier()
-    {
-        return identifier;
-    }
-
-    public TrackerImportParams setIdentifier( TrackerIdentifier identifier )
-    {
-        this.identifier = identifier;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerImportStrategy getImportStrategy()
-    {
-        return importStrategy;
-    }
-
-    public TrackerImportParams setImportStrategy( TrackerImportStrategy importStrategy )
-    {
-        this.importStrategy = importStrategy;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AtomicMode getAtomicMode()
-    {
-        return atomicMode;
-    }
-
-    public TrackerImportParams setAtomicMode( AtomicMode atomicMode )
-    {
-        this.atomicMode = atomicMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FlushMode getFlushMode()
-    {
-        return flushMode;
-    }
-
-    public TrackerImportParams setFlushMode( FlushMode flushMode )
-    {
-        this.flushMode = flushMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValidationMode getValidationMode()
-    {
-        return validationMode;
-    }
-
-    public TrackerImportParams setValidationMode( ValidationMode validationMode )
-    {
-        this.validationMode = validationMode;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFilename()
-    {
-        return filename;
-    }
-
-    public TrackerImportParams setFilename( String filename )
-    {
-        this.filename = filename;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleReportMode getReportMode()
-    {
-        return reportMode;
-    }
-
-    public TrackerImportParams setReportMode( TrackerBundleReportMode reportMode )
-    {
-        this.reportMode = reportMode;
-        return this;
-    }
-
-    public List<TrackedEntity> getTrackedEntities()
-    {
-        return trackedEntities;
-    }
-
-    public TrackerImportParams setTrackedEntities( List<TrackedEntity> trackedEntities )
-    {
-        this.trackedEntities = trackedEntities;
-        return this;
-    }
-
-    public List<Enrollment> getEnrollments()
-    {
-        return enrollments;
-    }
-
-    public TrackerImportParams setEnrollments( List<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
-        return this;
-    }
-
-    public List<Event> getEvents()
-    {
-        return events;
-    }
-
-    public TrackerImportParams setEvents( List<Event> events )
-    {
-        this.events = events;
-        return this;
+        return jobConfiguration != null;
     }
 
     public TrackerBundleParams toTrackerBundleParams()
     {
-        return new TrackerBundleParams()
-            .setUser( user )
-            .setImportMode( importMode )
-            .setImportStrategy( importStrategy )
-            .setAtomicMode( atomicMode )
-            .setFlushMode( flushMode )
-            .setValidationMode( validationMode )
-            .setReportMode( reportMode )
-            .setTrackedEntities( trackedEntities )
-            .setEnrollments( enrollments )
-            .setEvents( events );
+        return TrackerBundleParams.builder()
+            .user( user )
+            .importMode( importMode )
+            .importStrategy( importStrategy )
+            .atomicMode( atomicMode )
+            .flushMode( flushMode )
+            .validationMode( validationMode )
+            .reportMode( reportMode )
+            .trackedEntities( trackedEntities )
+            .enrollments( enrollments )
+            .events( events )
+            .build();
     }
 }

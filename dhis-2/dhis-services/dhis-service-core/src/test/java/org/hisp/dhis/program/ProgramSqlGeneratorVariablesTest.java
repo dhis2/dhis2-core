@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -355,7 +355,7 @@ public class ProgramSqlGeneratorVariablesTest
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withFunctionMethod( FUNCTION_GET_SQL )
             .withItemMethod( ITEM_GET_SQL )
-            .withConstantService( constantService )
+            .withConstantMap( constantService.getConstantMap() )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
             .withDataElementService( dataElementService )

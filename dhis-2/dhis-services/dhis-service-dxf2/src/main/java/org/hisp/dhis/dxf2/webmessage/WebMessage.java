@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.webmessage;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.springframework.http.HttpStatus;
 
@@ -66,6 +67,11 @@ public class WebMessage
     protected HttpStatus httpStatus = HttpStatus.OK;
 
     /**
+     * The {@link ErrorCode} which describes a potential error. Only relevant for {@link Status#ERROR}.
+     */
+    protected ErrorCode errorCode;
+
+    /**
      * Non-technical message, should be simple and could possibly be used to display message
      * to an end-user.
      */
@@ -87,7 +93,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Constructors
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     public WebMessage()
     {
@@ -106,7 +112,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Logic
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     public boolean isOk()
     {
@@ -125,7 +131,7 @@ public class WebMessage
 
     // -------------------------------------------------------------------------
     // Get and set methods
-    // -------------------------------------------------------------------------     
+    // -------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -134,9 +140,10 @@ public class WebMessage
         return status;
     }
 
-    public void setStatus( Status status )
+    public WebMessage setStatus( Status status )
     {
         this.status = status;
+        return this;
     }
 
     @JsonProperty
@@ -146,9 +153,10 @@ public class WebMessage
         return code;
     }
 
-    public void setCode( Integer code )
+    public WebMessage setCode( Integer code )
     {
         this.code = code;
+        return this;
     }
 
     @JsonProperty
@@ -158,9 +166,10 @@ public class WebMessage
         return httpStatus.getReasonPhrase();
     }
 
-    public void setHttpStatus( HttpStatus httpStatus )
+    public WebMessage setHttpStatus( HttpStatus httpStatus )
     {
         this.httpStatus = httpStatus;
+        return this;
     }
 
     @JsonProperty
@@ -171,15 +180,28 @@ public class WebMessage
     }
 
     @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
+    }
+
+    public void setErrorCode( ErrorCode errorCode )
+    {
+        this.errorCode = errorCode;
+    }
+
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getMessage()
     {
         return message;
     }
 
-    public void setMessage( String message )
+    public WebMessage setMessage( String message )
     {
         this.message = message;
+        return this;
     }
 
     @JsonProperty
@@ -189,9 +211,10 @@ public class WebMessage
         return devMessage;
     }
 
-    public void setDevMessage( String devMessage )
+    public WebMessage setDevMessage( String devMessage )
     {
         this.devMessage = devMessage;
+        return this;
     }
 
     @JsonProperty
@@ -201,9 +224,10 @@ public class WebMessage
         return response;
     }
 
-    public void setResponse( WebMessageResponse response )
+    public WebMessage setResponse( WebMessageResponse response )
     {
         this.response = response;
+        return this;
     }
 
     @Override

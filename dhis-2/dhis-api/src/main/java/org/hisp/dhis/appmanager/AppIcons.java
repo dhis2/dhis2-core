@@ -1,10 +1,15 @@
 package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import java.io.Serializable;
 
+import org.hisp.dhis.common.DxfNamespaces;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +39,7 @@ import java.io.Serializable;
 /**
  * @author Saptarshi
  */
+@JacksonXmlRootElement( localName = "appIcons", namespace = DxfNamespaces.DXF_2_0 )
 public class AppIcons
     implements Serializable
 {
@@ -46,12 +52,15 @@ public class AppIcons
      * Optional.
      */
     @JsonProperty( "16" )
+    @JacksonXmlProperty( localName = "icon_16", namespace = DxfNamespaces.DXF_2_0 )
     private String icon16;
 
     @JsonProperty( "48" )
+    @JacksonXmlProperty( localName = "icon_48", namespace = DxfNamespaces.DXF_2_0 )
     private String icon48;
 
     @JsonProperty( "128" )
+    @JacksonXmlProperty( localName = "icon_128", namespace = DxfNamespaces.DXF_2_0 )
     private String icon128;
 
     public String getIcon16()

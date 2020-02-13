@@ -1,7 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,4 +71,6 @@ public interface PushAnalysisService
      * @param jobId to track process
      */
     void runPushAnalysis( String uid, JobConfiguration jobId );
+
+    void runPushAnalysis( List<String> uids, JobConfiguration jobId );
 }

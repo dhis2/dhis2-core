@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@ import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -64,7 +64,8 @@ public class AnalyticalObjectStoreTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    @Resource( name = "org.hisp.dhis.mapping.MapViewStore" )
+    @Autowired
+    @Qualifier( "org.hisp.dhis.mapping.MapViewStore" )
     private MapViewStore mapViewStore;
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.statistics.jdbc;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,8 +82,9 @@ public class JdbcStatisticsProvider
         objectCounts.put( Objects.PERIOD, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM period", Integer.class ) );
         objectCounts.put( Objects.USER, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM users", Integer.class ) );
         objectCounts.put( Objects.USERGROUP, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM usergroup", Integer.class ) );
-        objectCounts.put( Objects.REPORTTABLE, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM reporttable", Integer.class ) );
-        objectCounts.put( Objects.CHART, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM chart", Integer.class ) );
+        objectCounts.put( Objects.REPORTTABLE, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM visualization v WHERE v.type = 'PIVOT_TABLE'", Integer.class ) );
+        objectCounts.put( Objects.VISUALIZATION, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM visualization", Integer.class ) );
+        objectCounts.put( Objects.CHART, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM visualization v WHERE v.type <> 'PIVOT_TABLE'", Integer.class ) );
         objectCounts.put( Objects.MAP, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM map", Integer.class ) );
         objectCounts.put( Objects.DASHBOARD, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM dashboard", Integer.class ) );
         objectCounts.put( Objects.DATAVALUE, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM datavalue dv where dv.deleted is false", Integer.class ) );
