@@ -68,7 +68,7 @@ public class TrackedEntityExistValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment();
+            reporter.increment( trackedEntity );
 
             // This is a very expensive check... move out/optimize to preheater?
             boolean exists = trackedEntityInstanceStore.existsIncludingDeleted( trackedEntity.getTrackedEntity() );
@@ -76,13 +76,11 @@ public class TrackedEntityExistValidationHook
             if ( bundle.getImportStrategy().isCreate() && exists )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1002 )
-                    .withObject( trackedEntity )
                     .addArg( trackedEntity.getTrackedEntity() ) );
             }
             else if ( bundle.getImportStrategy().isUpdate() && !exists )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1063 )
-                    .withObject( trackedEntity )
                     .addArg( trackedEntity.getTrackedEntity() ) );
             }
         }

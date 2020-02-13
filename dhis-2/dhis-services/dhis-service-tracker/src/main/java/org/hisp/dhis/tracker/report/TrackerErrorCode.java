@@ -109,6 +109,8 @@ public enum TrackerErrorCode
     E1066( "User: `{0}`, has no write access to program instance: `{1}`." ),
     E1067( "Could not find organization unit in tracked entity instance: `{0}`." ),
 
+    E1068( "Could not find TrackedEntityInstance: `{0}`, linked to enrollment." ),
+
     E9999( "N/A" );
 
     private String message;

@@ -66,7 +66,7 @@ public class TrackedEntityAttributeValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment();
+            reporter.increment(trackedEntity);
 
             TrackedEntityInstance tei = PreheatHelper
                 .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );

@@ -63,7 +63,7 @@ public class TrackedEntityRequiredValuesValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment();
+            reporter.increment( trackedEntity );
 
             validateTrackedEntityType( reporter, bundle, trackedEntity );
             validateOrganisationUnit( reporter, bundle, trackedEntity );

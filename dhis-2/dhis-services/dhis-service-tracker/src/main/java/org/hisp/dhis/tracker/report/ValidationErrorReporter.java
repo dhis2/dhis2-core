@@ -28,8 +28,11 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
@@ -76,11 +79,6 @@ public class ValidationErrorReporter
         return mainKlass;
     }
 
-    public void increment()
-    {
-        lineNumber += 1;
-    }
-
     public int getLineNumber()
     {
         return lineNumber;
@@ -91,9 +89,9 @@ public class ValidationErrorReporter
         this.lineNumber = lineNumber;
     }
 
-    public void setMainId( TrackedEntity entity )
+    public <T extends IdentifiableObject> void setMainId( T entity )
     {
-        this.mainId = entity.getTrackedEntity() + " (" + entity.getClass().getSimpleName() + ")";
+        this.mainId = this.bundle.getIdentifier().getIdAndName( entity );
     }
 
     public static TrackerErrorReport.Builder newReport( TrackerErrorCode errorCode )
@@ -123,5 +121,23 @@ public class ValidationErrorReporter
         {
             throw new ValidationFailFastException( getReportList() );
         }
+    }
+
+    public void increment( Enrollment enrollment )
+    {
+        lineNumber += 1;
+        this.mainId = (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
+    }
+
+    public void increment( Event enrollment )
+    {
+        lineNumber += 1;
+        this.mainId = (enrollment.getEvent() + " (" + enrollment.getClass().getSimpleName() + ")");
+    }
+
+    public void increment( TrackedEntity te )
+    {
+        lineNumber += 1;
+        this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
     }
 }

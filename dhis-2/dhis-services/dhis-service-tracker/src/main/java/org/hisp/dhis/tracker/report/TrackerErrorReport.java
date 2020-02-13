@@ -143,18 +143,6 @@ public class TrackerErrorReport
             return this;
         }
 
-        public Builder withEnrollment( Enrollment enrollment )
-        {
-            this.mainObject = enrollment;
-            return this;
-        }
-
-        public Builder withObject( Object mainObject )
-        {
-            this.mainObject = mainObject;
-            return this;
-        }
-
         protected Builder withMainKlass( Class<?> mainKlass )
         {
             this.mainKlass = mainKlass;
@@ -184,7 +172,10 @@ public class TrackerErrorReport
                 trackerErrorMessage.addArgument( s );
             }
 
-            this.mainId = parseArgs( identifier, this.mainObject );
+            if ( this.mainObject != null )
+            {
+                this.mainId = parseArgs( identifier, this.mainObject );
+            }
 
             return new TrackerErrorReport( this.mainKlass, trackerErrorMessage, this.lineNumber, this.mainId,
                 this.mainKlass, this.errorProperties, this.value );

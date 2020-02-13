@@ -140,7 +140,6 @@ public abstract class AbstractTrackerValidationHook
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, errorReporter.getMainKlass() );
         // Set main id the same for all errors in the report.
-        reporter.setMainId( te );
         reporter.setLineNumber( errorReporter.getLineNumber() );
 
         // For looking up existing tei attr. ie. if it is an update. Could/should this be done in the preheater instead?
@@ -153,7 +152,6 @@ public abstract class AbstractTrackerValidationHook
             {
                 continue;
             }
-            // no/empty value? should this qualify as an error?
 
             TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
                 .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
@@ -190,7 +188,6 @@ public abstract class AbstractTrackerValidationHook
             catch ( IOException e )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1013 )
-                    .withObject( te )
                     .addArg( te.getCoordinates() )
                     .addArg( e.getMessage() ) );
                 return false;
@@ -207,8 +204,7 @@ public abstract class AbstractTrackerValidationHook
         {
             if ( StringUtils.isEmpty( te.getOrgUnit() ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1010 )
-                    .withObject( te ) );
+                errorReporter.addError( newReport( TrackerErrorCode.E1010 ) );
                 return;
             }
 
@@ -218,7 +214,6 @@ public abstract class AbstractTrackerValidationHook
             if ( organisationUnit == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .withObject( te )
                     .addArg( te.getOrgUnit() ) );
             }
 
@@ -226,11 +221,9 @@ public abstract class AbstractTrackerValidationHook
         else if ( bundle.getImportStrategy().isUpdate() )
         {
             TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
-
             if ( tei.getOrganisationUnit() == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .withObject( te )
                     .addArg( tei ) );
             }
         }
@@ -251,7 +244,9 @@ public abstract class AbstractTrackerValidationHook
         //&& ??? !importOptions.isSkipPatternValidation()
         // MortenO: How should we deal with this in the new importer?
         {
+
             String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
+
             if ( !textPatternValueIsValid( teAttr, attr.getValue(), oldValue ) )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1008 )
@@ -294,7 +289,6 @@ public abstract class AbstractTrackerValidationHook
         TrackedEntityAttribute teAttr )
     {
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
-
         if ( error != null )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1007 )
@@ -306,17 +300,15 @@ public abstract class AbstractTrackerValidationHook
     }
 
     private boolean validateAttrUnique( ValidationErrorReporter errorReporter, Attribute attr,
-        TrackedEntityAttribute teAttr,
-        TrackedEntity te, OrganisationUnit trackedEntityOu )
+        TrackedEntityAttribute teAttr, TrackedEntity te, OrganisationUnit trackedEntityOu )
     {
         if ( Boolean.TRUE.equals( teAttr.isUnique() ) )
         {
-            String error = teAttrService
-                .validateAttributeUniquenessWithinScope(
-                    teAttr,
-                    attr.getValue(),
-                    te.getTrackedEntity(),
-                    trackedEntityOu );
+            String error = teAttrService.validateAttributeUniquenessWithinScope(
+                teAttr,
+                attr.getValue(),
+                te.getTrackedEntity(),
+                trackedEntityOu );
 
             if ( error != null )
             {
@@ -334,8 +326,7 @@ public abstract class AbstractTrackerValidationHook
         return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
     }
 
-    protected boolean validateGeo( ValidationErrorReporter errorReporter, TrackedEntity te,
-        FeatureType featureType )
+    protected boolean validateGeo( ValidationErrorReporter errorReporter, TrackedEntity te, FeatureType featureType )
     {
         if ( te.getGeometry() != null )
         {
@@ -344,7 +335,6 @@ public abstract class AbstractTrackerValidationHook
             if ( FeatureType.NONE == featureType || featureType != typeFromName )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1012 )
-                    .withObject( te )
                     .addArg( featureType.name() ) );
                 return false;
             }
@@ -364,16 +354,14 @@ public abstract class AbstractTrackerValidationHook
         {
             if ( te.getTrackedEntityType() == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1004 ).withObject( te ) );
+                errorReporter.addError( newReport( TrackerErrorCode.E1004 ) );
                 return;
             }
 
             TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() );
-
             if ( entityType == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1005 )
-                    .withObject( te )
                     .addArg( te.getTrackedEntityType() ) );
             }
         }
@@ -381,15 +369,15 @@ public abstract class AbstractTrackerValidationHook
 
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
     {
-        return bundle.getImportStrategy().isCreate() ?
-            PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() ) :
-            PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getOrganisationUnit();
+        return bundle.getImportStrategy().isCreate()
+            ? PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() )
+            : PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getOrganisationUnit();
     }
 
     protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
     {
-        return bundle.getImportStrategy().isCreate() ?
-            PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() ) :
-            PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getTrackedEntityType();
+        return bundle.getImportStrategy().isCreate()
+            ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
+            : PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getTrackedEntityType();
     }
 }
