@@ -138,7 +138,7 @@ public class EnrollmentImportValidationTest
     }
 
     @Test
-    public void testTeValidationOkAll()
+    public void testEnrollmentValidationOkAll()
         throws IOException
     {
         TrackerBundleParams trackerBundleParams = renderService

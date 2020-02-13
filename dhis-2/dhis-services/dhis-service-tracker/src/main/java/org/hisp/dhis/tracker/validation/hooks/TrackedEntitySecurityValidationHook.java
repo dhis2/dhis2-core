@@ -71,10 +71,9 @@ public class TrackedEntitySecurityValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment(trackedEntity);
+            reporter.increment( trackedEntity );
 
             TrackedEntityType entityType = getTrackedEntityType( bundle, trackedEntity );
-
             if ( entityType != null && !aclService.canDataWrite( actingUser, entityType ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1001 )
@@ -83,8 +82,7 @@ public class TrackedEntitySecurityValidationHook
             }
 
             OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
-
-            if ( orgUnit != null && !organisationUnitService.isInUserSearchHierarchyCached( actingUser, orgUnit ) )
+            if ( orgUnit != null && !organisationUnitService.isInUserHierarchyCached( actingUser, orgUnit ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1000 )
                     .addArg( actingUser )

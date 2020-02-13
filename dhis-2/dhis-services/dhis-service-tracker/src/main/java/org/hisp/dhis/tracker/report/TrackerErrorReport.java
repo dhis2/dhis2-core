@@ -143,12 +143,6 @@ public class TrackerErrorReport
             return this;
         }
 
-        public Builder withObject( Object mainObject )
-        {
-            this.mainObject = mainObject;
-            return this;
-        }
-
         protected Builder withMainKlass( Class<?> mainKlass )
         {
             this.mainKlass = mainKlass;
