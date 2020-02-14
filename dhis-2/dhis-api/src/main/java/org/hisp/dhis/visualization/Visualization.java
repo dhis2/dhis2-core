@@ -599,7 +599,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public DisplayDensity getDisplayDensity()
     {
-        return displayDensity;
+        return DefaultValue.defaultIfNull( displayDensity );
     }
 
     public void setDisplayDensity( DisplayDensity displayDensity )
@@ -611,7 +611,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public FontSize getFontSize()
     {
-        return fontSize;
+        return DefaultValue.defaultIfNull( fontSize );
     }
 
     public void setFontSize( FontSize fontSize )
