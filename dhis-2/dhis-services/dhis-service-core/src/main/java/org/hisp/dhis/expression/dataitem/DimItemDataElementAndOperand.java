@@ -28,6 +28,7 @@ package org.hisp.dhis.expression.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionalItemId;
 
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
@@ -88,6 +89,11 @@ public class DimItemDataElementAndOperand
      */
     private boolean isDataElementOperandSyntax( ExprContext ctx )
     {
+        if ( ctx.uid0 == null )
+        {
+            throw new ParserExceptionWithoutContext( "Data Element or DataElementOperand must have a uid " + ctx.getText() );
+        }
+
         return anyNotNull( ctx.uid1, ctx.uid2 );
     }
 }

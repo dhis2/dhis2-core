@@ -44,14 +44,20 @@ public class D2HasValue
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.visit( ctx.expr( 0 ) );
-
-        return true;
+        return getProgramArgType( ctx ).getDescription( ctx, visitor );
     }
 
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return "(" + visitor.visitAllowingNulls( ctx.expr( 0 ) ) + " is not null)";
+        boolean savedReplaceNulls = visitor.getReplaceNulls();
+
+        visitor.setReplaceNulls( false );
+
+        String argSql = (String) getProgramArgType( ctx ).getSql( ctx, visitor );
+
+        visitor.setReplaceNulls( savedReplaceNulls );
+
+        return "(" + argSql + " is not null)";
     }
 }

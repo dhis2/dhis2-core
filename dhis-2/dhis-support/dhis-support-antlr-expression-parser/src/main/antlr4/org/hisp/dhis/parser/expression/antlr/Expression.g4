@@ -1,4 +1,4 @@
-// ANTLR V4 grammar file to define DHIS2 epression syntax
+// ANTLR V4 grammar file to define DHIS2 expression syntax
 
 grammar Expression;
 
@@ -16,7 +16,7 @@ expr
     :   WS+ expr
     |   expr WS+
 
-    //  Operators (in precidence order)
+    //  Operators (in precedence order)
 
     |   it='(' expr ')'
     |   <assoc=right> expr it='^' expr
@@ -51,35 +51,6 @@ expr
     |   it='sum(' expr ')'
     |   it='variance(' expr ')'
 
-    //  Program variables (alphabtical)
-
-    |   'V{' it='analytics_period_end' '}'
-    |   'V{' it='analytics_period_start' '}'
-    |   'V{' it='creation_date' '}'
-    |   'V{' it='current_date' '}'
-    |   'V{' it='due_date' '}'
-    |   'V{' it='enrollment_count' '}'
-    |   'V{' it='enrollment_date' '}'
-    |   'V{' it='enrollment_id' '}'
-    |   'V{' it='enrollment_status' '}'
-    |   'V{' it='environment' '}'
-    |   'V{' it='event_count' '}'
-    |   'V{' it='event_date' '}'
-    |   'V{' it='event_id' '}'
-    |   'V{' it='event_status' '}'
-    |   'V{' it='execution_date' '}'
-    |   'V{' it='incident_date' '}'
-    |   'V{' it='org_unit_count' '}'
-    |   'V{' it='org_unit' '}'
-    |   'V{' it='orgunit_code' '}'
-    |   'V{' it='program_name' '}'
-    |   'V{' it='program_stage_id' '}'
-    |   'V{' it='program_stage_name' '}'
-    |   'V{' it='sync_date' '}'
-    |   'V{' it='tei_count' '}'
-    |   'V{' it='value_count' '}'
-    |   'V{' it='zero_pos_value_count' '}'
-
     //  Program functions (alphabetical)
 
     |   it='d2:addDays(' expr ',' expr ')'
@@ -100,17 +71,18 @@ expr
     |   it='d2:hasValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
     |   it='d2:hasValue(' WS* '#{' variableName '}' WS* ')'
     |   it='d2:hasValue(' WS* 'A{' uid0=UID '}' WS* ')'
+    |   it='d2:hasValue(' WS* 'V{' programVariable '}' WS* ')'
     |   it='d2:inOrgUnitGroup(' expr ')'
     |   it='d2:lastEventDate(' expr ')'
     |   it='d2:left(' expr ',' expr ')'
     |   it='d2:length(' expr ')'
     |   it='d2:maxValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
-    |   it='d2:maxValue(' WS* 'PS_EVENTDATE:' WS* uid0=UID WS* ')'
     |   it='d2:maxValue(' WS* '#{' variableName '}' WS* ')'
+    |   it='d2:maxValue(' WS* psEventDate='PS_EVENTDATE:' WS* uid0=UID WS* ')'
     |   it='d2:minutesBetween(' expr ',' expr ')'
     |   it='d2:minValue(' WS* '#{' uid0=UID '.' uid1=UID '}' WS* ')'
-    |   it='d2:minValue(' WS* 'PS_EVENTDATE:' WS* uid0=UID WS* ')'
     |   it='d2:minValue(' WS* '#{' variableName '}' WS* ')'
+    |   it='d2:minValue(' WS* psEventDate='PS_EVENTDATE:' WS* uid0=UID WS* ')'
     |   it='d2:modulus(' expr ',' expr ')'
     |   it='d2:monthsBetween(' expr ',' expr ')'
     |   it='d2:oizp(' expr ')'
@@ -147,11 +119,44 @@ expr
     |   it='R{' uid0=UID '.' REPORTING_RATE_TYPE '}'
     |   it='[days]'
 
+    //  Program indicator/rule built-in variables
+
+    |   it='V{' programVariable '}'
+
     //  Literals
 
     |   numericLiteral
     |   stringLiteral
     |   booleanLiteral
+    ;
+
+programVariable   // (alphabtical)
+    :   var='analytics_period_end'
+    |   var='analytics_period_start'
+    |   var='creation_date'
+    |   var='current_date'
+    |   var='due_date'
+    |   var='enrollment_count'
+    |   var='enrollment_date'
+    |   var='enrollment_id'
+    |   var='enrollment_status'
+    |   var='environment'
+    |   var='event_count'
+    |   var='event_date'
+    |   var='event_id'
+    |   var='event_status'
+    |   var='execution_date'
+    |   var='incident_date'
+    |   var='org_unit_count'
+    |   var='org_unit'
+    |   var='orgunit_code'
+    |   var='program_name'
+    |   var='program_stage_id'
+    |   var='program_stage_name'
+    |   var='sync_date'
+    |   var='tei_count'
+    |   var='value_count'
+    |   var='zero_pos_value_count'
     ;
 
 variableName
@@ -298,6 +303,7 @@ N_BRACE     : 'N{';
 OUG_BRACE   : 'OUG{';
 PS_EVENTDATE: 'PS_EVENTDATE:';
 R_BRACE     : 'R{';
+V_BRACE     : 'V{';
 X_BRACE     : 'X{';
 DAYS        : '[days]';
 

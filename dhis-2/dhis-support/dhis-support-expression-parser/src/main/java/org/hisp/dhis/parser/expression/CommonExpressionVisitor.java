@@ -453,6 +453,11 @@ public class CommonExpressionVisitor
         return replaceNulls;
     }
 
+    public void setReplaceNulls( boolean replaceNulls )
+    {
+        this.replaceNulls = replaceNulls;
+    }
+
     public Set<DimensionalItemId> getItemIds()
     {
         return itemIds;

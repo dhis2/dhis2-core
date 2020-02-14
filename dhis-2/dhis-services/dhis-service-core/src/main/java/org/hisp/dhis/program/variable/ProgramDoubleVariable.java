@@ -36,7 +36,7 @@ import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DO
  * @author Jim Grace
  */
 public abstract class ProgramDoubleVariable
-    extends ProgramVariable
+    implements ProgramVariable
 {
     @Override
     public final Object defaultVariableValue()

@@ -124,7 +124,7 @@ public class ParserUtils
      */
     public static void assumeStageElementSyntax( ExprContext ctx )
     {
-        if ( ctx.uid1 == null || ctx.uid2 != null || ctx.wild2 != null )
+        if ( ctx.uid0 == null || ctx.uid1 == null || ctx.uid2 != null || ctx.wild2 != null )
         {
             throw new ParserExceptionWithoutContext( "Invalid Program Stage / DataElement syntax: " + ctx.getText() );
         }
@@ -138,7 +138,7 @@ public class ParserUtils
      */
     public static void assumeExpressionProgramAttribute( ExprContext ctx )
     {
-        if ( ctx.uid1 == null )
+        if ( ctx.uid0 == null || ctx.uid1 == null )
         {
             throw new ParserExceptionWithoutContext( "Program attribute must have two UIDs: " + ctx.getText() );
         }
@@ -152,7 +152,7 @@ public class ParserUtils
      */
     public static void assumeProgramExpressionProgramAttribute( ExprContext ctx )
     {
-        if ( ctx.uid1 != null )
+        if ( ctx.uid0 == null || ctx.uid1 != null )
         {
             throw new ParserExceptionWithoutContext( "Program attribute must have one UID: " + ctx.getText() );
         }

@@ -32,6 +32,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
+import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
+import org.hisp.dhis.program.variable.ProgramVariableItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -66,6 +70,37 @@ public abstract class ProgramExpressionItem
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         throw new ParserExceptionWithoutContext( "Internal parsing error: evaluate called for program indicator item " + ctx.getText() );
+    }
+
+    /**
+     * Get the program expression item that matches the parsed arguments
+     *
+     * @param ctx the expression context
+     * @return the program expression item that can handle the parsed arguments
+     */
+    protected ProgramExpressionItem getProgramArgType( ExprContext ctx )
+    {
+        if ( ctx.psEventDate != null )
+        {
+            return new ProgramItemPsEventdate();
+        }
+
+        if ( ctx.uid1 != null )
+        {
+            return new ProgramItemStageElement();
+        }
+
+        if ( ctx.uid0 != null )
+        {
+            return new ProgramItemAttribute();
+        }
+
+        if ( ctx.programVariable() != null )
+        {
+            return new ProgramVariableItem();
+        }
+
+        throw new ParserExceptionWithoutContext( "Illegal argument in program indicator expression: " + ctx.getText() );
     }
 
     /**

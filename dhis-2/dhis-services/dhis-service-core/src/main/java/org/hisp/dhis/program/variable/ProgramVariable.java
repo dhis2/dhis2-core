@@ -29,33 +29,28 @@ package org.hisp.dhis.program.variable;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.program.ProgramExpressionItem;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Program indicator variables
+ * Program variable interface, used by classes that implement
+ * the logic for each program variable.
  *
  * @author Jim Grace
  */
-public abstract class ProgramVariable
-    extends ProgramExpressionItem
+public interface ProgramVariable
 {
-    @Override
-    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String variableName = visitor.getI18n().getString( ctx.it.getText() );
-
-        visitor.getItemDescriptions().put( ctx.getText(), variableName );
-
-        return defaultVariableValue();
-    }
-
     /**
      * Finds the default value of program indicator variable.
      * it's just to check for validity.
      *
      * @return the value of the variable
      */
-    public abstract Object defaultVariableValue();
+    Object defaultVariableValue();
+
+    /**
+     * Generates the SQL for a program indicator variable.
+     *
+     * @param visitor the tree visitor
+     * @return the generated SQL (as a String) for the function
+     */
+    Object getSql( CommonExpressionVisitor visitor );
 }

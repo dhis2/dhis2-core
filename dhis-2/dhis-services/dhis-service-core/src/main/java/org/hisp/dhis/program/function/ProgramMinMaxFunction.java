@@ -33,8 +33,6 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
-import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 
 import java.util.Date;
 
@@ -49,14 +47,7 @@ public abstract class ProgramMinMaxFunction
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        if ( ctx.uid1 == null ) // arg: PS_EVENTDATE:programStageUid
-        {
-            return ( new ProgramItemPsEventdate() ).getDescription( ctx, visitor );
-        }
-        else //  arg: #{programStageUid.dataElementUid}
-        {
-            return ( new ProgramItemStageElement() ).getDescription( ctx, visitor );
-        }
+        return getProgramArgType( ctx ).getDescription( ctx, visitor );
     }
 
     @Override

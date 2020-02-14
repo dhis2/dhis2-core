@@ -148,28 +148,6 @@ public class DefaultProgramIndicatorService
 
         .putAll( COMMON_EXPRESSION_ITEMS )
 
-        // Program variables
-
-        .put( V_ANALYTICS_PERIOD_END, new vAnalyticsPeriodEnd() )
-        .put( V_ANALYTICS_PERIOD_START, new vAnalyticsPeriodStart() )
-        .put( V_CREATION_DATE, new vCreationDate() )
-        .put( V_CURRENT_DATE, new vCurrentDate() )
-        .put( V_DUE_DATE, new vDueDate() )
-        .put( V_ENROLLMENT_COUNT, new vEnrollmentCount() )
-        .put( V_ENROLLMENT_DATE, new vEnrolmentDate() )
-        .put( V_ENROLLMENT_STATUS, new vEnrollmentStatus() )
-        .put( V_EVENT_COUNT, new vEventCount() )
-        .put( V_EXECUTION_DATE, new vEventDate() ) // Same as event date
-        .put( V_EVENT_DATE, new vEventDate() )
-        .put( V_INCIDENT_DATE, new vIncidentDate() )
-        .put( V_ORG_UNIT_COUNT, new vOrgUnitCount() )
-        .put( V_PROGRAM_STAGE_ID, new vProgramStageId() )
-        .put( V_PROGRAM_STAGE_NAME, new vProgramStageName() )
-        .put( V_SYNC_DATE, new vSyncDate() )
-        .put( V_TEI_COUNT, new vTeiCount() )
-        .put( V_VALUE_COUNT, new vValueCount() )
-        .put( V_ZERO_POS_VALUE_COUNT, new vZeroPosValueCount() )
-
         // Program functions
 
         .put( D2_CONDITION, new D2Condition() )
@@ -204,6 +182,10 @@ public class DefaultProgramIndicatorService
         .put( HASH_BRACE, new ProgramItemStageElement() )
         .put( A_BRACE, new ProgramItemAttribute() )
         .put( PS_EVENTDATE, new ProgramItemPsEventdate() )
+
+        // Program variables
+
+        .put( V_BRACE, new ProgramVariableItem() )
 
         .build();
 

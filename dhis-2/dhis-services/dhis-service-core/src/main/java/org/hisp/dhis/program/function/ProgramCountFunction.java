@@ -28,6 +28,7 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
@@ -49,6 +50,8 @@ public abstract class ProgramCountFunction
     @Override
     public final Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        validateCountFunctionArgs( ctx );
+
         ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
 
@@ -85,6 +88,8 @@ public abstract class ProgramCountFunction
      */
     protected Object getProgramStageElementDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        validateCountFunctionArgs( ctx );
+
         return ( new ProgramItemStageElement() ).getDescription( ctx, visitor );
     }
 
@@ -96,4 +101,16 @@ public abstract class ProgramCountFunction
      * @return the conditional part of the SQL
      */
     public abstract String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor );
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private void validateCountFunctionArgs( ExprContext ctx )
+    {
+        if ( ! ( getProgramArgType( ctx ) instanceof ProgramItemStageElement ) )
+        {
+            throw new ParserExceptionWithoutContext( "First argument not supported for d2:count... functions: " + ctx.getText() );
+        }
+    }
 }

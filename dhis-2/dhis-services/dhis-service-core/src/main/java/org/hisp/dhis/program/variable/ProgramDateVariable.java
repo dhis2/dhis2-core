@@ -36,7 +36,7 @@ import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DA
  * @author Jim Grace
  */
 public abstract class ProgramDateVariable
-    extends ProgramVariable
+    implements ProgramVariable
 {
     @Override
     public final Object defaultVariableValue()
