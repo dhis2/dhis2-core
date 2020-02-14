@@ -155,7 +155,7 @@ public class EnrollmentAttributeValidationHook
             validateAttributeUniqueness( errorReporter,
                 attributeValueMap.get( attribute.getUid() ),
                 attribute,
-                trackedEntityInstance.getUid(),
+                trackedEntityInstance,
                 trackedEntityInstance.getOrganisationUnit() );
 
             attributeValueMap.remove( attribute.getUid() );

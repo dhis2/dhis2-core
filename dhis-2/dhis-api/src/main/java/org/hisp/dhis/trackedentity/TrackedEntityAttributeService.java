@@ -143,12 +143,12 @@ public interface TrackedEntityAttributeService
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
      * @param value                  Value
-     * @param trackedEntityInstanceUid  TrackedEntityInstance - required if updating TEI
+     * @param trackedEntityInstance  TrackedEntityInstance - required if updating TEI
      * @param organisationUnit       OrganisationUnit - only required if org unit scoped
      * @return null if valid, a message if not
      */
     String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
-        String value, String trackedEntityInstanceUid, OrganisationUnit organisationUnit );
+        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit );
 
     /**
      * Validate value against tracked entity attribute value type.

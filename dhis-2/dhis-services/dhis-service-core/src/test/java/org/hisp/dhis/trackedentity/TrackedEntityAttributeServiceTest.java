@@ -122,7 +122,7 @@ public class TrackedEntityAttributeServiceTest
 
         String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload.getUid(), orgUnit );
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
         assertNull( result );
     }
 
@@ -135,7 +135,7 @@ public class TrackedEntityAttributeServiceTest
 
         String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload.getUid(), orgUnit );
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
         assertNotNull( result );
     }
 
@@ -148,7 +148,7 @@ public class TrackedEntityAttributeServiceTest
 
         String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload.getUid(), orgUnit );
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
         assertNull( result );
     }
 

@@ -486,8 +486,7 @@ public abstract class AbstractEnrollmentService
         ProgramStatus programStatus = enrollment.getStatus() == EnrollmentStatus.ACTIVE ? ProgramStatus.ACTIVE :
             enrollment.getStatus() == EnrollmentStatus.COMPLETED ? ProgramStatus.COMPLETED : ProgramStatus.CANCELLED;
 
-        ProgramInstance programInstance = programInstanceService.
-            prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
+        ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
 
         if ( programStatus == ProgramStatus.COMPLETED || programStatus == ProgramStatus.CANCELLED )
@@ -1265,7 +1264,7 @@ public abstract class AbstractEnrollmentService
         }
 
         String errorMessage = trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
-            trackedEntityAttribute, value, trackedEntityInstance.getUid(), organisationUnit );
+            trackedEntityAttribute, value, trackedEntityInstance, organisationUnit );
 
         if ( errorMessage != null )
         {

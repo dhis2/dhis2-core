@@ -88,14 +88,14 @@ public class TrackedEntityAttributeValidationHook
     }
 
     protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te, TrackedEntityInstance tei, OrganisationUnit orgUnit )
+        TrackedEntity trackedEntity, TrackedEntityInstance trackedEntityInstance, OrganisationUnit orgUnit )
     {
 
-        // For looking up existing tei attr. ie. if it is an update. Could/should this be done in the preheater instead?
+        // For looking up existing trackedEntityInstance attr. ie. if it is an update. Could/should this be done in the preheater instead?
         Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
-            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( tei ) );
+            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance ) );
 
-        for ( Attribute attribute : te.getAttributes() )
+        for ( Attribute attribute : trackedEntity.getAttributes() )
         {
             if ( StringUtils.isEmpty( attribute.getValue() ) )
             {
@@ -122,10 +122,10 @@ public class TrackedEntityAttributeValidationHook
             validateAttributeUniqueness( errorReporter,
                 attribute.getValue(),
                 trackedEntityAttribute,
-                te.getTrackedEntity(),
+                trackedEntityInstance,
                 orgUnit );
 
-            validateFileNotAlreadyAssigned( errorReporter, attribute, tei );
+            validateFileNotAlreadyAssigned( errorReporter, attribute, trackedEntityInstance );
         }
     }
 }
