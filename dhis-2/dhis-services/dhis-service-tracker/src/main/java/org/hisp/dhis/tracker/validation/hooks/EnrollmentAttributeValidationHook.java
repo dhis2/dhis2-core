@@ -76,6 +76,12 @@ public class EnrollmentAttributeValidationHook
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
                 .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
 
+            // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
+            if ( program == null || trackedEntityInstance == null )
+            {
+                continue;
+            }
+
             validateEnrollmentAttributes( reporter, program, enrollment, trackedEntityInstance, bundle );
         }
 
@@ -88,7 +94,6 @@ public class EnrollmentAttributeValidationHook
         TrackedEntityInstance trackedEntityInstance,
         TrackerBundle bundle )
     {
-
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
@@ -104,14 +109,13 @@ public class EnrollmentAttributeValidationHook
             }
 
             validateAttrValueType( errorReporter, attribute, teAttribute );
-
         }
 
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
         for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
         {
-            mandatoryMap
-                .put( programTrackedEntityAttribute.getAttribute(), programTrackedEntityAttribute.isMandatory() );
+            mandatoryMap.put( programTrackedEntityAttribute.getAttribute(),
+                programTrackedEntityAttribute.isMandatory() );
         }
 
         // ignore attributes which do not belong to this program
@@ -130,11 +134,14 @@ public class EnrollmentAttributeValidationHook
 
             if ( hasMissingAttribute )
             {
+                // Missing mandatory attribute: `{0}`.
                 errorReporter.addError( newReport( TrackerErrorCode.E1018 )
                     .addArg( trackedEntityAttribute ) );
             }
 
-            validateAttrUnique( errorReporter,
+            // NOTE: This is "THE" potential performance killer...
+            // "Error validating attribute, not unique; Error `{0}`"
+            validateAttributeUniqueness( errorReporter,
                 attributeValueMap.get( trackedEntityAttribute.getUid() ),
                 trackedEntityAttribute,
                 trackedEntityInstance.getUid(),
@@ -145,6 +152,7 @@ public class EnrollmentAttributeValidationHook
 
         if ( !attributeValueMap.isEmpty() )
         {
+            // Only program attributes is allowed for enrollment; Non valid attributes: `{0}`.
             errorReporter.addError( newReport( TrackerErrorCode.E1019 )
                 .addArg( Joiner.on( "," ).withKeyValueSeparator( "=" ).join( attributeValueMap ) ) );
         }

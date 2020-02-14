@@ -28,10 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -44,7 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
@@ -52,8 +48,6 @@ import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -62,8 +56,6 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -261,16 +253,19 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    protected boolean validateAttrUnique( ValidationErrorReporter errorReporter, String value,
-        TrackedEntityAttribute teAttr, String uid, OrganisationUnit trackedEntityOu )
+    protected boolean validateAttributeUniqueness( ValidationErrorReporter errorReporter,
+        String value,
+        TrackedEntityAttribute trackedEntityAttribute,
+        String trackedEntityInstanceUid,
+        OrganisationUnit organisationUnit )
     {
-        if ( Boolean.TRUE.equals( teAttr.isUnique() ) )
+        if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
         {
             String error = teAttrService.validateAttributeUniquenessWithinScope(
-                teAttr,
+                trackedEntityAttribute,
                 value,
-                uid,
-                trackedEntityOu );
+                trackedEntityInstanceUid,
+                organisationUnit );
 
             if ( error != null )
             {

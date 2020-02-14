@@ -117,7 +117,9 @@ public class TrackedEntityAttributeValidationHook
 
             validateAttrValueType( errorReporter, attribute, trackedEntityAttribute );
 
-            validateAttrUnique( errorReporter,
+            // NOTE: This is "THE" potential performance killer...
+            // "Error validating attribute, not unique; Error `{0}`"
+            validateAttributeUniqueness( errorReporter,
                 attribute.getValue(),
                 trackedEntityAttribute,
                 te.getTrackedEntity(),

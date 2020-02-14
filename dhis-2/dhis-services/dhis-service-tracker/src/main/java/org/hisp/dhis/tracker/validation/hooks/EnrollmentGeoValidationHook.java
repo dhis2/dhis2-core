@@ -66,6 +66,11 @@ public class EnrollmentGeoValidationHook
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
                 .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
 
+            // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
+//            if ( program == null || organisationUnit == null || trackedEntityInstance == null )
+//            {
+//                continue;
+//            }
             //geo val
         }
 

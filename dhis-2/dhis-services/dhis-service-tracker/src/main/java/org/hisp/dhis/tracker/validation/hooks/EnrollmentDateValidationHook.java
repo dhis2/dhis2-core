@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -72,6 +71,12 @@ public class EnrollmentDateValidationHook
             reporter.increment( enrollment );
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+
+            // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
+            if ( program == null )
+            {
+                continue;
+            }
 
             validateProgramInstanceDates( reporter, program, enrollment );
         }
