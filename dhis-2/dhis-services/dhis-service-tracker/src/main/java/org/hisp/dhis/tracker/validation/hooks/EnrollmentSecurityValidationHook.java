@@ -122,7 +122,6 @@ public class EnrollmentSecurityValidationHook
                     reporter.addError( newReport( TrackerErrorCode.E1000 )
                         .addArg( actingUser )
                         .addArg( String.join( ",", errors ) ) );
-                    continue;
                 }
             }
         }

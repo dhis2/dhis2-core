@@ -29,11 +29,8 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -84,18 +81,55 @@ public class EnrollmentDateValidationHook
                 continue;
             }
 
-            validateProgramInstanceDates( reporter, program, enrollment );
+            validateEnrollmentDates( reporter, program, enrollment );
         }
 
         return reporter.getReportList();
     }
 
-    protected boolean validateProgramInstanceDates( ValidationErrorReporter errorReporter,
-        Program program,
+    private void validateEnrollmentDates( ValidationErrorReporter errorReporter, Program program,
         Enrollment enrollment )
-
     {
-        if ( !program.getSelectEnrollmentDatesInFuture() )
+
+        if ( program.getDisplayIncidentDate() )
+        {
+            if ( enrollment.getIncidentDate() == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1023 ) );
+            }
+
+            boolean validEnrollmentIncidentDate = DateUtils
+                .dateIsValid( DateUtils.getMediumDateString( enrollment.getIncidentDate() ) );
+
+            if ( !validEnrollmentIncidentDate )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1024 )
+                    .addArg( enrollment.getIncidentDate() ) );
+            }
+        }
+
+        // NOTE: Need clarification regarding if this should be checked or not
+//        boolean validEnrollmentIncidentDate =
+//            enrollment.getIncidentDate() != null
+//                && DateUtils.dateIsValid( DateUtils.getMediumDateString( enrollment.getIncidentDate() ) );
+//
+//        if ( !validEnrollmentIncidentDate )
+//        {
+//            errorReporter.addError( newReport( TrackerErrorCode.E1024 )
+//                .addArg( enrollment.getIncidentDate() ) );
+//        }
+//
+//        boolean validEnrollmentDate =
+//            enrollment.getEnrollmentDate() != null
+//                && DateUtils.dateIsValid( DateUtils.getMediumDateString( enrollment.getEnrollmentDate() ) );
+//
+//        if ( !validEnrollmentDate )
+//        {
+//            errorReporter.addError( newReport( TrackerErrorCode.E1025 )
+//                .addArg( enrollment.getEnrollmentDate() ) );
+//        }
+
+        if ( Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() ) )
         {
             boolean enrollmentIsInFuture = Objects.nonNull( enrollment.getEnrollmentDate() ) &&
                 enrollment.getEnrollmentDate().after( new Date() );
@@ -103,52 +137,18 @@ public class EnrollmentDateValidationHook
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1020 )
                     .addArg( enrollment.getEnrollmentDate() ) );
-                return false;
             }
         }
 
-        if ( !program.getSelectIncidentDatesInFuture() )
+        if ( Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() ) )
         {
-            boolean incidentIsInFuture =
-                Objects.nonNull( enrollment.getIncidentDate() ) && enrollment.getIncidentDate().after( new Date() );
+            boolean incidentIsInFuture = Objects.nonNull( enrollment.getIncidentDate() )
+                && enrollment.getIncidentDate().after( new Date() );
             if ( incidentIsInFuture )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1021 )
                     .addArg( enrollment.getIncidentDate() ) );
-                return false;
             }
-        }
-
-        ProgramInstance temProgramInstance =
-            createTempProgramInstance( enrollment );
-
-        boolean incidentDateIsNull = program.getDisplayIncidentDate() & temProgramInstance.getIncidentDate() == null;
-        if ( incidentDateIsNull )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1023 ) );
-            return false;
-        }
-
-        String incidentDate = DateUtils.getMediumDateString( temProgramInstance.getIncidentDate() );
-        boolean validEnrollmentIncidentDate =
-            temProgramInstance.getIncidentDate() != null && DateUtils.dateIsValid( incidentDate );
-
-        if ( !validEnrollmentIncidentDate )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1024 )
-                .addArg( temProgramInstance.getIncidentDate() ) );
-            return false;
-        }
-
-        String enrollmentDate = DateUtils.getMediumDateString( temProgramInstance.getEnrollmentDate() );
-        boolean validEnrollmentDate =
-            temProgramInstance.getEnrollmentDate() != null && DateUtils.dateIsValid( enrollmentDate );
-
-        if ( !validEnrollmentDate )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1025 )
-                .addArg( temProgramInstance.getEnrollmentDate() ) );
-            return false;
         }
 
         boolean validEnrollmentCreatedAtClientDate =
@@ -158,7 +158,6 @@ public class EnrollmentDateValidationHook
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1026 )
                 .addArg( enrollment.getCreatedAtClient() ) );
-            return false;
         }
 
         boolean validLastUpdatedAtClientDate =
@@ -168,31 +167,6 @@ public class EnrollmentDateValidationHook
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1027 )
                 .addArg( enrollment.getLastUpdatedAtClient() ) );
-            return false;
         }
-
-        return true;
-    }
-
-    private ProgramInstance createTempProgramInstance( Enrollment enrollment )
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-
-        programInstance
-            .setEnrollmentDate( enrollment.getEnrollmentDate() != null ? enrollment.getEnrollmentDate() : new Date() );
-        programInstance
-            .setIncidentDate( enrollment.getIncidentDate() != null ? enrollment.getIncidentDate() : new Date() );
-
-        ProgramStatus programStatus = EnrollmentStatus.ACTIVE == enrollment.getStatus()
-            ? ProgramStatus.ACTIVE : EnrollmentStatus.COMPLETED == enrollment.getStatus()
-            ? ProgramStatus.COMPLETED : ProgramStatus.CANCELLED;
-
-        if ( (ProgramStatus.COMPLETED == programStatus) || (programStatus == ProgramStatus.CANCELLED) )
-        {
-            programInstance.setEndDate(
-                enrollment.getCompletedDate() == null ? new Date() : enrollment.getCompletedDate() );
-        }
-
-        return programInstance;
     }
 }
