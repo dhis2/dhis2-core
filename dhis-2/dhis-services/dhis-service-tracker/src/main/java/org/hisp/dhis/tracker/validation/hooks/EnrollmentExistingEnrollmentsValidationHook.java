@@ -119,7 +119,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
 
                 // Enrollment(¶4.b.ii) - The error of enrolling more than once is possible only if the imported enrollment
                 // has a state other than CANCELLED...
-                if ( program.getOnlyEnrollOnce() )
+                if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) )
                 {
                     Set<Enrollment> activeOrCompletedEnrollments = programEnrollments.stream()
                         .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
@@ -131,7 +131,6 @@ public class EnrollmentExistingEnrollmentsValidationHook
                         reporter.addError( newReport( TrackerErrorCode.E1016 )
                             .addArg( trackedEntityInstance )
                             .addArg( program ) );
-                        continue;
                     }
                 }
                 else if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
@@ -147,7 +146,6 @@ public class EnrollmentExistingEnrollmentsValidationHook
                         reporter.addError( newReport( TrackerErrorCode.E1015 )
                             .addArg( trackedEntityInstance )
                             .addArg( program ) );
-                        continue;
                     }
                 }
             }
@@ -173,7 +171,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
                 }
                 else
                 {
-                    /// ??? // what shall we do here?, this exception seems out of place...
+                    /// ??? // what shall we do here?, this exception seems out of place... shall we report an error instead?
                     throw new IllegalQueryException( errors.toString() );
                 }
             }

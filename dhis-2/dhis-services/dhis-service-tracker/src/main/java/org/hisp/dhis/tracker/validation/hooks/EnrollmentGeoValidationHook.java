@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
@@ -76,7 +75,7 @@ public class EnrollmentGeoValidationHook
                 continue;
             }
 
-            // NOTE: which's feature type should we investigate here
+            // NOTE: which's feature type should we investigate here?
             validateGeo( reporter,
                 enrollment.getGeometry(),
                 enrollment.getCoordinate() != null ? enrollment.getCoordinate().getCoordinateString() : null,

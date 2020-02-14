@@ -28,23 +28,16 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -76,13 +69,14 @@ public class EnrollmentNoteValidationHook
 
             for ( Note note : enrollment.getNotes() )
             {
-                if ( CodeGenerator.isValidUid( note.getNote() )
-                    && commentService.trackedEntityCommentExists( note.getNote() )
-                    && !StringUtils.isEmpty( note.getValue() ) )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1028 )
-                        .addArg( note.getNote() ) );
-                }
+                // NOTE: This looks like a potential performance killer, existence check on every note...
+
+//                if ( CodeGenerator.isValidUid( note.getNote() )
+//                    && commentService.trackedEntityCommentExists( note.getNote() )
+//                    && !StringUtils.isEmpty( note.getValue() ) )
+//                {
+//
+//                }
             }
         }
 

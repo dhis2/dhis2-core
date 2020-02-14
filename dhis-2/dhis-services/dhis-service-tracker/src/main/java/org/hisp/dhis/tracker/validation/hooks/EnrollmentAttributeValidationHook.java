@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -47,6 +46,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -88,17 +88,14 @@ public class EnrollmentAttributeValidationHook
                 continue;
             }
 
-            validateEnrollmentAttributes( reporter, program, enrollment, trackedEntityInstance, bundle );
+            validateEnrollmentAttributes( bundle, reporter, program, enrollment, trackedEntityInstance );
         }
 
         return reporter.getReportList();
     }
 
-    protected void validateEnrollmentAttributes( ValidationErrorReporter errorReporter,
-        Program program,
-        Enrollment enrollment,
-        TrackedEntityInstance trackedEntityInstance,
-        TrackerBundle bundle )
+    protected void validateEnrollmentAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
+        Program program, Enrollment enrollment, TrackedEntityInstance trackedEntityInstance )
     {
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
@@ -117,6 +114,12 @@ public class EnrollmentAttributeValidationHook
             validateAttrValueType( errorReporter, attribute, teAttribute );
         }
 
+        validateMandatoryAttributes( bundle, errorReporter, program, trackedEntityInstance, attributeValueMap );
+    }
+
+    private void validateMandatoryAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
+        Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
+    {
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
         for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
         {
@@ -130,38 +133,42 @@ public class EnrollmentAttributeValidationHook
             filter( value -> mandatoryMap.containsKey( value.getAttribute() ) ).
             forEach( value -> attributeValueMap.put( value.getAttribute().getUid(), value.getValue() ) );
 
-        for ( TrackedEntityAttribute trackedEntityAttribute : mandatoryMap.keySet() )
+        for ( Map.Entry<TrackedEntityAttribute, Boolean> entry : mandatoryMap.entrySet() )
         {
-            Boolean mandatory = mandatoryMap.get( trackedEntityAttribute );
+            TrackedEntityAttribute attribute = entry.getKey();
+            Boolean mandatory = entry.getValue();
 
             boolean hasMissingAttribute = mandatory &&
                 !bundle.getUser().isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() )
                 // NOTE This seams a bit out of place???
-                && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() );
+                && !attributeValueMap.containsKey( attribute.getUid() );
 
             if ( hasMissingAttribute )
             {
                 // Missing mandatory attribute: `{0}`.
                 errorReporter.addError( newReport( TrackerErrorCode.E1018 )
-                    .addArg( trackedEntityAttribute ) );
+                    .addArg( attribute ) );
             }
 
             // NOTE: This is "THE" potential performance killer...
             // "Error validating attribute, not unique; Error `{0}`"
             validateAttributeUniqueness( errorReporter,
-                attributeValueMap.get( trackedEntityAttribute.getUid() ),
-                trackedEntityAttribute,
+                attributeValueMap.get( attribute.getUid() ),
+                attribute,
                 trackedEntityInstance.getUid(),
                 trackedEntityInstance.getOrganisationUnit() );
 
-            attributeValueMap.remove( trackedEntityAttribute.getUid() );
+            attributeValueMap.remove( attribute.getUid() );
         }
 
         if ( !attributeValueMap.isEmpty() )
         {
             // Only program attributes is allowed for enrollment; Non valid attributes: `{0}`.
+
             errorReporter.addError( newReport( TrackerErrorCode.E1019 )
-                .addArg( Joiner.on( "," ).withKeyValueSeparator( "=" ).join( attributeValueMap ) ) );
+                .addArg( attributeValueMap.keySet().stream()
+                    .map( key -> key + "=" + attributeValueMap.get( key ) )
+                    .collect( Collectors.joining( ", " ) ) ) );
         }
     }
 
