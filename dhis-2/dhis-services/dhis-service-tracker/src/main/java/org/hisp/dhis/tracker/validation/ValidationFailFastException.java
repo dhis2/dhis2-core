@@ -38,7 +38,7 @@ import java.util.List;
 public class ValidationFailFastException
     extends RuntimeException
 {
-    private transient final List<TrackerErrorReport> errorReportRef;
+    private final transient List<TrackerErrorReport> errorReportRef;
 
     public ValidationFailFastException( List<TrackerErrorReport> errorReportRef )
     {

@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.vividsolutions.jts.geom.Geometry;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.EventService;
