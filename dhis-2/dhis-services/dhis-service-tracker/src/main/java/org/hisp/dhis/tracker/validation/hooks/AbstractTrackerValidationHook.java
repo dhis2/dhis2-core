@@ -225,7 +225,7 @@ public abstract class AbstractTrackerValidationHook
     protected boolean validateAttributeUniqueness( ValidationErrorReporter errorReporter,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
-        String trackedEntityInstanceUid,
+        TrackedEntityInstance trackedEntityInstanceUid,
         OrganisationUnit organisationUnit )
     {
         if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
