@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
@@ -417,12 +418,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "columnDimension", namespace = DXF_2_0 )
     public List<String> getColumnDimensions()
     {
-        return columnDimensions;
+        return removingNullElements( columnDimensions );
     }
 
     public void setColumnDimensions( List<String> columnDimensions )
     {
-        this.columnDimensions = columnDimensions;
+        this.columnDimensions = removingNullElements( columnDimensions );
     }
 
     @JsonProperty
@@ -430,12 +431,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "rowDimension", namespace = DXF_2_0 )
     public List<String> getRowDimensions()
     {
-        return rowDimensions;
+        return removingNullElements( rowDimensions );
     }
 
     public void setRowDimensions( List<String> rowDimensions )
     {
-        this.rowDimensions = rowDimensions;
+        this.rowDimensions = removingNullElements( rowDimensions );
     }
 
     @JsonProperty
@@ -443,12 +444,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "filterDimension", namespace = DXF_2_0 )
     public List<String> getFilterDimensions()
     {
-        return filterDimensions;
+        return removingNullElements( filterDimensions );
     }
 
     public void setFilterDimensions( List<String> filterDimensions )
     {
-        this.filterDimensions = filterDimensions;
+        this.filterDimensions = removingNullElements( filterDimensions );
     }
 
     @JsonProperty
@@ -1110,7 +1111,7 @@ public class Visualization
     public void populateAnalyticalProperties()
     {
         // Some Visualizations may not have columnDimensions.
-        if ( isNotEmpty( columnDimensions ) )
+         if ( isNotEmpty( columnDimensions ) )
         {
             for ( String column : columnDimensions )
             {
@@ -1278,6 +1279,21 @@ public class Visualization
     // -------------------------------------------------------------------------
     // Display and supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Filtering out eventual null elements caused by occasional invalid sortOrder.
+     *
+     * @param list
+     * @return the list without null elements.
+     */
+    private List<String> removingNullElements( final List<String> list )
+    {
+        if ( isNotEmpty( list ) )
+        {
+            return list.stream().filter( x -> x != null ).collect( Collectors.toList() );
+        }
+        return list;
+    }
 
     /**
      * Returns the category combo of the first data element.
