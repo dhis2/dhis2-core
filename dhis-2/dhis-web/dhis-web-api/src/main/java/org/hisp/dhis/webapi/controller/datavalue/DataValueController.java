@@ -542,7 +542,6 @@ public class DataValueController
         }
         catch ( IOException e )
         {
-            e.printStackTrace();
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
