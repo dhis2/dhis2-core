@@ -171,7 +171,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
                 }
                 else
                 {
-                    /// ??? // what shall we do here?, this exception seems out of place...
+                    /// ??? // what shall we do here?, this exception seems out of place... shall we report an error instead?
                     throw new IllegalQueryException( errors.toString() );
                 }
             }

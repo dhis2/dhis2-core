@@ -75,7 +75,7 @@ public class EnrollmentGeoValidationHook
                 continue;
             }
 
-            // NOTE: which's feature type should we investigate here
+            // NOTE: which's feature type should we investigate here?
             validateGeo( reporter,
                 enrollment.getGeometry(),
                 enrollment.getCoordinate() != null ? enrollment.getCoordinate().getCoordinateString() : null,

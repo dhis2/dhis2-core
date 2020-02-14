@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -89,17 +88,14 @@ public class EnrollmentAttributeValidationHook
                 continue;
             }
 
-            validateEnrollmentAttributes( reporter, program, enrollment, trackedEntityInstance, bundle );
+            validateEnrollmentAttributes( bundle, reporter, program, enrollment, trackedEntityInstance );
         }
 
         return reporter.getReportList();
     }
 
-    protected void validateEnrollmentAttributes( ValidationErrorReporter errorReporter,
-        Program program,
-        Enrollment enrollment,
-        TrackedEntityInstance trackedEntityInstance,
-        TrackerBundle bundle )
+    protected void validateEnrollmentAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
+        Program program, Enrollment enrollment, TrackedEntityInstance trackedEntityInstance )
     {
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
@@ -118,6 +114,12 @@ public class EnrollmentAttributeValidationHook
             validateAttrValueType( errorReporter, attribute, teAttribute );
         }
 
+        validateMandatoryAttributes( bundle, errorReporter, program, trackedEntityInstance, attributeValueMap );
+    }
+
+    private void validateMandatoryAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
+        Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
+    {
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
         for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
         {
