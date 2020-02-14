@@ -28,17 +28,25 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -66,7 +74,7 @@ public class TrackedEntityAttributeValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment(trackedEntity);
+            reporter.increment( trackedEntity );
 
             TrackedEntityInstance tei = PreheatHelper
                 .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
@@ -77,5 +85,47 @@ public class TrackedEntityAttributeValidationHook
         }
 
         return reporter.getReportList();
+    }
+
+    protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+        TrackedEntity te, TrackedEntityInstance tei, OrganisationUnit orgUnit )
+    {
+
+        // For looking up existing tei attr. ie. if it is an update. Could/should this be done in the preheater instead?
+        Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
+            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( tei ) );
+
+        for ( Attribute attribute : te.getAttributes() )
+        {
+            if ( StringUtils.isEmpty( attribute.getValue() ) )
+            {
+                continue;
+            }
+
+            TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
+                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
+            if ( trackedEntityAttribute == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1006 )
+                    .addArg( attribute.getAttribute() ) );
+                continue;
+            }
+
+            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
+
+            validateTextPattern( errorReporter, attribute, trackedEntityAttribute, trackedEntityAttributeValue );
+
+            validateAttrValueType( errorReporter, attribute, trackedEntityAttribute );
+
+            // NOTE: This is "THE" potential performance killer...
+            // "Error validating attribute, not unique; Error `{0}`"
+            validateAttributeUniqueness( errorReporter,
+                attribute.getValue(),
+                trackedEntityAttribute,
+                te.getTrackedEntity(),
+                orgUnit );
+
+            validateFileNotAlreadyAssigned( errorReporter, attribute, tei );
+        }
     }
 }

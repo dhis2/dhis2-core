@@ -28,19 +28,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -49,86 +49,67 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class TrackedEntityRequiredValuesValidationHook
+public class EnrollmentRequiredPropertiesValidationHook
     extends AbstractTrackerValidationHook
 {
 
     @Override
     public int getOrder()
     {
-        return 0;
+        return 100;
     }
 
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            return Collections.emptyList();
-        }
-
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
+        for ( Enrollment enrollment : bundle.getEnrollments() )
         {
-            reporter.increment( trackedEntity );
+            reporter.increment( enrollment );
 
-            validateTrackedEntityType( reporter, bundle, trackedEntity );
-            validateOrganisationUnit( reporter, bundle, trackedEntity );
+            Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+            if ( program == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1069 )
+                    .addArg( enrollment.getTrackedEntityInstance() ) );
+            }
+            else if ( !program.isRegistration() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1014 )
+                    .addArg( program ) );
+            }
+
+            OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
+            if ( organisationUnit == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1070 )
+                    .addArg( enrollment.getTrackedEntityInstance() ) );
+            }
+
+            TrackedEntityInstance trackedEntityInstance = PreheatHelper
+                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
+            if ( trackedEntityInstance == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1068 )
+                    .addArg( enrollment.getTrackedEntityInstance() ) );
+            }
+
+            if ( program != null && trackedEntityInstance != null )
+            {
+                boolean isNotSameTrackedEntityType = program.getTrackedEntityType() != null
+                    && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() );
+
+                if ( isNotSameTrackedEntityType )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1022 )
+                        .addArg( trackedEntityInstance )
+                        .addArg( program ) );
+                }
+            }
         }
 
         return reporter.getReportList();
     }
 
-    protected void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te )
-    {
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            if ( te.getTrackedEntityType() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1004 ) );
-                return;
-            }
-
-            TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() );
-            if ( entityType == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1005 )
-                    .addArg( te.getTrackedEntityType() ) );
-            }
-        }
-    }
-
-    protected void validateOrganisationUnit( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te )
-    {
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            if ( StringUtils.isEmpty( te.getOrgUnit() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1010 ) );
-                return;
-            }
-
-            OrganisationUnit organisationUnit = PreheatHelper
-                .getOrganisationUnit( bundle, te.getOrgUnit() );
-
-            if ( organisationUnit == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .addArg( te.getOrgUnit() ) );
-            }
-
-        }
-        else if ( bundle.getImportStrategy().isUpdate() )
-        {
-            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
-            if ( tei.getOrganisationUnit() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .addArg( tei ) );
-            }
-        }
-    }
 }

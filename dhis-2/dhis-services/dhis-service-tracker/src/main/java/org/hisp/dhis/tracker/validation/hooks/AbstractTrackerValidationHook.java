@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
@@ -39,8 +40,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
@@ -60,10 +60,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -135,98 +132,25 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected RelationshipService relationshipService;
 
-    protected boolean validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te, TrackedEntityInstance tei, OrganisationUnit orgUnit )
+    protected boolean validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
+        FeatureType featureType )
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, errorReporter.getMainKlass() );
-        // Set main id the same for all errors in the report.
-        reporter.setLineNumber( errorReporter.getLineNumber() );
-
-        // For looking up existing tei attr. ie. if it is an update. Could/should this be done in the preheater instead?
-        Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
-            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( tei ) );
-
-        for ( Attribute attribute : te.getAttributes() )
-        {
-            if ( StringUtils.isEmpty( attribute.getValue() ) )
-            {
-                continue;
-            }
-
-            TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
-                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
-
-            if ( trackedEntityAttribute == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1006 ).addArg( attribute.getAttribute() ) );
-                continue;
-            }
-
-            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
-
-            validateTextPattern( reporter, attribute, trackedEntityAttribute, trackedEntityAttributeValue );
-
-            validateAttrValueType( reporter, attribute, trackedEntityAttribute );
-
-            validateAttrUnique( reporter, attribute, trackedEntityAttribute, te, orgUnit );
-
-            validateFileNotAlreadyAssigned( reporter, attribute, tei );
-        }
-
-        errorReporter.getReportList().addAll( reporter.getReportList() );
-        return reporter.getReportList().isEmpty();
-    }
-
-    protected boolean checkCanCreateGeo( ValidationErrorReporter errorReporter, TrackedEntity te )
-    {
-        if ( te.getCoordinates() != null && FeatureType.NONE != te.getFeatureType() )
+        if ( coordinates != null && FeatureType.NONE != featureType )
         {
             try
             {
-                GeoUtils.getGeometryFromCoordinatesAndType( te.getFeatureType(), te.getCoordinates() );
+                GeoUtils.getGeometryFromCoordinatesAndType( featureType, coordinates );
             }
             catch ( IOException e )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1013 )
-                    .addArg( te.getCoordinates() )
+                    .addArg( coordinates )
                     .addArg( e.getMessage() ) );
                 return false;
             }
         }
 
         return true;
-    }
-
-    protected void validateOrganisationUnit( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te )
-    {
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            if ( StringUtils.isEmpty( te.getOrgUnit() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1010 ) );
-                return;
-            }
-
-            OrganisationUnit organisationUnit = PreheatHelper
-                .getOrganisationUnit( bundle, te.getOrgUnit() );
-
-            if ( organisationUnit == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .addArg( te.getOrgUnit() ) );
-            }
-
-        }
-        else if ( bundle.getImportStrategy().isUpdate() )
-        {
-            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
-            if ( tei.getOrganisationUnit() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .addArg( tei ) );
-            }
-        }
     }
 
     protected boolean textPatternValueIsValid( TrackedEntityAttribute attribute, String value, String oldValue )
@@ -236,7 +160,7 @@ public abstract class AbstractTrackerValidationHook
             reservedValueService.isReserved( attribute.getTextPattern(), value );
     }
 
-    private boolean validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
+    protected boolean validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr,
         TrackedEntityAttributeValue teiAttributeValue )
     {
@@ -258,7 +182,7 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
+    protected boolean validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityInstance tei )
     {
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
@@ -285,7 +209,7 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
+    protected boolean validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
@@ -299,16 +223,19 @@ public abstract class AbstractTrackerValidationHook
         return true;
     }
 
-    private boolean validateAttrUnique( ValidationErrorReporter errorReporter, Attribute attr,
-        TrackedEntityAttribute teAttr, TrackedEntity te, OrganisationUnit trackedEntityOu )
+    protected boolean validateAttributeUniqueness( ValidationErrorReporter errorReporter,
+        String value,
+        TrackedEntityAttribute trackedEntityAttribute,
+        String trackedEntityInstanceUid,
+        OrganisationUnit organisationUnit )
     {
-        if ( Boolean.TRUE.equals( teAttr.isUnique() ) )
+        if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
         {
             String error = teAttrService.validateAttributeUniquenessWithinScope(
-                teAttr,
-                attr.getValue(),
-                te.getTrackedEntity(),
-                trackedEntityOu );
+                trackedEntityAttribute,
+                value,
+                trackedEntityInstanceUid,
+                organisationUnit );
 
             if ( error != null )
             {
@@ -326,11 +253,12 @@ public abstract class AbstractTrackerValidationHook
         return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
     }
 
-    protected boolean validateGeo( ValidationErrorReporter errorReporter, TrackedEntity te, FeatureType featureType )
+    protected boolean validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
+        String coordinates, FeatureType featureType )
     {
-        if ( te.getGeometry() != null )
+        if ( geometry != null )
         {
-            FeatureType typeFromName = FeatureType.getTypeFromName( te.getGeometry().getGeometryType() );
+            FeatureType typeFromName = FeatureType.getTypeFromName( geometry.getGeometryType() );
 
             if ( FeatureType.NONE == featureType || featureType != typeFromName )
             {
@@ -339,32 +267,14 @@ public abstract class AbstractTrackerValidationHook
                 return false;
             }
         }
-        else
+
+        //NOTE: Is both (coordinates && geometry) at same time possible?
+        if ( coordinates != null )
         {
-            return checkCanCreateGeo( errorReporter, te );
+            return validateGeometryFromCoordinates( errorReporter, coordinates, featureType );
         }
 
         return true;
-    }
-
-    protected void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te )
-    {
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            if ( te.getTrackedEntityType() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1004 ) );
-                return;
-            }
-
-            TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() );
-            if ( entityType == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1005 )
-                    .addArg( te.getTrackedEntityType() ) );
-            }
-        }
     }
 
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )

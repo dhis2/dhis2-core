@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.tracker.validation.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,55 +28,65 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class PreheatHelper
+@Component
+public class EnrollmentNoteValidationHook
+    extends AbstractTrackerValidationHook
 {
 
-    private PreheatHelper()
+    @Override
+    public int getOrder()
     {
-        throw new IllegalStateException( "Utility class" );
+        return 105;
     }
 
-    public static OrganisationUnit getOrganisationUnit( TrackerBundle bundle, String orgUnit )
+    @Override
+    public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
-        return bundle.getPreheat()
-            .get( bundle.getIdentifier(), OrganisationUnit.class, orgUnit );
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            return Collections.emptyList();
+        }
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
+
+        for ( Enrollment enrollment : bundle.getEnrollments() )
+        {
+            reporter.increment( enrollment );
+
+            for ( Note note : enrollment.getNotes() )
+            {
+                if ( CodeGenerator.isValidUid( note.getNote() )
+                    && commentService.trackedEntityCommentExists( note.getNote() )
+                    && !StringUtils.isEmpty( note.getValue() ) )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1028 )
+                        .addArg( note.getNote() ) );
+                }
+            }
+        }
+
+        return reporter.getReportList();
     }
 
-    public static TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String trackedEntity )
-    {
-        return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), trackedEntity );
-    }
-
-    public static TrackedEntityAttribute getTrackedEntityAttribute( TrackerBundle bundle, String attribute )
-    {
-        return bundle.getPreheat()
-            .get( bundle.getIdentifier(), TrackedEntityAttribute.class, attribute );
-    }
-
-    public static TrackedEntityType getTrackedEntityType( TrackerBundle bundle, String trackedEntityType )
-    {
-        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, trackedEntityType );
-    }
-
-    public static Program getProgram( TrackerBundle bundle, String program )
-    {
-        return bundle.getPreheat().get( bundle.getIdentifier(), Program.class, program );
-    }
-
-    public static ProgramInstance getProgramInstance( TrackerBundle bundle, String uid )
-    {
-        return bundle.getPreheat().get( TrackerIdentifier.UID, ProgramInstance.class, uid );
-    }
 }
