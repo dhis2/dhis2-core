@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -62,6 +63,11 @@ public class EnrollmentNoteValidationHook
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            return Collections.emptyList();
+        }
+
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
         for ( Enrollment enrollment : bundle.getEnrollments() )

@@ -28,14 +28,22 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -63,12 +71,64 @@ public class TrackedEntityRequiredValuesValidationHook
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
-            reporter.increment(trackedEntity);
+            reporter.increment( trackedEntity );
 
             validateTrackedEntityType( reporter, bundle, trackedEntity );
             validateOrganisationUnit( reporter, bundle, trackedEntity );
         }
 
         return reporter.getReportList();
+    }
+
+    protected void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+        TrackedEntity te )
+    {
+        if ( bundle.getImportStrategy().isCreate() )
+        {
+            if ( te.getTrackedEntityType() == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1004 ) );
+                return;
+            }
+
+            TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() );
+            if ( entityType == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1005 )
+                    .addArg( te.getTrackedEntityType() ) );
+            }
+        }
+    }
+
+    protected void validateOrganisationUnit( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+        TrackedEntity te )
+    {
+        if ( bundle.getImportStrategy().isCreate() )
+        {
+            if ( StringUtils.isEmpty( te.getOrgUnit() ) )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1010 ) );
+                return;
+            }
+
+            OrganisationUnit organisationUnit = PreheatHelper
+                .getOrganisationUnit( bundle, te.getOrgUnit() );
+
+            if ( organisationUnit == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
+                    .addArg( te.getOrgUnit() ) );
+            }
+
+        }
+        else if ( bundle.getImportStrategy().isUpdate() )
+        {
+            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+            if ( tei.getOrganisationUnit() == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
+                    .addArg( tei ) );
+            }
+        }
     }
 }

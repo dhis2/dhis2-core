@@ -51,6 +51,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -74,6 +75,11 @@ public class EnrollmentExistingEnrollmentsValidationHook
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            return Collections.emptyList();
+        }
+
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
         User actingUser = bundle.getPreheat().getUser();

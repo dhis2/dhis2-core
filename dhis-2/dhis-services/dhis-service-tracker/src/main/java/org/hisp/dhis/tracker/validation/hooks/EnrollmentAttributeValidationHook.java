@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +67,11 @@ public class EnrollmentAttributeValidationHook
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            return Collections.emptyList();
+        }
+
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
         for ( Enrollment enrollment : bundle.getEnrollments() )
@@ -118,6 +124,7 @@ public class EnrollmentAttributeValidationHook
                 programTrackedEntityAttribute.isMandatory() );
         }
 
+        // NOTE: This is hard to understand, can some please try to write a explaining comment to this?
         // ignore attributes which do not belong to this program
         trackedEntityInstance.getTrackedEntityAttributeValues().stream().
             filter( value -> mandatoryMap.containsKey( value.getAttribute() ) ).

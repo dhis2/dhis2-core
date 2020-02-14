@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
@@ -131,56 +132,25 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected RelationshipService relationshipService;
 
-    protected boolean checkCanCreateGeo( ValidationErrorReporter errorReporter, TrackedEntity te )
+    protected boolean validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
+        FeatureType featureType )
     {
-        if ( te.getCoordinates() != null && FeatureType.NONE != te.getFeatureType() )
+        if ( coordinates != null && FeatureType.NONE != featureType )
         {
             try
             {
-                GeoUtils.getGeometryFromCoordinatesAndType( te.getFeatureType(), te.getCoordinates() );
+                GeoUtils.getGeometryFromCoordinatesAndType( featureType, coordinates );
             }
             catch ( IOException e )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1013 )
-                    .addArg( te.getCoordinates() )
+                    .addArg( coordinates )
                     .addArg( e.getMessage() ) );
                 return false;
             }
         }
 
         return true;
-    }
-
-    protected void validateOrganisationUnit( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te )
-    {
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            if ( StringUtils.isEmpty( te.getOrgUnit() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1010 ) );
-                return;
-            }
-
-            OrganisationUnit organisationUnit = PreheatHelper
-                .getOrganisationUnit( bundle, te.getOrgUnit() );
-
-            if ( organisationUnit == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .addArg( te.getOrgUnit() ) );
-            }
-
-        }
-        else if ( bundle.getImportStrategy().isUpdate() )
-        {
-            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() );
-            if ( tei.getOrganisationUnit() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .addArg( tei ) );
-            }
-        }
     }
 
     protected boolean textPatternValueIsValid( TrackedEntityAttribute attribute, String value, String oldValue )
@@ -283,11 +253,12 @@ public abstract class AbstractTrackerValidationHook
         return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
     }
 
-    protected boolean validateGeo( ValidationErrorReporter errorReporter, TrackedEntity te, FeatureType featureType )
+    protected boolean validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
+        String coordinates, FeatureType featureType )
     {
-        if ( te.getGeometry() != null )
+        if ( geometry != null )
         {
-            FeatureType typeFromName = FeatureType.getTypeFromName( te.getGeometry().getGeometryType() );
+            FeatureType typeFromName = FeatureType.getTypeFromName( geometry.getGeometryType() );
 
             if ( FeatureType.NONE == featureType || featureType != typeFromName )
             {
@@ -296,32 +267,14 @@ public abstract class AbstractTrackerValidationHook
                 return false;
             }
         }
-        else
+
+        //NOTE: Is both (coordinates && geometry) at same time possible?
+        if ( coordinates != null )
         {
-            return checkCanCreateGeo( errorReporter, te );
+            return validateGeometryFromCoordinates( errorReporter, coordinates, featureType );
         }
 
         return true;
-    }
-
-    protected void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity te )
-    {
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            if ( te.getTrackedEntityType() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1004 ) );
-                return;
-            }
-
-            TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() );
-            if ( entityType == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1005 )
-                    .addArg( te.getTrackedEntityType() ) );
-            }
-        }
     }
 
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )

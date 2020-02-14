@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,6 +57,11 @@ public class EnrollmentGeoValidationHook
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            return Collections.emptyList();
+        }
+
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
         for ( Enrollment enrollment : bundle.getEnrollments() )
@@ -63,15 +69,18 @@ public class EnrollmentGeoValidationHook
             reporter.increment( enrollment );
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
 
             // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
-//            if ( program == null || organisationUnit == null || trackedEntityInstance == null )
-//            {
-//                continue;
-//            }
-            //geo val
+            if ( program == null )
+            {
+                continue;
+            }
+
+            // NOTE: which's feature type should we investigate here
+            validateGeo( reporter,
+                enrollment.getGeometry(),
+                enrollment.getCoordinate() != null ? enrollment.getCoordinate().getCoordinateString() : null,
+                program.getFeatureType() );
         }
 
         return reporter.getReportList();
