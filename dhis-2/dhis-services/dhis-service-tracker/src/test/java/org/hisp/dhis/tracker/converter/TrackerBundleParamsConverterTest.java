@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.ImportException;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -84,7 +85,10 @@ public class TrackerBundleParamsConverterTest
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID ).build();
+            .trackedEntities( Collections.singletonList( trackedEntity ) )
+            .identifier( TrackerIdentifier.UID )
+            .atomicMode( AtomicMode.ALL )
+            .build();
 
         String jsonPayload = toJson( build );
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
@@ -110,7 +114,10 @@ public class TrackerBundleParamsConverterTest
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-                .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID ).build();
+            .trackedEntities( Collections.singletonList( trackedEntity ) )
+            .identifier( TrackerIdentifier.UID )
+            .atomicMode( AtomicMode.ALL )
+            .build();
 
         exception.expect( ImportException.class );
         exception.expectMessage( "Invalid import payload. Enrollment with uid: enr1 is not a child of any Tracked Entity" );
@@ -136,12 +143,60 @@ public class TrackerBundleParamsConverterTest
                 .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID ).build();
 
         exception.expect( ImportException.class );
-        exception.expectMessage( "Invalid import payload. Event with uid: ev2 is not a child of any Enrollment" );
+        exception.expectMessage( "Invalid import payload. Event with uid: ev20 is not a child of any Enrollment" );
 
         this.objectMapper.readValue( toJson( build ), TrackerBundleParams.class );
-
     }
 
+    @Test
+    public void verifyNestedTeiStructureHasOrphanEnrollmentAndAtomicModeNONE()
+            throws IOException
+    {
+        List<Event> events1 = createEvent( 3, "ev1", "enr1" );
+        List<Event> events2 = createEvent( 7, "ev2", "enr2" );
+
+        List<Enrollment> enrollments = new ArrayList<>();
+        enrollments.add( createEnrollment( "enr1", "teiOrphan", events1 ) );
+        enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
+
+        TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
+
+        TrackerBundleParams build = TrackerBundleParams.builder()
+                .trackedEntities( Collections.singletonList( trackedEntity ) )
+                .identifier( TrackerIdentifier.UID )
+                .atomicMode( AtomicMode.NONE )
+                .build();
+
+        TrackerBundleParams converted = this.objectMapper.readValue( toJson( build ), TrackerBundleParams.class );
+
+        assertThat( converted.getTrackedEntities(), hasSize( 1 ) );
+        assertThat( converted.getEnrollments(), hasSize( 1 ) );
+        assertThat( converted.getEvents(), hasSize( 7 ) );
+    }
+    @Test
+    public void verifyNestedTeiStructureHasOrphanEventAndAtomicModeNONE()
+            throws IOException
+    {
+        List<Event> events1 = createEvent( 3, "ev1", "enr1" );
+        List<Event> events2 = createEvent( 7, "ev2", "enrOrphan" );
+
+        List<Enrollment> enrollments = new ArrayList<>();
+        enrollments.add( createEnrollment( "enr1", "teiABC", events1 ) );
+        enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
+
+        TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
+
+        TrackerBundleParams build = TrackerBundleParams.builder()
+            .trackedEntities( Collections.singletonList( trackedEntity ) )
+            .atomicMode( AtomicMode.NONE )
+            .identifier( TrackerIdentifier.UID ).build();
+
+        TrackerBundleParams converted = this.objectMapper.readValue( toJson( build ), TrackerBundleParams.class );
+
+        assertThat( converted.getTrackedEntities(), hasSize( 1 ) );
+        assertThat( converted.getEnrollments(), hasSize( 2 ) );
+        assertThat( converted.getEvents(), hasSize( 3 ) );
+    }
 
     private TrackedEntity createTrackedEntity( String uid, List<Enrollment> enrollments )
     {

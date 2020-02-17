@@ -28,11 +28,11 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.ImportException;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -104,7 +104,10 @@ public class TrackerBundleParamsConverter
                 }
                 else
                 {
-                    fail( "Enrollment", enrollment.getEnrollment(), "Tracked Entity Instance" );
+                    if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
+                    {
+                        fail( "Enrollment", enrollment.getEnrollment(), "Tracked Entity Instance" );
+                    }
                 }
             }
             List<String> enrollmentIds = bundle.getEnrollments().stream().map( Enrollment::getEnrollment )
@@ -120,7 +123,10 @@ public class TrackerBundleParamsConverter
                 }
                 else
                 {
-                    fail( "Event", event.getEvent(), "Enrollment" );
+                    if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
+                    {
+                        fail( "Event", event.getEvent(), "Enrollment" );
+                    }
                 }
             }
             // remove the nested structure
