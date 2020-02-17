@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.tracker.converter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -89,32 +90,31 @@ public class TrackerBundleParamsConverter
         if ( hasNestedStructure( bundle ) )
         {
             // collect a list of TEI ids
-            List<String> teiIds = bundle.getTrackedEntities().stream().map( TrackedEntity::getTrackedEntity )
-                .collect( Collectors.toList() );
+            List<String> teiIds = getTrackedEntityIds( bundle );
+            List<String> enrollmentIds = new ArrayList<>();
 
             // collect all the enrollments of the TEIs
             List<Enrollment> enrollments = bundle.getTrackedEntities().stream()
                 .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() );
+
+            List<Event> events = new ArrayList<>();
 
             for ( Enrollment enrollment : enrollments )
             {
                 if ( teiIds.contains( enrollment.getTrackedEntityInstance() ) )
                 {
                     bundle.getEnrollments().add( enrollment );
+                    // accumulate all enrollment ids
+                    enrollmentIds.add( enrollment.getEnrollment() );
+                    // accumulate all events
+                    events.addAll( enrollment.getEvents() );
                 }
                 else
                 {
-                    if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
-                    {
-                        fail( "Enrollment", enrollment.getEnrollment(), "Tracked Entity Instance" );
-                    }
+                    failOrSkip( "Enrollment", enrollment.getEnrollment(), "Tracked Entity Instance", bundle.getAtomicMode() );
                 }
             }
-            List<String> enrollmentIds = bundle.getEnrollments().stream().map( Enrollment::getEnrollment )
-                .collect( Collectors.toList() );
 
-            List<Event> events = bundle.getEnrollments().stream().flatMap( l -> l.getEvents().stream() )
-                .collect( Collectors.toList() );
             for ( Event event : events )
             {
                 if ( enrollmentIds.contains( event.getEnrollment() ) )
@@ -123,12 +123,10 @@ public class TrackerBundleParamsConverter
                 }
                 else
                 {
-                    if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
-                    {
-                        fail( "Event", event.getEvent(), "Enrollment" );
-                    }
+                    failOrSkip( "Event", event.getEvent(), "Enrollment", bundle.getAtomicMode() );
                 }
             }
+
             // remove the nested structure
             for ( TrackedEntity tei : bundle.getTrackedEntities() )
             {
@@ -139,14 +137,23 @@ public class TrackerBundleParamsConverter
         return bundle;
     }
 
+    private List<String> getTrackedEntityIds( TrackerBundleParams bundle )
+    {
+        return bundle.getTrackedEntities().stream().map( TrackedEntity::getTrackedEntity )
+            .collect( Collectors.toList() );
+    }
+
     private boolean hasNestedStructure( TrackerBundleParams bundle )
     {
         return bundle.getEnrollments().isEmpty();
     }
 
-    private void fail( String type, String uid, String parent )
+    private void failOrSkip( String type, String uid, String parent, AtomicMode atomicMode )
     {
-        throw new ImportException(
-            "Invalid import payload. " + type + " with uid: " + uid + " is not a child of any " + parent );
+        if ( atomicMode.equals( AtomicMode.ALL ) )
+        {
+            throw new ImportException(
+                "Invalid import payload. " + type + " with uid: " + uid + " is not a child of any " + parent );
+        }
     }
 }
