@@ -37,7 +37,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.sideeffect.SideEffectDataBundle;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -237,7 +237,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( SideEffectDataBundle.builder()
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
                 .object( programInstance )
                 .importStrategy( bundle.getImportStrategy() )
@@ -287,7 +287,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( SideEffectDataBundle.builder()
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
                 .object( programStageInstance )
                 .importStrategy( bundle.getImportStrategy() )

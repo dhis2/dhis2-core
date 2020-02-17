@@ -35,5 +35,7 @@ public enum MessageType
 {
     AUDIT,
 
-    TRACKER_JOB
+    TRACKER_JOB,
+
+    TRACKER_SIDE_EFFECT
 }

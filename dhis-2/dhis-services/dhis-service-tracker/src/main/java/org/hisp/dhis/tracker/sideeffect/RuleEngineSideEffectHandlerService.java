@@ -29,13 +29,15 @@ package org.hisp.dhis.tracker.sideeffect;
  */
 
 
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+
 /**
  * @author Zubair Asghar
  */
 public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService
 {
     @Override
-    public void handleSideEffect( SideEffectDataBundle sideEffectDataBundle )
+    public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
     }
 }

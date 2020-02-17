@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.sideeffect;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.sideeffect;
 
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.artemis.Message;
+import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -41,8 +43,10 @@ import java.util.List;
  */
 @Data
 @Builder
-public class SideEffectDataBundle
+public class TrackerSideEffectDataBundle implements Message
 {
+    private String uid;
+
     private Class<? extends BaseIdentifiableObject> klass;
 
     private BaseIdentifiableObject object;
@@ -52,4 +56,10 @@ public class SideEffectDataBundle
     private TrackerImportStrategy importStrategy;
 
     private String accessedBy;
+
+    @Override
+    public MessageType getMessageType()
+    {
+        return MessageType.TRACKER_SIDE_EFFECT;
+    }
 }

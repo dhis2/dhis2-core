@@ -28,10 +28,12 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+
 /**
  * @author Zubair Asghar
  */
 public interface SideEffectHandlerService
 {
-    void handleSideEffect( SideEffectDataBundle sideEffectDataBundle );
+    void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle );
 }

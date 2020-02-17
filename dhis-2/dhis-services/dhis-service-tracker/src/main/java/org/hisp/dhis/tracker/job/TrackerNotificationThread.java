@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.sideeffect;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,51 +28,50 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
+import org.hisp.dhis.security.SecurityContextRunnable;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
 
-@Service
-public class AuditSideEffectHandlerService implements SideEffectHandlerService
+@Component
+@Scope( BeanDefinition.SCOPE_PROTOTYPE )
+public class TrackerNotificationThread   extends SecurityContextRunnable
 {
-    private final ImmutableMap<TrackerImportStrategy, AuditType> TYPE_MAPPER =
-        new ImmutableMap.Builder<TrackerImportStrategy, AuditType>()
-        .put( TrackerImportStrategy.CREATE, AuditType.CREATE )
-        .put( TrackerImportStrategy.UPDATE, AuditType.UPDATE )
-        .put( TrackerImportStrategy.DELETE, AuditType.DELETE )
-        .build();
+    private final ProgramNotificationService programNotificationService;
+    private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    private final AuditManager auditManager;
-
-    public AuditSideEffectHandlerService( AuditManager auditManager )
+    public TrackerNotificationThread( ProgramNotificationService programNotificationService )
     {
-        this.auditManager = auditManager;
+        this.programNotificationService = programNotificationService;
     }
 
     @Override
-    public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
+    public void call()
     {
-        AuditType auditType = TYPE_MAPPER.getOrDefault( sideEffectDataBundle.getImportStrategy(), AuditType.READ );
+        BaseIdentifiableObject object = sideEffectDataBundle.getObject();
 
-        Audit audit = Audit.builder()
-            .auditType( auditType )
-            .auditScope( AuditScope.TRACKER )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( sideEffectDataBundle.getAccessedBy() )
-            .klass( sideEffectDataBundle.getKlass().getName() )
-            .build();
+        if ( object.getClass().isAssignableFrom( ProgramInstance.class ) )
+        {
+            programNotificationService.sendEnrollmentNotifications( sideEffectDataBundle.getObject().getId() );
+        }
 
-        auditManager.send( audit );
+        if ( object.getClass().isAssignableFrom( ProgramStageInstance.class ) )
+        {
+            programNotificationService.sendEventCompletionNotifications( sideEffectDataBundle.getObject().getId() );
+        }
+
+    }
+
+    public void setSideEffectDataBundle( TrackerSideEffectDataBundle sideEffectDataBundle )
+    {
+        this.sideEffectDataBundle = sideEffectDataBundle;
     }
 }
