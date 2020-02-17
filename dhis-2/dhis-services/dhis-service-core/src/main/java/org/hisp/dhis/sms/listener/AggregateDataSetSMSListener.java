@@ -144,14 +144,14 @@ public class AggregateDataSetSMSListener
 
         List<Object> errorElems = submitDataValues( subm.getValues(), period, orgUnit, aoc, user );
 
+        CompleteDataSetRegistration existingReg = registrationService.getCompleteDataSetRegistration( dataSet, period,
+            orgUnit, aoc );
+        if ( existingReg != null )
+        {
+            registrationService.deleteCompleteDataSetRegistration( existingReg );
+        }
         if ( subm.isComplete() )
         {
-            CompleteDataSetRegistration existingReg = registrationService.getCompleteDataSetRegistration( dataSet,
-                period, orgUnit, aoc );
-            if ( existingReg != null )
-            {
-                registrationService.deleteCompleteDataSetRegistration( existingReg );
-            }
             Date now = new Date();
             String username = user.getUsername();
             CompleteDataSetRegistration newReg = new CompleteDataSetRegistration( dataSet, period, orgUnit, aoc, now,
