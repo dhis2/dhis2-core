@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -37,6 +38,8 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.function.Consumer;
+
 /**
  * @author Zubair Asghar
  */
@@ -45,8 +48,14 @@ import org.springframework.stereotype.Component;
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
 public class TrackerNotificationThread   extends SecurityContextRunnable
 {
-    private final ProgramNotificationService programNotificationService;
+    private ProgramNotificationService programNotificationService;
     private TrackerSideEffectDataBundle sideEffectDataBundle;
+
+    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> SERVICE_MAPPER = new
+        ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
+        .put( ProgramInstance.class, id -> programNotificationService.sendEnrollmentNotifications( id ) )
+        .put( ProgramStageInstance.class, id -> programNotificationService.sendEventCompletionNotifications( id ) )
+        .build();
 
     public TrackerNotificationThread( ProgramNotificationService programNotificationService )
     {
@@ -58,14 +67,9 @@ public class TrackerNotificationThread   extends SecurityContextRunnable
     {
         BaseIdentifiableObject object = sideEffectDataBundle.getObject();
 
-        if ( object.getClass().isAssignableFrom( ProgramInstance.class ) )
+        if ( SERVICE_MAPPER.containsKey( object.getClass() ) )
         {
-            programNotificationService.sendEnrollmentNotifications( sideEffectDataBundle.getObject().getId() );
-        }
-
-        if ( object.getClass().isAssignableFrom( ProgramStageInstance.class ) )
-        {
-            programNotificationService.sendEventCompletionNotifications( sideEffectDataBundle.getObject().getId() );
+            SERVICE_MAPPER.get( object.getClass() ).accept( object.getId() );
         }
 
     }
