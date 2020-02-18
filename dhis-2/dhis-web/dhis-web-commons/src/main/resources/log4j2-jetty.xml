@@ -14,6 +14,11 @@
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="true"/>
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="true"/>
         <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
+        <Logger name="org.hibernate.SQL" level="debug" additivity="false"/>
+        <Logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false"/>
+        <logger name="org.hibernate.engine.transaction.internal.TransactionImpl" level="debug"/>
+        <logger name="org.springframework.orm.hibernate5.HibernateTransactionManager" level="debug"/>
+        <logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false"/>
 
         <Root level="WARN">
             <AppenderRef ref="console"/>
