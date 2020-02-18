@@ -159,9 +159,6 @@ programVariable   // (alphabtical)
     |   var='zero_pos_value_count'
     ;
 
-programRuleVariableName
-    : programRuleVariablePart+;
-
 numericLiteral
     :   NUMERIC_LITERAL
     ;
@@ -175,13 +172,16 @@ booleanLiteral
     :   BOOLEAN_LITERAL
     ;
 
+programRuleVariableName
+    :   programRuleVariablePart+;
+
 programRuleVariablePart
-    : IDENTIFIER
-    | NUMERIC_LITERAL
-    | UID
-    | WS
-    | '-'
-    | '.'
+    :   IDENTIFIER
+    |   NUMERIC_LITERAL
+    |   UID
+    |   WS
+    |   '-'
+    |   '.'
     ;
 
 // -----------------------------------------------------------------------------
@@ -368,11 +368,12 @@ UID :   Alpha
 // for example it disallows notisNull (should be not isNull),
 // but allows !isNull.
 IDENTIFIER
-    : [a-zA-Z_]+
+    :   [a-zA-Z_]+
     ;
 
 EMPTY
-    : EOF;
+    :   EOF
+    ;
 
 WS  :   [ \t\n\r]+
     ;
@@ -380,7 +381,7 @@ WS  :   [ \t\n\r]+
 // Lexer fragments
 
 fragment Exponent
-    : ('e'|'E') ('+'|'-')? [0-9]+
+    :   ('e'|'E') ('+'|'-')? [0-9]+
     ;
 
 fragment Alpha
