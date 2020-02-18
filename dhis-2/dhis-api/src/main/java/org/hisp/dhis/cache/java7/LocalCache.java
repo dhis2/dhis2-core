@@ -61,16 +61,7 @@ public class LocalCache<V> implements Cache<V>
         if ( cacheBuilder.isExpiryEnabled() )
         {
             builder.eternal( false );
-            if ( cacheBuilder.isRefreshExpiryOnAccess() )
-            {
-                // TODO https://github.com/cache2k/cache2k/issues/39 is still
-                // Open. Once the issue is resolved it can be updated here
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
-            }
-            else
-            {
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
-            }
+            builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
         }
         else
         {
