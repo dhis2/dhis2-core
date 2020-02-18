@@ -188,48 +188,12 @@ public class AntlrParserUtils
     {
         if ( object instanceof Double )
         {
-            if ( clazz == String.class )
-            {
-                return object.toString();
-            }
-            else if ( clazz != Double.class )
-            {
-                throw new ParserExceptionWithoutContext( "Found number when expecting " + clazz.getSimpleName() );
-            }
+            return castDoubleObject( (Double) object, clazz );
         }
 
         if ( object instanceof String )
         {
-            if ( clazz == Date.class )
-            {
-                try
-                {
-                    return parseDate( (String) object );
-                }
-                catch ( Exception e )
-                {
-                    throw new ParserExceptionWithoutContext( "Found '" + object + "' when expecting a date" );
-                }
-            }
-            else if ( clazz == Double.class )
-            {
-                try
-                {
-                    return Double.parseDouble( (String) object );
-                }
-                catch ( Exception e )
-                {
-                    throw new ParserExceptionWithoutContext( "Found '" + object + "' when expecting a number" );
-                }
-            }
-            else if ( clazz == String.class )
-            {
-                return object;
-            }
-            else if ( clazz != String.class )
-            {
-                throw new ParserExceptionWithoutContext( "Found string when expecting " + clazz.getSimpleName() );
-            }
+            return castStringObject( (String) object, clazz );
         }
 
         if ( object instanceof Boolean && clazz != Boolean.class )
@@ -245,5 +209,52 @@ public class AntlrParserUtils
         {
             throw new ParserExceptionWithoutContext( "Could not cast value to " + clazz.getSimpleName() );
         }
+    }
+
+    private static Object castStringObject( String object, Class<?> clazz )
+    {
+        if ( clazz == Date.class )
+        {
+            try
+            {
+                return parseDate( object );
+            }
+            catch ( Exception e )
+            {
+                throw new ParserExceptionWithoutContext( "Found '" + object + "' when expecting a date" );
+            }
+        }
+        else if ( clazz == Double.class )
+        {
+            try
+            {
+                return Double.parseDouble( object );
+            }
+            catch ( Exception e )
+            {
+                throw new ParserExceptionWithoutContext( "Found '" + object + "' when expecting a number" );
+            }
+        }
+        else if ( clazz == String.class )
+        {
+            return object;
+        }
+        else
+        {
+            throw new ParserExceptionWithoutContext( "Found string when expecting " + clazz.getSimpleName() );
+        }
+    }
+
+    private static Object castDoubleObject( Double object, Class<?> clazz )
+    {
+        if ( clazz == String.class )
+        {
+            return object.toString();
+        }
+        else if ( clazz != Double.class )
+        {
+            throw new ParserExceptionWithoutContext( "Found number when expecting " + clazz.getSimpleName() );
+        }
+        return clazz.cast( object );
     }
 }
