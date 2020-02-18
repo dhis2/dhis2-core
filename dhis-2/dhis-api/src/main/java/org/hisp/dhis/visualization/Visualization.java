@@ -1495,7 +1495,7 @@ public class Visualization
             grid.addRegressionToGrid( startColumnIndex, numberOfColumns );
         }
 
-        if (cumulativeValues)
+        if ( cumulativeValues )
         {
             grid.addCumulativesToGrid( startColumnIndex, numberOfColumns );
         }
