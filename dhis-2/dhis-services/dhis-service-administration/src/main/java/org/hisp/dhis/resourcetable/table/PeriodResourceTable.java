@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.period.Period;
@@ -48,6 +49,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class PeriodResourceTable
     extends ResourceTable<Period>
 {

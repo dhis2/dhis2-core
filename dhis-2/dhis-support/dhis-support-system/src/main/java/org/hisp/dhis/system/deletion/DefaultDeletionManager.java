@@ -30,8 +30,8 @@ package org.hisp.dhis.system.deletion;
 
 import javassist.util.proxy.ProxyObject;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +48,11 @@ import java.util.List;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "deletionManager" )
 public class DefaultDeletionManager
     implements DeletionManager
 {
-    private static final Log log = LogFactory.getLog( DefaultDeletionManager.class );
-
     private static final String DELETE_METHOD_PREFIX = "delete";
     private static final String ALLOW_METHOD_PREFIX = "allowDelete";
 

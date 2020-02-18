@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -62,12 +61,11 @@ import static org.hisp.dhis.expression.ParseType.*;
  * @author Ken Haase (ken@dhis2.org)
  */
 @Controller
+@Slf4j
 @RequestMapping( value = PredictorSchemaDescriptor.API_ENDPOINT )
 public class PredictorController
     extends AbstractCrudController<Predictor>
 {
-    private static final Log log = LogFactory.getLog( PredictorController.class );
-
     @Autowired
     private PredictorService predictorService;
 

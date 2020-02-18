@@ -28,14 +28,14 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.sqlview.SqlView.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -52,19 +52,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.sqlview.SqlView.*;
+import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Dang Duy Hieu
  */
+@Slf4j
 @Transactional
 @Service( "org.hisp.dhis.sqlview.SqlViewService" )
 public class DefaultSqlViewService
     implements SqlViewService
 {
-    private static final Log log = LogFactory.getLog( DefaultSqlViewService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

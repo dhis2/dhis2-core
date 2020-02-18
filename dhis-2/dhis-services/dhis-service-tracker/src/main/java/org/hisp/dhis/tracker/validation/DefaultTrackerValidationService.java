@@ -28,8 +28,9 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -38,18 +39,16 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service
 public class DefaultTrackerValidationService
     implements TrackerValidationService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackerValidationService.class );
-
     private List<TrackerValidationHook> validationHooks = new ArrayList<>();
 
     @Autowired( required = false )

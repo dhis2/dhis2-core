@@ -28,14 +28,13 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.metadata.sync.*;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -52,10 +51,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This is the runnable that takes care of the Metadata Synchronization.
@@ -64,6 +60,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author anilkumk
  */
+@Slf4j
 @Component( "metadataSyncJob" )
 public class MetadataSyncJob
     extends AbstractJob
@@ -77,8 +74,6 @@ public class MetadataSyncJob
     public static final String METADATA_SYNC = "metadataSync";
     public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
     public static final String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
-
-    private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
     private final SystemSettingManager systemSettingManager;
 

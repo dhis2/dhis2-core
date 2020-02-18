@@ -28,8 +28,12 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -48,23 +52,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Import handler for metadata sync service
  *
  * @author anilkumk
  */
+@Slf4j
 @Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" )
 @Scope("prototype")
 public class MetadataSyncImportHandler
 {
-    private static final Log log = LogFactory.getLog( MetadataSyncImportHandler.class );
-
     @Autowired
     private MetadataVersionDelegate metadataVersionDelegate;
 
