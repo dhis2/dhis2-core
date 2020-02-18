@@ -1,4 +1,4 @@
-package org.hisp.dhis.cache.java7;
+package org.hisp.dhis.antlr.cache;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,8 +28,11 @@ package org.hisp.dhis.cache.java7;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum CacheType
+/**
+ * Mapping function to get a value when it is not already present in the Cache
+ * @param <V> Type of values retrieved by the function
+ */
+public interface MappingFunction<V>
 {
-    NONE, IN_MEMORY, REDIS;
-
+    V getValue(String key);
 }

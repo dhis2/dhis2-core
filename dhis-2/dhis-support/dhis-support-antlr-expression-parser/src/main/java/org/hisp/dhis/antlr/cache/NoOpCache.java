@@ -1,4 +1,4 @@
-package org.hisp.dhis.cache.java7;
+package org.hisp.dhis.antlr.cache;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,64 +29,36 @@ package org.hisp.dhis.cache.java7;
  */
 
 import com.google.common.base.Optional;
-import org.cache2k.Cache2kBuilder;
+import com.google.common.collect.Sets;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Local cache implementation of {@link Cache}. This implementation is backed by
- * Caffeine library which uses an in memory Map implementation.
+ * A No operation implementation of {@link Cache}. The implementation will not
+ * cache anything and can be used during system testing when caching has to be
+ * disabled.
  *
  * @author Ameen Mohamed
  */
-public class LocalCache<V> implements Cache<V>
+public class NoOpCache<V> implements Cache<V>
 {
-    private org.cache2k.Cache<String, V> cache2kInstance;
-
     private V defaultValue;
 
-    /**
-     * Constructor to instantiate LocalCache object.
-     *
-     *
-     * @param cacheBuilder CacheBuilder instance
-     */
-    @SuppressWarnings("unchecked")
-    public LocalCache( final CacheBuilder<V> cacheBuilder )
+    public NoOpCache( CacheBuilder<V> cacheBuilder )
     {
-        Cache2kBuilder<?, ?> builder = Cache2kBuilder.forUnknownTypes();
-
-        if ( cacheBuilder.isExpiryEnabled() )
-        {
-            builder.eternal( false );
-            builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
-        }
-        else
-        {
-            builder.eternal( true );
-        }
-        if ( cacheBuilder.getMaximumSize() > 0 )
-        {
-            builder.entryCapacity( cacheBuilder.getMaximumSize() );
-        }
-
-        //Using unknown typed keyvalue for builder and casting it this way seems to work.
-        this.cache2kInstance = (org.cache2k.Cache<String, V>) builder.build();
         this.defaultValue = cacheBuilder.getDefaultValue();
     }
 
     @Override
     public Optional<V> getIfPresent( String key )
     {
-        return Optional.fromNullable( cache2kInstance.get( key ) );
+        return Optional.absent();
     }
 
     @Override
     public Optional<V> get( String key )
     {
-        return Optional.fromNullable( cache2kInstance.get( key ) ).or( Optional.fromNullable( defaultValue ) );
+        return Optional.fromNullable( defaultValue );
     }
 
     @Override
@@ -96,24 +68,13 @@ public class LocalCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
-
-        V value = cache2kInstance.get( key );
-        if ( value == null )
-        {
-            value = mappingFunction.getValue( key );
-        }
-
-        if ( value != null )
-        {
-            cache2kInstance.put( key, value );
-        }
-        return Optional.fromNullable( value ).or( Optional.fromNullable( defaultValue ) );
+        return Optional.fromNullable( Optional.fromNullable( mappingFunction.getValue( key ) ).or( defaultValue ) );
     }
 
     @Override
     public Collection<V> getAll()
     {
-        return new ArrayList<V>( cache2kInstance.asMap().values() );
+        return Sets.newHashSet();
     }
 
     @Override
@@ -123,26 +84,24 @@ public class LocalCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "Value cannot be null" );
         }
-        cache2kInstance.put( key, value );
+        // No operation
     }
-
-
 
     @Override
     public void invalidate( String key )
     {
-        cache2kInstance.remove( key );
+        // No operation
     }
 
     @Override
     public void invalidateAll()
     {
-        cache2kInstance.clear();
+        // No operation
     }
 
     @Override
     public CacheType getCacheType()
     {
-        return CacheType.IN_MEMORY;
+        return CacheType.NONE;
     }
 }

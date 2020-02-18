@@ -1,4 +1,4 @@
-package org.hisp.dhis.cache.java7;
+package org.hisp.dhis.antlr.cache;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,23 +28,18 @@ package org.hisp.dhis.cache.java7;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.util.concurrent.TimeUnit;
 
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
  * in place which can be modified with a fluent builder api.
- * 
+ *
  * @author Ameen Mohamed
  *
  * @param <V> The Value type to be stored in cache
  */
 public class SimpleCacheBuilder<V> implements CacheBuilder<V>
 {
-    private static final Log log = LogFactory.getLog( SimpleCacheBuilder.class );
-
     private long maximumSize;
 
     private int initialCapacity;
@@ -152,12 +147,10 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     {
         if ( maximumSize == 0 || disabled )
         {
-            log.info( String.format( "NoOp Cache instance created for region:'%s'", region ) );
             return new NoOpCache<V>( this );
         }
         else
         {
-            log.info( String.format( "Simple Local Cache instance created for region:'%s'", region ) );
             return new LocalCache<V>( this );
         }
     }
@@ -166,7 +159,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     {
         return maximumSize;
     }
-    
+
     public int getInitialCapacity()
     {
         return initialCapacity;
@@ -186,7 +179,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     {
         return expiryEnabled;
     }
-    
+
     public boolean isDisabled()
     {
         return disabled;

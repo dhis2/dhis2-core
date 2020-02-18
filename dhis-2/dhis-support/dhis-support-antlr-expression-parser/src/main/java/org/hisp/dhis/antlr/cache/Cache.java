@@ -1,4 +1,4 @@
-package org.hisp.dhis.cache.java7;
+package org.hisp.dhis.antlr.cache;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -109,10 +109,10 @@ public interface Cache<V>
      * this method does not clear anything.
      */
     void invalidateAll();
-    
+
     /**
      * Returns the type of the cache. IN_MEMORY or REDIS or NONE.
-     * 
+     *
      * @return
      */
     CacheType getCacheType();

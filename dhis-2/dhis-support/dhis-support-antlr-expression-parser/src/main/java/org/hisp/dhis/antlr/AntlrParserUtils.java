@@ -33,8 +33,8 @@ import org.hisp.dhis.antlr.operator.*;
 
 import java.util.Date;
 
+import static org.hisp.dhis.antlr.DateUtils.parseDate;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 
 /**
  * Utilities for ANTLR parsing
