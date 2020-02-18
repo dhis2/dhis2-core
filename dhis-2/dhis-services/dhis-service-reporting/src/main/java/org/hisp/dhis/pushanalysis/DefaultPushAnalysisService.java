@@ -29,6 +29,8 @@ package org.hisp.dhis.pushanalysis;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -296,8 +298,13 @@ public class DefaultPushAnalysisService
 
         for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
         {
-            itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
-            itemLink.put( item.getUid(), getItemLink( item ));
+            // Preventing NPE when DB data is not consistent.
+            // In normal conditions all DashboardItem has a type.
+            if ( item.getType() != null )
+            {
+                itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
+                itemLink.put( item.getUid(), getItemLink( item ) );
+            }
         }
 
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
@@ -373,14 +380,32 @@ public class DefaultPushAnalysisService
             case MAP:
                 result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
                 break;
+            case CHART:
+            case REPORT_TABLE:
             case VISUALIZATION:
-                result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
+                result += getVisualizationLink( item.getVisualization() );
                 break;
             default:
                 break;
         }
 
         return result;
+    }
+
+    private String getVisualizationLink( final Visualization visualization )
+    {
+        if ( visualization != null )
+        {
+            if ( visualization.getType() == PIVOT_TABLE )
+            {
+                return "/dhis-web-pivot/index.html?id=" + visualization.getUid();
+            }
+            else
+            {
+                return "/dhis-web-data-visualizer/index.html?id=" + visualization.getUid();
+            }
+        }
+        return EMPTY;
     }
 
     /**
