@@ -251,7 +251,7 @@ public class Visualization
     /**
      * Indicates whether the visualization contains cumulative values or columns.
      */
-    private boolean cumulative;
+    private boolean cumulativeValues;
 
     /**
      * User stacked values or not. Very likely to be applied for graphics/charts.
@@ -514,14 +514,14 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isCumulative()
+    public boolean isCumulativeValues()
     {
-        return cumulative;
+        return cumulativeValues;
     }
 
-    public void setCumulative( boolean cumulative )
+    public void setCumulativeValues(boolean cumulativeValues)
     {
-        this.cumulative = cumulative;
+        this.cumulativeValues = cumulativeValues;
     }
 
     @JsonProperty
@@ -1495,7 +1495,7 @@ public class Visualization
             grid.addRegressionToGrid( startColumnIndex, numberOfColumns );
         }
 
-        if ( cumulative )
+        if (cumulativeValues)
         {
             grid.addCumulativesToGrid( startColumnIndex, numberOfColumns );
         }
