@@ -65,13 +65,15 @@ public class TrackerNotificationThread   extends SecurityContextRunnable
     @Override
     public void call()
     {
-        BaseIdentifiableObject object = sideEffectDataBundle.getObject();
-
-        if ( SERVICE_MAPPER.containsKey( object.getClass() ) )
+        if ( sideEffectDataBundle != null )
         {
-            SERVICE_MAPPER.get( object.getClass() ).accept( object.getId() );
-        }
+            BaseIdentifiableObject object = sideEffectDataBundle.getObject();
 
+            if ( SERVICE_MAPPER.containsKey( object.getClass() ) )
+            {
+                SERVICE_MAPPER.get( object.getClass() ).accept( object.getId() );
+            }
+        }
     }
 
     public void setSideEffectDataBundle( TrackerSideEffectDataBundle sideEffectDataBundle )
