@@ -28,8 +28,10 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
@@ -38,21 +40,18 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Component( "org.hisp.dhis.query.QueryService" )
 public class DefaultQueryService
     implements QueryService
 {
-    private static final Log log = LogFactory.getLog( DefaultQueryService.class );
-
     private final QueryParser queryParser;
 
     private final QueryPlanner queryPlanner;

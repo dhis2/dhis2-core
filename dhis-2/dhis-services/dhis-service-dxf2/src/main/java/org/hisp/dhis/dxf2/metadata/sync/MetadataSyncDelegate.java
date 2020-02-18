@@ -28,11 +28,11 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -42,21 +42,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handling remote calls for metadata sync
  *
  * @author aamerm
  */
+@Slf4j
 @Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" )
 @Scope( "prototype" )
 public class MetadataSyncDelegate
 {
-    private static final Log log = LogFactory.getLog( MetadataSyncDelegate.class );
-
     @Autowired
     private DefaultMetadataSystemSettingService metadataSystemSettingService;
 

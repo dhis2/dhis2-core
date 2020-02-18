@@ -35,9 +35,8 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
@@ -74,11 +73,10 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public abstract class AbstractJdbcTableManager
     implements AnalyticsTableManager
 {
-    protected static final Log log = LogFactory.getLog( JdbcAnalyticsTableManager.class );
-
     /**
      * Matches the following patterns:
      *

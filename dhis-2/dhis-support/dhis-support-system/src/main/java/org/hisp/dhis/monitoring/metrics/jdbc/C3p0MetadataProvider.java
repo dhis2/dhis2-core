@@ -30,20 +30,20 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
 
 import java.sql.SQLException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public class C3p0MetadataProvider
     extends
     AbstractDataSourcePoolMetadata<ComboPooledDataSource>
 {
-    private static final Log log = LogFactory.getLog( C3p0MetadataProvider.class );
-
     /**
      * Create an instance with the data source to use.
      *

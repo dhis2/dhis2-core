@@ -30,10 +30,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -56,15 +57,16 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
 @Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {
-    private static final Log log = LogFactory.getLog( DefaultObjectBundleService.class );
-
     private final CurrentUserService currentUserService;
 
     private final PreheatService preheatService;

@@ -30,9 +30,8 @@ package org.hisp.dhis.security.vote;
 
 import java.util.Collection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -45,11 +44,10 @@ import org.springframework.security.core.GrantedAuthority;
  * @author Torgeir Lorange Ostby
  * @version $Id: SimpleAccessVoter.java 6352 2008-11-20 15:49:52Z larshelg $
  */
+@Slf4j
 public class SimpleAccessVoter
     implements AccessDecisionVoter<Object>
 {
-    private static final Log LOG = LogFactory.getLog( SimpleAccessVoter.class );
-
     private String requiredAuthority;
 
     public void setRequiredAuthority( String requiredAuthority )
@@ -81,13 +79,13 @@ public class SimpleAccessVoter
         {
             if ( authority.getAuthority().equals( requiredAuthority ) )
             {
-                LOG.debug( "ACCESS GRANTED [" + object.toString() + "]" );
+                log.debug( "ACCESS GRANTED [" + object.toString() + "]" );
 
                 return ACCESS_GRANTED;
             }
         }
 
-        LOG.debug( "ACCESS DENIED [" + object.toString() + "]" );
+        log.debug( "ACCESS DENIED [" + object.toString() + "]" );
 
         return ACCESS_DENIED;
     }
