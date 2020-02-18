@@ -31,11 +31,10 @@ package org.hisp.dhis.system.grid;
 import com.csvreader.CsvWriter;
 import com.lowagie.text.Document;
 import com.lowagie.text.pdf.PdfPTable;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
@@ -76,10 +75,9 @@ import static org.hisp.dhis.system.util.PDFUtils.*;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class GridUtils
 {
-    private static final Log log = LogFactory.getLog( GridUtils.class );
-
     private static final String EMPTY = "";
     private static final char CSV_DELIMITER = ',';
     private static final String XLS_SHEET_PREFIX = "Sheet ";
@@ -297,7 +295,7 @@ public class GridUtils
             {
                 if ( column != null && MathUtils.isNumeric( String.valueOf( column ) ) )
                 {
-                    xlsRow.createCell( columnIndex++, CellType.NUMERIC ).setCellValue(  Double.valueOf( String.valueOf( column ) )  );
+                    xlsRow.createCell( columnIndex++, CellType.NUMERIC ).setCellValue(  Double.parseDouble( String.valueOf( column ) )  );
                 }
                 else
                 {

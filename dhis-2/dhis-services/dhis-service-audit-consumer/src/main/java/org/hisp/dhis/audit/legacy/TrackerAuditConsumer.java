@@ -28,8 +28,10 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.IOException;
+
+import javax.jms.TextMessage;
+
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
@@ -38,19 +40,17 @@ import org.hisp.dhis.render.RenderService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import javax.jms.TextMessage;
-import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Tracker audits consumer.
  *
  * @author Morten Olav Hansen <morten@dhis2.org>
  */
+@Slf4j
 @Component
 public class TrackerAuditConsumer implements AuditConsumer
 {
-    private static final Log log = LogFactory.getLog( TrackerAuditConsumer.class );
-
     private final AuditService auditService;
     private final RenderService renderService;
 

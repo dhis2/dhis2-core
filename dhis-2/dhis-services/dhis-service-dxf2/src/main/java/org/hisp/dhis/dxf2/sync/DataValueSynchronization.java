@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.sync;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -48,11 +46,10 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component
 public class DataValueSynchronization extends DataSynchronization
 {
-    private static final Log log = LogFactory.getLog( DataValueSynchronization.class );
-
     private final DataValueService dataValueService;
     private final DataValueSetService dataValueSetService;
     private final SystemSettingManager systemSettingManager;

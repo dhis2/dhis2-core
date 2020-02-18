@@ -28,15 +28,7 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -48,18 +40,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
+@Slf4j
 @Service( "org.hisp.dhis.appstore.AppStoreService" )
 public class DefaultAppStoreService
     implements
     AppStoreService
 {
-    private static final Log log = LogFactory.getLog( DefaultAppStoreService.class );
-
     private final RestTemplate restTemplate;
 
     private final AppManager appManager;

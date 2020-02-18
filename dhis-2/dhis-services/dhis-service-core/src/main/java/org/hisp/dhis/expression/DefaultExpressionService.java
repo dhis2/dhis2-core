@@ -29,8 +29,7 @@ package org.hisp.dhis.expression;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
@@ -99,7 +98,14 @@ import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_EVALUATE;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_IDS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_ORG_UNIT_GROUPS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
@@ -112,12 +118,11 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
+@Slf4j
 @Service( "org.hisp.dhis.expression.ExpressionService" )
 public class DefaultExpressionService
     implements ExpressionService
 {
-    private static final Log log = LogFactory.getLog( DefaultExpressionService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

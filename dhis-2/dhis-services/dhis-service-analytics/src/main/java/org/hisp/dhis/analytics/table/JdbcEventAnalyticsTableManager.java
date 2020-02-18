@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -81,6 +82,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.analytics.EventAnalyticsTableManager" )
 public class JdbcEventAnalyticsTableManager
     extends AbstractEventJdbcTableManager

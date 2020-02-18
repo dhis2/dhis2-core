@@ -189,6 +189,11 @@
       <artifactId>sms-compression</artifactId>
       <version>0.1.7</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Security -->
     <dependency>

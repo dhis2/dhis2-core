@@ -28,14 +28,6 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,17 +36,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Job will fetch all the image FileResources with flag hasMultiple set to false. It will process those image FileResources create three images files for each of them.
  * Once created, images will be stored at EWS and flag hasMultiple is set to true.
  *
  * @Author Zubair Asghar.
  */
+@Slf4j
 @Component( "imageResizingJob" )
 public class ImageResizingJob extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( ImageResizingJob.class );
-
     private final FileResourceContentStore fileResourceContentStore;
 
     private final FileResourceService fileResourceService;

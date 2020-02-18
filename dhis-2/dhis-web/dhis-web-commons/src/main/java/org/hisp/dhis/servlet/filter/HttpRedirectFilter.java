@@ -28,6 +28,8 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 
 import javax.servlet.Filter;
@@ -37,20 +39,19 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 
 /**
  * @author Torgeir Lorange Ostby
  * @version $Id: HttpRedirectFilter.java 2869 2007-02-20 14:26:09Z andegje $
  */
+@Slf4j
 public class HttpRedirectFilter
     implements Filter
 {
     private static final String REDIRECT_PATH_KEY = "redirectPath";
 
-    private static final Log log = LogFactory.getLog( HttpRedirectFilter.class );
-    
     private String redirectPath;
 
     // -------------------------------------------------------------------------

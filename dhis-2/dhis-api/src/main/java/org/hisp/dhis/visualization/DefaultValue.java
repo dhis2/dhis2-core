@@ -1,5 +1,3 @@
-package org.hisp.dhis.leader.election;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,46 +26,31 @@ package org.hisp.dhis.leader.election;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.scheduling.SchedulingManager;
+package org.hisp.dhis.visualization;
+
+import org.hisp.dhis.common.DigitGroupSeparator;
+import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.FontSize;
 
 /**
- * No operation leader election implementation which will be used when redis is not configured.
- * 
- * @author Ameen Mohamed
+ * This is just a support class to hold default values for a few Visualization
+ * attributes.
  */
-@Slf4j
-public class NoOpLeaderManager implements LeaderManager
+public final class DefaultValue
 {
-    public NoOpLeaderManager()
+
+    public static final DisplayDensity defaultIfNull( final DisplayDensity displayDensity )
     {
-        String nodeId = UUID.randomUUID().toString();
-        log.info( "Setting up noop leader manager using dummy NodeId:" + nodeId );
+        return displayDensity != null ? displayDensity : DisplayDensity.NORMAL;
     }
 
-    @Override
-    public void renewLeader()
+    public static final FontSize defaultIfNull( final FontSize fontSize )
     {
-        //No operation
+        return fontSize != null ? fontSize : FontSize.NORMAL;
     }
 
-    @Override
-    public void electLeader()
+    public static final DigitGroupSeparator defaultIfNull( final DigitGroupSeparator groupSeparator )
     {
-      //No operation
+        return groupSeparator != null ? groupSeparator : DigitGroupSeparator.SPACE;
     }
-
-    @Override
-    public boolean isLeader()
-    {
-        return true;
-    }
-
-    @Override
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-      //No operation
-    }
-
 }

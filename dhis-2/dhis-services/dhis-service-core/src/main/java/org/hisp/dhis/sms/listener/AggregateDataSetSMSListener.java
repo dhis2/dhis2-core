@@ -28,9 +28,11 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,18 +67,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component( "org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" )
 @Transactional
 public class AggregateDataSetSMSListener
     extends
     CompressionSMSListener
 {
-    private static final Log log = LogFactory.getLog( AggregateDataSetSMSListener.class );
-
     private final DataSetService dataSetService;
 
     private final DataValueService dataValueService;

@@ -37,8 +37,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
@@ -66,11 +65,10 @@ import java.util.Set;
  *
  * @author Ameen Mohamed
  */
+@Slf4j
 public class RedisNotifier implements Notifier
 {
     private static final String NOTIFIER_ERROR = "Redis Notifier error:%s";
-
-    private static final Log log = LogFactory.getLog( RedisNotifier.class );
 
     private RedisTemplate<String, String> redisTemplate;
 
@@ -177,7 +175,7 @@ public class RedisNotifier implements Notifier
                 log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
             }
 
-            log.info( notification );
+            log.info( notification.toString() );
         }
         return this;
     }
@@ -216,7 +214,7 @@ public class RedisNotifier implements Notifier
             return list;
         }
 
-        String lastJobUid = (String) lastJobUidSet.iterator().next();
+        String lastJobUid = lastJobUidSet.iterator().next();
 
         for ( Notification notification : getNotificationsByJobId( jobType, lastJobUid ) )
         {

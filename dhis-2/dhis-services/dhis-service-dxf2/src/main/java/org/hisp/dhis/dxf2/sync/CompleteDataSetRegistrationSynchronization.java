@@ -27,8 +27,7 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -44,11 +43,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author David Katuscak
  */
+@Slf4j
 @Component
 public class CompleteDataSetRegistrationSynchronization
 {
-    private static final Log log = LogFactory.getLog( CompleteDataSetRegistrationSynchronization.class );
-
     private final SynchronizationManager synchronizationManager;
 
     private final SystemSettingManager systemSettingManager;
