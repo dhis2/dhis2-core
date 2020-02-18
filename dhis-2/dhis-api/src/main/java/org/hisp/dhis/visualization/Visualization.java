@@ -1111,7 +1111,7 @@ public class Visualization
     public void populateAnalyticalProperties()
     {
         // Some Visualizations may not have columnDimensions.
-         if ( isNotEmpty( columnDimensions ) )
+        if ( isNotEmpty( columnDimensions ) )
         {
             for ( String column : columnDimensions )
             {
