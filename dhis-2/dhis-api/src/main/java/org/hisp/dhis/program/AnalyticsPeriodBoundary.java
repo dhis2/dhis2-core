@@ -40,6 +40,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -259,6 +260,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange(  min = Integer.MIN_VALUE , max = Integer.MAX_VALUE )
     public Integer getOffsetPeriods()
     {
         return offsetPeriods;
