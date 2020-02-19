@@ -75,7 +75,7 @@ public class EventValidationHook
     @Override
     public int getOrder()
     {
-        return 300;
+        return 3000;
     }
 
     @Override
@@ -97,15 +97,21 @@ public class EventValidationHook
         {
             reporter.increment( event );
 
-            if ( programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
+            boolean exists = programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() );
+            if ( bundle.getImportStrategy().isCreate() && exists )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1030 )
                     .addArg( event ) );
                 continue;
             }
+            else if ( bundle.getImportStrategy().isUpdate() && !exists )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1032 )
+                    .addArg( event ) );
+                continue;
+            }
 
-            boolean hasEventDate = EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null;
-            if ( hasEventDate )
+            if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1031 )
                     .addArg( event ) );
@@ -116,8 +122,7 @@ public class EventValidationHook
                 .getProgramStageInstance( bundle, event.getEvent() );
 
             boolean validId = isValidId( bundle.getIdentifier(), event.getEvent() );
-            boolean programStagePointToInvalidEvent = programStageInstance == null && validId;
-            if ( programStagePointToInvalidEvent )
+            if ( programStageInstance == null && validId )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1071 )
                     .addArg( event ) );
@@ -143,10 +148,8 @@ public class EventValidationHook
                 continue;
             }
 
-            programStage = programStage == null && program.isWithoutRegistration() ?
-                program.getProgramStageByStage( 1 ) :
-                programStage;
-
+            programStage = (programStage == null && program.isWithoutRegistration())
+                ? program.getProgramStageByStage( 1 ) : programStage;
             if ( programStage == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1035 ).addArg( event ) );
@@ -223,6 +226,7 @@ public class EventValidationHook
             }
 
             program = programInstance.getProgram();
+
             if ( programStageInstance != null )
             {
                 programStage = programStageInstance.getProgramStage();
@@ -266,18 +270,6 @@ public class EventValidationHook
         }
 
         return reporter.getReportList();
-    }
-
-    private boolean isValidId( TrackerIdentifier identifier, String value )
-    {
-        if ( identifier == TrackerIdentifier.UID )
-        {
-            return !StringUtils.isEmpty( value ) && !CodeGenerator.isValidUid( value );
-        }
-        else
-        {
-            throw new IllegalArgumentException( "Only UID ids are implemented for now!" );
-        }
     }
 
     private boolean validateDates( ValidationErrorReporter errorReporter, Event event )
@@ -456,41 +448,6 @@ public class EventValidationHook
             errorReporter.addError( newReport( TrackerErrorCode.E1058 )
                 .addArg( String.join( ",", accessErrors ) ) );
         }
-    }
-
-    private boolean validateGeo333( ValidationErrorReporter errorReporter,
-        Event event,
-        ProgramStage programStage )
-    {
-        if ( event.getGeometry() != null )
-        {
-            if ( programStage.getFeatureType().equals( FeatureType.NONE ) ||
-                !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1048 )
-                    .addArg( event.getGeometry().getGeometryType() )
-                    .addArg( programStage.getFeatureType().value() )
-                    .addArg( programStage ) );
-                return false;
-            }
-
-            event.getGeometry().setSRID( GeoUtils.SRID );
-        }
-        else if ( event.getCoordinate() != null ) // && event.getCoordinate().hasLatitudeLongitude()
-        {
-            Coordinate coordinate = event.getCoordinate();
-            try
-            {
-                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1049 ) );
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private void validateExpiryDays( ValidationErrorReporter errorReporter,

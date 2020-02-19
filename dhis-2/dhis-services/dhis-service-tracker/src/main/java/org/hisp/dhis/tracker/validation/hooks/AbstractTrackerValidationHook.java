@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -48,6 +49,7 @@ import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -56,7 +58,9 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -288,5 +292,59 @@ public abstract class AbstractTrackerValidationHook
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
             : PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getTrackedEntityType();
+    }
+
+    protected boolean isValidId( TrackerIdentifier identifier, String value )
+    {
+        if ( identifier == TrackerIdentifier.UID )
+        {
+            return !StringUtils.isEmpty( value ) && !CodeGenerator.isValidUid( value );
+        }
+        else
+        {
+            throw new IllegalArgumentException( "Only UID ids are implemented for now!" );
+        }
+    }
+
+    protected ProgramInstance getProgramInstance( User actingUser, ProgramInstance programInstance,
+        TrackedEntityInstance trackedEntityInstance,
+        Program program )
+    {
+        if ( program.isRegistration() )
+        {
+            if ( programInstance == null )
+            {
+                List<ProgramInstance> activeProgramInstances = new ArrayList<>( programInstanceService
+                    .getProgramInstances( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
+
+                if ( activeProgramInstances.size() == 1 )
+                {
+                    programInstance = activeProgramInstances.get( 0 );
+                }
+            }
+        }
+        else
+        {
+            // NOTE: This is cached in the prev. event importer? What do we do here?
+            List<ProgramInstance> activeProgramInstances = programInstanceService
+                .getProgramInstances( program, ProgramStatus.ACTIVE );
+
+            if ( activeProgramInstances.isEmpty() )
+            {
+                ProgramInstance pi = new ProgramInstance();
+                pi.setEnrollmentDate( new Date() );
+                pi.setIncidentDate( new Date() );
+                pi.setProgram( program );
+                pi.setStatus( ProgramStatus.ACTIVE );
+                pi.setStoredBy( actingUser.getUsername() );
+                programInstance = pi;
+            }
+            else if ( activeProgramInstances.size() == 1 )
+            {
+                programInstance = activeProgramInstances.get( 0 );
+            }
+        }
+
+        return programInstance;
     }
 }

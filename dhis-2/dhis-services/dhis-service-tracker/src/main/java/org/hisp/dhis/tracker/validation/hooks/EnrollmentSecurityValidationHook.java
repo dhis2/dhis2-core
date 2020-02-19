@@ -89,28 +89,6 @@ public class EnrollmentSecurityValidationHook
                 continue;
             }
 
-            if ( bundle.getImportStrategy().isUpdate() )
-            {
-                ProgramInstance programInstance = PreheatHelper
-                    .getProgramInstance( bundle, enrollment.getEnrollment() );
-                if ( programInstance == null )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1015 )
-                        .addArg( enrollment )
-                        .addArg( enrollment.getEnrollment() ) );
-                    continue;
-                }
-
-                List<String> errors = trackerAccessManager.canUpdate( actingUser, programInstance, false );
-                if ( !errors.isEmpty() )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1000 )
-                        .addArg( actingUser )
-                        .addArg( programInstance ) );
-                    continue;
-                }
-            }
-
             if ( bundle.getImportStrategy().isCreate() )
             {
                 ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance,
@@ -124,6 +102,43 @@ public class EnrollmentSecurityValidationHook
                         .addArg( String.join( ",", errors ) ) );
                 }
             }
+
+            if ( bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete() )
+            {
+                ProgramInstance programInstance = PreheatHelper
+                    .getProgramInstance( bundle, enrollment.getEnrollment() );
+                if ( programInstance == null )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1015 )
+                        .addArg( enrollment )
+                        .addArg( enrollment.getEnrollment() ) );
+                    continue;
+                }
+
+                if ( bundle.getImportStrategy().isUpdate() )
+                {
+                    List<String> errors = trackerAccessManager.canUpdate( actingUser, programInstance, false );
+                    if ( !errors.isEmpty() )
+                    {
+                        reporter.addError( newReport( TrackerErrorCode.E1000 )
+                            .addArg( actingUser )
+                            .addArg( programInstance ) );
+                    }
+                }
+
+                if ( bundle.getImportStrategy().isDelete() )
+                {
+                    List<String> errors = trackerAccessManager.canDelete( actingUser, programInstance, false );
+                    if ( !errors.isEmpty() )
+                    {
+                        reporter.addError( newReport( TrackerErrorCode.E1000 )
+                            .addArg( actingUser )
+                            .addArg( programInstance ) );
+                    }
+                }
+
+            }
+
         }
 
         return reporter.getReportList();
