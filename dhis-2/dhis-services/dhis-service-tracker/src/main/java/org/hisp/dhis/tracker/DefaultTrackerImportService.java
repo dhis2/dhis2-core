@@ -34,6 +34,8 @@ import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
@@ -59,12 +61,17 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-public class DefaultTrackerImportService implements TrackerImportService
+public class DefaultTrackerImportService
+    implements TrackerImportService
 {
     private final TrackerBundleService trackerBundleService;
+
     private final TrackerValidationService trackerValidationService;
+
     private final CurrentUserService currentUserService;
+
     private final IdentifiableObjectManager manager;
+
     private final Notifier notifier;
 
     public DefaultTrackerImportService(
