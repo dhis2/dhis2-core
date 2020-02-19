@@ -109,9 +109,16 @@ public enum TrackerErrorCode
     E1066( "User: `{0}`, has no write access to program instance: `{1}`." ),
     E1067( "Could not find organization unit in tracked entity instance: `{0}`." ),
 
+
+
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to enrollment." ),
     E1069( "Could not find Program: `{0}`, linked to enrollment." ),
     E1070( "Could not find OrganisationUnit: `{0}`, linked to enrollment." ),
+
+    E1071( "Event `{0}` does not exist." ),
+
+    E1072( "Failed to get attribute combo `{0}`. Error message: `{1}`" ),
+    E1073( "Could not find CategoryOptionCombo: `{0}`." ),
 
     E9999( "N/A" );
 

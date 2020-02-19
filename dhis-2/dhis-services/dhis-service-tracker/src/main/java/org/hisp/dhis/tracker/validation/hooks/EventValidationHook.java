@@ -28,10 +28,15 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -41,6 +46,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -80,7 +86,7 @@ public class EventValidationHook
             return Collections.emptyList();
         }
 
-        ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle,
             EventValidationHook.class );
 
         TrackerPreheat preheat = bundle.getPreheat();
@@ -89,10 +95,11 @@ public class EventValidationHook
         List<Event> events = bundle.getEvents();
         for ( Event event : events )
         {
-            if ( programStageInstanceService
-                .programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
+            reporter.increment( event );
+
+            if ( programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1030 )
+                reporter.addError( newReport( TrackerErrorCode.E1030 )
                     .addArg( event ) );
                 continue;
             }
@@ -100,41 +107,39 @@ public class EventValidationHook
             boolean hasEventDate = EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null;
             if ( hasEventDate )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1031 ).addArg( event ) );
+                reporter.addError( newReport( TrackerErrorCode.E1031 )
+                    .addArg( event ) );
                 continue;
             }
 
-            ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdentifier.UID, event.getEvent() );
-            boolean programStagePointToInvalidEvent = programStageInstance == null &&
-                !StringUtils.isEmpty( event.getEvent() ) &&
-                !CodeGenerator.isValidUid( event.getEvent() );
+            ProgramStageInstance programStageInstance = PreheatHelper
+                .getProgramStageInstance( bundle, event.getEvent() );
+
+            boolean validId = isValidId( bundle.getIdentifier(), event.getEvent() );
+            boolean programStagePointToInvalidEvent = programStageInstance == null && validId;
             if ( programStagePointToInvalidEvent )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1030 ).addArg( event ) );
-                break;
+                reporter.addError( newReport( TrackerErrorCode.E1071 )
+                    .addArg( event ) );
             }
 
-            Program program = preheat
-                .get( TrackerIdentifier.UID, Program.class, event.getProgram() );
-            ProgramStage programStage = preheat
-                .get( TrackerIdentifier.UID, ProgramStage.class, event.getProgramStage() );
-            OrganisationUnit organisationUnit = preheat
-                .get( TrackerIdentifier.UID, OrganisationUnit.class, event.getOrgUnit() );
-            TrackedEntityInstance trackedEntityInstance = preheat
-                .get( TrackerIdentifier.UID, TrackedEntityInstance.class, event.getTrackedEntityInstance() );
-            ProgramInstance programInstance = preheat
-                .get( TrackerIdentifier.UID, ProgramInstance.class, event.getEnrollment() );
-            User assignedUser = preheat.get( TrackerIdentifier.UID, User.class, event.getAssignedUser() );
+            ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
+            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
+            OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
+            TrackedEntityInstance trackedEntityInstance = PreheatHelper
+                .getTrackedEntityInstance( bundle, event.getTrackedEntityInstance() );
+
+            Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
             if ( organisationUnit == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 ).addArg( event.getOrgUnit() ) );
+                reporter.addError( newReport( TrackerErrorCode.E1011 ).addArg( event.getOrgUnit() ) );
                 continue;
             }
 
             if ( program == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1034 ).addArg( event ) );
+                reporter.addError( newReport( TrackerErrorCode.E1034 ).addArg( event ) );
                 continue;
             }
 
@@ -144,7 +149,7 @@ public class EventValidationHook
 
             if ( programStage == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1035 ).addArg( event ) );
+                reporter.addError( newReport( TrackerErrorCode.E1035 ).addArg( event ) );
                 continue;
             }
 
@@ -152,7 +157,8 @@ public class EventValidationHook
             {
                 if ( trackedEntityInstance == null )
                 {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1036 ).addArg( event ) );
+                    reporter.addError( newReport( TrackerErrorCode.E1036 )
+                        .addArg( event ) );
                     continue;
                 }
 
@@ -163,14 +169,16 @@ public class EventValidationHook
 
                     if ( activeProgramInstances.isEmpty() )
                     {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1037 )
-                            .addArg( trackedEntityInstance ).addArg( program ) );
+                        reporter.addError( newReport( TrackerErrorCode.E1037 )
+                            .addArg( trackedEntityInstance )
+                            .addArg( program ) );
                         continue;
                     }
                     else if ( activeProgramInstances.size() > 1 )
                     {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1038 )
-                            .addArg( trackedEntityInstance ).addArg( program ) );
+                        reporter.addError( newReport( TrackerErrorCode.E1038 )
+                            .addArg( trackedEntityInstance )
+                            .addArg( program ) );
                         continue;
                     }
                     else
@@ -181,61 +189,60 @@ public class EventValidationHook
 
                 if ( !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
                 {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1039 ) );
+                    reporter.addError( newReport( TrackerErrorCode.E1039 ) );
                     continue;
                 }
             }
             else
             {
-                String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
-                List<ProgramInstance> activeProgramInstances = null; // getActiveProgramInstances( cacheKey, program );
+
+                // NOTE: This is cached in the prev. event importer? What do we do here?
+                List<ProgramInstance> activeProgramInstances = programInstanceService
+                    .getProgramInstances( program, ProgramStatus.ACTIVE );
                 if ( activeProgramInstances.isEmpty() )
                 {
-                    // Create PI if it doesn't exist (should only be one)
-
-//                    String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ?
-//                        importOptions.getUser().getUsername() : "[Unknown]" );
-
                     ProgramInstance pi = new ProgramInstance();
                     pi.setEnrollmentDate( new Date() );
                     pi.setIncidentDate( new Date() );
                     pi.setProgram( program );
                     pi.setStatus( ProgramStatus.ACTIVE );
-//                    pi.setStoredBy( storedBy ); ?????????
+                    pi.setStoredBy( user.getUsername() );
 
-                    programInstanceService.addProgramInstance( pi );
-
-                    activeProgramInstances.add( pi );
+                    programInstance = pi;
                 }
                 else if ( activeProgramInstances.size() > 1 )
                 {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
+                    reporter.addError( newReport( TrackerErrorCode.E1040 )
+                        .addArg( program ) );
                     continue;
                 }
-
-                /// MUTATES !!?!?!?!
-                programInstance = activeProgramInstances.get( 0 );
+                else
+                {
+                    programInstance = activeProgramInstances.get( 0 );
+                }
             }
 
-            /// MUTATES !!?!?!?!
             program = programInstance.getProgram();
             if ( programStageInstance != null )
             {
-                /// MUTATES !!?!?!?!
                 programStage = programStageInstance.getProgramStage();
             }
 
             if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1041 ).addArg( organisationUnit ) );
+                reporter.addError( newReport( TrackerErrorCode.E1041 ).addArg( organisationUnit ) );
                 continue;
             }
 
-            if ( !validateExpiryDays( errorReporter, event, program, programStageInstance ) )
-                continue;
+            if ( program != null )
+            {
+                validateExpiryDays( reporter, event, program, programStageInstance );
+            }
 
-            if ( !validateGeo( errorReporter, event, programStage ) )
-                continue;
+            validateGeo( reporter,
+                event.getGeometry(),
+                event.getCoordinate() != null ? event.getCoordinate().getCoordinateString() : null,
+                programStage.getFeatureType() );
 
             ProgramStageInstance newProgramStageInstance = new ProgramStageInstance( programInstance, programStage )
                 .setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() );
@@ -243,20 +250,34 @@ public class EventValidationHook
             List<String> errors = trackerAccessManager.canCreate( user, newProgramStageInstance, false );
             if ( !errors.isEmpty() )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1050 )
-                    .addArg( user ).addArg( String.join( ",", errors ) ) );
+                reporter.addError( newReport( TrackerErrorCode.E1050 )
+                    .addArg( user )
+                    .addArg( String.join( ",", errors ) ) );
                 continue;
             }
 
-            //// LAST VAL
-            if ( !validateDates( errorReporter, event ) )
+            if ( !validateDates( reporter, event ) )
+            {
                 continue;
+            }
 
-            validateCatergoryOptionCombo( errorReporter, user, event, program );
+            validateCategoryOptionCombo( bundle, reporter, user, event, program );
 
         }
 
-        return errorReporter.getReportList();
+        return reporter.getReportList();
+    }
+
+    private boolean isValidId( TrackerIdentifier identifier, String value )
+    {
+        if ( identifier == TrackerIdentifier.UID )
+        {
+            return !StringUtils.isEmpty( value ) && !CodeGenerator.isValidUid( value );
+        }
+        else
+        {
+            throw new IllegalArgumentException( "Only UID ids are implemented for now!" );
+        }
     }
 
     private boolean validateDates( ValidationErrorReporter errorReporter, Event event )
@@ -288,51 +309,127 @@ public class EventValidationHook
         return true;
     }
 
-    private void validateCatergoryOptionCombo( ValidationErrorReporter errorReporter, User user,
-        Event event, Program program )
+    private CategoryOptionCombo getAttributeOptionCombo( TrackerBundle bundle, CategoryCombo categoryCombo,
+        String cp, String attributeOptionCombo )
     {
-        List<String> errors;
-        CategoryOptionCombo categoryOptionCombo = null;
-        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
-            || event.getAttributeOptionCombo() != null )
+        Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
+
+        if ( categoryCombo == null )
         {
-            try
-            {
-                /// ?????
-//                    categoryOptionCombo = getAttributeOptionCombo( program.getCategoryCombo(), event.getAttributeCategoryOptions(),
-//                        event.getAttributeOptionCombo(), idScheme );
-            }
-            catch ( IllegalQueryException ex )
-            {
-//                    importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
-//                    importSummary.setStatus( ImportStatus.ERROR );
-//                    return importSummary.incrementIgnored();
-            }
-        }
-        else
-        {
-//           ????     categoryOptionCombo = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
+            throw new IllegalQueryException( "Illegal category combo" );
         }
 
-        if ( categoryOptionCombo != null && categoryOptionCombo.isDefault() && program.getCategoryCombo() != null &&
-            !program.getCategoryCombo().isDefault() )
+        // ---------------------------------------------------------------------
+        // Attribute category options validation
+        // ---------------------------------------------------------------------
+
+        CategoryOptionCombo attrOptCombo = null;
+
+        if ( opts != null )
+        {
+            Set<CategoryOption> categoryOptions = new HashSet<>();
+
+            for ( String uid : opts )
+            {
+                CategoryOption categoryOption = bundle.getPreheat()
+                    .get( bundle.getIdentifier(), CategoryOption.class, uid );
+
+                if ( categoryOption == null )
+                {
+                    throw new IllegalQueryException( "Illegal category option identifier: " + uid );
+                }
+
+                categoryOptions.add( categoryOption );
+            }
+
+            List<String> options = Lists.newArrayList( opts );
+            Collections.sort( options );
+
+            String cacheKey = categoryCombo.getUid() + "-" + Joiner.on( "-" ).join( options );
+            attrOptCombo = bundle.getPreheat().get( bundle.getIdentifier(), CategoryOptionCombo.class, cacheKey );
+
+            if ( attrOptCombo == null )
+            {
+                throw new IllegalQueryException(
+                    "Attribute option combo does not exist for given category combo and category options" );
+            }
+        }
+        else if ( attributeOptionCombo != null )
+        {
+            attrOptCombo = bundle.getPreheat()
+                .get( bundle.getIdentifier(), CategoryOptionCombo.class, attributeOptionCombo );
+        }
+
+        // ---------------------------------------------------------------------
+        // Fall back to default category option combination
+        // ---------------------------------------------------------------------
+
+        if ( attrOptCombo == null )
+        {
+            attrOptCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults().get( CategoryOptionCombo.class );
+        }
+
+        if ( attrOptCombo == null )
+        {
+            throw new IllegalQueryException( "Default attribute option combo does not exist" );
+        }
+
+        return attrOptCombo;
+    }
+
+    private void validateCategoryOptionCombo( TrackerBundle bundle, ValidationErrorReporter errorReporter
+        , User user, Event event, Program program )
+    {
+
+        // NOTE: Morten H. & Stian. Abyot : How do we solve this in the new importer?
+//        CategoryOptionCombo categoryOptionCombo;
+//        if ( (event.getAttributeCategoryOptions() != null
+//            && program.getCategoryCombo() != null)
+//            || event.getAttributeOptionCombo() != null )
+//        {
+//            try
+//            {
+//                categoryOptionCombo = getAttributeOptionCombo( bundle,
+//                    program.getCategoryCombo(),
+//                    event.getAttributeCategoryOptions(),
+//                    event.getAttributeOptionCombo() );
+//            }
+//            catch ( IllegalQueryException e )
+//            {
+//                errorReporter.addError( newReport( TrackerErrorCode.E1072 )
+//                    .addArg( event.getAttributeCategoryOptions() )
+//                    .addArg( e.getMessage() ) );
+//                return;
+//            }
+//        }
+//        else
+//        {
+//            categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults()
+//                .get( CategoryOptionCombo.class );
+//        }
+
+        CategoryOptionCombo categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults()
+            .get( CategoryOptionCombo.class );
+        if ( categoryOptionCombo == null )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1055 ) );
             return;
         }
 
-        Date executionDate = null;
-        if ( event.getEventDate() != null )
+        if ( categoryOptionCombo.isDefault()
+            && program.getCategoryCombo() != null
+            && !program.getCategoryCombo().isDefault() )
         {
-            executionDate = DateUtils.parseDate( event.getEventDate() );
+            errorReporter.addError( newReport( TrackerErrorCode.E1055 ) );
+            return;
         }
-        Date dueDate = new Date();
-        if ( event.getDueDate() != null )
-        {
-            dueDate = DateUtils.parseDate( event.getDueDate() );
-        }
-        Date eventDate = executionDate != null ? executionDate : dueDate;
+
+        // NOTE: How to best get current date into iso format?
+        Date eventDate = DateUtils.parseDate( ObjectUtils
+            .firstNonNull( event.getEventDate(), event.getDueDate(), DateUtils.getIso8601( new Date() ) ) );
+
         I18nFormat i18nFormat = i18nManager.getI18nFormat();
+
         for ( CategoryOption option : categoryOptionCombo.getCategoryOptions() )
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
@@ -346,20 +443,22 @@ public class EventValidationHook
             }
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1057 ).addArg( event.getLastUpdatedAtClient() ) );
+                errorReporter.addError( newReport( TrackerErrorCode.E1057 ).
+                    addArg( event.getLastUpdatedAtClient() ) );
                 return;
             }
         }
 
-        errors = trackerAccessManager.canWrite( user, categoryOptionCombo );
-        if ( !errors.isEmpty() )
+        List<String> accessErrors;
+        accessErrors = trackerAccessManager.canWrite( user, categoryOptionCombo );
+        if ( !accessErrors.isEmpty() )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1058 ).addArg( String.join( ",", errors ) ) );
-            return;
+            errorReporter.addError( newReport( TrackerErrorCode.E1058 )
+                .addArg( String.join( ",", accessErrors ) ) );
         }
     }
 
-    private boolean validateGeo( ValidationErrorReporter errorReporter,
+    private boolean validateGeo333( ValidationErrorReporter errorReporter,
         Event event,
         ProgramStage programStage )
     {
@@ -377,7 +476,7 @@ public class EventValidationHook
 
             event.getGeometry().setSRID( GeoUtils.SRID );
         }
-        else if ( event.getCoordinate() != null  ) // && event.getCoordinate().hasLatitudeLongitude()
+        else if ( event.getCoordinate() != null ) // && event.getCoordinate().hasLatitudeLongitude()
         {
             Coordinate coordinate = event.getCoordinate();
             try
@@ -394,7 +493,7 @@ public class EventValidationHook
         return true;
     }
 
-    private boolean validateExpiryDays( ValidationErrorReporter errorReporter,
+    private void validateExpiryDays( ValidationErrorReporter errorReporter,
         Event event,
         Program program,
         ProgramStageInstance programStageInstance )
@@ -405,86 +504,84 @@ public class EventValidationHook
 //            return;
 //        }
 
-        if ( program != null )
+        if ( program == null )
         {
-            if ( program.getCompleteEventsExpiryDays() > 0 )
+            return;
+        }
+
+        if ( program.getCompleteEventsExpiryDays() > 0 )
+        {
+            if ( EventStatus.COMPLETED == event.getStatus()
+                || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
             {
-                if ( event.getStatus() == EventStatus.COMPLETED
-                    || programStageInstance != null && programStageInstance.getStatus() == EventStatus.COMPLETED )
-                {
-                    Date referenceDate = null;
+                Date referenceDate = null;
 
-                    if ( programStageInstance != null )
-                    {
-                        referenceDate = programStageInstance.getCompletedDate();
-                    }
-
-                    else
-                    {
-                        if ( event.getCompletedDate() != null )
-                        {
-                            referenceDate = DateUtils.parseDate( event.getCompletedDate() );
-                        }
-                    }
-
-                    if ( referenceDate == null )
-                    {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1042 ).addArg( event ) );
-                        return false;
-                    }
-
-                    if ( (new Date()).after(
-                        DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
-                    {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1043 ).addArg( event ) );
-                        return false;
-                    }
-                }
-            }
-
-            PeriodType periodType = program.getExpiryPeriodType();
-
-            if ( periodType != null && program.getExpiryDays() > 0 )
-            {
                 if ( programStageInstance != null )
                 {
-                    Date today = new Date();
-
-                    if ( programStageInstance.getExecutionDate() == null )
-                    {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1044 ).addArg( event ) );
-                        return false;
-                    }
-
-                    Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
-
-                    if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
-                    {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1045 ).addArg( event ) );
-                        return false;
-                    }
+                    referenceDate = programStageInstance.getCompletedDate();
                 }
+
                 else
                 {
-                    String referenceDate = event.getEventDate() != null ? event.getEventDate() : event.getDueDate();
-                    if ( referenceDate == null )
+                    if ( event.getCompletedDate() != null )
                     {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1046 ).addArg( event ) );
-                        return false;
+                        referenceDate = DateUtils.parseDate( event.getCompletedDate() );
                     }
+                }
 
-                    Period period = periodType.createPeriod( new Date() );
+                if ( referenceDate == null )
+                {
+                    errorReporter.addError( newReport( TrackerErrorCode.E1042 )
+                        .addArg( event ) );
+                }
 
-                    if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
-                    {
-                        errorReporter.addError( newReport( TrackerErrorCode.E1047 ).addArg( event ) );
-
-                        return false;
-                    }
+                if ( (new Date()).after(
+                    DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
+                {
+                    errorReporter.addError( newReport( TrackerErrorCode.E1043 )
+                        .addArg( event ) );
                 }
             }
         }
-        return true;
+
+        PeriodType periodType = program.getExpiryPeriodType();
+
+        if ( periodType != null && program.getExpiryDays() > 0 )
+        {
+            if ( programStageInstance != null )
+            {
+                Date today = new Date();
+
+                if ( programStageInstance.getExecutionDate() == null )
+                {
+                    errorReporter.addError( newReport( TrackerErrorCode.E1044 ).addArg( event ) );
+                }
+
+                Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
+
+                if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
+                {
+                    errorReporter.addError( newReport( TrackerErrorCode.E1045 ).addArg( event ) );
+                }
+            }
+            else
+            {
+                String referenceDate = event.getEventDate() != null ? event.getEventDate() : event.getDueDate();
+                if ( referenceDate == null )
+                {
+                    errorReporter.addError( newReport( TrackerErrorCode.E1046 ).addArg( event ) );
+                }
+
+                Period period = periodType.createPeriod( new Date() );
+
+                if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
+                {
+                    errorReporter.addError( newReport( TrackerErrorCode.E1047 ).addArg( event ) );
+
+                }
+            }
+        }
+
     }
 
 }

@@ -90,8 +90,7 @@ public class EventImportValidationTest
     @Autowired
     private UserService _userService;
 
-    @Override
-    protected void setUpTest()
+    protected void initMeta1()
         throws IOException
     {
         renderService = _renderService;
@@ -129,6 +128,22 @@ public class EventImportValidationTest
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+        ////////////////////////////////////////
+
+        trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        bundleReport = trackerBundleService.commit( trackerBundle );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
     private void printErrors( TrackerValidationReport report )
@@ -140,19 +155,21 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testEnrollmentValidationOkAll()
+    public void testEventValidationOkAll()
         throws IOException
     {
+        initMeta1();
+
         TrackerBundleParams trackerBundleParams = renderService
             .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -160,6 +177,52 @@ public class EventImportValidationTest
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
+    }
+
+    protected void initMeta2()
+        throws IOException
+    {
+
+        renderService = _renderService;
+        userService = _userService;
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+        objectBundleParams.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        objectBundleParams.setImportStrategy( ImportStrategy.CREATE );
+        objectBundleParams.setObjects( metadata );
+
+        ObjectBundle objectBundle = objectBundleService.create( objectBundleParams );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( objectBundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( objectBundle );
+    }
+
+    @Test
+    public void testEventMeta()
+        throws IOException
+    {
+        initMeta2();
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 8, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
 }

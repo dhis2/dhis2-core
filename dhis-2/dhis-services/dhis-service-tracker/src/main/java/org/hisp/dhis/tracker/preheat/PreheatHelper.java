@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.preheat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -48,35 +50,43 @@ public class PreheatHelper
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static OrganisationUnit getOrganisationUnit( TrackerBundle bundle, String orgUnit )
+    public static OrganisationUnit getOrganisationUnit( TrackerBundle bundle, String id )
     {
-        return bundle.getPreheat()
-            .get( bundle.getIdentifier(), OrganisationUnit.class, orgUnit );
+        return bundle.getPreheat().get( bundle.getIdentifier(), OrganisationUnit.class, id );
     }
 
-    public static TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String trackedEntity )
+    public static TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String id )
     {
-        return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), trackedEntity );
+        return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), id );
     }
 
-    public static TrackedEntityAttribute getTrackedEntityAttribute( TrackerBundle bundle, String attribute )
+    public static TrackedEntityAttribute getTrackedEntityAttribute( TrackerBundle bundle, String id )
     {
-        return bundle.getPreheat()
-            .get( bundle.getIdentifier(), TrackedEntityAttribute.class, attribute );
+        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityAttribute.class, id );
     }
 
-    public static TrackedEntityType getTrackedEntityType( TrackerBundle bundle, String trackedEntityType )
+    public static TrackedEntityType getTrackedEntityType( TrackerBundle bundle, String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, trackedEntityType );
+        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, id );
     }
 
-    public static Program getProgram( TrackerBundle bundle, String program )
+    public static Program getProgram( TrackerBundle bundle, String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), Program.class, program );
+        return bundle.getPreheat().get( bundle.getIdentifier(), Program.class, id );
     }
 
-    public static ProgramInstance getProgramInstance( TrackerBundle bundle, String uid )
+    public static ProgramInstance getProgramInstance( TrackerBundle bundle, String id )
     {
-        return bundle.getPreheat().get( TrackerIdentifier.UID, ProgramInstance.class, uid );
+        return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
+    }
+
+    public static ProgramStage getProgramStage( TrackerBundle bundle, String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), ProgramStage.class, id );
+    }
+
+    public static ProgramStageInstance getProgramStageInstance( TrackerBundle bundle, String event )
+    {
+        return bundle.getPreheat().getEvent( TrackerIdentifier.UID, event );
     }
 }

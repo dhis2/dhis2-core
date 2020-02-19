@@ -542,10 +542,10 @@ public class ProgramInstance
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             ", status=" + status +
-            ", organisationUnit=" + organisationUnit.getUid() +
+            ", organisationUnit=" + organisationUnit +
             ", incidentDate=" + incidentDate +
             ", enrollmentDate=" + enrollmentDate +
-            ", entityInstance=" + entityInstance.getUid() +
+            ", entityInstance=" + entityInstance +
             ", program=" + program +
             ", deleted=" + deleted +
             ", storedBy='" + storedBy + '\'' +
