@@ -84,7 +84,7 @@ public class DefaultTrackerProgramRuleService
         TrackerPreheat preheat )
     {
         return enrollments
-            .stream()
+            .parallelStream()
             .collect( Collectors
                 .toMap(
                     Function.identity(),
@@ -96,7 +96,7 @@ public class DefaultTrackerProgramRuleService
         TrackerPreheat preheat )
     {
         return events
-            .stream()
+            .parallelStream()
             .collect( Collectors
                 .toMap(
                     Function.identity(),
