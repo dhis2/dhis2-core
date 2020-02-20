@@ -6,7 +6,7 @@
   
   <!-- Data Approval -->
 
-  <bean id="org.hisp.dhis.approval.dataapproval.action.GetDataApprovalOptionsAction" class="org.hisp.dhis.dataapproval.action.GetDataApprovalOptionsAction"
+  <bean id="org.hisp.dhis.approval.dataapproval.action.GetDataApprovalOptionsAction" class="org.hisp.dhis.approval.dataapproval.action.GetDataApprovalOptionsAction"
     scope="prototype">
   </bean>
   
