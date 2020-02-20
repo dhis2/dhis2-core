@@ -6,17 +6,9 @@
 
   <include file="dhis-web-commons.xml" />
 
-  <package name="dhis-web-reporting" extends="dhis-web-commons" namespace="/dhis-web-reporting">
+  <package name="dhis-web-approval" extends="dhis-web-commons" namespace="/dhis-web-approval">
 
-    <action name="index" class="org.hisp.dhis.approval.action.NoAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-reporting/index.vm</param>
-      <param name="menu">/dhis-web-reporting/menu.vm</param>
-    </action>
-    
-    <!-- Data Approval -->
-
-    <action name="showDataApprovalForm" class="org.hisp.dhis.approval.dataapproval.action.GetDataApprovalOptionsAction">
+    <action name="index" class="org.hisp.dhis.approval.dataapproval.action.GetDataApprovalOptionsAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-reporting/dataApprovalForm.vm</param>
       <param name="menu">/dhis-web-reporting/menu.vm</param>
