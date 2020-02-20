@@ -521,9 +521,15 @@ public class JdbcEventAnalyticsManager
 
     /**
      * This method will generate a sql sentence responsible for filtering out all
-     * the category options (of this program) not authorized.
-     *
+     * the category options (of this program categories). The list of category
+     * options within this list of categories should contains only not authorized
+     * category options (it means the category options that cannot be read by the
+     * current user based on the sharing settings defined for the category options.
+     * See
+     * @see org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#excludeOnlyAuthorizedCategoryOptions
+     * and
      * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)
+     * to check how the category options of these categories were set.
      *
      * @param programCategories the list of program categories containing the list
      *        of category options not authorized for the current user.
