@@ -27,45 +27,35 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.synch.SystemInstance;
-import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component
-public class DataValueSynchronization
+public class DataValueSynchronization extends DataSynchronization
 {
-    private static final Log log = LogFactory.getLog( DataValueSynchronization.class );
-
     private final DataValueService dataValueService;
     private final DataValueSetService dataValueSetService;
     private final SystemSettingManager systemSettingManager;
     private final RestTemplate restTemplate;
+
+    private Date lastUpdatedAfter;
 
     public DataValueSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService,
         SystemSettingManager systemSettingManager, RestTemplate restTemplate )
@@ -81,7 +71,7 @@ public class DataValueSynchronization
         this.restTemplate = restTemplate;
     }
 
-    public SynchronizationResult syncDataValuesData( final int pageSize )
+    public SynchronizationResult synchronizeData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
@@ -91,19 +81,7 @@ public class DataValueSynchronization
 
         log.info( "Starting DataValueSynchronization job." );
 
-        // ---------------------------------------------------------------------
-        // Set time for last success to start of process to make data saved
-        // subsequently part of next synch process without being ignored
-        // ---------------------------------------------------------------------
-
-        final Clock clock = new Clock( log ).startClock().logTime( "Starting DataValueSynchronization job" );
-        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
-
-        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
-
-        log.info( "DataValues last changed before " + skipChangedBefore + " will not be synchronized." );
+        initializeSyncVariables( pageSize );
 
         if ( objectsToSynchronize == 0 )
         {
@@ -112,30 +90,7 @@ public class DataValueSynchronization
                 .newSuccessResultWithMessage( "Skipping synchronization, no new or updated DataValues" );
         }
 
-        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL )
-            + SyncEndpoint.DATA_VALUE_SETS.getPath();
-        final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-        final SystemInstance instance = new SystemInstance( syncUrl, username, password );
-
-        // Using this approach as (int) Match.ceil doesn't work until I cast int to double
-        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
-
-        log.info( objectsToSynchronize + " DataValues to synchronize were found." );
-        log.info( "Remote server URL for DataValues POST sync: " + instance.getUrl() );
-        log.info( "DataValueSynchronization job has " + pages + " pages to sync. With page size: " + pageSize );
-
-        boolean syncResult = true;
-
-        for ( int i = 1; i <= pages; i++ )
-        {
-            log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
-
-            if ( !sendDataValueSyncRequest( instance, lastUpdatedAfter, pageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
-            {
-                syncResult = false;
-            }
-        }
+        runSyncWithPaging( pageSize );
 
         if ( syncResult )
         {
@@ -148,10 +103,44 @@ public class DataValueSynchronization
         return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed." );
     }
 
-    private boolean sendDataValueSyncRequest( SystemInstance instance, Date lastUpdatedAfter, int syncPageSize,
-        int page, SyncEndpoint endpoint )
+    private void initializeSyncVariables( final int pageSize )
     {
-        final RequestCallback requestCallback = request -> {
+        clock = new Clock( log ).startClock().logTime( "Starting DataValueSynchronization job" );
+        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+
+        objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
+
+        log.info( "DataValues last changed before " + skipChangedBefore + " will not be synchronized." );
+
+        if ( objectsToSynchronize != 0 )
+        {
+            instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.DATA_VALUE_SETS );
+
+            // Using this approach as (int) Match.ceil doesn't work until I cast int to double
+            pages = ( objectsToSynchronize / pageSize ) + (( objectsToSynchronize % pageSize == 0 ) ? 0 : 1 );
+
+            log.info( objectsToSynchronize + " DataValues to synchronize were found." );
+            log.info( "Remote server URL for DataValues POST sync: " + instance.getUrl() );
+            log.info( "DataValueSynchronization job has " + pages + " pages to sync. With page size: " + pageSize );
+        }
+    }
+
+    protected void synchronizePage( int page, int pageSize )
+    {
+        log.info( String.format( "Synchronizing page %d with page size %d", page, pageSize ) );
+
+        if ( !sendSyncRequest( pageSize, page ) )
+        {
+            syncResult = false;
+        }
+    }
+
+    private boolean sendSyncRequest( int syncPageSize, int page )
+    {
+        final RequestCallback requestCallback = request ->
+        {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
@@ -160,59 +149,6 @@ public class DataValueSynchronization
                 syncPageSize, page );
         };
 
-        final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
-
-        boolean networkErrorOccurred = true;
-        int syncAttemptsDone = 0;
-
-        ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
-        ImportSummary summary = null;
-
-        while ( networkErrorOccurred )
-        {
-            networkErrorOccurred = false;
-            syncAttemptsDone++;
-            try
-            {
-                summary = restTemplate.execute( instance.getUrl(), HttpMethod.POST, requestCallback,
-                    responseExtractor );
-            }
-            catch ( HttpClientErrorException ex )
-            {
-                String responseBody = ex.getResponseBodyAsString();
-                try
-                {
-                    summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
-                }
-                catch ( WebMessageParseException e )
-                {
-                    log.error( "Parsing WebMessageResponse failed.", e );
-                    return false;
-                }
-            }
-            catch ( HttpServerErrorException ex )
-            {
-                String responseBody = ex.getResponseBodyAsString();
-                log.error( "Internal error happened during DataValues push: " + responseBody, ex );
-
-                if ( syncAttemptsDone <= maxSyncAttempts )
-                {
-                    networkErrorOccurred = true;
-                }
-                else
-                {
-                    throw ex;
-                }
-            }
-            catch ( ResourceAccessException ex )
-            {
-                log.error( "Exception during DataValues data push: " + ex.getMessage(), ex );
-                throw ex;
-            }
-        }
-
-        log.info( "Sync summary: " + summary );
-
-        return SyncUtils.checkSummaryStatus( summary, endpoint );
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.DATA_VALUE_SETS );
     }
 }

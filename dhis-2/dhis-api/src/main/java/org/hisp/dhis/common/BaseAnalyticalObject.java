@@ -69,6 +69,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import org.hisp.dhis.visualization.DefaultValue;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically
@@ -1005,7 +1006,7 @@ public abstract class BaseAnalyticalObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DigitGroupSeparator getDigitGroupSeparator()
     {
-        return digitGroupSeparator;
+        return DefaultValue.defaultIfNull( digitGroupSeparator );
     }
 
     public void setDigitGroupSeparator( DigitGroupSeparator digitGroupSeparator )

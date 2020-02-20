@@ -28,20 +28,18 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -57,19 +55,17 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service
 public class DefaultTrackerPreheatService implements TrackerPreheatService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackerPreheatService.class );
-
     private final SchemaService schemaService;
     private final QueryService queryService;
     private final IdentifiableObjectManager manager;

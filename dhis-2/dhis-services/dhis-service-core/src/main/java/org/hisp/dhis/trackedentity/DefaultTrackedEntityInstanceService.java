@@ -28,13 +28,19 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -56,35 +62,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Slf4j
 @Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceService" )
 public class DefaultTrackedEntityInstanceService
     implements TrackedEntityInstanceService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackedEntityInstanceService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

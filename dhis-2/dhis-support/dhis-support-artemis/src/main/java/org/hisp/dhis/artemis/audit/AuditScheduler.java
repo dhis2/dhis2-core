@@ -28,8 +28,9 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -41,11 +42,10 @@ import java.util.concurrent.DelayQueue;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class AuditScheduler
 {
-    private static final Log log = LogFactory.getLog( AuditScheduler.class );
-
     private final long delay = 20_000; // 20 seconds
 
     private final AuditProducerSupplier auditProducerSupplier;

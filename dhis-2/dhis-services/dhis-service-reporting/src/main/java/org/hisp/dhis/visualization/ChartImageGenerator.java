@@ -431,8 +431,8 @@ public class ChartImageGenerator {
 
         valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
-        List<NameableObject> seriez = new ArrayList<>( visualization.getColumns() );
-        List<NameableObject> categories = new ArrayList<>( visualization.getRows() );
+        List<NameableObject> seriez = new ArrayList<>( visualization.chartSeries() );
+        List<NameableObject> categories = new ArrayList<>( visualization.chartCategory() );
 
         if ( visualization.hasSortOrder() )
         {

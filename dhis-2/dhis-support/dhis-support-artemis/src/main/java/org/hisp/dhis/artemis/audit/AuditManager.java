@@ -28,11 +28,11 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
@@ -48,6 +48,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Component
 public class AuditManager
 {
@@ -59,18 +60,13 @@ public class AuditManager
 
     private final AuditObjectFactory objectFactory;
 
-    private final TransactionTemplate transactionTemplate;
-
-    private static final Log log = LogFactory.getLog( AuditManager.class );
-
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
         AuditScheduler auditScheduler,
         AuditProducerConfiguration config,
         AuditMatrix auditMatrix,
         AuditObjectFactory auditObjectFactory,
-        SessionFactory sessionFactory,
-        TransactionTemplate transactionTemplate )
+        SessionFactory sessionFactory )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
@@ -83,7 +79,6 @@ public class AuditManager
         this.auditMatrix = auditMatrix;
         this.objectFactory = auditObjectFactory;
         this.sessionFactory = sessionFactory;
-        this.transactionTemplate = transactionTemplate;
     }
 
     public void send( Audit audit )

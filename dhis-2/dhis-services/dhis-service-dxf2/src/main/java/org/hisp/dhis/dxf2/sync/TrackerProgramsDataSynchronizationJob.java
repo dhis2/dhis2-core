@@ -27,8 +27,8 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
@@ -42,19 +42,18 @@ import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJob
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "trackerProgramsDataSyncJob" )
 public class TrackerProgramsDataSynchronizationJob extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( TrackerProgramsDataSynchronizationJob.class );
-
     private final Notifier notifier;
     private final MessageService messageService;
-    private final TrackerSynchronization trackerSync;
+    private final DataSynchronization trackerSync;
     private final SynchronizationManager synchronizationManager;
 
     public TrackerProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
@@ -84,7 +83,7 @@ public class TrackerProgramsDataSynchronizationJob extends AbstractJob
         {
             TrackerProgramsDataSynchronizationJobParameters jobParameters =
                 (TrackerProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
-            trackerSync.syncTrackerProgramData( jobParameters.getPageSize() );
+            trackerSync.synchronizeData( jobParameters.getPageSize() );
             notifier.notify( jobConfiguration, "Tracker programs data sync successful" );
         }
         catch ( Exception e )

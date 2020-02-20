@@ -34,25 +34,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string.class );
 
     @Override
     public void migrate( Context context ) throws Exception

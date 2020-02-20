@@ -35,22 +35,21 @@ import java.util.Optional;
 import java.util.StringJoiner;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
+import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * @author Stian Strandli
  */
+@Slf4j
 public class SystemSetting
     implements Serializable
 {
-    private static final Logger log = LoggerFactory.getLogger( SystemSetting.class );
-
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private long id;

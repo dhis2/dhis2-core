@@ -30,8 +30,7 @@ package org.hisp.dhis.cache;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
@@ -41,10 +40,9 @@ import org.apache.commons.logging.LogFactory;
  *
  * @param <V> The Value type to be stored in cache
  */
+@Slf4j
 public class SimpleCacheBuilder<V> implements CacheBuilder<V>
 {
-    private static final Log log = LogFactory.getLog( SimpleCacheBuilder.class );
-
     private long maximumSize;
     
     private int initialCapacity;

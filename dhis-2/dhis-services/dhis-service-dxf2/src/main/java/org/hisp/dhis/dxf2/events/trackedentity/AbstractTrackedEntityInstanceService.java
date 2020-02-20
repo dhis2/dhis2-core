@@ -35,8 +35,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -88,14 +86,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public abstract class AbstractTrackedEntityInstanceService
     implements TrackedEntityInstanceService
 {
-    private static final Log log = LogFactory.getLog( AbstractTrackedEntityInstanceService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

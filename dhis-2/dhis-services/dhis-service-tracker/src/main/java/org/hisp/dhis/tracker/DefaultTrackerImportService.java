@@ -28,9 +28,9 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Enums;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -50,17 +50,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.Enums;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service
 public class DefaultTrackerImportService implements TrackerImportService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackerImportService.class );
-
     private final TrackerBundleService trackerBundleService;
     private final TrackerValidationService trackerValidationService;
     private final CurrentUserService currentUserService;
