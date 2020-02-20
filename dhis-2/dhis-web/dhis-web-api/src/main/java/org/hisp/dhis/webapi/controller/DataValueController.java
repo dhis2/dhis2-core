@@ -580,7 +580,7 @@ public class DataValueController
 
             if ( contentLength <= Integer.MAX_VALUE )
             {
-                response.setContentLength((int)contentLength);
+                response.setContentLength( (int)contentLength );
             }
             else
             {
