@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+  "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-reporting" extends="dhis-web-commons" namespace="/dhis-web-reporting">
+
+    <action name="index" class="org.hisp.dhis.approval.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/index.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+    </action>
+    
+    <!-- Data Approval -->
+
+    <action name="showDataApprovalForm" class="org.hisp.dhis.approval.dataapproval.action.GetDataApprovalOptionsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/dataApprovalForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/ouwt/ouwt.js,javascript/dataSetReport.js,javascript/dataApproval.js</param>
+      <param name="stylesheets">style/dhis-web-reporting.css</param>
+    </action>
+    
+  </package>
+</struts>
