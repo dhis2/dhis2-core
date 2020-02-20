@@ -307,8 +307,7 @@ public abstract class AbstractTrackerValidationHook
     }
 
     protected ProgramInstance getProgramInstance( User actingUser, ProgramInstance programInstance,
-        TrackedEntityInstance trackedEntityInstance,
-        Program program )
+        TrackedEntityInstance trackedEntityInstance, Program program )
     {
         if ( program.isRegistration() )
         {

@@ -8,10 +8,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -56,8 +53,6 @@ public class EventCategoryOptValidationHook
             reporter.increment( event );
 
             ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
-            ProgramStageInstance programStageInstance = PreheatHelper
-                .getProgramStageInstance( bundle, event.getEvent() );
             ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
                 .getTrackedEntityInstance( bundle, event.getTrackedEntityInstance() );
@@ -174,10 +169,6 @@ public class EventCategoryOptValidationHook
         {
             throw new IllegalQueryException( "Illegal category combo" );
         }
-
-        // ---------------------------------------------------------------------
-        // Attribute category options validation
-        // ---------------------------------------------------------------------
 
         CategoryOptionCombo attrOptCombo = null;
 

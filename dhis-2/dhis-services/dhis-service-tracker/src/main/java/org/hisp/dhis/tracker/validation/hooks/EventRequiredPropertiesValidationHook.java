@@ -1,5 +1,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
+import com.google.common.base.Preconditions;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
@@ -57,13 +58,6 @@ public class EventRequiredPropertiesValidationHook
                 continue;
             }
 
-            if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1031 )
-                    .addArg( event ) );
-                continue;
-            }
-
             ProgramStageInstance programStageInstance = PreheatHelper
                 .getProgramStageInstance( bundle, event.getEvent() );
             ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
@@ -73,7 +67,7 @@ public class EventRequiredPropertiesValidationHook
                 .getTrackedEntityInstance( bundle, event.getTrackedEntityInstance() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
-            if ( programStageInstance == null && isValidId( bundle.getIdentifier(), event.getEvent() ))
+            if ( programStageInstance == null && isValidId( bundle.getIdentifier(), event.getEvent() ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1071 )
                     .addArg( event ) );
@@ -104,13 +98,11 @@ public class EventRequiredPropertiesValidationHook
             programInstance = validateProgramInstance( reporter, actingUser, event, programStage, programInstance,
                 trackedEntityInstance, program );
 
-
             if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1041 )
                     .addArg( organisationUnit ) );
             }
-
         }
 
         return reporter.getReportList();
@@ -120,6 +112,10 @@ public class EventRequiredPropertiesValidationHook
         ProgramStage programStage, ProgramInstance programInstance, TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
+        Preconditions.checkNotNull( event, "Event can't be null" );
+        Preconditions.checkNotNull( program, "Program can't be null" );
+        Preconditions.checkNotNull( actingUser, "User can't be null" );
+
         if ( program.isRegistration() )
         {
             if ( trackedEntityInstance == null )
@@ -128,7 +124,7 @@ public class EventRequiredPropertiesValidationHook
                     .addArg( event ) );
             }
 
-            if ( programInstance == null )
+            if ( programInstance == null && trackedEntityInstance != null )
             {
                 List<ProgramInstance> activeProgramInstances = new ArrayList<>( programInstanceService
                     .getProgramInstances( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
@@ -151,8 +147,8 @@ public class EventRequiredPropertiesValidationHook
                 }
             }
 
-            if ( !programStage.getRepeatable() && programInstance != null &&
-                programInstance.hasProgramStageInstance( programStage ) )
+            if ( programStage != null && programInstance != null &&
+                !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1039 ) );
             }

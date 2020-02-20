@@ -14,7 +14,6 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +40,6 @@ public class EventGeoValidationHook
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-        User actingUser = bundle.getPreheat().getUser();
 
         for ( Event event : bundle.getEvents() )
         {

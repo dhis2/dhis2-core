@@ -1,7 +1,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.*;
@@ -16,7 +15,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -53,18 +51,23 @@ public class EventDateValidationHook
                 .getTrackedEntityInstance( bundle, event.getTrackedEntityInstance() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
+            if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1031 )
+                    .addArg( event ) );
+                continue;
+            }
+
             if ( program == null )
             {
                 continue;
             }
-
 
             programInstance = getProgramInstance( actingUser, programInstance, trackedEntityInstance, program );
             program = programInstance.getProgram();
 
             validateExpiryDays( reporter, event, program, programStageInstance );
             validateDates( reporter, event );
-
         }
 
         return reporter.getReportList();
