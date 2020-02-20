@@ -98,7 +98,7 @@ public class DefaultAnalyticsSecurityManagerTest
     }
 
     @Test
-    public void testRemoveOnlyAuthorizedCategoryOptionsWhenOneCategoryOptionIsNotAllowed()
+    public void testExcludeOnlyAuthorizedCategoryOptionsWhenOneCategoryOptionIsNotAllowed()
     {
         // Given
         final CategoryOption aCategoryOptionNotAllowed = stubCategoryOption( "cat-option-A", "uid-opt-A" );
@@ -130,7 +130,7 @@ public class DefaultAnalyticsSecurityManagerTest
     }
 
     @Test
-    public void testRemoveOnlyAuthorizedCategoryOptionsWhenAllCategoryOptionsAreAllowed()
+    public void testExcludeOnlyAuthorizedCategoryOptionsWhenAllCategoryOptionsAreAllowed()
     {
         // Given
         final CategoryOption aCategoryOptionAllowed = stubCategoryOption( "cat-option-A", "uid-opt-A" );
