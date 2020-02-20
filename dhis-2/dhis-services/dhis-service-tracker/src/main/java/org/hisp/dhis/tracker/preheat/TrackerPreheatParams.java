@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
 
@@ -92,6 +93,13 @@ public class TrackerPreheatParams
     @JsonProperty
     @Builder.Default
     private List<Event> events = new ArrayList<>();
+
+    /**
+     * Relationships to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
     public String getUsername()
