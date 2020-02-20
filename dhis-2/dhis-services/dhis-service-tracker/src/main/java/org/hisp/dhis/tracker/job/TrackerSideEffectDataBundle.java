@@ -35,8 +35,12 @@ import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Zubair Asghar
@@ -51,7 +55,9 @@ public class TrackerSideEffectDataBundle implements Message
 
     private BaseIdentifiableObject object;
 
-    private List<RuleEffect> ruleEffects;
+    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects;
+
+    private Map<Event, List<RuleEffect>> eventRuleEffects;
 
     private TrackerImportStrategy importStrategy;
 

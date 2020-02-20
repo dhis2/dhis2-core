@@ -58,7 +58,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     private final NotificationLoggingService notificationLoggingService;
 
-    public RuleActionSendMessageImplementer(ApplicationEventPublisher publisher, NotificationLoggingService notificationLoggingService) {
+    public RuleActionSendMessageImplementer( ApplicationEventPublisher publisher, NotificationLoggingService notificationLoggingService) {
 
         checkNotNull( publisher );
         checkNotNull( notificationLoggingService );

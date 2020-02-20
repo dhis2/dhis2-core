@@ -42,4 +42,6 @@ public interface Topics
     String TRACKER_IMPORT_JOB_TOPIC_NAME = "dhis2.jobs.tracker";
 
     String TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME = "dhis2.jobs.tracker.notifications";
+
+    String TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME = "dhis2.jobs.tracker.rule.engine";
 }

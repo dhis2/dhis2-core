@@ -29,15 +29,31 @@ package org.hisp.dhis.tracker.sideeffect;
  */
 
 
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.job.TrackerRuleEngineMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Zubair Asghar
  */
 public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService
 {
+    private final TrackerRuleEngineMessageManager ruleEngineMessageManager;
+
+    public RuleEngineSideEffectHandlerService( TrackerRuleEngineMessageManager ruleEngineMessageManager )
+    {
+        this.ruleEngineMessageManager = ruleEngineMessageManager;
+    }
+
     @Override
     public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
+        ruleEngineMessageManager.addJob( sideEffectDataBundle );
     }
 }

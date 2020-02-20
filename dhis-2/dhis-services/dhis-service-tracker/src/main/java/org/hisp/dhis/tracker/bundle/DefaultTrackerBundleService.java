@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -239,6 +240,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
             sideEffectHandlers.forEach( handler -> handler.handleSideEffect( TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
+                .enrollmentRuleEffects( new HashMap<>() )
+                .eventRuleEffects( new HashMap<>() )
                 .object( programInstance )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
