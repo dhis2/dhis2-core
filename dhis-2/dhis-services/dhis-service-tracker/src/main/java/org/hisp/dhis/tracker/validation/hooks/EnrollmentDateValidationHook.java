@@ -74,8 +74,7 @@ public class EnrollmentDateValidationHook
             reporter.increment( enrollment );
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-
-            // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
+            // Hard break
             if ( program == null )
             {
                 continue;
@@ -90,44 +89,28 @@ public class EnrollmentDateValidationHook
     private void validateEnrollmentDates( ValidationErrorReporter errorReporter, Program program,
         Enrollment enrollment )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( program, "Program can't be null" );
+        Objects.requireNonNull( enrollment, "Enrollment can't be null" );
 
-        if ( program.getDisplayIncidentDate() )
+        // NOTE: getCreatedAtClient is always mandatory?
+        if ( !isValidDateStringAndNotNull( enrollment.getCreatedAtClient() ) )
         {
-            if ( enrollment.getIncidentDate() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1023 ) );
-            }
-
-            boolean validEnrollmentIncidentDate = DateUtils
-                .dateIsValid( DateUtils.getMediumDateString( enrollment.getIncidentDate() ) );
-
-            if ( !validEnrollmentIncidentDate )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1024 )
-                    .addArg( enrollment.getIncidentDate() ) );
-            }
+            errorReporter.addError( newReport( TrackerErrorCode.E1026 )
+                .addArg( enrollment.getCreatedAtClient() ) );
         }
-
-        // NOTE: Need clarification regarding if this should be checked or not
-//        boolean validEnrollmentIncidentDate =
-//            enrollment.getIncidentDate() != null
-//                && DateUtils.dateIsValid( DateUtils.getMediumDateString( enrollment.getIncidentDate() ) );
-//
-//        if ( !validEnrollmentIncidentDate )
-//        {
-//            errorReporter.addError( newReport( TrackerErrorCode.E1024 )
-//                .addArg( enrollment.getIncidentDate() ) );
-//        }
-//
-//        boolean validEnrollmentDate =
-//            enrollment.getEnrollmentDate() != null
-//                && DateUtils.dateIsValid( DateUtils.getMediumDateString( enrollment.getEnrollmentDate() ) );
-//
-//        if ( !validEnrollmentDate )
-//        {
-//            errorReporter.addError( newReport( TrackerErrorCode.E1025 )
-//                .addArg( enrollment.getEnrollmentDate() ) );
-//        }
+        // NOTE: getLastUpdatedAtClient is always mandatory?
+        if ( !isValidDateStringAndNotNull( enrollment.getLastUpdatedAtClient() ) )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1027 )
+                .addArg( enrollment.getLastUpdatedAtClient() ) );
+        }
+        // NOTE: getEnrollmentDate is always mandatory?
+        if ( !isValidDateAndNotNull( enrollment.getEnrollmentDate() ) )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1024 )
+                .addArg( enrollment.getEnrollmentDate() ) );
+        }
 
         if ( Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() ) )
         {
@@ -140,33 +123,25 @@ public class EnrollmentDateValidationHook
             }
         }
 
-        if ( Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() ) )
+        // NOTE: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
+        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) )
         {
-            boolean incidentIsInFuture = Objects.nonNull( enrollment.getIncidentDate() )
-                && enrollment.getIncidentDate().after( new Date() );
-            if ( incidentIsInFuture )
+            if ( !isValidDateAndNotNull( enrollment.getIncidentDate() ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1021 )
+                errorReporter.addError( newReport( TrackerErrorCode.E1023 )
                     .addArg( enrollment.getIncidentDate() ) );
             }
-        }
 
-        boolean validEnrollmentCreatedAtClientDate =
-            enrollment.getCreatedAtClient() != null && DateUtils.dateIsValid( enrollment.getCreatedAtClient() );
-
-        if ( !validEnrollmentCreatedAtClientDate )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1026 )
-                .addArg( enrollment.getCreatedAtClient() ) );
-        }
-
-        boolean validLastUpdatedAtClientDate =
-            enrollment.getLastUpdatedAtClient() != null && DateUtils.dateIsValid( enrollment.getLastUpdatedAtClient() );
-
-        if ( !validLastUpdatedAtClientDate )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1027 )
-                .addArg( enrollment.getLastUpdatedAtClient() ) );
+            if ( Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() ) )
+            {
+                boolean incidentIsInFuture = Objects.nonNull( enrollment.getIncidentDate() )
+                    && enrollment.getIncidentDate().after( new Date() );
+                if ( incidentIsInFuture )
+                {
+                    errorReporter.addError( newReport( TrackerErrorCode.E1021 )
+                        .addArg( enrollment.getIncidentDate() ) );
+                }
+            }
         }
     }
 }

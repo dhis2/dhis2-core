@@ -136,6 +136,8 @@ public class EventImportValidationTest
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
+        trackerBundleParams.setUser( user );
+
         trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
@@ -176,7 +178,6 @@ public class EventImportValidationTest
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
-
     }
 
     protected void initMeta2()

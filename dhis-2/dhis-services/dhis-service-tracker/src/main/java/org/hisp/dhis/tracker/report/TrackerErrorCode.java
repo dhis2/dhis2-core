@@ -56,13 +56,13 @@ public enum TrackerErrorCode
     E1016(
         "TrackedEntityInstance: `{0}`, already has an active enrollment in program: `{1}`, and this " +
             "program only allows enrolling one time." ),
-    E1017( "Attribute does not exist." ),
+    E1017( "Attribute: `{0}`, does not exist." ),
     E1018( "Missing mandatory attribute: `{0}`." ),
     E1019( "Only program attributes is allowed for enrollment; Non valid attributes: `{0}`." ),
     E1020( "Enrollment date: `{0}`, can`t be future date." ),
     E1021( "Incident date: `{0}`, can`t be future date." ),
     E1022( "Tracked entity instance: `{0}`, must have same tracked entity as program `{1}`." ),
-    E1023( "DisplayIncidentDate is true but IncidentDate is NULL." ),
+    E1023( "DisplayIncidentDate is true but IncidentDate is: `{0}`." ),
     E1024( "Invalid enrollment incident date; `{0}`." ),
     E1025( "Invalid enrollment date: `{0}`." ),
     E1026( "Invalid enrollment created at client date: `{0}`." ),
@@ -113,11 +113,14 @@ public enum TrackerErrorCode
     E1069( "Could not find Program: `{0}`, linked to enrollment." ),
     E1070( "Could not find OrganisationUnit: `{0}`, linked to enrollment." ),
 
-    E1071( "Event `{0}` does not exist." ),
+    E1071( "Event: `{0}` does not exist." ),
 
     E1072( "Failed to get attribute combo `{0}`. Error message: `{1}`" ),
     E1073( "Could not find CategoryOptionCombo: `{0}`." ),
     E1074( "Feature type is missing." ),
+    E1075( "Attribute: `{0}`, is missing uid." ),
+    E1076( "Attribute: `{0}`, value is null." ),
+    E1077( "User: `{0}`, do not have access to read enrollment: `{1}`." ),
 
     E9999( "N/A" );
 

@@ -60,6 +60,7 @@ import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
@@ -373,5 +374,23 @@ public abstract class AbstractTrackerValidationHook
         }
 
         return programInstance;
+    }
+
+    public boolean isValidDateString( String dateString )
+    {
+        Preconditions.checkNotNull( dateString, "Date string can not be null" );
+
+        return DateUtils.dateIsValid( dateString );
+    }
+
+    public boolean isValidDateStringAndNotNull( String dateString )
+    {
+        return dateString != null && DateUtils.dateIsValid( dateString );
+    }
+
+    public boolean isValidDateAndNotNull( Date date )
+    {
+        return date != null && DateUtils.getMediumDateString( date ) != null
+            && isValidDateString( DateUtils.getMediumDateString( date ) );
     }
 }

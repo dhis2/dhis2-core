@@ -42,6 +42,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -66,6 +67,13 @@ public class EnrollmentSecurityValidationHook
 
         User actingUser = bundle.getPreheat().getUser();
 
+        // NOTE: This should be handled at a higher level. But this is pretty paramount to security checks,
+        // conversion by convention like null==admin should be converted one place not on method input everywhere.
+        if ( actingUser == null )
+        {
+            throw new IllegalArgumentException( "User can't be null" );
+        }
+
         for ( Enrollment enrollment : bundle.getEnrollments() )
         {
             reporter.increment( enrollment );
@@ -81,67 +89,98 @@ public class EnrollmentSecurityValidationHook
                 continue;
             }
 
-            if ( !trackerOwnershipManager.hasAccess( actingUser, trackedEntityInstance, program ) )
+            // See note below on this.
+            if ( !organisationUnitService.isInUserHierarchyCached( actingUser, organisationUnit ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1028 )
                     .addArg( trackedEntityInstance )
                     .addArg( program ) );
-                continue;
             }
+
+            // This method "trackerOwnershipManager.hasAccess()" does a lot of things,
+            // is it better to use the above check directly when we are sure about the input org unit?
+            // 1. Does checking hasTemporaryAccess make sense?
+            // 2. Does checking isOpen make sense? we are importing not reading.
+//            if ( !trackerOwnershipManager.hasAccess( actingUser, trackedEntityInstance, program ) )
+//            {
+//                reporter.addError( newReport( TrackerErrorCode.E1028 )
+//                    .addArg( trackedEntityInstance )
+//                    .addArg( program ) );
+//                continue;
+//            }
 
             if ( bundle.getImportStrategy().isCreate() )
             {
-                ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance,
-                    organisationUnit );
-
-                List<String> errors = trackerAccessManager.canCreate( actingUser, programInstance, false );
-                if ( !errors.isEmpty() )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1000 )
-                        .addArg( actingUser )
-                        .addArg( String.join( ",", errors ) ) );
-                }
+                validateCreate( reporter, actingUser, program, organisationUnit, trackedEntityInstance );
             }
-
-            if ( bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete() )
+            else
             {
-                ProgramInstance programInstance = PreheatHelper
-                    .getProgramInstance( bundle, enrollment.getEnrollment() );
-                if ( programInstance == null )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1015 )
-                        .addArg( enrollment )
-                        .addArg( enrollment.getEnrollment() ) );
-                    continue;
-                }
-
-                if ( bundle.getImportStrategy().isUpdate() )
-                {
-                    List<String> errors = trackerAccessManager.canUpdate( actingUser, programInstance, false );
-                    if ( !errors.isEmpty() )
-                    {
-                        reporter.addError( newReport( TrackerErrorCode.E1000 )
-                            .addArg( actingUser )
-                            .addArg( programInstance ) );
-                    }
-                }
-
-                if ( bundle.getImportStrategy().isDelete() )
-                {
-                    List<String> errors = trackerAccessManager.canDelete( actingUser, programInstance, false );
-                    if ( !errors.isEmpty() )
-                    {
-                        reporter.addError( newReport( TrackerErrorCode.E1000 )
-                            .addArg( actingUser )
-                            .addArg( programInstance ) );
-                    }
-                }
-
+                validateUpdateAndDelete( bundle, reporter, actingUser, enrollment );
             }
-
         }
 
         return reporter.getReportList();
+    }
+
+    protected void validateCreate( ValidationErrorReporter reporter, User actingUser, Program program,
+        OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
+    {
+        Objects.requireNonNull( reporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( actingUser, "User can't be null" );
+        Objects.requireNonNull( program, "Program can't be null" );
+        Objects.requireNonNull( organisationUnit, "OrganisationUnit can't be null" );
+        Objects.requireNonNull( trackedEntityInstance, "TrackedEntityInstance can't be null" );
+
+        ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
+
+        List<String> errors = trackerAccessManager.canCreate( actingUser, programInstance, false );
+        if ( !errors.isEmpty() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1000 )
+                .addArg( actingUser )
+                .addArg( String.join( ",", errors ) ) );
+        }
+    }
+
+    protected void validateUpdateAndDelete( TrackerBundle bundle, ValidationErrorReporter reporter,
+        User actingUser, Enrollment enrollment )
+    {
+        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
+        Objects.requireNonNull( reporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( actingUser, "User can't be null" );
+        Objects.requireNonNull( enrollment, "Enrollment can't be null" );
+
+        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+
+        if ( programInstance == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1015 )
+                .addArg( enrollment )
+                .addArg( enrollment.getEnrollment() ) );
+            return;
+        }
+
+        if ( bundle.getImportStrategy().isUpdate() )
+        {
+            List<String> errors = trackerAccessManager.canUpdate( actingUser, programInstance, false );
+            if ( !errors.isEmpty() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1000 )
+                    .addArg( actingUser )
+                    .addArg( programInstance ) );
+            }
+        }
+
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            List<String> errors = trackerAccessManager.canDelete( actingUser, programInstance, false );
+            if ( !errors.isEmpty() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1000 )
+                    .addArg( actingUser )
+                    .addArg( programInstance ) );
+            }
+        }
     }
 
 }

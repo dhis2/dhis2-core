@@ -34,6 +34,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -43,9 +44,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -82,94 +81,112 @@ public class EnrollmentAttributeValidationHook
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
                 .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
 
-            // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
+            Map<String, String> attributeValueMap = Maps.newHashMap();
+            for ( Attribute attribute : enrollment.getAttributes() )
+            {
+                if ( attribute.getAttribute() == null )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1075 )
+                        .addArg( attribute ) );
+                }
+
+                if ( attribute.getValue() == null )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1076 )
+                        .addArg( attribute ) );
+                }
+
+                if ( attribute.getAttribute() == null || attribute.getValue() == null )
+                {
+                    continue;
+                }
+
+                attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+
+                TrackedEntityAttribute teAttribute = PreheatHelper
+                    .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
+                if ( teAttribute == null )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1017 )
+                        .addArg( attribute ) );
+                }
+                else
+                {
+                    validateAttrValueType( reporter, attribute, teAttribute );
+
+                    //NOTE: this is perf killing
+                    validateAttributeUniqueness( reporter,
+                        attribute.getValue(),
+                        teAttribute,
+                        trackedEntityInstance,
+                        trackedEntityInstance.getOrganisationUnit() );
+                }
+            }
+
             if ( program == null || trackedEntityInstance == null )
             {
                 continue;
             }
 
-            validateEnrollmentAttributes( bundle, reporter, program, enrollment, trackedEntityInstance );
+            validateMandatoryAttributes( bundle, reporter, program, trackedEntityInstance, attributeValueMap );
         }
 
         return reporter.getReportList();
     }
 
-    protected void validateEnrollmentAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
-        Program program, Enrollment enrollment, TrackedEntityInstance trackedEntityInstance )
-    {
-        Map<String, String> attributeValueMap = Maps.newHashMap();
-
-        for ( Attribute attribute : enrollment.getAttributes() )
-        {
-            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-
-            TrackedEntityAttribute teAttribute = PreheatHelper
-                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
-            if ( teAttribute == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1017 ) );
-                continue;
-            }
-
-            validateAttrValueType( errorReporter, attribute, teAttribute );
-        }
-
-        validateMandatoryAttributes( bundle, errorReporter, program, trackedEntityInstance, attributeValueMap );
-    }
-
     private void validateMandatoryAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
         Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
     {
-        Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
-        for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
-        {
-            mandatoryMap.put( programTrackedEntityAttribute.getAttribute(),
-                programTrackedEntityAttribute.isMandatory() );
-        }
+        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( program, "Program can't be null" );
+        Objects.requireNonNull( trackedEntityInstance, "TrackedEntityInstance can't be null" );
+        Objects.requireNonNull( attributeValueMap, "AttributeValueMap can't be null" );
 
-        // NOTE: This is hard to understand, can some please try to write a explaining comment to this?
-        // ignore attributes which do not belong to this program
-        trackedEntityInstance.getTrackedEntityAttributeValues().stream().
-            filter( value -> mandatoryMap.containsKey( value.getAttribute() ) ).
-            forEach( value -> attributeValueMap.put( value.getAttribute().getUid(), value.getValue() ) );
+        // NOTE: This is my attempt to fix this after impl. Abyot's comments on the initial/original version.
+        // 1. Get all tei attributes, map attrValue attr. into set of attr.
+        Set<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityInstance.getTrackedEntityAttributeValues()
+            .stream()
+            .map( TrackedEntityAttributeValue::getAttribute )
+            .collect( Collectors.toSet() );
+
+        // 2. Map all program attr. that match tei attr. into map. of attr:ismandatory
+        Map<TrackedEntityAttribute, Boolean> mandatoryMap = program.getProgramAttributes().stream()
+            .filter( v -> trackedEntityAttributes.contains( v.getAttribute() ) )
+            .collect( Collectors.toMap(
+                ProgramTrackedEntityAttribute::getAttribute,
+                ProgramTrackedEntityAttribute::isMandatory ) );
 
         for ( Map.Entry<TrackedEntityAttribute, Boolean> entry : mandatoryMap.entrySet() )
         {
             TrackedEntityAttribute attribute = entry.getKey();
-            Boolean mandatory = entry.getValue();
+            Boolean attributeIsMandatory = entry.getValue();
 
-            boolean hasMissingAttribute = mandatory &&
-                !bundle.getUser().isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() )
-                // NOTE This seams a bit out of place???
+            boolean userIsAuthorizedToIgnoreRequiredValueValidation = !bundle.getUser()
+                .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
+
+            boolean hasMissingAttribute = attributeIsMandatory
+                && !userIsAuthorizedToIgnoreRequiredValueValidation
                 && !attributeValueMap.containsKey( attribute.getUid() );
 
             if ( hasMissingAttribute )
             {
-                // Missing mandatory attribute: `{0}`.
+                // Missing mandatory attribute
                 errorReporter.addError( newReport( TrackerErrorCode.E1018 )
                     .addArg( attribute ) );
             }
 
-            // NOTE: This is "THE" potential performance killer...
-            // "Error validating attribute, not unique; Error `{0}`"
-            validateAttributeUniqueness( errorReporter,
-                attributeValueMap.get( attribute.getUid() ),
-                attribute,
-                trackedEntityInstance,
-                trackedEntityInstance.getOrganisationUnit() );
-
+            // Remove program attr. from enrollment attr. list (
             attributeValueMap.remove( attribute.getUid() );
         }
 
         if ( !attributeValueMap.isEmpty() )
         {
-            // Only program attributes is allowed for enrollment; Non valid attributes: `{0}`.
-
+            // Only program attributes is allowed for enrollment!
             errorReporter.addError( newReport( TrackerErrorCode.E1019 )
                 .addArg( attributeValueMap.keySet().stream()
                     .map( key -> key + "=" + attributeValueMap.get( key ) )
                     .collect( Collectors.joining( ", " ) ) ) );
         }
     }
-
 }

@@ -89,36 +89,36 @@ public class EventDateValidationHook
             return;
         }
 
-        if ( program.getCompleteEventsExpiryDays() > 0 )
+        if ( program.getCompleteEventsExpiryDays() > 0
+            && EventStatus.COMPLETED == event.getStatus()
+            || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
         {
-            if ( EventStatus.COMPLETED == event.getStatus()
-                || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
+
+            Date referenceDate = null;
+
+            if ( programStageInstance != null )
             {
-                Date referenceDate = null;
-
-                if ( programStageInstance != null )
-                {
-                    referenceDate = programStageInstance.getCompletedDate();
-                }
-
-                else if ( event.getCompletedDate() != null )
-                {
-                    referenceDate = DateUtils.parseDate( event.getCompletedDate() );
-                }
-
-                if ( referenceDate == null )
-                {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1042 )
-                        .addArg( event ) );
-                }
-
-                if ( (new Date()).after(
-                    DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
-                {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1043 )
-                        .addArg( event ) );
-                }
+                referenceDate = programStageInstance.getCompletedDate();
             }
+
+            else if ( event.getCompletedDate() != null )
+            {
+                referenceDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
+
+            if ( referenceDate == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1042 )
+                    .addArg( event ) );
+            }
+
+            if ( (new Date()).after(
+                DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1043 )
+                    .addArg( event ) );
+            }
+
         }
 
         PeriodType periodType = program.getExpiryPeriodType();
@@ -164,32 +164,27 @@ public class EventDateValidationHook
 
     }
 
-    private boolean isValidDate( String dateString )
-    {
-        return dateString != null && !DateUtils.dateIsValid( dateString );
-    }
-
     private void validateDates( ValidationErrorReporter errorReporter, Event event )
     {
-        if ( isValidDate( event.getDueDate() ) )
+        if ( !isValidDateString( event.getDueDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1051 )
                 .addArg( event.getDueDate() ) );
         }
 
-        if ( isValidDate( event.getEventDate() ) )
+        if ( !isValidDateString( event.getEventDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1052 )
                 .addArg( event.getEventDate() ) );
         }
 
-        if ( isValidDate( event.getCreatedAtClient() ) )
+        if ( event.getCreatedAtClient() != null && !isValidDateString( event.getCreatedAtClient() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1053 )
                 .addArg( event.getCreatedAtClient() ) );
         }
 
-        if ( isValidDate( event.getLastUpdatedAtClient() ) )
+        if ( event.getLastUpdatedAtClient() != null && !isValidDateString( event.getLastUpdatedAtClient() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1054 )
                 .addArg( event.getLastUpdatedAtClient() ) );

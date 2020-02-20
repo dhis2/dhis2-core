@@ -101,6 +101,7 @@ public class TrackedEntityAttributeValidationHook
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
+            // Should this be an error instead maybe?
             if ( StringUtils.isEmpty( attribute.getValue() ) )
             {
                 continue;
