@@ -27,6 +27,13 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Calendar;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
@@ -37,12 +44,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.Calendar;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Stian Sandvold
@@ -124,8 +125,7 @@ public class ContextUtilsTest
         Calendar thisYear = Calendar.getInstance();
         Calendar fiveYearBack = Calendar.getInstance();
 
-        thisYear.set( 2017, 01, 01 );
-        fiveYearBack.set( 2012, 01, 01 );
+        fiveYearBack.add( Calendar.YEAR, -5 );
 
         DataQueryParams withinThreshold = DataQueryParams.newBuilder().withEndDate( thisYear.getTime() ).build();
         DataQueryParams outsideThreshold = DataQueryParams.newBuilder().withEndDate( fiveYearBack.getTime() ).build();
