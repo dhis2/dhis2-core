@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -135,9 +136,12 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected RelationshipService relationshipService;
 
-    protected boolean validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
+    protected void validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
         FeatureType featureType )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( featureType, "FeatureType can't be null" );
+
         if ( coordinates != null && FeatureType.NONE != featureType )
         {
             try
@@ -149,24 +153,27 @@ public abstract class AbstractTrackerValidationHook
                 errorReporter.addError( newReport( TrackerErrorCode.E1013 )
                     .addArg( coordinates )
                     .addArg( e.getMessage() ) );
-                return false;
             }
         }
-
-        return true;
     }
 
     protected boolean textPatternValueIsValid( TrackedEntityAttribute attribute, String value, String oldValue )
     {
+        Objects.requireNonNull( attribute, "TrackedEntityAttribute can't be null" );
+
         return Objects.equals( value, oldValue ) ||
             TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) ||
             reservedValueService.isReserved( attribute.getTextPattern(), value );
     }
 
-    protected boolean validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
+    protected void validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr,
         TrackedEntityAttributeValue teiAttributeValue )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( attr, "Attribute can't be null" );
+        Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
+
         if ( teAttr.getTextPattern() != null && teAttr.isGenerated() )
         //&& ??? !importOptions.isSkipPatternValidation()
         // MortenO: How should we deal with this in the new importer?
@@ -178,16 +185,16 @@ public abstract class AbstractTrackerValidationHook
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1008 )
                     .addArg( attr.getValue() ) );
-                return false;
             }
         }
-
-        return true;
     }
 
-    protected boolean validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityInstance tei )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( attr, "Attribute can't be null" );
+
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
 
         if ( tei != null && attrIsFile )
@@ -205,33 +212,34 @@ public abstract class AbstractTrackerValidationHook
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1009 )
                     .addArg( attr.getValue() ) );
-                return false;
             }
         }
-
-        return true;
     }
 
-    protected boolean validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( attr, "Attribute can't be null" );
+        Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
+
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
         if ( error != null )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1007 )
                 .addArg( error ) );
-            return false;
         }
-
-        return true;
     }
 
-    protected boolean validateAttributeUniqueness( ValidationErrorReporter errorReporter,
+    protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
         TrackedEntityInstance trackedEntityInstanceUid,
         OrganisationUnit organisationUnit )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( trackedEntityAttribute, "TrackedEntityAttribute can't be null" );
+
         if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
         {
             String error = teAttrService.validateAttributeUniquenessWithinScope(
@@ -242,61 +250,78 @@ public abstract class AbstractTrackerValidationHook
 
             if ( error != null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1064 ).addArg( error ) );
-                return false;
+                errorReporter.addError( newReport( TrackerErrorCode.E1064 )
+                    .addArg( error ) );
             }
         }
-
-        return true;
     }
 
     protected Map<String, TrackedEntityAttributeValue> getTeiAttributeValueMap(
         List<TrackedEntityAttributeValue> values )
     {
+        Objects.requireNonNull( values, "Map can't be null" );
+
         return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
     }
 
-    protected boolean validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
+    protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
         String coordinates, FeatureType featureType )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+
+        //NOTE: Is both (coordinates && geometry) at same time possible?
+        if ( coordinates != null )
+        {
+            validateGeometryFromCoordinates( errorReporter, coordinates, featureType );
+        }
+
         if ( geometry != null )
         {
+            if ( featureType == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1074 ) );
+                return;
+            }
+
             FeatureType typeFromName = FeatureType.getTypeFromName( geometry.getGeometryType() );
 
             if ( FeatureType.NONE == featureType || featureType != typeFromName )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1012 )
                     .addArg( featureType.name() ) );
-                return false;
             }
         }
-
-        //NOTE: Is both (coordinates && geometry) at same time possible?
-        if ( coordinates != null )
-        {
-            return validateGeometryFromCoordinates( errorReporter, coordinates, featureType );
-        }
-
-        return true;
     }
 
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
     {
+        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
+        Objects.requireNonNull( te, "TrackedEntity can't be null" );
+
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+            .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() )
-            : PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getOrganisationUnit();
+            : trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
     }
 
     protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
     {
+        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
+        Objects.requireNonNull( te, "TrackedEntity can't be null" );
+
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+            .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
-            : PreheatHelper.getTrackedEntityInstance( bundle, te.getTrackedEntity() ).getTrackedEntityType();
+            : trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;
     }
 
     protected boolean isValidId( TrackerIdentifier identifier, String value )
     {
-        if ( identifier == TrackerIdentifier.UID )
+        Objects.requireNonNull( identifier, "TrackerIdentifier can't be null" );
+
+        if ( TrackerIdentifier.UID == identifier )
         {
             return !StringUtils.isEmpty( value ) && !CodeGenerator.isValidUid( value );
         }
@@ -309,9 +334,12 @@ public abstract class AbstractTrackerValidationHook
     protected ProgramInstance getProgramInstance( User actingUser, ProgramInstance programInstance,
         TrackedEntityInstance trackedEntityInstance, Program program )
     {
+        Objects.requireNonNull( program, "Program can't be null" );
+        Objects.requireNonNull( actingUser, "User can't be null" );
+
         if ( program.isRegistration() )
         {
-            if ( programInstance == null )
+            if ( programInstance == null && trackedEntityInstance != null )
             {
                 List<ProgramInstance> activeProgramInstances = new ArrayList<>( programInstanceService
                     .getProgramInstances( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );

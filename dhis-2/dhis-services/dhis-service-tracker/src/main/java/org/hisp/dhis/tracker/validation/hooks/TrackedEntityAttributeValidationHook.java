@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -76,12 +77,12 @@ public class TrackedEntityAttributeValidationHook
         {
             reporter.increment( trackedEntity );
 
-            TrackedEntityInstance tei = PreheatHelper
+            TrackedEntityInstance trackedEntityInstancei = PreheatHelper
                 .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
 
             OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
 
-            validateAttributes( reporter, bundle, trackedEntity, tei, orgUnit );
+            validateAttributes( reporter, bundle, trackedEntity, trackedEntityInstancei, orgUnit );
         }
 
         return reporter.getReportList();
@@ -90,6 +91,9 @@ public class TrackedEntityAttributeValidationHook
     protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity trackedEntity, TrackedEntityInstance trackedEntityInstance, OrganisationUnit orgUnit )
     {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
+        Objects.requireNonNull( trackedEntity, "TrackedEntity can't be null" );
 
         // For looking up existing trackedEntityInstance attr. ie. if it is an update. Could/should this be done in the preheater instead?
         Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(

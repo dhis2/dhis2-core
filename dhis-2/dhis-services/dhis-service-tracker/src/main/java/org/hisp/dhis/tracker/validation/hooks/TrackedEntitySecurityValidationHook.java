@@ -43,6 +43,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -91,29 +92,33 @@ public class TrackedEntitySecurityValidationHook
 
             if ( bundle.getImportStrategy().isDelete() )
             {
-                TrackedEntityInstance tei = PreheatHelper
+                TrackedEntityInstance trackedEntityInstance = PreheatHelper
                     .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
 
-                checkCanCascadeDeleteProgramInstances( reporter, actingUser, tei );
+                checkCanCascadeDeleteProgramInstances( reporter, actingUser, trackedEntityInstance );
             }
         }
 
         return reporter.getReportList();
     }
 
-    private void checkCanCascadeDeleteProgramInstances( ValidationErrorReporter errorReporter, User user,
-        TrackedEntityInstance tei )
+    private void checkCanCascadeDeleteProgramInstances( ValidationErrorReporter errorReporter, User actingUser,
+        TrackedEntityInstance trackedEntityInstance )
     {
-        Set<ProgramInstance> programInstances = tei.getProgramInstances().stream()
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( actingUser, "User can't be null" );
+        Objects.requireNonNull( trackedEntityInstance, "TrackedEntityInstance can't be null" );
+
+        Set<ProgramInstance> programInstances = trackedEntityInstance.getProgramInstances().stream()
             .filter( pi -> !pi.isDeleted() )
             .collect( Collectors.toSet() );
 
-        if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+        if ( !programInstances.isEmpty()
+            && !actingUser.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.NONE )
-                .addArg( tei )
+                .addArg( trackedEntityInstance )
                 .addArg( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
         }
     }
-
 }
