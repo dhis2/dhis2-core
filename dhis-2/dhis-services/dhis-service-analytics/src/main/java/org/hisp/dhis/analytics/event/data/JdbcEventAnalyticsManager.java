@@ -403,7 +403,7 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasProgram() && params.getProgram().hasCategoryCombo() )
         {
-            sql += queryOnlyAllowedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
+            sql += filterOutNotAuthorizedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
         }
 
         // ---------------------------------------------------------------------
@@ -520,18 +520,17 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * This method will generate a sql sentence responsible for filtering only the
-     * allowed category options for this program, and expects to receive only the
-     * authorized category options.
+     * This method will generate a sql sentence responsible for filtering out all
+     * the category options (of this program) not authorized.
      *
      * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)
      *
      * @param programCategories the list of program categories containing the list
-     *        of authorized category options for the current user.
-     * @return the sql statement in the format:
-     *          "and ax."mEXqxV2KIUl" in ('qNqYLugIySD') or ax."r7NDRdgj5zs" in ('qNqYLugIySD') "
+     *        of category options not authorized for the current user.
+     * @return the sql statement in the format: "and ax."mEXqxV2KIUl" not in
+     *         ('qNqYLugIySD') or ax."r7NDRdgj5zs" not in ('qNqYLugIySD') "
      */
-    String queryOnlyAllowedCategoryOptionEvents( final List<Category> programCategories )
+    String filterOutNotAuthorizedCategoryOptionEvents( final List<Category> programCategories )
     {
         final StringBuilder query = new StringBuilder();
         final SqlHelper sqlHelper = new SqlHelper(true);
@@ -563,7 +562,7 @@ public class JdbcEventAnalyticsManager
     String buildInFilterForCategory(final Category category, final List<CategoryOption> categoryOptions )
     {
         final String categoryColumn = quoteAlias( category.getUid() );
-        final String inFilter = categoryColumn + " in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
+        final String inFilter = categoryColumn + " not in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
             + ") ";
         return inFilter;
     }
