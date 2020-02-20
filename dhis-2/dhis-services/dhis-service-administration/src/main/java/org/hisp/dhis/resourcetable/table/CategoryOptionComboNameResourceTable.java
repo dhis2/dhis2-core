@@ -30,6 +30,7 @@ package org.hisp.dhis.resourcetable.table;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -44,6 +45,7 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class CategoryOptionComboNameResourceTable
     extends ResourceTable<CategoryCombo>
 {

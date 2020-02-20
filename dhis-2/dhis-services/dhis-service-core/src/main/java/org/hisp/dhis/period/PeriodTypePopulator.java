@@ -28,25 +28,24 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 @Component( "org.hisp.dhis.period.PeriodTypePopulator" )
 public class PeriodTypePopulator
     extends TransactionContextStartupRoutine
 {
-    private static final Log LOG = LogFactory.getLog( PeriodTypePopulator.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -81,7 +80,7 @@ public class PeriodTypePopulator
         {
             periodStore.addPeriodType( type );
 
-            LOG.debug( "Added PeriodType: " + type.getName() );
+            log.debug( "Added PeriodType: " + type.getName() );
         }
     }
 }

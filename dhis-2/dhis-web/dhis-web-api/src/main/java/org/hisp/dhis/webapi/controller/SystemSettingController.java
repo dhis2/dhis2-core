@@ -62,6 +62,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Lars Helge Overland
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Controller
 @RequestMapping( "/systemSettings" )
@@ -91,7 +92,8 @@ public class SystemSettingController
         this.userSettingService = userSettingService;
     }
 
-    @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
+    @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     public void setSystemSettingOrTranslation( @PathVariable( value = "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale,

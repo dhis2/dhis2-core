@@ -31,8 +31,7 @@ package org.hisp.dhis.leader.election;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.Calendar;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -45,11 +44,10 @@ import org.springframework.data.redis.core.types.Expiration;
  *
  * @author Ameen Mohamed
  */
+@Slf4j
 public class RedisLeaderManager implements LeaderManager
 {
     private static final String key = "dhis2:leader";
-
-    private static final Log log = LogFactory.getLog( RedisLeaderManager.class );
 
     private static final String CLUSTER_LEADER_RENEWAL = "Cluster leader renewal";
 

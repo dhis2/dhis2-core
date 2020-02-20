@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -49,10 +48,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope( "prototype" )
+@Slf4j
 public class MetadataAsyncImporter extends SecurityContextRunnable
 {
-    private static final Log log = LogFactory.getLog( MetadataAsyncImporter.class );
-
     @Autowired
     private MetadataImportService metadataImportService;
 

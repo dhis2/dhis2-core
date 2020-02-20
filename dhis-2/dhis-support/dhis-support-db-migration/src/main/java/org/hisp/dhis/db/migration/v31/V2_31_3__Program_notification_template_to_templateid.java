@@ -29,11 +29,11 @@ package org.hisp.dhis.db.migration.v31;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ import java.util.Map;
  */
 public class V2_31_3__Program_notification_template_to_templateid extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_31_3__Program_notification_template_to_templateid.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_31_3__Program_notification_template_to_templateid.class );
 
     @Override
     public void migrate( Context context ) throws Exception

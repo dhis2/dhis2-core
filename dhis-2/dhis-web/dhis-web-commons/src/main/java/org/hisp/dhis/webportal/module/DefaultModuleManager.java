@@ -39,8 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.struts2.dispatcher.Dispatcher;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
@@ -57,11 +56,10 @@ import com.opensymphony.xwork2.config.entities.PackageConfig;
  * @author Torgeir Lorange Ostby
  * @version $Id: DefaultModuleManager.java 4883 2008-04-12 13:12:54Z larshelg $
  */
+@Slf4j
 public class DefaultModuleManager
     implements ModuleManager
 {
-    private static final Log log = LogFactory.getLog( DefaultModuleManager.class );
-
     private boolean modulesDetected = false;
 
     private Map<String, Module> modulesByName = new HashMap<>();

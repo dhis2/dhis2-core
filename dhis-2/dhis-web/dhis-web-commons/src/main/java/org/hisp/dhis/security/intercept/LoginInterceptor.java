@@ -31,8 +31,8 @@ package org.hisp.dhis.security.intercept;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.struts2.ServletActionContext;
 
 import com.opensymphony.xwork2.Action;
@@ -44,12 +44,11 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
  * 
  * @author mortenoh
  */
+@Slf4j
 public class LoginInterceptor
     implements Interceptor
 {
     private static final long serialVersionUID = -5376334780350610573L;
-
-    private static final Log log = LogFactory.getLog( LoginInterceptor.class );
 
     public static final String JLI_SESSION_VARIABLE = "JLI";
 

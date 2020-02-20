@@ -28,8 +28,11 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
+import java.util.List;
+
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
@@ -43,17 +46,13 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
+@Slf4j
 @Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
-    private static final Log log = LogFactory.getLog( DefaultEventQueryValidator.class );
-
     private final QueryValidator queryValidator;
 
     private final SystemSettingManager systemSettingManager;

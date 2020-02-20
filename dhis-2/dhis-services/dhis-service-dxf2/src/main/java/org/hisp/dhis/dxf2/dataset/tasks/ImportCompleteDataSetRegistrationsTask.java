@@ -28,8 +28,7 @@ package org.hisp.dhis.dxf2.dataset.tasks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -45,11 +44,10 @@ import java.nio.file.Path;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 public class ImportCompleteDataSetRegistrationsTask
     extends SecurityContextRunnable
 {
-    Log log = LogFactory.getLog( ImportCompleteDataSetRegistrationsTask.class );
-
     public static final String FORMAT_JSON = "json", FORMAT_XML = "xml";
 
     private String format;

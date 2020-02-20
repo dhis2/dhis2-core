@@ -38,9 +38,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -99,13 +98,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService" )
 public class DefaultCompleteDataSetRegistrationExchangeService
     implements
     CompleteDataSetRegistrationExchangeService
 {
-    private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
-
     private static final int CACHE_MISS_THRESHOLD = 500;
 
     private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );

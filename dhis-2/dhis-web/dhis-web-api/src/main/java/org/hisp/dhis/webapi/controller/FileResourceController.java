@@ -31,11 +31,10 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.base.MoreObjects;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -73,14 +72,13 @@ import java.io.InputStream;
  */
 @RestController
 @RequestMapping( value = FileResourceSchemaDescriptor.API_ENDPOINT )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FileResourceController
 {
     private static final String DEFAULT_FILENAME = "untitled";
 
     private static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
-
-    private final static Log log = LogFactory.getLog( FileResourceController.class );
 
     // ---------------------------------------------------------------------
     // Dependencies
@@ -186,7 +184,6 @@ public class FileResourceController
 
     /**
      * Checks is the current user has access to view the fileResource.
-     * @param fileResource
      * @return true if user has access, false if not.
      */
     private boolean checkSharing( FileResource fileResource )

@@ -28,13 +28,13 @@ package org.hisp.dhis.credentials;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
@@ -50,17 +50,16 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair on 29.03.17.
  */
+@Slf4j
 @Component( "credentialsExpiryAlertJob" )
 public class CredentialsExpiryAlertJob
     extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( CredentialsExpiryAlertJob.class );
-
     private static final String SUBJECT = "Password Expiry Alert";
 
     private static final String TEXT = "Dear %s, Please change your password. It will expire in %d days.";

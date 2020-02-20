@@ -28,8 +28,9 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.struts2.dispatcher.Dispatcher;
 import org.hisp.dhis.security.authority.RequiredAuthoritiesProvider;
 
@@ -49,11 +50,10 @@ import com.opensymphony.xwork2.config.entities.PackageConfig;
  * @author Torgeir Lorange Ostby
  * @version $Id: SpringSecurityActionAccessResolver.java 3160 2007-03-24 20:15:06Z torgeilo $
  */
+@Slf4j
 public class SpringSecurityActionAccessResolver
     implements ActionAccessResolver
 {
-    private static final Log log = LogFactory.getLog( SpringSecurityActionAccessResolver.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

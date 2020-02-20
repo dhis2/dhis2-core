@@ -602,7 +602,7 @@ public class DashboardItem
                 }
             }
 
-            visualization.setCumulative( chart.isCumulativeValues() );
+            visualization.setCumulativeValues( chart.isCumulativeValues() );
         }
         return visualization;
     }

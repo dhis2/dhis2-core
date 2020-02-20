@@ -29,6 +29,8 @@ package org.hisp.dhis.pushanalysis;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -36,29 +38,18 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.fileresource.ExternalFileResourceService;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapgeneration.MapUtils;
@@ -90,17 +81,17 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Stian Sandvold
  */
+@Slf4j
 @Service( "org.hisp.dhis.pushanalysis.PushAnalysisService" )
 @Transactional
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
-
-    private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
-
     private static final Encoder encoder = new Encoder();
 
     private final Notifier notifier;
@@ -307,8 +298,13 @@ public class DefaultPushAnalysisService
 
         for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
         {
-            itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
-            itemLink.put( item.getUid(), getItemLink( item ));
+            // Preventing NPE when DB data is not consistent.
+            // In normal conditions all DashboardItem has a type.
+            if ( item.getType() != null )
+            {
+                itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
+                itemLink.put( item.getUid(), getItemLink( item ) );
+            }
         }
 
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
@@ -384,14 +380,32 @@ public class DefaultPushAnalysisService
             case MAP:
                 result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
                 break;
+            case CHART:
+            case REPORT_TABLE:
             case VISUALIZATION:
-                result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
+                result += getVisualizationLink( item.getVisualization() );
                 break;
             default:
                 break;
         }
 
         return result;
+    }
+
+    private String getVisualizationLink( final Visualization visualization )
+    {
+        if ( visualization != null )
+        {
+            if ( visualization.getType() == PIVOT_TABLE )
+            {
+                return "/dhis-web-pivot/index.html?id=" + visualization.getUid();
+            }
+            else
+            {
+                return "/dhis-web-data-visualizer/index.html?id=" + visualization.getUid();
+            }
+        }
+        return EMPTY;
     }
 
     /**
