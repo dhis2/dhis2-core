@@ -59,7 +59,15 @@ public interface FileResourceService
 
     InputStream getFileResourceContent( FileResource fileResource );
 
-    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+    /**
+     * Copy fileResource content to outputStream and Return File content length
+     * @param fileResource
+     * @param outputStream
+     * @return
+     * @throws IOException
+     * @throws NoSuchElementException
+     */
+    long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException;
     
     boolean fileResourceExists( String uid );
