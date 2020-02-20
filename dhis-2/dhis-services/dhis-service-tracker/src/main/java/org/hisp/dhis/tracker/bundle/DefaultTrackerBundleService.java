@@ -189,6 +189,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             trackedEntityInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( trackedEntityInstance );
+            bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(), Collections.singletonList( trackedEntityInstance ) );
 
             handleTrackedEntityAttributeValues( session, bundle.getPreheat(), trackedEntity.getAttributes(), trackedEntityInstance );
 
@@ -233,6 +234,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             programInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programInstance );
+            bundle.getPreheat().putEnrollments( bundle.getIdentifier(), Collections.singletonList( programInstance ) );
 
             handleTrackedEntityAttributeValues( session, bundle.getPreheat(), enrollment.getAttributes(),
                 programInstance.getEntityInstance() );
@@ -278,6 +280,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             programStageInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programStageInstance );
+            bundle.getPreheat().putEvents( bundle.getIdentifier(), Collections.singletonList( programStageInstance ) );
+
             typeReport.getStats().incCreated();
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )

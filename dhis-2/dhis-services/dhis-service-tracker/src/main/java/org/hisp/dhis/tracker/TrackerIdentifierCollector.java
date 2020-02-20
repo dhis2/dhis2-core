@@ -101,7 +101,7 @@ public class TrackerIdentifierCollector
         }
 
         enrollments.forEach( enrollment -> {
-            addIdentifier( map, TrackedEntity.class, identifier, enrollment.getTrackedEntityInstance() );
+            addIdentifier( map, TrackedEntity.class, identifier, enrollment.getTrackedEntity() );
             addIdentifier( map, Enrollment.class, identifier, enrollment.getEnrollment() );
             addIdentifier( map, Program.class, identifier, enrollment.getProgram() );
             addIdentifier( map, OrganisationUnit.class, identifier, enrollment.getOrgUnit() );
@@ -120,7 +120,7 @@ public class TrackerIdentifierCollector
         }
 
         events.forEach( event -> {
-            addIdentifier( map, TrackedEntity.class, identifier, event.getTrackedEntityInstance() );
+            addIdentifier( map, TrackedEntity.class, identifier, event.getTrackedEntity() );
             addIdentifier( map, Enrollment.class, identifier, event.getEnrollment() );
             addIdentifier( map, Event.class, identifier, event.getEvent() );
             addIdentifier( map, Program.class, identifier, event.getProgram() );
