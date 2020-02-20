@@ -260,7 +260,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange(  min = Integer.MIN_VALUE , max = Integer.MAX_VALUE )
+    @PropertyRange( min = Integer.MIN_VALUE , max = Integer.MAX_VALUE )
     public Integer getOffsetPeriods()
     {
         return offsetPeriods;
