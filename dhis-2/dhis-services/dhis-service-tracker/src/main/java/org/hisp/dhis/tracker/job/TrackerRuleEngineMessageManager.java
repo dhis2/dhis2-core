@@ -32,7 +32,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
@@ -45,45 +44,35 @@ import javax.jms.TextMessage;
  * @author Zubair Asghar
  */
 @Component
-public class TrackerRuleEngineMessageManager
+public class TrackerRuleEngineMessageManager extends BaseMessageManager
 {
-    private final MessageManager messageManager;
-    private final ObjectMapper objectMapper;
-    private final SchedulingManager schedulingManager;
-    private final ObjectFactory<TrackerRuleEngineThread> trackerNotificationThreadObjectFactory;
+    private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
 
-    public TrackerRuleEngineMessageManager (
+    public TrackerRuleEngineMessageManager(
             MessageManager messageManager,
             SchedulingManager schedulingManager,
             ObjectMapper objectMapper,
-            ObjectFactory<TrackerRuleEngineThread> trackerNotificationThreadObjectFactory )
+            ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
     {
-        this.messageManager = messageManager;
-        this.objectMapper = objectMapper;
-        this.schedulingManager = schedulingManager;
-        this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
+        super( messageManager, schedulingManager, objectMapper );
+        this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
     }
 
-    public String addJob( TrackerSideEffectDataBundle sideEffectDataBundle )
+    @Override
+    public String getTopic()
     {
-        String jobId = CodeGenerator.generateUid();
-
-        messageManager.sendQueue( Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, sideEffectDataBundle );
-
-        return jobId;
+        return Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME;
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
     public void consume( TextMessage message ) throws JMSException, JsonProcessingException
     {
-        String payload = message.getText();
+        TrackerSideEffectDataBundle bundle = (TrackerSideEffectDataBundle) getMessage( message );
 
-        TrackerSideEffectDataBundle sideEffectDataBundle = objectMapper.readValue( payload, TrackerSideEffectDataBundle.class );
+        TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
 
-        TrackerRuleEngineThread ruleEngineThread = trackerNotificationThreadObjectFactory.getObject();
+        notificationThread.setSideEffectDataBundle( bundle );
 
-        ruleEngineThread.setSideEffectDataBundle( sideEffectDataBundle );
-
-        schedulingManager.executeJob( ruleEngineThread );
+        executeJob( notificationThread );
     }
 }

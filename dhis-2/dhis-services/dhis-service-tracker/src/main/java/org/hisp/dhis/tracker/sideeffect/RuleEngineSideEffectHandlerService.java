@@ -28,20 +28,15 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.job.TrackerRuleEngineMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Zubair Asghar
  */
+
+@Service
 public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService
 {
     private final TrackerRuleEngineMessageManager ruleEngineMessageManager;
