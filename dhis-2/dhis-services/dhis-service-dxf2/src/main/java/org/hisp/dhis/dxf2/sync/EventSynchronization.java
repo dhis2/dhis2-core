@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -43,10 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author David Katuscak
@@ -113,7 +113,8 @@ public class EventSynchronization
         for ( int i = 1; i <= pages; i++ )
         {
             Events events = eventService.getAnonymousEventsForSync( pageSize, skipChangedBefore );
-            filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
+            SyncUtils.filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
+
             log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 
             if ( log.isDebugEnabled() )
@@ -142,18 +143,6 @@ public class EventSynchronization
         }
 
         return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed." );
-    }
-
-    private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
-    {
-        for ( Event event : events.getEvents() )
-        {
-            event.setDataValues(
-                event.getDataValues().stream()
-                    .filter( dv -> !dv.isSkipSynchronization() )
-                    .collect( Collectors.toList() )
-            );
-        }
     }
 
     private boolean sendEventsSyncRequest( Events events, SystemInstance instance )
