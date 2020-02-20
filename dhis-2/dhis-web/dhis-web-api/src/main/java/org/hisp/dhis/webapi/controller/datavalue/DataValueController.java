@@ -538,7 +538,7 @@ public class DataValueController
             }
             else
             {
-                response.addHeader("Content-Length", Long.toString(contentLength));
+                response.addHeader( "Content-Length", Long.toString( contentLength ) );
             }
         }
         catch ( IOException e )
