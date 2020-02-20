@@ -28,11 +28,11 @@ package org.hisp.dhis.resourcetable.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
@@ -44,17 +44,16 @@ import org.hisp.dhis.system.util.Clock;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.resourcetable.ResourceTableStore" )
 public class JdbcResourceTableStore
     implements ResourceTableStore
 {
-    private static final Log log = LogFactory.getLog( JdbcResourceTableStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

@@ -33,8 +33,7 @@ import java.sql.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.api.FlywayException;
 
 /**
@@ -46,11 +45,9 @@ import org.flywaydb.core.api.FlywayException;
  * @author Ameen Mohamed
  *
  */
+@Slf4j
 public class JdbcSqlFileExecutor
 {
-
-    private static final Log log = LogFactory.getLog( JdbcSqlFileExecutor.class );
-
     private static final String DEFAULT_DELIMITER = ";";
 
     /**
@@ -199,7 +196,7 @@ public class JdbcSqlFileExecutor
     {
         Statement statement = conn.createStatement();
 
-        log.debug( command );
+        log.debug( command.toString() );
 
         boolean hasResults = false;
         try

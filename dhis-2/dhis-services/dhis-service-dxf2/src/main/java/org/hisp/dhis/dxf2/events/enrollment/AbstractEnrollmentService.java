@@ -36,8 +36,6 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
@@ -95,14 +93,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.GeometryFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public abstract class AbstractEnrollmentService
     implements EnrollmentService
 {
-    private static final Log log = LogFactory.getLog( AbstractEnrollmentService.class );
-
     @Autowired
     protected ProgramInstanceService programInstanceService;
 

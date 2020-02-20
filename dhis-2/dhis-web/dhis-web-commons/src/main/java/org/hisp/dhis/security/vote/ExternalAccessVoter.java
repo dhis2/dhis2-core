@@ -28,8 +28,7 @@ package org.hisp.dhis.security.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -54,10 +53,9 @@ import java.util.Map;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation>
 {
-    private static final Log LOG = LogFactory.getLog( ExternalAccessVoter.class );
-
     // this should probably be moved somewhere else, but leaving it here for now
     private static final Map<String, Class<? extends IdentifiableObject>> externalClasses = new HashMap<>();
 
@@ -117,7 +115,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
 
                         if ( identifiableObject != null && identifiableObject.getExternalAccess() )
                         {
-                            LOG.debug( "ACCESS_GRANTED [" + filterInvocation.toString() + "]" );
+                            log.debug( "ACCESS_GRANTED [" + filterInvocation.toString() + "]" );
 
                             return ACCESS_GRANTED;
                         }
@@ -126,7 +124,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
             }
         }
 
-        LOG.debug( "ACCESS_ABSTAIN [" + filterInvocation.toString() + "]: No supported attributes." );
+        log.debug( "ACCESS_ABSTAIN [" + filterInvocation.toString() + "]: No supported attributes." );
 
         return ACCESS_ABSTAIN;
     }

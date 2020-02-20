@@ -28,24 +28,24 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.util.ClassUtils;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class AuthenticationLoggerListener
     implements ApplicationListener<AbstractAuthenticationEvent>
 {
-    private static final Log log = LogFactory.getLog( AuthenticationLoggerListener.class );
-
     public void onApplicationEvent( AbstractAuthenticationEvent event )
     {
         if ( log.isWarnEnabled() )

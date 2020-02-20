@@ -28,23 +28,21 @@ package org.hisp.dhis.commons.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Utility class for concurrency operations.
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class ConcurrentUtils
 {
-    private static final Log log = LogFactory.getLog( ConcurrentUtils.class );
-
     /**
      * Blocks and waits for all Futures in the given collection to complete.
      *

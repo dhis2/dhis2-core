@@ -28,19 +28,18 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class TableCreator
     extends AbstractStartupRoutine
 {
-    private static final Log log = LogFactory.getLog( TableCreator.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

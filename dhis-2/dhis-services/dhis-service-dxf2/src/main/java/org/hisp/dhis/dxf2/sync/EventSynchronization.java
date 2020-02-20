@@ -28,8 +28,7 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
@@ -52,11 +51,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component
 public class EventSynchronization extends DataSynchronization
 {
-    private static final Log log = LogFactory.getLog( EventSynchronization.class );
-
     private final EventService eventService;
     private final SystemSettingManager systemSettingManager;
     private final RestTemplate restTemplate;

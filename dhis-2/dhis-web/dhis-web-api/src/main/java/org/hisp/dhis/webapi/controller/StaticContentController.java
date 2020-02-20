@@ -61,8 +61,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -95,11 +94,10 @@ import com.google.common.collect.ImmutableMap;
  */
 @RestController
 @RequestMapping(RESOURCE_PATH)
+@Slf4j
 @ApiVersion( { DEFAULT, ALL } )
 public class StaticContentController
 {
-    private static final Log log = LogFactory.getLog( StaticContentController.class );
-
     protected static final String RESOURCE_PATH = "/staticContent";
 
     private SystemSettingManager systemSettingManager;

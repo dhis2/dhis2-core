@@ -29,8 +29,6 @@ package org.hisp.dhis.dxf2.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
@@ -44,14 +42,15 @@ import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJob
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "trackerProgramsDataSyncJob" )
 public class TrackerProgramsDataSynchronizationJob extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( TrackerProgramsDataSynchronizationJob.class );
-
     private final Notifier notifier;
     private final MessageService messageService;
     private final DataSynchronization trackerSync;

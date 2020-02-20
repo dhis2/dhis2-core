@@ -37,8 +37,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
@@ -52,6 +50,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Data value service implementation. Note that data values are softly deleted,
  * which implies having the deleted property set to true and updated.
@@ -59,12 +59,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.datavalue.DataValueService" )
 public class DefaultDataValueService
     implements DataValueService
 {
-    private static final Log log = LogFactory.getLog( DefaultDataValueService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

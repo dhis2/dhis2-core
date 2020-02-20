@@ -31,8 +31,6 @@ package org.hisp.dhis.dxf2.synch;
 import java.io.IOException;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -64,15 +62,16 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.dxf2.synch.SynchronizationManager" )
 public class DefaultSynchronizationManager
     implements SynchronizationManager
 {
-    private static final Log log = LogFactory.getLog( DefaultSynchronizationManager.class );
-
     private static final String HEADER_AUTHORIZATION = "Authorization";
 
     @Autowired
