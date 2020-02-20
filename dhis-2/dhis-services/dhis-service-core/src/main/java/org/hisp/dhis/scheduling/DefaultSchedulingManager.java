@@ -42,9 +42,9 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
+
 import javax.annotation.PostConstruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,18 +55,19 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
  * identifying the scheduled jobs.
  *
  * @author Henning Håkonsen
  */
+@Slf4j
 @Service( "org.hisp.dhis.scheduling.SchedulingManager" )
 public class DefaultSchedulingManager
     implements SchedulingManager
 {
-    private static final Log log = LogFactory.getLog( DefaultSchedulingManager.class );
-
     private static final int DEFAULT_INITIAL_DELAY_S = 10;
 
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();

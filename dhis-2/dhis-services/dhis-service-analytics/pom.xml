@@ -62,6 +62,12 @@
       <groupId>com.scalified</groupId>
       <artifactId>tree</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
   
   <properties>

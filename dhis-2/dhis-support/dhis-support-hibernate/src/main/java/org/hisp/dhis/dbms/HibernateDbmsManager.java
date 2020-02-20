@@ -28,8 +28,7 @@ package org.hisp.dhis.dbms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -42,11 +41,10 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class HibernateDbmsManager
     implements DbmsManager
 {
-    private static final Log log = LogFactory.getLog( HibernateDbmsManager.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

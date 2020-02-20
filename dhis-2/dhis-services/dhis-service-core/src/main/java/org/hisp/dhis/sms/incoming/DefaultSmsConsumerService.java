@@ -28,26 +28,23 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.hisp.dhis.sms.SmsPublisher;
-
-import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.PostConstruct;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.sms.SmsPublisher;
+import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
+@Slf4j
 @Service( "org.hisp.dhis.sms.incoming.SmsConsumerService" )
 public class DefaultSmsConsumerService
     implements SmsConsumerService
 {
-    private static final Log log = LogFactory.getLog( DefaultSmsConsumerService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

@@ -37,8 +37,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
@@ -70,11 +70,11 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  * @author Lars Helge Overland
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 public class ExcludableShallowEtagHeaderFilter
     extends ShallowEtagHeaderFilter
 {
-    private static final Log log = LogFactory.getLog( ExcludableShallowEtagHeaderFilter.class );
-    
+
     private static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
     private Pattern pattern = null;

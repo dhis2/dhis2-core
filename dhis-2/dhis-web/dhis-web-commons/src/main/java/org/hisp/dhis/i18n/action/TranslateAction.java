@@ -29,10 +29,11 @@ package org.hisp.dhis.i18n.action;
  */
 
 import com.opensymphony.xwork2.Action;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,13 +50,12 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
 
 /**
  * @author Oyvind Brucker
- * @modifier Dang Duy Hieu
+ * @author  Dang Duy Hieu
  */
+@Slf4j
 public class TranslateAction
     implements Action
 {
-    private static final Log log = LogFactory.getLog( TranslateAction.class );
-
     private String className;
 
     private String uid;

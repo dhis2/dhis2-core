@@ -198,7 +198,7 @@ public class DashboardController
             chart.setType( ChartType.valueOf( visualization.getType().name() ) );
         }
 
-        chart.setCumulativeValues( visualization.isCumulative() );
+        chart.setCumulativeValues( visualization.isCumulativeValues() );
 
         return chart;
     }

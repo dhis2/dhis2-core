@@ -28,23 +28,22 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.UUID;
+
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
-import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+@Slf4j
 public class ConfigurationPopulator
     extends TransactionContextStartupRoutine
 {
-    private static final Log log = LogFactory.getLog( ConfigurationPopulator.class );
-
     private final ConfigurationService configurationService;
 
     private final DhisConfigurationProvider dhisConfigurationProvider;

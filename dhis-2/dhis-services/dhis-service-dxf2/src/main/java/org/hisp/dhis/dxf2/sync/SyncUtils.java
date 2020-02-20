@@ -54,8 +54,11 @@ package org.hisp.dhis.dxf2.sync;/*
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+import java.util.Date;
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -68,32 +71,18 @@ import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+import org.springframework.web.client.*;
 
-import java.util.Date;
-import java.util.Optional;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 
+@Slf4j
 public class SyncUtils
 {
-
-    private static final Log log = LogFactory.getLog( SyncUtils.class );
-
     static final String HEADER_AUTHORIZATION = "Authorization";
     static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
     private static final String PING_PATH = "/api/system/ping";

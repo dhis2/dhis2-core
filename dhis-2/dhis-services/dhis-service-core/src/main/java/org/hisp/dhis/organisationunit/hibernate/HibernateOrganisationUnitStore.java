@@ -28,10 +28,12 @@ package org.hisp.dhis.organisationunit.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.sql.Timestamp;
+import java.util.*;
+
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -55,27 +57,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Kristian Nordal
  */
+@Slf4j
 @Repository( "org.hisp.dhis.organisationunit.OrganisationUnitStore" )
 public class HibernateOrganisationUnitStore
     extends HibernateIdentifiableObjectStore<OrganisationUnit>
     implements OrganisationUnitStore
 {
-    private static final Log log = LogFactory.getLog( HibernateOrganisationUnitStore.class );
-
     private final DbmsManager dbmsManager;
 
     public HibernateOrganisationUnitStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,

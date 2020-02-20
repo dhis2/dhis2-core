@@ -28,19 +28,14 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -75,19 +70,18 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair on 04.07.17.
  */
 
+@Slf4j
 @Service( "org.hisp.dhis.dataset.notifications.DataSetNotificationService" )
 @Transactional
 public class DefaultDataSetNotificationService
     implements DataSetNotificationService
 {
-    private static final Log log = LogFactory.getLog( DefaultDataSetNotificationService.class );
-
     private static final String SUMMARY_TEXT = "Organisation units : %d" + TextUtils.LN + "Period : %s" + TextUtils.LN + "DataSet : %s";
     private static final String SUMMARY_SUBJECT = " DataSet Summary";
     private static final String PENDING = "Pending";

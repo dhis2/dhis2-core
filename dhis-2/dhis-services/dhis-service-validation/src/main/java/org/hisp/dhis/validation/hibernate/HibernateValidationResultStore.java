@@ -28,10 +28,13 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
+import java.util.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.Category;
@@ -51,25 +54,17 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Stian Sandvold
  */
+@Slf4j
 @Repository( "org.hisp.dhis.validation.ValidationResultStore" )
 public class HibernateValidationResultStore
     extends HibernateGenericStore<ValidationResult>
     implements ValidationResultStore
 {
-    private static final Log log = LogFactory.getLog( HibernateValidationResultStore.class );
-
     protected CurrentUserService currentUserService;
 
     public HibernateValidationResultStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,

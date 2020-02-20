@@ -43,8 +43,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
@@ -73,16 +71,17 @@ import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Slf4j
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceStore" )
 public class HibernateTrackedEntityInstanceStore
     extends HibernateIdentifiableObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
 {
-    private static final Log log = LogFactory.getLog( HibernateTrackedEntityInstanceStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
