@@ -59,10 +59,10 @@ public class TrackedEntityExistValidationHook
     {
         // Is it necessary to check for existence on delete,
         // cant we just try to delete and check for update result from DB?
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            return Collections.emptyList();
-        }
+//        if ( bundle.getImportStrategy().isDelete() )
+//        {
+//            return Collections.emptyList();
+//        }
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
@@ -78,7 +78,7 @@ public class TrackedEntityExistValidationHook
                 reporter.addError( newReport( TrackerErrorCode.E1002 )
                     .addArg( trackedEntity.getTrackedEntity() ) );
             }
-            else if ( bundle.getImportStrategy().isUpdate() && !exists )
+            else if ( (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) && !exists )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1063 )
                     .addArg( trackedEntity.getTrackedEntity() ) );

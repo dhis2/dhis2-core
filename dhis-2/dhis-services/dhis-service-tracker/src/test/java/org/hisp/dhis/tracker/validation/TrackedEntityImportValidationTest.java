@@ -37,17 +37,14 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -60,12 +57,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Every.everyItem;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -554,5 +550,74 @@ public class TrackedEntityImportValidationTest
         TrackerBundleReport bundleReport2 = trackerBundleService.commit( updateBundle );
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( TrackerStatus.OK, bundleReport2.getStatus() );
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        TrackerBundleParams trackerBundleParamsUpdate = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        trackerBundleParamsUpdate.setUser( user );
+
+        trackerBundleParamsUpdate.setImportStrategy( TrackerImportStrategy.UPDATE );
+        TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate ).get( 0 );
+        assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
+
+        TrackerValidationReport reportUpdate = trackerValidationService.validate( trackerBundleUpdate );
+        assertEquals( 0, reportUpdate.getErrorReports().size() );
+
+        TrackerBundleReport bundleReportUpdate = trackerBundleService.commit( trackerBundleUpdate );
+        assertEquals( TrackerStatus.OK, bundleReportUpdate.getStatus() );
+
+        // isInactive should now be true
+        TrackedEntityInstance nCc1rCEOKaY = trackedEntityInstanceService.getTrackedEntityInstance( "NCc1rCEOKaY" );
+        assertEquals( true, nCc1rCEOKaY.isInactive() );
+    }
+
+    @Test
+    public void testDelete()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        TrackerBundleParams trackerBundleParamsUpdate = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        trackerBundleParamsUpdate.setUser( user );
+
+        trackerBundleParamsUpdate.setImportStrategy( TrackerImportStrategy.DELETE );
+        TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate ).get( 0 );
+        assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
+
+        TrackerValidationReport reportUpdate = trackerValidationService.validate( trackerBundleUpdate );
+        assertEquals( 0, reportUpdate.getErrorReports().size() );
+
+        TrackerBundleReport bundleReportUpdate = trackerBundleService.commit( trackerBundleUpdate );
+        assertEquals( TrackerStatus.OK, bundleReportUpdate.getStatus() );
+
+        // isInactive should now be true
+        TrackedEntityInstance nCc1rCEOKaY = trackedEntityInstanceService.getTrackedEntityInstance( "NCc1rCEOKaY" );
+//        assertEquals( true, nCc1rCEOKaY.isInactive() );
+        // NOT WORKING... yet?
+       // assertEquals( true, nCc1rCEOKaY.isDeleted() );
     }
 }

@@ -6,7 +6,7 @@
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
+          "value": "PersonA_MODIFIED",
           "storedBy": "admin"
         },
         {
@@ -16,7 +16,7 @@
         }
       ],
       "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "inactive": true
     }
   ]
 }

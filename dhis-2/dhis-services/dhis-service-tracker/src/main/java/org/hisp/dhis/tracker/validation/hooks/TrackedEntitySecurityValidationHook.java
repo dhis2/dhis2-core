@@ -95,7 +95,10 @@ public class TrackedEntitySecurityValidationHook
                 TrackedEntityInstance trackedEntityInstance = PreheatHelper
                     .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
 
-                checkCanCascadeDeleteProgramInstances( reporter, actingUser, trackedEntityInstance );
+                if ( trackedEntityInstance != null )
+                {
+                    checkCanCascadeDeleteProgramInstances( reporter, actingUser, trackedEntityInstance );
+                }
             }
         }
 
