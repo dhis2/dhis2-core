@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.sideeffect;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -39,9 +38,6 @@ import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -56,11 +52,8 @@ public class TrackerSideEffectDataBundleTest
         Enrollment enrollment = new Enrollment();
         ProgramInstance programInstance = new ProgramInstance();
 
-        Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
-        enrollmentRuleEffects.put( enrollment, Arrays.asList() );
-
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .enrollmentRuleEffects( enrollmentRuleEffects )
+            .enrollmentRuleEffect( enrollment, Arrays.asList() )
             .accessedBy( "testUser" )
             .importStrategy( TrackerImportStrategy.CREATE )
             .object( programInstance )
@@ -81,11 +74,8 @@ public class TrackerSideEffectDataBundleTest
         Event event = new Event();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
 
-        Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
-        eventRuleEffects.put( event, Arrays.asList() );
-
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .eventRuleEffects( eventRuleEffects )
+            .eventRuleEffect( event, Arrays.asList() )
             .object( programStageInstance )
             .klass( ProgramStageInstance.class )
             .build();
