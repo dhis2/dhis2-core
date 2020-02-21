@@ -82,7 +82,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
                 for ( Map.Entry<Enrollment, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
                 {
                     entry.getValue()
-                            .stream()
+                            .parallelStream()
                             .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
                             .forEach( effect -> ruleActionImplementer.implement( effect, enrollmentConverterService.from( entry.getKey() ) ) );
                 }
@@ -90,7 +90,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
                 for ( Map.Entry<Event, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
                 {
                     entry.getValue()
-                            .stream()
+                            .parallelStream()
                             .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
                             .forEach( effect -> ruleActionImplementer.implement( effect, eventConverterService.from( entry.getKey() ) ) );
                 }
