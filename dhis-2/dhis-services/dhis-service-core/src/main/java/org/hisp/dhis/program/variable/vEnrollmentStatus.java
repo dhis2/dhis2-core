@@ -30,24 +30,22 @@ package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 /**
  * Program indicator variable: enrollment status
  *
  * @author Jim Grace
  */
 public class vEnrollmentStatus
-    extends ProgramVariable
+    implements ProgramVariable
 {
     @Override
-    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object defaultVariableValue()
     {
         return "COMPLETED";
     }
 
     @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( CommonExpressionVisitor visitor )
     {
         return "enrollmentstatus";
     }
