@@ -153,7 +153,7 @@ public interface AppManager
     /**
      * Indicates whether the given app is accessible to the given user.
      *
-     * @param app  the app.
+     * @param app the app.
      * @param user the user.
      * @return true if app is accessible.
      */
