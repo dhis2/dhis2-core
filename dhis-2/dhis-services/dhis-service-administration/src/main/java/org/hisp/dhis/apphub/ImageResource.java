@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,64 +30,101 @@ package org.hisp.dhis.appstore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
+
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class Developer
+public class ImageResource
 {
-    private String name;
+    private String id;
 
-    private String organisation;
+    private String caption;
 
-    private String address;
+    private String description;
 
-    private String email;
+    private String imageUrl;
 
-    public Developer()
+    private boolean logo;
+
+    private Date created;
+
+    private Date lastUpdated;
+
+    @JsonProperty
+    public String getCaption()
     {
+        return caption;
+    }
+
+    public void setCaption( String caption )
+    {
+        this.caption = caption;
     }
 
     @JsonProperty
-    public String getName()
+    public String getDescription()
     {
-        return name;
+        return description;
     }
 
-    public void setName( String name )
+    public void setDescription( String description )
     {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getOrganisation()
-    {
-        return organisation;
-    }
-
-    public void setOrganisation( String organisation )
-    {
-        this.organisation = organisation;
+        this.description = description;
     }
 
     @JsonProperty
-    public String getEmail()
+    public boolean isLogo()
     {
-        return email;
+        return logo;
     }
 
-    public void setEmail( String email )
+    public void setLogo( boolean logo )
     {
-        this.email = email;
+        this.logo = logo;
     }
 
     @JsonProperty
-    public String getAddress()
+    public String getImageUrl()
     {
-        return address;
+        return imageUrl;
     }
 
-    public void setAddress( String address )
+    public void setImageUrl( String imageUrl )
     {
-        this.address = address;
+        this.imageUrl = imageUrl;
+    }
+
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
     }
 }

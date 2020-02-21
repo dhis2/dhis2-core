@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -35,9 +35,9 @@ import java.util.List;
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public interface AppStoreService
+public interface AppHubService
 {
-    List<WebApp> getAppStore();
+    List<WebApp> getAppHub();
 
-    AppStatus installAppFromAppStore( String id );
+    AppStatus installAppFromAppHub(String id );
 }

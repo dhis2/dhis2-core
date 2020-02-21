@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -30,98 +30,64 @@ package org.hisp.dhis.appstore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Date;
-
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class Review
+public class Developer
 {
-    private String id;
+    private String name;
 
-    private String userId;
+    private String organisation;
 
-    private String reviewText;
+    private String address;
 
-    private int rate;
+    private String email;
 
-    private Date created;
-
-    private Date lastUpdated;
-
-    public Review()
+    public Developer()
     {
-    }
-
-    public Review( String userId, String reviewText )
-    {
-        this.userId = userId;
-        this.reviewText = reviewText;
     }
 
     @JsonProperty
-    public String getUserId()
+    public String getName()
     {
-        return userId;
+        return name;
     }
 
-    public void setUserId( String userId )
+    public void setName( String name )
     {
-        this.userId = userId;
-    }
-
-    @JsonProperty
-    public String getReviewText()
-    {
-        return reviewText;
-    }
-
-    public void setReviewText( String reviewText )
-    {
-        this.reviewText = reviewText;
+        this.name = name;
     }
 
     @JsonProperty
-    public int getRate()
+    public String getOrganisation()
     {
-        return rate;
+        return organisation;
     }
 
-    public void setRate( int rate )
+    public void setOrganisation( String organisation )
     {
-        this.rate = rate;
-    }
-
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
+        this.organisation = organisation;
     }
 
     @JsonProperty
-    public String getId()
+    public String getEmail()
     {
-        return id;
+        return email;
     }
 
-    public void setId( String id )
+    public void setEmail( String email )
     {
-        this.id = id;
+        this.email = email;
     }
 
     @JsonProperty
-    public Date getLastUpdated()
+    public String getAddress()
     {
-        return lastUpdated;
+        return address;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public void setAddress( String address )
     {
-        this.lastUpdated = lastUpdated;
+        this.address = address;
     }
 }

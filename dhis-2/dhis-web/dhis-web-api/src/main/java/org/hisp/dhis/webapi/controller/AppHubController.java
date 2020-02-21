@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appstore.AppStoreService;
-import org.hisp.dhis.appstore.WebApp;
+import org.hisp.dhis.apphub.AppHubService;
+import org.hisp.dhis.apphub.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -54,32 +54,32 @@ import java.util.List;
  * Created by zubair@dhis2.org on 07.09.17.
  */
 @Controller
-@RequestMapping( AppStoreController.RESOURCE_PATH )
+@RequestMapping( AppHubController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class AppStoreController
+public class AppHubController
 {
-    public static final String RESOURCE_PATH = "/appStore";
+    public static final String RESOURCE_PATH = "/appHub";
 
     @Autowired
-    private AppStoreService appStoreService;
+    private AppHubService appHubService;
 
     @Autowired
     private I18nManager i18nManager;
 
 
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<WebApp> listAppStore( HttpServletResponse response )
+    public @ResponseBody List<WebApp> listAppHub(HttpServletResponse response )
         throws IOException
     {
-        return appStoreService.getAppStore();
+        return appHubService.getAppHub();
     }
 
     @RequestMapping( value = "/{versionId}", method = RequestMethod.POST )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromStore( @PathVariable String versionId ) throws WebMessageException
+    public void installAppFromAppHub(@PathVariable String versionId ) throws WebMessageException
     {
-        AppStatus status = appStoreService.installAppFromAppStore( versionId );
+        AppStatus status = appHubService.installAppFromAppHub( versionId );
         if ( !status.ok() )
         {
             String message = i18nManager.getI18n().getString( status.getMessage() );

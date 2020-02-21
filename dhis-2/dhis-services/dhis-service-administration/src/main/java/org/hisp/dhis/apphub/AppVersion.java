@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,71 +28,96 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.io.FilenameUtils;
 
 import java.util.Date;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class ImageResource
+public class AppVersion
 {
     private String id;
 
-    private String caption;
+    private String version;
 
-    private String description;
+    private String minDhisVersion;
 
-    private String imageUrl;
+    private String maxDhisVersion;
 
-    private boolean logo;
+    private String downloadUrl;
+
+    private String demoUrl;
 
     private Date created;
 
     private Date lastUpdated;
 
-    @JsonProperty
-    public String getCaption()
+    public AppVersion()
     {
-        return caption;
     }
 
-    public void setCaption( String caption )
+    @JsonIgnore
+    public String getFilename()
     {
-        this.caption = caption;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
+        return FilenameUtils.getName( downloadUrl );
     }
 
     @JsonProperty
-    public boolean isLogo()
+    public String getVersion()
     {
-        return logo;
+        return version;
     }
 
-    public void setLogo( boolean logo )
+    public void setVersion( String version )
     {
-        this.logo = logo;
+        this.version = version;
     }
 
     @JsonProperty
-    public String getImageUrl()
+    public String getMinDhisVersion()
     {
-        return imageUrl;
+        return minDhisVersion;
     }
 
-    public void setImageUrl( String imageUrl )
+    public void setMinDhisVersion( String minDhisVersion )
     {
-        this.imageUrl = imageUrl;
+        this.minDhisVersion = minDhisVersion;
+    }
+
+    @JsonProperty
+    public String getMaxDhisVersion()
+    {
+        return maxDhisVersion;
+    }
+
+    public void setMaxDhisVersion( String maxDhisVersion )
+    {
+        this.maxDhisVersion = maxDhisVersion;
+    }
+
+    @JsonProperty
+    public String getDownloadUrl()
+    {
+        return downloadUrl;
+    }
+
+    public void setDownloadUrl( String downloadUrl )
+    {
+        this.downloadUrl = downloadUrl;
+    }
+
+    @JsonProperty
+    public String getDemoUrl()
+    {
+        return demoUrl;
+    }
+
+    public void setDemoUrl( String demoUrl )
+    {
+        this.demoUrl = demoUrl;
     }
 
     @JsonProperty
@@ -107,17 +132,6 @@ public class ImageResource
     }
 
     @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty
     public String getId()
     {
         return id;
@@ -126,5 +140,16 @@ public class ImageResource
     public void setId( String id )
     {
         this.id = id;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
     }
 }

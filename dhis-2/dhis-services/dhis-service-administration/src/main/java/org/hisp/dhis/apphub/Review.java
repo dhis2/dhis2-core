@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,96 +28,68 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.io.FilenameUtils;
 
 import java.util.Date;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class AppVersion
+public class Review
 {
     private String id;
 
-    private String version;
+    private String userId;
 
-    private String minDhisVersion;
+    private String reviewText;
 
-    private String maxDhisVersion;
-
-    private String downloadUrl;
-
-    private String demoUrl;
+    private int rate;
 
     private Date created;
 
     private Date lastUpdated;
 
-    public AppVersion()
+    public Review()
     {
     }
 
-    @JsonIgnore
-    public String getFilename()
+    public Review( String userId, String reviewText )
     {
-        return FilenameUtils.getName( downloadUrl );
-    }
-
-    @JsonProperty
-    public String getVersion()
-    {
-        return version;
-    }
-
-    public void setVersion( String version )
-    {
-        this.version = version;
+        this.userId = userId;
+        this.reviewText = reviewText;
     }
 
     @JsonProperty
-    public String getMinDhisVersion()
+    public String getUserId()
     {
-        return minDhisVersion;
+        return userId;
     }
 
-    public void setMinDhisVersion( String minDhisVersion )
+    public void setUserId( String userId )
     {
-        this.minDhisVersion = minDhisVersion;
-    }
-
-    @JsonProperty
-    public String getMaxDhisVersion()
-    {
-        return maxDhisVersion;
-    }
-
-    public void setMaxDhisVersion( String maxDhisVersion )
-    {
-        this.maxDhisVersion = maxDhisVersion;
+        this.userId = userId;
     }
 
     @JsonProperty
-    public String getDownloadUrl()
+    public String getReviewText()
     {
-        return downloadUrl;
+        return reviewText;
     }
 
-    public void setDownloadUrl( String downloadUrl )
+    public void setReviewText( String reviewText )
     {
-        this.downloadUrl = downloadUrl;
+        this.reviewText = reviewText;
     }
 
     @JsonProperty
-    public String getDemoUrl()
+    public int getRate()
     {
-        return demoUrl;
+        return rate;
     }
 
-    public void setDemoUrl( String demoUrl )
+    public void setRate( int rate )
     {
-        this.demoUrl = demoUrl;
+        this.rate = rate;
     }
 
     @JsonProperty

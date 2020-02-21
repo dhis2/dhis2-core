@@ -277,7 +277,13 @@ public class DefaultAppManager
     @Override
     public String getAppHubUrl()
     {
-        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_HUB_URL ) );
+        String baseUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL) );
+        String apiUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL) );
+
+        return "{" +
+                "\"baseUrl\": \"" + baseUrl + "\", " +
+                "\"apiUrl\": \"" + apiUrl + "\"" +
+                "}";
     }
 
     /**
