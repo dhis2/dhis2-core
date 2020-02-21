@@ -1,0 +1,7 @@
+
+#parse( "dhis-web-reporting/renderDataSetReportHeader.vm" )
+
+#set( $css = "cde cde-$!{selectedDataSet.dataEntryForm.style}" )
+<div class="${css}">
+	$customDataEntryFormCode
+</div>

@@ -6,4 +6,14 @@
     class="org.hisp.dhis.approval.dataapproval.action.GetDataApprovalOptionsAction" scope="prototype">
   </bean>
   
+  <bean id="org.hisp.dhis.approval.dataset.action.GenerateDataSetReportAction" class="org.hisp.dhis.approval.dataset.action.GenerateDataSetReportAction"
+    scope="prototype">
+    <property name="dataSetReportService" ref="org.hisp.dhis.datasetreport.DataSetReportService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="registrationService" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
+  </bean>
+  
 </beans>
