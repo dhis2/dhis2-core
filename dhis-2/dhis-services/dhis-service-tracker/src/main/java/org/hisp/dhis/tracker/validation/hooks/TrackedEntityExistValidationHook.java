@@ -28,9 +28,9 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;

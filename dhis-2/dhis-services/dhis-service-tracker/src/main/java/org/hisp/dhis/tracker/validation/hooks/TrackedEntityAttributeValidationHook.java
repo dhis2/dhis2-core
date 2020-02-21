@@ -77,12 +77,12 @@ public class TrackedEntityAttributeValidationHook
         {
             reporter.increment( trackedEntity );
 
-            TrackedEntityInstance trackedEntityInstancei = PreheatHelper
+            TrackedEntityInstance trackedEntityInstance = PreheatHelper
                 .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
 
             OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
 
-            validateAttributes( reporter, bundle, trackedEntity, trackedEntityInstancei, orgUnit );
+            validateAttributes( reporter, bundle, trackedEntity, trackedEntityInstance, orgUnit );
         }
 
         return reporter.getReportList();

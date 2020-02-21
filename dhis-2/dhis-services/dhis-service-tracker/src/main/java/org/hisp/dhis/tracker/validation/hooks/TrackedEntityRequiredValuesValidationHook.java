@@ -96,7 +96,8 @@ public class TrackedEntityRequiredValuesValidationHook
                 return;
             }
 
-            TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, trackedEntity.getTrackedEntityType() );
+            TrackedEntityType entityType = PreheatHelper
+                .getTrackedEntityType( bundle, trackedEntity.getTrackedEntityType() );
             if ( entityType == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1005 )
@@ -131,7 +132,8 @@ public class TrackedEntityRequiredValuesValidationHook
         }
         else if ( bundle.getImportStrategy().isUpdate() )
         {
-            TrackedEntityInstance tei = PreheatHelper.getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
+            TrackedEntityInstance tei = PreheatHelper
+                .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
             if ( tei.getOrganisationUnit() == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1011 )

@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

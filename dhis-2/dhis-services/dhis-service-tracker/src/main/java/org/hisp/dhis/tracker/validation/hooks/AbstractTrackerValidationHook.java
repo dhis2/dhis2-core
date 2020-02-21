@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,13 +50,13 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -378,7 +377,7 @@ public abstract class AbstractTrackerValidationHook
 
     public boolean isValidDateString( String dateString )
     {
-        Preconditions.checkNotNull( dateString, "Date string can not be null" );
+        Objects.requireNonNull( dateString, "Date string can not be null" );
 
         return DateUtils.dateIsValid( dateString );
     }

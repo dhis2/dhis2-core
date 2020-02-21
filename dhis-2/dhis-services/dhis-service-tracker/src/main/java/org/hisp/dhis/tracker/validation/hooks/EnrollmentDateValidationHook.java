@@ -35,7 +35,6 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -74,7 +73,7 @@ public class EnrollmentDateValidationHook
             reporter.increment( enrollment );
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-            // Hard break
+            // Hard break?
             if ( program == null )
             {
                 continue;
@@ -112,14 +111,23 @@ public class EnrollmentDateValidationHook
                 .addArg( enrollment.getEnrollmentDate() ) );
         }
 
-        if ( Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() ) )
+        if ( enrollment.getEnrollmentDate() != null
+            && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() ) )
         {
-            boolean enrollmentIsInFuture = Objects.nonNull( enrollment.getEnrollmentDate() ) &&
-                enrollment.getEnrollmentDate().after( new Date() );
-            if ( enrollmentIsInFuture )
+            if ( enrollment.getEnrollmentDate().after( new Date() ) )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1020 )
                     .addArg( enrollment.getEnrollmentDate() ) );
+            }
+        }
+
+        if ( enrollment.getIncidentDate() != null
+            && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() ) )
+        {
+            if ( enrollment.getIncidentDate().after( new Date() ) )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1021 )
+                    .addArg( enrollment.getIncidentDate() ) );
             }
         }
 
@@ -130,17 +138,6 @@ public class EnrollmentDateValidationHook
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1023 )
                     .addArg( enrollment.getIncidentDate() ) );
-            }
-
-            if ( Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() ) )
-            {
-                boolean incidentIsInFuture = Objects.nonNull( enrollment.getIncidentDate() )
-                    && enrollment.getIncidentDate().after( new Date() );
-                if ( incidentIsInFuture )
-                {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1021 )
-                        .addArg( enrollment.getIncidentDate() ) );
-                }
             }
         }
     }

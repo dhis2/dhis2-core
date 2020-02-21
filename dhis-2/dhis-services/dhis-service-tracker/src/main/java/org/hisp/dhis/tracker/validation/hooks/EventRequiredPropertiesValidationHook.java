@@ -1,7 +1,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import com.google.common.base.Preconditions;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -112,8 +112,8 @@ public class EventRequiredPropertiesValidationHook
         ProgramStage programStage, ProgramInstance programInstance, TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
-        Preconditions.checkNotNull( event, "Event can't be null" );
-        Preconditions.checkNotNull( program, "Program can't be null" );
+        Objects.requireNonNull( event, "Event can't be null" );
+        Objects.requireNonNull( program, "Program can't be null" );
         Preconditions.checkNotNull( actingUser, "User can't be null" );
 
         if ( program.isRegistration() )

@@ -1,10 +1,8 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
@@ -13,7 +11,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

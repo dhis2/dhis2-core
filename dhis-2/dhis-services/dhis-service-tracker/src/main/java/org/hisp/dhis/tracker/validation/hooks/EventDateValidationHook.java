@@ -3,7 +3,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -166,13 +168,13 @@ public class EventDateValidationHook
 
     private void validateDates( ValidationErrorReporter errorReporter, Event event )
     {
-        if ( !isValidDateString( event.getDueDate() ) )
+        if ( event.getDueDate() != null && !isValidDateString( event.getDueDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1051 )
                 .addArg( event.getDueDate() ) );
         }
 
-        if ( !isValidDateString( event.getEventDate() ) )
+        if ( event.getEventDate() != null && !isValidDateString( event.getEventDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1052 )
                 .addArg( event.getEventDate() ) );
