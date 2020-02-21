@@ -306,12 +306,35 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         for ( Attribute at : attributes )
         {
             TrackedEntityAttribute attribute = preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, at.getAttribute() );
-            TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue()
-                .setAttribute( attribute )
-                .setValue( at.getValue() )
-                .setStoredBy( at.getStoredBy() );
+            TrackedEntityAttributeValue attributeValue = null;
 
-            trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
+            // this is pretty bad for performance, but we are dealing with a Set<> and can't index directly
+            // this needs to be solved for 2.35
+            for ( TrackedEntityAttributeValue av : trackedEntityInstance.getTrackedEntityAttributeValues() )
+            {
+                if ( av.getAttribute().getUid().equals( at.getAttribute() ) )
+                {
+                    av.setAttribute( attribute )
+                        .setValue( at.getValue() )
+                        .setStoredBy( at.getStoredBy() );
+
+                    attributeValue = av;
+
+                    break;
+                }
+            }
+
+            // new attribute value
+            if ( attributeValue == null )
+            {
+                attributeValue = new TrackedEntityAttributeValue();
+
+                attributeValue.setAttribute( attribute )
+                    .setValue( at.getValue() )
+                    .setStoredBy( at.getStoredBy() );
+
+                trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
+            }
         }
 
         for ( TrackedEntityAttributeValue attributeValue : trackedEntityInstance.getTrackedEntityAttributeValues() )

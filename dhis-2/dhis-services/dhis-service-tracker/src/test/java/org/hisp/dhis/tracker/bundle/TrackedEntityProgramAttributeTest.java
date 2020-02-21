@@ -139,4 +139,55 @@ public class TrackedEntityProgramAttributeTest
 
         assertEquals( 4, attributeValues.size() );
     }
+
+    @Test
+    public void testTrackedEntityProgramAttributeValueUpdate() throws IOException
+    {
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_data.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build() );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
+        assertEquals( 1, trackedEntityInstances.size() );
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
+            trackedEntityInstance );
+
+        assertEquals( 4, attributeValues.size() );
+
+        // update
+
+        trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_program_with_tea_update_data.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
+
+        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build() );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
+        assertEquals( 1, trackedEntityInstances.size() );
+
+        trackedEntityInstance = trackedEntityInstances.get( 0 );
+
+        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
+
+        assertEquals( 4, attributeValues.size() );
+    }
 }
