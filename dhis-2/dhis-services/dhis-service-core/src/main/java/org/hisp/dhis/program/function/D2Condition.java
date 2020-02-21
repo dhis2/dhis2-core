@@ -29,10 +29,10 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.program.ProgramExpressionItem;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
-import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
+import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -41,14 +41,15 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class D2Condition
-    extends SimpleScalarFunction
+    extends ProgramExpressionItem
 {
     @Override
-    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         String testExpression = trimQuotes( ctx.stringLiteral().getText() );
 
-        visitor.getProgramIndicatorService().validate( testExpression, Boolean.class, visitor.getItemDescriptions() );
+        visitor.getProgramIndicatorService()
+            .validate( testExpression, Boolean.class, visitor.getItemDescriptions() );
 
         Object valueIfTrue = visitor.visit( ctx.expr( 0 ) );
         Object valueIfFalse = visitor.visit( ctx.expr( 1 ) );

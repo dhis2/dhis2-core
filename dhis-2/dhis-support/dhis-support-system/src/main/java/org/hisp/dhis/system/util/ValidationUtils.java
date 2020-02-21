@@ -550,16 +550,16 @@ public class ValidationUtils
     }
 
     /**
-     * Returns a string useful for substitution.
+     * Returns a value useful for substitution.
      *
      * @param valueType the value type.
-     * @return the string.
+     * @return the object.
      */
-    public static String getSubstitutionValue( ValueType valueType )
+    public static Object getSubstitutionValue( ValueType valueType )
     {
         if ( valueType.isNumeric() || valueType.isBoolean() )
         {
-            return "1";
+            return 1d;
         }
         else if ( valueType.isDate() )
         {

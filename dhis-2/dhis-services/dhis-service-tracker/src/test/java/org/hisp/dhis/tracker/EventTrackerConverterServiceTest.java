@@ -79,7 +79,8 @@ public class EventTrackerConverterServiceTest
     private UserService _userService;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
@@ -100,7 +101,8 @@ public class EventTrackerConverterServiceTest
     }
 
     @Test
-    public void testToProgramStageInstance() throws IOException
+    public void testToProgramStageInstance()
+        throws IOException
     {
         Event event = new Event();
         event.setProgram( "BFcipDERJne" );
