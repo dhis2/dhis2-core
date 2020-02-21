@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -59,8 +60,10 @@ public class TrackerSideEffectDataBundle implements Message
 
     private BaseIdentifiableObject object;
 
+    @Singular
     private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
+    @Singular
     private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
     private TrackerImportStrategy importStrategy;
