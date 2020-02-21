@@ -46,7 +46,7 @@ import java.time.LocalDateTime;
 @Service
 public class AuditSideEffectHandlerService implements SideEffectHandlerService
 {
-    private final ImmutableMap<TrackerImportStrategy, AuditType> TYPE_MAPPER =
+    private static final ImmutableMap<TrackerImportStrategy, AuditType> TYPE_MAPPER =
         new ImmutableMap.Builder<TrackerImportStrategy, AuditType>()
         .put( TrackerImportStrategy.CREATE, AuditType.CREATE )
         .put( TrackerImportStrategy.UPDATE, AuditType.UPDATE )

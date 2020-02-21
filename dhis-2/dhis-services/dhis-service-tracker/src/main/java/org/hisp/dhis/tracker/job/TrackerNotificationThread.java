@@ -51,7 +51,7 @@ public class TrackerNotificationThread   extends SecurityContextRunnable
     private ProgramNotificationService programNotificationService;
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> SERVICE_MAPPER = new
+    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = new
         ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
         .put( ProgramInstance.class, id -> programNotificationService.sendEnrollmentNotifications( id ) )
         .put( ProgramStageInstance.class, id -> programNotificationService.sendEventCompletionNotifications( id ) )
@@ -69,9 +69,9 @@ public class TrackerNotificationThread   extends SecurityContextRunnable
         {
             BaseIdentifiableObject object = sideEffectDataBundle.getObject();
 
-            if ( SERVICE_MAPPER.containsKey( object.getClass() ) )
+            if ( serviceMapper.containsKey( object.getClass() ) )
             {
-                SERVICE_MAPPER.get( object.getClass() ).accept( object.getId() );
+                serviceMapper.get( object.getClass() ).accept( object.getId() );
             }
         }
     }

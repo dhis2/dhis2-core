@@ -28,8 +28,10 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -47,6 +49,8 @@ import java.util.Map;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TrackerSideEffectDataBundle implements Message
 {
     private String uid;
@@ -55,9 +59,9 @@ public class TrackerSideEffectDataBundle implements Message
 
     private BaseIdentifiableObject object;
 
-    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects;
+    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
-    private Map<Event, List<RuleEffect>> eventRuleEffects;
+    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
     private TrackerImportStrategy importStrategy;
 
