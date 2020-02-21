@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.synch;
+package org.hisp.dhis.dxf2.sync;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,34 +28,10 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-
 /**
- * @author Lars Helge Overland
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
-public interface SynchronizationManager
+public abstract class DataSynchronizationWithoutPaging extends DataSynchronization
 {
-    /**
-     * Executes data value push to remote server.
-     *
-     * @return an {@link ImportSummary}.
-     */
-    ImportSummary executeDataValuePush() throws WebMessageParseException;
-
-    /**
-     * Executes a meta data pull operation from remote server.
-     *
-     * @param url the URL to the remote server.
-     * @return an {@link ImportReport}.
-     */
-    ImportReport executeMetadataPull( String url );
-
-    /**
-     * Indicates the availability status of the remote server.
-     *
-     * @return the {@link AvailabilityStatus} of the remote server.
-     */
-    AvailabilityStatus isRemoteServerAvailable();
+    public abstract SynchronizationResult synchronizeData();
 }

@@ -1,4 +1,5 @@
 package org.hisp.dhis.scheduling.parameters;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,32 +28,32 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Optional;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.jackson.TrackerProgramsDataSynchronizationJobParametersDeserializer;
+import org.hisp.dhis.scheduling.parameters.jackson.DataSynchronizationJobParametersDeserializer;
 
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-@JsonDeserialize( using = TrackerProgramsDataSynchronizationJobParametersDeserializer.class )
-public class TrackerProgramsDataSynchronizationJobParameters
-    implements JobParameters
+@JsonDeserialize( using = DataSynchronizationJobParametersDeserializer.class )
+public class DataSynchronizationJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 368325562301563469L;
+    private static final long serialVersionUID = 153645562301563469L;
 
-    static final int PAGE_SIZE_MIN = 5;
-    static final int PAGE_SIZE_MAX = 100;
+    static final int PAGE_SIZE_MIN = 50;
+    public static final int PAGE_SIZE_MAX = 30000;
 
-    private int pageSize = 20;
+    private int pageSize = 10000;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -78,7 +79,7 @@ public class TrackerProgramsDataSynchronizationJobParameters
                     "pageSize",
                     PAGE_SIZE_MIN,
                     PAGE_SIZE_MAX,
-                    pageSize  )
+                    pageSize )
             );
         }
 

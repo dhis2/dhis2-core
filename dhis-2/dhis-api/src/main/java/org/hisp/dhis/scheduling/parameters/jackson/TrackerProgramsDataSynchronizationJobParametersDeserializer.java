@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 public class TrackerProgramsDataSynchronizationJobParametersDeserializer
     extends AbstractJobParametersDeserializer<TrackerProgramsDataSynchronizationJobParameters>

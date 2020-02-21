@@ -60,6 +60,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
+import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -121,14 +122,14 @@ public class SyncUtils
         return false;
     }
 
-    private static Optional<AbstractWebMessageResponse> runSyncRequest( RestTemplate restTemplate,
+    public static Optional<AbstractWebMessageResponse> runSyncRequest( RestTemplate restTemplate,
         RequestCallback requestCallback, Class<? extends AbstractWebMessageResponse> klass, String syncUrl,
         int maxSyncAttempts )
     {
         boolean networkErrorOccurred = true;
         int syncAttemptsDone = 0;
 
-        ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
+        ResponseExtractor<? extends AbstractWebMessageResponse> responseExtractor = getResponseExtractor( klass );
         AbstractWebMessageResponse responseSummary = null;
 
         while ( networkErrorOccurred )
@@ -175,6 +176,22 @@ public class SyncUtils
 
         log.info( "Sync summary: " + responseSummary );
         return Optional.ofNullable( responseSummary );
+    }
+
+    private static ResponseExtractor<? extends AbstractWebMessageResponse> getResponseExtractor( Class<? extends AbstractWebMessageResponse> klass )
+    {
+        if ( ImportSummaries.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummariesResponseExtractor();
+        }
+        else if ( ImportSummary.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummaryResponseExtractor();
+        }
+        else
+        {
+            throw new IllegalStateException( "ResponseExtractor for given class '" + klass + "' is not supported." );
+        }
     }
 
     /**

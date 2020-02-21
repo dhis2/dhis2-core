@@ -37,22 +37,7 @@ import org.hisp.dhis.system.util.Clock;
 public abstract class DataSynchronization
 {
     protected boolean syncResult = false;
-    protected int pages;
     protected Clock clock;
     protected int objectsToSynchronize;
     protected SystemInstance instance;
-
-    public abstract SynchronizationResult synchronizeData( final int pageSize );
-
-    protected void runSyncWithPaging( int pageSize )
-    {
-        syncResult = true;
-
-        for ( int page = 1; page <= pages; page++ )
-        {
-            synchronizePage( page, pageSize );
-        }
-    }
-
-    protected abstract void synchronizePage( int page, int pageSize );
 }
