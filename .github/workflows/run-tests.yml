@@ -10,7 +10,7 @@ jobs:
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
+        java-version: '8.0.191'
     - name: Test core
       run: mvn clean install -DskipTests=false --update-snapshots -q -f ./dhis-2/pom.xml
     - name: Test dhis-web
