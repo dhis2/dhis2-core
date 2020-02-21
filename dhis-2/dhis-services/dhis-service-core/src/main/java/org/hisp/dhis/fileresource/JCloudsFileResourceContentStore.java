@@ -356,7 +356,7 @@ public class JCloudsFileResourceContentStore
     }
 
     @Override
-    public void copyContent( String key, OutputStream output )
+    public long copyContent( String key, OutputStream output )
         throws IOException, NoSuchElementException
     {
         if ( !blobExists( key ) )
@@ -364,11 +364,14 @@ public class JCloudsFileResourceContentStore
             throw new NoSuchElementException( "key '" + key + "' not found." );
         }
 
-        try ( InputStream in = getBlob( key ).getPayload().openStream() )
+        Blob blob = getBlob( key );
+
+        try ( InputStream in = blob.getPayload().openStream() )
         {
             IOUtils.copy( in, output );
         }
 
+        return blob.getMetadata().getContentMetadata().getContentLength();
     }
 
     // -------------------------------------------------------------------------
