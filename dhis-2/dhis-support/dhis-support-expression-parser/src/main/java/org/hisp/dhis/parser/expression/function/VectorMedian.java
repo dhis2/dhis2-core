@@ -37,7 +37,7 @@ import java.util.List;
  * @author Jim Grace
  */
 public class VectorMedian
-    extends VectorFunctionNoSql
+    extends VectorFunction
 {
     private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
 

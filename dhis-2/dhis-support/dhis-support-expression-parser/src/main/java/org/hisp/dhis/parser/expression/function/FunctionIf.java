@@ -29,8 +29,9 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -57,7 +58,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class FunctionIf
-    extends ScalarFunction
+    implements ExpressionItem
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
@@ -67,8 +68,8 @@ public class FunctionIf
         return arg0 == null
             ? null
             : arg0
-                ? visitor.visit( ctx.expr( 1 ) )
-                : visitor.visit( ctx.expr( 2 ) );
+            ? visitor.visit( ctx.expr( 1 ) )
+            : visitor.visit( ctx.expr( 2 ) );
     }
 
     @Override
