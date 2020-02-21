@@ -12,7 +12,7 @@
 }
 </style>
 
-#parse( "dhis-web-reporting/renderDataSetReportHeader.vm" )
+#parse( "dhis-web-approval/renderDataSetReportHeader.vm" )
 
 #foreach( $grid in $grids )
 <div class="formSection" style="margin-bottom:30px">
