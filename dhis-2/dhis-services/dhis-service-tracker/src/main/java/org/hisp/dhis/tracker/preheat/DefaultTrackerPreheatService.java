@@ -175,7 +175,6 @@ public class DefaultTrackerPreheatService
                 Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
                 String attribute = params.getIdentifiers().getOrgUnitAttributeId();
 
-
                 queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
             }
             else if ( klass.isAssignableFrom( Program.class ) )
@@ -184,7 +183,6 @@ public class DefaultTrackerPreheatService
                 TrackerIdentifier idScheme = params.getIdentifiers().getProgramIdScheme();
                 String attribute = params.getIdentifiers().getProgramAttributeId();
 
-
                 queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
             }
             else if ( klass.isAssignableFrom( ProgramStage.class ) )
@@ -192,7 +190,6 @@ public class DefaultTrackerPreheatService
                 Schema schema = schemaService.getDynamicSchema( ProgramStage.class );
                 TrackerIdentifier idScheme = params.getIdentifiers().getProgramStageIdScheme();
                 String attribute = params.getIdentifiers().getProgramStageAttributeId();
-
 
                 queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
             }

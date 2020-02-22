@@ -109,7 +109,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         Property curProperty = null;
         boolean persisted = true;
         List<String> alias = new ArrayList<>();
-        String[] pathComponents = path.split( "\\.|->" );
+        String[] pathComponents = path.split("\\." );
 
         if ( pathComponents.length == 0 )
         {
@@ -124,11 +124,6 @@ public class DefaultQueryPlanner implements QueryPlanner
             if ( curProperty == null )
             {
                 throw new RuntimeException( "Invalid path property: " + name );
-            }
-
-            if ( curProperty.isJsonbType() )
-            {
-                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
             }
 
             if ( !curProperty.isPersisted() )
