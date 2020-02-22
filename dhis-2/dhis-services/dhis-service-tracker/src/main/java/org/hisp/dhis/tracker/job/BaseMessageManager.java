@@ -48,8 +48,7 @@ public abstract class BaseMessageManager
 {
     private final MessageManager messageManager;
     private final ObjectMapper objectMapper;
-
-    protected final SchedulingManager schedulingManager;
+    private final SchedulingManager schedulingManager;
 
     public BaseMessageManager(
             MessageManager messageManager,
