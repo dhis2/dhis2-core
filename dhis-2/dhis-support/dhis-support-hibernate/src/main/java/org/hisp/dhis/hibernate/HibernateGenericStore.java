@@ -28,7 +28,6 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,6 +59,8 @@ import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -581,6 +582,19 @@ public class HibernateGenericStore<T>
     {
         List<T> objects = getByAttributeAndValue( attribute, value );
         return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ) );
+    }
+
+    @Override
+    public List<T> getAllByAttributeAndValues( Attribute attribute, List<String> values )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root );
+        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ), builder.literal( "value" ) ).in( values ) );
+
+        return getSession().createQuery( query ).list();
     }
 
     /**

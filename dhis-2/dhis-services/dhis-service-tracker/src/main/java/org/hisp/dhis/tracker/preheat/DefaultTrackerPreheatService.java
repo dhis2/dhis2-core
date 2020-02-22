@@ -31,21 +31,29 @@ package org.hisp.dhis.tracker.preheat;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -66,18 +74,28 @@ import java.util.Set;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-public class DefaultTrackerPreheatService implements TrackerPreheatService
+public class DefaultTrackerPreheatService
+    implements TrackerPreheatService
 {
     private static final Log log = LogFactory.getLog( DefaultTrackerPreheatService.class );
 
     private final SchemaService schemaService;
+
     private final QueryService queryService;
+
     private final IdentifiableObjectManager manager;
+
     private final CurrentUserService currentUserService;
+
     private final PeriodStore periodStore;
+
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+
     private final ProgramInstanceStore programInstanceStore;
+
     private final ProgramStageInstanceStore programStageInstanceStore;
+
+    private final IdentifiableObjectManager identifiableObjectManager;
 
     public DefaultTrackerPreheatService(
         SchemaService schemaService,
@@ -87,7 +105,8 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
         PeriodStore periodStore,
         TrackedEntityInstanceStore trackedEntityInstanceStore,
         ProgramInstanceStore programInstanceStore,
-        ProgramStageInstanceStore programStageInstanceStore )
+        ProgramStageInstanceStore programStageInstanceStore,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         this.schemaService = schemaService;
         this.queryService = queryService;
@@ -97,6 +116,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.programInstanceStore = programInstanceStore;
         this.programStageInstanceStore = programStageInstanceStore;
+        this.identifiableObjectManager = identifiableObjectManager;
     }
 
     @Override
@@ -119,14 +139,15 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
 
         for ( Class<?> klass : identifierMap.keySet() )
         {
-            Set<String> identifiers = identifierMap.get( klass ); // assume UID for now, will be done according to IdSchemes
+            Set<String> identifiers = identifierMap
+                .get( klass ); // assume UID for now, will be done according to IdSchemes
             List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), 20000 );
 
             if ( klass.isAssignableFrom( TrackedEntity.class ) )
             {
                 for ( List<String> ids : splitList )
                 {
-                    List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances =
+                    List<TrackedEntityInstance> trackedEntityInstances =
                         trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
                     preheat.putTrackedEntities( TrackerIdentifier.UID, trackedEntityInstances );
                 }
@@ -143,20 +164,53 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
             {
                 for ( List<String> ids : splitList )
                 {
-                    List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getByUid( ids, preheat.getUser() );
+                    List<ProgramStageInstance> programStageInstances = programStageInstanceStore
+                        .getByUid( ids, preheat.getUser() );
                     preheat.putEvents( TrackerIdentifier.UID, programStageInstances );
                 }
             }
+            else if ( klass.isAssignableFrom( OrganisationUnit.class ) )
+            {
+                TrackerIdentifier idScheme = params.getIdentifiers().getOrgUnitIdScheme();
+                Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
+                String attribute = params.getIdentifiers().getOrgUnitAttributeId();
+
+
+                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+            }
+            else if ( klass.isAssignableFrom( Program.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( Program.class );
+                TrackerIdentifier idScheme = params.getIdentifiers().getProgramIdScheme();
+                String attribute = params.getIdentifiers().getProgramAttributeId();
+
+
+                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+            }
+            else if ( klass.isAssignableFrom( ProgramStage.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( ProgramStage.class );
+                TrackerIdentifier idScheme = params.getIdentifiers().getProgramStageIdScheme();
+                String attribute = params.getIdentifiers().getProgramStageAttributeId();
+
+
+                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+            }
+            else if ( klass.isAssignableFrom( DataElement.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( DataElement.class );
+                TrackerIdentifier idScheme = params.getIdentifiers().getDataElementIdScheme();
+                String attribute = params.getIdentifiers().getDataElementAttributeId();
+
+                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+            }
             else
             {
-                for ( List<String> ids : splitList )
-                {
-                    Query query = Query.from( schemaService.getDynamicSchema( klass ) );
-                    query.setUser( preheat.getUser() );
-                    query.add( Restrictions.in( "id", ids ) );
-                    List<? extends IdentifiableObject> objects = queryService.query( query );
-                    preheat.put( TrackerIdentifier.UID, objects );
-                }
+                Schema schema = schemaService.getDynamicSchema( klass );
+                TrackerIdentifier idScheme = params.getIdentifiers().getIdScheme();
+                String attribute = params.getIdentifiers().getIdSchemeAttributeId();
+
+                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
             }
         }
 
@@ -164,7 +218,8 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
         preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
-        periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
+        periodStore.getAllPeriodTypes()
+            .forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
 
         List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
         programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdentifier.UID, pi.getProgram().getUid(), pi ) );
@@ -193,5 +248,43 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
         params.getEvents().stream()
             .filter( o -> StringUtils.isEmpty( o.getEvent() ) )
             .forEach( o -> o.setEvent( CodeGenerator.generateUid() ) );
+    }
+
+    private Restriction generateRestrictionFromIdentifiers( TrackerIdentifier idScheme, List<String> ids )
+    {
+        if ( TrackerIdentifier.CODE.equals( idScheme ) )
+        {
+            return Restrictions.in( "code", ids );
+        }
+        else
+        {
+            return Restrictions.in( "id", ids );
+        }
+    }
+
+    private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier idScheme, String attributeUid,
+        List<List<String>> splitList )
+    {
+        for ( List<String> ids : splitList )
+        {
+            List<? extends IdentifiableObject> objects;
+
+            if ( TrackerIdentifier.ATTRIBUTE.equals( idScheme ) )
+            {
+                Attribute attribute = new Attribute();
+                attribute.setUid( attributeUid );
+                objects = identifiableObjectManager.getAllByAttributeAndValues(
+                    (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
+            }
+            else
+            {
+                Query query = Query.from( schema );
+                query.setUser( preheat.getUser() );
+                query.add( generateRestrictionFromIdentifiers( idScheme, ids ) );
+                objects = queryService.query( query );
+            }
+
+            preheat.put( idScheme, objects );
+        }
     }
 }

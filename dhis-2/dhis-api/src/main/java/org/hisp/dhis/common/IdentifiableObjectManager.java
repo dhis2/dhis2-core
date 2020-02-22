@@ -162,6 +162,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value );
 
+    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass, Attribute attribute, List<String> values );
+
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );

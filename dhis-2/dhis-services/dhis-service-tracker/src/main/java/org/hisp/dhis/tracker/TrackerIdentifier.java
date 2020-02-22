@@ -46,9 +46,15 @@ public enum TrackerIdentifier
     CODE,
 
     /**
+     * Preheat using ATTRIBUTE identifiers
+     */
+    ATTRIBUTE,
+
+    /**
      * Find first non-null identifier in order: UID, CODE
      */
     AUTO;
+
 
     @SuppressWarnings( "incomplete-switch" )
     public <T extends IdentifiableObject> String getIdentifier( T object )

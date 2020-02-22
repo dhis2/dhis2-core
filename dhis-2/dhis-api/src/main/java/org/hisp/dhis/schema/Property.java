@@ -50,6 +50,7 @@ import java.util.Objects;
 @JacksonXmlRootElement( localName = "property", namespace = DxfNamespaces.DXF_2_0 )
 public class Property implements Ordered, Klass
 {
+
     /**
      * Class for property.
      */
@@ -264,6 +265,11 @@ public class Property implements Ordered, Klass
      * Default value of the Property
      */
     private Object defaultValue;
+
+    /**
+     * Whether the property is stored as jsonb
+     */
+    private boolean jsonbType;
 
     public Property()
     {
@@ -793,6 +799,20 @@ public class Property implements Ordered, Klass
         }
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isJsonbType()
+    {
+        return jsonbType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public void setJsonbType( boolean jsonbType )
+    {
+        this.jsonbType = jsonbType;
+    }
+
     public String key()
     {
         return isCollection() ? collectionName : name;
@@ -865,7 +885,8 @@ public class Property implements Ordered, Klass
             && Objects.equals( this.owningRole, other.owningRole )
             && Objects.equals( this.inverseRole, other.inverseRole )
             && Objects.equals( this.constants, other.constants )
-            && Objects.equals( this.defaultValue, other.defaultValue );
+            && Objects.equals( this.defaultValue, other.defaultValue )
+            && Objects.equals( this.jsonbType, other.jsonbType );
     }
 
     @Override
@@ -906,6 +927,7 @@ public class Property implements Ordered, Klass
             .add( "inverseRole", inverseRole )
             .add( "constants", constants )
             .add( "defaultValue", defaultValue )
+            .add( "jsonbType", jsonbType )
             .toString();
     }
 }

@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker;
 import com.google.common.base.Enums;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -164,7 +166,7 @@ public class DefaultTrackerImportService implements TrackerImportService
         params.setValidationMode( getEnumWithDefault( ValidationMode.class, parameters, "validationMode",
             ValidationMode.FULL ) );
         params.setImportMode( getEnumWithDefault( TrackerBundleMode.class, parameters, "importMode", TrackerBundleMode.COMMIT ) );
-        params.setIdentifier( getEnumWithDefault( TrackerIdentifier.class, parameters, "identifier", TrackerIdentifier.UID ) );
+        params.setIdentifiers( getTrackerIdentifiers( parameters ) );
         params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, "importStrategy",
             TrackerImportStrategy.CREATE_AND_UPDATE ) );
         params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL ) );
@@ -177,6 +179,46 @@ public class DefaultTrackerImportService implements TrackerImportService
     // Utility Methods
     //-----------------------------------------------------------------------------------
 
+    private TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
+    {
+        TrackerIdentifier idScheme = getEnumWithDefault( TrackerIdentifier.class, parameters, "idScheme", TrackerIdentifier.UID );
+
+        TrackerIdentifierParams identifiers = TrackerIdentifierParams.builder()
+            .dataElementIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "dataElementIdScheme", idScheme ) )
+            .orgUnitIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "orgUnitIdScheme", idScheme ) )
+            .programIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "programIdScheme", idScheme ) )
+            .programStageIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "programStageIdScheme", idScheme ) )
+            .idScheme( idScheme )
+            .build();
+
+        if ( identifiers.getIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
+        {
+            identifiers.setIdSchemeAttributeId( getAttributeUidOrNull( parameters, "idScheme" ) );
+        }
+
+        if ( identifiers.getOrgUnitIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
+        {
+            identifiers.setOrgUnitAttributeId( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) );
+        }
+
+        if ( identifiers.getDataElementIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
+        {
+            identifiers.setDataElementAttributeId( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) );
+        }
+
+        if ( identifiers.getProgramIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
+        {
+            identifiers.setProgramAttributeId( getAttributeUidOrNull( parameters, "programIdScheme" ) );
+        }
+
+        if ( identifiers.getProgramStageIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
+        {
+            identifiers.setProgramStageAttributeId( getAttributeUidOrNull( parameters, "programStageIdScheme" ) );
+        }
+
+        return identifiers;
+    }
+
     private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
     {
         if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
@@ -184,9 +226,35 @@ public class DefaultTrackerImportService implements TrackerImportService
             return defaultValue;
         }
 
+        if ( TrackerIdentifier.class.equals( enumKlass ) && IdScheme.isAttribute( parameters.get( key ).get( 0 ) ) )
+        {
+            return Enums.getIfPresent( enumKlass, "ATTRIBUTE" ).orNull();
+        }
+
         String value = String.valueOf( parameters.get( key ).get( 0 ) );
 
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
+    }
+
+    private String getAttributeUidOrNull(Map<String, List<String>> parameters, String key)
+    {
+        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
+        {
+            return null;
+        }
+
+        if ( IdScheme.isAttribute( parameters.get( key ).get( 0 ) ) )
+        {
+            // Get second half of string, separated by ':'
+            String uid = parameters.get( key ).get( 0 ).split( ":" )[1];
+
+            if ( CodeGenerator.isValidUid( uid ) )
+            {
+                return uid;
+            }
+        }
+
+        return null;
     }
 
     private User getUser( User user, String userUid )

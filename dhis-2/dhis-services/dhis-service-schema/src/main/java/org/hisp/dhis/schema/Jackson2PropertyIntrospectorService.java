@@ -142,6 +142,7 @@ public class Jackson2PropertyIntrospectorService
                 property.setManyToOne( hibernateProperty.isManyToOne() );
                 property.setOwningRole( hibernateProperty.getOwningRole() );
                 property.setInverseRole( hibernateProperty.getInverseRole() );
+                property.setJsonbType( hibernateProperty.isJsonbType() );
 
                 property.setGetterMethod( hibernateProperty.getGetterMethod() );
                 property.setSetterMethod( hibernateProperty.getSetterMethod() );
