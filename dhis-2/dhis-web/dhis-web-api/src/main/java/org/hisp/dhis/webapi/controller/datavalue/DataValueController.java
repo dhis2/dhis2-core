@@ -530,16 +530,7 @@ public class DataValueController
         setNoStore( response );
         try
         {
-            long contentLength = fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
-
-            if ( contentLength <= Integer.MAX_VALUE )
-            {
-                response.setContentLength( (int)contentLength );
-            }
-            else
-            {
-                response.addHeader( "Content-Length", Long.toString( contentLength ) );
-            }
+            response.setContentLengthLong( fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() ) );
         }
         catch ( IOException e )
         {
