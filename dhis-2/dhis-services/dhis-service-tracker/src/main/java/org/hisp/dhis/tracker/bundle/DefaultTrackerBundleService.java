@@ -360,8 +360,18 @@ public class DefaultTrackerBundleService
     private void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> attributes, TrackedEntityInstance trackedEntityInstance )
     {
+        List<TrackedEntityAttributeValue> attributeValues = new ArrayList<>();
+        List<String> attributeValuesForDeletion = new ArrayList<>();
+
         for ( Attribute at : attributes )
         {
+            // TEAV.getValue has a lot of tricky behind it since its being used for encryption, so we can't rely on that to
+            // get empty/null values, instead we build a simple list here to compare with.
+            if ( StringUtils.isEmpty( at.getValue() ) )
+            {
+                attributeValuesForDeletion.add( at.getAttribute() );
+            }
+
             TrackedEntityAttribute attribute = preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, at.getAttribute() );
             TrackedEntityAttributeValue attributeValue = null;
 
@@ -376,6 +386,7 @@ public class DefaultTrackerBundleService
                         .setStoredBy( at.getStoredBy() );
 
                     attributeValue = av;
+                    attributeValues.add( attributeValue );
 
                     break;
                 }
@@ -390,14 +401,23 @@ public class DefaultTrackerBundleService
                     .setValue( at.getValue() )
                     .setStoredBy( at.getStoredBy() );
 
-                trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
+                attributeValues.add( attributeValue );
             }
         }
 
-        for ( TrackedEntityAttributeValue attributeValue : trackedEntityInstance.getTrackedEntityAttributeValues() )
+        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
         {
-            attributeValue.setEntityInstance( trackedEntityInstance );
-            session.persist( attributeValue );
+            // since TEAV is the owning side here, we don't bother updating the TE.teav collection
+            // as it will be reloaded on session clear
+            if ( attributeValuesForDeletion.contains( attributeValue.getAttribute().getUid() ) )
+            {
+                session.remove( attributeValue );
+            }
+            else
+            {
+                attributeValue.setEntityInstance( trackedEntityInstance );
+                session.persist( attributeValue );
+            }
         }
     }
 
