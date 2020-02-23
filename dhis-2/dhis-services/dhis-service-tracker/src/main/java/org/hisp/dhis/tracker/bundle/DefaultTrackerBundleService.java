@@ -365,7 +365,7 @@ public class DefaultTrackerBundleService
 
         for ( Attribute at : attributes )
         {
-            // TEAV.getValue has a lot of tricky behind it since its being used for encryption, so we can't rely on that to
+            // TEAV.getValue has a lot of trickery behind it since its being used for encryption, so we can't rely on that to
             // get empty/null values, instead we build a simple list here to compare with.
             if ( StringUtils.isEmpty( at.getValue() ) )
             {
