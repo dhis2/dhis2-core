@@ -574,9 +574,7 @@ public class DataValueController
         setNoStore( response );
         try
         {
-            InputStream file = fileResourceService.getFileResourceContent( fileResource );
-            response.setContentLength( file.available() );
-            IOUtils.copy( file, response.getOutputStream() );
+            response.setContentLengthLong( fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() ) );
         }
         catch ( IOException e )
         {
