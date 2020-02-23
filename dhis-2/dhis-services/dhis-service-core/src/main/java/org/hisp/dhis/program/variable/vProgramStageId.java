@@ -31,24 +31,22 @@ package org.hisp.dhis.program.variable;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.AnalyticsType;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 /**
  * Program indicator variable: program stage id
  *
  * @author Jim Grace
  */
 public class vProgramStageId
-    extends ProgramVariable
+    implements ProgramVariable
 {
     @Override
-    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object defaultVariableValue()
     {
         return "WZbXY0S00lP";
     }
 
     @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( CommonExpressionVisitor visitor )
     {
         return AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() ? "ps" : "''";
     }

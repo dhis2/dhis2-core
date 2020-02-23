@@ -30,8 +30,6 @@ package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 /**
  * Program indicator variable: org unit count
  *
@@ -41,7 +39,7 @@ public class vOrgUnitCount
     extends ProgramDoubleVariable
 {
     @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( CommonExpressionVisitor visitor )
     {
         return "distinct ou";
     }

@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -265,12 +266,12 @@ public class DefaultDataIntegrityService
 
         return map;
     }
-    
+
     @Override
     public List<CategoryCombo> getInvalidCategoryCombos()
     {
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
-        
+
         return categoryCombos.stream().filter( c -> !c.isValid() ).collect( Collectors.toList() );
     }
 
@@ -476,7 +477,7 @@ public class DefaultDataIntegrityService
     public List<OrganisationUnit> getOrphanedOrganisationUnits()
     {
         List<OrganisationUnit> units = organisationUnitService.getAllOrganisationUnits();
-        
+
         return units.stream().filter( ou -> ou.getParent() == null && ( ou.getChildren() == null || ou.getChildren().size() == 0 ) ).collect( Collectors.toList() );
     }
 
@@ -512,7 +513,7 @@ public class DefaultDataIntegrityService
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
     {
         Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
-        
+
         return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
     }
 
@@ -524,7 +525,7 @@ public class DefaultDataIntegrityService
     public List<ValidationRule> getValidationRulesWithoutGroups()
     {
         Collection<ValidationRule> validationRules = validationRuleService.getAllValidationRules();
-        
+
         return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() ).collect( Collectors.toList() );
     }
 
@@ -570,7 +571,7 @@ public class DefaultDataIntegrityService
     public DataIntegrityReport getDataIntegrityReport()
     {
         DataIntegrityReport report = new DataIntegrityReport();
-        
+
         report.setDataElementsWithoutDataSet( new ArrayList<>( getDataElementsWithoutDataSet() ) );
         report.setDataElementsWithoutGroups( new ArrayList<>( getDataElementsWithoutGroups() ) );
         report.setDataElementsAssignedToDataSetsWithDifferentPeriodTypes( getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
@@ -782,7 +783,7 @@ public class DefaultDataIntegrityService
         {
             expressionService.getExpressionDescription( expression, INDICATOR_EXPRESSION );
         }
-        catch ( org.hisp.dhis.parser.expression.ParserException e )
+        catch ( ParserException e )
         {
            return e.getMessage();
         }

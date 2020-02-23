@@ -69,7 +69,7 @@ public interface AppStorageService
     App installApp( File file, String filename, Cache<App> appCache );
 
     /**
-     * Deletes an app from the AppStoreService.
+     * Deletes an app from the AppHubService.
      * 
      * @param app the app to delete
      * @return true if app is deleted, false if something fails

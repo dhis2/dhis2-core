@@ -43,10 +43,11 @@ import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJob
 import java.util.Map;
 
 /**
- * Enum describing the different jobs in the system.
- * Each job has a key, class, configurable status and possibly a map containing relative endpoints for possible parameters.
+ * Enum describing the different jobs in the system. Each job has a key, class, configurable
+ * status and possibly a map containing relative endpoints for possible parameters.
  * <p>
- * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch the correct job
+ * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch
+ * the correct job
  *
  * @author Henning Håkonsen
  */

@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
@@ -126,6 +127,12 @@ public class TrackerBundle
      */
     @Builder.Default
     private List<Event> events = new ArrayList<>();
+
+    /**
+     * Relationships to import.
+     */
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
     public String getUsername()

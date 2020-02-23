@@ -30,12 +30,16 @@ package org.hisp.dhis.parser.expression.function;
 
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.period.Period;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -44,14 +48,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class VectorFunction
-    implements ExprFunction
+    implements ExpressionItem
 {
-    @Override
-    public final Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return evaluate( ctx, visitor );
-    }
-
     @Override
     public Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
@@ -125,7 +123,7 @@ public abstract class VectorFunction
      * vector function (like count) that returns a non-null value (0) if
      * no actual values are found.
      *
-     * @param value the value to count (might be null)
+     * @param value   the value to count (might be null)
      * @param visitor the tree visitor
      * @return the value to return (null might be replaced)
      */

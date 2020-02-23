@@ -522,6 +522,11 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-antlr-expression-parser</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-test</artifactId>
         <version>${project.version}</version>
         <scope>test</scope>
@@ -1522,12 +1527,12 @@
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-spring-legacy</artifactId>
-        <version>1.3.0</version>
+        <version>1.3.5</version>
       </dependency>
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
-        <version>1.3.0</version>
+        <version>1.3.5</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
