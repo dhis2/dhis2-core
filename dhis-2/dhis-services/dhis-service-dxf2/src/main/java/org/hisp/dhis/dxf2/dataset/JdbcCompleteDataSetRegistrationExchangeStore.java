@@ -93,8 +93,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     
     private static final String P_COMPLETED = "completed";
 
-    private static final String P_COMPLETED = "completed";
-
     //--------------------------------------------------------------------------
     // Dependencies
     //--------------------------------------------------------------------------
