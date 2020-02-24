@@ -268,14 +268,16 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( TrackerSideEffectDataBundle.builder()
+            TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
                 .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
                 .eventRuleEffects( bundle.getEventRuleEffects() )
                 .object( programInstance )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
-                .build() ) );
+                .build();
+
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
         }
 
         session.flush();
@@ -320,14 +322,16 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( TrackerSideEffectDataBundle.builder()
+            TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
                 .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
                 .eventRuleEffects( bundle.getEventRuleEffects() )
                 .object( programStageInstance )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
-                .build() ) );
+                .build();
+
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
         }
 
         session.flush();
