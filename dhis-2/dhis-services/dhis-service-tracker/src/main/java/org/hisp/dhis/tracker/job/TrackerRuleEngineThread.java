@@ -28,12 +28,9 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -53,20 +50,11 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 {
     private final List<RuleActionImplementer> ruleActionImplementers;
 
-    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverterService;
-
-    private final TrackerConverterService<Event, ProgramStageInstance> eventConverterService;
-
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread(
-            List<RuleActionImplementer> ruleActionImplementers,
-            TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverterService,
-            TrackerConverterService<Event, ProgramStageInstance> eventConverterService )
+    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers )
     {
         this.ruleActionImplementers = ruleActionImplementers;
-        this.enrollmentConverterService = enrollmentConverterService;
-        this.eventConverterService = eventConverterService;
     }
 
     @Override
@@ -84,7 +72,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
                     entry.getValue()
                             .parallelStream()
                             .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                            .forEach( effect -> ruleActionImplementer.implement( effect, enrollmentConverterService.from( entry.getKey() ) ) );
+                            .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey().getEnrollment() ) );
                 }
 
                 for ( Map.Entry<Event, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
@@ -92,7 +80,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
                     entry.getValue()
                             .parallelStream()
                             .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                            .forEach( effect -> ruleActionImplementer.implement( effect, eventConverterService.from( entry.getKey() ) ) );
+                            .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey().getEvent() ) );
                 }
             }
         }

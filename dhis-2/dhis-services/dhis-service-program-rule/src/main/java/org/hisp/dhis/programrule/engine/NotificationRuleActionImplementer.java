@@ -33,6 +33,8 @@ import java.util.Date;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
@@ -46,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 @Slf4j
 abstract class NotificationRuleActionImplementer implements RuleActionImplementer
@@ -56,10 +58,16 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     // -------------------------------------------------------------------------
 
     @Autowired
-    private ProgramNotificationTemplateStore programNotificationTemplateStore;
+    protected ProgramNotificationTemplateStore programNotificationTemplateStore;
 
     @Autowired
-    private NotificationLoggingService notificationLoggingService;
+    protected NotificationLoggingService notificationLoggingService;
+
+    @Autowired
+    protected ProgramInstanceService programInstanceService;
+
+    @Autowired
+    protected ProgramStageInstanceService programStageInstanceService;
 
     protected ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
     {

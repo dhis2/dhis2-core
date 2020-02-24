@@ -43,4 +43,8 @@ public interface RuleActionImplementer
     void implement( RuleEffect ruleEffect, ProgramInstance programInstance );
 
     void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
+
+    void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance );
+
+    void implementEventAction( RuleEffect ruleEffect, String programStageInstance );
 }

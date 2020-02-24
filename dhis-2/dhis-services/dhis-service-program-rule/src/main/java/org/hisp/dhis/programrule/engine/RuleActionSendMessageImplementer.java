@@ -29,7 +29,6 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
-import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -56,15 +55,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     private final ApplicationEventPublisher publisher;
 
-    private final NotificationLoggingService notificationLoggingService;
-
-    public RuleActionSendMessageImplementer( ApplicationEventPublisher publisher, NotificationLoggingService notificationLoggingService) {
-
+    public RuleActionSendMessageImplementer( ApplicationEventPublisher publisher )
+    {
         checkNotNull( publisher );
-        checkNotNull( notificationLoggingService );
 
         this.publisher = publisher;
-        this.notificationLoggingService = notificationLoggingService;
     }
 
     @Override
@@ -110,5 +105,17 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
 
         notificationLoggingService.save( entry );
+    }
+
+    @Override
+    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    {
+        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+    }
+
+    @Override
+    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    {
+        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
     }
 }
