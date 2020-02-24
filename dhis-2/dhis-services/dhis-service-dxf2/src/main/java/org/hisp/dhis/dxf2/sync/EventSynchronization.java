@@ -122,7 +122,7 @@ public class EventSynchronization
         for ( int i = 1; i <= pages; i++ )
         {
             Events events = eventService.getAnonymousEventsForSync( pageSize, skipChangedBefore, psdesWithSkipSyncTrue );
-            filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
+            SyncUtils.filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
             log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 
             if ( log.isDebugEnabled() )
@@ -151,18 +151,6 @@ public class EventSynchronization
         }
 
         return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed." );
-    }
-
-    private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
-    {
-        for ( Event event : events.getEvents() )
-        {
-            event.setDataValues(
-                event.getDataValues().stream()
-                    .filter( dv -> !dv.isSkipSynchronization() )
-                    .collect( Collectors.toSet() )
-            );
-        }
     }
 
     private boolean sendEventsSyncRequest( Events events, SystemInstance instance )

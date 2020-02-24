@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.synch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.dxf2.sync.EventSynchronization;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -48,6 +49,9 @@ public class DataSynchronizationJob
 {
     @Autowired
     private SynchronizationManager synchronizationManager;
+
+    @Autowired
+    private EventSynchronization eventSync;
 
     @Autowired
     private MessageService messageService;
@@ -98,17 +102,14 @@ public class DataSynchronizationJob
 
         try
         {
-            synchronizationManager.executeEventPush();
+            eventSync.syncEventProgramData();
+            notifier.notify( jobConfiguration, "Event programs data sync successful" );
         }
-        catch ( RuntimeException ex )
+        catch ( Exception e )
         {
-            notifier.notify( jobConfiguration, "Event sync failed: " + ex.getMessage() );
-
-            messageService.sendSystemErrorNotification( "Event sync failed", ex );
-        }
-        catch ( WebMessageParseException e )
-        {
-            log.error("Error while executing event sync task. "+ e.getMessage(), e );
+            log.error( "EventPrograms data sync failed.", e );
+            notifier.notify( jobConfiguration, "Event sync failed: " + e.getMessage() );
+            messageService.sendSystemErrorNotification( "Event sync failed", e );
         }
 
         notifier.notify( jobConfiguration, "Data value, Complete data set registration and Event sync successful" );
