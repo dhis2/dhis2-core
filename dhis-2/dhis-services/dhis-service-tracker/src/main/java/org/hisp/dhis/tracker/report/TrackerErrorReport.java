@@ -100,6 +100,7 @@ public class TrackerErrorReport
     {
         return "TrackerErrorReport{" +
             "message=" + message.getMessage() +
+            ", errorCode=" + message.getErrorCode() +
             ", mainId='" + mainId + '\'' +
             ", mainKlass=" + mainKlass +
             ", errorKlass=" + errorKlass +

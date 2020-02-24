@@ -54,6 +54,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -132,7 +134,7 @@ public class EnrollmentImportValidationTest
     {
         for ( TrackerErrorReport errorReport : report.getErrorReports() )
         {
-            log.info( errorReport.toString() );
+            log.error( errorReport.toString() );
         }
     }
 
@@ -159,4 +161,68 @@ public class EnrollmentImportValidationTest
 
     }
 
+    @Test
+    public void testDatesMissing()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_error-dates-missing.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 4, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1026 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1027 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1025 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1023 ) ) ) );
+
+        // Should cause DB constraint error
+//        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+//        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+    }
+
+    @Test
+    public void testDatesInFuture()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_error-dates-future.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1020 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1021 ) ) ) );
+    }
 }

@@ -107,7 +107,7 @@ public class EnrollmentDateValidationHook
         // NOTE: getEnrollmentDate is always mandatory?
         if ( !isValidDateAndNotNull( enrollment.getEnrollmentDate() ) )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1024 )
+            errorReporter.addError( newReport( TrackerErrorCode.E1025 )
                 .addArg( enrollment.getEnrollmentDate() ) );
         }
 
