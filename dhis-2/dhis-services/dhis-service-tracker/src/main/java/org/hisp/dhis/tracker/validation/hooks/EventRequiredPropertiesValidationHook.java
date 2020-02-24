@@ -64,7 +64,7 @@ public class EventRequiredPropertiesValidationHook
             ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
             OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, event.getTrackedEntityInstance() );
+                .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
             if ( programStageInstance == null && isValidId( bundle.getIdentifier(), event.getEvent() ) )

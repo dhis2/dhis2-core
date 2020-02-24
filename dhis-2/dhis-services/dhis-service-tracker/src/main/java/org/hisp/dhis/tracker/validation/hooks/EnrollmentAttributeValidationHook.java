@@ -79,7 +79,7 @@ public class EnrollmentAttributeValidationHook
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
+                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
             Map<String, String> attributeValueMap = Maps.newHashMap();
             for ( Attribute attribute : enrollment.getAttributes() )

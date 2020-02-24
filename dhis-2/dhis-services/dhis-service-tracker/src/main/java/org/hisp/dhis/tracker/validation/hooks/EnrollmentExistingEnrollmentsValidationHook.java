@@ -92,7 +92,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
             OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
+                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
             // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
             if ( program == null || organisationUnit == null || trackedEntityInstance == null )
@@ -195,7 +195,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
         if ( programInstance.getEntityInstance() != null )
         {
             enrollment.setTrackedEntityType( programInstance.getEntityInstance().getTrackedEntityType().getUid() );
-            enrollment.setTrackedEntityInstance( programInstance.getEntityInstance().getUid() );
+            enrollment.setTrackedEntity( programInstance.getEntityInstance().getUid() );
         }
 
         if ( programInstance.getOrganisationUnit() != null )

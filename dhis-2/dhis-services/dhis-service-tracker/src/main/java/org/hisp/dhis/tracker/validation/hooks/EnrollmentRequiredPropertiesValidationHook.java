@@ -70,7 +70,7 @@ public class EnrollmentRequiredPropertiesValidationHook
             if ( program == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1069 )
-                    .addArg( enrollment.getTrackedEntityInstance() ) );
+                    .addArg( enrollment.getTrackedEntity() ) );
             }
             else if ( !program.isRegistration() )
             {
@@ -82,15 +82,15 @@ public class EnrollmentRequiredPropertiesValidationHook
             if ( organisationUnit == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1070 )
-                    .addArg( enrollment.getTrackedEntityInstance() ) );
+                    .addArg( enrollment.getTrackedEntity() ) );
             }
 
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
+                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
             if ( trackedEntityInstance == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1068 )
-                    .addArg( enrollment.getTrackedEntityInstance() ) );
+                    .addArg( enrollment.getTrackedEntity() ) );
             }
 
             if ( program != null && trackedEntityInstance != null )

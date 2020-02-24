@@ -81,7 +81,7 @@ public class EnrollmentSecurityValidationHook
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
             OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntityInstance() );
+                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
             // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
             if ( program == null || organisationUnit == null || trackedEntityInstance == null )

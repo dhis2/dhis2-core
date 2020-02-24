@@ -50,7 +50,7 @@ public class EventDateValidationHook
                 .getProgramStageInstance( bundle, event.getEvent() );
             ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, event.getTrackedEntityInstance() );
+                .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
             if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )

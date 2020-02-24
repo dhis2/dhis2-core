@@ -54,7 +54,7 @@ public class EventCategoryOptValidationHook
             ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
             ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, event.getTrackedEntityInstance() );
+                .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
             if ( program == null )
