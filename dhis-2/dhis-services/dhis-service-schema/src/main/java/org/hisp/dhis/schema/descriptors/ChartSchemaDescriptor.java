@@ -46,6 +46,10 @@ public class ChartSchemaDescriptor implements SchemaDescriptor
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
+    public static final String F_CHART_PUBLIC_ADD = "F_CHART_PUBLIC_ADD";
+
+    public static final String F_CHART_EXTERNAL = "F_CHART_EXTERNAL";
+
     @Override
     public Schema getSchema()
     {
@@ -54,8 +58,10 @@ public class ChartSchemaDescriptor implements SchemaDescriptor
         schema.setImplicitPrivateAuthority( true );
         schema.setOrder( 2000 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_CHART_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_CHART_EXTERNAL" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_CHART_PUBLIC_ADD ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_CHART_EXTERNAL ) ) );
 
         return schema;
     }
