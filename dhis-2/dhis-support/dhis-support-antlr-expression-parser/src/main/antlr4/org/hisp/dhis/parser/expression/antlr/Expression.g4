@@ -110,6 +110,7 @@ expr
     |   it='#{' programRuleVariableName '}'
     |   it='A{' uid0=UID '.' uid1=UID '}' // Program attribute in expressions (indicator, etc.)
     |   it='A{' uid0=UID '}' // Program attribute in program indicator expressions
+    |   it='A{' programRuleVariableName '}'
     |   it='C{' uid0=UID '}'
     |   it='D{' uid0=UID '.' uid1=UID '}'
     |   it='I{' uid0=UID '}'
