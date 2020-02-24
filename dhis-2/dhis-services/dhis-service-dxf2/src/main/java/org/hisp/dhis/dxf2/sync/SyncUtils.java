@@ -394,13 +394,9 @@ public class SyncUtils
     {
         for ( Event event : events.getEvents() )
         {
-            log.info( "Event: " + event );
-
             event.setDataValues(
                 event.getDataValues().stream()
-                    .peek( dv -> System.out.println( "DataValue: " + dv ) )
                     .filter( dv -> !dv.isSkipSynchronization() )
-                    .peek( dv -> System.out.println( "Filtered DataValue: " + dv ) )
                     .collect( Collectors.toList() )
             );
         }
