@@ -29,15 +29,11 @@ package org.hisp.dhis.tracker;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
