@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
@@ -52,12 +51,11 @@ import java.util.Collections;
 
 @Controller
 @RequestMapping( value = SmsConfigurationController.RESOURCE_PATH )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsConfigurationController
 {
     public static final String RESOURCE_PATH = "/config/sms";
-
-    private static final Log log = LogFactory.getLog( SmsConfigurationController.class );
 
     @Autowired
     private SmsConfigurationManager smsConfigurationManager;
@@ -92,7 +90,7 @@ public class SmsConfigurationController
     // --------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.PUT )
-    public @ResponseBody SmsConfiguration putSmsConfig( @RequestBody SmsConfiguration smsConfiguration, Model model )
+    public @ResponseBody SmsConfiguration putSmsConfig( @RequestBody SmsConfiguration smsConfiguration )
         throws Exception
     {
         if ( smsConfiguration == null )

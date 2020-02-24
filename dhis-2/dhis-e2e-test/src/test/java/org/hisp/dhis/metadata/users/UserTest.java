@@ -29,14 +29,12 @@
 package org.hisp.dhis.metadata.users;
 
 import com.google.gson.JsonObject;
-import io.restassured.specification.Argument;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -77,7 +75,11 @@ public class UserTest extends ApiTest
             Arguments.of( password, "test", "Password must have at least 8, and at most 40 characters", "newPassword is too short" ),
             Arguments.of( password, DataGenerator.randomString(41), "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
             Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
-            Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" )
+            Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" ),
+            Arguments.of( password, "test1212?", "Password must have at least one upper case", "newPassword doesn't contain uppercase" ),
+            Arguments.of( password, "Testtest1212", "Password must have at least one special character", "newPassword doesn't contain a special character" ),
+            Arguments.of( password, "Testtest?", "Password must have at least one digit", "newPassword doesn't contain a digit" )
+
         } );
     }
 

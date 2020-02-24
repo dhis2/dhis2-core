@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,11 @@ package org.hisp.dhis.tracker;
  */
 
 import com.google.common.base.Enums;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -55,45 +55,67 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service
-public class DefaultTrackerImportService implements TrackerImportService
+public class DefaultTrackerImportService
+    implements TrackerImportService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackerImportService.class );
-
     private final TrackerBundleService trackerBundleService;
+
     private final TrackerValidationService trackerValidationService;
+
     private final CurrentUserService currentUserService;
+
     private final IdentifiableObjectManager manager;
+
+    private final Notifier notifier;
 
     public DefaultTrackerImportService(
         TrackerBundleService trackerBundleService,
         TrackerValidationService trackerValidationService,
         CurrentUserService currentUserService,
-        IdentifiableObjectManager manager )
+        IdentifiableObjectManager manager,
+        Notifier notifier )
     {
         this.trackerBundleService = trackerBundleService;
         this.trackerValidationService = trackerValidationService;
         this.currentUserService = currentUserService;
         this.manager = manager;
+        this.notifier = notifier;
     }
 
     @Override
     @Transactional
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
+        params.setUser( getUser( params.getUser(), params.getUserId() ) );
+
         Timer timer = new SystemTimer().start();
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
-        params.setUser( getUser( params.getUser(), params.getUserId() ) );
+        if ( params.hasJobConfiguration() )
+        {
+            notifier.notify( params.getJobConfiguration(), message );
+        }
 
         TrackerImportReport importReport = new TrackerImportReport();
 
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
         List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
+        Timer validationTimer = new SystemTimer().start();
+
         TrackerValidationReport validationReport = new TrackerValidationReport();
         trackerBundles.forEach( tb -> validationReport.add( trackerValidationService.validate( tb ) ) );
+
+        message = "(" + params.getUsername() + ") Import:Validation took " + validationTimer.toString();
+        log.info( message );
+
+        if ( params.hasJobConfiguration() )
+        {
+            notifier.update( params.getJobConfiguration(), message );
+        }
 
         if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
         {
@@ -109,7 +131,13 @@ public class DefaultTrackerImportService implements TrackerImportService
                 importReport.setStatus( TrackerStatus.WARNING );
             }
 
-            log.info( "(" + params.getUsername() + ") Import:Commit took " + commitTimer.toString() );
+            message = "(" + params.getUsername() + ") Import:Commit took " + commitTimer.toString();
+            log.info( message );
+
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), message );
+            }
         }
         else
         {
@@ -120,6 +148,12 @@ public class DefaultTrackerImportService implements TrackerImportService
         log.info( message );
 
         TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
+
+        if ( params.hasJobConfiguration() )
+        {
+            notifier.update( params.getJobConfiguration(), message, true );
+            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+        }
 
         return importReport;
     }
@@ -145,18 +179,6 @@ public class DefaultTrackerImportService implements TrackerImportService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
-
-    private boolean getBooleanWithDefault( Map<String, List<String>> parameters, String key, boolean defaultValue )
-    {
-        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
-        {
-            return defaultValue;
-        }
-
-        String value = String.valueOf( parameters.get( key ).get( 0 ) );
-
-        return "true".equals( value.toLowerCase() );
-    }
 
     private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
     {

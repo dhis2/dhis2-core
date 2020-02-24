@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,10 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.program.ProgramExpressionItem;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -43,12 +42,12 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class D2Zpvc
-    extends SimpleScalarFunction
+    extends ProgramExpressionItem
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ctx.item().stream().forEach( i -> castDouble( visitor.visit( i ) ) );
+        ctx.expr().stream().forEach( i -> castDouble( visitor.visit( i ) ) );
 
         return DEFAULT_DOUBLE_VALUE;
     }
@@ -58,7 +57,7 @@ public class D2Zpvc
     {
         String sql = "nullif(cast((";
 
-        for ( ExpressionParser.ItemContext c :  ctx.item() )
+        for ( ExprContext c :  ctx.expr() )
         {
             sql += "case when " + visitor.visitAllowingNulls( c ) + " >= 0 then 1 else 0 end + ";
         }

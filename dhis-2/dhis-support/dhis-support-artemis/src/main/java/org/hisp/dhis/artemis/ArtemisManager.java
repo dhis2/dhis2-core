@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,10 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hisp.dhis.artemis.config.ArtemisConfigData;
 import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.springframework.stereotype.Service;
@@ -42,10 +43,9 @@ import javax.annotation.PreDestroy;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Slf4j
 public class ArtemisManager
 {
-    private final Log log = LogFactory.getLog( ArtemisManager.class );
-
     private final EmbeddedActiveMQ embeddedActiveMQ;
     private final ArtemisConfigData artemisConfigData;
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,22 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaQuery;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
+import org.hibernate.criterion.*;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.AuditLogUtil;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -57,41 +57,20 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.user.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author bobj
  */
+@Slf4j
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
 {
-    private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
-
     protected CurrentUserService currentUserService;
 
     private DeletedObjectService deletedObjectService;
@@ -582,6 +561,41 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             conjunction.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
         }
+
+        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
+
+        return getList( builder, param );
+    }
+
+    public List<T> getAllLikeNameAndEqualsAttribute( Set<String> nameWords, String attribute, String attributeValue, int first, int max )
+    {
+
+        if ( StringUtils.isEmpty( attribute ) || StringUtils.isEmpty( attributeValue ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addOrder( root -> builder.asc( root.get( "name" ) ) )
+            .setFirstResult( first )
+            .setMaxResults( max );
+
+        if ( nameWords.isEmpty() )
+        {
+            return getList( builder, param );
+        }
+
+        List<Function<Root<T>, Predicate>> conjunction = new ArrayList<>();
+
+        for ( String word : nameWords )
+        {
+            conjunction.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
+        }
+
+        conjunction.add( root -> builder.equal( builder.lower( root.get( attribute ) ), attributeValue ) );
 
         param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
 

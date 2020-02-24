@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.log;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -64,6 +64,7 @@ import com.google.common.collect.Lists;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "logInitializer" )
 public class Log4JLogConfigInitializer
     implements LogConfigInitializer
@@ -78,8 +79,6 @@ public class Log4JLogConfigInitializer
     private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
     private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
     private static final String LOG4J_CONF_PROP = "log4j.configuration";
-
-    private static final Log log = LogFactory.getLog( Log4JLogConfigInitializer.class );
 
     private final LocationManager locationManager;
 
@@ -119,7 +118,7 @@ public class Log4JLogConfigInitializer
 
         configureLoggers( DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2" ) );
 
-        configureLoggers( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.synch" ) );
+        configureLoggers( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.sync" ) );
 
         configureLoggers( METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.metadata" ) );
 
@@ -149,7 +148,7 @@ public class Log4JLogConfigInitializer
 
         for ( String loggerName : loggers )
         {
-            LoggerConfig loggerConfig = LoggerConfig.createLogger( false, Level.INFO, loggerName, "true", refs, null,
+            LoggerConfig loggerConfig = LoggerConfig.createLogger( true, Level.INFO, loggerName, "true", refs, null,
                 getLogConfiguration(), null );
 
             loggerConfig.addAppender(appender, null, null);

@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -53,6 +51,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
@@ -61,6 +61,7 @@ import com.google.common.collect.Lists;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
@@ -75,8 +76,6 @@ public class DefaultSystemSettingManager
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private static final Log log = LogFactory.getLog( DefaultSystemSettingManager.class );
 
     private SystemSettingStore systemSettingStore;
 
@@ -157,6 +156,32 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
+    public void saveSystemSettingTranslation( SettingKey key, String locale, String translation )
+    {
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
+        if ( setting == null && !translation.isEmpty() )
+        {
+            throw new IllegalStateException( "No entry found for key: " + key );
+        }
+        else if ( setting != null )
+        {
+            if ( translation.isEmpty() )
+            {
+                setting.getTranslations().remove( locale );
+            }
+            else
+            {
+                setting.getTranslations().put( locale, translation );
+            }
+
+            settingCache.invalidate( key.getName() );
+            systemSettingStore.update( setting );
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteSystemSetting( SettingKey key )
     {
         SystemSetting setting = systemSettingStore.getByName( key.getName() );
@@ -227,6 +252,18 @@ public class DefaultSystemSettingManager
         {
             return Optional.ofNullable( defaultValue );
         }
+    }
+
+    @Override
+    public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
+    {
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
+        if ( setting != null )
+        {
+            return setting.getTranslation( locale );
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -403,5 +440,11 @@ public class DefaultSystemSettingManager
     public boolean isConfidential( String name )
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+    }
+
+    @Override
+    public boolean isTranslatable( final String name )
+    {
+        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
     }
 }

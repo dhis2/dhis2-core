@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation.impl;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -52,7 +51,6 @@ import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -61,6 +59,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -83,17 +82,17 @@ public class DefaultInterpretationService
     private final InterpretationStore interpretationStore;
 
     private CurrentUserService currentUserService;
-    
+
     private UserService userService;
-    
+
     private final PeriodService periodService;
 
     private final MessageService messageService;
 
     private final AclService aclService;
-    
+
     private final I18nManager i18nManager;
-    
+
     private final DhisConfigurationProvider configurationProvider;
 
     public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
@@ -489,27 +488,15 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public int countMapInterpretations( Map map )
+    public long countMapInterpretations( Map map )
     {
         return interpretationStore.countMapInterpretations( map );
     }
 
     @Override
-    public int countChartInterpretations( Chart chart )
+    public long countVisualizationInterpretations( Visualization visualization )
     {
-        return interpretationStore.countChartInterpretations( chart );
-    }
-
-    @Override
-    public int countReportTableInterpretations( ReportTable reportTable )
-    {
-        return interpretationStore.countReportTableInterpretations( reportTable );
-    }
-
-    @Override
-    public Interpretation getInterpretationByChart( long id )
-    {
-        return interpretationStore.getByChartId( id );
+        return interpretationStore.countVisualizationInterpretations( visualization );
     }
 
     @Override

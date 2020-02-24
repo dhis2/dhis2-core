@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +33,21 @@ import java.util.Properties;
 import org.hisp.dhis.container.DhisPostgisContainerProvider;
 import org.hisp.dhis.container.DhisPostgreSQLContainer;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Slf4j
 @Configuration
 @ComponentScan( "org.hisp.dhis" )
 public class IntegrationTestConfig
 {
-    private static final Logger log = LoggerFactory.getLogger(IntegrationTestConfig.class);
     private static final String POSTGRES_DATABASE_NAME = "dhis";
 
     private static final String POSTGRES_CREDENTIALS = "dhis";

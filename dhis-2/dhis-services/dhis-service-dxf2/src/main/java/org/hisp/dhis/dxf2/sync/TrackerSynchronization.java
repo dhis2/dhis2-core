@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,11 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstances;
-import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -53,17 +51,18 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component
-public class TrackerSynchronization
+public class TrackerSynchronization extends DataSynchronization
 {
-    private static final Log log = LogFactory.getLog( TrackerSynchronization.class );
-
     private final TrackedEntityInstanceService teiService;
     private final SystemSettingManager systemSettingManager;
     private final RestTemplate restTemplate;
     private final RenderService renderService;
+
+    private TrackedEntityInstanceQueryParams queryParams;
 
     public TrackerSynchronization( TrackedEntityInstanceService teiService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService )
     {
@@ -78,19 +77,14 @@ public class TrackerSynchronization
         this.renderService = renderService;
     }
 
-    public SynchronizationResult syncTrackerProgramData( final int pageSize )
+    public SynchronizationResult synchronizeData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
             return SynchronizationResult.newFailureResultWithMessage( "Tracker programs data synchronization failed. Remote server is unavailable." );
         }
 
-        final Clock clock = new Clock( log ).startClock().logTime( "Starting Tracker programs data synchronization job." );
-        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        final TrackedEntityInstanceQueryParams queryParams = prepareQueryParams( skipChangedBefore );
-        final int objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
-
-        log.info( "TrackedEntityInstances last changed before " + skipChangedBefore + " will not be synchronized." );
+        initializeSyncVariables( pageSize );
 
         if ( objectsToSynchronize == 0 )
         {
@@ -98,16 +92,7 @@ public class TrackerSynchronization
             return SynchronizationResult.newSuccessResultWithMessage( "Tracker programs data synchronization skipped. No new or updated TEIs found." );
         }
 
-        final SystemInstance instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.TRACKED_ENTITY_INSTANCES );
-        final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
-
-        log.info( objectsToSynchronize + " TEIs to sync were found." );
-        log.info( "Remote server URL for Tracker programs POST synchronization: " + instance.getUrl() );
-        log.info( "Tracker programs data synchronization job has " + pages + " pages to synchronize. With page size: " + pageSize );
-
-        queryParams.setPageSize( pageSize );
-
-        boolean syncResult = runTrackerSyncWithPaging( instance, queryParams, clock, pageSize, pages );
+        runSyncWithPaging( pageSize );
 
         if ( syncResult )
         {
@@ -118,52 +103,66 @@ public class TrackerSynchronization
         return SynchronizationResult.newFailureResultWithMessage( "Tracker programs data synchronization failed." );
     }
 
-    private TrackedEntityInstanceQueryParams prepareQueryParams( Date skipChangedBefore )
+    private void initializeSyncVariables( final int pageSize )
     {
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        clock = new Clock( log ).startClock().logTime( "Starting Tracker programs data synchronization job." );
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        prepareQueryParams( skipChangedBefore );
+        objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
+
+        log.info( "TrackedEntityInstances last changed before " + skipChangedBefore + " will not be synchronized." );
+
+        if ( objectsToSynchronize != 0 )
+        {
+            instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager, SyncEndpoint.TRACKED_ENTITY_INSTANCES );
+            pages = ( objectsToSynchronize / pageSize ) + (( objectsToSynchronize % pageSize == 0 ) ? 0 : 1 );  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
+
+            log.info( objectsToSynchronize + " TEIs to sync were found." );
+            log.info( "Remote server URL for Tracker programs POST synchronization: " + instance.getUrl() );
+            log.info(
+                "Tracker programs data synchronization job has " + pages + " pages to synchronize. With page size: " +
+                    pageSize );
+
+            queryParams.setPageSize( pageSize );
+        }
+    }
+
+    private void prepareQueryParams( Date skipChangedBefore )
+    {
+        queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
         queryParams.setSkipChangedBefore( skipChangedBefore );
-
-        return queryParams;
     }
 
-    private boolean runTrackerSyncWithPaging( SystemInstance instance, TrackedEntityInstanceQueryParams queryParams,
-        Clock clock, int pageSize, int pages )
+    protected void synchronizePage( int page, int pageSize )
     {
-        final TrackedEntityInstanceParams params = TrackedEntityInstanceParams.DATA_SYNCHRONIZATION;
-        boolean syncResult = true;
+        queryParams.setPage( page );
 
-        for ( int i = 1; i <= pages; i++ )
+        List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams,
+            TrackedEntityInstanceParams.DATA_SYNCHRONIZATION,true );
+        log.info( String.format( "Synchronizing page %d with page size %d", page, pageSize ) );
+
+        if ( log.isDebugEnabled() )
         {
-            queryParams.setPage( i );
-
-            List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params, true );
-            log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
-
-            if ( log.isDebugEnabled() )
-            {
-                log.debug( "TEIs that are going to be synchronized are: " + dtoTeis );
-            }
-
-            if ( sendTrackerSyncRequest( dtoTeis, instance ) )
-            {
-                List<String> teiUIDs = dtoTeis.stream()
-                    .map( TrackedEntityInstance::getTrackedEntityInstance )
-                    .collect( Collectors.toList() );
-                log.info( "The lastSynchronized flag of these TEIs will be updated: " + teiUIDs );
-                teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, new Date( clock.getStartTime() ) );
-            }
-            else
-            {
-                syncResult = false;
-            }
+            log.debug( "TEIs that are going to be synchronized are: " + dtoTeis );
         }
 
-        return syncResult;
+        if ( sendSyncRequest( dtoTeis ) )
+        {
+            List<String> teiUIDs = dtoTeis.stream()
+                .map( TrackedEntityInstance::getTrackedEntityInstance )
+                .collect( Collectors.toList() );
+            log.info( "The lastSynchronized flag of these TEIs will be updated: " + teiUIDs );
+            teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, new Date( clock.getStartTime() ) );
+        }
+        else
+        {
+            syncResult = false;
+        }
     }
 
-    private boolean sendTrackerSyncRequest( List<TrackedEntityInstance> dtoTeis, SystemInstance instance )
+    private boolean sendSyncRequest( List<TrackedEntityInstance> dtoTeis )
     {
         TrackedEntityInstances teis = new TrackedEntityInstances();
         teis.setTrackedEntityInstances( dtoTeis );

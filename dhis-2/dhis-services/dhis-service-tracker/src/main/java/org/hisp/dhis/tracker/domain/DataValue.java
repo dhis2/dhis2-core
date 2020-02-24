@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.domain;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,159 +28,39 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DataValue
 {
+    @JsonProperty
     private String created;
 
+    @JsonProperty
     private String lastUpdated;
 
+    @JsonProperty
     private String value;
 
+    @JsonProperty
+    @Builder.Default
     private String dataElement = "";
 
-    private Boolean providedElsewhere = false;
+    @JsonProperty
+    private boolean providedElsewhere;
 
+    @JsonProperty
     private String storedBy;
 
     private boolean skipSynchronization;
-
-    public DataValue()
-    {
-    }
-
-    public DataValue( String dataElement, String value )
-    {
-        this.dataElement = dataElement;
-        this.value = value;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( String created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( String lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getDataElement()
-    {
-        return dataElement;
-    }
-
-    public void setDataElement( String dataElement )
-    {
-        this.dataElement = dataElement;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Boolean getProvidedElsewhere()
-    {
-        return providedElsewhere;
-    }
-
-    public void setProvidedElsewhere( Boolean providedElsewhere )
-    {
-        this.providedElsewhere = providedElsewhere;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    @JsonIgnore
-    public boolean isSkipSynchronization()
-    {
-        return skipSynchronization;
-    }
-
-    public void setSkipSynchronization( boolean skipSynchronization )
-    {
-        this.skipSynchronization = skipSynchronization;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-        if ( object == null || getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        DataValue dataValue = (DataValue) object;
-
-        return dataElement.equals( dataValue.dataElement );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( dataElement );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "DataValue{" +
-            "value='" + value + '\'' +
-            ", dataElement='" + dataElement + '\'' +
-            ", providedElsewhere=" + providedElsewhere +
-            ", storedBy='" + storedBy + '\'' +
-            ", skipSynchronization='" + skipSynchronization + '\'' +
-            '}';
-    }
 }

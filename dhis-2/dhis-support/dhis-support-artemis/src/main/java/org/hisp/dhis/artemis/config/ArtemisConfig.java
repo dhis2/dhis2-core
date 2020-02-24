@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.qpid.jms.JmsConnectionFactory;
-import org.hisp.dhis.artemis.ProducerConfiguration;
+import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -54,7 +54,6 @@ import javax.jms.DeliveryMode;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hisp.dhis.artemis.ProducerConfiguration.ProducerConfigurationBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -97,6 +96,17 @@ public class ArtemisConfig
         return template;
     }
 
+    @Bean
+    public JmsTemplate jmsQueueTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    {
+        JmsTemplate template = new JmsTemplate( connectionFactory );
+        template.setDeliveryMode( DeliveryMode.PERSISTENT );
+        template.setDestinationResolver( nameDestinationResolver );
+        template.setPubSubDomain( false );
+
+        return template;
+    }
+
     @Bean // configured for topics
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
     {
@@ -107,6 +117,18 @@ public class ArtemisConfig
         factory.setPubSubDomain( true );
         // 1 forces the listener to use only one consumer, to avoid duplicated messages
         factory.setConcurrency( "1" );
+
+        return factory;
+    }
+
+    @Bean // configured for queues
+    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory( connectionFactory );
+        factory.setDestinationResolver( nameDestinationResolver );
+        factory.setPubSubDomain( false );
+        factory.setConcurrency( "5-10" );
 
         return factory;
     }
@@ -207,10 +229,10 @@ public class ArtemisConfig
     }
 
     @Bean
-    public ProducerConfiguration producerConfiguration()
+    public AuditProducerConfiguration producerConfiguration()
     {
-        return ProducerConfigurationBuilder.aProducerConfiguration()
-            .withUseQueue( true ) // TODO this should come from configuration
+        return AuditProducerConfiguration.builder()
+            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED ) )
             .build();
     }
 }

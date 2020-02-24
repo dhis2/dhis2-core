@@ -1,5 +1,7 @@
+package org.hisp.dhis.visualization;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.visualization;
 
 import java.util.Date;
 
@@ -74,10 +74,9 @@ public interface VisualizationService
     void delete( Visualization visualization );
 
     /**
-     * Instantiates and populates a Grid populated with data from the Visualization
-     * with the given identifier.
+     * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param uid the Visualization unique identifier.
+     * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @return a Grid.
@@ -85,14 +84,21 @@ public interface VisualizationService
     Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid );
 
     /**
-     * Instantiates and populates a Grid populated with data from the Visualization
-     * with the given identifier.
+     * Instantiates and populates a Grid populated with data from the given Visualization.
      *
-     * @param uid the Visualization unique identifier.
+     * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.
      * @param organisationUnitUid the organisation unit uid.
      * @param user the current user.
      * @return a Grid.
      */
     Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
+
+    /**
+     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
+     *
+     * @param uid the uid of the Visualization to retrieve.
+     * @return the Visualization.
+     */
+    Visualization getVisualizationNoAcl( String uid );
 }

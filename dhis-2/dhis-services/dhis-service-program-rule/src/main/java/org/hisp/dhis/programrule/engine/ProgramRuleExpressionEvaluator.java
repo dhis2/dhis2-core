@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,23 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.jexl2.JexlException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.rules.RuleExpressionEvaluator;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
+@Slf4j
 @Component( "org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" )
 public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
 {
-    private static final Log log = LogFactory.getLog( ProgramRuleExpressionEvaluator.class );
-
     /**
      * Return string value of boolean output. False will be returned in case
      * of wrongly created expression

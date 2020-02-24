@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,10 +95,10 @@ import com.google.common.collect.Sets;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( DefaultCompleteDataSetRegistrationExchangeService.class )
-@PowerMockIgnore({ "javax.management.*","javax.xml.*", "org.apache.logging.*", "org.apache.xerces.*", "org.cache2k.*" })
+@PowerMockIgnore( { "javax.management.*", "javax.xml.*", "org.apache.logging.*", "org.apache.xerces.*",
+    "org.cache2k.*", "org.slf4j.*" } )
 public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
-
     @Mock
     private CompleteDataSetRegistrationExchangeStore cdsrStore;
 

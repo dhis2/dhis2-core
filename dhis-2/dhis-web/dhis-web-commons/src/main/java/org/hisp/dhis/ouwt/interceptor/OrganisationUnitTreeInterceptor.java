@@ -1,7 +1,7 @@
 package org.hisp.dhis.ouwt.interceptor;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,8 +85,8 @@ public class OrganisationUnitTreeInterceptor
     public void executeBeforeResult( ActionInvocation actionInvocation, String result )
         throws Exception
     {
-        Collection<OrganisationUnit> selectedUnits = null;
-        List<OrganisationUnit> rootUnits = null;
+        Collection<OrganisationUnit> selectedUnits;
+        List<OrganisationUnit> rootUnits;
 
         selectedUnits = selectionManager.getSelectedOrganisationUnits();   
         

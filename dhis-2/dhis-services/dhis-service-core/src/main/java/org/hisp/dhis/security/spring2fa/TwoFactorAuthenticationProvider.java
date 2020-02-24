@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.spring2fa;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,14 +43,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Henning Håkonsen
  */
+@Slf4j
 public class TwoFactorAuthenticationProvider
     extends DaoAuthenticationProvider
 {
-    private static final Logger log = LoggerFactory.getLogger( TwoFactorAuthenticationProvider.class );
-
     private UserService userService;
 
     public void setUserService( UserService userService )

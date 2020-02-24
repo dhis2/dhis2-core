@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,8 +134,7 @@ public class ValidationController
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null,
-            false, true );
+        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null );
 
         schedulingManager.executeJob( validationResultNotification );
 

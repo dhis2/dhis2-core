@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.Date;
+
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -38,17 +38,16 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
 
-import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
  */
+@Slf4j
 @Component( "org.hisp.dhis.scheduling.JobInstance" )
 public class DefaultJobInstance
     implements JobInstance
 {
-    private static final Log log = LogFactory.getLog( DefaultJobInstance.class );
-
     private static final String NOT_LEADER_SKIP_LOG = "Not a leader, skipping job with jobType:%s and name:%s";
 
     private SchedulingManager schedulingManager;
@@ -144,14 +143,13 @@ public class DefaultJobInstance
             return;
         }
 
-        if ( !jobConfiguration.isContinuousExecution() )
-        {
-            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
-        }
-
         if ( !jobConfiguration.isEnabled() )
         {
             jobConfiguration.setJobStatus( JobStatus.DISABLED );
+        }
+        else
+        {
+            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
         }
 
         jobConfiguration.setNextExecutionTime( null );

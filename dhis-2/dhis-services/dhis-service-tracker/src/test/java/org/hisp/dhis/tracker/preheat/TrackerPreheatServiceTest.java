@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -191,10 +191,11 @@ public class TrackerPreheatServiceTest
         assertTrue( trackerBundle.getEnrollments().isEmpty() );
         assertFalse( trackerBundle.getEvents().isEmpty() );
 
-        TrackerPreheatParams trackerPreheatParams = new TrackerPreheatParams()
-            .setTrackedEntities( trackerBundle.getTrackedEntities() )
-            .setEnrollments( trackerBundle.getEnrollments() )
-            .setEvents( trackerBundle.getEvents() );
+        TrackerPreheatParams trackerPreheatParams = TrackerPreheatParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
 
         trackerPreheatService.validate( trackerPreheatParams );
 

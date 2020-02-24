@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,27 @@ package org.hisp.dhis.setting;
  */
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
+import lombok.extern.slf4j.Slf4j;
+
+
 /**
- * TODO make IdentifiableObject
- * 
  * @author Stian Strandli
  */
+@Slf4j
 public class SystemSetting
     implements Serializable
 {
-    private static final Logger log = LoggerFactory.getLogger( SystemSetting.class );
-
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private long id;
@@ -59,6 +59,8 @@ public class SystemSetting
     private String value;
 
     private transient Serializable displayValue;
+
+    protected Map<String, String> translations = new HashMap<>();
 
     // -------------------------------------------------------------------------
     // Logic
@@ -161,6 +163,27 @@ public class SystemSetting
         return valueAsSerializable;
     }
 
+    public Map<String, String> getTranslations()
+    {
+        return translations;
+    }
+
+    public void setTranslations( Map<String, String> translations )
+    {
+        if ( translations != null )
+        {
+            this.translations = new HashMap<>( translations );
+        }
+        else
+        {
+            this.translations.clear();
+        }
+    }
+
+    public Optional<String> getTranslation( String locale ) {
+        return Optional.ofNullable( translations.get( locale ) );
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -206,6 +229,7 @@ public class SystemSetting
             .add( "id=" + id )
             .add( "name='" + name + "'" )
             .add( "value='" + value + "'" )
-            .add( "displayValue=" + displayValue ).toString();
+            .add( "displayValue=" + displayValue )
+            .add( "translations=" + translations ).toString();
     }
 }

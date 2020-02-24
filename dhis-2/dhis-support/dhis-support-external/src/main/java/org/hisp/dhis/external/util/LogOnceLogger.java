@@ -1,5 +1,7 @@
+package org.hisp.dhis.external.util;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,12 +28,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.external.util;
-
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 /**
@@ -54,7 +54,7 @@ public abstract class LogOnceLogger
      * @param level The SLF4J log level
      * @param logString The string to log
      */
-    protected void log( Log log, Level level, String logString )
+    protected void log( Logger log, Level level, String logString )
     {
         if ( !logged.contains( logString ) )
         {
@@ -86,7 +86,7 @@ public abstract class LogOnceLogger
      * @param log The SLF4J log to use
      * @param logString The string to log
      */
-    protected void warn( Log log, String logString, Exception exception )
+    protected void warn( Logger log, String logString, Exception exception )
     {
         if ( !logged.contains( logString ) )
         {

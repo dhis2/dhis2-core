@@ -1,7 +1,7 @@
 package org.hisp.dhis.mobile.service;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,8 @@ package org.hisp.dhis.mobile.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.api.mobile.FacilityReportingService;
 import org.hisp.dhis.api.mobile.NotAllowedException;
 import org.hisp.dhis.api.mobile.model.Contact;
@@ -78,12 +77,11 @@ import java.util.Vector;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Slf4j
 @Service( "org.hisp.dhis.mobile.api.FacilityReportingService" )
 public class FacilityReportingServiceImpl
     implements FacilityReportingService
 {
-    private static Log log = LogFactory.getLog( FacilityReportingServiceImpl.class );
-
     private static boolean DEBUG = log.isDebugEnabled();
 
     // -------------------------------------------------------------------------

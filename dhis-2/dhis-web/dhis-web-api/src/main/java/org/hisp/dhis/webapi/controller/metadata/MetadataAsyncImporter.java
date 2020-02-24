@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.metadata;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -49,10 +48,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope( "prototype" )
+@Slf4j
 public class MetadataAsyncImporter extends SecurityContextRunnable
 {
-    private static final Log log = LogFactory.getLog( MetadataAsyncImporter.class );
-
     @Autowired
     private MetadataImportService metadataImportService;
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -198,10 +198,10 @@ public class DefaultFileResourceService
 
     @Override
     @Transactional(readOnly = true)
-    public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+    public long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException
     {
-        fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
+        return fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }
 
     @Override

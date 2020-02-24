@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -55,9 +54,6 @@ public class ProgramStageSectionIntegrationTest
 
     @Autowired
     private ProgramStageSectionService programStageSectionService;
-
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
 
     @Autowired
     private ProgramService programService;

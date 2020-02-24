@@ -1,6 +1,6 @@
 package org.hisp.dhis.webapi.utils;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,8 +125,7 @@ public class ContextUtilsTest
         Calendar thisYear = Calendar.getInstance();
         Calendar fiveYearBack = Calendar.getInstance();
 
-        thisYear.set( 2017, 01, 01 );
-        fiveYearBack.set( 2012, 01, 01 );
+        fiveYearBack.add( Calendar.YEAR, -5 );
 
         DataQueryParams withinThreshold = DataQueryParams.newBuilder().withEndDate( thisYear.getTime() ).build();
         DataQueryParams outsideThreshold = DataQueryParams.newBuilder().withEndDate( fiveYearBack.getTime() ).build();

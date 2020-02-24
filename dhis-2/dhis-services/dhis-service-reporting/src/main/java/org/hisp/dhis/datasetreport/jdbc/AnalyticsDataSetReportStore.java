@@ -1,7 +1,7 @@
 package org.hisp.dhis.datasetreport.jdbc;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,18 @@ package org.hisp.dhis.datasetreport.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+import java.util.Map.Entry;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -48,20 +50,18 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
-import java.util.Map.Entry;
+import com.google.common.collect.Lists;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Repository( "org.hisp.dhis.datasetreport.DataSetReportStore" )
 public class AnalyticsDataSetReportStore
     implements DataSetReportStore
 {
-    private static final Log log = LogFactory.getLog( AnalyticsDataSetReportStore.class );
-
     private final DataQueryService dataQueryService;
 
     private final AnalyticsService analyticsService;

@@ -1,6 +1,6 @@
 package org.hisp.dhis.db.migration.v31;
  /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,12 @@ package org.hisp.dhis.db.migration.v31;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,7 +45,7 @@ import java.util.List;
  */
 public class V2_31_9__Add_user_permissions_for_new_data_viz_app extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_31_9__Add_user_permissions_for_new_data_viz_app.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_31_9__Add_user_permissions_for_new_data_viz_app.class );
     
     @Override
     public void migrate( Context context ) throws Exception

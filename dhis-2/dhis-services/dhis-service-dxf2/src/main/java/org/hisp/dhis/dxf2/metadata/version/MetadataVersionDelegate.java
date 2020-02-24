@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.version;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
@@ -51,19 +51,18 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handling remote calls for metadata version.
  *
  * @author anilkumk
  */
+@Slf4j
 @Component( "org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" )
 @Scope("prototype")
 public class MetadataVersionDelegate
 {
-    private static final Log log = LogFactory.getLog( MetadataVersionDelegate.class );
-
     private DefaultMetadataSystemSettingService metadataSystemSettingService;
 
     private SynchronizationManager synchronizationManager;

@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.dataset;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,7 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
@@ -36,12 +35,14 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 class ImportConfig
 {
-
     private IdScheme dsScheme;
 
     private IdScheme ouScheme;
@@ -65,8 +66,6 @@ class ImportConfig
     private boolean skipNotifications;
 
     private CategoryOptionCombo fallbackCatOptCombo;
-
-    private static final Log log = LogFactory.getLog( ImportConfig.class );
 
     ImportConfig(SystemSettingManager systemSettingManager, CategoryService categoryService,
                  CompleteDataSetRegistrations cdsr, ImportOptions options)

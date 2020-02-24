@@ -1,7 +1,7 @@
 package org.hisp.dhis.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -207,14 +206,6 @@ public class StoreConfig
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, ReportTable.class, currentUserService, deletedObjectService, aclService, true );
-    }
-
-    @Bean( "org.hisp.dhis.visualization.VisualizationStore" )
-    public HibernateAnalyticalObjectStore<Visualization> visualizationStore()
-    {
-        return new HibernateAnalyticalObjectStore<>( sessionFactory, jdbcTemplate, publisher,
-            Visualization.class, currentUserService, deletedObjectService, aclService,
-            true );
     }
 
     @Bean( "org.hisp.dhis.dashboard.DashboardStore" )

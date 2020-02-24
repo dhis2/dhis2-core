@@ -1,7 +1,7 @@
 package org.hisp.dhis.random;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.random;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.Geometry;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import org.hisp.dhis.period.PeriodType;
 
@@ -48,6 +49,7 @@ public class BeanRandomizer
     {
         rand = aNewEnhancedRandomBuilder()
             .randomize( PeriodType.class, new PeriodTypeRandomizer() )
+            .randomize( Geometry.class, new GeometryRandomizer() )
             .randomize( field().named( "uid" ).ofType( String.class ).get(), new UidRandomizer() )
             .randomize( field().named( "id" ).ofType( long.class ).get(), new IdRandomizer() )
             .build();

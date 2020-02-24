@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,16 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,33 +46,26 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
+@Slf4j
 @Transactional( readOnly = true )
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" )
 public class DefaultProgramRuleEntityMapperService
     implements ProgramRuleEntityMapperService
 {
-    private static final Log log = LogFactory.getLog( DefaultProgramRuleEntityMapperService.class );
-
     private static final String LOCATION_FEEDBACK = "feedback";
 
     private static final String LOCATION_INDICATOR = "indicators";
@@ -203,11 +197,19 @@ public class DefaultProgramRuleEntityMapperService
             orgUnitCode = enrollment.getOrganisationUnit().getCode();
         }
 
+        List<RuleAttributeValue> ruleAttributeValues = Lists.newArrayList();
+        if ( enrollment.getEntityInstance() != null )
+        {
+            ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
+                .filter( Objects::nonNull )
+                .map( attr -> RuleAttributeValue
+                    .create( attr.getAttribute().getUid(), getTrackedEntityAttributeValue( attr ) ) )
+                .collect( Collectors.toList() );
+        }
         return RuleEnrollment.create( enrollment.getUid(), enrollment.getIncidentDate(),
-            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), orgUnit, orgUnitCode,
-            enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream().filter( Objects::nonNull )
-            .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), getTrackedEntityAttributeValue( attr ) ) )
-            .collect( Collectors.toList() ), enrollment.getProgram().getName() );
+            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), orgUnit,
+            orgUnitCode,
+            ruleAttributeValues, enrollment.getProgram().getName() );
     }
 
     @Override

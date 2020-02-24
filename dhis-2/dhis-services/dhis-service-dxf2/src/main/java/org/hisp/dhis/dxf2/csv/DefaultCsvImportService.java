@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.csv;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,13 @@ import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -59,7 +64,11 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupService;
-import org.hisp.dhis.option.*;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.option.OptionGroupSet;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -70,9 +79,9 @@ import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.csvreader.CsvReader;
-import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland

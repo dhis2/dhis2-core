@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -536,7 +536,7 @@ public class EventController
 
         Events events = eventService.getEvents( params );
 
-        if ( hasHref( fields ) )
+        if ( hasHref( fields, skipEventId ) )
         {
             events.getEvents().forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
         }
@@ -636,7 +636,7 @@ public class EventController
 
         Events events = eventService.getEvents( params );
 
-        if ( hasHref( fields ) )
+        if ( hasHref( fields, skipEventId ) )
         {
             events.getEvents()
                 .forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
@@ -1159,9 +1159,9 @@ public class EventController
         return false;
     }
 
-    protected boolean hasHref( List<String> fields )
+    protected boolean hasHref( List<String> fields, Boolean skipEventId )
     {
-        return fieldsContains( "href", fields );
+        return (skipEventId == null || !skipEventId) && fieldsContains( "href", fields );
     }
 
     private List<Order> getOrderParams( String order )

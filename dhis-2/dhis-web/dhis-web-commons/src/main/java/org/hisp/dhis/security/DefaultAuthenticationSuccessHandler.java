@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.util.ObjectUtils;
@@ -52,11 +53,10 @@ import java.io.IOException;
  *
  * @author mortenoh
  */
+@Slf4j
 public class DefaultAuthenticationSuccessHandler
     extends SavedRequestAwareAuthenticationSuccessHandler
 {
-    private static final Log log = LogFactory.getLog( DefaultAuthenticationSuccessHandler.class );
-    
     private static final int SESSION_MIN = DateTimeConstants.SECONDS_PER_MINUTE * 10;
     private static final int SESSION_DEFAULT = Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ); // 3600 s
     private static final String SESSION_MIN_MSG = "Session timeout must be greater than %d seconds";

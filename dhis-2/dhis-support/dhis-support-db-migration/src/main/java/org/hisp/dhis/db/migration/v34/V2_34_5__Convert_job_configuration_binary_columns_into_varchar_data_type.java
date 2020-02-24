@@ -1,7 +1,7 @@
 package org.hisp.dhis.db.migration.v34;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,12 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.scheduling.JobStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.SerializationUtils;
 
 /**
@@ -48,7 +48,7 @@ import org.springframework.util.SerializationUtils;
  */
 public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type extends BaseJavaMigration
 {
-    private static final Log log = LogFactory.getLog( V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type.class );
 
     private static final String CHECK_JOB_STATUS_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE " +
         "table_name = 'jobconfiguration' AND column_name = 'jobstatus';";

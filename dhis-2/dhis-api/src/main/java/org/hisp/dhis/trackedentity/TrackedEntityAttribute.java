@@ -19,7 +19,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -178,7 +178,7 @@ public class TrackedEntityAttribute
 
         for ( Option option : getOptionSet().getOptions() )
         {
-            if ( value.equals( option.getCode() ) )
+            if ( option != null && value.equals( option.getCode() ) )
             {
                 return true;
             }

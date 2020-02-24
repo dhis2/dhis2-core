@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,15 @@ public interface FileResourceService
 
     InputStream getFileResourceContent( FileResource fileResource );
 
-    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+    /**
+     * Copy fileResource content to outputStream and Return File content length
+     * @param fileResource
+     * @param outputStream
+     * @return
+     * @throws IOException
+     * @throws NoSuchElementException
+     */
+    long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException;
 
     boolean fileResourceExists( String uid );

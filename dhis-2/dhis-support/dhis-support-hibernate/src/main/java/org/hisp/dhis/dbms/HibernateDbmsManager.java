@@ -1,7 +1,7 @@
 package org.hisp.dhis.dbms;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.dbms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -42,11 +41,10 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class HibernateDbmsManager
     implements DbmsManager
 {
-    private static final Log log = LogFactory.getLog( HibernateDbmsManager.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -270,7 +268,7 @@ public class HibernateDbmsManager
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "program" );
-        
+
         emptyTable( "programstageinstancefilter" );
 
         emptyTable( "trackedentityattributevalue" );
@@ -375,7 +373,9 @@ public class HibernateDbmsManager
 
         emptyTable( "reservedvalue" );
         emptyTable( "sequentialnumbercounter" );
-        
+
+        emptyTable( "audit" );
+
         log.debug( "Cleared database contents" );
 
         cacheManager.clearCache();

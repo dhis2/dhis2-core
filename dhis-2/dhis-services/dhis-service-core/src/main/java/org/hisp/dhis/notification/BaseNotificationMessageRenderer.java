@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.util.DateUtils;
@@ -64,11 +63,10 @@ import com.google.common.collect.Maps;
  *
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 public abstract class BaseNotificationMessageRenderer<T>
     implements NotificationMessageRenderer<T>
 {
-    private static Log log = LogFactory.getLog( BaseNotificationMessageRenderer.class );
-
     protected static final int SMS_CHAR_LIMIT = 160 * 4;  // Four concatenated SMS messages
     protected static final int EMAIL_CHAR_LIMIT = 10000;  // Somewhat arbitrarily chosen limits
     protected static final int SUBJECT_CHAR_LIMIT = 100;

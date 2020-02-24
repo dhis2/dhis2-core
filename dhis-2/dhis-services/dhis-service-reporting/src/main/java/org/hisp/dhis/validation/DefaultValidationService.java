@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,8 @@ package org.hisp.dhis.validation;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
@@ -72,11 +71,10 @@ import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
  */
 @Service( "org.hisp.dhis.validation.ValidationService" )
 @Transactional
+@Slf4j
 public class DefaultValidationService
     implements ValidationService
 {
-    private static final Log log = LogFactory.getLog( DefaultValidationService.class );
-
     private final PeriodService periodService;
 
     private final OrganisationUnitService organisationUnitService;

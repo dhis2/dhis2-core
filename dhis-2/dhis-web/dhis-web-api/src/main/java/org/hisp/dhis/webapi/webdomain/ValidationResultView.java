@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.webdomain;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,10 @@ public class ValidationResultView
     private String organisationUnitId;
 
     private String organisationUnitDisplayName;
+
+    private String organisationUnitPath;
+
+    private String organisationUnitAncestorNames;
 
     private String periodId;
 
@@ -96,6 +100,28 @@ public class ValidationResultView
     public void setOrganisationUnitDisplayName( String organisationUnitDisplayName )
     {
         this.organisationUnitDisplayName = organisationUnitDisplayName;
+    }
+
+    @JsonProperty
+    public String getOrganisationUnitPath()
+    {
+        return organisationUnitPath;
+    }
+
+    public void setOrganisationUnitPath( String organisationUnitPath )
+    {
+        this.organisationUnitPath = organisationUnitPath;
+    }
+
+    @JsonProperty
+    public String getOrganisationUnitAncestorNames()
+    {
+        return organisationUnitAncestorNames;
+    }
+
+    public void setOrganisationUnitAncestorNames( String organisationUnitAncestorNames )
+    {
+        this.organisationUnitAncestorNames = organisationUnitAncestorNames;
     }
 
     @JsonProperty

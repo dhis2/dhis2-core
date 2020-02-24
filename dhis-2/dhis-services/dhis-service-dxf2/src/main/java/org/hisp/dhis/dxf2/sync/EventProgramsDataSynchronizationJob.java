@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
@@ -42,19 +42,18 @@ import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobPa
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author David Katuscak
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "eventProgramsDataSyncJob" )
 public class EventProgramsDataSynchronizationJob extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( EventProgramsDataSynchronizationJob.class );
-
     private final Notifier notifier;
     private final MessageService messageService;
-    private final EventSynchronization eventSync;
+    private final DataSynchronization eventSync;
     private final SynchronizationManager synchronizationManager;
 
     public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
@@ -83,7 +82,7 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
         {
             EventProgramsDataSynchronizationJobParameters jobParameters =
                 (EventProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
-            eventSync.syncEventProgramData( jobParameters.getPageSize() );
+            eventSync.synchronizeData( jobParameters.getPageSize() );
             notifier.notify( jobConfiguration, "Event programs data sync successful" );
         }
         catch ( Exception e )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ package org.hisp.dhis.program.function;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator function: d2 count
@@ -42,11 +42,9 @@ public class D2Count
     extends ProgramCountFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.validateStageDataElement( ctx.getText(),
-            ctx.stageDataElement().uid0.getText(),
-            ctx.stageDataElement().uid1.getText() );
+        getProgramStageElementDescription( ctx, visitor );
 
         return DEFAULT_DOUBLE_VALUE;
     }
@@ -56,6 +54,4 @@ public class D2Count
     {
         return " is not null";
     }
-
-
 }

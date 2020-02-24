@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +42,9 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
+
 import javax.annotation.PostConstruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,20 +55,20 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
  * identifying the scheduled jobs.
  *
  * @author Henning Håkonsen
  */
+@Slf4j
 @Service( "org.hisp.dhis.scheduling.SchedulingManager" )
 public class DefaultSchedulingManager
     implements SchedulingManager
 {
-    private static final Log log = LogFactory.getLog( DefaultSchedulingManager.class );
-
-    public static final String CONTINOUS_CRON = "* * * * * ?";
-    public static final String HOUR_CRON = "0 0 * ? * *";
+    private static final int DEFAULT_INITIAL_DELAY_S = 10;
 
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
 
@@ -129,9 +132,8 @@ public class DefaultSchedulingManager
             return false;
         }
 
-        return !jobConfiguration.isContinuousExecution() &&
-            runningJobConfigurations.stream().anyMatch(
-                jc -> jc.getJobType().equals( jobConfiguration.getJobType() ) && !jc.isContinuousExecution() );
+        return runningJobConfigurations.stream().anyMatch(
+            jc -> jc.getJobType().equals( jobConfiguration.getJobType() ) );
     }
 
     @Override
@@ -179,9 +181,19 @@ public class DefaultSchedulingManager
             {
                 log.info( String.format( "Scheduling job: %s", jobConfiguration ) );
 
-                ScheduledFuture<?> future = jobScheduler.schedule( () ->
-                    jobInstance.execute( jobConfiguration ),
-                    new CronTrigger( jobConfiguration.getCronExpression() ) );
+                ScheduledFuture<?> future = null;
+
+                if ( jobConfiguration.getJobType().isCronSchedulingType() )
+                {
+                    future = jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ),
+                        new CronTrigger( jobConfiguration.getCronExpression() ) );
+                }
+                else if ( jobConfiguration.getJobType().isFixedDelaySchedulingType() )
+                {
+                    future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
+                        Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
+                        Duration.of( jobConfiguration.getDelay(), ChronoUnit.SECONDS ) );
+                }
 
                 futures.put( jobConfiguration.getUid(), future );
 
@@ -199,9 +211,8 @@ public class DefaultSchedulingManager
 
             if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
             {
-                ScheduledFuture<?> future = jobScheduler.schedule( () ->
-                    jobInstance.execute( jobConfiguration ),
-                    startTime );
+                ScheduledFuture<?> future = jobScheduler.schedule(
+                    () -> jobInstance.execute( jobConfiguration ), startTime );
 
                 futures.put( jobConfiguration.getUid(), future );
 

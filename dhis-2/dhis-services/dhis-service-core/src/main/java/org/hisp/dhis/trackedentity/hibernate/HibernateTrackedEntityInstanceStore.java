@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
@@ -73,16 +71,17 @@ import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Slf4j
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceStore" )
 public class HibernateTrackedEntityInstanceStore
     extends HibernateIdentifiableObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
 {
-    private static final Log log = LogFactory.getLog( HibernateTrackedEntityInstanceStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -120,7 +119,6 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
         String hql = buildTrackedEntityInstanceHql( params );
@@ -131,7 +129,7 @@ public class HibernateTrackedEntityInstanceStore
             hql = hql.replaceFirst( "select tei from", "select distinct tei from" );
         }
 
-        Query query = getQuery( hql );
+        Query<TrackedEntityInstance> query = getQuery( hql );
 
         if ( params.isPaging() )
         {
@@ -860,14 +858,15 @@ public class HibernateTrackedEntityInstanceStore
     public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized )
     {
         String hql = "update TrackedEntityInstance set lastSynchronized = :lastSynchronized WHERE uid in :trackedEntityInstances";
-        Query query = getQuery( hql );
-        query.setParameter( "lastSynchronized", lastSynchronized );
-        query.setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs );
 
-        query.executeUpdate();
+        getQuery( hql )
+            .setParameter( "lastSynchronized", lastSynchronized )
+            .setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs )
+            .executeUpdate();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         return getSharingCriteria( user )

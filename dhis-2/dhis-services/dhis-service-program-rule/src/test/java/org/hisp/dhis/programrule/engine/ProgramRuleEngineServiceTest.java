@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,7 +145,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluateEnrollment( programInstance.getId() );
+        List<RuleEffect> ruleEffects = service.evaluateEnrollmentAndRunEffects( programInstance.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -186,7 +186,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluateEvent( programStageInstance.getId() );
+        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 

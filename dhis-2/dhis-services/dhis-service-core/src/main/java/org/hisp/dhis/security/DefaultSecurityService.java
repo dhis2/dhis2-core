@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,16 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
@@ -60,12 +54,7 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
@@ -74,17 +63,16 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.security.SecurityService" )
 public class DefaultSecurityService
     implements SecurityService
 {
-    private static final Log log = LogFactory.getLog( DefaultSecurityService.class );
-
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
     private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
     private static final String TBD_NAME = "(TBD)";
@@ -108,23 +96,23 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
 
     private final CurrentUserService currentUserService;
-    
+
     private final UserSettingService userSettingService;
 
     private final AclService aclService;
 
     private final RestTemplate restTemplate;
-    
+
     private final CacheProvider cacheProvider;
-    
+
     private final PasswordManager passwordManager;
 
     private final MessageSender emailMessageSender;
 
     private final UserService userService;
-    
+
     private final SystemSettingManager systemSettingManager;
-    
+
     private final I18nManager i18nManager;
 
     public DefaultSecurityService( CurrentUserService currentUserService, UserSettingService userSettingService,
@@ -159,7 +147,7 @@ public class DefaultSecurityService
     // Initialization
     // -------------------------------------------------------------------------
 
-    
+
     @PostConstruct
     public void init()
     {
@@ -206,11 +194,11 @@ public class DefaultSecurityService
         {
             return;
         }
-        
+
         Integer attempts = userFailedLoginAttemptCache.get( username ).orElse( 0 );
-        
+
         attempts++;
-        
+
         userFailedLoginAttemptCache.put( username, attempts );
     }
 
@@ -221,8 +209,8 @@ public class DefaultSecurityService
         {
             return;
         }
-        
-        userFailedLoginAttemptCache.invalidate( username );        
+
+        userFailedLoginAttemptCache.invalidate( username );
     }
 
     @Override
@@ -232,15 +220,15 @@ public class DefaultSecurityService
         {
             return false;
         }
-        
+
         return userFailedLoginAttemptCache.get( username ).orElse( 0 ) > LOGIN_MAX_FAILED_ATTEMPTS;
     }
-    
+
     private boolean isBlockFailedLogins()
     {
         return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
     }
-    
+
     @Override
     public boolean prepareUserForInvite( User user )
     {
@@ -323,6 +311,9 @@ public class DefaultSecurityService
 
         if ( isRecoveryLocked( credentials.getUsername() ) )
         {
+            log.warn( "The account recovery operation for the given user is temporarily locked due to too " +
+                "many calls to this endpoint in the last '" + RECOVERY_LOCKOUT_MINS + "' minutes. Credentials:" +
+                credentials );
             return false;
         }
         else
@@ -629,11 +620,11 @@ public class DefaultSecurityService
     public boolean hasAnyAuthority( String... authorities )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user != null && user.getUserCredentials() != null )
         {
             UserCredentials userCredentials = user.getUserCredentials();
-    
+
             for ( String authority : authorities )
             {
                 if ( userCredentials.isAuthorized( authority ) )

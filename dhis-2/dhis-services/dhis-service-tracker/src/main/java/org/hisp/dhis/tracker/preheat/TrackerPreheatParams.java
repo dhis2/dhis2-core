@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,14 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
 
@@ -41,124 +44,66 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Used for setting up parameters for tracker preheat service. Normally not created directly, but rather
+ * created through {@see org.hisp.dhis.tracker.bundle.TrackerBundleParams#toTrackerPreheatParams}.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TrackerPreheatParams
 {
     /**
      * User uid to use for import job.
      */
+    @JsonProperty
     private String userId;
 
     /**
      * User to use for import job.
      */
-
     private User user;
 
     /**
      * What identifiers to match on.
      */
+    @JsonProperty
+    @Builder.Default
     private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Tracked entities to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
+    @JsonProperty
+    @Builder.Default
     private List<Event> events = new ArrayList<>();
 
-    public TrackerPreheatParams()
-    {
-    }
+    /**
+     * Relationships to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    public TrackerPreheatParams setUserId( String userId )
-    {
-        this.userId = userId;
-        return this;
-    }
-
-    public User getUser()
-    {
-        return user;
-    }
-
-    public TrackerPreheatParams setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerIdentifier getIdentifier()
-    {
-        return identifier;
-    }
-
-    public void setIdentifier( TrackerIdentifier identifier )
-    {
-        this.identifier = identifier;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntity> getTrackedEntities()
-    {
-        return trackedEntities;
-    }
-
-    public TrackerPreheatParams setTrackedEntities( List<TrackedEntity> trackedEntities )
-    {
-        this.trackedEntities = trackedEntities;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Enrollment> getEnrollments()
-    {
-        return enrollments;
-    }
-
-    public TrackerPreheatParams setEnrollments( List<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Event> getEvents()
-    {
-        return events;
-    }
-
-    public TrackerPreheatParams setEvents( List<Event> events )
-    {
-        this.events = events;
-        return this;
+        return User.username( user );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.gml;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -71,6 +69,8 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Import geospatial data from GML documents and merge into OrganisationUnits.
  * <p>
@@ -94,12 +94,11 @@ import com.vividsolutions.jts.geom.Geometry;
  *
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.gml.GmlImportService" )
 public class DefaultGmlImportService
     implements GmlImportService
 {
-    private static final Log log = LogFactory.getLog( DefaultGmlImportService.class );
-
     private static final String GML_TO_DXF_STYLESHEET = "gml/gml2dxf2.xsl";
 
     // -------------------------------------------------------------------------

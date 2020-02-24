@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.location;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.util.LogOnceLogger;
 import org.slf4j.event.Level;
 
@@ -49,11 +49,10 @@ import static java.io.File.separator;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DefaultLocationManager extends LogOnceLogger
     implements LocationManager
 {
-    private static final Log log = LogFactory.getLog( DefaultLocationManager.class );
-
     private static final String DEFAULT_DHIS2_HOME = "/opt/dhis2";
 
     private static final String DEFAULT_ENV_VAR = "DHIS2_HOME";

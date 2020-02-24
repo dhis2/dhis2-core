@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -923,6 +923,19 @@ public class DataQueryParams
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
 
         return index != -1 ? filters.get( index ).getItems() : new ArrayList<>();
+    }
+
+    /**
+     * Retrieves the options for the given dimension and dimension type.
+     * Returns an empty list if the filtering options do not match any dimension.
+     */
+    public List<DimensionalItemObject> getFilterOptions( String filter, DataDimensionItemType dataDimensionItemType )
+    {
+        int index = filters.indexOf( new BaseDimensionalObject( filter ) );
+
+        return index != -1
+            ? AnalyticsUtils.getByDataDimensionItemType( dataDimensionItemType, filters.get( index ).getItems() )
+            : new ArrayList<>();
     }
 
     /**

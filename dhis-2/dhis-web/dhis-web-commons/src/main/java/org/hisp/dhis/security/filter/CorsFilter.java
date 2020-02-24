@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.filter;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,11 @@ package org.hisp.dhis.security.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -54,11 +55,10 @@ import java.net.URLEncoder;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public class CorsFilter
     implements Filter
 {
-    private static final Log log = LogFactory.getLog( CorsFilter.class );
-
     public static final String CORS_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
     public static final String CORS_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
     public static final String CORS_MAX_AGE = "Access-Control-Max-Age";
@@ -152,8 +152,7 @@ public class CorsFilter
     }
 
     @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
-    {
+    public void init( FilterConfig filterConfig ) {
     }
 
     @Override

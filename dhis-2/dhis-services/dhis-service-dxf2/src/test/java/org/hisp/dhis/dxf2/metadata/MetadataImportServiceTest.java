@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,25 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.xml.xpath.XPathExpressionException;
+
+import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
@@ -46,33 +56,26 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.render.*;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.RenderDevice;
+import org.hisp.dhis.render.RenderFormat;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.render.type.SectionRenderingType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.xml.sax.InputSource;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.util.*;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -220,8 +223,8 @@ public class MetadataImportServiceTest
         assertEquals( Status.OK, report.getStatus() );
     }
 
-    @Test
-    public void testImportEmbeddedObjectWithSkipSharingIsTrue() throws IOException
+    @Test( expected = MappingException.class )
+    public void testImportNonExistingEntityObject() throws IOException
     {
         User user = createUser( 'A' );
         manager.save( user );
@@ -240,18 +243,44 @@ public class MetadataImportServiceTest
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
 
+        importService.importMetadata( params );
+
+        // Should not get to this point.
+        fail("The exception org.hibernate.MappingException was expected.");
+    }
+
+    @Test
+    public void testImportEmbeddedObjectWithSkipSharingIsTrue() throws IOException
+    {
+        User user = createUser( 'A' );
+        manager.save( user );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
+        manager.save( userGroup );
+
+        userGroup = manager.get( UserGroup.class, "ugabcdefghA" );
+        assertNotNull( userGroup );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        Chart chart = manager.get( Chart.class, "gyYXi0rXAIc" );
-        assertNotNull( chart );
-        assertEquals( 1, chart.getUserGroupAccesses().size() );
-        assertEquals( 1, chart.getUserAccesses().size() );
-        assertEquals( user.getUid(), chart.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), chart.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
+        assertNotNull( visualization );
+        assertEquals( 1, visualization.getUserGroupAccesses().size() );
+        assertEquals( 1, visualization.getUserAccesses().size() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -262,12 +291,12 @@ public class MetadataImportServiceTest
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        chart = manager.get( Chart.class, "gyYXi0rXAIc" );
-        assertNotNull( chart );
-        assertEquals( 1, chart.getUserGroupAccesses().size() );
-        assertEquals( 1, chart.getUserAccesses().size() );
-        assertEquals( user.getUid(), chart.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), chart.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
+        assertNotNull( visualization );
+        assertEquals( 1, visualization.getUserGroupAccesses().size() );
+        assertEquals( 1, visualization.getUserAccesses().size() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
     }
 
     @Test
@@ -284,7 +313,7 @@ public class MetadataImportServiceTest
         assertNotNull( userGroup );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -294,15 +323,15 @@ public class MetadataImportServiceTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        Chart chart = manager.get( Chart.class, "gyYXi0rXAIc" );
-        assertNotNull( chart );
-        assertEquals( 1, chart.getUserGroupAccesses().size() );
-        assertEquals( 1, chart.getUserAccesses().size() );
-        assertEquals( user.getUid(), chart.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), chart.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
+        assertNotNull( visualization );
+        assertEquals( 1, visualization.getUserGroupAccesses().size() );
+        assertEquals( 1, visualization.getUserAccesses().size() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -313,10 +342,10 @@ public class MetadataImportServiceTest
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        chart = manager.get( Chart.class, "gyYXi0rXAIc" );
-        assertNotNull( chart );
-        assertEquals( 0, chart.getUserGroupAccesses().size() );
-        assertEquals( 0, chart.getUserAccesses().size() );
+        visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
+        assertNotNull( visualization );
+        assertEquals( 0, visualization.getUserGroupAccesses().size() );
+        assertEquals( 0, visualization.getUserAccesses().size() );
     }
 
     @Test

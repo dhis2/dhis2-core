@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,9 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -39,17 +40,17 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class FunctionIsNotNull
-    extends SimpleScalarFunction
+    implements ExpressionItem
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.visitAllowingNulls( ctx.item( 0 ) ) != null;
+        return visitor.visitAllowingNulls( ctx.expr( 0 ) ) != null;
     }
 
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return castString( visitor.visitAllowingNulls( ctx.item( 0 ) ) ) + " is not null";
+        return castString( visitor.visitAllowingNulls( ctx.expr( 0 ) ) ) + " is not null";
     }
 }

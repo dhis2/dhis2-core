@@ -57,23 +57,4 @@ You can now start tomcat and go to localhost:8080/dhis - get in with admin/distr
 
 ## Alternative - Build and run in Docker
 
-It is possible to build and run DHIS2 with Docker, on any operating system with no dependencies on local Java, Maven, or Tomcat.
-
-Download and install Docker:
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) (OSX and Windows)
-- OR [Docker Engine](https://docs.docker.com/install/) (Linux and friends)
-
-Build the WAR file from source and tag it locally with as `dhis2-core:local-dev-alpine` (this can be whatever you want)
-
-```sh
-> docker build . -t dhis2-core:local-dev-alpine
-```
-
-Run the built image, forwarding localhost:8080 to the Tomcat server running in Docker and using configuration from ~/dhis2_home (mounted read-only):
-
-```sh
-> docker run -d --rm -p 8080:80 -v ./dhis2_home:/DHIS2_home:ro dhis2-core:local-dev-alpine
-```
-
-Note that a connection to a running Postgres database must be configured in ~/dhis2_home/dhis.conf for this to work.  See [here](https://github.com/amcgee/dhis2-backend) for an example of a docker-compose setup which runs containerized DHIS2 and Postgres in an isolated Docker network.
+It is possible to build and run DHIS2 with Docker, on any operating system with no dependencies on local Java, Maven, or Tomcat, refer to the [documentation](https://github.com/dhis2/dhis2-core/blob/master/docker/README.md).

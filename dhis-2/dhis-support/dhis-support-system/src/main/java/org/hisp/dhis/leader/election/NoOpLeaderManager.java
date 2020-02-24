@@ -1,7 +1,7 @@
 package org.hisp.dhis.leader.election;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,7 @@ package org.hisp.dhis.leader.election;
  */
 
 import java.util.UUID;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
@@ -39,11 +37,9 @@ import org.hisp.dhis.scheduling.SchedulingManager;
  * 
  * @author Ameen Mohamed
  */
+@Slf4j
 public class NoOpLeaderManager implements LeaderManager
 {
-
-    private static final Log log = LogFactory.getLog( NoOpLeaderManager.class );
-
     public NoOpLeaderManager()
     {
         String nodeId = UUID.randomUUID().toString();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +100,7 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testVerifyMetadata() throws IOException
+    public void testVerifyMetadata()
     {
         Program program = manager.get( Program.class, "E8o1E9tAppy" );
         OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
@@ -119,12 +118,13 @@ public class TrackerBundleServiceTest
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setTrackedEntities( trackerBundle.getTrackedEntities() ) );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .build() );
 
         assertEquals( 1, trackerBundles.size() );
 
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles.get( 0 ) );
+        trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 13, trackedEntityInstances.size() );

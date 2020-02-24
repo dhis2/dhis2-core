@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,56 +28,40 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.DataQueryGroups;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
-import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.commons.collection.PaginatedList;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.util.ObjectUtils;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.springframework.stereotype.Component;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.common.DimensionalObject.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.commons.collection.PaginatedList;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Component;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.analytics.QueryPlanner" )
 public class DefaultQueryPlanner
     implements QueryPlanner
 {
-    private static final Log log = LogFactory.getLog( DefaultQueryPlanner.class );
-
     private final QueryValidator queryValidator;
 
     private final PartitionManager partitionManager;
@@ -449,7 +433,8 @@ public class DefaultQueryPlanner
         if ( !params.getDataElements().isEmpty() )
         {
             ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap =
-                QueryPlannerUtils.getAggregationTypeDataElementMap( params );
+                QueryPlannerUtils.getAggregationTypeDataElementMap( params.getDataElements(),
+                    params.getAggregationType(), params.getPeriodType() );
 
             for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
@@ -481,6 +466,20 @@ public class DefaultQueryPlanner
 
             queries.add( query );
         }
+        else if ( filterHasDataElementsOfSameAggregationTypeAndValueType( params ) )
+        {
+            ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = QueryPlannerUtils
+                .getAggregationTypeDataElementMap( params.getFilterOptions( DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT ),
+                    params.getAggregationType(), params.getPeriodType() );
+
+            for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
+            {
+                DataQueryParams query = DataQueryParams.newBuilder( params ).withAggregationType( aggregationType )
+                    .build();
+
+                queries.add( query );
+            }
+        }
         else
         {
             DataQueryParams query = DataQueryParams.newBuilder( params )
@@ -492,6 +491,32 @@ public class DefaultQueryPlanner
         logQuerySplit( queries, "aggregation type" );
 
         return queries;
+    }
+
+    /**
+     * Check if the filter of this DataQueryParams contains Data Elements having the same Aggregation Type
+     * and the same Value Type. If the DataQueryParams has the aggregationType set, then the DataQueryParams
+     * aggregationType overrides all the Data Elements' aggregation types.
+     *
+     * @param params DataQueryParams object.
+     */
+    private boolean filterHasDataElementsOfSameAggregationTypeAndValueType( DataQueryParams params )
+    {
+        List<DimensionalItemObject> filterDataElements = params.getFilterOptions( DATA_X_DIM_ID,
+            DataDimensionItemType.DATA_ELEMENT );
+
+        if ( filterDataElements.size() >= 1 )
+        {
+            DataElement firstDataElement = (DataElement) filterDataElements.get( 0 );
+            return (params.getAggregationType() != null || filterDataElements.stream().allMatch(
+                de -> de.getAggregationType().name().equals( firstDataElement.getAggregationType().name() ) ))
+                && filterDataElements.stream().allMatch(
+                    de -> ((DataElement) de).getValueType().name().equals( firstDataElement.getValueType().name() ) );
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**

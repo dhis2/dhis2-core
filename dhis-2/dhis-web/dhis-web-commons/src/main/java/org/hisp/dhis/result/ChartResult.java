@@ -1,7 +1,7 @@
 package org.hisp.dhis.result;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,17 @@ package org.hisp.dhis.result;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
+/*
  * This file is modified and included in DHIS because the original version
  * wont allow dynamic setting of the chart height and width.
  */
 
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.util.ContextUtils;
 import org.jfree.chart.ChartUtils;
@@ -55,11 +56,10 @@ import java.io.OutputStream;
  * @author Bernard Choi
  * @author Lars Helge Overland
  */
+@Slf4j
 public class ChartResult
     implements Result
 {
-    private static final Log log = LogFactory.getLog( ChartResult.class );
-
     private static final String DEFAULT_FILENAME = "chart.png";
     private static final int DEFAULT_WIDTH = 700;
     private static final int DEFAULT_HEIGHT = 500;

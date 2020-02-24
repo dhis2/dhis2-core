@@ -19,7 +19,7 @@
 
     <property name="regression"/>
 
-    <property name="cumulative"/>
+    <property name="cumulativeValues" column="cumulative" />
 
     <list name="dataElementGroupSetDimensions" table="visualization_dataelementgroupsetdimensions"
           cascade="all-delete-orphan">

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.webdomain.PeriodTypeDTO;
+import org.hisp.dhis.webapi.webdomain.PeriodTypeDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -73,8 +73,9 @@ public class PeriodTypeController
     public RootNode getPeriodTypes()
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<PeriodTypeDTO> periodTypes = periodService.getAllPeriodTypes().stream()
-            .map( PeriodTypeDTO::new ).collect( Collectors.toList() );
+        List<PeriodTypeDto> periodTypes = periodService.getAllPeriodTypes().stream()
+            .map( PeriodTypeDto::new )
+            .collect( Collectors.toList() );
 
         if ( fields.isEmpty() )
         {
@@ -82,7 +83,7 @@ public class PeriodTypeController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( PeriodTypeDTO.class, new FieldFilterParams( periodTypes, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( PeriodTypeDto.class, new FieldFilterParams( periodTypes, fields ) ) );
 
         return rootNode;
     }

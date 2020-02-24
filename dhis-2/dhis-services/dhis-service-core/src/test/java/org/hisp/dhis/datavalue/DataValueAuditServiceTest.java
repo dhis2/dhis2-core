@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -207,6 +207,34 @@ public class DataValueAuditServiceTest
         periods.add( periodB );
         orgs.add( orgUnitB );
         assertEquals( 2, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
+            optionCombo, null, AuditType.UPDATE ).size() );
+    }
+
+    @Test
+    public void testGetDataValueAuditNoResult()
+    {
+        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditType.UPDATE );
+
+        dataValueAuditService.addDataValueAudit( dataValueAuditA );
+        dataValueAuditService.addDataValueAudit( dataValueAuditB );
+
+        List<DataElement> dataElements = new ArrayList<>();
+        dataElements.add( dataValueA.getDataElement() );
+
+        List<OrganisationUnit> orgs = new ArrayList<>();
+        orgs.add( dataValueA.getSource() );
+
+        List<Period> periods = new ArrayList<>();
+        periods.add( periodD );
+        assertEquals( 0, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
+            optionCombo, null, AuditType.UPDATE ).size() );
+
+        Period periodE = createPeriod( getDay( 8 ), getDay( 9 ) );
+        periods.clear();
+        periods.add( periodE );
+
+        assertEquals( 0, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
             optionCombo, null, AuditType.UPDATE ).size() );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression.operator;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.operator.AntlrOperatorLogicalNot;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.SimpleScalarFunction;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -49,16 +50,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class OperatorLogicalNot
-    extends SimpleScalarFunction
+    extends AntlrOperatorLogicalNot
+    implements ExpressionItem
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
-
-        return value == null ? null : !value;
-    }
-
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {

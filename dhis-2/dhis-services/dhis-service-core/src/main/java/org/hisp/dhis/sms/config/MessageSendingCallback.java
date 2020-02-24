@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,20 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Zubair Asghar.
  */
+@Slf4j
 @Component( "org.hisp.dhis.sms.config.SMSSendingCallback" )
 public class MessageSendingCallback
 {
-    private static final Log log = LogFactory.getLog( MessageSendingCallback.class );
-
     public ListenableFutureCallback<OutboundMessageResponse> getCallBack()
     {
         return new ListenableFutureCallback<OutboundMessageResponse>()

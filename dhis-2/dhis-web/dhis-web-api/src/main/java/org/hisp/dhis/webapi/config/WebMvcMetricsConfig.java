@@ -1,5 +1,7 @@
+package org.hisp.dhis.webapi.config;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config;
-
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_API_ENABLED;
 
 import java.io.IOException;
@@ -45,7 +45,6 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
@@ -68,11 +67,11 @@ public class WebMvcMetricsConfig
     }
 
     @Bean
-    @SuppressWarnings("deprecation")
     public WebMvcMetricsFilter webMetricsFilter( MeterRegistry registry, WebMvcTagsProvider tagsProvider,
-        WebApplicationContext ctx )
+        HandlerMappingIntrospector handlerMappingIntrospector )
     {
-        return new WebMvcMetricsFilter( registry, tagsProvider, "http_server_requests", true, new HandlerMappingIntrospector(ctx) );
+        return new WebMvcMetricsFilter( registry, tagsProvider, "http_server_requests", true,
+            handlerMappingIntrospector );
     }
 
     @Configuration

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -61,15 +61,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Slf4j
 @Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceService" )
 public class DefaultTrackedEntityInstanceService
     implements TrackedEntityInstanceService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackedEntityInstanceService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -96,8 +97,6 @@ public class DefaultTrackedEntityInstanceService
 
     private final AuditManager auditManager;
 
-    private final RenderService renderService;
-
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -105,7 +104,7 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
         TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager, RenderService renderService )
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager )
     {
         checkNotNull( trackedEntityInstanceStore );
         checkNotNull( attributeValueService );
@@ -118,7 +117,6 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( auditManager );
-        checkNotNull( renderService );
 
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.attributeValueService = attributeValueService;
@@ -131,7 +129,6 @@ public class DefaultTrackedEntityInstanceService
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;
-        this.renderService = renderService;
     }
 
     // -------------------------------------------------------------------------
@@ -306,8 +303,12 @@ public class DefaultTrackedEntityInstanceService
 
             if ( te != null && te.isAllowAuditLog() && accessedBy != null )
             {
-                TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( entity.get( TRACKED_ENTITY_INSTANCE_ID ), accessedBy, AuditType.SEARCH );
-                sendAuditEvent( trackedEntityInstanceAudit );
+                TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
+                    .trackedEntityInstance( entity.get( TRACKED_ENTITY_INSTANCE_ID ) )
+                    .accessedBy( accessedBy )
+                    .build();
+
+                sendAuditEvent( AuditType.SEARCH, auditPayload );
             }
 
             for ( QueryItem item : params.getAttributes() )
@@ -784,7 +785,7 @@ public class DefaultTrackedEntityInstanceService
     {
         String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
 
-        if ( split == null || (split.length % 2 != 1) )
+        if ( split.length % 2 != 1 )
         {
             throw new IllegalQueryException( "Query item or filter is invalid: " + item );
         }
@@ -835,7 +836,7 @@ public class DefaultTrackedEntityInstanceService
         {
             String[] split = query.split( DimensionalObject.DIMENSION_NAME_SEP );
 
-            if ( split == null || split.length != 2 )
+            if ( split.length != 2 )
             {
                 throw new IllegalQueryException( "Query has invalid format: " + query );
             }
@@ -983,21 +984,25 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
-            TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, auditType );
-            sendAuditEvent( trackedEntityInstanceAudit );
+            TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
+                .trackedEntityInstance( trackedEntityInstance.getUid() )
+                .accessedBy( user )
+                .build();
+
+            sendAuditEvent( auditType, auditPayload );
         }
     }
 
-    private void sendAuditEvent( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    private void sendAuditEvent( AuditType auditType, TrackedEntityAuditPayload auditPayload )
     {
         auditManager.send( Audit.builder()
-            .withAuditType( mapAuditType( trackedEntityInstanceAudit.getAuditType() ) )
-            .withAuditScope( AuditScope.TRACKER )
-            .withCreatedAt( new Date() )
-            .withCreatedBy( trackedEntityInstanceAudit.getAccessedBy() )
-            .withClass( TrackedEntityInstance.class )
-            .withUid( trackedEntityInstanceAudit.getTrackedEntityInstance() )
-            .withData( renderService.toJsonAsString( trackedEntityInstanceAudit ) )
+            .auditType( mapAuditType( auditType ) )
+            .auditScope( AuditScope.TRACKER )
+            .createdAt( LocalDateTime.now() )
+            .createdBy( auditPayload.getAccessedBy() )
+            .klass( TrackedEntityInstance.class.getName() )
+            .uid( auditPayload.getTrackedEntityInstance() )
+            .auditableEntity( new AuditableEntity( auditPayload ) )
             .build() );
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,10 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
@@ -69,11 +70,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Profile("!test")
 @Component( "dhisConfigurationProvider" )
+@Slf4j
 public class DefaultDhisConfigurationProvider extends LogOnceLogger
     implements DhisConfigurationProvider
 {
-    private static final Log log = LogFactory.getLog( DefaultDhisConfigurationProvider.class );
-
     private static final String CONF_FILENAME = "dhis.conf";
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";

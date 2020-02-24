@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,9 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -43,11 +44,9 @@ public class D2CountIfCondition
     extends ProgramCountFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.validateStageDataElement( ctx.getText(),
-            ctx.stageDataElement().uid0.getText(),
-            ctx.stageDataElement().uid1.getText() );
+        castDouble( getProgramStageElementDescription( ctx, visitor ) );
 
         String conditionExpression = getConditionalExpression( ctx );
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -51,10 +50,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Jim Grace
  */
+@Slf4j
 class DataApprovalPermissionsEvaluator
 {
-    private final static Log log = LogFactory.getLog( DataApprovalPermissionsEvaluator.class );
-
     private DataApprovalLevelService dataApprovalLevelService;
     private OrganisationUnitService organisationUnitService;
 
@@ -225,13 +223,11 @@ class DataApprovalPermissionsEvaluator
         permissions.setMayAccept( mayAccept );
         permissions.setMayUnaccept( mayUnaccept );
         permissions.setMayReadData( mayReadData );
-
-        return;
     }
 
     private DataApprovalLevel getUserApprovalLevelWithCache( String orgUnitUid, DataApprovalWorkflow workflow )
     {
-        DataApprovalLevel userApprovalLevel = null;
+        DataApprovalLevel userApprovalLevel;
 
         final String organisationUnitUid = orgUnitUid;
 

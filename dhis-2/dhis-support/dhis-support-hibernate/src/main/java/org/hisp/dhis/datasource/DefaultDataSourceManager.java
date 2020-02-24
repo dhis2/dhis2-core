@@ -1,7 +1,7 @@
 package org.hisp.dhis.datasource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,8 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -58,11 +57,10 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DefaultDataSourceManager
     implements DataSourceManager, InitializingBean
 {
-    private static final Log log = LogFactory.getLog( DefaultDataSourceManager.class );
-
     private static final String FORMAT_READ_PREFIX = "read%d.";
     private static final String FORMAT_CONNECTION_URL = FORMAT_READ_PREFIX + CONNECTION_URL.getKey();
     private static final String FORMAT_CONNECTION_USERNAME = FORMAT_READ_PREFIX + CONNECTION_USERNAME.getKey();
@@ -85,7 +83,6 @@ public class DefaultDataSourceManager
 
     @Override
     public void afterPropertiesSet()
-        throws Exception
     {
         List<DataSource> ds = getReadOnlyDataSources();
 
@@ -161,7 +158,7 @@ public class DefaultDataSourceManager
                     ds.setJdbcUrl( jdbcUrl );
                     ds.setUser( user );
                     ds.setPassword( password );
-                    ds.setMaxPoolSize( Integer.valueOf( maxPoolSize ) );
+                    ds.setMaxPoolSize( Integer.parseInt( maxPoolSize ) );
                     ds.setAcquireIncrement( VAL_ACQUIRE_INCREMENT );
                     ds.setMaxIdleTime( VAL_MAX_IDLE_TIME );
 

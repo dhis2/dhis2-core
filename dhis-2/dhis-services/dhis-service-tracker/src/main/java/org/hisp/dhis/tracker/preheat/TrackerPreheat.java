@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -47,6 +48,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -118,6 +120,12 @@ public class TrackerPreheat
      */
     private Map<TrackerIdentifier, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
+    /**
+     * Internal map of all preheated relationships, mainly used for confirming existence for updates, and used
+     * for object merging.
+     */
+    private Map<TrackerIdentifier, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdentifier.class );
+
     public TrackerPreheat()
     {
     }
@@ -129,7 +137,7 @@ public class TrackerPreheat
 
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
+        return User.username( user );
     }
 
     public void setUser( User user )
@@ -579,6 +587,41 @@ public class TrackerPreheat
         }
 
         events.get( identifier ).put( event, programStageInstance );
+    }
+
+    public Map<TrackerIdentifier, Map<String, Relationship>> getRelationships()
+    {
+        return relationships;
+    }
+
+    public void setRelationships( Map<TrackerIdentifier, Map<String, Relationship>> relationships )
+    {
+        this.relationships = relationships;
+    }
+
+    public Relationship getRelationship( TrackerIdentifier identifier, String relationship )
+    {
+        if ( !relationships.containsKey( identifier ) )
+        {
+            return null;
+        }
+
+        return relationships.get( identifier ).get( relationship );
+    }
+
+    public void putRelationships( TrackerIdentifier identifier, List<Relationship> relationships )
+    {
+        relationships.forEach( r -> putRelationship( identifier, r.getUid(), r ) );
+    }
+
+    public void putRelationship( TrackerIdentifier identifier, String relationshipUid, Relationship relationship )
+    {
+        if ( !relationships.containsKey( identifier ) )
+        {
+            relationships.put( identifier, new HashMap<>() );
+        }
+
+        relationships.get( identifier ).put( relationshipUid, relationship );
     }
 
     public static Class<?> getRealClass( Class<?> klass )

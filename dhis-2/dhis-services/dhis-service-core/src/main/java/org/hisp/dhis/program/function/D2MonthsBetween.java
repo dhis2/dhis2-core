@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ public class D2MonthsBetween
     @Override
     public Object getSqlBetweenDates( String startDate, String endDate )
     {
-        return "((date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + "as date)))) * 12 +" +
-               "date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + "as date))))";
+        return "((date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date)))) * 12 + " +
+               "date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
 }

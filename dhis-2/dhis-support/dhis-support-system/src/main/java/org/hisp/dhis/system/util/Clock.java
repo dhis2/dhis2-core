@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.system.util;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class providing stopwatch-like functionality.
@@ -43,9 +43,9 @@ public class Clock
 {
     private static final String SEPARATOR = ": ";
     
-    private static final Log defaultLog = LogFactory.getLog( Clock.class );
-    
-    private Log log;
+    private static final Logger defaultLog = LoggerFactory.getLogger( Clock.class );
+
+    private Logger log;
 
     /**
      * Create a new instance.
@@ -59,7 +59,7 @@ public class Clock
      * Create a new instance with a given logger.
      * @param log the logger.
      */
-    public Clock( Log log )
+    public Clock( Logger log )
     {
         super();
         this.log = log;

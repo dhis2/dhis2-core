@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.intercept;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@ package org.hisp.dhis.security.intercept;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.struts2.ServletActionContext;
 
 import com.opensymphony.xwork2.ActionInvocation;
@@ -38,6 +39,7 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class HttpMethodInterceptor
     implements Interceptor
 {
@@ -46,8 +48,6 @@ public class HttpMethodInterceptor
      */
     private static final long serialVersionUID = -7882464040475459114L;
 
-    private static final Log log = LogFactory.getLog( HttpMethodInterceptor.class );
-    
     private static final String DEFAULT_METHOD = "POST";
     
     protected String allowedMethod = DEFAULT_METHOD;

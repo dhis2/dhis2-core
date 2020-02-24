@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,9 @@ package org.hisp.dhis.artemis.audit;
  */
 
 import com.google.common.base.Strings;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.audit.AuditScope;
 import org.springframework.stereotype.Component;
@@ -40,11 +41,10 @@ import java.util.Map;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class AuditProducerSupplier
 {
-    private static final Log log = LogFactory.getLog( AuditProducerSupplier.class );
-
     private final MessageManager messageManager;
     private final Map<AuditScope, String> auditScopeDestinationMap;
 

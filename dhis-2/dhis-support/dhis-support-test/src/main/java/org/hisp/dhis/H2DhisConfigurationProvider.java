@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,10 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -51,10 +52,10 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Slf4j
 public class H2DhisConfigurationProvider
     implements DhisConfigurationProvider
 {
-    private static final Log log = LogFactory.getLog( H2DhisConfigurationProvider.class );
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
     private Properties properties;
 

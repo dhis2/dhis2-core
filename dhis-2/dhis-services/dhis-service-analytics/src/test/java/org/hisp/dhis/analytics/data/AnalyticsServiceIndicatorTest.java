@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.data;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -90,6 +90,18 @@ public class AnalyticsServiceIndicatorTest
         dataElementA.setDomainType( DataElementDomain.AGGREGATE );
         dataElementA.setName( "DeA" );
         dataElementService.addDataElement( dataElementA );
+    }
+
+    @Test
+    public void verifyIndicatorWithStaticValuesIsComputedAndValueReturned()
+    {
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "1", "5" );
+        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
+
+        assertThat( grid.getRow( 0 ).get( 0 ), is( "mindicatorF" ) );
+        assertThat( grid.getRow( 0 ).get( 2 ), is( 20.0 ) );
     }
 
     /**

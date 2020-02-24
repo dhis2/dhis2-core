@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.vote;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,7 @@ package org.hisp.dhis.security.vote;
  */
 
 import com.opensymphony.xwork2.config.entities.ActionConfig;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.StrutsAuthorityUtils;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -42,10 +41,10 @@ import java.util.Collection;
  * @author Torgeir Lorange Ostby
  * @version $Id: ActionAccessVoter.java 6335 2008-11-20 11:11:26Z larshelg $
  */
+@Slf4j
 public class ActionAccessVoter
     extends AbstractPrefixedAccessDecisionVoter
 {
-    private static final Log LOG = LogFactory.getLog( ActionAccessVoter.class );
 
     // -------------------------------------------------------------------------
     // AccessDecisionVoter Input
@@ -74,7 +73,7 @@ public class ActionAccessVoter
     {
         boolean result = ActionConfig.class.equals( clazz );
 
-        LOG.debug( "Supports class: " + clazz + ", " + result );
+        log.debug( "Supports class: " + clazz + ", " + result );
 
         return result;
     }
@@ -84,7 +83,7 @@ public class ActionAccessVoter
     {
         if ( !supports( object.getClass() ) )
         {
-            LOG.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: Class not supported." );
+            log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: Class not supported." );
 
             return ACCESS_ABSTAIN;
         }
@@ -137,7 +136,7 @@ public class ActionAccessVoter
 
                 if ( !found )
                 {
-                    LOG.debug( "ACCESS_DENIED [" + object.toString() + "]" );
+                    log.debug( "ACCESS_DENIED [" + object.toString() + "]" );
 
                     return ACCESS_DENIED;
                 }
@@ -146,12 +145,12 @@ public class ActionAccessVoter
 
         if ( supported > 0 )
         {
-            LOG.debug( "ACCESS_GRANTED [" + object.toString() + "]" );
+            log.debug( "ACCESS_GRANTED [" + object.toString() + "]" );
 
             return ACCESS_GRANTED;
         }
 
-        LOG.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: No supported attributes." );
+        log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: No supported attributes." );
 
         return ACCESS_ABSTAIN;
     }
@@ -181,19 +180,19 @@ public class ActionAccessVoter
 
         if ( !found && supported > 0 )
         {
-            LOG.debug( "ACCESS_DENIED [" + object.toString() + "]" );
+            log.debug( "ACCESS_DENIED [" + object.toString() + "]" );
 
             return ACCESS_DENIED;
         }
 
         if ( supported > 0 )
         {
-            LOG.debug( "ACCESS_GRANTED [" + object.toString() + "]" );
+            log.debug( "ACCESS_GRANTED [" + object.toString() + "]" );
 
             return ACCESS_GRANTED;
         }
 
-        LOG.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: No supported attributes." );
+        log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: No supported attributes." );
 
         return ACCESS_ABSTAIN;
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.variable;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,6 @@ package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 /**
  * Program indicator variable: due date
  *
@@ -41,7 +39,7 @@ public class vDueDate
     extends ProgramDateVariable
 {
     @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getSql( CommonExpressionVisitor visitor )
     {
         return "duedate";
     }

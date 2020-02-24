@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,16 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
+
+import static com.cronutils.utils.Preconditions.checkNotNull;
 
 /**
  * @author Luciano Fiandesio
@@ -43,16 +46,20 @@ import java.util.Optional;
 public abstract class AbstractHibernateListener
 {
     final AuditManager auditManager;
-    final AuditLegacyObjectFactory legacyObjectFactory;
+    final AuditObjectFactory objectFactory;
     private final UsernameSupplier usernameSupplier;
 
     public AbstractHibernateListener(
         AuditManager auditManager,
-        AuditLegacyObjectFactory legacyObjectFactory,
+        AuditObjectFactory objectFactory,
         UsernameSupplier usernameSupplier )
     {
+        checkNotNull( auditManager );
+        checkNotNull( objectFactory );
+        checkNotNull( usernameSupplier );
+
         this.auditManager = auditManager;
-        this.legacyObjectFactory = legacyObjectFactory;
+        this.objectFactory = objectFactory;
         this.usernameSupplier = usernameSupplier;
     }
 
@@ -78,4 +85,6 @@ public abstract class AbstractHibernateListener
     {
         return usernameSupplier.get();
     }
+
+    abstract AuditType getAuditType();
 }

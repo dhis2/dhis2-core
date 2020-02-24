@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,19 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
-import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
-import org.hisp.dhis.dxf2.sync.EventSynchronization;
-import org.hisp.dhis.dxf2.sync.SynchronizationResult;
-import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
-import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
+import org.hisp.dhis.dxf2.sync.*;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
@@ -50,30 +50,25 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Performs the tasks before metadata sync happens
  *
  * @author aamerm
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "metadataSyncPreProcessor" )
 @Scope("prototype")
 public class MetadataSyncPreProcessor
 {
-    private static final Log log = LogFactory.getLog( MetadataSyncPreProcessor.class );
-
     private final SystemSettingManager systemSettingManager;
     private final MetadataVersionService metadataVersionService;
     private final MetadataVersionDelegate metadataVersionDelegate;
-    private final TrackerSynchronization trackerSync;
-    private final EventSynchronization eventSync;
-    private final DataValueSynchronization dataValueSync;
+    private final DataSynchronization trackerSync;
+    private final DataSynchronization eventSync;
+    private final DataSynchronization dataValueSync;
     private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
 
     public MetadataSyncPreProcessor(
@@ -110,7 +105,7 @@ public class MetadataSyncPreProcessor
     public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
         SynchronizationResult dataValuesSynchronizationResult =
-            dataValueSync.syncDataValuesData( jobParameters.getDataValuesPageSize() );
+            dataValueSync.synchronizeData( jobParameters.getDataValuesPageSize() );
 
         if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -122,7 +117,7 @@ public class MetadataSyncPreProcessor
     public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
         SynchronizationResult trackerSynchronizationResult =
-            trackerSync.syncTrackerProgramData( jobParameters.getTrackerProgramPageSize() );
+            trackerSync.synchronizeData( jobParameters.getTrackerProgramPageSize() );
 
         if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -134,7 +129,7 @@ public class MetadataSyncPreProcessor
     public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
         SynchronizationResult eventsSynchronizationResult =
-            eventSync.syncEventProgramData( jobParameters.getEventProgramPageSize() );
+            eventSync.synchronizeData( jobParameters.getEventProgramPageSize() );
 
         if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {

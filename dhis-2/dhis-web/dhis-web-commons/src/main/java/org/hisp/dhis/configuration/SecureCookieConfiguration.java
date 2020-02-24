@@ -1,7 +1,7 @@
 package org.hisp.dhis.configuration;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,7 @@ package org.hisp.dhis.configuration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -44,11 +43,10 @@ import org.springframework.web.WebApplicationInitializer;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class SecureCookieConfiguration
     implements WebApplicationInitializer
 {
-    private static final Log log = LogFactory.getLog( SecureCookieConfiguration.class );
-
     @Override
     public void onStartup( ServletContext context )
         throws ServletException

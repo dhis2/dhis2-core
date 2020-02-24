@@ -28,11 +28,13 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertTrue;
-
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -40,7 +42,6 @@ import org.junit.Test;
  */
 public class AnnotationUtilsTest
 {
-
     @Test
     public void testIsAnnotationPresent()
     {
@@ -49,6 +50,13 @@ public class AnnotationUtilsTest
 
         assertTrue( AnnotationUtils.isAnnotationPresent( testImplementation.getClass(), Auditable.class ) );
         assertTrue( AnnotationUtils.isAnnotationPresent( nestedTestImplementation.getClass(), Auditable.class ) );
+    }
+
+    @Test
+    public void testGetAnnotatedFields()
+    {
+        NestedTestImplementation testImplementation = new NestedTestImplementation();
+        assertEquals( 3, AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
     }
 
 }

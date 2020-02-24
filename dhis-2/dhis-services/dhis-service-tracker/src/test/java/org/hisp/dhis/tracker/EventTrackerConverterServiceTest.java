@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,8 @@ public class EventTrackerConverterServiceTest
     private UserService _userService;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
@@ -100,7 +101,8 @@ public class EventTrackerConverterServiceTest
     }
 
     @Test
-    public void testToProgramStageInstance() throws IOException
+    public void testToProgramStageInstance()
+        throws IOException
     {
         Event event = new Event();
         event.setProgram( "BFcipDERJne" );
