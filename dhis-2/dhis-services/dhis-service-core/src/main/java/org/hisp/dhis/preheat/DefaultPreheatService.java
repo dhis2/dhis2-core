@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -161,7 +162,7 @@ public class DefaultPreheatService implements PreheatService
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> uniqueCollectionMap = new HashMap<>();
         Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>( params.getObjects().keySet() );
 
-        if ( PreheatMode.ALL == params.getPreheatMode() ) // TODO morten: this seems to be no longer used?
+        if ( PreheatMode.ALL == params.getPreheatMode() )
         {
             if ( params.getClasses().isEmpty() )
             {
@@ -171,7 +172,7 @@ public class DefaultPreheatService implements PreheatService
 
             for ( Class<? extends IdentifiableObject> klass : params.getClasses() )
             {
-                Query query = Query.from( schemaService.getDynamicSchema( klass ) ); // TODO morten: this will replicate the problem of fetching the entire table content
+                Query query = Query.from( schemaService.getDynamicSchema( klass ) );
                 query.setUser( preheat.getUser() );
                 List<? extends IdentifiableObject> objects = queryService.query( query );
 
@@ -238,37 +239,37 @@ public class DefaultPreheatService implements PreheatService
                 }
             }
 
-//            for ( Class<? extends IdentifiableObject> klass : klasses )
-//            {
-//                Query query = Query.from( schemaService.getDynamicSchema( klass ) );
-//                query.setUser( preheat.getUser() );
-//                List<? extends IdentifiableObject> objects = queryService.query( query );
-//
-//                if ( !objects.isEmpty() )
-//                {
-//                    uniqueCollectionMap.put( klass, new ArrayList<>( objects ) );
-//                }
-//            }
+            for ( Class<? extends IdentifiableObject> klass : klasses )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( klass ) );
+                query.setUser( preheat.getUser() );
+                List<? extends IdentifiableObject> objects = queryService.query( query );
+
+                if ( !objects.isEmpty() )
+                {
+                    uniqueCollectionMap.put( klass, new ArrayList<>( objects ) );
+                }
+            }
         }
 
-//        if ( uniqueCollectionMap.containsKey( User.class ) )
-//        {
-//            List<IdentifiableObject> userCredentials = new ArrayList<>();
-//
-//            for ( IdentifiableObject identifiableObject : uniqueCollectionMap.get( User.class ) )
-//            {
-//                User user = (User) identifiableObject;
-//
-//                if ( user.getUserCredentials() != null )
-//                {
-//                    userCredentials.add( user.getUserCredentials() );
-//                }
-//            }
-//
-//            uniqueCollectionMap.put( UserCredentials.class, userCredentials );
-//        }
-//
-//        preheat.setUniquenessMap( collectUniqueness( uniqueCollectionMap ) );
+        if ( uniqueCollectionMap.containsKey( User.class ) )
+        {
+            List<IdentifiableObject> userCredentials = new ArrayList<>();
+
+            for ( IdentifiableObject identifiableObject : uniqueCollectionMap.get( User.class ) )
+            {
+                User user = (User) identifiableObject;
+
+                if ( user.getUserCredentials() != null )
+                {
+                    userCredentials.add( user.getUserCredentials() );
+                }
+            }
+
+            uniqueCollectionMap.put( UserCredentials.class, userCredentials );
+        }
+
+        preheat.setUniquenessMap( collectUniqueness( uniqueCollectionMap ) );
 
         // add preheat placeholders for objects that will be created and set mandatory/unique attributes
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
@@ -824,25 +825,25 @@ public class DefaultPreheatService implements PreheatService
         }
     }
 
-//    @Override
-//    public Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
-//    {
-//        Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniqueMap = new HashMap<>();
-//
-//        if ( objects.isEmpty() )
-//        {
-//            return uniqueMap;
-//        }
-//
-//        for ( Class<? extends IdentifiableObject> objectClass : objects.keySet() )
-//        {
-//            Schema schema = schemaService.getDynamicSchema( objectClass );
-//            List<IdentifiableObject> identifiableObjects = objects.get( objectClass );
-//            uniqueMap.put( objectClass, handleUniqueProperties( schema, identifiableObjects ) );
-//        }
-//
-//        return uniqueMap;
-//    }
+    @Override
+    public Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    {
+        Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniqueMap = new HashMap<>();
+
+        if ( objects.isEmpty() )
+        {
+            return uniqueMap;
+        }
+
+        for ( Class<? extends IdentifiableObject> objectClass : objects.keySet() )
+        {
+            Schema schema = schemaService.getDynamicSchema( objectClass );
+            List<IdentifiableObject> identifiableObjects = objects.get( objectClass );
+            uniqueMap.put( objectClass, handleUniqueProperties( schema, identifiableObjects ) );
+        }
+
+        return uniqueMap;
+    }
 
     @Override
     public void connectReferences( Object object, Preheat preheat, PreheatIdentifier identifier )
@@ -958,26 +959,26 @@ public class DefaultPreheatService implements PreheatService
         if ( !StringUtils.isEmpty( identifiableObject.getCode() ) ) codeMap.get( klass ).add( identifiableObject.getCode() );
     }
 
-//    private Map<String, Map<Object, String>> handleUniqueProperties( Schema schema, List<IdentifiableObject> objects )
-//    {
-//        List<Property> uniqueProperties = schema.getProperties().stream()
-//            .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
-//            .collect( Collectors.toList() );
-//
-//        Map<String, Map<Object, String>> map = new HashMap<>();
-//
-//        for ( IdentifiableObject object : objects )
-//        {
-//            uniqueProperties.forEach( property ->
-//            {
-//                if ( !map.containsKey( property.getName() ) ) map.put( property.getName(), new HashMap<>() );
-//                Object value = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-//                if ( value != null ) map.get( property.getName() ).put( value, object.getUid() );
-//            } );
-//        }
-//
-//        return map;
-//    }
+    private Map<String, Map<Object, String>> handleUniqueProperties( Schema schema, List<IdentifiableObject> objects )
+    {
+        List<Property> uniqueProperties = schema.getProperties().stream()
+            .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
+            .collect( Collectors.toList() );
+
+        Map<String, Map<Object, String>> map = new HashMap<>();
+
+        for ( IdentifiableObject object : objects )
+        {
+            uniqueProperties.forEach( property ->
+            {
+                if ( !map.containsKey( property.getName() ) ) map.put( property.getName(), new HashMap<>() );
+                Object value = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+                if ( value != null ) map.get( property.getName() ).put( value, object.getUid() );
+            } );
+        }
+
+        return map;
+    }
 
     private IdentifiableObject getPersistedObject( Preheat preheat, PreheatIdentifier identifier, IdentifiableObject ref )
     {

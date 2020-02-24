@@ -63,13 +63,13 @@ public interface PreheatService
 
     Map<Class<?>, Map<String, Map<String, Object>>> collectObjectReferences( Object object );
 
-//    /**
-//     * Scan objects and collect unique values (used to verify object properties with unique=true)
-//     *
-//     * @param objects Objects to scan
-//     * @return Klass -> Property.name -> Value -> UID
-//     */
-//    Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects );
+    /**
+     * Scan objects and collect unique values (used to verify object properties with unique=true)
+     *
+     * @param objects Objects to scan
+     * @return Klass -> Property.name -> Value -> UID
+     */
+    Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> collectUniqueness( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects );
 
     /**
      * Connects id object references on a given object using a given identifier + a preheated Preheat cache.
