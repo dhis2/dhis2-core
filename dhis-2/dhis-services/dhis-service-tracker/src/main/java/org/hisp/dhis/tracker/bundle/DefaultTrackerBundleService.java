@@ -95,7 +95,6 @@ public class DefaultTrackerBundleService
     private final HibernateCacheManager cacheManager;
 
     private final DbmsManager dbmsManager;
-    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
