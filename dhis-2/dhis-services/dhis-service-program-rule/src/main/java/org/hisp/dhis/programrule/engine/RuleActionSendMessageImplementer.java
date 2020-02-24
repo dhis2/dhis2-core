@@ -44,6 +44,12 @@ import org.springframework.stereotype.Component;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
+ *<ol>
+ * <li>Handle notifications related to enrollment/event</li>
+ * <li>Trigger spring event to handle notification delivery in separate thread<li/>
+ * <li>Log and entry in {@link ExternalNotificationLogEntry}</li>
+ *</ol>
+ *
  * Created by zubair@dhis2.org on 04.01.18.
  */
 @Component( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" )

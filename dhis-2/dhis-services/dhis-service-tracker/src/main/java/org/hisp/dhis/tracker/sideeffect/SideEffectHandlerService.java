@@ -31,6 +31,9 @@ package org.hisp.dhis.tracker.sideeffect;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 
 /**
+ * Service responsible for asynchronous handling of TrackerImport side effect. For now they related to audit, notifications and
+ * program rule effect.
+ *
  * @author Zubair Asghar
  */
 public interface SideEffectHandlerService

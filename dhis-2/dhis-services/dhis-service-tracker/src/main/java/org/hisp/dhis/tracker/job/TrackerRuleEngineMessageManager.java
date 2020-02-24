@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
@@ -36,9 +35,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
 
 /**
  * @author Zubair Asghar
@@ -65,10 +61,8 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TextMessage message ) throws JMSException, JsonProcessingException
+    public void consume( TrackerSideEffectDataBundle bundle )
     {
-        TrackerSideEffectDataBundle bundle = (TrackerSideEffectDataBundle) getMessage( message );
-
         TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
 
         notificationThread.setSideEffectDataBundle( bundle );

@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Class holding data necessary for implementation of side effects.
  * @author Zubair Asghar
  */
 @Data
