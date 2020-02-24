@@ -97,6 +97,8 @@ public class DefaultTrackerBundleService
     private final DbmsManager dbmsManager;
     private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
+    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
     private final TrackerProgramRuleService trackerProgramRuleService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
@@ -137,7 +139,7 @@ public class DefaultTrackerBundleService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public List<TrackerBundle> create( TrackerBundleParams params )
     {
         TrackerBundle trackerBundle = params.toTrackerBundle();
