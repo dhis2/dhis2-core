@@ -36,12 +36,18 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.FlushMode;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -93,6 +99,8 @@ public class DefaultTrackerBundleService
 
     private final DbmsManager dbmsManager;
 
+    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
     private final TrackerProgramRuleService trackerProgramRuleService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
@@ -112,7 +120,7 @@ public class DefaultTrackerBundleService
 
     public DefaultTrackerBundleService(
         TrackerPreheatService trackerPreheatService,
-        TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService,
+        TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
         TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipTrackerConverterService,
@@ -121,6 +129,7 @@ public class DefaultTrackerBundleService
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
         TrackerProgramRuleService trackerProgramRuleService )
     {
         this.trackerPreheatService = trackerPreheatService;
@@ -133,11 +142,12 @@ public class DefaultTrackerBundleService
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
+        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
         this.trackerProgramRuleService = trackerProgramRuleService;
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public List<TrackerBundle> create( TrackerBundleParams params )
     {
         TrackerBundle trackerBundle = params.toTrackerBundle();
@@ -147,10 +157,10 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-            .calculateEnrollmentRuleEffects( trackerBundle );
-        Map<Event, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-            .calculateEventRuleEffects( trackerBundle );
+        Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects =
+            trackerProgramRuleService.calculateEnrollmentRuleEffects( trackerBundle );
+        Map<Event, List<RuleEffect>> eventRuleEffects =
+            trackerProgramRuleService.calculateEventRuleEffects( trackerBundle );
         trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
         trackerBundle.setEventRuleEffects( eventRuleEffects );
 
@@ -220,6 +230,9 @@ public class DefaultTrackerBundleService
             trackedEntityInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( trackedEntityInstance );
+            bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(), Collections.singletonList( trackedEntityInstance ) );
+
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), trackedEntity.getAttributes(), trackedEntityInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -262,6 +275,10 @@ public class DefaultTrackerBundleService
             programInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programInstance );
+            bundle.getPreheat().putEnrollments( bundle.getIdentifier(), Collections.singletonList( programInstance ) );
+
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), enrollment.getAttributes(),
+                programInstance.getEntityInstance() );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -315,6 +332,8 @@ public class DefaultTrackerBundleService
             programStageInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programStageInstance );
+            bundle.getPreheat().putEvents( bundle.getIdentifier(), Collections.singletonList( programStageInstance ) );
+
             typeReport.getStats().incCreated();
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
@@ -384,6 +403,70 @@ public class DefaultTrackerBundleService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
+
+    private void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
+        List<Attribute> attributes, TrackedEntityInstance trackedEntityInstance )
+    {
+        List<TrackedEntityAttributeValue> attributeValues = new ArrayList<>();
+        List<String> attributeValuesForDeletion = new ArrayList<>();
+
+        for ( Attribute at : attributes )
+        {
+            // TEAV.getValue has a lot of trickery behind it since its being used for encryption, so we can't rely on that to
+            // get empty/null values, instead we build a simple list here to compare with.
+            if ( StringUtils.isEmpty( at.getValue() ) )
+            {
+                attributeValuesForDeletion.add( at.getAttribute() );
+            }
+
+            TrackedEntityAttribute attribute = preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, at.getAttribute() );
+            TrackedEntityAttributeValue attributeValue = null;
+
+            // this is pretty bad for performance, but we are dealing with a Set<> and can't index directly
+            // this needs to be solved for 2.35
+            for ( TrackedEntityAttributeValue av : trackedEntityInstance.getTrackedEntityAttributeValues() )
+            {
+                if ( av.getAttribute().getUid().equals( at.getAttribute() ) )
+                {
+                    av.setAttribute( attribute )
+                        .setValue( at.getValue() )
+                        .setStoredBy( at.getStoredBy() );
+
+                    attributeValue = av;
+                    attributeValues.add( attributeValue );
+
+                    break;
+                }
+            }
+
+            // new attribute value
+            if ( attributeValue == null )
+            {
+                attributeValue = new TrackedEntityAttributeValue();
+
+                attributeValue.setAttribute( attribute )
+                    .setValue( at.getValue() )
+                    .setStoredBy( at.getStoredBy() );
+
+                attributeValues.add( attributeValue );
+            }
+        }
+
+        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
+        {
+            // since TEAV is the owning side here, we don't bother updating the TE.teav collection
+            // as it will be reloaded on session clear
+            if ( attributeValuesForDeletion.contains( attributeValue.getAttribute().getUid() ) )
+            {
+                session.remove( attributeValue );
+            }
+            else
+            {
+                attributeValue.setEntityInstance( trackedEntityInstance );
+                session.persist( attributeValue );
+            }
+        }
+    }
 
     private User getUser( User user, String userUid )
     {

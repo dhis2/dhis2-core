@@ -39,10 +39,17 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +64,7 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerBundleServiceTest
+public class TrackedEntityAttributeTest
     extends IntegrationTestBase
 {
     @Autowired
@@ -73,7 +80,13 @@ public class TrackerBundleServiceTest
     private UserService _userService;
 
     @Autowired
+    private TrackerPreheatService trackerPreheatService;
+
+    @Autowired
     private TrackerBundleService trackerBundleService;
+
+    @Autowired
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -85,7 +98,7 @@ public class TrackerBundleServiceTest
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "tracker/te_with_tea_metadata.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -106,26 +119,37 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testVerifyMetadata()
+    public void testTrackedAttributePreheater() throws IOException
     {
-        Program program = manager.get( Program.class, "E8o1E9tAppy" );
-        OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
 
-        assertNotNull( program );
-        assertNotNull( organisationUnit );
-        assertFalse( program.getProgramStages().isEmpty() );
+        TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
+            .build();
+
+        TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
+
+        assertNotNull( preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, "cNEZTkdAvmg" ) );
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityType.class, "KrYIdvLxkMb" ) );
+
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
+        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
     }
 
     @Test
-    public void testTrackedEntityInstanceImport() throws IOException
+    public void testTrackedAttributeValueBundleImporter() throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
-
-        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
+            .enrollments( trackerBundle.getEnrollments() )
+            .events( trackerBundle.getEvents() )
             .build() );
 
         assertEquals( 1, trackerBundles.size() );
@@ -133,6 +157,13 @@ public class TrackerBundleServiceTest
         trackerBundleService.commit( trackerBundles.get( 0 ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 13, trackedEntityInstances.size() );
+        assertEquals( 1, trackedEntityInstances.size() );
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
+            trackedEntityInstance );
+
+        assertEquals( 3, attributeValues.size() );
     }
 }

@@ -82,7 +82,7 @@ public class Event
     private String orgUnitName;
 
     @JsonProperty
-    private String trackedEntityInstance;
+    private String trackedEntity;
 
     @JsonProperty
     private Set<Relationship> relationships;

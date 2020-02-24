@@ -36,6 +36,11 @@ import org.hisp.dhis.tracker.domain.Event;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Calculates rule effects calling rule engine on enrollments or events.
+ *
+ * @author Enrico Colasante
+ */
 public interface TrackerProgramRuleService
 {
     Map<Enrollment, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle );

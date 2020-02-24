@@ -29,15 +29,11 @@ package org.hisp.dhis.tracker;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,51 +51,31 @@ public class DefaultTrackerProgramRuleService
 {
     private final DefaultProgramRuleEngineService programRuleEngineService;
 
-    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
-
-    private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
-
-    public DefaultTrackerProgramRuleService( DefaultProgramRuleEngineService programRuleEngineService,
-        TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
-        TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService )
+    public DefaultTrackerProgramRuleService( DefaultProgramRuleEngineService programRuleEngineService )
     {
         this.programRuleEngineService = programRuleEngineService;
-        this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
-        this.eventTrackerConverterService = eventTrackerConverterService;
     }
 
     @Override
     public Map<Enrollment, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle )
     {
-        return getProgramRulesForEnrollments( trackerBundle.getEnrollments(), trackerBundle.getPreheat() );
+        return trackerBundle.getEnrollments()
+            .stream()
+            .collect( Collectors
+                .toMap(
+                    Function.identity(),
+                    e -> programRuleEngineService
+                        .evaluateEnrollment( e.getEnrollment() ) ) );
     }
 
     @Override
     public Map<Event, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle )
     {
-        return getProgramRulesForEvents( trackerBundle.getEvents(), trackerBundle.getPreheat() );
-    }
-
-    private Map<Enrollment, List<RuleEffect>> getProgramRulesForEnrollments( List<Enrollment> enrollments,
-        TrackerPreheat preheat )
-    {
-        return enrollments
-            .parallelStream()
+        return trackerBundle.getEvents()
+            .stream()
             .collect( Collectors
                 .toMap(
                     Function.identity(),
-                    e -> programRuleEngineService
-                        .evaluateEnrollment( enrollmentTrackerConverterService.from( preheat, e ) ) ) );
-    }
-
-    private Map<Event, List<RuleEffect>> getProgramRulesForEvents( List<Event> events,
-        TrackerPreheat preheat )
-    {
-        return events
-            .parallelStream()
-            .collect( Collectors
-                .toMap(
-                    Function.identity(),
-                    e -> programRuleEngineService.evaluateEvent( eventTrackerConverterService.from( preheat, e ) ) ) );
+                    e -> programRuleEngineService.evaluateEvent( e.getEvent() ) ) );
     }
 }
