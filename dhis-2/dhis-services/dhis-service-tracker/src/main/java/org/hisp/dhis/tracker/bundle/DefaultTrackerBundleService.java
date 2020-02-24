@@ -137,7 +137,7 @@ public class DefaultTrackerBundleService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public List<TrackerBundle> create( TrackerBundleParams params )
     {
         TrackerBundle trackerBundle = params.toTrackerBundle();
