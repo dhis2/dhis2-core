@@ -39,9 +39,9 @@ import java.util.List;
  */
 public interface ProgramRuleEngineService
 {
-    List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment );
+    List<RuleEffect> evaluateEnrollment( String enrollmentUid );
 
-    List<RuleEffect> evaluateEvent( ProgramStageInstance event );
+    List<RuleEffect> evaluateEvent( String eventUid );
 
     List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
 
