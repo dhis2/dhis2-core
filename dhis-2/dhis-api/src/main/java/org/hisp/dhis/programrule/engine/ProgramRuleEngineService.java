@@ -28,8 +28,6 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
 
 import java.util.List;
@@ -39,9 +37,9 @@ import java.util.List;
  */
 public interface ProgramRuleEngineService
 {
-    List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment );
+    List<RuleEffect> evaluateEnrollment( String enrollmentUid );
 
-    List<RuleEffect> evaluateEvent( ProgramStageInstance event );
+    List<RuleEffect> evaluateEvent( String eventUid );
 
     List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
 

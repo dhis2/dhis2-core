@@ -82,7 +82,7 @@ public class DefaultProgramRuleEngineService
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
-        List<RuleEffect> ruleEffects = evaluateEnrollment( programInstance );
+        List<RuleEffect> ruleEffects = getRuleEffects( programInstance );
 
         for ( RuleEffect effect : ruleEffects )
         {
@@ -97,7 +97,13 @@ public class DefaultProgramRuleEngineService
     }
 
     @Override
-    public List<RuleEffect> evaluateEnrollment( ProgramInstance programInstance )
+    public List<RuleEffect> evaluateEnrollment( String programInstanceUid )
+    {
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceUid );
+        return getRuleEffects( programInstance );
+    }
+
+    private List<RuleEffect> getRuleEffects( ProgramInstance programInstance )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
@@ -118,8 +124,7 @@ public class DefaultProgramRuleEngineService
     public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
     {
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
-
-        List<RuleEffect> ruleEffects = evaluateEvent( psi );
+        List<RuleEffect> ruleEffects = getRuleEffects( psi );
 
         for ( RuleEffect effect : ruleEffects )
         {
@@ -135,13 +140,19 @@ public class DefaultProgramRuleEngineService
     }
 
     @Override
-    public List<RuleEffect> evaluateEvent( ProgramStageInstance programStageInstance )
+    public List<RuleEffect> evaluateEvent( String programStageInstanceUid )
+    {
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceUid );
+        return getRuleEffects( psi );
+    }
+
+    private List<RuleEffect> getRuleEffects( ProgramStageInstance psi )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
         try
         {
-            ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+            ruleEffects = programRuleEngine.evaluateEvent( psi );
         }
         catch ( Exception ex )
         {
@@ -151,4 +162,5 @@ public class DefaultProgramRuleEngineService
 
         return ruleEffects;
     }
+
 }
