@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -54,10 +54,10 @@ import lombok.extern.slf4j.Slf4j;
  * Created by zubair@dhis2.org on 07.09.17.
  */
 @Slf4j
-@Service( "org.hisp.dhis.appstore.AppStoreService" )
-public class DefaultAppStoreService
+@Service( "org.hisp.dhis.apphub.AppHubService" )
+public class DefaultAppHubService
     implements
-    AppStoreService
+        AppHubService
 {
     private final RestTemplate restTemplate;
 
@@ -65,7 +65,7 @@ public class DefaultAppStoreService
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    public DefaultAppStoreService( RestTemplate restTemplate, AppManager appManager,
+    public DefaultAppHubService( RestTemplate restTemplate, AppManager appManager,
         DhisConfigurationProvider dhisConfigurationProvider )
     {
         checkNotNull( restTemplate );
@@ -77,10 +77,10 @@ public class DefaultAppStoreService
     }
 
     @Override
-    public List<WebApp> getAppStore()
+    public List<WebApp> getAppHub()
     {
-        String appStoreApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_URL );
-        String allAppsUrl = appStoreApiUrl + "/apps";
+        String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
+        String allAppsUrl = appHubApiUrl + "/apps";
 
         WebApp[] apps = restTemplate.getForObject( allAppsUrl, WebApp[].class );
 
@@ -88,7 +88,7 @@ public class DefaultAppStoreService
     }
 
     @Override
-    public AppStatus installAppFromAppStore( String id )
+    public AppStatus installAppFromAppHub( String id )
     {
         if ( id == null )
         {
@@ -126,7 +126,7 @@ public class DefaultAppStoreService
 
     private Optional<AppVersion> getWebAppVersion( String id )
     {
-        for ( WebApp app : getAppStore() )
+        for ( WebApp app : getAppHub() )
         {
             for ( AppVersion version : app.getVersions() )
             {
