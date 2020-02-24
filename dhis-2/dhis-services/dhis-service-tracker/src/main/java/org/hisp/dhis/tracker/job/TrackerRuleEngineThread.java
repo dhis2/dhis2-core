@@ -42,6 +42,9 @@ import java.util.Map;
 
 
 /**
+ * Class represents a thread which will be triggered as soon as tracker rule engine consumer consumes a message from
+ * tracker rule engine queue.
+ *
  * @author Zubair Asghar
  */
 @Component

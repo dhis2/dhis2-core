@@ -29,9 +29,12 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
+import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.*;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
@@ -40,8 +43,6 @@ import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  *<ol>
@@ -61,10 +62,13 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     private final ApplicationEventPublisher publisher;
 
-    public RuleActionSendMessageImplementer( ApplicationEventPublisher publisher )
+    public RuleActionSendMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+         NotificationLoggingService notificationLoggingService,
+         ProgramInstanceService programInstanceService,
+         ProgramStageInstanceService programStageInstanceService,
+         ApplicationEventPublisher publisher )
     {
-        checkNotNull( publisher );
-
+        super( programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService );
         this.publisher = publisher;
     }
 

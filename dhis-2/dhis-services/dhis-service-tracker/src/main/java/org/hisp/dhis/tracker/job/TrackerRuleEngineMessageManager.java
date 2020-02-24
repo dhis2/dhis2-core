@@ -37,6 +37,8 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 /**
+ * Producer and consumer for handling program rule actions.
+ *
  * @author Zubair Asghar
  */
 @Component

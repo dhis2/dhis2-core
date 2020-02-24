@@ -43,7 +43,6 @@ import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,19 +56,26 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    protected ProgramNotificationTemplateStore programNotificationTemplateStore;
+    protected final ProgramNotificationTemplateStore programNotificationTemplateStore;
 
-    @Autowired
-    protected NotificationLoggingService notificationLoggingService;
+    protected final NotificationLoggingService notificationLoggingService;
 
-    @Autowired
-    protected ProgramInstanceService programInstanceService;
+    protected final ProgramInstanceService programInstanceService;
 
-    @Autowired
-    protected ProgramStageInstanceService programStageInstanceService;
+    protected final ProgramStageInstanceService programStageInstanceService;
 
-    protected ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
+    public NotificationRuleActionImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+          NotificationLoggingService notificationLoggingService,
+          ProgramInstanceService programInstanceService,
+          ProgramStageInstanceService programStageInstanceService )
+    {
+        this.programNotificationTemplateStore = programNotificationTemplateStore;
+        this.notificationLoggingService = notificationLoggingService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+    }
+
+    protected ExternalNotificationLogEntry createLogEntry(String key, String templateUid )
     {
         ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
         entry.setLastSentAt( new Date() );

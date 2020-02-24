@@ -41,6 +41,9 @@ import org.springframework.stereotype.Component;
 import java.util.function.Consumer;
 
 /**
+ * Class represents a thread which will be triggered as soon as tracker notification consumer consumes a message from
+ * tracker notification queue.
+ *
  * @author Zubair Asghar
  */
 

@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 
 
 /**
+ * Producer and consumer for handling tracker notifications.
+ *
  * @author Zubair Asghar
  */
 @Component
