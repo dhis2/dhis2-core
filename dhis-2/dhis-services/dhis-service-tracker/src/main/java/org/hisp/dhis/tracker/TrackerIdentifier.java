@@ -28,45 +28,56 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.util.ObjectUtils;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold
  */
-public enum TrackerIdentifier
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrackerIdentifier
 {
-    /**
-     * Preheat using UID identifiers.
-     */
-    UID,
+    public static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
-    /**
-     * Preheat using CODE identifiers.
-     */
-    CODE,
+    public static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
-    /**
-     * Preheat using ATTRIBUTE identifiers
-     */
-    ATTRIBUTE,
+    public static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
-    /**
-     * Find first non-null identifier in order: UID, CODE
-     */
-    AUTO;
+    @Builder.Default
+    private TrackerIdScheme idScheme = TrackerIdScheme.UID;
 
+    @Builder.Default
+    private String value = null;
 
-    @SuppressWarnings( "incomplete-switch" )
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
-        switch ( this )
+        switch ( idScheme )
         {
-            case UID:
-                return object.getUid();
-            case CODE:
-                return object.getCode();
+        case UID:
+            return object.getUid();
+        case CODE:
+            return object.getCode();
+        case ATTRIBUTE:
+            return object.getAttributeValues()
+                .stream()
+                .filter( av -> av.getAttribute().getUid().equals( value ) )
+                .map( AttributeValue::getValue )
+                .findFirst()
+                .orElse( null );
+        case AUTO:
+            return ObjectUtils.firstNonNull( object.getUid(), object.getCode() );
         }
 
         throw new RuntimeException( "Unhandled identifier type." );
     }
+
 }

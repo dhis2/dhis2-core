@@ -28,57 +28,28 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
- * Wrapper object to handle identifier-related parameters for tracker import/export
- *
- * @author Stian Sandvold
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TrackerIdentifierParams
+public enum TrackerIdScheme
 {
     /**
-     * Specific identifier to match data elements on.
+     * Preheat using UID identifiers.
      */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdentifier dataElementIdScheme = TrackerIdentifier.UID;
+    UID,
 
     /**
-     * Specific identifier to match organisation units on.
+     * Preheat using CODE identifiers.
      */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdentifier orgUnitIdScheme = TrackerIdentifier.UID;
+    CODE,
 
     /**
-     * Specific identifier to match program on.
+     * Preheat using ATTRIBUTE identifiers
      */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdentifier programIdScheme = TrackerIdentifier.UID;
+    ATTRIBUTE,
 
     /**
-     * Specific identifier to match program stage on.
+     * Find first non-null identifier in order: UID, CODE
      */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdentifier programStageIdScheme = TrackerIdentifier.UID;
-
-    /**
-     * Specific identifier to match all metadata on. Will be overridden by
-     * metadata-specific idSchemes.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdentifier idScheme = TrackerIdentifier.UID;
-
+    AUTO;
 }

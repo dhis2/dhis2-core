@@ -181,42 +181,21 @@ public class DefaultTrackerImportService implements TrackerImportService
 
     private TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
-        TrackerIdentifier idScheme = getEnumWithDefault( TrackerIdentifier.class, parameters, "idScheme", TrackerIdentifier.UID );
+        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "idScheme", TrackerIdScheme.UID );
+        TrackerIdScheme orgUnitIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "orgUnitIdScheme", idScheme );
+        TrackerIdScheme programIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "programIdScheme", idScheme );
+        TrackerIdScheme programStageIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "programStageIdScheme", idScheme );
+        TrackerIdScheme dataElementIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "dataElementIdScheme", idScheme );
 
-        TrackerIdentifierParams identifiers = TrackerIdentifierParams.builder()
-            .dataElementIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "dataElementIdScheme", idScheme ) )
-            .orgUnitIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "orgUnitIdScheme", idScheme ) )
-            .programIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "programIdScheme", idScheme ) )
-            .programStageIdScheme( getEnumWithDefault( TrackerIdentifier.class, parameters, "programStageIdScheme", idScheme ) )
-            .idScheme( idScheme )
+        TrackerIdentifierParams params = TrackerIdentifierParams.builder()
+            .idScheme( TrackerIdentifier.builder().idScheme( idScheme ).value( getAttributeUidOrNull( parameters, "idScheme" ) ).build() )
+            .orgUnitIdScheme( TrackerIdentifier.builder().idScheme( orgUnitIdScheme ).value( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) ).build() )
+            .programIdScheme( TrackerIdentifier.builder().idScheme( programIdScheme ).value( getAttributeUidOrNull( parameters, "programIdScheme" ) ).build() )
+            .programStageIdScheme( TrackerIdentifier.builder().idScheme( programStageIdScheme ).value( getAttributeUidOrNull( parameters, "programStageIdScheme" ) ).build() )
+            .dataElementIdScheme( TrackerIdentifier.builder().idScheme( dataElementIdScheme ).value( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) ).build() )
             .build();
 
-        if ( identifiers.getIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
-        {
-            identifiers.setIdSchemeAttributeId( getAttributeUidOrNull( parameters, "idScheme" ) );
-        }
-
-        if ( identifiers.getOrgUnitIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
-        {
-            identifiers.setOrgUnitAttributeId( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) );
-        }
-
-        if ( identifiers.getDataElementIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
-        {
-            identifiers.setDataElementAttributeId( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) );
-        }
-
-        if ( identifiers.getProgramIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
-        {
-            identifiers.setProgramAttributeId( getAttributeUidOrNull( parameters, "programIdScheme" ) );
-        }
-
-        if ( identifiers.getProgramStageIdScheme().equals( TrackerIdentifier.ATTRIBUTE ) )
-        {
-            identifiers.setProgramStageAttributeId( getAttributeUidOrNull( parameters, "programStageIdScheme" ) );
-        }
-
-        return identifiers;
+        return params;
     }
 
     private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
@@ -226,7 +205,7 @@ public class DefaultTrackerImportService implements TrackerImportService
             return defaultValue;
         }
 
-        if ( TrackerIdentifier.class.equals( enumKlass ) && IdScheme.isAttribute( parameters.get( key ).get( 0 ) ) )
+        if ( TrackerIdScheme.class.equals( enumKlass ) && IdScheme.isAttribute( parameters.get( key ).get( 0 ) ) )
         {
             return Enums.getIfPresent( enumKlass, "ATTRIBUTE" ).orNull();
         }

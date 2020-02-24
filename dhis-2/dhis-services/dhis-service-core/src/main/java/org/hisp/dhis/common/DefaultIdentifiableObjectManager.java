@@ -395,7 +395,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional( readOnly = false )
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getByName( Class<T> clazz, String name )
     {

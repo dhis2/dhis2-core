@@ -56,6 +56,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -63,6 +64,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -120,6 +122,7 @@ public class DefaultTrackerPreheatService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackerPreheat preheat( TrackerPreheatParams params )
     {
         Timer timer = new SystemTimer().start();
@@ -149,7 +152,7 @@ public class DefaultTrackerPreheatService
                 {
                     List<TrackedEntityInstance> trackedEntityInstances =
                         trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
-                    preheat.putTrackedEntities( TrackerIdentifier.UID, trackedEntityInstances );
+                    preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances );
                 }
             }
             else if ( klass.isAssignableFrom( Enrollment.class ) )
@@ -157,7 +160,7 @@ public class DefaultTrackerPreheatService
                 for ( List<String> ids : splitList )
                 {
                     List<ProgramInstance> programInstances = programInstanceStore.getByUid( ids, preheat.getUser() );
-                    preheat.putEnrollments( TrackerIdentifier.UID, programInstances );
+                    preheat.putEnrollments( TrackerIdScheme.UID, programInstances );
                 }
             }
             else if ( klass.isAssignableFrom( Event.class ) )
@@ -166,48 +169,43 @@ public class DefaultTrackerPreheatService
                 {
                     List<ProgramStageInstance> programStageInstances = programStageInstanceStore
                         .getByUid( ids, preheat.getUser() );
-                    preheat.putEvents( TrackerIdentifier.UID, programStageInstances );
+                    preheat.putEvents( TrackerIdScheme.UID, programStageInstances );
                 }
             }
             else if ( klass.isAssignableFrom( OrganisationUnit.class ) )
             {
-                TrackerIdentifier idScheme = params.getIdentifiers().getOrgUnitIdScheme();
+                TrackerIdentifier identifier = params.getIdentifiers().getOrgUnitIdScheme();
                 Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
-                String attribute = params.getIdentifiers().getOrgUnitAttributeId();
 
-                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
             else if ( klass.isAssignableFrom( Program.class ) )
             {
                 Schema schema = schemaService.getDynamicSchema( Program.class );
-                TrackerIdentifier idScheme = params.getIdentifiers().getProgramIdScheme();
-                String attribute = params.getIdentifiers().getProgramAttributeId();
+                TrackerIdentifier identifier = params.getIdentifiers().getProgramIdScheme();
 
-                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
             else if ( klass.isAssignableFrom( ProgramStage.class ) )
             {
                 Schema schema = schemaService.getDynamicSchema( ProgramStage.class );
-                TrackerIdentifier idScheme = params.getIdentifiers().getProgramStageIdScheme();
-                String attribute = params.getIdentifiers().getProgramStageAttributeId();
+                TrackerIdentifier identifier = params.getIdentifiers().getProgramStageIdScheme();
 
-                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
             else if ( klass.isAssignableFrom( DataElement.class ) )
             {
                 Schema schema = schemaService.getDynamicSchema( DataElement.class );
-                TrackerIdentifier idScheme = params.getIdentifiers().getDataElementIdScheme();
-                String attribute = params.getIdentifiers().getDataElementAttributeId();
+                TrackerIdentifier identifier = params.getIdentifiers().getDataElementIdScheme();
 
-                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
             else
             {
                 Schema schema = schemaService.getDynamicSchema( klass );
-                TrackerIdentifier idScheme = params.getIdentifiers().getIdScheme();
-                String attribute = params.getIdentifiers().getIdSchemeAttributeId();
+                TrackerIdentifier identifier = params.getIdentifiers().getIdScheme();
 
-                queryForIdentifiableObjects( preheat, schema, idScheme, attribute, splitList );
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
         }
 
@@ -219,7 +217,7 @@ public class DefaultTrackerPreheatService
             .forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
 
         List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
-        programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdentifier.UID, pi.getProgram().getUid(), pi ) );
+        programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );
 
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 
@@ -247,9 +245,9 @@ public class DefaultTrackerPreheatService
             .forEach( o -> o.setEvent( CodeGenerator.generateUid() ) );
     }
 
-    private Restriction generateRestrictionFromIdentifiers( TrackerIdentifier idScheme, List<String> ids )
+    private Restriction generateRestrictionFromIdentifiers( TrackerIdScheme idScheme, List<String> ids )
     {
-        if ( TrackerIdentifier.CODE.equals( idScheme ) )
+        if ( TrackerIdScheme.CODE.equals( idScheme ) )
         {
             return Restrictions.in( "code", ids );
         }
@@ -259,17 +257,18 @@ public class DefaultTrackerPreheatService
         }
     }
 
-    private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier idScheme, String attributeUid,
+    private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
         List<List<String>> splitList )
     {
+        TrackerIdScheme idScheme = identifier.getIdScheme();
         for ( List<String> ids : splitList )
         {
             List<? extends IdentifiableObject> objects;
 
-            if ( TrackerIdentifier.ATTRIBUTE.equals( idScheme ) )
+            if ( TrackerIdScheme.ATTRIBUTE.equals( idScheme ) )
             {
                 Attribute attribute = new Attribute();
-                attribute.setUid( attributeUid );
+                attribute.setUid( identifier.getValue() );
                 objects = identifiableObjectManager.getAllByAttributeAndValues(
                     (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
             }
@@ -281,7 +280,7 @@ public class DefaultTrackerPreheatService
                 objects = queryService.query( query );
             }
 
-            preheat.put( idScheme, objects );
+            preheat.put( identifier, objects );
         }
     }
 }
