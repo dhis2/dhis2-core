@@ -33,6 +33,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
 
 /**
  * @author Luciano Fiandesio
@@ -44,5 +49,15 @@ public class ValidationUtils
         List<IdentifiableObject> nonPersistedObjects )
     {
         return Stream.concat( persistedObjects.stream(), nonPersistedObjects.stream() ).collect( Collectors.toList() );
+    }
+
+    public static void addObjectReport(List<ErrorReport> reports, TypeReport typeReport, IdentifiableObject object, ObjectBundle bundle )
+    {
+        ObjectReport objectReport = new ObjectReport( object, bundle );
+        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
+        objectReport.addErrorReports( reports );
+
+        typeReport.addObjectReport( objectReport );
+        typeReport.getStats().incIgnored();
     }
 }

@@ -55,7 +55,6 @@ public class DuplicateIdsCheck
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext context )
     {
-
         TypeReport typeReport = new TypeReport( klass );
 
         if ( persistedObjects.isEmpty() && nonPersistedObjects.isEmpty() )
@@ -65,33 +64,15 @@ public class DuplicateIdsCheck
 
         Map<Class<?>, String> idMap = new HashMap<>();
 
-        Iterator<IdentifiableObject> iterator = persistedObjects.iterator();
+        typeReport.merge( run( typeReport, bundle, persistedObjects.iterator(), idMap ));
+        typeReport.merge( run( typeReport, bundle, nonPersistedObjects.iterator(), idMap ));
 
-        while ( iterator.hasNext() )
-        {
-            IdentifiableObject object = iterator.next();
-
-            if ( idMap.containsKey( object.getClass() ) && idMap.get( object.getClass() ).equals( object.getUid() ) )
-            {
-                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(),
-                    object.getClass() ).setMainId( object.getUid() ).setErrorProperty( "id" );
-
-                ObjectReport objectReport = new ObjectReport( object, bundle );
-                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReport( errorReport );
-                typeReport.addObjectReport( objectReport );
-                typeReport.getStats().incIgnored();
-
-                iterator.remove();
-            }
-            else
-            {
-                idMap.put( object.getClass(), object.getUid() );
-            }
-        }
-
-        iterator = nonPersistedObjects.iterator();
-
+        return typeReport;
+    }
+    
+    private TypeReport run( TypeReport typeReport, ObjectBundle bundle, Iterator<IdentifiableObject> iterator,
+        Map<Class<?>, String> idMap )
+    {
         while ( iterator.hasNext() )
         {
             IdentifiableObject object = iterator.next();

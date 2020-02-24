@@ -42,6 +42,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.user.User;
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReport;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -52,7 +54,7 @@ public class SecurityCheck
     @Override
     public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-                             ImportStrategy importStrategy, ValidationContext context )
+        ImportStrategy importStrategy, ValidationContext context )
     {
 
         if ( importStrategy.isCreateAndUpdate() )
@@ -156,36 +158,24 @@ public class SecurityCheck
                 User user = (User) object;
                 List<ErrorReport> errorReports = ctx.getUserService().validateUser( user, bundle.getUser() );
 
-                if ( !errorReports.isEmpty() )
-                {
-                    ObjectReport objectReport = new ObjectReport( object, bundle );
-                    objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                    objectReport.addErrorReports( errorReports );
+                if ( !errorReports.isEmpty() ) {
 
-                    typeReport.addObjectReport( objectReport );
-                    typeReport.getStats().incIgnored();
-
+                    addObjectReport( errorReports, typeReport, object, bundle );
                     iterator.remove();
-                    continue;
                 }
             }
 
             List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
-
             if ( !sharingErrorReports.isEmpty() )
             {
-                ObjectReport objectReport = new ObjectReport( object, bundle );
-                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReports( sharingErrorReports );
-
-                typeReport.addObjectReport( objectReport );
-                typeReport.getStats().incIgnored();
-
+                addObjectReport( sharingErrorReports, typeReport, object, bundle );
                 iterator.remove();
-                continue;
+
             }
         }
 
         return typeReport;
     }
+
+
 }

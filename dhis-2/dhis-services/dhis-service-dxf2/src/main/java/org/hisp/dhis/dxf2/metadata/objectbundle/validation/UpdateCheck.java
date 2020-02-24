@@ -38,6 +38,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
  * @author Luciano Fiandesio
@@ -49,7 +50,7 @@ public class UpdateCheck
     @Override
     public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ValidationContext context )
+        ImportStrategy importStrategy, ValidationContext context )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -67,12 +68,12 @@ public class UpdateCheck
 
             if ( object == null || object.getId() == 0 )
             {
-                ObjectReport objectReport = new ObjectReport( identifiableObject, bundle, object == null ? null : object.getUid() );
+                ObjectReport objectReport = new ObjectReport( identifiableObject, bundle,
+                    object == null ? null : object.getUid() );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
-                        bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
-                        .setErrorProperty( "id" )
-                        .setMainId( identifiableObject.getUid() ) );
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
+                        .setErrorProperty( "id" ).setMainId( identifiableObject.getUid() ) );
 
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();

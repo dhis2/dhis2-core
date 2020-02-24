@@ -39,6 +39,8 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReport;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -69,13 +71,8 @@ public class SchemaCheck
 
             if ( !validationErrorReports.isEmpty() )
             {
-                ObjectReport objectReport = new ObjectReport( object, bundle );
-                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReports( validationErrorReports );
 
-                typeReport.addObjectReport( objectReport );
-                typeReport.getStats().incIgnored();
-
+                addObjectReport( validationErrorReports, typeReport, object, bundle );
                 iterator.remove();
             }
         }

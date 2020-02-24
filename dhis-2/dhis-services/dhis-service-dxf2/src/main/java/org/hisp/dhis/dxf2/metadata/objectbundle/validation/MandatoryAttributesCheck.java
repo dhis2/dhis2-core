@@ -47,6 +47,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Schema;
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReport;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -78,11 +80,7 @@ public class MandatoryAttributesCheck
 
             if ( !errorReports.isEmpty() )
             {
-                ObjectReport objectReport = new ObjectReport( object, bundle );
-                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReports( errorReports );
-                typeReport.addObjectReport( objectReport );
-                typeReport.getStats().incIgnored();
+                addObjectReport( errorReports, typeReport, object, bundle );
 
                 iterator.remove();
             }

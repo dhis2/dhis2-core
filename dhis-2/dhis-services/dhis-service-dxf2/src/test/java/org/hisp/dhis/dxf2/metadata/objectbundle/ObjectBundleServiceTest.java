@@ -28,7 +28,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -71,11 +76,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -180,19 +181,19 @@ public class ObjectBundleServiceTest
 
                 for ( ErrorReport errorReport : errorReports )
                 {
-                    assertTrue( PreheatErrorReport.class.isInstance( errorReport ) );
+                    assertTrue( errorReport instanceof PreheatErrorReport );
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
                     {
                         assertEquals( "p0KPaWEg3cf", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( User.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof User )
                     {
                         assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( OptionSet.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
                     {
                         assertEquals( "pQYCiuosBnZ", preheatErrorReport.getObjectReference().getUid() );
                     }
@@ -238,21 +239,21 @@ public class ObjectBundleServiceTest
 
                 for ( ErrorReport errorReport : errorReports )
                 {
-                    assertTrue( PreheatErrorReport.class.isInstance( errorReport ) );
+                    assertTrue( errorReport instanceof PreheatErrorReport );
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
                     {
-                        assertFalse( true );
+                        fail();
                     }
-                    else if ( User.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof User )
                     {
                         assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( OptionSet.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
                     {
-                        assertFalse( true );
+                        fail();
                     }
                 }
             }
