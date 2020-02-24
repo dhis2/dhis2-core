@@ -28,18 +28,9 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -47,7 +38,13 @@ import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -59,11 +56,12 @@ public class H2DhisConfigurationProvider
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
     private Properties properties;
 
-    public H2DhisConfigurationProvider() {
+    public H2DhisConfigurationProvider()
+    {
         this.properties = getPropertiesFromFile( DEFAULT_CONFIGURATION_FILE_NAME );
     }
 
-    public H2DhisConfigurationProvider(String configurationFileName )
+    public H2DhisConfigurationProvider( String configurationFileName )
     {
         this.properties = getPropertiesFromFile( configurationFileName );
     }
