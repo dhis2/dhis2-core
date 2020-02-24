@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -78,9 +80,11 @@ public class ValidationFactory
         DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
         UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
-    private final static List<Class<? extends ValidationCheck>> CREATE = CREATE_UPDATE; // + CreationCheck
+    private final static List<Class<? extends ValidationCheck>> CREATE = Stream
+        .concat( CREATE_UPDATE.stream(), Stream.of( CreationCheck.class ) ).collect( Collectors.toList() );
 
-    private final static List<Class<? extends ValidationCheck>> UPDATE = CREATE_UPDATE; // + UpdateCheck
+    private final static List<Class<? extends ValidationCheck>> UPDATE = Stream
+        .concat( CREATE_UPDATE.stream(), Stream.of( UpdateCheck.class ) ).collect( Collectors.toList() );
 
     private final static List<Class<? extends ValidationCheck>> DELETE = Lists.newArrayList( SecurityCheck.class,
         DeletionCheck.class );
@@ -96,15 +100,8 @@ public class ValidationFactory
     {
         return new ValidationRunner( validatorMap.get( bundle.getImportMode() ) ).executeValidationChain( bundle, klass,
             persistedObjects, nonPersistedObjects, getContext() );
-
-
-
-        
     }
 
-    
-    
-    
     private ValidationContext getContext()
     {
         return new ValidationContext( this.objectBundleHooks, this.schemaValidator, this.aclService, this.userService,
