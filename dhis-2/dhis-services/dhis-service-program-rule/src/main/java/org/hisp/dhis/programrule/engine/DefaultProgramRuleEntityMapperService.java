@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -196,11 +197,19 @@ public class DefaultProgramRuleEntityMapperService
             orgUnitCode = enrollment.getOrganisationUnit().getCode();
         }
 
+        List<RuleAttributeValue> ruleAttributeValues = Lists.newArrayList();
+        if ( enrollment.getEntityInstance() != null )
+        {
+            ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
+                .filter( Objects::nonNull )
+                .map( attr -> RuleAttributeValue
+                    .create( attr.getAttribute().getUid(), getTrackedEntityAttributeValue( attr ) ) )
+                .collect( Collectors.toList() );
+        }
         return RuleEnrollment.create( enrollment.getUid(), enrollment.getIncidentDate(),
-            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), orgUnit, orgUnitCode,
-            enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream().filter( Objects::nonNull )
-            .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), getTrackedEntityAttributeValue( attr ) ) )
-            .collect( Collectors.toList() ), enrollment.getProgram().getName() );
+            enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), orgUnit,
+            orgUnitCode,
+            ruleAttributeValues, enrollment.getProgram().getName() );
     }
 
     @Override

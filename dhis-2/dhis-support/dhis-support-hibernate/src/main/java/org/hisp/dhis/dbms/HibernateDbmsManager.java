@@ -273,6 +273,7 @@ public class HibernateDbmsManager
 
         emptyTable( "trackedentityattributevalue" );
         emptyTable( "trackedentityattributevalueaudit" );
+        emptyTable( "trackedentitytypeattribute" );
         emptyTable( "trackedentityattribute" );
         emptyTable( "trackedentityinstance" );
         emptyTable( "trackedentitytype" );

@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -58,7 +58,7 @@ import static org.junit.Assert.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackerBundleServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -97,6 +97,12 @@ public class TrackerBundleServiceTest
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 
     @Test
