@@ -58,11 +58,6 @@ public class UniquenessCheck
     ValidationCheck
 {
 
-    // private TypeReport checkUniqueness( ObjectBundle bundle, Class<? extends
-    // IdentifiableObject> klass, List<IdentifiableObject> objects,
-    // Preheat preheat, PreheatIdentifier identifier )
-    //
-
     @Override
     public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
