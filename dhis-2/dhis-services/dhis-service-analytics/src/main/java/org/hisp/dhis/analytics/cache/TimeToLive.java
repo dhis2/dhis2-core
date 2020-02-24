@@ -28,11 +28,12 @@
 
 package org.hisp.dhis.analytics.cache;
 
+import static java.lang.Math.abs;
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_FACTOR;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_TTL_CACHE_FACTOR;
 import static org.springframework.util.Assert.notNull;
 
 import java.time.Instant;
@@ -45,7 +46,6 @@ public class TimeToLive
     Computable
 {
 
-    static final int DEFAULT_TTL_FACTOR = 5;
     static final long DEFAULT_MULTIPLIER = 1;
 
     private final DataQueryParams params;
@@ -79,22 +79,22 @@ public class TimeToLive
 
         /*
          * If the difference between the most recent date and NOW is 0 (zero) it means
-         * the current day, so we increment the multiplier by 1 (one) avoiding
-         * multiplying by 0 (zero).
+         * the current day, so set the days multiplier to 1 (one) avoiding multiplying
+         * by 0 (zero).
          */
-        final long diff = daysBetweenDateAndNow( endingDate );
-        final long ttlMultiplier = diff > 0 ? diff : DEFAULT_MULTIPLIER;
+        final long daysDiff = daysBetweenDateAndNow( endingDate );
+        final long daysMultiplier = daysDiff > 0 ? daysDiff : DEFAULT_MULTIPLIER;
 
-        return ttlFactorOrDefault() * ttlMultiplier;
+        return ttlFactorOrDefault() * daysMultiplier;
     }
 
     /**
-     * Calculates the difference between now and the given date.
-     * It has a the particularity of returning ZERO (0), if the
-     * diff is negative, which means the date is ahead of now.
+     * Calculates the difference between now and the given date. It has a the
+     * particularity of returning ZERO (0) if the diff is negative (because it means
+     * that the input date is ahead of now).
      *
      * @param date the date to subtract from now
-     * @return the difference of days in MILLISECONDS
+     * @return the difference of days
      */
     private long daysBetweenDateAndNow( final Instant date )
     {
@@ -103,14 +103,18 @@ public class TimeToLive
     }
 
     /**
-     * Returns the default TTL factor or a default one if none is defined.
-     * @return the factor in
+     * Returns the TTL factor set in system settings or the default value if nothing
+     * is set.
+     *
+     * If a negative TTL factor was set, the default value will be returned.
+     *
+     * @return the ttl factor
      */
     private int ttlFactorOrDefault()
     {
-        final Integer ttlFactor = (Integer) systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR );
+        final Integer ttlFactor = (Integer) systemSettingManager.getSystemSetting( ANALYTICS_TTL_CACHE_FACTOR );
         final boolean ttlNotNullAndPositive = ttlFactor != null && ttlFactor > 0;
 
-        return ttlNotNullAndPositive ? ttlFactor : DEFAULT_TTL_FACTOR;
+        return ttlNotNullAndPositive ? ttlFactor : (Integer) ANALYTICS_TTL_CACHE_FACTOR.getDefaultValue();
     }
 }

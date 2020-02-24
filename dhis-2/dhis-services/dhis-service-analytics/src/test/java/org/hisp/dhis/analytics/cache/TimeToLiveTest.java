@@ -32,8 +32,7 @@ import static java.util.Calendar.DATE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
-import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_TTL_FACTOR;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_FACTOR;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_TTL_CACHE_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
@@ -65,15 +64,15 @@ public class TimeToLiveTest
         final Date endingDate = new Date();
         final Date beginningDate = new Date();
         final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
-        final long expectedTtl = DEFAULT_TTL_FACTOR;
+        final int expectedTtl = (Integer) ANALYTICS_TTL_CACHE_FACTOR.getDefaultValue();
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
             .thenReturn( aNullCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
         // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( (long) expectedTtl ) ) );
     }
 
     @Test
@@ -84,15 +83,15 @@ public class TimeToLiveTest
         final Date endingDate = new Date();
         final Date beginningDate = new Date();
         final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
-        final long expectedTtl = DEFAULT_TTL_FACTOR;
+        final int expectedTtl = (Integer) ANALYTICS_TTL_CACHE_FACTOR.getDefaultValue();
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
             .thenReturn( aNegativeCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
         // Then
-        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
+        assertThat( actualTtl, is( equalTo( (long) expectedTtl ) ) );
     }
 
     @Test
@@ -106,7 +105,7 @@ public class TimeToLiveTest
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
@@ -126,7 +125,7 @@ public class TimeToLiveTest
         final long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
@@ -146,7 +145,7 @@ public class TimeToLiveTest
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 
@@ -167,7 +166,7 @@ public class TimeToLiveTest
         final long expectedTtl = aPositiveCachingFactor * tenDays;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
 

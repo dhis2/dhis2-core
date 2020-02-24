@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.analytics.AnalyticsCacheMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
@@ -48,9 +49,6 @@ import org.hisp.dhis.sms.config.SmsConfiguration;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import static java.util.concurrent.TimeUnit.HOURS;
-import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
  * @author Lars Helge Overland
@@ -169,15 +167,15 @@ public enum SettingKey
     ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
 
     /**
-     * The Analytics query caching factor. It's used as a factor to assist with the
+     * The Analytics query time to live caching factor. It's used as a factor to assist with the
      * caching TTL calculation.
      */
-    ANALYTICS_CACHE_FACTOR( "keyAnalyticsCacheFactor", 160, Integer.class ),
+    ANALYTICS_TTL_CACHE_FACTOR( "keyAnalyticsTtlCacheFactor", 160, Integer.class ),
 
     /**
-     * The cache type enabled for Analytics. It can be FIXED or PROGRESSIVE.
+     * The cache mode enabled for Analytics. It can be FIXED or PROGRESSIVE.
      */
-    ANALYTICS_CACHE_TYPE( "keyAnalyticsCacheType", "FIXED", String.class );
+    ANALYTICS_CACHE_MODE( "keyAnalyticsCacheMode", AnalyticsCacheMode.FIXED, AnalyticsCacheMode.class );
 
     private final String name;
 

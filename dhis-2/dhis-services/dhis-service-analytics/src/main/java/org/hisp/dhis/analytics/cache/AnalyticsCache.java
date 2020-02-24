@@ -32,8 +32,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.logging.LogFactory.getLog;
+import static org.hisp.dhis.analytics.AnalyticsCacheMode.PROGRESSIVE;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TYPE;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_MODE;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -73,8 +74,6 @@ public class AnalyticsCache
     private static final int MAX_CACHE_ENTRIES = 20000;
 
     private static final String CACHE_REGION = "analyticsQueryResponse";
-
-    private static final String CACHE_PROGRESSIVE_TYPE = "PROGRESSIVE";
 
     public AnalyticsCache( final CacheProvider cacheProvider, final Environment environment,
         final DhisConfigurationProvider dhisConfig, final SystemSettingManager systemSettingManager )
@@ -138,15 +137,14 @@ public class AnalyticsCache
 
     private boolean progressiveCachingEnabled()
     {
-        final String cachingType = (String) systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TYPE );
-        return CACHE_PROGRESSIVE_TYPE.equals( cachingType );
+        return PROGRESSIVE == systemSettingManager.getSystemSetting( ANALYTICS_CACHE_MODE );
     }
 
     @PostConstruct
     public void init()
     {
-        long expiration = dhisConfig.getAnalyticsCacheExpiration();
-        boolean enabled = expiration > 0 && !isTestRun( this.environment.getActiveProfiles() );
+        final long expiration = dhisConfig.getAnalyticsCacheExpiration();
+        final boolean enabled = expiration > 0 && !isTestRun( this.environment.getActiveProfiles() );
 
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
             .expireAfterWrite( expiration, SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
