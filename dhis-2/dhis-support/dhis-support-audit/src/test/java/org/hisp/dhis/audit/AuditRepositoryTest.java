@@ -49,7 +49,8 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AuditRepositoryTest extends IntegrationTestBase
+public class AuditRepositoryTest
+    extends IntegrationTestBase
 {
     @Autowired
     private AuditRepository auditRepository;

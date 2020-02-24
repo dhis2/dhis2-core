@@ -69,7 +69,7 @@ public class Enrollment
     private String trackedEntityType;
 
     @JsonProperty
-    private String trackedEntityInstance;
+    private String trackedEntity;
 
     @JsonProperty
     private String program;
