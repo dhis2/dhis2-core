@@ -270,8 +270,8 @@ public class DefaultTrackerBundleService
 
             sideEffectHandlers.forEach( handler -> handler.handleSideEffect( TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
-                .enrollmentRuleEffects( new HashMap<>() ) // this needs to be fetched from TrackerBundle
-                .eventRuleEffects( new HashMap<>() )      // this needs to be fetched from TrackerBundle
+                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
+                .eventRuleEffects( bundle.getEventRuleEffects() )
                 .object( programInstance )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
@@ -322,8 +322,8 @@ public class DefaultTrackerBundleService
 
             sideEffectHandlers.forEach( handler -> handler.handleSideEffect( TrackerSideEffectDataBundle.builder()
                 .klass( ProgramInstance.class )
-                .enrollmentRuleEffects( new HashMap<>() ) // this needs to be fetched from TrackerBundle
-                .eventRuleEffects( new HashMap<>() )      // this needs to be fetched from TrackerBundle
+                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
+                .eventRuleEffects( bundle.getEventRuleEffects() )
                 .object( programStageInstance )
                 .importStrategy( bundle.getImportStrategy() )
                 .accessedBy( bundle.getUsername() )
