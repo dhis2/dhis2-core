@@ -283,7 +283,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
 
-        List<RuleEffect> ruleEffects = programRuleEngineService.evaluateEnrollment( programInstance.getId() );
+        List<RuleEffect> ruleEffects = programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstance.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -298,7 +298,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         // For duplication detection
 
-        List<RuleEffect> ruleEffects2 = programRuleEngineService.evaluateEnrollment( programInstance.getId() );
+        List<RuleEffect> ruleEffects2 = programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstance.getId() );
 
         assertNotNull( ruleEffects2.get( 0 ) );
 

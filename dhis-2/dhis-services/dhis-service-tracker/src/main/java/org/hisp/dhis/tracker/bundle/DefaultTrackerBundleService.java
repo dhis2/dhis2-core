@@ -35,12 +35,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -65,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -94,6 +97,8 @@ public class DefaultTrackerBundleService
     private final DbmsManager dbmsManager;
     private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
+    private final TrackerProgramRuleService trackerProgramRuleService;
+
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     @Autowired( required = false )
@@ -113,7 +118,9 @@ public class DefaultTrackerBundleService
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
-        TrackedEntityAttributeValueService trackedEntityAttributeValueService )
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+        TrackerProgramRuleService trackerProgramRuleService )
+
     {
         this.trackerPreheatService = trackerPreheatService;
         this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
@@ -126,6 +133,7 @@ public class DefaultTrackerBundleService
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
         this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+        this.trackerProgramRuleService = trackerProgramRuleService;
     }
 
     @Override
@@ -138,6 +146,13 @@ public class DefaultTrackerBundleService
 
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
+
+        Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects =
+            trackerProgramRuleService.calculateEnrollmentRuleEffects( trackerBundle );
+        Map<Event, List<RuleEffect>> eventRuleEffects =
+            trackerProgramRuleService.calculateEventRuleEffects( trackerBundle );
+        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+        trackerBundle.setEventRuleEffects( eventRuleEffects );
 
         return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
     }
