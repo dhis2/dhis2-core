@@ -477,6 +477,7 @@ public class DefaultTrackerBundleService
             return;
         }
 
+        fileResource.setAssigned( false );
         session.persist( fileResource );
     }
 

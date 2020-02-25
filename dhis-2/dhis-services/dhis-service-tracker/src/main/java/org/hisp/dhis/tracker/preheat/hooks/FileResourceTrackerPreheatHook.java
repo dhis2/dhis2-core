@@ -33,6 +33,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatHook;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -69,25 +70,20 @@ public class FileResourceTrackerPreheatHook
 
         List<String> fileResourceIds = new ArrayList<>();
 
-        params.getTrackedEntities().forEach( te -> {
-            te.getAttributes().forEach( at -> {
-                if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
-                {
-                    fileResourceIds.add( at.getValue() );
-                }
-            } );
-        } );
-
-        params.getEnrollments().forEach( en -> {
-            en.getAttributes().forEach( at -> {
-                if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
-                {
-                    fileResourceIds.add( at.getValue() );
-                }
-            } );
-        } );
+        params.getTrackedEntities().forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
+        params.getEnrollments().forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
 
         List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
         preheat.put( params.getIdentifier(), fileResources );
+    }
+
+    private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds, List<Attribute> attributes )
+    {
+        attributes.forEach( at -> {
+            if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
+            {
+                fileResourceIds.add( at.getValue() );
+            }
+        } );
     }
 }
