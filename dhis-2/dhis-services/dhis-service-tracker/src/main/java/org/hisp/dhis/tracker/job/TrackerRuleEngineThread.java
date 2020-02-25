@@ -43,7 +43,8 @@ import java.util.Map;
 
 /**
  * Class represents a thread which will be triggered as soon as tracker rule engine consumer consumes a message from
- * tracker rule engine queue.
+ * tracker rule engine queue. It loops through the list of rule effects and implement it if it has an associated
+ * rule implementer class.
  *
  * @author Zubair Asghar
  */
@@ -73,17 +74,17 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
                 for ( Map.Entry<Enrollment, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
                 {
                     entry.getValue()
-                            .parallelStream()
-                            .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                            .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey().getEnrollment() ) );
+                        .parallelStream()
+                        .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                        .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey().getEnrollment() ) );
                 }
 
                 for ( Map.Entry<Event, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
                 {
                     entry.getValue()
-                            .parallelStream()
-                            .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                            .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey().getEvent() ) );
+                        .parallelStream()
+                        .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                        .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey().getEvent() ) );
                 }
             }
         }
