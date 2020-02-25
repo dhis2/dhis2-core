@@ -1174,7 +1174,7 @@ public abstract class ChartFacadeController {
                 }
             }
 
-            visualization.setCumulative( chart.isCumulativeValues() );
+            visualization.setCumulativeValues( chart.isCumulativeValues() );
         }
         return visualization;
     }
@@ -1229,7 +1229,7 @@ public abstract class ChartFacadeController {
                         chart.setCategory( rows.get( 0 ) );
                     }
 
-                    chart.setCumulativeValues( visualization.isCumulative() );
+                    chart.setCumulativeValues( visualization.isCumulativeValues() );
                     charts.add( chart );
                 }
             }

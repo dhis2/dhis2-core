@@ -306,12 +306,12 @@ public class JobConfiguration
     }
 
     /**
-     * The sub type names refer to the {@link JobType} enumeration.
+     * The sub type names refer to the {@link JobType} enumeration. Defaults to null for unmapped job types.
      */
     @JacksonXmlProperty
     @JsonProperty
     @Property( required = FALSE )
-    @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
+    @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType", defaultImpl = java.lang.Void.class )
     @JsonSubTypes( value = {
         @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
         @JsonSubTypes.Type( value = ContinuousAnalyticsJobParameters.class, name = "CONTINUOUS_ANALYTICS_TABLE" ),

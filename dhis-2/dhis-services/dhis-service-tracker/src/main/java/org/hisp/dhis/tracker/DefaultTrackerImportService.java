@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker;
  */
 
 import com.google.common.base.Enums;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -58,15 +57,19 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Service
-public class DefaultTrackerImportService implements TrackerImportService
+public class DefaultTrackerImportService
+    implements TrackerImportService
 {
-    private static final Log log = LogFactory.getLog( DefaultTrackerImportService.class );
-
     private final TrackerBundleService trackerBundleService;
+
     private final TrackerValidationService trackerValidationService;
+
     private final CurrentUserService currentUserService;
+
     private final IdentifiableObjectManager manager;
+
     private final Notifier notifier;
 
     public DefaultTrackerImportService(

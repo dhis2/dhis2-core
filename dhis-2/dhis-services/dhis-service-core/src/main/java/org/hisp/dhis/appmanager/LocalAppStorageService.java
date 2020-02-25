@@ -28,19 +28,7 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,7 +38,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.apache.commons.io.FileUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Stian Sandvold
@@ -58,12 +59,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * NB! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps
  * installed before 2.28. post 2.28, all installations using DHIS2 will use JCloudsAppStorageService.
  */
+@Slf4j
 @Service( "org.hisp.dhis.appmanager.LocalAppStorageService" )
 public class LocalAppStorageService
     implements AppStorageService
 {
-    private static final Log log = LogFactory.getLog( LocalAppStorageService.class );
-
     private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     private Map<String, App> apps = new HashMap<>();

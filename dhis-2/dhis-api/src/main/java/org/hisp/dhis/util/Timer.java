@@ -28,13 +28,11 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Timer
 {
-    private static final Log log = LogFactory.getLog( Timer.class );
-    
     private long startTime;
     
     private boolean printDisabled;

@@ -343,6 +343,12 @@ public class ExpressionService2Test
     @Test
     public void testGetExpressionDimensionalItemIds()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
+
         Set<DimensionalItemId> itemIds = target.getExpressionDimensionalItemIds( expressionI, INDICATOR_EXPRESSION );
 
         assertEquals( 5, itemIds.size() );
@@ -370,6 +376,12 @@ public class ExpressionService2Test
         Set<DimensionalItemObject> itemObjects = Sets.newHashSet( opA, deB, pdeA, pteaA, piA );
         when( dimensionService.getDataDimensionalItemObjects( itemIds ) ).thenReturn( itemObjects );
 
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
+
         Set<DimensionalItemObject> objects = target.getExpressionDimensionalItemObjects( expressionI, INDICATOR_EXPRESSION );
 
         assertEquals( 5, objects.size() );
@@ -386,6 +398,12 @@ public class ExpressionService2Test
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ), getId( opB ), getId( deB ), getId( pdeA ), getId( pteaA ), getId( piA ) );
         Set<DimensionalItemObject> itemObjects = Sets.newHashSet( opA, opB, deB, pdeA, pteaA, piA );
         when( dimensionService.getDataDimensionalItemObjects( itemIds ) ).thenReturn( itemObjects );
+
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
 
         Indicator indicator = createIndicator( 'A', null );
         indicator.setNumerator( expressionI );
@@ -670,7 +688,7 @@ public class ExpressionService2Test
         indicatorA.setNumerator( expressionD );
         indicatorA.setDenominator( expressionE );
 
-        Indicator indicatorB = createIndicator( 'A', indicatorType );
+        Indicator indicatorB = createIndicator( 'B', indicatorType );
         indicatorB.setNumerator( expressionH );
         indicatorB.setDenominator( expressionZ );
 
@@ -741,6 +759,12 @@ public class ExpressionService2Test
     @Test
     public void testAnnualizedIndicatorValueWhenHavingMultiplePeriods()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
+
         List<Period> periods = new ArrayList<>( 6 );
 
         periods.add( createPeriod( "200001" ) );
@@ -777,6 +801,12 @@ public class ExpressionService2Test
     @Test
     public void testAnnualizedIndicatorValueWhenHavingNullPeriods()
     {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant>builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
+
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
         Indicator indicatorA = createIndicator( 'A', indicatorType );

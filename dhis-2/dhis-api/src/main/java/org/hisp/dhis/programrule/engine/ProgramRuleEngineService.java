@@ -37,7 +37,11 @@ import java.util.List;
  */
 public interface ProgramRuleEngineService
 {
-    List<RuleEffect> evaluateEnrollment( long enrollment );
+    List<RuleEffect> evaluateEnrollment( String enrollmentUid );
 
-    List<RuleEffect> evaluateEvent( long event );
+    List<RuleEffect> evaluateEvent( String eventUid );
+
+    List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
+
+    List<RuleEffect> evaluateEventAndRunEffects( long event );
 }

@@ -28,7 +28,8 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.antlr.AntlrExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,16 +42,16 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class FunctionGreatestOrLeast
-    extends SimpleScalarFunction
+    implements ExpressionItem
 {
     /**
      * Returns the greatest or least value.
      *
-     * @param contexts the expr contexts.
+     * @param contexts      the expr contexts.
      * @param greatestLeast 1.0 for greatest, -1.0 for least.
      * @return the greatest or least value.
      */
-    protected Double greatestOrLeast( List<ExprContext> contexts, CommonExpressionVisitor visitor, double greatestLeast )
+    protected Double greatestOrLeast( List<ExprContext> contexts, AntlrExpressionVisitor visitor, double greatestLeast )
     {
         List<Double> values = contexts.stream()
             .map( c -> visitor.castDoubleVisit( c ) )
@@ -60,7 +61,7 @@ public abstract class FunctionGreatestOrLeast
 
         for ( Double val : values )
         {
-            if ( returnVal == null || val != null && ( val - returnVal ) * greatestLeast > 0 )
+            if ( returnVal == null || val != null && (val - returnVal) * greatestLeast > 0 )
             {
                 returnVal = val;
             }

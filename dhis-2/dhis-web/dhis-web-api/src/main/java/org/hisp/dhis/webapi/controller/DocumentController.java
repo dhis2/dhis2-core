@@ -28,9 +28,8 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -57,12 +56,11 @@ import java.io.InputStream;
  * @author Lars Helge Overland
  */
 @Controller
+@Slf4j
 @RequestMapping( value = DocumentSchemaDescriptor.API_ENDPOINT )
 public class DocumentController
     extends AbstractCrudController<Document>
 {
-
-    private final static Log log = LogFactory.getLog( DocumentController.class );
 
     @Autowired
     private DocumentService documentService;

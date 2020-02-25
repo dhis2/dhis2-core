@@ -29,7 +29,9 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.program.ProgramExpressionItem;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -38,8 +40,14 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class D2Oizp
-    extends ProgramExprFunction
+    extends ProgramExpressionItem
 {
+    @Override
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return castDouble( visitor.visit( ctx.expr( 0 ) ) );
+    }
+
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {

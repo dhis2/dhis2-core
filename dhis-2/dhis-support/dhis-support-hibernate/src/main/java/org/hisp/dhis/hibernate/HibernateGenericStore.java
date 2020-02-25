@@ -29,8 +29,9 @@ package org.hisp.dhis.hibernate;
  */
 
 import com.google.common.collect.Lists;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -65,11 +66,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class HibernateGenericStore<T>
     implements GenericStore<T>
 {
-    private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
-
     public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
 
@@ -206,7 +206,6 @@ public class HibernateGenericStore<T>
      * Get executable Typed Query from Criteria Query.
      * Apply cache if needed.
      *
-     * @param criteriaQuery
      * @return executable TypedQuery
      */
     private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery)
@@ -219,8 +218,6 @@ public class HibernateGenericStore<T>
     /**
      * Method for adding additional Predicates into where clause
      *
-     * @param builder
-     * @param predicates
      */
     protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicates )
     {
@@ -247,7 +244,6 @@ public class HibernateGenericStore<T>
     /**
      * Get List objects returned by executable TypedQuery
      *
-     * @param typedQuery
      * @return list result
      */
     protected final List<T> getList( TypedQuery<T> typedQuery )
@@ -258,7 +254,6 @@ public class HibernateGenericStore<T>
     /**
      * Get List objects return by querying given JpaQueryParameters
      *
-     * @param builder
      * @param parameters JpaQueryParameters
      * @return list objects
      */
@@ -270,8 +265,6 @@ public class HibernateGenericStore<T>
     /**
      * Get executable TypedQuery from JpaQueryParameter.
      *
-     * @param builder
-     * @param parameters
      * @return executable TypedQuery
      */
     protected final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
@@ -315,7 +308,6 @@ public class HibernateGenericStore<T>
     /**
      * Count number of objects based on given parameters
      *
-     * @param builder
      * @param parameters JpaQueryParameters
      * @return number of objects
      */

@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -84,11 +83,10 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping( value = SharingController.RESOURCE_PATH, method = RequestMethod.GET )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SharingController
 {
-    private static final Log log = LogFactory.getLog( SharingController.class );
-
     public static final String RESOURCE_PATH = "/sharing";
 
     @Autowired
@@ -501,7 +499,6 @@ public class SharingController
      * This method is being used only during the deprecation process of the
      * Pivot/ReportTable API. It must be removed once the process is complete.
      * 
-     * @param type
      * @return "visualization" if the given type is equals to "reportTable" or
      *         "chart", otherwise it returns the given type itself.
      */

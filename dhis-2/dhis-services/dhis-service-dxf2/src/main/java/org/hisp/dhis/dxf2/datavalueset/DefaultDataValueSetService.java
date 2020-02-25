@@ -46,9 +46,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -132,12 +131,11 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.datavalueset.DataValueSetService" )
 public class DefaultDataValueSetService
     implements DataValueSetService
 {
-    private static final Log log = LogFactory.getLog( DefaultDataValueSetService.class );
-
     private static final String ERROR_OBJECT_NEEDED_TO_COMPLETE = "Must be provided to complete data set";
     private static final int CACHE_MISS_THRESHOLD = 250;
 

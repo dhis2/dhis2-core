@@ -32,8 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -49,11 +48,10 @@ import com.opensymphony.xwork2.config.entities.ActionConfig;
  * @author Torgeir Lorange Ostby
  * @version $Id: ModuleAccessVoter.java 6352 2008-11-20 15:49:52Z larshelg $
  */
+@Slf4j
 public class ModuleAccessVoter
     extends AbstractPrefixedAccessDecisionVoter
 {
-    private static final Log LOG = LogFactory.getLog( ModuleAccessVoter.class );
-
     // -------------------------------------------------------------------------
     // Configuration
     // -------------------------------------------------------------------------
@@ -82,7 +80,7 @@ public class ModuleAccessVoter
     {
         boolean result = ActionConfig.class.equals( clazz );
 
-        LOG.debug( "Supports class: " + clazz + ", " + result );
+        log.debug( "Supports class: " + clazz + ", " + result );
 
         return result;
     }
@@ -98,7 +96,7 @@ public class ModuleAccessVoter
     {
         if ( !supports( object.getClass() ) )
         {
-            LOG.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: Class not supported." );
+            log.debug( "ACCESS_ABSTAIN [" + object.toString() + "]: Class not supported." );
 
             return ACCESS_ABSTAIN;
         }
@@ -107,7 +105,7 @@ public class ModuleAccessVoter
 
         if ( alwaysAccessible.contains( target.getPackageName() ) )
         {
-            LOG.debug( "ACCESS_GRANTED [" + target.getPackageName() + "] by configuration." );
+            log.debug( "ACCESS_GRANTED [" + target.getPackageName() + "] by configuration." );
 
             return ACCESS_GRANTED;
         }
@@ -118,13 +116,13 @@ public class ModuleAccessVoter
         {
             if ( grantedAuthority.getAuthority().equals( requiredAuthority ) )
             {
-                LOG.debug( "ACCESS_GRANTED [" + target.getPackageName() + "]" );
+                log.debug( "ACCESS_GRANTED [" + target.getPackageName() + "]" );
 
                 return ACCESS_GRANTED;
             }
         }
 
-        LOG.debug( "ACCESS_DENIED [" + target.getPackageName() + "]" );
+        log.debug( "ACCESS_DENIED [" + target.getPackageName() + "]" );
 
         return ACCESS_DENIED;
     }

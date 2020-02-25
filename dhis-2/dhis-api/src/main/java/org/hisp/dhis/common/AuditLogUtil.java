@@ -29,7 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import javassist.util.proxy.ProxyFactory;
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 
 public class AuditLogUtil
 {
@@ -43,16 +43,16 @@ public class AuditLogUtil
     public static final String ACTION_UPDATE_DENIED = "update denied";
     public static final String ACTION_DELETE_DENIED = "delete denied";
 
-    public static void infoWrapper( Log log, Object object, String action )
+    public static void infoWrapper( Logger log, Object object, String action )
     {
         infoWrapper( log, UserContext.getUsername(), object, action );
     }
     
-    public static void infoWrapper( Log log, String username, Object object, String action )
+    public static void infoWrapper( Logger log, String username, Object object, String action )
     {
         if ( log.isInfoEnabled() )
         {
-            if ( username != null && object != null && IdentifiableObject.class.isInstance( object ) )
+            if ( username != null && object instanceof IdentifiableObject )
             {
                 IdentifiableObject idObject = (IdentifiableObject) object;
                 StringBuilder builder = new StringBuilder();

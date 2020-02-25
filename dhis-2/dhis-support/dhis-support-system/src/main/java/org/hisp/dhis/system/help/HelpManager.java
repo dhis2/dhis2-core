@@ -28,8 +28,9 @@ package org.hisp.dhis.system.help;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.xml.transform.Result;
@@ -49,10 +50,9 @@ import static org.hisp.dhis.commons.util.StreamUtils.ENCODING_UTF8;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class HelpManager
 {
-    private static final Log log = LogFactory.getLog( HelpManager.class );
-
     // -------------------------------------------------------------------------
     // HelpManager implementation
     // -------------------------------------------------------------------------
@@ -111,9 +111,9 @@ public class HelpManager
 
     private static ClassPathResource resolveHelpFileResource( Locale locale )
     {
-        String helpFile = null;
+        String helpFile;
         
-        ClassPathResource classPathResource = null;
+        ClassPathResource classPathResource;
 
         if ( locale != null && locale.getDisplayLanguage() != null )
         {

@@ -36,10 +36,9 @@ import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -63,12 +62,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
@@ -76,16 +70,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dataintegrity.DataIntegrityService" )
 @Transactional
 public class DefaultDataIntegrityService
     implements DataIntegrityService
 {
-    private static final Log log = LogFactory.getLog( DefaultDataIntegrityService.class );
-
     private static final String FORMULA_SEPARATOR = "#";
 
     // -------------------------------------------------------------------------
@@ -271,12 +266,12 @@ public class DefaultDataIntegrityService
 
         return map;
     }
-    
+
     @Override
     public List<CategoryCombo> getInvalidCategoryCombos()
     {
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
-        
+
         return categoryCombos.stream().filter( c -> !c.isValid() ).collect( Collectors.toList() );
     }
 
@@ -482,7 +477,7 @@ public class DefaultDataIntegrityService
     public List<OrganisationUnit> getOrphanedOrganisationUnits()
     {
         List<OrganisationUnit> units = organisationUnitService.getAllOrganisationUnits();
-        
+
         return units.stream().filter( ou -> ou.getParent() == null && ( ou.getChildren() == null || ou.getChildren().size() == 0 ) ).collect( Collectors.toList() );
     }
 
@@ -518,7 +513,7 @@ public class DefaultDataIntegrityService
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
     {
         Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
-        
+
         return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
     }
 
@@ -530,7 +525,7 @@ public class DefaultDataIntegrityService
     public List<ValidationRule> getValidationRulesWithoutGroups()
     {
         Collection<ValidationRule> validationRules = validationRuleService.getAllValidationRules();
-        
+
         return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() ).collect( Collectors.toList() );
     }
 
@@ -576,7 +571,7 @@ public class DefaultDataIntegrityService
     public DataIntegrityReport getDataIntegrityReport()
     {
         DataIntegrityReport report = new DataIntegrityReport();
-        
+
         report.setDataElementsWithoutDataSet( new ArrayList<>( getDataElementsWithoutDataSet() ) );
         report.setDataElementsWithoutGroups( new ArrayList<>( getDataElementsWithoutGroups() ) );
         report.setDataElementsAssignedToDataSetsWithDifferentPeriodTypes( getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
@@ -788,7 +783,7 @@ public class DefaultDataIntegrityService
         {
             expressionService.getExpressionDescription( expression, INDICATOR_EXPRESSION );
         }
-        catch ( org.hisp.dhis.parser.expression.ParserException e )
+        catch ( ParserException e )
         {
            return e.getMessage();
         }

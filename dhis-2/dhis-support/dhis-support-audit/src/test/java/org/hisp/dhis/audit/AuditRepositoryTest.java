@@ -49,7 +49,8 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AuditRepositoryTest extends IntegrationTestBase
+public class AuditRepositoryTest
+    extends IntegrationTestBase
 {
     @Autowired
     private AuditRepository auditRepository;
@@ -640,6 +641,37 @@ public class AuditRepositoryTest extends IntegrationTestBase
         System.err.println( "Batch Insert: " + timer.getTimeInS() + "s" );
 
         assertEquals( 200_000, auditRepository.count( AuditQuery.builder().build() ) );
+    }
+
+    @Test
+    public void testSaveAuditWithAttributes()
+    {
+        String uid = CodeGenerator.generateUid();
+        String code = CodeGenerator.generateUid();
+        String categoryComboUid = CodeGenerator.generateUid();
+        AuditAttributes auditAttributes = new AuditAttributes();
+        auditAttributes.put( "categoryCombo", categoryComboUid );
+        auditAttributes.put( "valueType", "TEXT" );
+
+        Audit audit = Audit.builder()
+            .auditType( AuditType.CREATE )
+            .auditScope( AuditScope.AGGREGATE )
+            .createdAt( LocalDateTime.of( 2019, 1, 1, 0, 0 ) )
+            .createdBy( "test-user" )
+            .klass( DataElement.class.getName() )
+            .uid( uid )
+            .code( code )
+            .data( "{}" )
+            .attributes( auditAttributes )
+            .build();
+
+        auditRepository.save( audit );
+        List<Audit> audits = auditRepository.query( AuditQuery.builder().build() );
+        assertEquals( 1, audits.size() );
+        assertEquals( 2, audits.get( 0 ).getAttributes().size() );
+        assertEquals( categoryComboUid, audits.get( 0 ).getAttributes().get( "categoryCombo" ) );
+        assertEquals( "TEXT", audits.get( 0 ).getAttributes().get( "valueType" ) );
+
     }
 
     @Override
