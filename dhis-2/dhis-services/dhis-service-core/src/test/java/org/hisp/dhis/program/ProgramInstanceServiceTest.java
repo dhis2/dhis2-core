@@ -44,7 +44,6 @@ import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -329,9 +328,7 @@ public class ProgramInstanceServiceTest
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
 
         // Check if audit event is published
-        ArgumentCaptor<Audit> argument = ArgumentCaptor.forClass( Audit.class );
-        Mockito.verify( applicationEventPublisher ).publishEvent( argument.capture() );
-        assertEquals( AuditType.UPDATE, argument.getValue().getAuditType() );
+        Mockito.verify( applicationEventPublisher ).publishEvent( Mockito.argThat( (Audit audit )-> audit.getAuditType() == AuditType.UPDATE ) );
     }
 
     @Test
