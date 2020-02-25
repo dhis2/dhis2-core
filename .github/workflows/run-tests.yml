@@ -17,7 +17,7 @@ jobs:
       run: mvn clean install -DskipTests=false --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
 
   integration-test:
-    runs-on: ubuntu-latest
+    runs-on: macos
     steps:
     - uses: actions/checkout@v1
     - name: Set up JDK 1.8
