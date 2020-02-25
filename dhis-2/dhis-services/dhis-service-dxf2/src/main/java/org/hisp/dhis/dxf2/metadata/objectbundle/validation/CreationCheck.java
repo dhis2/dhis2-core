@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -50,7 +49,7 @@ public class CreationCheck
     @Override
     public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context )
+        ImportStrategy importStrategy, ValidationContext ctx )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -59,25 +58,19 @@ public class CreationCheck
             return typeReport;
         }
 
-        Iterator<IdentifiableObject> iterator = persistedObjects.iterator();
-
-        while ( iterator.hasNext() )
+        for ( IdentifiableObject identifiableObject : persistedObjects )
         {
-            IdentifiableObject identifiableObject = iterator.next();
             IdentifiableObject object = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
 
             if ( object != null && object.getId() > 0 )
             {
-                ObjectReport objectReport = new ObjectReport( identifiableObject, bundle, object.getUid() );
-                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
+                ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
-                        .setMainId( identifiableObject.getUid() ) );
+                        .setMainId( identifiableObject.getUid() );
 
-                typeReport.addObjectReport( objectReport );
-                typeReport.getStats().incIgnored();
+                ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
 
-                iterator.remove();
+                ctx.markForRemoval( object );
             }
         }
 

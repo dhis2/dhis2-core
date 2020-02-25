@@ -28,8 +28,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
@@ -51,6 +53,8 @@ public class ValidationContext
     private UserService userService;
 
     private SchemaService schemaService;
+
+    private List<IdentifiableObject> markedForRemoval = new ArrayList<>();
 
     public ValidationContext( List<ObjectBundleHook> objectBundleHooks, SchemaValidator schemaValidator,
         AclService aclService, UserService userService, SchemaService schemaService )
@@ -85,5 +89,15 @@ public class ValidationContext
     public SchemaService getSchemaService()
     {
         return schemaService;
+    }
+
+    public void markForRemoval( IdentifiableObject object )
+    {
+        this.markedForRemoval.add( object );
+    }
+
+    public List<IdentifiableObject> getMarkedForRemoval()
+    {
+        return markedForRemoval;
     }
 }

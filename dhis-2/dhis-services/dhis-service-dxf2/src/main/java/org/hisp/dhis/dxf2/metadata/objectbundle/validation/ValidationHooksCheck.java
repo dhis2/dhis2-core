@@ -28,19 +28,16 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReport;
 
 /**
  * @author Luciano Fiandesio
@@ -64,18 +61,15 @@ public class ValidationHooksCheck
             return typeReport;
         }
 
-        Iterator<IdentifiableObject> iterator = objects.iterator();
-
-        while ( iterator.hasNext() )
+        for ( IdentifiableObject object : objects )
         {
-            IdentifiableObject object = iterator.next();
             List<ErrorReport> errorReports = new ArrayList<>();
             ctx.getObjectBundleHooks().forEach( hook -> errorReports.addAll( hook.validate( object, bundle ) ) );
 
             if ( !errorReports.isEmpty() )
             {
-                addObjectReport( errorReports, typeReport, object, bundle );
-                iterator.remove();
+                addObjectReports( errorReports, typeReport, object, bundle );
+                ctx.markForRemoval( object );
             }
         }
 

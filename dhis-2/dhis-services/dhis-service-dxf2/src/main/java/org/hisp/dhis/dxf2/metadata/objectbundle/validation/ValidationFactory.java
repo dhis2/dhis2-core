@@ -31,8 +31,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -77,17 +75,19 @@ public class ValidationFactory
     }
 
     private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE = Lists.newArrayList(
-        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
-        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
+            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
-    private final static List<Class<? extends ValidationCheck>> CREATE = Stream
-        .concat( CREATE_UPDATE.stream(), Stream.of( CreationCheck.class ) ).collect( Collectors.toList() );
+    private final static List<Class<? extends ValidationCheck>> CREATE = Lists.newArrayList(
+            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
+            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
-    private final static List<Class<? extends ValidationCheck>> UPDATE = Stream
-        .concat( CREATE_UPDATE.stream(), Stream.of( UpdateCheck.class ) ).collect( Collectors.toList() );
+    private final static List<Class<? extends ValidationCheck>> UPDATE = Lists.newArrayList(
+            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
+            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> DELETE = Lists.newArrayList( SecurityCheck.class,
-        DeletionCheck.class );
+            DeletionCheck.class );
 
     private final static Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap = ImmutableMap.of(
         ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE, 
@@ -98,9 +98,26 @@ public class ValidationFactory
     public TypeReport validateBundle( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects)
     {
-        return new ValidationRunner( validatorMap.get( bundle.getImportMode() ) ).executeValidationChain( bundle, klass,
-            persistedObjects, nonPersistedObjects, getContext() );
+        ValidationContext ctx = getContext();
+        TypeReport typeReport =  new ValidationRunner( validatorMap.get( bundle.getImportMode() ) ).executeValidationChain( bundle, klass,
+            persistedObjects, nonPersistedObjects, ctx );
+
+        remove(klass, ctx, bundle );
+
+        return typeReport;
     }
+    
+    private void remove( Class<? extends IdentifiableObject> klass, ValidationContext ctx, ObjectBundle bundle )
+    {
+
+        List<IdentifiableObject> persisted = bundle.getObjects(klass, true);
+        persisted.removeAll( ctx.getMarkedForRemoval());
+
+        List<IdentifiableObject> nonPersisted = bundle.getObjects(klass, false);
+        nonPersisted.removeAll( ctx.getMarkedForRemoval());
+
+    }
+    
 
     private ValidationContext getContext()
     {

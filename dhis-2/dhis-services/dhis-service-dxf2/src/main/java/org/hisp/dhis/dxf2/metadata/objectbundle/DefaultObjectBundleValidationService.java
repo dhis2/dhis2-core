@@ -115,6 +115,7 @@ public class DefaultObjectBundleValidationService
     {
         if ( AtomicMode.NONE == bundle.getAtomicMode() )
         {
+
             return;
         }
 

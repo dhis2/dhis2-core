@@ -34,11 +34,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
@@ -53,7 +51,7 @@ public class DuplicateIdsCheck
     @Override
     public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context )
+        ImportStrategy importStrategy, ValidationContext ctx )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -64,14 +62,14 @@ public class DuplicateIdsCheck
 
         Map<Class<?>, String> idMap = new HashMap<>();
 
-        typeReport.merge( run( typeReport, bundle, persistedObjects.iterator(), idMap ));
-        typeReport.merge( run( typeReport, bundle, nonPersistedObjects.iterator(), idMap ));
+        typeReport.merge( run( typeReport, bundle, persistedObjects.iterator(), idMap, ctx ) );
+        typeReport.merge( run( typeReport, bundle, nonPersistedObjects.iterator(), idMap, ctx ) );
 
         return typeReport;
     }
     
     private TypeReport run( TypeReport typeReport, ObjectBundle bundle, Iterator<IdentifiableObject> iterator,
-        Map<Class<?>, String> idMap )
+        Map<Class<?>, String> idMap, ValidationContext context )
     {
         while ( iterator.hasNext() )
         {
@@ -82,13 +80,8 @@ public class DuplicateIdsCheck
                 ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(),
                     object.getClass() ).setMainId( object.getUid() ).setErrorProperty( "id" );
 
-                ObjectReport objectReport = new ObjectReport( object, bundle );
-                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReport( errorReport );
-                typeReport.addObjectReport( objectReport );
-                typeReport.getStats().incIgnored();
-
-                iterator.remove();
+                ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
+                context.markForRemoval( object );
             }
             else
             {

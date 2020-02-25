@@ -28,21 +28,19 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+
 import java.util.Iterator;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.user.User;
-
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReport;
 
 /**
  * @author Luciano Fiandesio
@@ -100,16 +98,11 @@ public class SecurityCheck
             {
                 if ( !ctx.getAclService().canCreate( bundle.getUser(), klass ) )
                 {
-                    ObjectReport objectReport = new ObjectReport( object, bundle );
-                    objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                    objectReport.addErrorReport(
-                        new ErrorReport( klass, ErrorCode.E3000, identifier.getIdentifiersWithName( bundle.getUser() ),
-                            identifier.getIdentifiersWithName( object ) ) );
+                    ErrorReport errorReport =  new ErrorReport( klass, ErrorCode.E3000, identifier.getIdentifiersWithName( bundle.getUser() ),
+                            identifier.getIdentifiersWithName( object ) );
 
-                    typeReport.addObjectReport( objectReport );
-                    typeReport.getStats().incIgnored();
-
-                    iterator.remove();
+                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                    ctx.markForRemoval( object );
                     continue;
                 }
             }
@@ -121,16 +114,12 @@ public class SecurityCheck
                 {
                     if ( !ctx.getAclService().canUpdate( bundle.getUser(), persistedObject ) )
                     {
-                        ObjectReport objectReport = new ObjectReport( object, bundle );
-                        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                        objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3001,
+                        ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3001,
                             identifier.getIdentifiersWithName( bundle.getUser() ),
-                            identifier.getIdentifiersWithName( object ) ) );
+                            identifier.getIdentifiersWithName( object ) );
 
-                        typeReport.addObjectReport( objectReport );
-                        typeReport.getStats().incIgnored();
-
-                        iterator.remove();
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                        ctx.markForRemoval( object );
                         continue;
                     }
                 }
@@ -138,16 +127,13 @@ public class SecurityCheck
                 {
                     if ( !ctx.getAclService().canDelete( bundle.getUser(), persistedObject ) )
                     {
-                        ObjectReport objectReport = new ObjectReport( object, bundle );
-                        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                        objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3002,
-                            identifier.getIdentifiersWithName( bundle.getUser() ),
-                            identifier.getIdentifiersWithName( object ) ) );
+                        ErrorReport errorReport = new ErrorReport(klass, ErrorCode.E3002,
+                                identifier.getIdentifiersWithName(bundle.getUser()),
+                                identifier.getIdentifiersWithName(object));
 
-                        typeReport.addObjectReport( objectReport );
-                        typeReport.getStats().incIgnored();
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
 
-                        iterator.remove();
+                        ctx.markForRemoval( object );
                         continue;
                     }
                 }
@@ -160,16 +146,16 @@ public class SecurityCheck
 
                 if ( !errorReports.isEmpty() ) {
 
-                    addObjectReport( errorReports, typeReport, object, bundle );
-                    iterator.remove();
+                    addObjectReports( errorReports, typeReport, object, bundle );
+                    ctx.markForRemoval( object );
                 }
             }
 
             List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
             if ( !sharingErrorReports.isEmpty() )
             {
-                addObjectReport( sharingErrorReports, typeReport, object, bundle );
-                iterator.remove();
+                addObjectReports( sharingErrorReports, typeReport, object, bundle );
+                ctx.markForRemoval( object );
 
             }
         }

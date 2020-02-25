@@ -28,11 +28,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReport;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,7 +62,6 @@ public class UniquenessCheck
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx )
     {
-
         TypeReport typeReport = new TypeReport( klass );
 
         List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
@@ -73,11 +71,8 @@ public class UniquenessCheck
             return typeReport;
         }
 
-        Iterator<IdentifiableObject> iterator = objects.iterator();
-
-        while ( iterator.hasNext() )
+        for ( IdentifiableObject object : objects )
         {
-            IdentifiableObject object = iterator.next();
             List<ErrorReport> errorReports = new ArrayList<>();
 
             if ( object instanceof User )
@@ -94,8 +89,8 @@ public class UniquenessCheck
 
             if ( !errorReports.isEmpty() )
             {
-                addObjectReport( errorReports, typeReport, object, bundle );
-                iterator.remove();
+                addObjectReports( errorReports, typeReport, object, bundle );
+                ctx.markForRemoval( object );
             }
         }
 
