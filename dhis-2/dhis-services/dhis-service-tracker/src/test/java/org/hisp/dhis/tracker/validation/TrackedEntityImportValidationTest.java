@@ -472,7 +472,7 @@ public class TrackedEntityImportValidationTest
 
     @Test
     //Ref. Tracker Validation sheet: TrackedEntity>c.1
-    public void testTeNotUnique()
+    public void testTeCreateAlreadyExists()
         throws IOException
     {
         TrackerBundleParams trackerBundleParams = renderService
@@ -609,6 +609,8 @@ public class TrackedEntityImportValidationTest
         assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
 
         TrackerValidationReport reportUpdate = trackerValidationService.validate( trackerBundleUpdate );
+        printErrors( reportUpdate );
+
         assertEquals( 0, reportUpdate.getErrorReports().size() );
 
         TrackerBundleReport bundleReportUpdate = trackerBundleService.commit( trackerBundleUpdate );

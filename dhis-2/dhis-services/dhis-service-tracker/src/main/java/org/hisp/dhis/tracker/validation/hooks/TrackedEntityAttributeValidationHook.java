@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -60,7 +61,7 @@ public class TrackedEntityAttributeValidationHook
     @Override
     public int getOrder()
     {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -116,9 +117,19 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
+            // look up in the preheater
             TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
 
-            validateTextPattern( errorReporter, attribute, trackedEntityAttribute, trackedEntityAttributeValue );
+            if ( trackedEntityAttributeValue == null )
+            {
+                trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+                trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
+                trackedEntityAttributeValue.setValue( attribute.getValue() );
+                trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
+            }
+            validateAttributeValue( errorReporter, trackedEntityAttributeValue );
+
+            validateTextPattern( errorReporter, bundle, attribute, trackedEntityAttribute, trackedEntityAttributeValue );
 
             validateAttrValueType( errorReporter, attribute, trackedEntityAttribute );
 
@@ -133,4 +144,49 @@ public class TrackedEntityAttributeValidationHook
             validateFileNotAlreadyAssigned( errorReporter, attribute, trackedEntityInstance );
         }
     }
+
+    public void validateAttributeValue( ValidationErrorReporter errorReporter,
+        TrackedEntityAttributeValue attributeValue )
+    {
+        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
+        Objects.requireNonNull( attributeValue, "TrackedEntityAttributeValue can't be null" );
+
+        if ( attributeValue.getAttribute().getValueType() == null )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1078 )
+                .addArg( attributeValue.getAttribute().getValueType() ) );
+        }
+
+//        if ( attributeValue.getAttribute().isConfidentialBool() &&
+//            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+//        {
+//            throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
+//        }
+
+        String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
+        if ( result != null )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1078 )
+                .addArg( attributeValue.getAttribute() )
+                .addArg( result ) );
+        }
+
+//        if ( attributeValue.getAttribute().getValueType().isFile() && !addFileValue( attributeValue ) )
+//        {
+//            throw new IllegalQueryException(
+//                String.format( "FileResource with id '%s' not found", attributeValue.getValue() ) );
+//        }
+
+//        if ( attributeValue.getValue() != null )
+//        {
+//            attributeValueStore.saveVoid( attributeValue );
+//
+//            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+//            {
+//                reservedValueService
+//                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+//            }
+//        }
+    }
+
 }

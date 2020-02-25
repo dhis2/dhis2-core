@@ -33,12 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.*;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -78,6 +73,13 @@ public class TrackerBundleParams
     @JsonProperty
     @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
+
+    /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    @Builder.Default
+    private boolean skipPatternValidation = false;
 
     /**
      * What identifiers to match on.
@@ -161,6 +163,7 @@ public class TrackerBundleParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+            .skipPatternValidation( skipPatternValidation )
             .flushMode( flushMode )
             .validationMode( validationMode )
             .reportMode( reportMode )

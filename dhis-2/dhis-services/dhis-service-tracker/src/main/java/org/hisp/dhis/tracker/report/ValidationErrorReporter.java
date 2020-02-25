@@ -112,11 +112,6 @@ public class ValidationErrorReporter
 
         getReportList().add( builder.build( this.bundle ) );
 
-        failFast();
-    }
-
-    private void failFast()
-    {
         if ( isFailFast() )
         {
             throw new ValidationFailFastException( getReportList() );

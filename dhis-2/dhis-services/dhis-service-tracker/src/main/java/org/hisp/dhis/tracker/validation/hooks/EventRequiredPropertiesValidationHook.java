@@ -44,20 +44,6 @@ public class EventRequiredPropertiesValidationHook
         {
             reporter.increment( event );
 
-            boolean exists = programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() );
-            if ( bundle.getImportStrategy().isCreate() && exists )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1030 )
-                    .addArg( event ) );
-                continue;
-            }
-            else if ( bundle.getImportStrategy().isUpdate() && !exists )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1032 )
-                    .addArg( event ) );
-                continue;
-            }
-
             ProgramStageInstance programStageInstance = PreheatHelper
                 .getProgramStageInstance( bundle, event.getEvent() );
             ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
@@ -71,6 +57,15 @@ public class EventRequiredPropertiesValidationHook
             {
                 reporter.addError( newReport( TrackerErrorCode.E1071 )
                     .addArg( event ) );
+            }
+
+            if ( bundle.getImportStrategy().isDelete() || bundle.getImportStrategy().isUpdate() )
+            {
+                if ( programStageInstance == null )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1082 )
+                        .addArg( event.getEvent() ) );
+                }
             }
 
             if ( organisationUnit == null )

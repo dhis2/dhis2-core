@@ -50,7 +50,7 @@ public class EnrollmentGeoValidationHook
     @Override
     public int getOrder()
     {
-        return 107;
+        return 108;
     }
 
     @Override

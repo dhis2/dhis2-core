@@ -108,6 +108,13 @@ public class TrackerImportParams
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    @Builder.Default
+    private boolean skipPatternValidation = false;
+
+    /**
      * Name of file that was used for import (if available).
      */
     @JsonProperty
@@ -182,6 +189,7 @@ public class TrackerImportParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+            .skipPatternValidation( skipPatternValidation )
             .atomicMode( atomicMode )
             .flushMode( flushMode )
             .validationMode( validationMode )

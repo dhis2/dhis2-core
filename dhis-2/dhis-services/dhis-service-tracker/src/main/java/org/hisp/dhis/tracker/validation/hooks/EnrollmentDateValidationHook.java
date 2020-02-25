@@ -55,7 +55,7 @@ public class EnrollmentDateValidationHook
     @Override
     public int getOrder()
     {
-        return 106;
+        return 107;
     }
 
     @Override
@@ -88,7 +88,6 @@ public class EnrollmentDateValidationHook
     private void validateEnrollmentDates( ValidationErrorReporter errorReporter, Program program,
         Enrollment enrollment )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( program, "Program can't be null" );
         Objects.requireNonNull( enrollment, "Enrollment can't be null" );
 

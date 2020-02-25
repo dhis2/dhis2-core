@@ -30,12 +30,12 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -51,34 +51,26 @@ public class TrackedEntityExistValidationHook
     @Override
     public int getOrder()
     {
-        return 3;
+        return 2;
     }
 
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
-        // Is it necessary to check for existence on delete,
-        // cant we just try to delete and check for update result from DB?
-//        if ( bundle.getImportStrategy().isDelete() )
-//        {
-//            return Collections.emptyList();
-//        }
-
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
         for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
         {
             reporter.increment( trackedEntity );
 
-            // This is a very expensive check... move out/optimize to preheater?
-            boolean exists = trackedEntityInstanceStore.existsIncludingDeleted( trackedEntity.getTrackedEntity() );
+            boolean exists = PreheatHelper.getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() ) != null;
 
-            if ( bundle.getImportStrategy().isCreate() && exists )
+            if ( exists && bundle.getImportStrategy().isCreate() )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1002 )
                     .addArg( trackedEntity.getTrackedEntity() ) );
             }
-            else if ( (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) && !exists )
+            else if ( !exists && (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1063 )
                     .addArg( trackedEntity.getTrackedEntity() ) );

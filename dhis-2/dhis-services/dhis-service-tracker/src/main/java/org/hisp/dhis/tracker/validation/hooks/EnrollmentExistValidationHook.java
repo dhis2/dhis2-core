@@ -30,56 +30,53 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentNoteValidationHook
+public class EnrollmentExistValidationHook
     extends AbstractTrackerValidationHook
 {
 
     @Override
     public int getOrder()
     {
-        return 106;
+        return 103;
     }
 
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            return Collections.emptyList();
-        }
-
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
         for ( Enrollment enrollment : bundle.getEnrollments() )
         {
             reporter.increment( enrollment );
 
-            for ( Note note : enrollment.getNotes() )
-            {
-                // NOTE: This looks like a potential performance killer, existence check on every note...
+            boolean exists = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() ) != null;
 
-//                if ( CodeGenerator.isValidUid( note.getNote() )
-//                    && commentService.trackedEntityCommentExists( note.getNote() )
-//                    && !StringUtils.isEmpty( note.getValue() ) )
-//                {
-//
-//                }
+            if ( exists && bundle.getImportStrategy().isCreate() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1080 )
+                    .addArg( enrollment.getEnrollment() ) );
+            }
+            else if ( !exists && (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1081 )
+                    .addArg( enrollment.getEnrollment() ) );
             }
         }
 
         return reporter.getReportList();
     }
-
 }

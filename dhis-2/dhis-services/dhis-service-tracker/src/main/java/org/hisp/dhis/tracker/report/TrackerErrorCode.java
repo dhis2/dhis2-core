@@ -122,6 +122,14 @@ public enum TrackerErrorCode
     E1076( "Attribute: `{0}`, value is null." ),
     E1077( "User: `{0}`, do not have access to read enrollment: `{1}`." ),
 
+    E1078( "Attribute: `{0}`, is missing type, is null or type is empty." ),
+    E1079( "Attribute: `{0}`, value is not valid: `{1}`." ),
+
+    E1080( "Enrollment: `{0}`, already exists." ),
+    E1081( "Enrollment: `{0}`, do not exist." ),
+    E1082( "Event: `{0}`, was already used and/or deleted. This event can not be modified." ),
+    E1083( "User: `{0}`, is not authorized to uncomplete events" ),
+
     E9999( "N/A" );
 
     private String message;

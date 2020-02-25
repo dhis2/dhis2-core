@@ -85,6 +85,13 @@ public class TrackerBundle
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    @Builder.Default
+    private boolean skipPatternValidation = false;
+
+    /**
      * Should import be treated as a atomic import (all or nothing).
      */
     @Builder.Default

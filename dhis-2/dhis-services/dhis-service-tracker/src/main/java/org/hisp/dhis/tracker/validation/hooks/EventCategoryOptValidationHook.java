@@ -79,8 +79,11 @@ public class EventCategoryOptValidationHook
     }
 
     private void validateCategoryOptionCombo( TrackerBundle bundle, ValidationErrorReporter errorReporter
-        , User user, Event event, Program program )
+        , User actingUser, Event event, Program program )
     {
+        Objects.requireNonNull( actingUser, "User can't be null" );
+        Objects.requireNonNull( program, "Program can't be null" );
+        Objects.requireNonNull( event, "Event can't be null" );
 
         // NOTE: Morten H. & Stian. Abyot : How do we solve this in the new importer?
 //        CategoryOptionCombo categoryOptionCombo;
@@ -151,7 +154,7 @@ public class EventCategoryOptValidationHook
         }
 
         List<String> accessErrors;
-        accessErrors = trackerAccessManager.canWrite( user, categoryOptionCombo );
+        accessErrors = trackerAccessManager.canWrite( actingUser, categoryOptionCombo );
         if ( !accessErrors.isEmpty() )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1058 )

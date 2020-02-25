@@ -6,6 +6,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -68,33 +70,28 @@ public class EventDateValidationHook
             programInstance = getProgramInstance( actingUser, programInstance, trackedEntityInstance, program );
             program = programInstance.getProgram();
 
-            validateExpiryDays( reporter, event, program, programStageInstance );
             validateDates( reporter, event );
+            validateExpiryDays( reporter, actingUser, event, program, programStageInstance );
         }
 
         return reporter.getReportList();
     }
 
-    private void validateExpiryDays( ValidationErrorReporter errorReporter,
-        Event event,
-        Program program,
-        ProgramStageInstance programStageInstance )
+    private void validateExpiryDays( ValidationErrorReporter errorReporter, User actingUser,
+        Event event, Program program, ProgramStageInstance programStageInstance )
     {
-//        if ( importOptions == null || importOptions.getUser() == null ||
-//            importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-//        {
-//            return;
-//        }
-
-        if ( program == null )
-        {
-            return;
-        }
+        Objects.requireNonNull( actingUser, "User can't be null" );
+        Objects.requireNonNull( event, "Event can't be null" );
+        Objects.requireNonNull( program, "Program can't be null" );
 
         if ( program.getCompleteEventsExpiryDays() > 0
             && EventStatus.COMPLETED == event.getStatus()
             || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
         {
+            if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+            {
+                return;
+            }
 
             Date referenceDate = null;
 
@@ -168,6 +165,8 @@ public class EventDateValidationHook
 
     private void validateDates( ValidationErrorReporter errorReporter, Event event )
     {
+        Objects.requireNonNull( event, "Event can't be null" );
+
         if ( event.getDueDate() != null && !isValidDateString( event.getDueDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1051 )

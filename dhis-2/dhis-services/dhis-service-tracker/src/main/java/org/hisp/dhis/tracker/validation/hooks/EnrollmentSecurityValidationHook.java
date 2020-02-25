@@ -125,7 +125,6 @@ public class EnrollmentSecurityValidationHook
     protected void validateCreate( ValidationErrorReporter reporter, User actingUser, Program program,
         OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
     {
-        Objects.requireNonNull( reporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( actingUser, "User can't be null" );
         Objects.requireNonNull( program, "Program can't be null" );
         Objects.requireNonNull( organisationUnit, "OrganisationUnit can't be null" );
@@ -145,8 +144,6 @@ public class EnrollmentSecurityValidationHook
     protected void validateUpdateAndDelete( TrackerBundle bundle, ValidationErrorReporter reporter,
         User actingUser, Enrollment enrollment )
     {
-        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
-        Objects.requireNonNull( reporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( actingUser, "User can't be null" );
         Objects.requireNonNull( enrollment, "Enrollment can't be null" );
 

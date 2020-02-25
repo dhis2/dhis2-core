@@ -60,7 +60,7 @@ public class EnrollmentAttributeValidationHook
     @Override
     public int getOrder()
     {
-        return 104;
+        return 105;
     }
 
     @Override
@@ -137,8 +137,6 @@ public class EnrollmentAttributeValidationHook
     private void validateMandatoryAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
         Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
     {
-        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( program, "Program can't be null" );
         Objects.requireNonNull( trackedEntityInstance, "TrackedEntityInstance can't be null" );
         Objects.requireNonNull( attributeValueMap, "AttributeValueMap can't be null" );

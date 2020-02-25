@@ -139,7 +139,6 @@ public abstract class AbstractTrackerValidationHook
     protected void validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
         FeatureType featureType )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( featureType, "FeatureType can't be null" );
 
         if ( coordinates != null && FeatureType.NONE != featureType )
@@ -166,19 +165,14 @@ public abstract class AbstractTrackerValidationHook
             reservedValueService.isReserved( attribute.getTextPattern(), value );
     }
 
-    protected void validateTextPattern( ValidationErrorReporter errorReporter, Attribute attr,
-        TrackedEntityAttribute teAttr,
-        TrackedEntityAttributeValue teiAttributeValue )
+    protected void validateTextPattern( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+        Attribute attr, TrackedEntityAttribute teAttr, TrackedEntityAttributeValue teiAttributeValue )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( attr, "Attribute can't be null" );
         Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
 
-        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() )
-        //&& ??? !importOptions.isSkipPatternValidation()
-        // MortenO: How should we deal with this in the new importer?
+        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipPatternValidation() )
         {
-
             String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
 
             if ( !textPatternValueIsValid( teAttr, attr.getValue(), oldValue ) )
@@ -192,7 +186,6 @@ public abstract class AbstractTrackerValidationHook
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityInstance tei )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( attr, "Attribute can't be null" );
 
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
@@ -219,7 +212,6 @@ public abstract class AbstractTrackerValidationHook
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( attr, "Attribute can't be null" );
         Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
 
@@ -237,7 +229,6 @@ public abstract class AbstractTrackerValidationHook
         TrackedEntityInstance trackedEntityInstanceUid,
         OrganisationUnit organisationUnit )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
         Objects.requireNonNull( trackedEntityAttribute, "TrackedEntityAttribute can't be null" );
 
         if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
@@ -267,8 +258,6 @@ public abstract class AbstractTrackerValidationHook
     protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
         String coordinates, FeatureType featureType )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
-
         //NOTE: Is both (coordinates && geometry) at same time possible?
         if ( coordinates != null )
         {
@@ -300,6 +289,7 @@ public abstract class AbstractTrackerValidationHook
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() )
             : trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
@@ -312,6 +302,7 @@ public abstract class AbstractTrackerValidationHook
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
             : trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;

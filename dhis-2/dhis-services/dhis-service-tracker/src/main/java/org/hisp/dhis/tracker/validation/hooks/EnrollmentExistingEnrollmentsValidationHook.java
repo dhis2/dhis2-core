@@ -65,7 +65,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
     @Override
     public int getOrder()
     {
-        return 103;
+        return 104;
     }
 
     @Override
