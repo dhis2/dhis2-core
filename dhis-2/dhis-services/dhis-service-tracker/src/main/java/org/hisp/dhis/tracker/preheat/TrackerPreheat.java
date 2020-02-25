@@ -125,7 +125,7 @@ public class TrackerPreheat
      * Internal map of all preheated relationships, mainly used for confirming existence for updates, and used
      * for object merging.
      */
-    private Map<TrackerIdentifier, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdentifier.class );
+    private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     public TrackerPreheat()
     {
@@ -519,12 +519,12 @@ public class TrackerPreheat
         events.get( identifier ).put( event, programStageInstance );
     }
 
-    public Map<TrackerIdentifier, Map<String, Relationship>> getRelationships()
+    public Map<TrackerIdScheme, Map<String, Relationship>> getRelationships()
     {
         return relationships;
     }
 
-    public void setRelationships( Map<TrackerIdentifier, Map<String, Relationship>> relationships )
+    public void setRelationships( Map<TrackerIdScheme, Map<String, Relationship>> relationships )
     {
         this.relationships = relationships;
     }
@@ -539,12 +539,12 @@ public class TrackerPreheat
         return relationships.get( identifier ).get( relationship );
     }
 
-    public void putRelationships( TrackerIdentifier identifier, List<Relationship> relationships )
+    public void putRelationships( TrackerIdScheme identifier, List<Relationship> relationships )
     {
         relationships.forEach( r -> putRelationship( identifier, r.getUid(), r ) );
     }
 
-    public void putRelationship( TrackerIdentifier identifier, String relationshipUid, Relationship relationship )
+    public void putRelationship( TrackerIdScheme identifier, String relationshipUid, Relationship relationship )
     {
         if ( !relationships.containsKey( identifier ) )
         {

@@ -221,7 +221,7 @@ public class DefaultTrackerPreheatService
                 {
                     List<org.hisp.dhis.relationship.Relationship> relationships = relationshipStore
                         .getByUid( ids, preheat.getUser() );
-                    preheat.putRelationships( TrackerIdentifier.UID, relationships );
+                    preheat.putRelationships( TrackerIdScheme.UID, relationships );
                 }
             }
             else

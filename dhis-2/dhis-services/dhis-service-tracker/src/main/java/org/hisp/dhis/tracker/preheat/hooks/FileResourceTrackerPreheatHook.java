@@ -33,6 +33,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatHook;
@@ -61,7 +62,7 @@ public class FileResourceTrackerPreheatHook
     @Override
     public void preheat( TrackerPreheatParams params, TrackerPreheat preheat )
     {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( params.getIdentifier(), TrackedEntityAttribute.class );
+        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackerIdentifier.UID, TrackedEntityAttribute.class );
 
         List<String> fileResourceAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )
@@ -74,7 +75,7 @@ public class FileResourceTrackerPreheatHook
         params.getEnrollments().forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
 
         List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
-        preheat.put( params.getIdentifier(), fileResources );
+        preheat.put( TrackerIdentifier.UID, fileResources );
     }
 
     private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds, List<Attribute> attributes )

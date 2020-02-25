@@ -122,7 +122,7 @@ public class TrackerPreheatServiceIntegration
         Enrollment enrollmentA = Enrollment.builder()
             .orgUnit( "OUA" )
             .program( "PROGRAM1" )
-            .trackedEntityInstance( TE_UID )
+            .trackedEntity( TE_UID )
             .build();
 
         TrackerPreheatParams trackerPreheatParams = TrackerPreheatParams.builder()
