@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.job;
+package org.hisp.dhis.artemis;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,39 +29,17 @@ package org.hisp.dhis.tracker.job;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.artemis.SerializableMessage;
-import org.hisp.dhis.tracker.TrackerImportParams;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.io.Serializable;
 
 /**
- * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the
- * tracker import services.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-@Data
-@Builder( builderClassName = "TrackerMessageBuilder" )
-@JsonDeserialize( builder = TrackerMessage.TrackerMessageBuilder.class )
-public class TrackerMessage implements SerializableMessage
+public interface SerializableMessage extends Serializable, Message
 {
     @JsonProperty
-    private final String uid;
-
-    @JsonProperty
-    private final TrackerImportParams trackerImportParams;
-
-    @Override
-    public MessageType getMessageType()
-    {
-        return MessageType.TRACKER_JOB;
-    }
-
-    @JsonPOJOBuilder( withPrefix = "" )
-    public static final class TrackerMessageBuilder
-    {
-    }
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    MessageType getMessageType();
 }
