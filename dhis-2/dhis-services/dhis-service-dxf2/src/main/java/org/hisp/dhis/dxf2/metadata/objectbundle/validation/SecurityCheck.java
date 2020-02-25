@@ -98,8 +98,9 @@ public class SecurityCheck
             {
                 if ( !ctx.getAclService().canCreate( bundle.getUser(), klass ) )
                 {
-                    ErrorReport errorReport =  new ErrorReport( klass, ErrorCode.E3000, identifier.getIdentifiersWithName( bundle.getUser() ),
-                            identifier.getIdentifiersWithName( object ) );
+                    ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3000,
+                        identifier.getIdentifiersWithName( bundle.getUser() ),
+                        identifier.getIdentifiersWithName( object ) );
 
                     ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
                     ctx.markForRemoval( object );
@@ -127,9 +128,9 @@ public class SecurityCheck
                 {
                     if ( !ctx.getAclService().canDelete( bundle.getUser(), persistedObject ) )
                     {
-                        ErrorReport errorReport = new ErrorReport(klass, ErrorCode.E3002,
-                                identifier.getIdentifiersWithName(bundle.getUser()),
-                                identifier.getIdentifiersWithName(object));
+                        ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3002,
+                            identifier.getIdentifiersWithName( bundle.getUser() ),
+                            identifier.getIdentifiersWithName( object ) );
 
                         ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
 

@@ -28,58 +28,45 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * This interface is implemented by classes that can validate an {@see ObjectBundle}
- * 
  * @author Luciano Fiandesio
  */
-public interface ValidationCheck
+public class DummyCheck
+    implements
+    ValidationCheck
 {
-    /**
-     *
-     * @param bundle an {@see ObjectBundle} to validate
-     * @param klass the class of Object to validate, within the bundle
-     * @param persistedObjects a List of IdentifiableObject
-     * @param nonPersistedObjects a List of IdentifiableObject
-     * @param importStrategy the {@see ImportStrategy}
-     * @param context a {@see ValidationContext} containing the services required
-     *        for validation
-     * 
-     * @return a {@see TypeReport}
-     */
-    TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context );
 
-    default List<IdentifiableObject> selectObjects( List<IdentifiableObject> persistedObjects,
-        List<IdentifiableObject> nonPersistedObjects, ImportStrategy importStrategy )
+    @Override
+    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+        ImportStrategy importStrategy, ValidationContext context )
     {
 
-        if ( importStrategy.isCreateAndUpdate() )
+        TypeReport typeReport = new TypeReport( klass );
+
+        for ( IdentifiableObject nonPersistedObject : nonPersistedObjects )
         {
-            return ValidationUtils.joinObjects( persistedObjects, nonPersistedObjects );
-        }
-        else if ( importStrategy.isCreate() )
-        {
-            return nonPersistedObjects;
-        }
-        else if ( importStrategy.isUpdate() )
-        {
-            return persistedObjects;
-        }
-        else
-        {
-            return Collections.emptyList();
+            if ( nonPersistedObject.getUid().startsWith( "u" ) )
+            {
+
+                ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( nonPersistedObject ) )
+                        .setMainId( nonPersistedObject.getUid() );
+                ValidationUtils.addObjectReport( errorReport, typeReport, nonPersistedObject, bundle );
+
+                context.markForRemoval( nonPersistedObject);
+            }
         }
 
+        return typeReport;
     }
-
 }

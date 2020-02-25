@@ -43,14 +43,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@SuppressWarnings( "unchecked" )
 public class ValidationFactory
 {
 
@@ -62,63 +58,89 @@ public class ValidationFactory
 
     private final UserService userService;
 
-    private List<ObjectBundleHook> objectBundleHooks;
+    private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap;
 
-    public ValidationFactory(SchemaValidator schemaValidator, SchemaService schemaService, AclService aclService, UserService userService,
-                             List<ObjectBundleHook> objectBundleHooks )
+    private List<ObjectBundleHook> objectBundleHooks;
+    
+
+    
+    public ValidationFactory( SchemaValidator schemaValidator, SchemaService schemaService, AclService aclService,
+        UserService userService, List<ObjectBundleHook> objectBundleHooks,
+        Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap )
     {
         this.schemaValidator = schemaValidator;
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.userService = userService;
+        this.validatorMap = validatorMap;
         this.objectBundleHooks = objectBundleHooks == null ? Collections.emptyList() : objectBundleHooks;
     }
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> CREATE = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> UPDATE = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> DELETE = Lists.newArrayList( SecurityCheck.class,
-            DeletionCheck.class );
-
-    private final static Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap = ImmutableMap.of(
-        ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE, 
-        ImportStrategy.CREATE, CREATE, 
-        ImportStrategy.UPDATE, UPDATE,
-        ImportStrategy.DELETE, DELETE );
-
+    /**
+     * Run the validation checks against the bundle
+     * 
+     * @param bundle an {@see ObjectBundle}
+     * @param klass the Class type that is getting validated
+     * @param persistedObjects a List of IdentifiableObject
+     * @param nonPersistedObjects a List of IdentifiableObject
+     * 
+     * @return a {@see TypeReport} containing the outcome of the validation
+     */
     public TypeReport validateBundle( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects)
     {
         ValidationContext ctx = getContext();
         TypeReport typeReport =  new ValidationRunner( validatorMap.get( bundle.getImportMode() ) ).executeValidationChain( bundle, klass,
             persistedObjects, nonPersistedObjects, ctx );
+        
+        // remove from the bundle the invalid objects
+        removeFromBundle(klass, ctx, bundle );
 
-        remove(klass, ctx, bundle );
+        return addStatistics( typeReport, bundle, persistedObjects, nonPersistedObjects );
+    }
 
+    private TypeReport addStatistics( TypeReport typeReport, ObjectBundle bundle,
+                                      List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects )
+    {
+        if ( bundle.getImportMode().isCreateAndUpdate() )
+        {
+            typeReport.getStats().incCreated( nonPersistedObjects.size() );
+            typeReport.getStats().incUpdated( persistedObjects.size() );
+
+        }
+        else if ( bundle.getImportMode().isCreate() )
+        {
+            typeReport.getStats().incCreated( nonPersistedObjects.size() );
+
+        }
+        else if ( bundle.getImportMode().isUpdate() )
+        {
+            typeReport.getStats().incUpdated( persistedObjects.size() );
+
+        }
+        else if ( bundle.getImportMode().isDelete() )
+        {
+            typeReport.getStats().incDeleted( persistedObjects.size() );
+        }
         return typeReport;
     }
-    
-    private void remove( Class<? extends IdentifiableObject> klass, ValidationContext ctx, ObjectBundle bundle )
+
+    /**
+     *
+     * @param klass the class of the objects to remove from bundle
+     * @param ctx the {@see ValidationContext} containing the list of objects to remove
+     * @param bundle the {@see ObjectBundle}
+     */
+    private void removeFromBundle( Class<? extends IdentifiableObject> klass, ValidationContext ctx,
+        ObjectBundle bundle )
     {
+        List<IdentifiableObject> persisted = bundle.getObjects( klass, true );
+        persisted.removeAll( ctx.getMarkedForRemoval() );
 
-        List<IdentifiableObject> persisted = bundle.getObjects(klass, true);
-        persisted.removeAll( ctx.getMarkedForRemoval());
-
-        List<IdentifiableObject> nonPersisted = bundle.getObjects(klass, false);
-        nonPersisted.removeAll( ctx.getMarkedForRemoval());
-
+        List<IdentifiableObject> nonPersisted = bundle.getObjects( klass, false );
+        nonPersisted.removeAll( ctx.getMarkedForRemoval() );
     }
     
-
     private ValidationContext getContext()
     {
         return new ValidationContext( this.objectBundleHooks, this.schemaValidator, this.aclService, this.userService,
@@ -153,32 +175,6 @@ public class ValidationFactory
                 {
                     e.printStackTrace(); // TODO
                 }
-            }
-            return addStatistics( typeReport, bundle, persistedObjects, nonPersistedObjects );
-        }
-
-        private TypeReport addStatistics( TypeReport typeReport, ObjectBundle bundle,
-                                          List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects )
-        {
-            if ( bundle.getImportMode().isCreateAndUpdate() )
-            {
-                typeReport.getStats().incCreated( nonPersistedObjects.size() );
-                typeReport.getStats().incUpdated( persistedObjects.size() );
-
-            }
-            else if ( bundle.getImportMode().isCreate() )
-            {
-                typeReport.getStats().incCreated( nonPersistedObjects.size() );
-
-            }
-            else if ( bundle.getImportMode().isUpdate() )
-            {
-                typeReport.getStats().incUpdated( persistedObjects.size() );
-
-            }
-            else if ( bundle.getImportMode().isDelete() )
-            {
-                typeReport.getStats().incDeleted( persistedObjects.size() );
             }
             return typeReport;
         }
