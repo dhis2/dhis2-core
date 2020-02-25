@@ -137,7 +137,7 @@ public class DefaultTrackerPreheatService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public TrackerPreheat preheat( TrackerPreheatParams params )
     {
         Timer timer = new SystemTimer().start();
