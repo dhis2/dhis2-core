@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -58,7 +58,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackerEventBundleServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -99,6 +99,12 @@ public class TrackerEventBundleServiceTest
         objectBundleService.commit( bundle );
     }
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Test
     public void testCreateSingleEventData() throws IOException
     {
@@ -107,8 +113,9 @@ public class TrackerEventBundleServiceTest
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setEvents( trackerBundle.getEvents() ) );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .events( trackerBundle.getEvents() )
+            .build() );
 
         assertEquals( 1, trackerBundles.size() );
 
@@ -124,15 +131,17 @@ public class TrackerEventBundleServiceTest
         TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class ).toTrackerBundle();
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .setEvents( trackerBundle.getEvents() ) );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .events( trackerBundle.getEvents() )
+            .build() );
 
         trackerBundleService.commit( trackerBundles.get( 0 ) );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
-        trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setEvents( trackerBundle.getEvents() ) );
+        trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .events( trackerBundle.getEvents() )
+            .build() );
 
         trackerBundleService.commit( trackerBundles.get( 0 ) );
         assertEquals( 8, programStageInstanceStore.getAll().size() );

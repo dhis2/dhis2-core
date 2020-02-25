@@ -28,8 +28,7 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -65,11 +64,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DefaultAnalyticsTableService
     implements AnalyticsTableService
 {
-    private static final Log log = LogFactory.getLog( DefaultAnalyticsTableService.class );
-
     private AnalyticsTableManager tableManager;
 
     private OrganisationUnitService organisationUnitService;

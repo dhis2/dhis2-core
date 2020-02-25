@@ -28,9 +28,16 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
@@ -45,23 +52,16 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Saptarshi Purkayastha
  */
+@Slf4j
 @Component( "org.hisp.dhis.appmanager.AppManager" )
 public class DefaultAppManager
     implements AppManager
 {
-    private static final Log log = LogFactory.getLog( DefaultAppManager.class );
-
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
     private final CurrentUserService currentUserService;
@@ -275,9 +275,15 @@ public class DefaultAppManager
     }
 
     @Override
-    public String getAppStoreUrl()
+    public String getAppHubUrl()
     {
-        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
+        String baseUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
+        String apiUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
+
+        return "{" +
+                "\"baseUrl\": \"" + baseUrl + "\", " +
+                "\"apiUrl\": \"" + apiUrl + "\"" +
+                "}";
     }
 
     /**

@@ -31,8 +31,6 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
@@ -48,13 +46,14 @@ import org.springframework.web.client.RestTemplate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Slf4j
 public abstract class SmsGateway
 {
-    private static final Log log = LogFactory.getLog( SmsGateway.class );
-
     protected static final String PROTOCOL_VERSION = "X-Version";
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
     protected static final String BASIC = " Basic ";

@@ -30,8 +30,7 @@ package org.hisp.dhis.webapi.controller.metadata;
 
 import java.io.InputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -51,10 +50,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope( "prototype" )
+@Slf4j
 public class GmlAsyncImporter extends SecurityContextRunnable
 {
-    private static final Log log = LogFactory.getLog( GmlAsyncImporter.class );
-
     @Autowired
     private GmlImportService gmlImportService;
 

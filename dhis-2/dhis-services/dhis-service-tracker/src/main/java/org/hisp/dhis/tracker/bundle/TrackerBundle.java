@@ -28,6 +28,12 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
@@ -36,17 +42,23 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TrackerBundle
 {
     /**
@@ -57,36 +69,43 @@ public class TrackerBundle
     /**
      * Should import be imported or just validated.
      */
+    @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
      * What identifiers to match on.
      */
+    @Builder.Default
     private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Sets import strategy (create, update, etc).
      */
+    @Builder.Default
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
      * Should import be treated as a atomic import (all or nothing).
      */
+    @Builder.Default
     private AtomicMode atomicMode = AtomicMode.ALL;
 
     /**
      * Flush for every object or per type.
      */
+    @Builder.Default
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
      * Validation mode to use, defaults to fully validated objects.
      */
+    @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
      * Give full report, or only include errors.
      */
+    @Builder.Default
     private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
@@ -97,193 +116,42 @@ public class TrackerBundle
     /**
      * Tracked entities to import.
      */
+    @Builder.Default
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
+    @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
+    @Builder.Default
     private List<Event> events = new ArrayList<>();
 
-    public TrackerBundle()
-    {
-    }
+    /**
+     * Relationships to import.
+     */
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
 
-    public User getUser()
-    {
-        return user;
-    }
+    /**
+     * Rule effects for Enrollments.
+     */
+    @Builder.Default
+    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap();
 
-    public TrackerBundle setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
+    /**
+     * Rule effects for Events.
+     */
+    @Builder.Default
+    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap();
 
+    @JsonProperty
     public String getUsername()
     {
-        return user != null ? user.getUsername() : "system-process";
-    }
-
-    public TrackerBundleMode getImportMode()
-    {
-        return importMode;
-    }
-
-    public TrackerBundle setImportMode( TrackerBundleMode importMode )
-    {
-        this.importMode = importMode;
-        return this;
-    }
-
-    public TrackerIdentifier getIdentifier()
-    {
-        return identifier;
-    }
-
-    public TrackerBundle setIdentifier( TrackerIdentifier identifier )
-    {
-        this.identifier = identifier;
-        return this;
-    }
-
-    public TrackerImportStrategy getImportStrategy()
-    {
-        return importStrategy;
-    }
-
-    public TrackerBundle setImportStrategy( TrackerImportStrategy importStrategy )
-    {
-        this.importStrategy = importStrategy;
-        return this;
-    }
-
-    public AtomicMode getAtomicMode()
-    {
-        return atomicMode;
-    }
-
-    public TrackerBundle setAtomicMode( AtomicMode atomicMode )
-    {
-        this.atomicMode = atomicMode;
-        return this;
-    }
-
-    public FlushMode getFlushMode()
-    {
-        return flushMode;
-    }
-
-    public TrackerBundle setFlushMode( FlushMode flushMode )
-    {
-        this.flushMode = flushMode;
-        return this;
-    }
-
-    public ValidationMode getValidationMode()
-    {
-        return validationMode;
-    }
-
-    public TrackerBundle setValidationMode( ValidationMode validationMode )
-    {
-        this.validationMode = validationMode;
-        return this;
-    }
-
-    public TrackerBundleReportMode getReportMode()
-    {
-        return reportMode;
-    }
-
-    public TrackerBundle setReportMode( TrackerBundleReportMode reportMode )
-    {
-        this.reportMode = reportMode;
-        return this;
-    }
-
-    public TrackerPreheat getPreheat()
-    {
-        return preheat;
-    }
-
-    public TrackerBundle setPreheat( TrackerPreheat preheat )
-    {
-        this.preheat = preheat;
-        return this;
-    }
-
-    public List<TrackedEntity> getTrackedEntities()
-    {
-        return trackedEntities;
-    }
-
-    public TrackerBundle setTrackedEntities( List<TrackedEntity> trackedEntities )
-    {
-        this.trackedEntities = trackedEntities;
-        return this;
-    }
-
-    public TrackerBundle addTrackedEntity( TrackedEntity... trackedEntity )
-    {
-        trackedEntities.addAll( Arrays.asList( trackedEntity ) );
-        return this;
-    }
-
-    public List<Enrollment> getEnrollments()
-    {
-        return enrollments;
-    }
-
-    public TrackerBundle setEnrollments( List<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
-        return this;
-    }
-
-    public TrackerBundle addEnrollment( Enrollment... enrollment )
-    {
-        enrollments.addAll( Arrays.asList( enrollment ) );
-        return this;
-    }
-
-    public List<Event> getEvents()
-    {
-        return events;
-    }
-
-    public TrackerBundle setEvents( List<Event> events )
-    {
-        this.events = events;
-        return this;
-    }
-
-    public TrackerBundle addEvent( Event... event )
-    {
-        events.addAll( Arrays.asList( event ) );
-        return this;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "TrackerBundle{" +
-            "user=" + getUsername() +
-            ", importMode=" + importMode +
-            ", identifier=" + identifier +
-            ", importStrategy=" + importStrategy +
-            ", atomicMode=" + atomicMode +
-            ", flushMode=" + flushMode +
-            ", validationMode=" + validationMode +
-            ", reportMode=" + reportMode +
-            ", preheat=" + preheat +
-            ", trackedEntities=" + trackedEntities +
-            ", enrollments=" + enrollments +
-            ", events=" + events +
-            '}';
+        return User.username( user );
     }
 }

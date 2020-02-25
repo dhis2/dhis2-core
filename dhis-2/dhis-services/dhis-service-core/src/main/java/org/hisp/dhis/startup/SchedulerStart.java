@@ -28,8 +28,16 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobType.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -39,15 +47,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
-import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
-import static org.hisp.dhis.scheduling.JobType.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Reschedule old jobs and execute jobs which were scheduled when the server was
@@ -55,10 +55,9 @@ import static org.hisp.dhis.scheduling.JobType.*;
  *
  * @author Henning Håkonsen
  */
+@Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
-    private static final Log log = LogFactory.getLog( SchedulerStart.class );
-
     private final String CRON_HOURLY = "0 0 * ? * *";
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";

@@ -39,6 +39,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-jexl</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Test -->
 

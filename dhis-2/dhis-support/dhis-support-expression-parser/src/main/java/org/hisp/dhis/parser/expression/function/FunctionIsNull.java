@@ -29,8 +29,9 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -39,17 +40,17 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class FunctionIsNull
-    extends SimpleScalarFunction
+    implements ExpressionItem
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.visitAllowingNulls( ctx.item( 0 ) ) == null;
+        return visitor.visitAllowingNulls( ctx.expr( 0 ) ) == null;
     }
 
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return castString( visitor.visitAllowingNulls( ctx.item( 0 ) ) ) + " is null";
+        return castString( visitor.visitAllowingNulls( ctx.expr( 0 ) ) ) + " is null";
     }
 }

@@ -129,7 +129,7 @@ public class EnrollmentTrackerConverterService
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdentifier.UID, enrollment.getEnrollment() );
             OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
             Program program = preheat.get( TrackerIdentifier.UID, Program.class, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdentifier.UID, enrollment.getTrackedEntityInstance() );
+            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdentifier.UID, enrollment.getTrackedEntity() );
 
             if ( programInstance == null )
             {
@@ -153,7 +153,7 @@ public class EnrollmentTrackerConverterService
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
             programInstance.setEntityInstance( trackedEntityInstance );
-            programInstance.setFollowup( enrollment.getFollowup() );
+            programInstance.setFollowup( enrollment.isFollowup() );
             programInstance.setGeometry( enrollment.getGeometry() );
 
             if ( enrollment.getStatus() == null )
@@ -172,8 +172,9 @@ public class EnrollmentTrackerConverterService
 
     private TrackerPreheat preheat( List<Enrollment> enrollments )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setEnrollments( enrollments );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .enrollments( enrollments )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }

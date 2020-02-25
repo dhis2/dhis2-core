@@ -47,7 +47,7 @@ import java.util.List;
  * @author Jim Grace
  */
 public abstract class VectorPercentileBase
-    extends VectorFunctionNoSql
+    extends VectorFunction
 {
     private final Percentile percentile = new Percentile().withEstimationType( getEstimationType() );
 

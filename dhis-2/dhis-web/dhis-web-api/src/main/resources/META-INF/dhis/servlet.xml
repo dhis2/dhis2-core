@@ -20,10 +20,6 @@
   <bean id="renderServiceMessageConverter"
     class="org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter" />
 
-  <bean id="requestMappingHandlerMapping" class="org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping">
-    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
-  </bean>
-
   <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
 
   <bean class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" />
@@ -183,63 +179,9 @@
   </mvc:annotation-driven>
   -->
 
-  <bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManager">
-    <constructor-arg>
-      <list>
-        <ref bean="customPathExtensionContentNegotiationStrategy" />
-        <ref bean="parameterContentNegotiationStrategy" />
-        <ref bean="headerContentNegotiationStrategy" />
-        <ref bean="fixedContentNegotiationStrategy" />
-      </list>
-    </constructor-arg>
-  </bean>
-
   <mvc:interceptors>
     <bean class="org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor" />
   </mvc:interceptors>
-
-  <bean id="customPathExtensionContentNegotiationStrategy" class="org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy">
-    <constructor-arg name="mediaTypes">
-      <map>
-        <entry key="json" value="application/json" />
-        <entry key="json.gz" value="application/json+gzip" />
-        <entry key="json.zip" value="application/json+zip" />
-        <entry key="jsonp" value="application/javascript" />
-        <entry key="xml" value="application/xml" />
-        <entry key="xml.gz" value="application/xml+gzip" />
-        <entry key="xml.zip" value="application/xml+zip" />
-        <entry key="png" value="image/png" />
-        <entry key="pdf" value="application/pdf" />
-        <entry key="xls" value="application/vnd.ms-excel" />
-        <entry key="xlsx" value="application/vnd.ms-excel" />
-        <entry key="csv" value="application/csv" />
-        <entry key="csv.gz" value="application/csv+gzip" />
-        <entry key="csv.zip" value="application/csv+zip" />
-        <entry key="geojson" value="application/json+geojson" />
-      </map>
-    </constructor-arg>
-    <property name="useJaf" value="false" />
-  </bean>
-
-  <bean id="parameterContentNegotiationStrategy" class="org.springframework.web.accept.ParameterContentNegotiationStrategy">
-    <constructor-arg name="mediaTypes">
-      <map>
-        <entry key="json" value="application/json" />
-        <entry key="jsonp" value="application/javascript" />
-        <entry key="xml" value="application/xml" />
-        <entry key="png" value="image/png" />
-        <entry key="pdf" value="application/pdf" />
-        <entry key="xls" value="application/vnd.ms-excel" />
-        <entry key="csv" value="application/csv" />
-      </map>
-    </constructor-arg>
-  </bean>
-
-  <bean id="headerContentNegotiationStrategy" class="org.springframework.web.accept.HeaderContentNegotiationStrategy" />
-
-  <bean id="fixedContentNegotiationStrategy" class="org.springframework.web.accept.FixedContentNegotiationStrategy">
-    <constructor-arg type="org.springframework.http.MediaType" value="application/json" />
-  </bean>
 
   <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
     <property name="order" value="1" />

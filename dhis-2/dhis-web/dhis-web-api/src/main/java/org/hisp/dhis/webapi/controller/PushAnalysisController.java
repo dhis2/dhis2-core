@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -60,12 +59,11 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( PushAnalysisSchemaDescriptor.API_ENDPOINT )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class PushAnalysisController
     extends AbstractCrudController<PushAnalysis>
 {
-    private static final Log log = LogFactory.getLog( PushAnalysisController.class );
-
     @Autowired
     private PushAnalysisService pushAnalysisService;
 
@@ -79,9 +77,9 @@ public class PushAnalysisController
     private SchedulingManager schedulingManager;
 
     @RequestMapping( value = "/{uid}/render", method = RequestMethod.GET )
-    public void renderPushAnalytics(
-        @PathVariable() String uid,
-        HttpServletResponse response ) throws WebMessageException, IOException
+    public void renderPushAnalytics( @PathVariable( ) String uid, HttpServletResponse response )
+        throws WebMessageException,
+        IOException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
 

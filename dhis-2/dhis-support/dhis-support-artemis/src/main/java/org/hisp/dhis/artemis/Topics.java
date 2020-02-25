@@ -38,4 +38,6 @@ public interface Topics
     String AGGREGATE_TOPIC_NAME = "dhis2.topic.aggregate";
 
     String TRACKER_TOPIC_NAME = "dhis2.topic.tracker";
+
+    String TRACKER_IMPORT_JOB_TOPIC_NAME = "dhis2.jobs.tracker";
 }

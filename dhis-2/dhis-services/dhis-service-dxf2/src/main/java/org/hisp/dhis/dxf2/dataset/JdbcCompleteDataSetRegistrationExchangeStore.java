@@ -36,8 +36,6 @@ import java.util.Date;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
@@ -52,19 +50,20 @@ import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ImmutableMap;
-import org.springframework.stereotype.Repository;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Repository( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeStore" )
 public class JdbcCompleteDataSetRegistrationExchangeStore
         implements CompleteDataSetRegistrationExchangeStore
 {
-    private static final Log log = LogFactory.getLog( JdbcCompleteDataSetRegistrationExchangeStore.class );
-
     //--------------------------------------------------------------------------
     // Id scheme parameters
     //--------------------------------------------------------------------------

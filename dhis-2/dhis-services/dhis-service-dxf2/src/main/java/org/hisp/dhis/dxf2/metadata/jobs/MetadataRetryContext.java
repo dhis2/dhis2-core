@@ -28,8 +28,8 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -39,19 +39,18 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.retry.RetryContext;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Defines retry mechanism for metadata sync scheduling
  *
  * @author aamerm
  */
+@Slf4j
 @Component( "metadataRetryContext" )
 @Scope( "prototype" )
 public class MetadataRetryContext
 {
-    private static final Log log = LogFactory.getLog( MetadataRetryContext.class );
-
     private RetryContext retryContext;
 
     public RetryContext getRetryContext()

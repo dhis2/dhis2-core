@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -58,7 +58,7 @@ import static org.junit.Assert.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackerBundleServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -99,8 +99,14 @@ public class TrackerBundleServiceTest
         objectBundleService.commit( bundle );
     }
 
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Test
-    public void testVerifyMetadata() throws IOException
+    public void testVerifyMetadata()
     {
         Program program = manager.get( Program.class, "E8o1E9tAppy" );
         OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
@@ -118,8 +124,9 @@ public class TrackerBundleServiceTest
 
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
-        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
-            .setTrackedEntities( trackerBundle.getTrackedEntities() ) );
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
+            .trackedEntities( trackerBundle.getTrackedEntities() )
+            .build() );
 
         assertEquals( 1, trackerBundles.size() );
 

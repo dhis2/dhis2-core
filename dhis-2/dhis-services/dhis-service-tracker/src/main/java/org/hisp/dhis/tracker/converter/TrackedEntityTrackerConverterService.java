@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -75,13 +76,12 @@ public class TrackedEntityTrackerConverterService
     @Transactional( readOnly = true )
     public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
-        List<TrackedEntity> trackedEntities = new ArrayList<>();
+        return trackedEntityInstances.stream().map( tei -> {
+            TrackedEntity trackedEntity = new TrackedEntity();
+            trackedEntity.setTrackedEntity( tei.getUid() );
 
-        trackedEntityInstances.forEach( tei -> {
-
-        } );
-
-        return trackedEntities;
+            return trackedEntity;
+        } ).collect( Collectors.toList() );
     }
 
     @Override
@@ -160,8 +160,9 @@ public class TrackedEntityTrackerConverterService
 
     private TrackerPreheat preheat( List<TrackedEntity> trackedEntities )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setTrackedEntities( trackedEntities );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .trackedEntities( trackedEntities )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }

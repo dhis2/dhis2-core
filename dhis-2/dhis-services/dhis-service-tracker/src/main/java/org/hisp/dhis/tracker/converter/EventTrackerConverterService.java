@@ -97,7 +97,7 @@ public class EventTrackerConverterService
 
             if ( psi.getProgramInstance().getEntityInstance() != null )
             {
-                event.setTrackedEntityInstance( psi.getProgramInstance().getEntityInstance().getUid() );
+                event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
             }
 
             event.setFollowup( psi.getProgramInstance().getFollowup() );
@@ -246,7 +246,7 @@ public class EventTrackerConverterService
             e.getDataValues().forEach( dv -> {
                 EventDataValue dataValue = new EventDataValue( dv.getDataElement(), dv.getValue() );
                 dataValue.setAutoFields();
-                dataValue.setProvidedElsewhere( dv.getProvidedElsewhere() );
+                dataValue.setProvidedElsewhere( dv.isProvidedElsewhere() );
                 dataValue.setStoredBy( dv.getStoredBy() );
 
                 eventDataValues.add( dataValue );
@@ -278,8 +278,9 @@ public class EventTrackerConverterService
 
     private TrackerPreheat preheat( List<Event> events )
     {
-        TrackerPreheatParams params = new TrackerPreheatParams()
-            .setEvents( events );
+        TrackerPreheatParams params = TrackerPreheatParams.builder()
+            .events( events )
+            .build();
 
         return trackerPreheatService.preheat( params );
     }

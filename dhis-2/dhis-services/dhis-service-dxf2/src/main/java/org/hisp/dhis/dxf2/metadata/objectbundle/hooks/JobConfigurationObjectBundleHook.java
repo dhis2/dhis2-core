@@ -37,30 +37,25 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.*;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
  */
+@Slf4j
 @Component
 public class JobConfigurationObjectBundleHook
     extends AbstractObjectBundleHook
 {
-    private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
-
     private final JobConfigurationService jobConfigurationService;
 
     private final SchedulingManager schedulingManager;
@@ -95,7 +90,7 @@ public class JobConfigurationObjectBundleHook
         else
         {
             log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
-            log.info( errorReports );
+            log.info( errorReports.toString() );
         }
 
         return errorReports;
