@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.sideeffect;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.sideeffect;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -31,9 +31,6 @@ package org.hisp.dhis.tracker.sideeffect;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
-import org.hisp.dhis.tracker.job.TrackerNotificationThread;
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -45,19 +42,24 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.ObjectFactory;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Zubair Asghar
  */
-public class TrackerNotificationMessageManagerTest
+public class TrackerRuleEngineMessageManagerTest
 {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private ObjectFactory<TrackerNotificationThread> objectFactory;
+    private ObjectFactory<TrackerRuleEngineThread> objectFactory;
 
     @Mock
     private MessageManager messageManager;
@@ -66,10 +68,10 @@ public class TrackerNotificationMessageManagerTest
     private SchedulingManager schedulingManager;
 
     @Mock
-    private TrackerNotificationThread trackerNotificationThread;
+    private TrackerRuleEngineThread trackerRuleEngineThread;
 
     @InjectMocks
-    private TrackerNotificationMessageManager trackerNotificationMessageManager;
+    private TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
 
     @Captor
     private ArgumentCaptor<String> topicCaptor;
@@ -78,7 +80,7 @@ public class TrackerNotificationMessageManagerTest
     private ArgumentCaptor<TrackerSideEffectDataBundle> bundleArgumentCaptor;
 
     @Captor
-    private ArgumentCaptor<TrackerNotificationThread> runnableCaptor;
+    private ArgumentCaptor<Runnable> runnableArgumentCaptor;
 
     @Test
     public void test_add_job()
@@ -87,27 +89,28 @@ public class TrackerNotificationMessageManagerTest
 
         TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
 
-        trackerNotificationMessageManager.addJob( dataBundle );
+        trackerRuleEngineMessageManager.addJob( dataBundle );
 
         Mockito.verify( messageManager ).sendQueue( topicCaptor.capture(), bundleArgumentCaptor.capture() );
 
-        assertEquals( Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, topicCaptor.getValue() );
+        assertNotNull( topicCaptor.getValue() );
+        assertEquals( Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, topicCaptor.getValue() );
         assertEquals( dataBundle, bundleArgumentCaptor.getValue() );
     }
 
     @Test
     public void test_message_consumer()
     {
-        when( objectFactory.getObject() ).thenReturn( trackerNotificationThread );
+        when( objectFactory.getObject() ).thenReturn( trackerRuleEngineThread );
         doNothing().when( schedulingManager ).executeJob( any( Runnable.class ) );
 
         TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
 
-        trackerNotificationMessageManager.consume( dataBundle );
+        trackerRuleEngineMessageManager.consume( dataBundle );
 
-        Mockito.verify( schedulingManager ).executeJob( runnableCaptor.capture() );
+        Mockito.verify( schedulingManager ).executeJob( runnableArgumentCaptor.capture() );
 
-        assertEquals( runnableCaptor.getValue(), trackerNotificationThread );
-        assertTrue( runnableCaptor.getValue() instanceof Runnable );
+        assertTrue( runnableArgumentCaptor.getValue() instanceof TrackerRuleEngineThread );
     }
+
 }
