@@ -739,7 +739,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 }
             }
 
-            teiService.deleteTrackedEntityInstance( daoEntityInstance );
+            teiService.deleteTrackedEntityInstanceWithAudit( daoEntityInstance );
 
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.setDescription( "Deletion of tracked entity instance " + uid + " was successful" );

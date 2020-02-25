@@ -31,10 +31,21 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.verification.VerificationMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author Chau Thu Tran
@@ -51,6 +62,15 @@ public class TrackedEntityInstanceServiceTest
     @Autowired
     private TrackedEntityAttributeService attributeService;
 
+    @Autowired
+    private TrackedEntityTypeService typeService;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    private UserService _userService;
+
     private TrackedEntityInstance entityInstanceA1;
 
     private TrackedEntityInstance entityInstanceB1;
@@ -62,6 +82,7 @@ public class TrackedEntityInstanceServiceTest
     @Override
     public void setUpTest()
     {
+        userService = _userService;
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
@@ -143,6 +164,49 @@ public class TrackedEntityInstanceServiceTest
 
         assertEquals( entityInstanceA1, entityInstanceService.getTrackedEntityInstance( "A1" ) );
         assertEquals( entityInstanceB1, entityInstanceService.getTrackedEntityInstance( "B1" ) );
+    }
+
+    @Test
+    public void testSaveTrackedEntityInstanceWithAudit()
+    {
+        createAndInjectAdminUser();
+        TrackedEntityType type = createTrackedEntityType( 'A' );
+        type.setAllowAuditLog( true );
+        typeService.addTrackedEntityType( type );
+        entityInstanceA1.setTrackedEntityType( type );
+
+        entityInstanceService.addTrackedEntityInstanceWithAudit( entityInstanceA1 );
+
+        Mockito.verify( applicationEventPublisher ).publishEvent( Mockito.argThat( ( Audit audit ) -> audit.getAuditType() == AuditType.CREATE ) );
+    }
+
+    @Test
+    public void testDeleteTrackedEntityInstanceWithAudit()
+    {
+        createAndInjectAdminUser();
+        TrackedEntityType type = createTrackedEntityType( 'A' );
+        type.setAllowAuditLog( true );
+        typeService.addTrackedEntityType( type );
+        entityInstanceA1.setTrackedEntityType( type );
+
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+        // Audit event should not be published here
+        Mockito.verify( applicationEventPublisher, Mockito.never() ).publishEvent( Mockito.any() );
+
+        entityInstanceService.deleteTrackedEntityInstanceWithAudit( entityInstanceA1 );
+
+        // Check if delete audit event is published
+        Mockito.verify( applicationEventPublisher ).publishEvent( Mockito.argThat( (Audit audit) -> audit.getAuditType() == AuditType.DELETE ) );
+    }
+
+    @Configuration
+    static class ApplicationEventPublisherConfig
+    {
+        @Bean
+        @Primary
+        public ApplicationEventPublisher applicationEventPublisher() {
+            return Mockito.mock( ApplicationEventPublisher.class );
+        }
     }
 
 }

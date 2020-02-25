@@ -202,7 +202,6 @@ public interface TrackedEntityInstanceService
     void validate( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException;
 
-    @Transactional
     long addTrackedEntityInstanceWithAudit( TrackedEntityInstance instance );
 
     /**
@@ -227,10 +226,8 @@ public interface TrackedEntityInstanceService
      */
     void updateTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
-    @Transactional
     void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance );
 
-    @Transactional
     void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user );
 
     /**
@@ -240,6 +237,10 @@ public interface TrackedEntityInstanceService
      * @param lastSynchronized          The date of last successful sync
      */
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
+
+    void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user );
+
+    void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance );
 
     /**
      * Returns a {@link TrackedEntityInstance}.

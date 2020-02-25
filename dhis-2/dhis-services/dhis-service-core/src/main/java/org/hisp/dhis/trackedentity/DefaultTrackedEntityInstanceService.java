@@ -185,7 +185,7 @@ public class DefaultTrackedEntityInstanceService
 
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
+            addTrackedEntityInstanceAudit( tei, accessedBy, org.hisp.dhis.audit.AuditType.SEARCH );
         }
 
         return trackedEntityInstances;
@@ -868,7 +868,7 @@ public class DefaultTrackedEntityInstanceService
     {
         trackedEntityInstanceStore.save( instance );
 
-        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.CREATE );
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), org.hisp.dhis.audit.AuditType.CREATE );
 
         return instance.getId();
     }
@@ -896,7 +896,7 @@ public class DefaultTrackedEntityInstanceService
 
         updateTrackedEntityInstance( instance ); // Update associations
 
-        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.CREATE );
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), org.hisp.dhis.audit.AuditType.CREATE );
 
         return id;
     }
@@ -913,7 +913,7 @@ public class DefaultTrackedEntityInstanceService
     public void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.update( instance );
-        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), AuditType.UPDATE );
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), org.hisp.dhis.audit.AuditType.UPDATE );
     }
 
     @Override
@@ -928,7 +928,7 @@ public class DefaultTrackedEntityInstanceService
     public void updateTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user )
     {
         trackedEntityInstanceStore.update( instance, user );
-        addTrackedEntityInstanceAudit( instance, user.getUsername(), AuditType.UPDATE );
+        addTrackedEntityInstanceAudit( instance, user.getUsername(), org.hisp.dhis.audit.AuditType.UPDATE );
     }
 
     @Override
@@ -945,6 +945,26 @@ public class DefaultTrackedEntityInstanceService
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user )
+    {
+        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
+        instance.setDeleted( true );
+        trackedEntityInstanceStore.update( instance );
+        addTrackedEntityInstanceAudit( instance, user.getUsername(), org.hisp.dhis.audit.AuditType.DELETE );
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance )
+    {
+        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
+        instance.setDeleted( true );
+        trackedEntityInstanceStore.update( instance );
+        addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), org.hisp.dhis.audit.AuditType.DELETE );
     }
 
     @Override
@@ -1022,7 +1042,7 @@ public class DefaultTrackedEntityInstanceService
         return true;
     }
 
-    private void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user, org.hisp.dhis.audit.Audit auditType )
+    private void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user, org.hisp.dhis.audit.AuditType auditType )
     {
         if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
         {
