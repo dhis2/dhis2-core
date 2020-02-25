@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -49,10 +48,9 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
     public TrackerRuleEngineMessageManager(
             MessageManager messageManager,
             SchedulingManager schedulingManager,
-            ObjectMapper objectMapper,
             ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
     {
-        super( messageManager, schedulingManager, objectMapper );
+        super( messageManager, schedulingManager );
         this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
     }
 

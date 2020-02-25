@@ -28,16 +28,10 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
 
 /**
  * @author Zubair Asghar
@@ -47,16 +41,13 @@ import javax.jms.TextMessage;
 public abstract class BaseMessageManager
 {
     private final MessageManager messageManager;
-    private final ObjectMapper objectMapper;
     private final SchedulingManager schedulingManager;
 
     public BaseMessageManager(
             MessageManager messageManager,
-            SchedulingManager schedulingManager,
-            ObjectMapper objectMapper )
+            SchedulingManager schedulingManager )
     {
         this.messageManager = messageManager;
-        this.objectMapper = objectMapper;
         this.schedulingManager = schedulingManager;
     }
 
@@ -67,13 +58,6 @@ public abstract class BaseMessageManager
         messageManager.sendQueue( getTopic(), sideEffectDataBundle );
 
         return jobId;
-    }
-
-    public Message getMessage( TextMessage textMessage ) throws JMSException, JsonProcessingException
-    {
-        String payload = textMessage.getText();
-
-        return objectMapper.readValue( payload, TrackerSideEffectDataBundle.class );
     }
 
     public void executeJob( Runnable runnable )

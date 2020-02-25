@@ -28,14 +28,12 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
-
 
 /**
  * Producer and consumer for handling tracker notifications.
@@ -50,10 +48,9 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
     public TrackerNotificationMessageManager(
             MessageManager messageManager,
             SchedulingManager schedulingManager,
-            ObjectMapper objectMapper,
             ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory )
     {
-        super( messageManager, schedulingManager, objectMapper );
+        super( messageManager, schedulingManager );
         this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
     }
 
