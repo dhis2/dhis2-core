@@ -33,6 +33,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -68,6 +69,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -379,6 +381,12 @@ public class DefaultTrackerBundleService
         List<TrackedEntityAttributeValue> attributeValues = new ArrayList<>();
         List<String> attributeValuesForDeletion = new ArrayList<>();
 
+        List<String> assignedFileResources = new ArrayList<>();
+        List<String> unassignedFileResources = new ArrayList<>();
+
+        Map<String, TrackedEntityAttributeValue> attributeValueMap = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
+            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), trackedEntityAttributeValue -> trackedEntityAttributeValue ) );
+
         for ( Attribute at : attributes )
         {
             // TEAV.getValue has a lot of trickery behind it since its being used for encryption, so we can't rely on that to
@@ -386,26 +394,27 @@ public class DefaultTrackerBundleService
             if ( StringUtils.isEmpty( at.getValue() ) )
             {
                 attributeValuesForDeletion.add( at.getAttribute() );
+
+                if ( attributeValueMap.containsKey( at.getAttribute() ) &&
+                    attributeValueMap.get( at.getAttribute() ).getAttribute().getValueType().isFile() )
+                {
+                    unassignedFileResources.add( attributeValueMap.get( at.getAttribute() ).getValue() );
+                }
             }
 
             TrackedEntityAttribute attribute = preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, at.getAttribute() );
             TrackedEntityAttributeValue attributeValue = null;
 
-            // this is pretty bad for performance, but we are dealing with a Set<> and can't index directly
-            // this needs to be solved for 2.35
-            for ( TrackedEntityAttributeValue av : trackedEntityInstance.getTrackedEntityAttributeValues() )
+            if ( attributeValueMap.containsKey( at.getAttribute() ) )
             {
-                if ( av.getAttribute().getUid().equals( at.getAttribute() ) )
-                {
-                    av.setAttribute( attribute )
-                        .setValue( at.getValue() )
-                        .setStoredBy( at.getStoredBy() );
+                TrackedEntityAttributeValue av = attributeValueMap.get( at.getAttribute() );
 
-                    attributeValue = av;
-                    attributeValues.add( attributeValue );
+                av.setAttribute( attribute )
+                    .setValue( at.getValue() )
+                    .setStoredBy( at.getStoredBy() );
 
-                    break;
-                }
+                attributeValue = av;
+                attributeValues.add( attributeValue );
             }
 
             // new attribute value
@@ -418,6 +427,12 @@ public class DefaultTrackerBundleService
                     .setStoredBy( at.getStoredBy() );
 
                 attributeValues.add( attributeValue );
+            }
+
+            if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
+                attributeValue.getAttribute().getValueType().isFile() )
+            {
+                assignedFileResources.add( at.getValue() );
             }
         }
 
@@ -435,6 +450,34 @@ public class DefaultTrackerBundleService
                 session.persist( attributeValue );
             }
         }
+
+        assignedFileResources.forEach( fr -> assignFileResource( session, preheat, fr ) );
+        unassignedFileResources.forEach( fr -> unassignFileResource( session, preheat, fr ) );
+    }
+
+    private void assignFileResource( Session session, TrackerPreheat preheat, String fr )
+    {
+        FileResource fileResource = preheat.get( TrackerIdentifier.UID, FileResource.class, fr );
+
+        if ( fileResource == null )
+        {
+            return;
+        }
+
+        fileResource.setAssigned( true );
+        session.persist( fileResource );
+    }
+
+    private void unassignFileResource( Session session, TrackerPreheat preheat, String fr )
+    {
+        FileResource fileResource = preheat.get( TrackerIdentifier.UID, FileResource.class, fr );
+
+        if ( fileResource == null )
+        {
+            return;
+        }
+
+        session.persist( fileResource );
     }
 
     private User getUser( User user, String userUid )
