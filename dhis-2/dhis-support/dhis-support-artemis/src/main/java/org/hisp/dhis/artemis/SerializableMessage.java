@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.artemis;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,23 +28,18 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.io.Serializable;
 
 /**
- * @author Zubair Asghar.
+ * @author Zubair Asghar
  */
-public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
+public interface SerializableMessage extends Serializable, Message
 {
-    private long programStageInstance;
-
-    public ProgramStageCompletionNotificationEvent( Object source, long programStageInstance )
-    {
-        super( source );
-        this.programStageInstance = programStageInstance;
-    }
-
-    public long getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    MessageType getMessageType();
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,23 +28,52 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Singular;
+import org.hisp.dhis.artemis.Message;
+import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author Zubair Asghar.
+ * Class holding data necessary for implementation of side effects.
+ * @author Zubair Asghar
  */
-public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrackerSideEffectDataBundle implements Message
 {
-    private long programStageInstance;
+    private String uid;
 
-    public ProgramStageCompletionNotificationEvent( Object source, long programStageInstance )
-    {
-        super( source );
-        this.programStageInstance = programStageInstance;
-    }
+    private Class<? extends BaseIdentifiableObject> klass;
 
-    public long getProgramStageInstance()
+    private BaseIdentifiableObject object;
+
+    @Singular
+    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+
+    @Singular
+    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+
+    private TrackerImportStrategy importStrategy;
+
+    private String accessedBy;
+
+    @Override
+    public MessageType getMessageType()
     {
-        return programStageInstance;
+        return MessageType.TRACKER_SIDE_EFFECT;
     }
 }

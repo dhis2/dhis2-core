@@ -42,7 +42,6 @@ import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -79,9 +78,6 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
     @Mock
     private RuleActionSendMessageImplementer ruleActionSendMessage;
-
-    @Mock
-    private ProgramRuleService programRuleService;
 
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;

@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.tracker.sideeffect;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,23 +28,15 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 
 /**
- * @author Zubair Asghar.
+ * Service responsible for asynchronous handling of TrackerImport side effect. For now they related to audit, notifications and
+ * program rule effect.
+ *
+ * @author Zubair Asghar
  */
-public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
+public interface SideEffectHandlerService
 {
-    private long programStageInstance;
-
-    public ProgramStageCompletionNotificationEvent( Object source, long programStageInstance )
-    {
-        super( source );
-        this.programStageInstance = programStageInstance;
-    }
-
-    public long getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
+    void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle );
 }

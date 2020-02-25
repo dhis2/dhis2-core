@@ -45,6 +45,8 @@ import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -103,11 +105,18 @@ public class DefaultTrackerBundleService
     private final TrackerProgramRuleService trackerProgramRuleService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
+    private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
     @Autowired( required = false )
     public void setBundleHooks( List<TrackerBundleHook> bundleHooks )
     {
         this.bundleHooks = bundleHooks;
+    }
+
+    @Autowired( required = false )
+    public void setSideEffectHandlers( List<SideEffectHandlerService> sideEffectHandlers )
+    {
+        this.sideEffectHandlers = sideEffectHandlers;
     }
 
     public DefaultTrackerBundleService(
@@ -201,6 +210,8 @@ public class DefaultTrackerBundleService
         trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( TrackedEntity.class, o, bundle ) ) );
         session.flush();
 
+        Date now = new Date();
+
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
             TrackedEntity trackedEntity = trackedEntities.get( idx );
@@ -209,8 +220,6 @@ public class DefaultTrackerBundleService
 
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, trackedEntityInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
-
-            Date now = new Date();
 
             if ( bundle.getImportStrategy().isCreate() )
             {
@@ -247,6 +256,8 @@ public class DefaultTrackerBundleService
         enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Enrollment.class, o, bundle ) ) );
         session.flush();
 
+        Date now = new Date();
+
         for ( int idx = 0; idx < enrollments.size(); idx++ )
         {
             Enrollment enrollment = enrollments.get( idx );
@@ -254,8 +265,6 @@ public class DefaultTrackerBundleService
 
             TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
-
-            Date now = new Date();
 
             if ( bundle.getImportStrategy().isCreate() )
             {
@@ -277,6 +286,17 @@ public class DefaultTrackerBundleService
             {
                 session.flush();
             }
+
+            TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
+                .klass( ProgramInstance.class )
+                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
+                .eventRuleEffects( bundle.getEventRuleEffects() )
+                .object( programInstance )
+                .importStrategy( bundle.getImportStrategy() )
+                .accessedBy( bundle.getUsername() )
+                .build();
+
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
         }
 
         session.flush();
@@ -322,6 +342,17 @@ public class DefaultTrackerBundleService
             {
                 session.flush();
             }
+
+            TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
+                .klass( ProgramInstance.class )
+                .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
+                .eventRuleEffects( bundle.getEventRuleEffects() )
+                .object( programStageInstance )
+                .importStrategy( bundle.getImportStrategy() )
+                .accessedBy( bundle.getUsername() )
+                .build();
+
+            sideEffectHandlers.forEach( handler -> handler.handleSideEffect( sideEffectDataBundle ) );
         }
 
         session.flush();
