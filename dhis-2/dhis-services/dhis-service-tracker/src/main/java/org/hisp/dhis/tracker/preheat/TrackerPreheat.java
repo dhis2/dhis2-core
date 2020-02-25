@@ -180,6 +180,17 @@ public class TrackerPreheat
     }
 
     @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getAll( TrackerIdentifier identifier, Class<T> klass )
+    {
+        if ( !map.containsKey( identifier ) || !map.get( identifier ).containsKey( klass ) )
+        {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>( (Collection<? extends T>) map.get( identifier ).get( klass ).values() );
+    }
+
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( TrackerIdentifier identifier, T object )
     {
         if ( object == null )

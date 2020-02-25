@@ -119,9 +119,8 @@ public class TrackerIdentifierCollector
             addIdentifier( map, OrganisationUnit.class, identifier, event.getOrgUnit() );
             addIdentifier( map, CategoryOptionCombo.class, identifier, event.getAttributeOptionCombo() );
 
-            event.getDataValues().forEach( dv -> {
-                addIdentifier( map, DataElement.class, identifier, dv.getDataElement() );
-            } );
+            event.getDataValues().forEach( dv ->
+                addIdentifier( map, DataElement.class, identifier, dv.getDataElement() ) );
         } );
     }
 
@@ -139,7 +138,8 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static <T extends Object> List<T> getEntities( T first, T second )
+    @SuppressWarnings( "unchecked" )
+    private static <T> List<T> getEntities( T first, T second )
     {
         return Lists.newArrayList( first, second )
             .stream()
@@ -155,9 +155,8 @@ public class TrackerIdentifierCollector
             return;
         }
 
-        attributes.forEach( attribute -> {
-            addIdentifier( map, TrackedEntityAttribute.class, identifier, attribute.getAttribute() );
-        } );
+        attributes.forEach( attribute ->
+            addIdentifier( map, TrackedEntityAttribute.class, identifier, attribute.getAttribute() ) );
     }
 
     private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,
