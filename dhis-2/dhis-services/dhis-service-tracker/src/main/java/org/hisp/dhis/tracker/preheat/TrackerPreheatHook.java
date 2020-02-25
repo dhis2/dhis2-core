@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.preheat;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,41 +28,11 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ReportTableSchemaDescriptor implements SchemaDescriptor
+@FunctionalInterface
+public interface TrackerPreheatHook
 {
-    public static final String SINGULAR = "reportTable";
-
-    public static final String PLURAL = "reportTables";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    public static final String F_REPORTTABLE_PUBLIC_ADD = "F_REPORTTABLE_PUBLIC_ADD";
-
-    public static final String F_REPORTTABLE_EXTERNAL = "F_REPORTTABLE_EXTERNAL";
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ReportTable.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 2000 );
-        schema.setImplicitPrivateAuthority( true );
-
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_REPORTTABLE_PUBLIC_ADD ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_REPORTTABLE_EXTERNAL ) ) );
-
-        return schema;
-    }
+    void preheat( TrackerPreheatParams params, TrackerPreheat preheat );
 }

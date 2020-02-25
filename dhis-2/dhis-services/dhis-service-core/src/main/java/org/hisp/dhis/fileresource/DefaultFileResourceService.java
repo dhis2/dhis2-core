@@ -63,7 +63,7 @@ public class DefaultFileResourceService
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
     public static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
-        ( fr -> !fr.isAssigned() );
+        (fr -> !fr.isAssigned());
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -101,14 +101,14 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public FileResource getFileResource( String uid )
     {
         return checkStorageStatus( fileResourceStore.getByUid( uid ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<FileResource> getFileResources( List<String> uids )
     {
         return fileResourceStore.getByUid( uids ).stream()
@@ -117,8 +117,8 @@ public class DefaultFileResourceService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<FileResource> getOrphanedFileResources( )
+    @Transactional( readOnly = true )
+    public List<FileResource> getOrphanedFileResources()
     {
         return fileResourceStore.getAllLeCreated( new DateTime().minus( IS_ORPHAN_TIME_DELTA ).toDate() )
             .stream().filter( IS_ORPHAN_PREDICATE ).collect( Collectors.toList() );
@@ -190,14 +190,14 @@ public class DefaultFileResourceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public InputStream getFileResourceContent( FileResource fileResource )
     {
         return fileResourceContentStore.getFileResourceContent( fileResource.getStorageKey() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException
     {
@@ -219,7 +219,7 @@ public class DefaultFileResourceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public URI getSignedGetFileResourceContentUri( String uid )
     {
         FileResource fileResource = getFileResource( uid );
