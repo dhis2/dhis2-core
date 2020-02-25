@@ -28,7 +28,17 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,7 +48,6 @@ import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -74,16 +83,7 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -152,6 +152,7 @@ public class DefaultPreheatService implements PreheatService
         preheat.put( PreheatIdentifier.UID, preheat.getUser() );
         preheat.put( PreheatIdentifier.CODE, preheat.getUser() );
 
+        // assign an uid to objects without an uid
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
         {
             params.getObjects().get( klass ).stream()
@@ -458,11 +459,11 @@ public class DefaultPreheatService implements PreheatService
             return new HashMap<>();
         }
 
-        if ( Collection.class.isInstance( object ) )
+        if ( object instanceof Collection )
         {
             return collectReferences( (Collection<?>) object );
         }
-        else if ( Map.class.isInstance( object ) )
+        else if ( object instanceof Map )
         {
             return collectReferences( (Map<Class<?>, List<?>>) object );
         }
@@ -502,8 +503,7 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<?>, List<?>> targets = new HashMap<>();
-        targets.putAll( objects ); // Clone objects list, we don't want to modify it
+        Map<Class<?>, List<?>> targets = new HashMap<>( objects ); // Clone objects list, we don't want to modify it
         collectScanTargets( targets );
 
         for ( Class<?> klass : targets.keySet() )

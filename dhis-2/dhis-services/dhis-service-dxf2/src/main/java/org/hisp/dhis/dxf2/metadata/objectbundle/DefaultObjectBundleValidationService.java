@@ -90,6 +90,7 @@ public class DefaultObjectBundleValidationService
             cleanDefaults( bundle.getPreheat(), nonPersistedObjects );
             cleanDefaults( bundle.getPreheat(), persistedObjects );
 
+            // Validate the bundle by running the validation checks chain
             validation.addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects,
                     nonPersistedObjects ) );
         }
