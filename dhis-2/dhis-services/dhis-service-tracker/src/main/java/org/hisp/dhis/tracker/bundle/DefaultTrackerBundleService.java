@@ -36,6 +36,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -104,6 +105,8 @@ public class DefaultTrackerBundleService
 
     private final TrackerProgramRuleService trackerProgramRuleService;
 
+    private final ReservedValueService reservedValueService;
+
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
@@ -131,7 +134,8 @@ public class DefaultTrackerBundleService
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
         TrackedEntityAttributeValueService trackedEntityAttributeValueService,
-        TrackerProgramRuleService trackerProgramRuleService )
+        TrackerProgramRuleService trackerProgramRuleService,
+        ReservedValueService reservedValueService )
 
     {
         this.trackerPreheatService = trackerPreheatService;
@@ -146,6 +150,7 @@ public class DefaultTrackerBundleService
         this.dbmsManager = dbmsManager;
         this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
         this.trackerProgramRuleService = trackerProgramRuleService;
+        this.reservedValueService = reservedValueService;
     }
 
     @Override
@@ -479,6 +484,12 @@ public class DefaultTrackerBundleService
             {
                 attributeValue.setEntityInstance( trackedEntityInstance );
                 session.persist( attributeValue );
+            }
+
+            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+            {
+                reservedValueService.useReservedValue(
+                    attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
             }
         }
 
