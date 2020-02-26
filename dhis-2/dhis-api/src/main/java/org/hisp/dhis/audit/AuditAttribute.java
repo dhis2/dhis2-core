@@ -45,6 +45,4 @@ import java.lang.reflect.Array;
 @Target( { ElementType.FIELD, ElementType.METHOD } )
 public @interface AuditAttribute
 {
-    boolean fullObject() default false;
-    String[] properties() default {"uid"};
 }
