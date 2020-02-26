@@ -50,6 +50,16 @@ public class QueryKeyTest
             .asPlainKey();
 
         assertEquals( "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true", key );
+
+        key = new QueryKey()
+            .add( "dimension", "dx" )
+            .add( "filter", "pe" )
+            .add( "filter", "ou" )
+            .add( "aggregationType", AggregationType.AVERAGE )
+            .add( "skipMeta", true )
+            .asPlainKey();
+
+        assertEquals( "dimension:dx-filter:pe-filter:ou-aggregationType:AVERAGE-skipMeta:true", key );
     }
 
     @Test
