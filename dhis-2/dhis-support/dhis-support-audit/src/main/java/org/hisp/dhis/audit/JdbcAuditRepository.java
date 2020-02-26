@@ -156,6 +156,17 @@ public class JdbcAuditRepository implements AuditRepository
             sql.append( ")" );
         }
 
+        if ( query.getAuditAttributes() != null && !query.getAuditAttributes().isEmpty() )
+        {
+            query.getAuditAttributes().forEach( ( attribute, value ) -> {
+                sql.append( sqlHelper.whereAnd() )
+                    .append( "attributes->>" )
+                    .append( "'" + attribute + "'" )
+                    .append( " = " )
+                    .append( "'" + value + "'" );
+            } );
+        }
+
         if ( query.getRange() != null )
         {
             AuditQuery.Range range = query.getRange();
@@ -177,6 +188,15 @@ public class JdbcAuditRepository implements AuditRepository
                     .append( range.getTo() )
                     .append( "'" );
             }
+        }
+
+        if ( query.getFirst() > 0 && query.getMax() > 0 )
+        {
+            sql.append( "limit " )
+                .append( query.getMax() )
+                .append( " " )
+                .append( "offset " )
+                .append( query.getFirst() );
         }
 
         return sql.toString();

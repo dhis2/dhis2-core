@@ -40,4 +40,5 @@ public interface AuditService
     int countAudits( AuditQuery query );
 
     List<Audit> getAudits( AuditQuery query );
+
 }

@@ -80,6 +80,18 @@ public class AuditQuery
     private Set<String> code = new HashSet<>();
 
     /**
+     * This narrows the search result by filtering audit attribute values
+     */
+    @Builder.Default
+    private AuditAttributes auditAttributes;
+
+    @Builder.Default
+    private int first;
+
+    @Builder.Default
+    private int max;
+
+    /**
      * From/To dates to query from.
      */
     private Range range;

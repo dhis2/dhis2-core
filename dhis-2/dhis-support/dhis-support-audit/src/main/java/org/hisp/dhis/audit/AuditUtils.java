@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,25 +28,51 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import java.util.List;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackedEntityAttributeValueAuditService
+public class AuditUtils
 {
-    List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
-        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType );
+    /**
+     * Convert new AuditType to legacy AuditType which is still used by AuditController
+     * @param auditType
+     * @return
+     */
+    public static org.hisp.dhis.common.AuditType mapAuditType( org.hisp.dhis.audit.AuditType auditType )
+    {
+        switch ( auditType )
+        {
+        case SEARCH:
+            return org.hisp.dhis.common.AuditType.SEARCH;
+        case UPDATE:
+            return org.hisp.dhis.common.AuditType.UPDATE;
+        case CREATE:
+            return org.hisp.dhis.common.AuditType.CREATE;
+        case DELETE:
+            return org.hisp.dhis.common.AuditType.DELETE;
+        case READ:
+        default:
+            return org.hisp.dhis.common.AuditType.READ;
+        }
+    }
 
-    List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
-        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType, int first, int max );
-
-    int countTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
-        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType );
-    
-    void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance trackedEntityInstance );
+    /**
+     * Convert legacy deprecated {@link org.hisp.dhis.common.AuditType} to new {@link AuditType}
+     * @param auditType
+     * @return
+     */
+    public static org.hisp.dhis.audit.AuditType mapAuditType( org.hisp.dhis.common.AuditType auditType )
+    {
+        switch ( auditType )
+        {
+        case SEARCH:
+            return org.hisp.dhis.audit.AuditType.SEARCH;
+        case UPDATE:
+            return org.hisp.dhis.audit.AuditType.UPDATE;
+        case CREATE:
+            return org.hisp.dhis.audit.AuditType.CREATE;
+        case DELETE:
+            return org.hisp.dhis.audit.AuditType.DELETE;
+        case READ:
+        default:
+            return org.hisp.dhis.audit.AuditType.READ;
+        }
+    }
 }

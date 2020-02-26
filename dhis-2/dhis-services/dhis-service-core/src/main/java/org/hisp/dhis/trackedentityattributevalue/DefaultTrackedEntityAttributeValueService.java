@@ -28,7 +28,10 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -37,10 +40,12 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -62,33 +67,33 @@ public class DefaultTrackedEntityAttributeValueService
     
     private final FileResourceService fileResourceService;
 
-    private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
-
     private final ReservedValueService reservedValueService;
 
     private final CurrentUserService currentUserService;
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public DefaultTrackedEntityAttributeValueService( TrackedEntityAttributeValueStore attributeValueStore,
         FileResourceService fileResourceService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
         ReservedValueService reservedValueService, CurrentUserService currentUserService,
-        DhisConfigurationProvider dhisConfigurationProvider )
+        DhisConfigurationProvider dhisConfigurationProvider,
+        ApplicationEventPublisher eventPublisher )
     {
         checkNotNull( attributeValueStore );
         checkNotNull( fileResourceService );
-        checkNotNull( trackedEntityAttributeValueAuditService );
         checkNotNull( reservedValueService );
         checkNotNull( currentUserService );
         checkNotNull( dhisConfigurationProvider );
+        checkNotNull( eventPublisher );
 
         this.attributeValueStore = attributeValueStore;
         this.fileResourceService = fileResourceService;
-        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
         this.reservedValueService = reservedValueService;
         this.currentUserService = currentUserService;
         this.dhisConfigurationProvider = dhisConfigurationProvider;
+        this.eventPublisher = eventPublisher;
     }
 
     // -------------------------------------------------------------------------
@@ -99,13 +104,9 @@ public class DefaultTrackedEntityAttributeValueService
     @Transactional
     public void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
-        TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
-            attributeValue,
-            attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
-
-        trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
         deleteFileValue( attributeValue );
         attributeValueStore.delete( attributeValue );
+        addTrackedEntityAttributeValueAudit( attributeValue, AuditType.DELETE, currentUserService.getCurrentUsername() );
     }
 
     @Override
@@ -191,6 +192,8 @@ public class DefaultTrackedEntityAttributeValueService
                     .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
             }
         }
+
+        addTrackedEntityAttributeValueAudit( attributeValue, AuditType.CREATE, currentUserService.getCurrentUsername() );
     }
 
     @Override
@@ -219,12 +222,7 @@ public class DefaultTrackedEntityAttributeValueService
                 throw new IllegalQueryException( "Value is not valid:  " + result );
             }
 
-            TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
-                attributeValue,
-                attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.UPDATE );
 
-            trackedEntityAttributeValueAuditService
-                .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             attributeValueStore.update( attributeValue );
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
@@ -232,6 +230,8 @@ public class DefaultTrackedEntityAttributeValueService
                 reservedValueService
                     .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
             }
+
+            addTrackedEntityAttributeValueAudit( attributeValue, AuditType.UPDATE, currentUserService.getCurrentUsername() );
         }
     }
 
@@ -259,5 +259,17 @@ public class DefaultTrackedEntityAttributeValueService
         fileResource.setAssigned( true );
         fileResourceService.updateFileResource( fileResource );
         return true;
+    }
+
+    private void addTrackedEntityAttributeValueAudit( TrackedEntityAttributeValue value, org.hisp.dhis.audit.AuditType auditType, String userName )
+    {
+        eventPublisher.publishEvent( Audit.builder()
+            .auditType(  auditType )
+            .auditScope( AuditScope.TRACKER )
+            .createdAt( LocalDateTime.now() )
+            .createdBy( userName )
+            .object( value )
+            .auditableEntity( new AuditableEntity( value ) )
+            .build() );
     }
 }

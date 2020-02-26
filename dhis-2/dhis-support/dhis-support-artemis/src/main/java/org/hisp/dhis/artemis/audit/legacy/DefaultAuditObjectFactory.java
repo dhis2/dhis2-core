@@ -41,6 +41,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -132,14 +133,14 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 
     private Object handleTracker( AuditType auditType, Object object, String user )
     {
-        if ( !(object instanceof IdentifiableObject) )
+        if ( object instanceof TrackedEntityInstance )
         {
-            return null;
+            return renderService.toJsonAsString( TrackedEntityAuditPayload.builder()
+                .trackedEntityInstance( ( TrackedEntityInstance ) object )
+                .build() );
         }
 
-        return renderService.toJsonAsString( TrackedEntityAuditPayload.builder()
-            .trackedEntityInstance( ( TrackedEntityInstance ) object )
-            .build() );
+        return renderService.toJsonAsString( object );
     }
 
     private Object handleAggregate( AuditType auditType, Object object, String user )

@@ -37,6 +37,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Objects;
 
@@ -53,7 +54,7 @@ public class TrackedEntityAttributeValueAudit
 
     private TrackedEntityInstance entityInstance;
 
-    private Date created;
+    private LocalDateTime created;
 
     private String plainValue;
 
@@ -79,7 +80,7 @@ public class TrackedEntityAttributeValueAudit
         this.attribute = trackedEntityAttributeValue.getAttribute();
         this.entityInstance = trackedEntityAttributeValue.getEntityInstance();
 
-        this.created = new Date();
+        this.created = LocalDateTime.now();
         this.value = value;
         this.modifiedBy = modifiedBy;
         this.auditType = auditType;
@@ -170,12 +171,12 @@ public class TrackedEntityAttributeValueAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getCreated()
+    public LocalDateTime getCreated()
     {
         return created;
     }
 
-    public void setCreated( Date created )
+    public void setCreated( LocalDateTime created )
     {
         this.created = created;
     }
