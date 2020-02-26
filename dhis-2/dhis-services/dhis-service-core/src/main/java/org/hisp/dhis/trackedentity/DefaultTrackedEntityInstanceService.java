@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.common.*;
@@ -44,7 +43,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -100,13 +98,9 @@ public class DefaultTrackedEntityInstanceService
 
     private final CurrentUserService currentUserService;
 
-    private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
-
     private final AclService aclService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
-
-    private final AuditManager auditManager;
 
     private final ApplicationEventPublisher publisher;
 
@@ -116,8 +110,7 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityAttributeValueService attributeValueService, TrackedEntityAttributeService attributeService,
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
-        TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager,
+        AclService aclService, @Lazy TrackerOwnershipManager trackerOwnershipAccessManager,
         ApplicationEventPublisher publisher )
     {
         checkNotNull( trackedEntityInstanceStore );
@@ -127,10 +120,8 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( programService );
         checkNotNull( organisationUnitService );
         checkNotNull( currentUserService );
-        checkNotNull( attributeValueAuditService );
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
-        checkNotNull( auditManager );
 
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.attributeValueService = attributeValueService;
@@ -139,10 +130,8 @@ public class DefaultTrackedEntityInstanceService
         this.programService = programService;
         this.organisationUnitService = organisationUnitService;
         this.currentUserService = currentUserService;
-        this.attributeValueAuditService = attributeValueAuditService;
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-        this.auditManager = auditManager;
         this.publisher = publisher;
     }
 
@@ -952,7 +941,7 @@ public class DefaultTrackedEntityInstanceService
     @Transactional
     public void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user )
     {
-        // TODO should  TrackedEntityAttributeValueAudits be deleted also ?
+        // TODO should TrackedEntityAttributeValueAudits be deleted also ?
         //  attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
@@ -963,7 +952,7 @@ public class DefaultTrackedEntityInstanceService
     @Transactional
     public void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance )
     {
-        // TODO should  TrackedEntityAttributeValueAudits be deleted also ?
+        // TODO should TrackedEntityAttributeValueAudits be deleted also ?
         //  attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );

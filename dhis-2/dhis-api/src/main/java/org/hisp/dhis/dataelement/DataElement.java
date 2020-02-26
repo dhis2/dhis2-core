@@ -92,7 +92,6 @@ public class DataElement extends BaseDimensionalItemObject
     /**
      * Data element value type (int, boolean, etc)
      */
-    @AuditAttribute
     private ValueType valueType;
 
     /**
@@ -116,7 +115,6 @@ public class DataElement extends BaseDimensionalItemObject
      * that this category combination could be overridden by data set elements
      * which this data element is part of, see {@link DataSetElement}.
      */
-    @AuditAttribute
     private CategoryCombo categoryCombo;
 
     /**
