@@ -1,7 +1,5 @@
-package org.hisp.dhis.cache;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,81 +26,18 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
+package org.hisp.dhis.analytics.cache;
 
 /**
- * @author Luciano Fiandesio
+ * Responsible for exposing methods responsible for computing a value based on
+ * the rules defined by the implementer.
  */
-public class TestCache<V>
-    implements
-    Cache<V>
+public interface Computable
 {
-
-    private Map<String, V> mapCache = new HashMap<>();
-
-    @Override
-    public Optional<V> getIfPresent( String key )
-    {
-        if ( mapCache.containsKey( key ) )
-        {
-            return get( key );
-        }
-        else
-        {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public Optional<V> get( String key )
-    {
-        return Optional.ofNullable( mapCache.get( key ) );
-    }
-
-    @Override
-    public Optional<V> get( String key, Function<String, V> mappingFunction )
-    {
-        return Optional.empty();
-    }
-
-    @Override
-    public Collection<V> getAll()
-    {
-        return mapCache.values();
-    }
-
-    @Override
-    public void put( String key, V value )
-    {
-        mapCache.put( key, value );
-    }
-
-    @Override
-    public void put( String key, V value, long ttlInSeconds)
-    {
-        // Ignoring ttl for this testing cache
-        mapCache.put( key, value );
-    }
-
-    @Override
-    public void invalidate( String key )
-    {
-        mapCache.remove( key );
-    }
-
-    @Override
-    public void invalidateAll()
-    {
-        mapCache = new HashMap<>();
-    }
-
-    @Override
-    public CacheType getCacheType()
-    {
-        return null;
-    }
+    /**
+     * Returns a long value based in the implementation rules.
+     *
+     * @return the calculated value.
+     */
+    long compute();
 }
