@@ -416,7 +416,7 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasProgram() && params.getProgram().hasCategoryCombo() )
         {
-            sql += queryOnlyAllowedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
+            sql += filterOutNotAuthorizedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
         }
 
         // ---------------------------------------------------------------------
@@ -533,18 +533,24 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * This method will generate a sql sentence responsible for filtering only the
-     * allowed category options for this program, and expects to receive only the
-     * authorized category options.
-     *
-     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams) 
+     * This method will generate a sql sentence responsible for filtering out all
+     * the category options (of this program categories). The list of category
+     * options within this list of categories should contains only not authorized
+     * category options (it means the category options that cannot be read by the
+     * current user based on the sharing settings defined for the category options.
+     * See
+     * 
+     * @see org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#excludeOnlyAuthorizedCategoryOptions
+     *      and
+     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)
+     *      to check how the category options of these categories were set.
      *
      * @param programCategories the list of program categories containing the list
-     *        of authorized category options for the current user.
-     * @return the sql statement in the format:
-     *          "and ax."mEXqxV2KIUl" in ('qNqYLugIySD') or ax."r7NDRdgj5zs" in ('qNqYLugIySD') "
+     *        of category options not authorized for the current user.
+     * @return the sql statement in the format: "and ax."mEXqxV2KIUl" not in
+     *         ('qNqYLugIySD') or ax."r7NDRdgj5zs" not in ('qNqYLugIySD') "
      */
-    String queryOnlyAllowedCategoryOptionEvents( final List<Category> programCategories )
+    String filterOutNotAuthorizedCategoryOptionEvents( final List<Category> programCategories )
     {
         boolean andFlag = true;
         final StringBuilder query = new StringBuilder();
@@ -577,7 +583,7 @@ public class JdbcEventAnalyticsManager
     String buildInFilterForCategory(final Category category, final List<CategoryOption> categoryOptions )
     {
         final String categoryColumn = quoteAlias( category.getUid() );
-        final String inFilter = categoryColumn + " in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
+        final String inFilter = categoryColumn + " not in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
             + ") ";
         return inFilter;
     }
