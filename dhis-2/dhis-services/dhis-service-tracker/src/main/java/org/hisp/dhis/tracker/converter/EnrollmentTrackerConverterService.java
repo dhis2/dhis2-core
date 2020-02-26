@@ -129,7 +129,7 @@ public class EnrollmentTrackerConverterService
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdentifier.UID, enrollment.getEnrollment() );
             OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
             Program program = preheat.get( TrackerIdentifier.UID, Program.class, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdentifier.UID, enrollment.getTrackedEntityInstance() );
+            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdentifier.UID, enrollment.getTrackedEntity() );
 
             if ( programInstance == null )
             {

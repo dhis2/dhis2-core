@@ -2,7 +2,7 @@
   "trackedEntities": [
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "NCc1rCEOKaY",
+      "trackedEntity": "NCc1rCEOKaY",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -20,7 +20,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "PB9VMezGkwA",
+      "trackedEntity": "PB9VMezGkwA",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -38,7 +38,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "N0wuhEwexUW",
+      "trackedEntity": "N0wuhEwexUW",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -56,7 +56,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "g3eF1fJXuSz",
+      "trackedEntity": "g3eF1fJXuSz",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -74,7 +74,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "s9D7VHiYLwj",
+      "trackedEntity": "s9D7VHiYLwj",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -92,7 +92,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "C5nACFyIFQo",
+      "trackedEntity": "C5nACFyIFQo",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -110,7 +110,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "Jx8Ul6pnRfM",
+      "trackedEntity": "Jx8Ul6pnRfM",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -128,7 +128,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "Z324qoN3WrF",
+      "trackedEntity": "Z324qoN3WrF",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -146,7 +146,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "TGeGZIIt4MO",
+      "trackedEntity": "TGeGZIIt4MO",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -164,7 +164,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "KSLmzEjaV6A",
+      "trackedEntity": "KSLmzEjaV6A",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -182,7 +182,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "IybbQIQt6rn",
+      "trackedEntity": "IybbQIQt6rn",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -200,7 +200,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "daMwzsKN3oJ",
+      "trackedEntity": "daMwzsKN3oJ",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
@@ -218,7 +218,7 @@
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntityInstance": "pcSaZP9lFqu",
+      "trackedEntity": "pcSaZP9lFqu",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",

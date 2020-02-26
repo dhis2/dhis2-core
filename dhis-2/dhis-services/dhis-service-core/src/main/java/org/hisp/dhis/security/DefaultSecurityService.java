@@ -311,6 +311,9 @@ public class DefaultSecurityService
 
         if ( isRecoveryLocked( credentials.getUsername() ) )
         {
+            log.warn( "The account recovery operation for the given user is temporarily locked due to too " +
+                "many calls to this endpoint in the last '" + RECOVERY_LOCKOUT_MINS + "' minutes. Credentials:" +
+                credentials );
             return false;
         }
         else

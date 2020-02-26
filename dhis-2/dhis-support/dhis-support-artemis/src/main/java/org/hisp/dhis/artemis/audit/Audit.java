@@ -34,8 +34,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.artemis.SerializableMessage;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
@@ -52,7 +52,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder( builderClassName = "AuditBuilder" )
 @JsonDeserialize( builder = Audit.AuditBuilder.class )
-public class Audit implements Message
+public class Audit implements SerializableMessage
 {
     @JsonProperty
     private final AuditType auditType;

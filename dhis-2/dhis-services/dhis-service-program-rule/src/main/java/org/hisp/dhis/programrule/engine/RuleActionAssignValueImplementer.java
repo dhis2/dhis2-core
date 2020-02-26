@@ -35,7 +35,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -56,10 +58,19 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
     private RuleVariableInMemoryMap variableMap;
 
-    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap )
+    private final ProgramInstanceService programInstanceService;
+
+    private final ProgramStageInstanceService programStageInstanceService;
+
+    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap, ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
     {
         checkNotNull( variableMap );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+
         this.variableMap = variableMap;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
     }
 
     @Override
@@ -82,7 +93,19 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
         assignValue( ruleEffect, programInstance );
     }
 
-    private void assignValue( RuleEffect ruleEffect, ProgramInstance programInstance )
+    @Override
+    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    {
+        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+    }
+
+    @Override
+    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    {
+        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+    }
+
+    private void assignValue(RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( programInstance == null )
         {

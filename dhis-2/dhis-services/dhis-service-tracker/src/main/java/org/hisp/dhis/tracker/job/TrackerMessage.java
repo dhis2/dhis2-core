@@ -33,8 +33,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.artemis.SerializableMessage;
 import org.hisp.dhis.tracker.TrackerImportParams;
 
 /**
@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 @Data
 @Builder( builderClassName = "TrackerMessageBuilder" )
 @JsonDeserialize( builder = TrackerMessage.TrackerMessageBuilder.class )
-public class TrackerMessage implements Message
+public class TrackerMessage implements SerializableMessage
 {
     @JsonProperty
     private final String uid;

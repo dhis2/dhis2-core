@@ -201,11 +201,12 @@ public class TrackedEntityAttributeValue
     }
 
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "TrackedEntityAttributeValue{" +
             "attribute=" + attribute +
-            ", entityInstance=" + entityInstance.getUid() +
+            ", entityInstance=" + (entityInstance != null ? entityInstance.getUid() : "null") +
             ", value='" + value + '\'' +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
@@ -224,9 +225,10 @@ public class TrackedEntityAttributeValue
         return created;
     }
 
-    public void setCreated( Date created )
+    public TrackedEntityAttributeValue setCreated( Date created )
     {
         this.created = created;
+        return this;
     }
 
     @JsonProperty
@@ -236,9 +238,10 @@ public class TrackedEntityAttributeValue
         return lastUpdated;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public TrackedEntityAttributeValue setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+        return this;
     }
 
     /**
@@ -308,8 +311,9 @@ public class TrackedEntityAttributeValue
      * value when requested.
      *
      * @param value the value to be stored.
+     * @return
      */
-    public void setValue( String value )
+    public TrackedEntityAttributeValue setValue( String value )
     {
         if ( !auditValueIsSet )
         {
@@ -320,6 +324,8 @@ public class TrackedEntityAttributeValue
         valueIsSet = true;
 
         this.value = value;
+
+        return this;
     }
 
     @JsonProperty
@@ -329,9 +335,10 @@ public class TrackedEntityAttributeValue
         return storedBy;
     }
 
-    public void setStoredBy( String storedBy )
+    public TrackedEntityAttributeValue setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
+        return this;
     }
 
     @JsonProperty( "trackedEntityAttribute" )
@@ -342,9 +349,10 @@ public class TrackedEntityAttributeValue
         return attribute;
     }
 
-    public void setAttribute( TrackedEntityAttribute attribute )
+    public TrackedEntityAttributeValue setAttribute( TrackedEntityAttribute attribute )
     {
         this.attribute = attribute;
+        return this;
     }
 
     @JsonProperty( "trackedEntityInstance" )
@@ -355,9 +363,10 @@ public class TrackedEntityAttributeValue
         return entityInstance;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public TrackedEntityAttributeValue setEntityInstance( TrackedEntityInstance entityInstance )
     {
         this.entityInstance = entityInstance;
+        return this;
     }
 
     public String getAuditValue()
