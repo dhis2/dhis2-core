@@ -147,7 +147,7 @@ public class TrackerBundleParamsConverterTest
         Enrollment enrollment = rnd.randomObject( Enrollment.class, "events" );
         enrollment.setGeometry( null );
         enrollment.setEnrollment( uid );
-        enrollment.setTrackedEntityInstance( parent );
+        enrollment.setTrackedEntity( parent );
         enrollment.setEvents( events );
         enrollment.setCoordinate( null );
         return enrollment;
