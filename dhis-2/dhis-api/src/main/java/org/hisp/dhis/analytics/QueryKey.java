@@ -40,7 +40,8 @@ import org.apache.commons.lang.StringUtils;
  */
 public class QueryKey
 {
-    private static final char SEPARATOR = '-';
+    private static final char VALUE_SEP = ':';
+    private static final char COMPONENT_SEP = '-';
 
     List<String> keyComponents = new ArrayList<>();
 
@@ -51,41 +52,56 @@ public class QueryKey
     /**
      * Adds a component to this key. Null values are included.
      *
-     * @param keyComponent the key component.
+     * @param property the key property.
+     * @param value the key component value.
      */
-    public QueryKey add( Object keyComponent )
+    public QueryKey add( String property, Object value )
     {
-        this.keyComponents.add( String.valueOf( keyComponent ) );
+        String keyComponent = property + VALUE_SEP + String.valueOf( value );
+        this.keyComponents.add( keyComponent );
+        return this;
+    }
+
+    /**
+     * Adds a component to this key. Null values are included.
+     *
+     * @param value the key component value.
+     */
+    public QueryKey add( Object value )
+    {
+        this.keyComponents.add( String.valueOf( value ) );
         return this;
     }
 
     /**
      * Adds a component to this key. Null values are omitted.
      *
-     * @param keyComponent the key component.
+     * @param property the key property.
+     * @param value the key component value.
      */
-    public QueryKey addIgnoreNull( Object keyComponent )
+    public QueryKey addIgnoreNull( String property, Object value )
     {
-        if ( keyComponent != null )
+        if ( value != null )
         {
-            this.keyComponents.add( String.valueOf( keyComponent ) );
+            this.add( property, value );
         }
 
         return this;
     }
 
     /**
-     * Adds a component to this key if the given object is not null, provided
-     * by the given object.
+     * Adds a component value to this key if the given object is not null, supplied
+     * by the given value supplier.
      *
+     * @param property the key property.
      * @param object the object to check for null.
-     * @param keySupplier the supplier of the key component.
+     * @param valueSupplier the supplier of the key component value.
      */
-    public QueryKey addIgnoreNull( Object object, Supplier<String> keySupplier )
+    public QueryKey addIgnoreNull( String property, Object object, Supplier<String> valueSupplier )
     {
         if ( object != null )
         {
-            this.addIgnoreNull( keySupplier.get() );
+            this.addIgnoreNull( property, valueSupplier.get() );
         }
 
         return this;
@@ -97,7 +113,7 @@ public class QueryKey
      */
     public String asPlainKey()
     {
-        return StringUtils.join( keyComponents, SEPARATOR );
+        return StringUtils.join( keyComponents, COMPONENT_SEP );
     }
 
     /**
@@ -106,8 +122,7 @@ public class QueryKey
      */
     public String build()
     {
-        String key = StringUtils.join( keyComponents, SEPARATOR );
-        return DigestUtils.sha1Hex( key );
+        return DigestUtils.sha1Hex( asPlainKey() );
     }
 
     /**
