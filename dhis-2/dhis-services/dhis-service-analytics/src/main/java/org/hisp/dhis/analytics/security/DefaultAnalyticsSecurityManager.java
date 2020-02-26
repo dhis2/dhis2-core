@@ -96,17 +96,25 @@ public class DefaultAnalyticsSecurityManager
 
     /**
      * Will remove/exclude, from DataQueryParams, any category option that the
-     * current user is not allowed to read.
+     * current user is authorized to read, so we can filter out the category options
+     * not authorized later on (if any).
      *
      * @param programCategories the categories related to this program.
      */
-    void excludeNonAuthorizedCategoryOptions( final List<Category> programCategories )
+    void excludeOnlyAuthorizedCategoryOptions( final List<Category> programCategories )
     {
         if ( isNotEmpty( programCategories ) )
         {
             for ( Category category : programCategories )
             {
-                category.getCategoryOptions().removeIf( categoryOption -> !hasDataReadPermissionFor( categoryOption ) );
+
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
+
+                if ( isNotEmpty( categoryOptions ) )
+                {
+                    category.getCategoryOptions()
+                        .removeIf( categoryOption -> hasDataReadPermissionFor( categoryOption ) );
+                }
             }
         }
     }
@@ -177,7 +185,7 @@ public class DefaultAnalyticsSecurityManager
             if ( params.getProgram().hasCategoryCombo() )
             {
                 final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-                excludeNonAuthorizedCategoryOptions( programCategories );
+                excludeOnlyAuthorizedCategoryOptions( programCategories );
             }
         }
 
