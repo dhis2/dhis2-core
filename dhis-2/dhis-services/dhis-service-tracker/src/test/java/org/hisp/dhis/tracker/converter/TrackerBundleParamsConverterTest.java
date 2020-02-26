@@ -38,7 +38,6 @@ import java.util.List;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.ImportException;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -97,66 +96,18 @@ public class TrackerBundleParamsConverterTest
         assertThat( b2.getEnrollments(), hasSize( 2 ) );
         assertThat( b2.getEvents(), hasSize( 10 ) );
 
-        assertThat( b2.getTrackedEntities().get(0).getEnrollments(), hasSize( 0 ));
+        //assertThat( b2.getTrackedEntities().get(0).getEnrollments(), hasSize( 0 ));
     }
 
     @Test
-    public void verifyNestedTeiStructureHasOrphanEnrollment()
+    public void verifyNestedTeiStructureHasNestedDataClearedAfterFlattening()
             throws IOException
     {
         List<Event> events1 = createEvent( 3, "ev1", "enr1" );
         List<Event> events2 = createEvent( 7, "ev2", "enr2" );
-
-        List<Enrollment> enrollments = new ArrayList<>();
-        enrollments.add( createEnrollment( "enr1", "teiOrphan", events1 ) );
-        enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
-
-        TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
-
-        TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) )
-            .identifier( TrackerIdentifier.UID )
-            .atomicMode( AtomicMode.ALL )
-            .build();
-
-        exception.expect( ImportException.class );
-        exception.expectMessage( "Invalid import payload. Enrollment with uid: enr1 is not a child of any Tracked Entity" );
-
-        this.objectMapper.readValue( toJson( build ), TrackerBundleParams.class );
-
-    }
-
-    @Test
-    public void verifyNestedTeiStructureHasOrphanEvent()
-            throws IOException
-    {
-        List<Event> events1 = createEvent( 3, "ev1", "enr1" );
-        List<Event> events2 = createEvent( 7, "ev2", "enrOrphan" );
 
         List<Enrollment> enrollments = new ArrayList<>();
         enrollments.add( createEnrollment( "enr1", "teiABC", events1 ) );
-        enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
-
-        TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
-
-        TrackerBundleParams build = TrackerBundleParams.builder()
-                .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID ).build();
-
-        exception.expect( ImportException.class );
-        exception.expectMessage( "Invalid import payload. Event with uid: ev20 is not a child of any Enrollment" );
-
-        this.objectMapper.readValue( toJson( build ), TrackerBundleParams.class );
-    }
-
-    @Test
-    public void verifyNestedTeiStructureHasOrphanEnrollmentAndAtomicModeNONE()
-            throws IOException
-    {
-        List<Event> events1 = createEvent( 3, "ev1", "enr1" );
-        List<Event> events2 = createEvent( 7, "ev2", "enr2" );
-
-        List<Enrollment> enrollments = new ArrayList<>();
-        enrollments.add( createEnrollment( "enr1", "teiOrphan", events1 ) );
         enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
 
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
@@ -164,39 +115,16 @@ public class TrackerBundleParamsConverterTest
         TrackerBundleParams build = TrackerBundleParams.builder()
                 .trackedEntities( Collections.singletonList( trackedEntity ) )
                 .identifier( TrackerIdentifier.UID )
-                .atomicMode( AtomicMode.NONE )
+                .atomicMode( AtomicMode.ALL )
                 .build();
 
-        TrackerBundleParams converted = this.objectMapper.readValue( toJson( build ), TrackerBundleParams.class );
+        String jsonPayload = toJson( build );
+        TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
 
-        assertThat( converted.getTrackedEntities(), hasSize( 1 ) );
-        assertThat( converted.getEnrollments(), hasSize( 1 ) );
-        assertThat( converted.getEvents(), hasSize( 7 ) );
+        assertThat( b2.getTrackedEntities().get(0).getEnrollments(), hasSize( 0 ));
     }
-    @Test
-    public void verifyNestedTeiStructureHasOrphanEventAndAtomicModeNONE()
-            throws IOException
-    {
-        List<Event> events1 = createEvent( 3, "ev1", "enr1" );
-        List<Event> events2 = createEvent( 7, "ev2", "enrOrphan" );
 
-        List<Enrollment> enrollments = new ArrayList<>();
-        enrollments.add( createEnrollment( "enr1", "teiABC", events1 ) );
-        enrollments.add( createEnrollment( "enr2", "teiABC", events2 ) );
 
-        TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
-
-        TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) )
-            .atomicMode( AtomicMode.NONE )
-            .identifier( TrackerIdentifier.UID ).build();
-
-        TrackerBundleParams converted = this.objectMapper.readValue( toJson( build ), TrackerBundleParams.class );
-
-        assertThat( converted.getTrackedEntities(), hasSize( 1 ) );
-        assertThat( converted.getEnrollments(), hasSize( 2 ) );
-        assertThat( converted.getEvents(), hasSize( 3 ) );
-    }
 
     private TrackedEntity createTrackedEntity( String uid, List<Enrollment> enrollments )
     {
