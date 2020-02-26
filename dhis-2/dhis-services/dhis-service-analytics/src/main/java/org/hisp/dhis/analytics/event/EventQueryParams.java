@@ -354,33 +354,33 @@ public class EventQueryParams
         QueryKey key = new QueryKey()
             .add( super.getKey() );
 
-        items.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-        itemFilters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-        itemProgramIndicators.forEach( e -> key.add( e.getUid() ) );
+        items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
+        itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
+        itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
         asc.forEach( e -> e.getUid() );
         desc.forEach( e -> e.getUid() );
 
         return key
-            .addIgnoreNull( value, () -> value.getUid() )
-            .addIgnoreNull( programIndicator, () -> programIndicator.getUid() )
-            .addIgnoreNull( organisationUnitMode )
-            .addIgnoreNull( page )
-            .addIgnoreNull( pageSize )
-            .addIgnoreNull( sortOrder )
-            .addIgnoreNull( limit )
-            .addIgnoreNull( outputType )
-            .addIgnoreNull( eventStatus )
-            .addIgnoreNull( collapseDataDimensions )
-            .addIgnoreNull( coordinatesOnly )
-            .addIgnoreNull( geometryOnly )
-            .addIgnoreNull( aggregateData )
-            .addIgnoreNull( clusterSize )
-            .addIgnoreNull( coordinateField )
-            .addIgnoreNull( bbox )
-            .addIgnoreNull( includeClusterPoints )
-            .addIgnoreNull( programStatus )
-            .addIgnoreNull( includeMetadataDetails )
-            .addIgnoreNull( dataIdScheme )
+            .addIgnoreNull( "value", value, () -> value.getUid() )
+            .addIgnoreNull( "programIndicator", programIndicator, () -> programIndicator.getUid() )
+            .addIgnoreNull( "organisationUnitMode", organisationUnitMode )
+            .addIgnoreNull( "page", page )
+            .addIgnoreNull( "pageSize", pageSize )
+            .addIgnoreNull( "sortOrder", sortOrder )
+            .addIgnoreNull( "limit", limit )
+            .addIgnoreNull( "outputType", outputType )
+            .addIgnoreNull( "eventStatus", eventStatus )
+            .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
+            .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
+            .addIgnoreNull( "geometryOnly", geometryOnly )
+            .addIgnoreNull( "aggregateData", aggregateData )
+            .addIgnoreNull( "clusterSize", clusterSize )
+            .addIgnoreNull( "coordinateField", coordinateField )
+            .addIgnoreNull( "bbox", bbox )
+            .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
+            .addIgnoreNull( "programStatus", programStatus )
+            .addIgnoreNull( "includeMetadataDetails", includeMetadataDetails )
+            .addIgnoreNull( "dataIdScheme", dataIdScheme )
             .build();
     }
 
