@@ -156,7 +156,7 @@ public class DataValueController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
-        @RequestParam( required = false ) boolean followUp,
+        @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
@@ -269,11 +269,11 @@ public class DataValueController
 
         Date now = new Date();
 
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
+        DataValue persistedDataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
 
         FileResource fileResource = null;
 
-        if ( dataValue == null )
+        if ( persistedDataValue == null )
         {
             // ---------------------------------------------------------------------
             // Deal with file resource
@@ -284,24 +284,18 @@ public class DataValueController
                 fileResource = validateAndSetAssigned( value );
             }
 
-            dataValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo,
+            DataValue newValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
+                attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
 
-            dataValueService.addDataValue( dataValue );
+            dataValueService.addDataValue( newValue );
         }
         else
         {
-            if ( value == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
+            if ( value == null && comment == null && followUp == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
-                if ( comment == null )
-                {
-                    dataValueService.deleteDataValue( dataValue );
-                    return;
-                }
-                else
-                {
-                    value = DataValue.FALSE;
-                }
+                dataValueService.deleteDataValue( persistedDataValue );
+                return;
             }
 
             // ---------------------------------------------------------------------
@@ -317,15 +311,15 @@ public class DataValueController
             {
                 try
                 {
-                    fileResourceService.deleteFileResource( dataValue.getValue() );
+                    fileResourceService.deleteFileResource( persistedDataValue.getValue() );
                 }
                 catch ( AuthorizationException exception )
                 {
                     // If we fail to delete the fileResource now, mark it as unassigned for removal later
-                    fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
+                    fileResourceService.getFileResource( persistedDataValue.getValue() ).setAssigned( false );
                 }
 
-                dataValue.setValue( StringUtils.EMPTY );
+                persistedDataValue.setValue( StringUtils.EMPTY );
             }
 
             // -----------------------------------------------------------------
@@ -335,23 +329,23 @@ public class DataValueController
 
             if ( value != null )
             {
-                dataValue.setValue( StringUtils.trimToNull( value ) );
+                persistedDataValue.setValue( StringUtils.trimToNull( value ) );
             }
 
             if ( comment != null )
             {
-                dataValue.setComment( StringUtils.trimToNull( comment ) );
+                persistedDataValue.setComment( StringUtils.trimToNull( comment ) );
             }
 
-            if ( followUp )
+            if ( followUp != null )
             {
-                dataValue.toggleFollowUp();
+                persistedDataValue.toggleFollowUp();
             }
 
-            dataValue.setLastUpdated( now );
-            dataValue.setStoredBy( storedBy );
+            persistedDataValue.setLastUpdated( now );
+            persistedDataValue.setStoredBy( storedBy );
 
-            dataValueService.updateDataValue( dataValue );
+            dataValueService.updateDataValue( persistedDataValue );
         }
 
         if ( fileResource != null )
