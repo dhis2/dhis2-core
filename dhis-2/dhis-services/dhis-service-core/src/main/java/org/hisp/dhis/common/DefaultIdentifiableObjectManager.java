@@ -30,11 +30,7 @@ package org.hisp.dhis.common;
 
 import com.google.api.client.util.Lists;
 import com.google.common.collect.ImmutableMap;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -60,9 +56,17 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableMap;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
@@ -389,7 +393,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = false )
+    @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getByName( Class<T> clazz, String name )
     {
@@ -1082,6 +1086,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass,
         Attribute attribute, List<String> values )
     {

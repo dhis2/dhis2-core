@@ -109,7 +109,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         Property curProperty = null;
         boolean persisted = true;
         List<String> alias = new ArrayList<>();
-        String[] pathComponents = path.split("\\." );
+        String[] pathComponents = path.split( "\\." );
 
         if ( pathComponents.length == 0 )
         {

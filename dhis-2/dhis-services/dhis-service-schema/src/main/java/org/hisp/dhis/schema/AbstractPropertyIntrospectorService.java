@@ -29,7 +29,6 @@ package org.hisp.dhis.schema;
  */
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
@@ -62,15 +61,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.hibernate.HibernateMetadata;
-import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonDeviceRenderTypeMap;
-import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonProgramRuleEvaluationEnvironmentSetBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -93,18 +83,6 @@ public abstract class AbstractPropertyIntrospectorService
         .put( DimensionalObject.class, BaseDimensionalObject.class )
         .put( DimensionalItemObject.class, BaseDimensionalItemObject.class )
         .put( AnalyticalObject.class, BaseAnalyticalObject.class )
-        .build();
-
-    private static final ImmutableSet<String> JSONB_TYPE_CLASSES = ImmutableSet.<String>builder()
-        .add( JsonBinaryType.class.getName() )
-        .add( JsonBinaryPlainStringType.class.getName() )
-        .add( JsonDeviceRenderTypeMap.class.getName() )
-        .add( JsonJobParametersType.class.getName() )
-        .add( JsonListBinaryType.class.getName() )
-        .add( JsonSetBinaryType.class.getName() )
-        .add( JsonEventDataValueSetBinaryType.class.getName() )
-        .add( JsonProgramRuleEvaluationEnvironmentSetBinaryType.class.getName() )
-        .add( JsonAttributeValueBinaryType.class.getName() )
         .build();
 
     private final Map<Class<?>, Map<String, Property>> classMapCache = new HashMap<>();
@@ -338,8 +316,6 @@ public abstract class AbstractPropertyIntrospectorService
             {
                 property.setOneToOne( true );
             }
-
-            property.setJsonbType( JSONB_TYPE_CLASSES.contains( type.getName() ) );
 
             properties.put( property.getName(), property );
         }
