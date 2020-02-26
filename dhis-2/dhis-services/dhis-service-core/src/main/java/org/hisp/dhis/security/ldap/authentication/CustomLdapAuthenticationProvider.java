@@ -29,7 +29,6 @@ package org.hisp.dhis.security.ldap.authentication;
  */
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -46,7 +45,7 @@ public class CustomLdapAuthenticationProvider
 {
     private final DhisConfigurationProvider configurationProvider;
 
-    public CustomLdapAuthenticationProvider( @Lazy LdapAuthenticator authenticator,
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator,
         LdapAuthoritiesPopulator authoritiesPopulator, DhisConfigurationProvider configurationProvider )
     {
         super( authenticator, authoritiesPopulator );
