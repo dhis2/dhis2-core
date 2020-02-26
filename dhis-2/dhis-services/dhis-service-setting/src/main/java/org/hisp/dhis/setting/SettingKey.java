@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.analytics.AnalyticsCacheMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
@@ -163,7 +164,18 @@ public enum SettingKey
     ANALYTICS_HIDE_DAILY_PERIODS( "keyHideDailyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
-    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class );
+    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
+
+    /**
+     * The Analytics query time to live caching factor. It's used as a factor to assist with the
+     * caching TTL calculation.
+     */
+    ANALYTICS_TTL_CACHE_FACTOR( "keyAnalyticsTtlCacheFactor", 160, Integer.class ),
+
+    /**
+     * The cache mode enabled for Analytics. It can be FIXED or PROGRESSIVE.
+     */
+    ANALYTICS_CACHE_MODE( "keyAnalyticsCacheMode", AnalyticsCacheMode.FIXED, AnalyticsCacheMode.class );
 
     private final String name;
 
