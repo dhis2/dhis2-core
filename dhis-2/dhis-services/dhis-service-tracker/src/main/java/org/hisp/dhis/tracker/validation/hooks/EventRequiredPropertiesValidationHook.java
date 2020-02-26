@@ -2,7 +2,11 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import com.google.common.base.Preconditions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -19,7 +23,9 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

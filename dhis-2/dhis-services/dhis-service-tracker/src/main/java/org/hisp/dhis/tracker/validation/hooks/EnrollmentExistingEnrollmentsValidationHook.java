@@ -48,11 +48,18 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

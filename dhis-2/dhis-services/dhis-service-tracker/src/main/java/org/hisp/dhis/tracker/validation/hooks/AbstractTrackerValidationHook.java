@@ -30,25 +30,27 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.hisp.dhis.trackedentity.*;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -57,17 +59,24 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_IDENTIFIER_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -76,21 +85,8 @@ public abstract class AbstractTrackerValidationHook
     implements TrackerValidationHook
 
 {
-
-    public static final String TRACKED_ENTITY_CAN_T_BE_NULL = "TrackedEntity can't be null";
-
-    public static final String TRACKER_BUNDLE_CAN_T_BE_NULL = "TrackerBundle can't be null";
-
-    public static final String TRACKER_IDENTIFIER_CAN_T_BE_NULL = "TrackerIdentifier can't be null";
-
     @Autowired
     protected ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    protected IdentifiableObjectManager manager;
-
-    @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
     protected EventService eventService;
@@ -108,16 +104,7 @@ public abstract class AbstractTrackerValidationHook
     protected ReservedValueService reservedValueService;
 
     @Autowired
-    protected TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
-    @Autowired
     protected TrackerOwnershipManager trackerOwnershipManager;
-
-    @Autowired
-    protected TrackedEntityCommentService commentService;
-
-    @Autowired
-    protected CurrentUserService currentUserService;
 
     @Autowired
     protected I18nManager i18nManager;
@@ -126,22 +113,13 @@ public abstract class AbstractTrackerValidationHook
     protected TrackerAccessManager trackerAccessManager;
 
     @Autowired
-    protected TrackedEntityInstanceStore trackedEntityInstanceStore;
-
-    @Autowired
     protected OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    protected TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     protected AclService aclService;
 
     @Autowired
     protected ProgramInstanceService programInstanceService;
-
-    @Autowired
-    protected RelationshipService relationshipService;
 
     protected void validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
         FeatureType featureType )
@@ -163,64 +141,11 @@ public abstract class AbstractTrackerValidationHook
         }
     }
 
-    protected boolean textPatternValueIsValid( TrackedEntityAttribute attribute, String value, String oldValue )
-    {
-        Objects.requireNonNull( attribute, "TrackedEntityAttribute can't be null" );
-
-        return Objects.equals( value, oldValue ) ||
-            TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) ||
-            reservedValueService.isReserved( attribute.getTextPattern(), value );
-    }
-
-    protected void validateTextPattern( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        Attribute attr, TrackedEntityAttribute teAttr, TrackedEntityAttributeValue teiAttributeValue )
-    {
-        Objects.requireNonNull( attr, "Attribute can't be null" );
-        Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
-
-        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipPatternValidation() )
-        {
-            String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
-
-            if ( !textPatternValueIsValid( teAttr, attr.getValue(), oldValue ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1008 )
-                    .addArg( attr.getValue() ) );
-            }
-        }
-    }
-
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
-        TrackedEntityInstance tei )
-    {
-        Objects.requireNonNull( attr, "Attribute can't be null" );
-
-        boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
-
-        if ( tei != null && attrIsFile )
-        {
-            List<String> existingValues = new ArrayList<>();
-
-            tei.getTrackedEntityAttributeValues().stream()
-                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
-                .filter( attrVal -> attrVal.getAttribute().getUid()
-                    .equals( attr.getAttribute() ) ) // << Unsure about this, this differs from the original "old" code.
-                .forEach( attrVal -> existingValues.add( attrVal.getValue() ) );
-
-            FileResource fileResource = fileResourceService.getFileResource( attr.getValue() );
-            if ( fileResource != null && fileResource.isAssigned() && !existingValues.contains( attr.getValue() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1009 )
-                    .addArg( attr.getValue() ) );
-            }
-        }
-    }
-
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
-        Objects.requireNonNull( attr, "Attribute can't be null" );
-        Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
+        Objects.requireNonNull( attr, Constants.ATTRIBUTE_CAN_T_BE_NULL );
+        Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CAN_T_BE_NULL );
 
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
         if ( error != null )
@@ -236,7 +161,7 @@ public abstract class AbstractTrackerValidationHook
         TrackedEntityInstance trackedEntityInstanceUid,
         OrganisationUnit organisationUnit )
     {
-        Objects.requireNonNull( trackedEntityAttribute, "TrackedEntityAttribute can't be null" );
+        Objects.requireNonNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CAN_T_BE_NULL );
 
         if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
         {
@@ -252,14 +177,6 @@ public abstract class AbstractTrackerValidationHook
                     .addArg( error ) );
             }
         }
-    }
-
-    protected Map<String, TrackedEntityAttributeValue> getTeiAttributeValueMap(
-        List<TrackedEntityAttributeValue> values )
-    {
-        Objects.requireNonNull( values, "Map can't be null" );
-
-        return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
     }
 
     protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
@@ -338,8 +255,8 @@ public abstract class AbstractTrackerValidationHook
     protected ProgramInstance getProgramInstance( User actingUser, ProgramInstance programInstance,
         TrackedEntityInstance trackedEntityInstance, Program program )
     {
-        Objects.requireNonNull( program, "Program can't be null" );
-        Objects.requireNonNull( actingUser, "User can't be null" );
+        Objects.requireNonNull( program, PROGRAM_INSTANCE_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
 
         if ( program.isRegistration() )
         {

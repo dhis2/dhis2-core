@@ -29,7 +29,9 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -42,10 +44,12 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -145,6 +149,67 @@ public class TrackedEntityAttributeValidationHook
         }
     }
 
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
+        TrackedEntityInstance tei )
+    {
+        Objects.requireNonNull( attr, "Attribute can't be null" );
+
+        boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
+
+        if ( tei != null && attrIsFile )
+        {
+            List<String> existingValues = new ArrayList<>();
+
+            tei.getTrackedEntityAttributeValues().stream()
+                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
+                .filter( attrVal -> attrVal.getAttribute().getUid()
+                    .equals( attr.getAttribute() ) ) // << Unsure about this, this differs from the original "old" code.
+                .forEach( attrVal -> existingValues.add( attrVal.getValue() ) );
+
+            FileResource fileResource = fileResourceService.getFileResource( attr.getValue() );
+            if ( fileResource != null && fileResource.isAssigned() && !existingValues.contains( attr.getValue() ) )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1009 )
+                    .addArg( attr.getValue() ) );
+            }
+        }
+    }
+
+    protected boolean textPatternValueIsValid( TrackedEntityAttribute attribute, String value, String oldValue )
+    {
+        Objects.requireNonNull( attribute, "TrackedEntityAttribute can't be null" );
+
+        return Objects.equals( value, oldValue ) ||
+            TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) ||
+            reservedValueService.isReserved( attribute.getTextPattern(), value );
+    }
+
+    protected void validateTextPattern( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+        Attribute attr, TrackedEntityAttribute teAttr, TrackedEntityAttributeValue teiAttributeValue )
+    {
+        Objects.requireNonNull( attr, "Attribute can't be null" );
+        Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
+
+        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipPatternValidation() )
+        {
+            String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
+
+            if ( !textPatternValueIsValid( teAttr, attr.getValue(), oldValue ) )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1008 )
+                    .addArg( attr.getValue() ) );
+            }
+        }
+    }
+
+    protected Map<String, TrackedEntityAttributeValue> getTeiAttributeValueMap(
+        List<TrackedEntityAttributeValue> values )
+    {
+        Objects.requireNonNull( values, "Map can't be null" );
+
+        return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
+    }
+
     public void validateAttributeValue( ValidationErrorReporter errorReporter,
         TrackedEntityAttributeValue attributeValue )
     {
@@ -156,6 +221,7 @@ public class TrackedEntityAttributeValidationHook
                 .addArg( attributeValue.getAttribute().getValueType() ) );
         }
 
+        // NOTE: Need some input on the encryption check here
 //        if ( attributeValue.getAttribute().isConfidentialBool() &&
 //            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
 //        {

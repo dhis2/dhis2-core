@@ -20,7 +20,10 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
