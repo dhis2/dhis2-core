@@ -133,9 +133,9 @@ public class TrackerBundleParamsConverter
      */
     private Enrollment addParent( Enrollment enrollment, String trackerEntityId )
     {
-        if ( StringUtils.isEmpty( enrollment.getTrackedEntityInstance() ) )
+        if ( StringUtils.isEmpty( enrollment.getTrackedEntity() ) )
         {
-            enrollment.setTrackedEntityInstance( trackerEntityId );
+            enrollment.setTrackedEntity( trackerEntityId );
         }
         return enrollment;
     }
