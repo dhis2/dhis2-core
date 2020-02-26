@@ -89,19 +89,6 @@ public enum TrackerIdentifier
         return new ArrayList<>();
     }
 
-    public <T extends IdentifiableObject> String getIdAndNameAndClass( T object )
-    {
-        List<String> identifiers = getIdentifiers( object );
-        String name = StringUtils.isEmpty( object.getDisplayName() ) ? null : object.getDisplayName();
-
-        if ( name == null )
-        {
-            return identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
-        }
-
-        return name + " " + identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
-    }
-
     public <T extends IdentifiableObject> String getIdAndName( T object )
     {
         List<String> identifiers = getIdentifiers( object );
@@ -114,6 +101,4 @@ public enum TrackerIdentifier
 
         return name + " " + identifiers.toString();
     }
-
-
 }

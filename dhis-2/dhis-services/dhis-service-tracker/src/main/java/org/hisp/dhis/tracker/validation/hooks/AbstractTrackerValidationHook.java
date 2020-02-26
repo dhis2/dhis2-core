@@ -31,26 +31,18 @@ package org.hisp.dhis.tracker.validation.hooks;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -86,37 +78,13 @@ public abstract class AbstractTrackerValidationHook
 
 {
     @Autowired
-    protected ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    protected EventService eventService;
-
-    @Autowired
-    protected FileResourceService fileResourceService;
-
-    @Autowired
-    protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    @Autowired
     protected TrackedEntityAttributeService teAttrService;
-
-    @Autowired
-    protected ReservedValueService reservedValueService;
-
-    @Autowired
-    protected TrackerOwnershipManager trackerOwnershipManager;
-
-    @Autowired
-    protected I18nManager i18nManager;
 
     @Autowired
     protected TrackerAccessManager trackerAccessManager;
 
     @Autowired
     protected OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    protected AclService aclService;
 
     @Autowired
     protected ProgramInstanceService programInstanceService;

@@ -168,7 +168,7 @@ public class EnrollmentAttributeValidationHook
             .map( TrackedEntityAttributeValue::getAttribute )
             .collect( Collectors.toSet() );
 
-        // 2. Map all program attr. that match tei attr. into map. of attr:ismandatory
+        // 2. Map all program attr. that match tei attr. into map. of attr:is mandatory
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = program.getProgramAttributes().stream()
             .filter( v -> trackedEntityAttributes.contains( v.getAttribute() ) )
             .collect( Collectors.toMap(

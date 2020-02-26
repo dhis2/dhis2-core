@@ -30,11 +30,14 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -42,6 +45,7 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -62,6 +66,14 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_AT
 public class TrackedEntityAttributeValidationHook
     extends AbstractTrackerValidationHook
 {
+    @Autowired
+    protected FileResourceService fileResourceService;
+
+    @Autowired
+    protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+    @Autowired
+    protected ReservedValueService reservedValueService;
 
     @Override
     public int getOrder()

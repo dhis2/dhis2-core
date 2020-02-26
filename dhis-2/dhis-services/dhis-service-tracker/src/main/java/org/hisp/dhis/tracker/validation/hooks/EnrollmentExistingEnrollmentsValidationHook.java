@@ -34,6 +34,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Coordinate;
@@ -46,6 +47,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -68,6 +70,9 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NUL
 public class EnrollmentExistingEnrollmentsValidationHook
     extends AbstractTrackerValidationHook
 {
+    @Autowired
+    protected TrackerOwnershipManager trackerOwnershipManager;
+
     @Override
     public int getOrder()
     {
@@ -216,7 +221,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
         {
             enrollment.setGeometry( programInstance.getGeometry() );
 
-            if ( programInstance.getProgram().getFeatureType().equals( FeatureType.POINT ) )
+            if ( programInstance.getProgram().getFeatureType() == FeatureType.POINT )
             {
                 com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
                 enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
