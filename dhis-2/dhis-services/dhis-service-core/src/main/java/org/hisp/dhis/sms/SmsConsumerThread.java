@@ -117,6 +117,6 @@ public class SmsConsumerThread
     {
         this.listeners = listeners;
 
-        log.info( "Following listners are registered: " + listeners );
+        log.info( "Following listeners are registered: " + listeners );
     }
 }

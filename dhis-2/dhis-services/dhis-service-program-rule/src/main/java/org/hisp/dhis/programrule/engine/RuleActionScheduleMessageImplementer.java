@@ -28,16 +28,17 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -58,18 +59,15 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final NotificationLoggingService notificationLoggingService;
-
     private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
 
-    public RuleActionScheduleMessageImplementer( NotificationLoggingService notificationLoggingService,
-        @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" ) IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
+    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+         NotificationLoggingService notificationLoggingService,
+         ProgramInstanceService programInstanceService,
+         ProgramStageInstanceService programStageInstanceService,
+         @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
     {
-
-        checkNotNull( notificationLoggingService );
-        checkNotNull( programNotificationInstanceStore );
-
-        this.notificationLoggingService = notificationLoggingService;
+        super(programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService);
         this.programNotificationInstanceStore = programNotificationInstanceStore;
     }
 
@@ -143,6 +141,22 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         notificationLoggingService.save( entry );
 
     }
+
+    @Override
+    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    {
+        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+    }
+
+    @Override
+    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    {
+        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
 
     private boolean isDateValid( String date )
     {

@@ -354,6 +354,7 @@ public class ProgramSqlGeneratorFunctionsTest
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
         String sql = test( "d2:monthsBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})" );
+
         assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date)))) * 12 + " +
            "date_part('month',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date))))" ) );
     }

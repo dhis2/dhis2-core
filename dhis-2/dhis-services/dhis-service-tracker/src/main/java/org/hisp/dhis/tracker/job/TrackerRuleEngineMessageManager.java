@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,23 +28,45 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Zubair Asghar.
+ * Producer and consumer for handling program rule actions.
+ *
+ * @author Zubair Asghar
  */
-public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
+@Component
+public class TrackerRuleEngineMessageManager extends BaseMessageManager
 {
-    private long programStageInstance;
+    private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
 
-    public ProgramStageCompletionNotificationEvent( Object source, long programStageInstance )
+    public TrackerRuleEngineMessageManager(
+            MessageManager messageManager,
+            SchedulingManager schedulingManager,
+            ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
     {
-        super( source );
-        this.programStageInstance = programStageInstance;
+        super( messageManager, schedulingManager );
+        this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
     }
 
-    public long getProgramStageInstance()
+    @Override
+    public String getTopic()
     {
-        return programStageInstance;
+        return Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME;
+    }
+
+    @JmsListener( destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
+    public void consume( TrackerSideEffectDataBundle bundle )
+    {
+        TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
+
+        notificationThread.setSideEffectDataBundle( bundle );
+
+        executeJob( notificationThread );
     }
 }
