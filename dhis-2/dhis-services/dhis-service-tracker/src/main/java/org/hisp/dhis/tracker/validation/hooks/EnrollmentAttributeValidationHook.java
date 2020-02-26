@@ -48,6 +48,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_VALUE_MAP_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -56,7 +58,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EnrollmentAttributeValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {
@@ -84,43 +85,31 @@ public class EnrollmentAttributeValidationHook
             Map<String, String> attributeValueMap = Maps.newHashMap();
             for ( Attribute attribute : enrollment.getAttributes() )
             {
-                if ( attribute.getAttribute() == null )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1075 )
-                        .addArg( attribute ) );
-                }
-
-                if ( attribute.getValue() == null )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1076 )
-                        .addArg( attribute ) );
-                }
+                validateRequiredProperties( reporter, bundle, attribute );
 
                 if ( attribute.getAttribute() == null || attribute.getValue() == null )
                 {
                     continue;
                 }
 
-                attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+                TrackedEntityAttribute teAttribute = PreheatHelper.getTrackedEntityAttribute( bundle,
+                    attribute.getAttribute() );
 
-                TrackedEntityAttribute teAttribute = PreheatHelper
-                    .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
                 if ( teAttribute == null )
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1017 )
-                        .addArg( attribute ) );
+                    continue;
                 }
-                else
-                {
-                    validateAttrValueType( reporter, attribute, teAttribute );
 
-                    //NOTE: this is perf killing
-                    validateAttributeUniqueness( reporter,
-                        attribute.getValue(),
-                        teAttribute,
-                        trackedEntityInstance,
-                        trackedEntityInstance.getOrganisationUnit() );
-                }
+                attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+
+                validateAttrValueType( reporter, attribute, teAttribute );
+
+                //NOTE: this is perf killing
+                validateAttributeUniqueness( reporter,
+                    attribute.getValue(),
+                    teAttribute,
+                    trackedEntityInstance,
+                    trackedEntityInstance.getOrganisationUnit() );
             }
 
             if ( program == null || trackedEntityInstance == null )
@@ -134,12 +123,39 @@ public class EnrollmentAttributeValidationHook
         return reporter.getReportList();
     }
 
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Attribute attribute )
+    {
+        if ( attribute.getAttribute() == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1075 )
+                .addArg( attribute ) );
+        }
+
+        if ( attribute.getValue() == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1076 )
+                .addArg( attribute ) );
+        }
+
+        if ( attribute.getAttribute() != null )
+        {
+            TrackedEntityAttribute teAttribute = PreheatHelper
+                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
+            if ( teAttribute == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1017 )
+                    .addArg( attribute ) );
+            }
+        }
+    }
+
     private void validateMandatoryAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
         Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
     {
-        Objects.requireNonNull( program, "Program can't be null" );
-        Objects.requireNonNull( trackedEntityInstance, "TrackedEntityInstance can't be null" );
-        Objects.requireNonNull( attributeValueMap, "AttributeValueMap can't be null" );
+        Objects.requireNonNull( program, Constants.PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
+        Objects.requireNonNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CAN_T_BE_NULL );
 
         // NOTE: This is my attempt to fix this after impl. Abyot's comments on the initial/original version.
         // 1. Get all tei attributes, map attrValue attr. into set of attr.

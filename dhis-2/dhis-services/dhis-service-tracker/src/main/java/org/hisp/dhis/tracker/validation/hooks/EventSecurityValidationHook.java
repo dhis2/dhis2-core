@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -92,9 +93,9 @@ public class EventSecurityValidationHook
     protected void validateUpdateAndDelete( TrackerBundle bundle, ValidationErrorReporter reporter, User actingUser,
         Event event, ProgramStageInstance programStageInstance )
     {
-        Objects.requireNonNull( programStageInstance, "ProgramStageInstance can't be null" );
-        Objects.requireNonNull( actingUser, "User can't be null" );
-        Objects.requireNonNull( event, "Event can't be null" );
+        Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( event, EVENT_CAN_T_BE_NULL );
 
         if ( bundle.getImportStrategy().isUpdate() )
         {
@@ -107,13 +108,11 @@ public class EventSecurityValidationHook
             }
 
             if ( event.getStatus() != programStageInstance.getStatus()
-                && EventStatus.COMPLETED == programStageInstance.getStatus() )
+                && EventStatus.COMPLETED == programStageInstance.getStatus()
+                && (!actingUser.isSuper() && !actingUser.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
             {
-                if ( !actingUser.isSuper() && !actingUser.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1083 )
-                        .addArg( actingUser ) );
-                }
+                reporter.addError( newReport( TrackerErrorCode.E1083 )
+                    .addArg( actingUser ) );
             }
         }
 
@@ -133,9 +132,9 @@ public class EventSecurityValidationHook
         ProgramStageInstance programStageInstance, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance, Program program )
     {
-        Objects.requireNonNull( actingUser, "User can't be null" );
-        Objects.requireNonNull( event, "Event can't be null" );
-        Objects.requireNonNull( program, "Program can't be null" );
+        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( event, EVENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
 
         programStage = (programStage == null && program.isWithoutRegistration())
             ? program.getProgramStageByStage( 1 ) : programStage;
@@ -158,5 +157,4 @@ public class EventSecurityValidationHook
                 .addArg( String.join( ",", errors ) ) );
         }
     }
-
 }

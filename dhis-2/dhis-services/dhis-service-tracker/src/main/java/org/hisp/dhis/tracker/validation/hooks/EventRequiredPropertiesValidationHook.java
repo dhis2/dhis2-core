@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -59,13 +60,11 @@ public class EventRequiredPropertiesValidationHook
                     .addArg( event ) );
             }
 
-            if ( bundle.getImportStrategy().isDelete() || bundle.getImportStrategy().isUpdate() )
+            if ( programStageInstance == null
+                && (bundle.getImportStrategy().isDelete() || bundle.getImportStrategy().isUpdate()) )
             {
-                if ( programStageInstance == null )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1082 )
-                        .addArg( event.getEvent() ) );
-                }
+                reporter.addError( newReport( TrackerErrorCode.E1082 )
+                    .addArg( event.getEvent() ) );
             }
 
             if ( organisationUnit == null )
@@ -78,6 +77,7 @@ public class EventRequiredPropertiesValidationHook
             {
                 reporter.addError( newReport( TrackerErrorCode.E1034 )
                     .addArg( event ) );
+
                 continue;
             }
 
@@ -107,9 +107,9 @@ public class EventRequiredPropertiesValidationHook
         ProgramStage programStage, ProgramInstance programInstance, TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
-        Objects.requireNonNull( event, "Event can't be null" );
-        Objects.requireNonNull( program, "Program can't be null" );
-        Preconditions.checkNotNull( actingUser, "User can't be null" );
+        Objects.requireNonNull( event, EVENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
+        Preconditions.checkNotNull( actingUser, USER_CAN_T_BE_NULL );
 
         if ( program.isRegistration() )
         {

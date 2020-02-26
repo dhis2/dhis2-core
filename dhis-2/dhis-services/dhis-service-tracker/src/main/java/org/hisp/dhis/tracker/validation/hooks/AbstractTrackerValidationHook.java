@@ -76,6 +76,13 @@ public abstract class AbstractTrackerValidationHook
     implements TrackerValidationHook
 
 {
+
+    public static final String TRACKED_ENTITY_CAN_T_BE_NULL = "TrackedEntity can't be null";
+
+    public static final String TRACKER_BUNDLE_CAN_T_BE_NULL = "TrackerBundle can't be null";
+
+    public static final String TRACKER_IDENTIFIER_CAN_T_BE_NULL = "TrackerIdentifier can't be null";
+
     @Autowired
     protected ProgramStageInstanceService programStageInstanceService;
 
@@ -284,33 +291,39 @@ public abstract class AbstractTrackerValidationHook
 
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
     {
-        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
-        Objects.requireNonNull( te, "TrackedEntity can't be null" );
+        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CAN_T_BE_NULL );
+        Objects.requireNonNull( te, TRACKED_ENTITY_CAN_T_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
 
+        OrganisationUnit organisationUnit =
+            trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
+
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() )
-            : trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
+            : organisationUnit;
     }
 
     protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
     {
-        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
-        Objects.requireNonNull( te, "TrackedEntity can't be null" );
+        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CAN_T_BE_NULL );
+        Objects.requireNonNull( te, TRACKED_ENTITY_CAN_T_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
 
+        TrackedEntityType trackedEntityType =
+            trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;
+
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
-            : trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;
+            : trackedEntityType;
     }
 
     protected boolean isValidId( TrackerIdentifier identifier, String value )
     {
-        Objects.requireNonNull( identifier, "TrackerIdentifier can't be null" );
+        Objects.requireNonNull( identifier, TRACKER_IDENTIFIER_CAN_T_BE_NULL );
 
         if ( TrackerIdentifier.UID == identifier )
         {

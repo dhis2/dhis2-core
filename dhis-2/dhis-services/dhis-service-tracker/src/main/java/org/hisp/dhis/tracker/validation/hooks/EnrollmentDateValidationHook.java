@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -88,8 +90,8 @@ public class EnrollmentDateValidationHook
     private void validateEnrollmentDates( ValidationErrorReporter errorReporter, Program program,
         Enrollment enrollment )
     {
-        Objects.requireNonNull( program, "Program can't be null" );
-        Objects.requireNonNull( enrollment, "Enrollment can't be null" );
+        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( enrollment, ENROLLMENT_CAN_T_BE_NULL );
 
         // NOTE: getCreatedAtClient is always mandatory?
         if ( !isValidDateStringAndNotNull( enrollment.getCreatedAtClient() ) )
@@ -111,33 +113,27 @@ public class EnrollmentDateValidationHook
         }
 
         if ( enrollment.getEnrollmentDate() != null
-            && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() ) )
+            && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
+            && enrollment.getEnrollmentDate().after( new Date() ) )
         {
-            if ( enrollment.getEnrollmentDate().after( new Date() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1020 )
-                    .addArg( enrollment.getEnrollmentDate() ) );
-            }
+            errorReporter.addError( newReport( TrackerErrorCode.E1020 )
+                .addArg( enrollment.getEnrollmentDate() ) );
         }
 
         if ( enrollment.getIncidentDate() != null
-            && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() ) )
+            && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
+            && enrollment.getIncidentDate().after( new Date() ) )
         {
-            if ( enrollment.getIncidentDate().after( new Date() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1021 )
-                    .addArg( enrollment.getIncidentDate() ) );
-            }
+            errorReporter.addError( newReport( TrackerErrorCode.E1021 )
+                .addArg( enrollment.getIncidentDate() ) );
         }
 
         // NOTE: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
-        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) )
+        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
+            && !isValidDateAndNotNull( enrollment.getIncidentDate() ) )
         {
-            if ( !isValidDateAndNotNull( enrollment.getIncidentDate() ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1023 )
-                    .addArg( enrollment.getIncidentDate() ) );
-            }
+            errorReporter.addError( newReport( TrackerErrorCode.E1023 )
+                .addArg( enrollment.getIncidentDate() ) );
         }
     }
 }

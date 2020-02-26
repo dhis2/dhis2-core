@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
@@ -53,6 +52,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -61,7 +61,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EnrollmentExistingEnrollmentsValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {
@@ -90,69 +89,71 @@ public class EnrollmentExistingEnrollmentsValidationHook
             }
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-            OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
                 .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
             // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
-            if ( program == null || organisationUnit == null || trackedEntityInstance == null )
+            if ( (program == null || trackedEntityInstance == null)
+                || (EnrollmentStatus.COMPLETED == enrollment.getStatus()
+                && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
             {
                 continue;
             }
 
-            if ( EnrollmentStatus.COMPLETED == enrollment.getStatus()
-                && Boolean.FALSE.equals( program.getOnlyEnrollOnce() ) )
-            {
-                continue;
-            }
-
-            // Sort out only the programs the importing user has access too...
-            // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
-            // should import still be possible?
-            Set<Enrollment> activeOrCompletedEnrollments = getEnrollmentsUserHasAccessTo( reporter, actingUser,
-                program, trackedEntityInstance ).stream()
-                .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
-                    || EnrollmentStatus.COMPLETED == programEnrollment.getStatus() )
-                .collect( Collectors.toSet() );
-
-            if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
-            {
-                Set<Enrollment> activeEnrollments = activeOrCompletedEnrollments.stream()
-                    .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus() )
-                    .collect( Collectors.toSet() );
-
-                if ( !activeEnrollments.isEmpty() )
-                {
-                    //Error: TrackedEntityInstance already has an active enrollment in another program...
-                    reporter.addError( newReport( TrackerErrorCode.E1015 )
-                        .addArg( trackedEntityInstance )
-                        .addArg( program ) );
-                }
-            }
-
-            // Enrollment(¶4.b.ii) - The error of enrolling more than once is possible only if the imported enrollment
-            // has a state other than CANCELLED...
-            if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) )
-            {
-                if ( !activeOrCompletedEnrollments.isEmpty() )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1016 )
-                        .addArg( trackedEntityInstance )
-                        .addArg( program ) );
-                }
-            }
-
+            validateNotEnrolledAlready( reporter, actingUser, enrollment, program, trackedEntityInstance );
         }
 
         return reporter.getReportList();
     }
 
+    protected void validateNotEnrolledAlready( ValidationErrorReporter reporter, User actingUser,
+        Enrollment enrollment, Program program, TrackedEntityInstance trackedEntityInstance )
+    {
+        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
+
+        // Sort out only the programs the importing user has access too...
+        // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
+        // should import still be possible?
+        Set<Enrollment> activeOrCompletedEnrollments = getEnrollmentsUserHasAccessTo( reporter, actingUser,
+            program, trackedEntityInstance ).stream()
+            .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
+                || EnrollmentStatus.COMPLETED == programEnrollment.getStatus() )
+            .collect( Collectors.toSet() );
+
+        if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
+        {
+            Set<Enrollment> activeEnrollments = activeOrCompletedEnrollments.stream()
+                .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus() )
+                .collect( Collectors.toSet() );
+
+            if ( !activeEnrollments.isEmpty() )
+            {
+                //Error: TrackedEntityInstance already has an active enrollment in another program...
+                reporter.addError( newReport( TrackerErrorCode.E1015 )
+                    .addArg( trackedEntityInstance )
+                    .addArg( program ) );
+            }
+        }
+
+        // Enrollment(¶4.b.ii) - The error of enrolling more than once is possible only if the imported enrollment
+        // has a state other than CANCELLED...
+        if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() )
+            && !activeOrCompletedEnrollments.isEmpty() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1016 )
+                .addArg( trackedEntityInstance )
+                .addArg( program ) );
+        }
+    }
+
     public List<Enrollment> getEnrollmentsUserHasAccessTo( ValidationErrorReporter reporter, User actingUser,
         Program program, TrackedEntityInstance trackedEntityInstance )
     {
-        Objects.requireNonNull( actingUser, "User can't be null" );
-        Objects.requireNonNull( program, "Program can't be null" );
-        Objects.requireNonNull( trackedEntityInstance, "TrackedEntityInstance can't be null" );
+        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -187,7 +188,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
 
     public Enrollment getEnrollmentFromProgramInstance( ProgramInstance programInstance )
     {
-        Objects.requireNonNull( programInstance, "ProgramInstance can't be null" );
+        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CAN_T_BE_NULL );
 
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
@@ -245,5 +246,4 @@ public class EnrollmentExistingEnrollmentsValidationHook
 
         return enrollment;
     }
-
 }

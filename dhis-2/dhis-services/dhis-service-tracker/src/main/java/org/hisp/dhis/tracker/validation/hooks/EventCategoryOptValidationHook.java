@@ -81,9 +81,9 @@ public class EventCategoryOptValidationHook
     private void validateCategoryOptionCombo( TrackerBundle bundle, ValidationErrorReporter errorReporter
         , User actingUser, Event event, Program program )
     {
-        Objects.requireNonNull( actingUser, "User can't be null" );
-        Objects.requireNonNull( program, "Program can't be null" );
-        Objects.requireNonNull( event, "Event can't be null" );
+        Objects.requireNonNull( actingUser, Constants.USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, Constants.PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( event, Constants.EVENT_CAN_T_BE_NULL );
 
         // NOTE: Morten H. & Stian. Abyot : How do we solve this in the new importer?
 //        CategoryOptionCombo categoryOptionCombo;

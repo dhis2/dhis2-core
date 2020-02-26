@@ -49,6 +49,7 @@ import java.util.Objects;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_VALUE_CAN_T_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -92,9 +93,7 @@ public class TrackedEntityAttributeValidationHook
     protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity trackedEntity, TrackedEntityInstance trackedEntityInstance, OrganisationUnit orgUnit )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
-        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
-        Objects.requireNonNull( trackedEntity, "TrackedEntity can't be null" );
+        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CAN_T_BE_NULL );
 
         // For looking up existing trackedEntityInstance attr. ie. if it is an update. Could/should this be done in the preheater instead?
         Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
@@ -129,7 +128,8 @@ public class TrackedEntityAttributeValidationHook
             }
             validateAttributeValue( errorReporter, trackedEntityAttributeValue );
 
-            validateTextPattern( errorReporter, bundle, attribute, trackedEntityAttribute, trackedEntityAttributeValue );
+            validateTextPattern( errorReporter, bundle, attribute, trackedEntityAttribute,
+                trackedEntityAttributeValue );
 
             validateAttrValueType( errorReporter, attribute, trackedEntityAttribute );
 
@@ -148,8 +148,7 @@ public class TrackedEntityAttributeValidationHook
     public void validateAttributeValue( ValidationErrorReporter errorReporter,
         TrackedEntityAttributeValue attributeValue )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
-        Objects.requireNonNull( attributeValue, "TrackedEntityAttributeValue can't be null" );
+        Objects.requireNonNull( attributeValue, TRACKED_ENTITY_ATTRIBUTE_VALUE_CAN_T_BE_NULL );
 
         if ( attributeValue.getAttribute().getValueType() == null )
         {

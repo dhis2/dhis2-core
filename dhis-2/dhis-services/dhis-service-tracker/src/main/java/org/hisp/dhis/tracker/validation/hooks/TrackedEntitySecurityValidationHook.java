@@ -108,9 +108,8 @@ public class TrackedEntitySecurityValidationHook
     private void checkCanCascadeDeleteProgramInstances( ValidationErrorReporter errorReporter, User actingUser,
         TrackedEntityInstance trackedEntityInstance )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
-        Objects.requireNonNull( actingUser, "User can't be null" );
-        Objects.requireNonNull( trackedEntityInstance, "TrackedEntityInstance can't be null" );
+        Objects.requireNonNull( actingUser, Constants.USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, Constants.TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
 
         Set<ProgramInstance> programInstances = trackedEntityInstance.getProgramInstances().stream()
             .filter( pi -> !pi.isDeleted() )

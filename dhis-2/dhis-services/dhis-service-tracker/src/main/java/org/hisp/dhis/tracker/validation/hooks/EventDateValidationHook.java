@@ -70,19 +70,20 @@ public class EventDateValidationHook
             programInstance = getProgramInstance( actingUser, programInstance, trackedEntityInstance, program );
             program = programInstance.getProgram();
 
-            validateDates( reporter, event );
-            validateExpiryDays( reporter, actingUser, event, program, programStageInstance );
+            validateDateFormat( reporter, event );
+            validateExpiryDays( reporter, event, program, programStageInstance, actingUser );
+            validatePeriodType( reporter, event, program, programStageInstance );
         }
 
         return reporter.getReportList();
     }
 
-    private void validateExpiryDays( ValidationErrorReporter errorReporter, User actingUser,
-        Event event, Program program, ProgramStageInstance programStageInstance )
+    private void validateExpiryDays( ValidationErrorReporter errorReporter, Event event, Program program,
+        ProgramStageInstance programStageInstance, User actingUser )
     {
-        Objects.requireNonNull( actingUser, "User can't be null" );
-        Objects.requireNonNull( event, "Event can't be null" );
-        Objects.requireNonNull( program, "Program can't be null" );
+        Objects.requireNonNull( actingUser, Constants.USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( event, Constants.EVENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, Constants.PROGRAM_CAN_T_BE_NULL );
 
         if ( program.getCompleteEventsExpiryDays() > 0
             && EventStatus.COMPLETED == event.getStatus()
@@ -117,8 +118,14 @@ public class EventDateValidationHook
                 errorReporter.addError( newReport( TrackerErrorCode.E1043 )
                     .addArg( event ) );
             }
-
         }
+    }
+
+    private void validatePeriodType( ValidationErrorReporter errorReporter, Event event,
+        Program program, ProgramStageInstance programStageInstance )
+    {
+        Objects.requireNonNull( event, Constants.EVENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, Constants.PROGRAM_CAN_T_BE_NULL );
 
         PeriodType periodType = program.getExpiryPeriodType();
 
@@ -160,12 +167,11 @@ public class EventDateValidationHook
                 }
             }
         }
-
     }
 
-    private void validateDates( ValidationErrorReporter errorReporter, Event event )
+    private void validateDateFormat( ValidationErrorReporter errorReporter, Event event )
     {
-        Objects.requireNonNull( event, "Event can't be null" );
+        Objects.requireNonNull( event, Constants.EVENT_CAN_T_BE_NULL );
 
         if ( event.getDueDate() != null && !isValidDateString( event.getDueDate() ) )
         {
@@ -190,7 +196,5 @@ public class EventDateValidationHook
             errorReporter.addError( newReport( TrackerErrorCode.E1054 )
                 .addArg( event.getLastUpdatedAtClient() ) );
         }
-
     }
-
 }

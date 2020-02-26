@@ -84,9 +84,7 @@ public class TrackedEntityRequiredValuesValidationHook
     protected void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
-        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
-        Objects.requireNonNull( trackedEntity, "TrackedEntity can't be null" );
+        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CAN_T_BE_NULL );
 
         if ( bundle.getImportStrategy().isCreate() )
         {
@@ -109,9 +107,7 @@ public class TrackedEntityRequiredValuesValidationHook
     protected void validateOrganisationUnit( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
-        Objects.requireNonNull( errorReporter, "ValidationErrorReporter can't be null" );
-        Objects.requireNonNull( bundle, "TrackerBundle can't be null" );
-        Objects.requireNonNull( trackedEntity, "TrackedEntity can't be null" );
+        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CAN_T_BE_NULL );
 
         if ( bundle.getImportStrategy().isCreate() )
         {
