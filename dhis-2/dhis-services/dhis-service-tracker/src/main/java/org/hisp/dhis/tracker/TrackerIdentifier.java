@@ -46,11 +46,11 @@ import org.hisp.dhis.util.ObjectUtils;
 @AllArgsConstructor
 public class TrackerIdentifier
 {
-    public static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
+    public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
-    public static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
+    public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
-    public static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
+    public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
     @Builder.Default
     private TrackerIdScheme idScheme = TrackerIdScheme.UID;
