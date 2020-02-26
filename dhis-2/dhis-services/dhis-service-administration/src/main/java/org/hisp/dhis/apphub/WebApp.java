@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,42 +29,62 @@ package org.hisp.dhis.appstore;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.AppType;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class ImageResource
+public class WebApp
 {
-    private String id;
+    private String id; // uid
 
-    private String caption;
+    private String name;
 
     private String description;
 
-    private String imageUrl;
-
-    private boolean logo;
+    private String owner;
 
     private Date created;
 
     private Date lastUpdated;
 
-    @JsonProperty
-    public String getCaption()
+    private String sourceUrl;
+
+    private AppStatus status;
+
+    private AppType appType;
+
+    private Developer developer;
+
+    private Set<AppVersion> versions = new HashSet<>();
+
+    private Set<Review> reviews = new HashSet<>();
+
+    private Set<ImageResource> images = new HashSet<>();
+
+    public WebApp()
     {
-        return caption;
+        // empty constructor
     }
 
-    public void setCaption( String caption )
+    @JsonProperty
+    public AppType getAppType()
     {
-        this.caption = caption;
+        return appType;
+    }
+
+    public void setAppType( AppType appType )
+    {
+        this.appType = appType;
     }
 
     @JsonProperty
-    public String getDescription()
-    {
+    public String getDescription() {
         return description;
     }
 
@@ -74,25 +94,101 @@ public class ImageResource
     }
 
     @JsonProperty
-    public boolean isLogo()
-    {
-        return logo;
+    public Developer getDeveloper() {
+        return developer;
     }
 
-    public void setLogo( boolean logo )
+    public void setDeveloper( Developer developer )
     {
-        this.logo = logo;
+        this.developer = developer;
     }
 
     @JsonProperty
-    public String getImageUrl()
+    public String getId()
     {
-        return imageUrl;
+        return id;
     }
 
-    public void setImageUrl( String imageUrl )
+    public void setId( String id )
     {
-        this.imageUrl = imageUrl;
+        this.id = id;
+    }
+
+    @JsonProperty
+    public Set<ImageResource> getImages()
+    {
+        return images;
+    }
+
+    public void setImages( Set<ImageResource> images )
+    {
+        this.images = images;
+    }
+
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getOwner()
+    {
+        return owner;
+    }
+
+    public void setOwner( String owner )
+    {
+        this.owner = owner;
+    }
+
+    @JsonProperty
+    public Set<Review> getReviews()
+    {
+        return reviews;
+    }
+
+    public void setReviews( Set<Review> reviews )
+    {
+        this.reviews = reviews;
+    }
+
+    @JsonProperty
+    public String getSourceUrl()
+    {
+        return sourceUrl;
+    }
+
+    public void setSourceUrl( String sourceUrl )
+    {
+        this.sourceUrl = sourceUrl;
+    }
+
+    @JsonProperty
+    public AppStatus getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus( AppStatus status )
+    {
+        this.status = status;
+    }
+
+    @JsonProperty
+    public Set<AppVersion> getVersions()
+    {
+        return versions;
+    }
+
+    public void setVersions( Set<AppVersion> versions )
+    {
+        this.versions = versions;
     }
 
     @JsonProperty
@@ -115,16 +211,5 @@ public class ImageResource
     public void setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
     }
 }

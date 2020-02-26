@@ -53,24 +53,24 @@ public class ProgramRuleEngineListener
     @TransactionalEventListener
     public void onEnrollment( EnrollmentEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEnrollment( event.getProgramInstance() );
+        programRuleEngineService.evaluateEnrollmentAndRunEffects( event.getProgramInstance() );
     }
 
     @TransactionalEventListener
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
     @TransactionalEventListener
     public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
     @TransactionalEventListener
     public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,100 +28,52 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Singular;
+import org.hisp.dhis.artemis.Message;
+import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 
-import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * Class holding data necessary for implementation of side effects.
+ * @author Zubair Asghar
  */
-public class Review
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrackerSideEffectDataBundle implements Message
 {
-    private String id;
+    private String uid;
 
-    private String userId;
+    private Class<? extends BaseIdentifiableObject> klass;
 
-    private String reviewText;
+    private BaseIdentifiableObject object;
 
-    private int rate;
+    @Singular
+    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
-    private Date created;
+    @Singular
+    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
-    private Date lastUpdated;
+    private TrackerImportStrategy importStrategy;
 
-    public Review()
+    private String accessedBy;
+
+    @Override
+    public MessageType getMessageType()
     {
-    }
-
-    public Review( String userId, String reviewText )
-    {
-        this.userId = userId;
-        this.reviewText = reviewText;
-    }
-
-    @JsonProperty
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    public void setUserId( String userId )
-    {
-        this.userId = userId;
-    }
-
-    @JsonProperty
-    public String getReviewText()
-    {
-        return reviewText;
-    }
-
-    public void setReviewText( String reviewText )
-    {
-        this.reviewText = reviewText;
-    }
-
-    @JsonProperty
-    public int getRate()
-    {
-        return rate;
-    }
-
-    public void setRate( int rate )
-    {
-        this.rate = rate;
-    }
-
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
+        return MessageType.TRACKER_SIDE_EFFECT;
     }
 }

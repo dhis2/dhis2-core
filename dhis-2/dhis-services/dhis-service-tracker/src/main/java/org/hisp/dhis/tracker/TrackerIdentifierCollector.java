@@ -97,7 +97,7 @@ public class TrackerIdentifierCollector
         Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Enrollment> enrollments )
     {
         enrollments.forEach( enrollment -> {
-            addIdentifier( map, TrackedEntity.class, identifier, enrollment.getTrackedEntityInstance() );
+            addIdentifier( map, TrackedEntity.class, identifier, enrollment.getTrackedEntity() );
             addIdentifier( map, Enrollment.class, identifier, enrollment.getEnrollment() );
             addIdentifier( map, Program.class, identifier, enrollment.getProgram() );
             addIdentifier( map, OrganisationUnit.class, identifier, enrollment.getOrgUnit() );
@@ -111,7 +111,7 @@ public class TrackerIdentifierCollector
         Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Event> events )
     {
         events.forEach( event -> {
-            addIdentifier( map, TrackedEntity.class, identifier, event.getTrackedEntityInstance() );
+            addIdentifier( map, TrackedEntity.class, identifier, event.getTrackedEntity() );
             addIdentifier( map, Enrollment.class, identifier, event.getEnrollment() );
             addIdentifier( map, Event.class, identifier, event.getEvent() );
             addIdentifier( map, Program.class, identifier, event.getProgram() );
@@ -119,9 +119,8 @@ public class TrackerIdentifierCollector
             addIdentifier( map, OrganisationUnit.class, identifier, event.getOrgUnit() );
             addIdentifier( map, CategoryOptionCombo.class, identifier, event.getAttributeOptionCombo() );
 
-            event.getDataValues().forEach( dv -> {
-                addIdentifier( map, DataElement.class, identifier, dv.getDataElement() );
-            } );
+            event.getDataValues().forEach( dv ->
+                addIdentifier( map, DataElement.class, identifier, dv.getDataElement() ) );
         } );
     }
 
@@ -139,7 +138,8 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static <T extends Object> List<T> getEntities( T first, T second )
+    @SuppressWarnings( "unchecked" )
+    private static <T> List<T> getEntities( T first, T second )
     {
         return Lists.newArrayList( first, second )
             .stream()
@@ -155,9 +155,8 @@ public class TrackerIdentifierCollector
             return;
         }
 
-        attributes.forEach( attribute -> {
-            addIdentifier( map, TrackedEntityAttribute.class, identifier, attribute.getAttribute() );
-        } );
+        attributes.forEach( attribute ->
+            addIdentifier( map, TrackedEntityAttribute.class, identifier, attribute.getAttribute() ) );
     }
 
     private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,

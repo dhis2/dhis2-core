@@ -32,7 +32,9 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.*;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
@@ -42,9 +44,13 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
+ *<ol>
+ * <li>Handle notifications related to enrollment/event</li>
+ * <li>Trigger spring event to handle notification delivery in separate thread<li/>
+ * <li>Log and entry in {@link ExternalNotificationLogEntry}</li>
+ *</ol>
+ *
  * Created by zubair@dhis2.org on 04.01.18.
  */
 @Component( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" )
@@ -56,15 +62,14 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     private final ApplicationEventPublisher publisher;
 
-    private final NotificationLoggingService notificationLoggingService;
-
-    public RuleActionSendMessageImplementer(ApplicationEventPublisher publisher, NotificationLoggingService notificationLoggingService) {
-
-        checkNotNull( publisher );
-        checkNotNull( notificationLoggingService );
-
+    public RuleActionSendMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+         NotificationLoggingService notificationLoggingService,
+         ProgramInstanceService programInstanceService,
+         ProgramStageInstanceService programStageInstanceService,
+         ApplicationEventPublisher publisher )
+    {
+        super( programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService );
         this.publisher = publisher;
-        this.notificationLoggingService = notificationLoggingService;
     }
 
     @Override
@@ -110,5 +115,17 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
 
         notificationLoggingService.save( entry );
+    }
+
+    @Override
+    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    {
+        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+    }
+
+    @Override
+    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    {
+        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
     }
 }

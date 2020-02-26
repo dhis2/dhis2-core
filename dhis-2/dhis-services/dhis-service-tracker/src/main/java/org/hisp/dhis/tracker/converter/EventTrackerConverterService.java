@@ -97,7 +97,7 @@ public class EventTrackerConverterService
 
             if ( psi.getProgramInstance().getEntityInstance() != null )
             {
-                event.setTrackedEntityInstance( psi.getProgramInstance().getEntityInstance().getUid() );
+                event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
             }
 
             event.setFollowup( psi.getProgramInstance().getFollowup() );

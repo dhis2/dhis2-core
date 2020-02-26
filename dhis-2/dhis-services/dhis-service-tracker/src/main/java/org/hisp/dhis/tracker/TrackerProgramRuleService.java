@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.tracker;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,66 +28,22 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * Calculates rule effects calling rule engine on enrollments or events.
+ *
+ * @author Enrico Colasante
  */
-public class Developer
+public interface TrackerProgramRuleService
 {
-    private String name;
+    Map<Enrollment, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle );
 
-    private String organisation;
-
-    private String address;
-
-    private String email;
-
-    public Developer()
-    {
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getOrganisation()
-    {
-        return organisation;
-    }
-
-    public void setOrganisation( String organisation )
-    {
-        this.organisation = organisation;
-    }
-
-    @JsonProperty
-    public String getEmail()
-    {
-        return email;
-    }
-
-    public void setEmail( String email )
-    {
-        this.email = email;
-    }
-
-    @JsonProperty
-    public String getAddress()
-    {
-        return address;
-    }
-
-    public void setAddress( String address )
-    {
-        this.address = address;
-    }
+    Map<Event, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle );
 }

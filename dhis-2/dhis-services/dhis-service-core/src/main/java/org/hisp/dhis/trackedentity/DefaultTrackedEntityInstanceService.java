@@ -373,7 +373,7 @@ public class DefaultTrackedEntityInstanceService
         }
         else if ( params.hasProgram() && !params.hasAttributes() )
         {
-            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getDisplayInListAttributes() ) );
+            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getTrackedEntityAttributes() ) );
         }
         else if ( params.hasTrackedEntityType() && !params.hasAttributes() )
         {

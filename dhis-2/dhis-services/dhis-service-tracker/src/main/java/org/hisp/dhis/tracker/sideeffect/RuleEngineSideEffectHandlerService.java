@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.tracker.sideeffect;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,16 +28,27 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.appmanager.AppStatus;
-
-import java.util.List;
+import org.hisp.dhis.tracker.job.TrackerRuleEngineMessageManager;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+import org.springframework.stereotype.Service;
 
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Zubair Asghar
  */
-public interface AppStoreService
-{
-    List<WebApp> getAppStore();
 
-    AppStatus installAppFromAppStore( String id );
+@Service
+public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService
+{
+    private final TrackerRuleEngineMessageManager ruleEngineMessageManager;
+
+    public RuleEngineSideEffectHandlerService( TrackerRuleEngineMessageManager ruleEngineMessageManager )
+    {
+        this.ruleEngineMessageManager = ruleEngineMessageManager;
+    }
+
+    @Override
+    public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
+    {
+        ruleEngineMessageManager.addJob( sideEffectDataBundle );
+    }
 }

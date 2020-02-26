@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore;
+package org.hisp.dhis.apphub;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,96 +28,71 @@ package org.hisp.dhis.appstore;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.io.FilenameUtils;
 
 import java.util.Date;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class AppVersion
+public class ImageResource
 {
     private String id;
 
-    private String version;
+    private String caption;
 
-    private String minDhisVersion;
+    private String description;
 
-    private String maxDhisVersion;
+    private String imageUrl;
 
-    private String downloadUrl;
-
-    private String demoUrl;
+    private boolean logo;
 
     private Date created;
 
     private Date lastUpdated;
 
-    public AppVersion()
+    @JsonProperty
+    public String getCaption()
     {
+        return caption;
     }
 
-    @JsonIgnore
-    public String getFilename()
+    public void setCaption( String caption )
     {
-        return FilenameUtils.getName( downloadUrl );
+        this.caption = caption;
     }
 
     @JsonProperty
-    public String getVersion()
+    public String getDescription()
     {
-        return version;
+        return description;
     }
 
-    public void setVersion( String version )
+    public void setDescription( String description )
     {
-        this.version = version;
-    }
-
-    @JsonProperty
-    public String getMinDhisVersion()
-    {
-        return minDhisVersion;
-    }
-
-    public void setMinDhisVersion( String minDhisVersion )
-    {
-        this.minDhisVersion = minDhisVersion;
+        this.description = description;
     }
 
     @JsonProperty
-    public String getMaxDhisVersion()
+    public boolean isLogo()
     {
-        return maxDhisVersion;
+        return logo;
     }
 
-    public void setMaxDhisVersion( String maxDhisVersion )
+    public void setLogo( boolean logo )
     {
-        this.maxDhisVersion = maxDhisVersion;
-    }
-
-    @JsonProperty
-    public String getDownloadUrl()
-    {
-        return downloadUrl;
-    }
-
-    public void setDownloadUrl( String downloadUrl )
-    {
-        this.downloadUrl = downloadUrl;
+        this.logo = logo;
     }
 
     @JsonProperty
-    public String getDemoUrl()
+    public String getImageUrl()
     {
-        return demoUrl;
+        return imageUrl;
     }
 
-    public void setDemoUrl( String demoUrl )
+    public void setImageUrl( String imageUrl )
     {
-        this.demoUrl = demoUrl;
+        this.imageUrl = imageUrl;
     }
 
     @JsonProperty
@@ -132,17 +107,6 @@ public class AppVersion
     }
 
     @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
     public Date getLastUpdated()
     {
         return lastUpdated;
@@ -151,5 +115,16 @@ public class AppVersion
     public void setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
     }
 }
