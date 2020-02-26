@@ -33,5 +33,5 @@ package org.hisp.dhis.tracker;
  */
 public enum TrackerType
 {
-    TRACKED_ENTITY, ENROLLMENT, EVENT, RELATIONSHIP;
+    TRACKED_ENTITY, ENROLLMENT, EVENT, RELATIONSHIP
 }

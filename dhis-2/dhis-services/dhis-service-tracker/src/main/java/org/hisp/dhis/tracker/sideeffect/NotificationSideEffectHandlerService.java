@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.tracker.sideeffect;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,23 +28,27 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+import org.springframework.stereotype.Service;
 
 /**
- * @author Zubair Asghar.
+ * @author Zubair Asghar
  */
-public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
-{
-    private long programStageInstance;
 
-    public ProgramStageCompletionNotificationEvent( Object source, long programStageInstance )
+@Service
+public class NotificationSideEffectHandlerService implements SideEffectHandlerService
+{
+    private final TrackerNotificationMessageManager notificationMessageManager;
+
+    public NotificationSideEffectHandlerService( TrackerNotificationMessageManager messageManager )
     {
-        super( source );
-        this.programStageInstance = programStageInstance;
+        this.notificationMessageManager = messageManager;
     }
 
-    public long getProgramStageInstance()
+    @Override
+    public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
-        return programStageInstance;
+        notificationMessageManager.addJob( sideEffectDataBundle );
     }
 }

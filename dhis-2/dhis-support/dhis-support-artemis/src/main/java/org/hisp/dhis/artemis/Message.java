@@ -28,18 +28,10 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.io.Serializable;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Message extends Serializable
+public interface Message
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     MessageType getMessageType();
 }

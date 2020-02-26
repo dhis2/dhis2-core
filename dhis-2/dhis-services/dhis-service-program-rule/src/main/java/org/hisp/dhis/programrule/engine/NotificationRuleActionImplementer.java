@@ -33,6 +33,8 @@ import java.util.Date;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
@@ -41,12 +43,11 @@ import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 @Slf4j
 abstract class NotificationRuleActionImplementer implements RuleActionImplementer
@@ -55,13 +56,26 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramNotificationTemplateStore programNotificationTemplateStore;
+    protected final ProgramNotificationTemplateStore programNotificationTemplateStore;
 
-    @Autowired
-    private NotificationLoggingService notificationLoggingService;
+    protected final NotificationLoggingService notificationLoggingService;
 
-    protected ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
+    protected final ProgramInstanceService programInstanceService;
+
+    protected final ProgramStageInstanceService programStageInstanceService;
+
+    public NotificationRuleActionImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+          NotificationLoggingService notificationLoggingService,
+          ProgramInstanceService programInstanceService,
+          ProgramStageInstanceService programStageInstanceService )
+    {
+        this.programNotificationTemplateStore = programNotificationTemplateStore;
+        this.notificationLoggingService = notificationLoggingService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+    }
+
+    protected ExternalNotificationLogEntry createLogEntry(String key, String templateUid )
     {
         ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
         entry.setLastSentAt( new Date() );

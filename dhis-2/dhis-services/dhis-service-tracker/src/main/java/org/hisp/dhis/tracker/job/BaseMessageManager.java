@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.tracker.job;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,23 +28,42 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Zubair Asghar.
+ * @author Zubair Asghar
  */
-public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
+
+@Component
+public abstract class BaseMessageManager
 {
-    private long programStageInstance;
+    private final MessageManager messageManager;
+    private final SchedulingManager schedulingManager;
 
-    public ProgramStageCompletionNotificationEvent( Object source, long programStageInstance )
+    public BaseMessageManager(
+            MessageManager messageManager,
+            SchedulingManager schedulingManager )
     {
-        super( source );
-        this.programStageInstance = programStageInstance;
+        this.messageManager = messageManager;
+        this.schedulingManager = schedulingManager;
     }
 
-    public long getProgramStageInstance()
+    public String addJob( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
-        return programStageInstance;
+        String jobId = CodeGenerator.generateUid();
+
+        messageManager.sendQueue( getTopic(), sideEffectDataBundle );
+
+        return jobId;
     }
+
+    public void executeJob( Runnable runnable )
+    {
+        schedulingManager.executeJob( runnable );
+    }
+
+    public abstract String getTopic();
 }
