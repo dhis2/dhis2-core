@@ -45,6 +45,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -90,6 +91,7 @@ public class TrackerController
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PreAuthorize( "hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser ) throws IOException
     {
         TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
