@@ -177,7 +177,7 @@ public class TrackedEntityInstanceServiceTest
 
         entityInstanceService.addTrackedEntityInstanceWithAudit( entityInstanceA1 );
 
-        Mockito.verify( applicationEventPublisher ).publishEvent( Mockito.argThat( ( Audit audit ) -> audit.getAuditType() == AuditType.CREATE ) );
+        Mockito.verify( applicationEventPublisher ).publishEvent( Mockito.argThat( ( Audit audit ) -> audit != null && audit.getUid() != null && audit.getUid().equals( entityInstanceA1.getUid() ) ) );
     }
 
     @Test
@@ -191,7 +191,7 @@ public class TrackedEntityInstanceServiceTest
 
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         // Audit event should not be published here
-        Mockito.verify( applicationEventPublisher, Mockito.never() ).publishEvent( Mockito.any() );
+        Mockito.verify( applicationEventPublisher, Mockito.never() ).publishEvent( Audit.class );
 
         entityInstanceService.deleteTrackedEntityInstanceWithAudit( entityInstanceA1 );
 

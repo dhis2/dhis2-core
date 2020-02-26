@@ -942,7 +942,8 @@ public class DefaultTrackedEntityInstanceService
     @Transactional
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
-        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
+        // TODO should  TrackedEntityAttributeValueAudits be deleted also ?
+        //  attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
     }
@@ -951,7 +952,8 @@ public class DefaultTrackedEntityInstanceService
     @Transactional
     public void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance, User user )
     {
-        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
+        // TODO should  TrackedEntityAttributeValueAudits be deleted also ?
+        //  attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
         addTrackedEntityInstanceAudit( instance, user.getUsername(), org.hisp.dhis.audit.AuditType.DELETE );
@@ -961,7 +963,8 @@ public class DefaultTrackedEntityInstanceService
     @Transactional
     public void deleteTrackedEntityInstanceWithAudit( TrackedEntityInstance instance )
     {
-        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
+        // TODO should  TrackedEntityAttributeValueAudits be deleted also ?
+        //  attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
         addTrackedEntityInstanceAudit( instance, currentUserService.getCurrentUsername(), org.hisp.dhis.audit.AuditType.DELETE );

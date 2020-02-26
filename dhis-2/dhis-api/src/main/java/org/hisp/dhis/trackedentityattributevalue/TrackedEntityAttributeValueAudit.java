@@ -79,7 +79,6 @@ public class TrackedEntityAttributeValueAudit
     {
         this.attribute = trackedEntityAttributeValue.getAttribute();
         this.entityInstance = trackedEntityAttributeValue.getEntityInstance();
-
         this.created = LocalDateTime.now();
         this.value = value;
         this.modifiedBy = modifiedBy;
