@@ -32,6 +32,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
@@ -42,6 +45,7 @@ import java.io.Serializable;
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
+@Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
 public class Relationship
     extends BaseIdentifiableObject
@@ -54,6 +58,7 @@ public class Relationship
 
     private RelationshipType relationshipType;
 
+    @AuditAttribute
     private RelationshipItem from;
 
     private RelationshipItem to;
