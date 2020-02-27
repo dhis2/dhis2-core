@@ -31,9 +31,12 @@ package org.hisp.dhis.artemis.audit;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -52,23 +55,28 @@ public class AuditManager
 
     private final AuditObjectFactory objectFactory;
 
+    private final SessionFactory sessionFactory;
+
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
         AuditScheduler auditScheduler,
         AuditProducerConfiguration config,
         AuditMatrix auditMatrix,
-        AuditObjectFactory auditObjectFactory )
+        AuditObjectFactory auditObjectFactory,
+        SessionFactory sessionFactory )
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
         checkNotNull( auditMatrix );
         checkNotNull( auditObjectFactory );
+        checkNotNull( sessionFactory );
 
         this.auditProducerSupplier = auditProducerSupplier;
         this.config = config;
         this.auditScheduler = auditScheduler;
         this.auditMatrix = auditMatrix;
         this.objectFactory = auditObjectFactory;
+        this.sessionFactory = sessionFactory;
     }
 
     public void send( Audit audit )
@@ -79,9 +87,27 @@ public class AuditManager
             return;
         }
 
-        audit.setData( (audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
-            : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(), audit.getAuditableEntity().getEntity(),
-            audit.getCreatedBy() )) );
+        Object entity = audit.getAuditableEntity().getEntity();
+
+        if ( entity instanceof String )
+        {
+            audit.setData( entity );
+        }
+        else
+        {
+            Session session = sessionFactory.getCurrentSession();
+
+            if ( !session.contains( entity ) )
+            {
+                session.load( entity, ( ( IdentifiableObject ) entity ).getId() );
+            }
+
+            audit.setData( this.objectFactory.create(
+                audit.getAuditScope(),
+                audit.getAuditType(),
+                audit.getAuditableEntity().getEntity(),
+                audit.getCreatedBy() ) );
+        }
 
         audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
 

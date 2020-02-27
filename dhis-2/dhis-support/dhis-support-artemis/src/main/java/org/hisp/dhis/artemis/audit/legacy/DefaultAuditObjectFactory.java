@@ -37,6 +37,7 @@ import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -136,7 +137,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         if ( object instanceof TrackedEntityInstance )
         {
             return  renderService.toJsonAsString( TrackedEntityAuditPayload.builder()
-                .trackedEntityInstance( (TrackedEntityInstance) object )
+                .trackedEntityInstance( ( TrackedEntityInstance ) object )
                 .build() );
         }
 
