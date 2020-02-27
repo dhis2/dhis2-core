@@ -140,11 +140,11 @@ public class QueryItem
     {
         QueryKey key = new QueryKey();
 
-        key.add( getItemId() ).addIgnoreNull( getFiltersAsString() );
+        key.add( "item", getItemId() ).addIgnoreNull( "filter", getFiltersAsString() );
 
         if ( legendSet != null )
         {
-            key.add( legendSet.getUid() );
+            key.add( "legendSet", legendSet.getUid() );
         }
 
         return key.build();
@@ -203,7 +203,7 @@ public class QueryItem
     public boolean hasProgramStage()
     {
         return programStage != null;
-    }   
+    }
 
     public boolean isProgramIndicator()
     {

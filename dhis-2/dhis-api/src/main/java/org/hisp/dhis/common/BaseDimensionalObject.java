@@ -247,14 +247,14 @@ public class BaseDimensionalObject
     {
         QueryKey key = new QueryKey();
 
-        key.add( getDimension() );
-        getItems().forEach( e -> key.add( e.getDimensionItem() ) );
+        key.add( "dimension", getDimension() );
+        getItems().forEach( e -> key.add( "item", e.getDimensionItem() ) );
 
         return key
-            .add( allItems )
-            .addIgnoreNull( legendSet )
-            .addIgnoreNull( aggregationType )
-            .addIgnoreNull( filter ).asPlainKey();
+            .add( "allItems", allItems )
+            .addIgnoreNull( "legendSet", legendSet )
+            .addIgnoreNull( "aggregationType", aggregationType )
+            .addIgnoreNull( "filter", filter ).asPlainKey();
     }
 
     //--------------------------------------------------------------------------
