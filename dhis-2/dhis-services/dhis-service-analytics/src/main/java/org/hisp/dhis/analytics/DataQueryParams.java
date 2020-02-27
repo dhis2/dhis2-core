@@ -508,39 +508,39 @@ public class DataQueryParams
     {
         QueryKey key = new QueryKey();
 
-        dimensions.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
-        filters.forEach( e -> key.add( "[" + e.getKey() + "]" ) );
+        dimensions.forEach( e -> key.add( "dimension", "[" + e.getKey() + "]" ) );
+        filters.forEach( e -> key.add( "filter", "[" + e.getKey() + "]" ) );
 
-        measureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
-        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( ( String.valueOf( k ) + v ) ) );
+        measureCriteria.forEach( ( k, v ) -> key.add( "measureCriteria", ( String.valueOf( k ) + v ) ) );
+        preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( "preAggregateMeasureCriteria", ( String.valueOf( k ) + v ) ) );
 
         return key
-            .add( aggregationType )
-            .add( skipMeta )
-            .add( skipData )
-            .add( skipHeaders )
-            .add( skipRounding )
-            .add( completedOnly )
-            .add( hierarchyMeta )
-            .add( ignoreLimit )
-            .add( hideEmptyRows )
-            .add( hideEmptyColumns )
-            .add( showHierarchy )
-            .add( includeNumDen )
-            .add( includePeriodStartEndDates )
-            .add( includeMetadataDetails )
-            .add( displayProperty )
-            .add( outputIdScheme )
-            .add( outputFormat )
-            .add( duplicatesOnly )
-            .add( approvalLevel )
-            .add( startDate )
-            .add( endDate )
-            .add( order )
-            .add( timeField )
-            .add( orgUnitField )
-            .add( userOrgUnitType )
-            .addIgnoreNull( apiVersion ).build();
+            .add( "aggregationType", aggregationType )
+            .add( "skipMeta", skipMeta )
+            .add( "skipData", skipData )
+            .add( "skipHeaders", skipHeaders )
+            .add( "skipRounding", skipRounding )
+            .add( "completedOnly", completedOnly )
+            .add( "hierarchyMeta", hierarchyMeta )
+            .add( "ignoreLimit", ignoreLimit )
+            .add( "hideEmptyRows", hideEmptyRows )
+            .add( "hideEmptyColumns", hideEmptyColumns )
+            .add( "showHierarchy", showHierarchy )
+            .add( "includeNumDen", includeNumDen )
+            .add( "includePeriodStartEndDates", includePeriodStartEndDates )
+            .add( "includeMetadataDetails", includeMetadataDetails )
+            .add( "displayProperty", displayProperty )
+            .add( "outputIdScheme", outputIdScheme )
+            .add( "outputFormat", outputFormat )
+            .add( "duplicatesOnly", duplicatesOnly )
+            .add( "approvalLevel", approvalLevel )
+            .add( "startDate", startDate )
+            .add( "endDate", endDate )
+            .add( "order", order )
+            .add( "timeField", timeField )
+            .add( "orgUnitField", orgUnitField )
+            .add( "userOrgUnitType", userOrgUnitType )
+            .addIgnoreNull( "apiVersion", apiVersion ).build();
     }
 
     // -------------------------------------------------------------------------
