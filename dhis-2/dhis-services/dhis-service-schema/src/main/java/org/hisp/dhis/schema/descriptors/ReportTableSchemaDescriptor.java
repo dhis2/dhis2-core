@@ -46,6 +46,10 @@ public class ReportTableSchemaDescriptor implements SchemaDescriptor
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
+    public static final String F_REPORTTABLE_PUBLIC_ADD = "F_REPORTTABLE_PUBLIC_ADD";
+
+    public static final String F_REPORTTABLE_EXTERNAL = "F_REPORTTABLE_EXTERNAL";
+
     @Override
     public Schema getSchema()
     {
@@ -54,8 +58,10 @@ public class ReportTableSchemaDescriptor implements SchemaDescriptor
         schema.setOrder( 2000 );
         schema.setImplicitPrivateAuthority( true );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_REPORTTABLE_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_REPORTTABLE_EXTERNAL" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_REPORTTABLE_PUBLIC_ADD ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_REPORTTABLE_EXTERNAL ) ) );
 
         return schema;
     }

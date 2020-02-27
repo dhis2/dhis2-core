@@ -32,8 +32,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.vividsolutions.jts.geom.Geometry;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -137,6 +137,8 @@ import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,7 +184,7 @@ import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 @ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
-    protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
+    protected static final Logger log = LoggerFactory.getLogger( DhisConvenienceTest.class );
 
     protected static final String BASE_UID = "abcdefghij";
     protected static final String BASE_IN_UID = "inabcdefgh";
@@ -1618,7 +1620,7 @@ public abstract class DhisConvenienceTest
         teiConstraintB.setTrackedEntityType( trackedEntityType );
         teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
-        relationshipType.setName( "Person to person" );
+        relationshipType.setName( "Person_to_person_" + uniqueCharacter );
         relationshipType.setBidirectional( isBidirectional );
         relationshipType.setFromConstraint( teiConstraintA );
         relationshipType.setToConstraint( teiConstraintB );
@@ -1950,7 +1952,7 @@ public abstract class DhisConvenienceTest
         }
         catch ( IOException ex )
         {
-            log.error( ex );
+            log.error( "An error occurred when deserializing from Json", ex );
         }
 
         return null;

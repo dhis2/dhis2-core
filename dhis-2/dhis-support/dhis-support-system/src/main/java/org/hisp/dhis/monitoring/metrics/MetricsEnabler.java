@@ -28,8 +28,9 @@ package org.hisp.dhis.monitoring.metrics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;
@@ -38,11 +39,10 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public abstract class MetricsEnabler
     extends PropertiesAwareConfigurationCondition
 {
-    private static final Log log = LogFactory.getLog( MetricsEnabler.class );
-
     @Override
     public ConfigurationPhase getConfigurationPhase()
     {

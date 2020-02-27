@@ -33,20 +33,24 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -72,7 +76,7 @@ public class TrackerBundle
      * What identifiers to match on.
      */
     @Builder.Default
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
+    private TrackerIdScheme identifier = TrackerIdScheme.UID;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -126,6 +130,24 @@ public class TrackerBundle
      */
     @Builder.Default
     private List<Event> events = new ArrayList<>();
+
+    /**
+     * Relationships to import.
+     */
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
+
+    /**
+     * Rule effects for Enrollments.
+     */
+    @Builder.Default
+    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+
+    /**
+     * Rule effects for Events.
+     */
+    @Builder.Default
+    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
     @JsonProperty
     public String getUsername()

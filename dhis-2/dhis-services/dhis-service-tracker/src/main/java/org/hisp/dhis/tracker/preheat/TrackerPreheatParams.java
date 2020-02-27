@@ -33,9 +33,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
 
@@ -66,11 +67,11 @@ public class TrackerPreheatParams
     private User user;
 
     /**
-     * What identifiers to match on.
+     * Identifiers to match metadata
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
+    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     /**
      * Tracked entities to import.
@@ -92,6 +93,13 @@ public class TrackerPreheatParams
     @JsonProperty
     @Builder.Default
     private List<Event> events = new ArrayList<>();
+
+    /**
+     * Relationships to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
     public String getUsername()

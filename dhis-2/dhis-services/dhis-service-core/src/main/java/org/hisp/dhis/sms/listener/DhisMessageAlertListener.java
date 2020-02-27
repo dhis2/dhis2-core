@@ -28,8 +28,10 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -53,23 +55,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+@Slf4j
 @Component( "org.hisp.dhis.sms.listener.DhisMessageAlertListener" )
 @Transactional
 public class DhisMessageAlertListener
     extends
     CommandSMSListener
 {
-    private static final Log log = LogFactory.getLog( DhisMessageAlertListener.class );
-
     private final SMSCommandService smsCommandService;
 
     private final MessageService messageService;

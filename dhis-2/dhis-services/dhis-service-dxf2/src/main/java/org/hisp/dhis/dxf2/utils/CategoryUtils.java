@@ -31,24 +31,24 @@ package org.hisp.dhis.dxf2.utils;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.category.DefaultCategoryManager;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
-import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Slf4j
 @Component
 public class CategoryUtils
 {
@@ -56,8 +56,6 @@ public class CategoryUtils
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private static final Log log = LogFactory.getLog( DefaultCategoryManager.class );
 
     @Autowired
     private CategoryService categoryService;

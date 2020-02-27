@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.analytics.AnalyticsCacheMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
@@ -145,6 +146,7 @@ public enum SettingKey
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true, false ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
     GOOGLE_CLOUD_API_KEY( "keyGoogleCloudApiKey", "AIzaSyDWyCSemDgAxocSL7j9Dy4mi93xTTcPEek", String.class ),
+    BING_MAPS_API_KEY( "keyBingMapsApiKey", "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
     METADATAVERSION_ENABLED( "keyVersionEnabled", Boolean.FALSE, Boolean.class ),
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
@@ -162,7 +164,18 @@ public enum SettingKey
     ANALYTICS_HIDE_DAILY_PERIODS( "keyHideDailyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
-    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class );
+    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
+
+    /**
+     * The Analytics query time to live caching factor. It's used as a factor to assist with the
+     * caching TTL calculation.
+     */
+    ANALYTICS_TTL_CACHE_FACTOR( "keyAnalyticsTtlCacheFactor", 160, Integer.class ),
+
+    /**
+     * The cache mode enabled for Analytics. It can be FIXED or PROGRESSIVE.
+     */
+    ANALYTICS_CACHE_MODE( "keyAnalyticsCacheMode", AnalyticsCacheMode.FIXED, AnalyticsCacheMode.class );
 
     private final String name;
 
@@ -285,7 +298,7 @@ public enum SettingKey
             }
             else if ( Date.class.isAssignableFrom( settingClazz ) )
             {
-                //Accepts String with date in ISO_LOCAL_DATE_TIME format
+                // Accepts String with date in ISO_LOCAL_DATE_TIME format
                 LocalDateTime dateTime = LocalDateTime.parse( value );
 
                 return Date.from( dateTime.atZone( ZoneId.systemDefault() ).toInstant() );

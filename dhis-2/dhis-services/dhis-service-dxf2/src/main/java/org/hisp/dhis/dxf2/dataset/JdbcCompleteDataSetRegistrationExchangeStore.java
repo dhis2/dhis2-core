@@ -36,8 +36,6 @@ import java.util.Date;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
@@ -52,19 +50,20 @@ import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ImmutableMap;
-import org.springframework.stereotype.Repository;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Repository( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeStore" )
 public class JdbcCompleteDataSetRegistrationExchangeStore
         implements CompleteDataSetRegistrationExchangeStore
 {
-    private static final Log log = LogFactory.getLog( JdbcCompleteDataSetRegistrationExchangeStore.class );
-
     //--------------------------------------------------------------------------
     // Id scheme parameters
     //--------------------------------------------------------------------------
@@ -92,6 +91,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     private static final String P_STORED_BY = "storedby";
 
     private static final String P_PERIOD_START = "pe_start";
+
+    private static final String P_COMPLETED = "completed";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -197,7 +198,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
             cdsr.setAttributeOptionCombo( rs.getString( P_ATTR_OPT_COMBO ) );
             cdsr.setDate( removeTime( rs.getString( P_DATE ) ) );
             cdsr.setStoredBy( rs.getString( P_STORED_BY ) );
-
+            cdsr.setCompleted( rs.getBoolean( P_COMPLETED ) );
             cdsr.close();
         } );
 
@@ -215,7 +216,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
         String sql =
             "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
-                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created, cdsr.completed AS completed " +
                 "FROM completedatasetregistration cdsr " +
                 "INNER JOIN dataset ds ON ( cdsr.datasetid=ds.datasetid ) " +
                 "INNER JOIN period pe ON ( cdsr.periodid=pe.periodid ) " +

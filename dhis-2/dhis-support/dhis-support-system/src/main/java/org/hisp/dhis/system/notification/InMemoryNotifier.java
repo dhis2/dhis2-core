@@ -28,8 +28,7 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.util.StringUtils;
@@ -44,10 +43,9 @@ import java.util.Map;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class InMemoryNotifier implements Notifier
 {
-    private static final Log log = LogFactory.getLog( InMemoryNotifier.class );
-
     private NotificationMap notificationMap = new NotificationMap();
 
     // -------------------------------------------------------------------------
@@ -80,7 +78,7 @@ public class InMemoryNotifier implements Notifier
 
             notificationMap.add( id, notification );
 
-            log.info( notification );
+            log.info( notification.toString() );
         }
 
         return this;
