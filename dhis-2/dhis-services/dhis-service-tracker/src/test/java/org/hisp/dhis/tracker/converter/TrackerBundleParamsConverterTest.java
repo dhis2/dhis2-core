@@ -84,7 +84,7 @@ public class TrackerBundleParamsConverterTest
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID )
+            .trackedEntities( Collections.singletonList( trackedEntity ) )
             .atomicMode( AtomicMode.ALL ).build();
 
         String jsonPayload = toJson( build );
@@ -109,7 +109,7 @@ public class TrackerBundleParamsConverterTest
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID )
+            .trackedEntities( Collections.singletonList( trackedEntity ) )
             .atomicMode( AtomicMode.ALL ).build();
 
         String jsonPayload = toJson( build );
@@ -132,7 +132,7 @@ public class TrackerBundleParamsConverterTest
         TrackedEntity trackedEntity = createTrackedEntity( null, enrollments );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID )
+            .trackedEntities( Collections.singletonList( trackedEntity ) )
             .atomicMode( AtomicMode.ALL ).build();
 
         String jsonPayload = toJson( build );
