@@ -181,7 +181,7 @@ public class TrackerPreheat
     }
 
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getAll( TrackerIdentifier identifier, Class<T> klass )
+    public <T extends IdentifiableObject> List<T> getAll( TrackerIdScheme identifier, Class<T> klass )
     {
         if ( !map.containsKey( identifier ) || !map.get( identifier ).containsKey( klass ) )
         {

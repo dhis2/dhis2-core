@@ -227,9 +227,8 @@ public class DefaultTrackerPreheatService
             else
             {
                 Schema schema = schemaService.getDynamicSchema( klass );
-                TrackerIdentifier identifier = params.getIdentifiers().getIdScheme();
 
-                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
+                queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList );
             }
         }
 

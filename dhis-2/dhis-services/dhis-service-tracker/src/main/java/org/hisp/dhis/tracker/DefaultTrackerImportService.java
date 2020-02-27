@@ -225,8 +225,15 @@ public class DefaultTrackerImportService
 
         if ( IdScheme.isAttribute( parameters.get( key ).get( 0 ) ) )
         {
+            String uid = "";
+
             // Get second half of string, separated by ':'
-            String uid = parameters.get( key ).get( 0 ).split( ":" )[1];
+            String[] splitParam = parameters.get( key ).get( 0 ).split( ":" );
+
+            if ( splitParam.length > 1 )
+            {
+                uid = splitParam[1];
+            }
 
             if ( CodeGenerator.isValidUid( uid ) )
             {
