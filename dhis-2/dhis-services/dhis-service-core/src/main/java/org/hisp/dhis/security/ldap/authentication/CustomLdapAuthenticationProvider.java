@@ -45,7 +45,8 @@ public class CustomLdapAuthenticationProvider
 {
     private final DhisConfigurationProvider configurationProvider;
 
-    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator, DhisConfigurationProvider configurationProvider )
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator,
+        LdapAuthoritiesPopulator authoritiesPopulator, DhisConfigurationProvider configurationProvider )
     {
         super( authenticator, authoritiesPopulator );
 
