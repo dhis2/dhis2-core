@@ -95,9 +95,10 @@ public class AuditManager
         }
         else
         {
+
             Session session = sessionFactory.getCurrentSession();
 
-            if ( !session.contains( entity ) )
+            if ( !session.contains( entity ) &&  entity instanceof IdentifiableObject )
             {
                 session.load( entity, ( ( IdentifiableObject ) entity ).getId() );
             }

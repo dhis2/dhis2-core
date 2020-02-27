@@ -45,7 +45,6 @@ import java.io.Serializable;
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
-@Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
 public class Relationship
     extends BaseIdentifiableObject
