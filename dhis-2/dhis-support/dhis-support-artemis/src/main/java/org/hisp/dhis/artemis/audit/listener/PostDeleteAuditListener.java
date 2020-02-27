@@ -28,6 +28,8 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
@@ -44,9 +46,10 @@ import java.time.LocalDateTime;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostDeleteEventListener
+    extends AbstractHibernateListener implements PostCommitDeleteEventListener
 {
     public PostDeleteAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier )
@@ -55,9 +58,9 @@ public class PostDeleteAuditListener
     }
 
     @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    AuditType getAuditType()
     {
-        return false;
+        return AuditType.DELETE;
     }
 
     @Override
@@ -76,8 +79,14 @@ public class PostDeleteAuditListener
     }
 
     @Override
-    AuditType getAuditType()
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
-        return AuditType.DELETE;
+        return true;
+    }
+
+    @Override
+    public void onPostDeleteCommitFailed( PostDeleteEvent event )
+    {
+        log.warn( "onPostDeleteCommitFailed: "+ event );
     }
 }

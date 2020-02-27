@@ -31,6 +31,7 @@ package org.hisp.dhis.audit.payloads;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,7 +41,7 @@ import lombok.Data;
 public class TrackedEntityAuditPayload implements AuditPayload
 {
     @JsonProperty
-    private final String trackedEntityInstance;
+    private final TrackedEntityInstance trackedEntityInstance;
 
     @JsonProperty
     private final String comment;

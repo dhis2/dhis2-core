@@ -28,19 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,7 +40,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -61,7 +48,24 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -89,13 +93,9 @@ public class DefaultTrackedEntityInstanceService
 
     private final CurrentUserService currentUserService;
 
-    private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
-
     private final AclService aclService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
-
-    private final AuditManager auditManager;
 
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
@@ -103,8 +103,8 @@ public class DefaultTrackedEntityInstanceService
         TrackedEntityAttributeValueService attributeValueService, TrackedEntityAttributeService attributeService,
         TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
-        TrackedEntityAttributeValueAuditService attributeValueAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager )
+        AclService aclService,
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager)
     {
         checkNotNull( trackedEntityInstanceStore );
         checkNotNull( attributeValueService );
@@ -113,10 +113,8 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( programService );
         checkNotNull( organisationUnitService );
         checkNotNull( currentUserService );
-        checkNotNull( attributeValueAuditService );
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
-        checkNotNull( auditManager );
 
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.attributeValueService = attributeValueService;
@@ -125,10 +123,8 @@ public class DefaultTrackedEntityInstanceService
         this.programService = programService;
         this.organisationUnitService = organisationUnitService;
         this.currentUserService = currentUserService;
-        this.attributeValueAuditService = attributeValueAuditService;
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-        this.auditManager = auditManager;
     }
 
     // -------------------------------------------------------------------------
@@ -164,16 +160,7 @@ public class DefaultTrackedEntityInstanceService
 
         params.handleCurrentUserSelectionMode();
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
-
-        String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
-
-        for ( TrackedEntityInstance tei : trackedEntityInstances )
-        {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
-        }
-
-        return trackedEntityInstances;
+       return trackedEntityInstanceStore.getTrackedEntityInstances( params );
     }
 
     @Override
@@ -301,21 +288,10 @@ public class DefaultTrackedEntityInstanceService
                 trackedEntityTypes.put( entity.get( TRACKED_ENTITY_ID ), te );
             }
 
-            if ( te != null && te.isAllowAuditLog() && accessedBy != null )
-            {
-                TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
-                    .trackedEntityInstance( entity.get( TRACKED_ENTITY_INSTANCE_ID ) )
-                    .accessedBy( accessedBy )
-                    .build();
-
-                sendAuditEvent( AuditType.SEARCH, auditPayload );
-            }
-
             for ( QueryItem item : params.getAttributes() )
             {
                 grid.addValue( entity.get( item.getItemId() ) );
             }
-
         }
 
         Map<String, Object> metaData = new HashMap<>();
@@ -898,7 +874,6 @@ public class DefaultTrackedEntityInstanceService
     @Transactional
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
-        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
     }
@@ -908,8 +883,6 @@ public class DefaultTrackedEntityInstanceService
     public TrackedEntityInstance getTrackedEntityInstance( long id )
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.get( id );
-        addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
-
         return tei;
     }
 
@@ -918,8 +891,6 @@ public class DefaultTrackedEntityInstanceService
     public TrackedEntityInstance getTrackedEntityInstance( String uid )
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( uid );
-        addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
-
         return tei;
     }
 
@@ -978,43 +949,5 @@ public class DefaultTrackedEntityInstanceService
         }
 
         return true;
-    }
-
-    private void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user, AuditType auditType )
-    {
-        if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
-        {
-            TrackedEntityAuditPayload auditPayload = TrackedEntityAuditPayload.builder()
-                .trackedEntityInstance( trackedEntityInstance.getUid() )
-                .accessedBy( user )
-                .build();
-
-            sendAuditEvent( auditType, auditPayload );
-        }
-    }
-
-    private void sendAuditEvent( AuditType auditType, TrackedEntityAuditPayload auditPayload )
-    {
-        auditManager.send( Audit.builder()
-            .auditType( mapAuditType( auditType ) )
-            .auditScope( AuditScope.TRACKER )
-            .createdAt( LocalDateTime.now() )
-            .createdBy( auditPayload.getAccessedBy() )
-            .klass( TrackedEntityInstance.class.getName() )
-            .uid( auditPayload.getTrackedEntityInstance() )
-            .auditableEntity( new AuditableEntity( auditPayload ) )
-            .build() );
-    }
-
-    private org.hisp.dhis.audit.AuditType mapAuditType( AuditType auditType )
-    {
-        switch ( auditType )
-        {
-            case SEARCH:
-                return org.hisp.dhis.audit.AuditType.SEARCH;
-            case READ:
-            default:
-                return org.hisp.dhis.audit.AuditType.READ;
-        }
     }
 }

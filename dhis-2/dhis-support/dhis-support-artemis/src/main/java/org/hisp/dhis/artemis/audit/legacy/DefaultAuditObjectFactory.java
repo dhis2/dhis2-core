@@ -33,12 +33,18 @@ import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
+import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -131,7 +137,22 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 
     private Object handleTracker( AuditType auditType, Object object, String user )
     {
-        return null;
+        if ( object instanceof TrackedEntityAttributeValue )
+        {
+            TrackedEntityAttributeValue value = ( TrackedEntityAttributeValue ) object;
+            value.setAttribute( clearSharing( value.getAttribute() ) );
+
+            return  renderService.toJsonAsString( value );
+        }
+
+        if ( object instanceof TrackedEntityInstance )
+        {
+            return  renderService.toJsonAsString( TrackedEntityAuditPayload.builder()
+                .trackedEntityInstance( ( TrackedEntityInstance ) object )
+                .build() );
+        }
+
+        return renderService.toJsonAsString( object );
     }
 
     private Object handleAggregate( AuditType auditType, Object object, String user )
@@ -147,7 +168,14 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
         }
 
         return renderService.toJsonAsString( MetadataAuditPayload.builder()
-            .identifiableObject( (IdentifiableObject) object )
+            .identifiableObject( clearSharing( ( BaseIdentifiableObject ) object ) )
             .build() );
+    }
+
+    private <T extends BaseIdentifiableObject> T clearSharing( T identifiableObject )
+    {
+        identifiableObject.setUserGroupAccesses( null );
+        identifiableObject.setUserAccesses( null );
+        return identifiableObject;
     }
 }
