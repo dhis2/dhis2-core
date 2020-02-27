@@ -61,10 +61,10 @@ public class TrackerIdentifierCollector
     {
         Map<Class<?>, Set<String>> map = new HashMap<>();
 
-        collectTrackedEntities( map, params.getIdentifier(), params.getTrackedEntities() );
-        collectEnrollments( map, params.getIdentifier(), params.getEnrollments() );
-        collectEvents( map, params.getIdentifier(), params.getEvents() );
-        collectRelationships( map, params.getIdentifier(), params.getRelationships() );
+        collectTrackedEntities( map, params.getIdentifiers(), params.getTrackedEntities() );
+        collectEnrollments( map, params.getIdentifiers(), params.getEnrollments() );
+        collectEvents( map, params.getIdentifiers(), params.getEvents() );
+        collectRelationships( map, params.getIdentifiers(), params.getRelationships() );
 
         return map;
     }
@@ -73,67 +73,69 @@ public class TrackerIdentifierCollector
     {
         Map<Class<?>, Set<String>> map = new HashMap<>();
 
-        collectTrackedEntities( map, params.getIdentifier(), params.getTrackedEntities() );
-        collectEnrollments( map, params.getIdentifier(), params.getEnrollments() );
-        collectEvents( map, params.getIdentifier(), params.getEvents() );
-        collectRelationships( map, params.getIdentifier(), params.getRelationships() );
+        collectTrackedEntities( map, params.getIdentifiers(), params.getTrackedEntities() );
+        collectEnrollments( map, params.getIdentifiers(), params.getEnrollments() );
+        collectEvents( map, params.getIdentifiers(), params.getEvents() );
+        collectRelationships( map, params.getIdentifiers(), params.getRelationships() );
 
         return map;
     }
 
     private static void collectTrackedEntities(
-        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<TrackedEntity> trackedEntities )
+        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<TrackedEntity> trackedEntities )
     {
         trackedEntities.forEach( trackedEntity -> {
-            addIdentifier( map, TrackedEntity.class, identifier, trackedEntity.getTrackedEntity() );
-            addIdentifier( map, OrganisationUnit.class, identifier, trackedEntity.getOrgUnit() );
+            addIdentifier( map, TrackedEntity.class, params.getIdScheme().getIdScheme(), trackedEntity.getTrackedEntity() );
+            addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), trackedEntity.getOrgUnit() );
 
-            collectEnrollments( map, identifier, trackedEntity.getEnrollments() );
-            collectAttributes( map, identifier, trackedEntity.getAttributes() );
+            collectEnrollments( map, params, trackedEntity.getEnrollments() );
+            collectAttributes( map, params, trackedEntity.getAttributes() );
         } );
     }
 
     private static void collectEnrollments(
-        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Enrollment> enrollments )
+        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Enrollment> enrollments )
     {
         enrollments.forEach( enrollment -> {
-            addIdentifier( map, TrackedEntity.class, identifier, enrollment.getTrackedEntity() );
-            addIdentifier( map, Enrollment.class, identifier, enrollment.getEnrollment() );
-            addIdentifier( map, Program.class, identifier, enrollment.getProgram() );
-            addIdentifier( map, OrganisationUnit.class, identifier, enrollment.getOrgUnit() );
+            addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+            addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, enrollment.getEnrollment() );
+            addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), enrollment.getProgram() );
+            addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), enrollment.getOrgUnit() );
 
-            collectEvents( map, identifier, enrollment.getEvents() );
-            collectAttributes( map, identifier, enrollment.getAttributes() );
+            collectEvents( map, params, enrollment.getEvents() );
+            collectAttributes( map, params, enrollment.getAttributes() );
         } );
     }
 
     private static void collectEvents(
-        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Event> events )
+        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Event> events )
     {
         events.forEach( event -> {
-            addIdentifier( map, TrackedEntity.class, identifier, event.getTrackedEntity() );
-            addIdentifier( map, Enrollment.class, identifier, event.getEnrollment() );
-            addIdentifier( map, Event.class, identifier, event.getEvent() );
-            addIdentifier( map, Program.class, identifier, event.getProgram() );
-            addIdentifier( map, ProgramStage.class, identifier, event.getProgramStage() );
-            addIdentifier( map, OrganisationUnit.class, identifier, event.getOrgUnit() );
-            addIdentifier( map, CategoryOptionCombo.class, identifier, event.getAttributeOptionCombo() );
+                addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID, event.getTrackedEntity() );
+                addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, event.getEnrollment() );
+                addIdentifier( map, Event.class, TrackerIdScheme.UID, event.getEvent() );
+                addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), event.getProgram() );
+                addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
+                    event.getProgramStage() );
+                addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
+                addIdentifier( map, CategoryOptionCombo.class, TrackerIdScheme.UID, event.getAttributeOptionCombo() );
 
-            event.getDataValues().forEach( dv ->
-                addIdentifier( map, DataElement.class, identifier, dv.getDataElement() ) );
+                event.getDataValues().forEach( dv -> {
+                    addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), dv.getDataElement() );
+                } );
         } );
     }
 
     private static void collectRelationships(
-        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Relationship> relationships )
+        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Relationship> relationships )
     {
         relationships.parallelStream().forEach( relationship -> {
-            addIdentifier( map, Relationship.class, identifier, relationship.getRelationship() );
-            collectTrackedEntities( map, identifier,
+            addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationship.getRelationship() );
+            collectTrackedEntities( map, params,
                 getEntities( relationship.getFrom().getTrackedEntity(), relationship.getTo().getTrackedEntity() ) );
-            collectEnrollments( map, identifier,
+            collectEnrollments( map, params,
                 getEntities( relationship.getFrom().getEnrollment(), relationship.getTo().getEnrollment() ) );
-            collectEvents( map, identifier,
+            collectEvents( map, params,
                 getEntities( relationship.getFrom().getEvent(), relationship.getTo().getEvent() ) );
         } );
     }
@@ -148,19 +150,21 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectAttributes(
-        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<Attribute> attributes )
+        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Attribute> attributes )
     {
         if ( attributes.isEmpty() )
         {
             return;
         }
 
-        attributes.forEach( attribute ->
-            addIdentifier( map, TrackedEntityAttribute.class, identifier, attribute.getAttribute() ) );
+        attributes.forEach( attribute -> {
+            addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID,
+                attribute.getAttribute() );
+        } );
     }
 
     private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,
-        Class<T> klass, TrackerIdentifier identifier, String str )
+        Class<T> klass, TrackerIdScheme identifier, String str )
     {
         if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )
         {
