@@ -98,7 +98,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
             {
                 for ( CategoryOptionCombo optionCombo : dataSet.getIntersectingCategoryOptionCombos( orgUnit ) )
                 {
-                    if ( optionCombo.isDefault() )
+                    if ( !optionCombo.isDefault() )
                     {
                         Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
 
