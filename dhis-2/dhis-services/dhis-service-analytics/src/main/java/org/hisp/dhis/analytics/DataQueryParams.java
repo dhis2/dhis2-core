@@ -510,33 +510,6 @@ public class DataQueryParams
         preAggregateMeasureCriteria.forEach( ( k, v ) -> key.add( "preAggregateMeasureCriteria", ( String.valueOf( k ) + v ) ) );
 
         return key
-<<<<<<< HEAD
-            .add( aggregationType )
-            .add( skipMeta )
-            .add( skipData )
-            .add( skipHeaders )
-            .add( skipRounding )
-            .add( completedOnly )
-            .add( hierarchyMeta )
-            .add( ignoreLimit )
-            .add( hideEmptyRows )
-            .add( hideEmptyColumns )
-            .add( showHierarchy )
-            .add( includeNumDen )
-            .add( includePeriodStartEndDates )
-            .add( includeMetadataDetails )
-            .add( displayProperty )
-            .add( outputIdScheme )
-            .add( outputFormat )
-            .add( duplicatesOnly )
-            .add( approvalLevel )
-            .add( startDate )
-            .add( endDate )
-            .add( order )
-            .add( timeField )
-            .add( orgUnitField )
-            .addIgnoreNull( apiVersion ).build();
-=======
             .add( "aggregationType", aggregationType )
             .add( "skipMeta", skipMeta )
             .add( "skipData", skipData )
@@ -561,9 +534,7 @@ public class DataQueryParams
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
-            .add( "userOrgUnitType", userOrgUnitType )
             .addIgnoreNull( "apiVersion", apiVersion ).build();
->>>>>>> fa9a6c1a2a... fix: Fix weakness in analytics cache through named properties [DHIS2-8371] (#4961)
     }
 
     // -------------------------------------------------------------------------
