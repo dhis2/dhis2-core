@@ -84,10 +84,8 @@ public class TrackerBundleParamsConverterTest
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) )
-            .identifier( TrackerIdentifier.UID )
-            .atomicMode( AtomicMode.ALL )
-            .build();
+            .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID )
+            .atomicMode( AtomicMode.ALL ).build();
 
         String jsonPayload = toJson( build );
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
@@ -95,13 +93,11 @@ public class TrackerBundleParamsConverterTest
         assertThat( b2.getTrackedEntities(), hasSize( 1 ) );
         assertThat( b2.getEnrollments(), hasSize( 2 ) );
         assertThat( b2.getEvents(), hasSize( 10 ) );
-
-        //assertThat( b2.getTrackedEntities().get(0).getEnrollments(), hasSize( 0 ));
     }
 
     @Test
     public void verifyNestedTeiStructureHasNestedDataClearedAfterFlattening()
-            throws IOException
+        throws IOException
     {
         List<Event> events1 = createEvent( 3, "ev1", "enr1" );
         List<Event> events2 = createEvent( 7, "ev2", "enr2" );
@@ -113,15 +109,13 @@ public class TrackerBundleParamsConverterTest
         TrackedEntity trackedEntity = createTrackedEntity( "teiABC", enrollments );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-                .trackedEntities( Collections.singletonList( trackedEntity ) )
-                .identifier( TrackerIdentifier.UID )
-                .atomicMode( AtomicMode.ALL )
-                .build();
+            .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID )
+            .atomicMode( AtomicMode.ALL ).build();
 
         String jsonPayload = toJson( build );
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
 
-        assertThat( b2.getTrackedEntities().get(0).getEnrollments(), hasSize( 0 ));
+        assertThat( b2.getTrackedEntities().get( 0 ).getEnrollments(), hasSize( 0 ) );
     }
 
     @Test
@@ -148,17 +142,17 @@ public class TrackerBundleParamsConverterTest
         assertThat( b2.getTrackedEntities().get( 0 ).getTrackedEntity(), is( notNullValue() ) );
 
         // Also check parent uid is set
-        assertThat( b2.getEnrollments().get( 0 ).getTrackedEntity(), is( b2.getTrackedEntities().get( 0 ).getTrackedEntity() ) );
+        assertThat( b2.getEnrollments().get( 0 ).getTrackedEntity(),
+            is( b2.getTrackedEntities().get( 0 ).getTrackedEntity() ) );
         assertThat( b2.getEnrollments().get( 0 ).getEnrollment(), is( notNullValue() ) );
         // Also check parent uid is set
-        assertThat( b2.getEnrollments().get( 1 ).getTrackedEntity(), is( b2.getTrackedEntities().get( 0 ).getTrackedEntity() ) );
+        assertThat( b2.getEnrollments().get( 1 ).getTrackedEntity(),
+            is( b2.getTrackedEntities().get( 0 ).getTrackedEntity() ) );
         assertThat( b2.getEnrollments().get( 1 ).getEnrollment(), is( notNullValue() ) );
 
         assertThat( b2.getEvents().get( 0 ).getEvent(), is( notNullValue() ) );
         assertThat( b2.getEvents().get( 1 ).getEvent(), is( notNullValue() ) );
     }
-
-
 
     private TrackedEntity createTrackedEntity( String uid, List<Enrollment> enrollments )
     {
