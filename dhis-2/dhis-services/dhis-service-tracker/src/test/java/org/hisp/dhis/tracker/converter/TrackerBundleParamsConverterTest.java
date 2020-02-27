@@ -28,7 +28,7 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
@@ -122,6 +122,40 @@ public class TrackerBundleParamsConverterTest
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
 
         assertThat( b2.getTrackedEntities().get(0).getEnrollments(), hasSize( 0 ));
+    }
+
+    @Test
+    public void verifyUidIsAssignedWhenMissing()
+        throws IOException
+    {
+        List<Event> events1 = createEvent( 3, null, null );
+        List<Event> events2 = createEvent( 7, null, null );
+
+        List<Enrollment> enrollments = new ArrayList<>();
+        enrollments.add( createEnrollment( null, null, events1 ) );
+        enrollments.add( createEnrollment( null, null, events2 ) );
+
+        TrackedEntity trackedEntity = createTrackedEntity( null, enrollments );
+
+        TrackerBundleParams build = TrackerBundleParams.builder()
+            .trackedEntities( Collections.singletonList( trackedEntity ) ).identifier( TrackerIdentifier.UID )
+            .atomicMode( AtomicMode.ALL ).build();
+
+        String jsonPayload = toJson( build );
+        TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
+
+        // TEI has uid
+        assertThat( b2.getTrackedEntities().get( 0 ).getTrackedEntity(), is( notNullValue() ) );
+
+        // Also check parent uid is set
+        assertThat( b2.getEnrollments().get( 0 ).getTrackedEntity(), is( b2.getTrackedEntities().get( 0 ).getTrackedEntity() ) );
+        assertThat( b2.getEnrollments().get( 0 ).getEnrollment(), is( notNullValue() ) );
+        // Also check parent uid is set
+        assertThat( b2.getEnrollments().get( 1 ).getTrackedEntity(), is( b2.getTrackedEntities().get( 0 ).getTrackedEntity() ) );
+        assertThat( b2.getEnrollments().get( 1 ).getEnrollment(), is( notNullValue() ) );
+
+        assertThat( b2.getEvents().get( 0 ).getEvent(), is( notNullValue() ) );
+        assertThat( b2.getEvents().get( 1 ).getEvent(), is( notNullValue() ) );
     }
 
 

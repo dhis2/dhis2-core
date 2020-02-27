@@ -104,9 +104,11 @@ public class TrackerBundleParamsConverter
 
         List<Enrollment> enrollments = new ArrayList<>();
 
+        // Iterate over **all** enrollments
         for ( Enrollment enrollment : bundle.getTrackedEntities().stream()
                 .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() ) )
         {
+            // collect all events from enrollemts and add them to the flattened events collection
             events.addAll( enrollment.getEvents().stream().map( e -> addParent( e, enrollment.getEnrollment() ) )
                 .collect( Collectors.toList() ) );
 
@@ -167,16 +169,29 @@ public class TrackerBundleParamsConverter
 
     private void generateUid( TrackerBundleParams params )
     {
+        // Assign an UID to Tracked Entities if no UID is present
         params.getTrackedEntities().stream()
             .filter( o -> StringUtils.isEmpty( o.getTrackedEntity() ) )
             .forEach( o -> o.setTrackedEntity( CodeGenerator.generateUid() ) );
 
-        params.getEnrollments().stream()
-            .filter( o -> StringUtils.isEmpty( o.getEnrollment() ) )
-            .forEach( o -> o.setEnrollment( CodeGenerator.generateUid() ) );
+        List<TrackedEntity> trackedEntities = params.getTrackedEntities();
 
-        params.getEvents().stream()
-            .filter( o -> StringUtils.isEmpty( o.getEvent() ) )
-            .forEach( o -> o.setEvent( CodeGenerator.generateUid() ) );
+        for ( TrackedEntity trackedEntity : trackedEntities )
+        {
+            List<Enrollment> enrollments = trackedEntity.getEnrollments();
+
+            for ( Enrollment enrollment : enrollments )
+            {
+                // Assign an UID to Enrollment if no UID is present
+                if (StringUtils.isEmpty( enrollment.getEnrollment() )) {
+                    enrollment.setEnrollment(CodeGenerator.generateUid() );
+                }
+                // Assign an UID to Events if no UID is present
+                enrollment.getEvents().stream().filter( e -> StringUtils.isEmpty( e.getEvent() ) )
+                    .forEach( e -> e.setEvent( CodeGenerator.generateUid() ) );
+            }
+
+        }
+
     }
 }
