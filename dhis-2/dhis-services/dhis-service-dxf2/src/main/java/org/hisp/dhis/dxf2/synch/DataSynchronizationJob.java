@@ -85,7 +85,6 @@ public class DataSynchronizationJob extends SynchronizationJob
     {
         DataSynchronizationJobParameters jobParameters =
             (DataSynchronizationJobParameters) jobConfiguration.getJobParameters();
-        System.out.println( "Page size: " + jobParameters.getPageSize() );
         dataValueSynchronization.synchronizeData( jobParameters.getPageSize() );
         notifier.notify( jobConfiguration, "Data value sync successful" );
 

@@ -28,10 +28,17 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.synch.SystemInstance;
+import org.hisp.dhis.system.util.Clock;
+
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public abstract class DataSynchronizationWithoutPaging extends DataSynchronization
+public abstract class DataSynchronizationWithoutPaging
 {
+    protected Clock clock;
+    protected int objectsToSynchronize;
+    protected SystemInstance instance;
+
     public abstract SynchronizationResult synchronizeData();
 }
