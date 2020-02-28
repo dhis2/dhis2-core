@@ -63,7 +63,7 @@ public class DummyCheck
                         .setMainId( nonPersistedObject.getUid() );
                 ValidationUtils.addObjectReport( errorReport, typeReport, nonPersistedObject, bundle );
 
-                context.markForRemoval( nonPersistedObject);
+                context.markForRemoval( nonPersistedObject );
             }
         }
 

@@ -28,8 +28,10 @@ package org.hisp.dhis.dxf2.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
@@ -53,9 +55,8 @@ import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -99,27 +100,28 @@ public class ServiceConfig
      */
 
     private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
-            DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
-            UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, UpdateCheck.class, SchemaCheck.class,
+        UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList( SecurityCheck.class,
-            DeletionCheck.class );
+        DeletionCheck.class );
 
-    @Bean("validatorMap")
-    public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap() {
-
+    @Bean( "validatorMap" )
+    public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
+    {
         return ImmutableMap.of(
             ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
             ImportStrategy.CREATE, CREATE_CHECKS,
             ImportStrategy.UPDATE, UPDATE_CHECKS,
-            ImportStrategy.DELETE, DELETE_CHECKS);
+            ImportStrategy.DELETE, DELETE_CHECKS
+        );
     }
 }

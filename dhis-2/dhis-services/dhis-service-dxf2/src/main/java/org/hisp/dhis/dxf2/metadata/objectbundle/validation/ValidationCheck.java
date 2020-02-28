@@ -44,6 +44,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 public interface ValidationCheck
 {
     /**
+     * Execute a validation check against the {@see ObjectBundle}
      *
      * @param bundle an {@see ObjectBundle} to validate
      * @param klass the class of Object to validate, within the bundle

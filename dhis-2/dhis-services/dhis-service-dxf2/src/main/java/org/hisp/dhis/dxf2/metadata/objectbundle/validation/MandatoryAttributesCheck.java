@@ -53,7 +53,6 @@ public class MandatoryAttributesCheck
     implements
     ValidationCheck
 {
-
     @Override
     public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
@@ -96,7 +95,6 @@ public class MandatoryAttributesCheck
         Set<AttributeValue> attributeValues = object.getAttributeValues();
         Set<String> mandatoryAttributes = new HashSet<>( preheat.getMandatoryAttributes().get( klass ) ); // make copy
                                                                                                           // for
-                                                                                                          // modification
         if ( mandatoryAttributes.isEmpty() )
         {
             return errorReports;

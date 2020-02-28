@@ -57,7 +57,6 @@ public class UniqueAttributesCheck
     implements
     ValidationCheck
 {
-
     @Override
     public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,

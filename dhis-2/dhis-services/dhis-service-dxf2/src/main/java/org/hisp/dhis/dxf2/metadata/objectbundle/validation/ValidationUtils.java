@@ -51,7 +51,8 @@ public class ValidationUtils
         return Stream.concat( persistedObjects.stream(), nonPersistedObjects.stream() ).collect( Collectors.toList() );
     }
 
-    public static void addObjectReports(List<ErrorReport> reports, TypeReport typeReport, IdentifiableObject object, ObjectBundle bundle )
+    public static void addObjectReports( List<ErrorReport> reports, TypeReport typeReport, IdentifiableObject object,
+        ObjectBundle bundle )
     {
         ObjectReport objectReport = new ObjectReport( object, bundle );
         objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
@@ -61,7 +62,8 @@ public class ValidationUtils
         typeReport.getStats().incIgnored();
     }
 
-    public static void addObjectReport(ErrorReport report, TypeReport typeReport, IdentifiableObject object, ObjectBundle bundle )
+    public static void addObjectReport( ErrorReport report, TypeReport typeReport, IdentifiableObject object,
+        ObjectBundle bundle )
     {
         ObjectReport objectReport = new ObjectReport( object, bundle );
         objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
