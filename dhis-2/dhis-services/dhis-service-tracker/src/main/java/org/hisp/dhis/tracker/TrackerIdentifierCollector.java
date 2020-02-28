@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,9 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -131,22 +128,20 @@ public class TrackerIdentifierCollector
     {
         relationships.parallelStream().forEach( relationship -> {
             addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationship.getRelationship() );
-            collectTrackedEntities( map, params,
-                getEntities( relationship.getFrom().getTrackedEntity(), relationship.getTo().getTrackedEntity() ) );
-            collectEnrollments( map, params,
-                getEntities( relationship.getFrom().getEnrollment(), relationship.getTo().getEnrollment() ) );
-            collectEvents( map, params,
-                getEntities( relationship.getFrom().getEvent(), relationship.getTo().getEvent() ) );
+            if ( relationship.getFrom() != null )
+            {
+                addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID,
+                    relationship.getFrom().getTrackedEntity() );
+                addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, relationship.getFrom().getEnrollment() );
+                addIdentifier( map, Event.class, TrackerIdScheme.UID, relationship.getFrom().getEvent() );
+            }
+            if ( relationship.getTo() != null )
+            {
+                addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID, relationship.getTo().getTrackedEntity() );
+                addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, relationship.getTo().getEnrollment() );
+                addIdentifier( map, Event.class, TrackerIdScheme.UID, relationship.getTo().getEvent() );
+            }
         } );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private static <T> List<T> getEntities( T first, T second )
-    {
-        return Lists.newArrayList( first, second )
-            .stream()
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
     }
 
     private static void collectAttributes(

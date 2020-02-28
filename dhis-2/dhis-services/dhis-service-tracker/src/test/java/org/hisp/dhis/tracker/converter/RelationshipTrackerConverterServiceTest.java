@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.converter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,33 +29,20 @@ package org.hisp.dhis.tracker;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -65,12 +52,9 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Enrico Colasante
@@ -195,15 +179,15 @@ public class RelationshipTrackerConverterServiceTest
         assertNotNull( relationship1.getFrom() );
         assertNotNull( relationship1.getTo() );
         assertEquals( MOTHER_TO_CHILD_RELATIONSHIP_TYPE, relationship1.getRelationshipType() );
-        assertEquals( MOTHER, relationship1.getFrom().getTrackedEntity().getTrackedEntity() );
-        assertEquals( CHILD, relationship1.getTo().getTrackedEntity().getTrackedEntity() );
+        assertEquals( MOTHER, relationship1.getFrom().getTrackedEntity() );
+        assertEquals( CHILD, relationship1.getTo().getTrackedEntity() );
 
         Relationship relationship2 = to.get( 1 );
         assertNotNull( relationship2 );
         assertNotNull( relationship2.getFrom() );
         assertNotNull( relationship2.getTo() );
         assertEquals( CHILD_TO_MOTHER_RELATIONSHIP_TYPE, relationship2.getRelationshipType() );
-        assertEquals( CHILD, relationship2.getFrom().getTrackedEntity().getTrackedEntity() );
-        assertEquals( MOTHER, relationship2.getTo().getTrackedEntity().getTrackedEntity() );
+        assertEquals( CHILD, relationship2.getFrom().getTrackedEntity() );
+        assertEquals( MOTHER, relationship2.getTo().getTrackedEntity() );
     }
 }

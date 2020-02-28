@@ -29,17 +29,11 @@ package org.hisp.dhis.tracker.converter;
  */
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -64,21 +58,9 @@ public class RelationshipTrackerConverterService
 {
     private final TrackerPreheatService trackerPreheatService;
 
-    private final TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService;
-
-    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
-
-    private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
-
-    public RelationshipTrackerConverterService( TrackerPreheatService trackerPreheatService,
-        TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
-        TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
-        TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService )
+    public RelationshipTrackerConverterService( TrackerPreheatService trackerPreheatService )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
-        this.eventTrackerConverterService = eventTrackerConverterService;
-        this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
     }
 
     @Override
@@ -117,11 +99,11 @@ public class RelationshipTrackerConverterService
     {
         RelationshipItem relationshipItem = new RelationshipItem();
         relationshipItem.setEnrollment( from.getProgramInstance() != null ?
-            enrollmentTrackerConverterService.to( from.getProgramInstance() ) : null );
+            from.getProgramInstance().getUid() : null );
         relationshipItem.setEvent( from.getProgramStageInstance() != null ?
-            eventTrackerConverterService.to( from.getProgramStageInstance() ) : null );
+            from.getProgramStageInstance().getUid() : null );
         relationshipItem.setTrackedEntity( from.getTrackedEntityInstance() != null ?
-            trackedEntityTrackerConverterService.to( from.getTrackedEntityInstance() ) : null );
+            from.getTrackedEntityInstance().getUid() : null );
         return relationshipItem;
     }
 
@@ -196,30 +178,34 @@ public class RelationshipTrackerConverterService
             if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
             {
                 fromItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                    fromRelationship.getFrom().getTrackedEntity().getTrackedEntity() ) );
+                    fromRelationship.getFrom().getTrackedEntity() ) );
             }
             else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
             {
-                fromItem.setProgramInstance( preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment().getEnrollment() ) );
+                fromItem.setProgramInstance(
+                    preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
             }
             else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
             {
-                fromItem.setProgramStageInstance(preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent().getEvent() ) );
+                fromItem.setProgramStageInstance(
+                    preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
             }
 
             // TO
             if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
             {
                 toItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                    fromRelationship.getTo().getTrackedEntity().getTrackedEntity() ) );
+                    fromRelationship.getTo().getTrackedEntity() ) );
             }
             else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
             {
-                toItem.setProgramInstance( preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment().getEnrollment() ) );
+                toItem.setProgramInstance(
+                    preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
             }
             else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
             {
-                toItem.setProgramStageInstance(preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent().getEvent() ) );
+                toItem.setProgramStageInstance(
+                    preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
             }
 
             toRelationship.setFrom( fromItem );
