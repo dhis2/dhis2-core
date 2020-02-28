@@ -116,7 +116,7 @@ public class Enrollment
 
     @JsonProperty
     @Builder.Default
-    private Set<Relationship> relationships = new HashSet<>();
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
     @Builder.Default

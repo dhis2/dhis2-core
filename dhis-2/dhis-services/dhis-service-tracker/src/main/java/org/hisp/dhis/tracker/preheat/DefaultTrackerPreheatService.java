@@ -151,8 +151,6 @@ public class DefaultTrackerPreheatService
             preheat.setUser( currentUserService.getCurrentUser() );
         }
 
-        generateUid( params );
-
         Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
 
         for ( Class<?> klass : identifierMap.keySet() )
@@ -255,25 +253,6 @@ public class DefaultTrackerPreheatService
     public void validate( TrackerPreheatParams params )
     {
 
-    }
-
-    private void generateUid( TrackerPreheatParams params )
-    {
-        params.getTrackedEntities().stream()
-            .filter( o -> StringUtils.isEmpty( o.getTrackedEntity() ) )
-            .forEach( o -> o.setTrackedEntity( CodeGenerator.generateUid() ) );
-
-        params.getEnrollments().stream()
-            .filter( o -> StringUtils.isEmpty( o.getEnrollment() ) )
-            .forEach( o -> o.setEnrollment( CodeGenerator.generateUid() ) );
-
-        params.getEvents().stream()
-            .filter( o -> StringUtils.isEmpty( o.getEvent() ) )
-            .forEach( o -> o.setEvent( CodeGenerator.generateUid() ) );
-
-        params.getRelationships().stream()
-            .filter( o -> StringUtils.isEmpty( o.getRelationship() ) )
-            .forEach( o -> o.setRelationship( CodeGenerator.generateUid() ) );
     }
 
     private Restriction generateRestrictionFromIdentifiers( TrackerIdScheme idScheme, List<String> ids )
