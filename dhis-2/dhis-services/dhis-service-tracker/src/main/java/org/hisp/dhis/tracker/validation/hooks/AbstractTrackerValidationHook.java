@@ -206,20 +206,6 @@ public abstract class AbstractTrackerValidationHook
             : trackedEntityType;
     }
 
-    protected boolean isValidId( TrackerIdentifier identifier, String value )
-    {
-        Objects.requireNonNull( identifier, TRACKER_IDENTIFIER_CAN_T_BE_NULL );
-
-        if ( TrackerIdentifier.UID == identifier )
-        {
-            return !StringUtils.isEmpty( value ) && !CodeGenerator.isValidUid( value );
-        }
-        else
-        {
-            throw new IllegalArgumentException( "Only UID ids are implemented for now!" );
-        }
-    }
-
     protected ProgramInstance getProgramInstance( User actingUser, ProgramInstance programInstance,
         TrackedEntityInstance trackedEntityInstance, Program program )
     {

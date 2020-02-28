@@ -35,6 +35,7 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -75,22 +76,30 @@ public class EnrollmentDateValidationHook
             reporter.increment( enrollment );
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-            // Hard break?
+
+            validateMandatoryDates( reporter, enrollment );
+
             if ( program == null )
             {
                 continue;
             }
 
-            validateEnrollmentDates( reporter, program, enrollment );
+            validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
+
+            // NOTE: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
+            if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
+                && !isValidDateStringAndNotNull( enrollment.getIncidentDate() ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1023 )
+                    .addArg( enrollment.getIncidentDate() ) );
+            }
         }
 
         return reporter.getReportList();
     }
 
-    private void validateEnrollmentDates( ValidationErrorReporter errorReporter, Program program,
-        Enrollment enrollment )
+    private void validateMandatoryDates( ValidationErrorReporter errorReporter, Enrollment enrollment )
     {
-        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CAN_T_BE_NULL );
 
         // NOTE: getCreatedAtClient is always mandatory?
@@ -106,33 +115,32 @@ public class EnrollmentDateValidationHook
                 .addArg( enrollment.getLastUpdatedAtClient() ) );
         }
         // NOTE: getEnrollmentDate is always mandatory?
-        if ( !isValidDateAndNotNull( enrollment.getEnrollmentDate() ) )
+        if ( !isValidDateStringAndNotNull( enrollment.getEnrollmentDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1025 )
                 .addArg( enrollment.getEnrollmentDate() ) );
         }
+    }
 
-        if ( enrollment.getEnrollmentDate() != null
+    private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter errorReporter, Program program,
+        Enrollment enrollment )
+    {
+        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( enrollment, ENROLLMENT_CAN_T_BE_NULL );
+
+        if ( isValidDateStringAndNotNull( enrollment.getEnrollmentDate() )
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
-            && enrollment.getEnrollmentDate().after( new Date() ) )
+            && DateUtils.parseDate( enrollment.getEnrollmentDate() ).after( new Date() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1020 )
                 .addArg( enrollment.getEnrollmentDate() ) );
         }
 
-        if ( enrollment.getIncidentDate() != null
+        if ( isValidDateStringAndNotNull( enrollment.getIncidentDate() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
-            && enrollment.getIncidentDate().after( new Date() ) )
+            && DateUtils.parseDate( enrollment.getIncidentDate() ).after( new Date() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1021 )
-                .addArg( enrollment.getIncidentDate() ) );
-        }
-
-        // NOTE: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
-        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
-            && !isValidDateAndNotNull( enrollment.getIncidentDate() ) )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1023 )
                 .addArg( enrollment.getIncidentDate() ) );
         }
     }

@@ -60,20 +60,14 @@ public class EventRequiredPropertiesValidationHook
                 .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
-            if ( programStageInstance == null && isValidId( bundle.getIdentifier(), event.getEvent() ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1071 )
-                    .addArg( event ) );
-            }
-
-            if ( programStageInstance == null
-                && (bundle.getImportStrategy().isDelete() || bundle.getImportStrategy().isUpdate()) )
+            if ( bundle.getImportStrategy().isUpdate()
+                && (programStageInstance != null && programStageInstance.isDeleted()) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1082 )
                     .addArg( event.getEvent() ) );
             }
 
-            if ( organisationUnit == null )
+            if ( bundle.getImportStrategy().isCreate() && organisationUnit == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1011 )
                     .addArg( event.getOrgUnit() ) );
@@ -84,6 +78,7 @@ public class EventRequiredPropertiesValidationHook
                 reporter.addError( newReport( TrackerErrorCode.E1034 )
                     .addArg( event ) );
 
+                // Not anything more to check if program is null
                 continue;
             }
 

@@ -62,7 +62,7 @@ public enum TrackerErrorCode
     E1020( "Enrollment date: `{0}`, can`t be future date." ),
     E1021( "Incident date: `{0}`, can`t be future date." ),
     E1022( "Tracked entity instance: `{0}`, must have same tracked entity as program `{1}`." ),
-    E1023( "DisplayIncidentDate is true but IncidentDate is: `{0}`." ),
+    E1023( "DisplayIncidentDate is true but IncidentDate is null or invalid formatted: `{0}`." ),
     E1024( "Invalid enrollment incident date; `{0}`." ),
     E1025( "Invalid enrollment date: `{0}`." ),
     E1026( "Invalid enrollment created at client date: `{0}`." ),

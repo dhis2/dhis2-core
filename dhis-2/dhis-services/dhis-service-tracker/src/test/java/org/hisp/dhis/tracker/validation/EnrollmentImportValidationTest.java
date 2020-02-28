@@ -196,7 +196,6 @@ public class EnrollmentImportValidationTest
         // Should cause DB constraint error
 //        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
 //        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
-
     }
 
     @Test
@@ -224,5 +223,29 @@ public class EnrollmentImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1021 ) ) ) );
+    }
+
+    @Test
+    public void testDisplayIncidentDateTrueButDateValueNotPresentOrInvalid()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_error-displayIncident.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 2, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1023 ) ) ) );
     }
 }

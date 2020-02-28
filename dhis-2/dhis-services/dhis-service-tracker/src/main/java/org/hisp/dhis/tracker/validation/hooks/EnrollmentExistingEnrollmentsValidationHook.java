@@ -62,6 +62,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CAN_T_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
+import static org.hisp.dhis.util.DateUtils.getIso8601;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -234,10 +235,10 @@ public class EnrollmentExistingEnrollmentsValidationHook
         enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
-        enrollment.setEnrollmentDate( programInstance.getEnrollmentDate() );
-        enrollment.setIncidentDate( programInstance.getIncidentDate() );
+        enrollment.setEnrollmentDate( getIso8601(programInstance.getEnrollmentDate())  );
+        enrollment.setIncidentDate( getIso8601( programInstance.getIncidentDate() ) );
         enrollment.setFollowup( programInstance.getFollowup() );
-        enrollment.setCompletedDate( programInstance.getEndDate() );
+        enrollment.setCompletedDate( getIso8601( programInstance.getEndDate() ) );
         enrollment.setCompletedBy( programInstance.getCompletedBy() );
         enrollment.setStoredBy( programInstance.getStoredBy() );
         enrollment.setDeleted( programInstance.isDeleted() );

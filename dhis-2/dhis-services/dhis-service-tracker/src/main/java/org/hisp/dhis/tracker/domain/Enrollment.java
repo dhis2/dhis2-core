@@ -84,10 +84,10 @@ public class Enrollment
     private String orgUnitName;
 
     @JsonProperty
-    private Date enrollmentDate;
+    private String enrollmentDate;
 
     @JsonProperty
-    private Date incidentDate;
+    private String incidentDate;
 
     @JsonProperty
     private boolean followup;
@@ -96,7 +96,7 @@ public class Enrollment
     private String completedBy;
 
     @JsonProperty
-    private Date completedDate;
+    private String completedDate;
 
     @JsonProperty
     private Coordinate coordinate;
