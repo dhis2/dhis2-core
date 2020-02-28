@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -164,7 +165,8 @@ public class TrackerErrorReport
 
         public TrackerErrorReport build( TrackerBundle bundle )
         {
-            TrackerIdentifier identifier = bundle.getIdentifier();
+            TrackerIdScheme scheme = bundle.getIdentifier();
+            TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
 
             TrackerErrorMessage trackerErrorMessage = new TrackerErrorMessage( this.errorCode );
             for ( Object argument : arguments )

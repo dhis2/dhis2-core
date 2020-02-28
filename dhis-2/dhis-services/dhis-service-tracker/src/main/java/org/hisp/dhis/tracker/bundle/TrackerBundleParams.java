@@ -34,6 +34,7 @@ import java.util.List;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -63,6 +64,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
 public class TrackerBundleParams
 {
     /**
@@ -89,13 +91,6 @@ public class TrackerBundleParams
     @JsonProperty
     @Builder.Default
     private boolean skipPatternValidation = false;
-
-    /**
-     * What identifiers to match on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
 
     /**
      * Sets import strategy (create, update, etc).

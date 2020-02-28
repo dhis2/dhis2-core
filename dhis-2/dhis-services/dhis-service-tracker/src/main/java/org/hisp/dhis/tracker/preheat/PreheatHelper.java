@@ -87,6 +87,6 @@ public class PreheatHelper
 
     public static ProgramStageInstance getProgramStageInstance( TrackerBundle bundle, String event )
     {
-        return bundle.getPreheat().getEvent( TrackerIdentifier.UID, event );
+        return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
     }
 }

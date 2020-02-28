@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -72,26 +71,6 @@ public class ValidationErrorReporter
     public boolean isFailFast()
     {
         return isFailFast;
-    }
-
-    public Class<?> getMainKlass()
-    {
-        return mainKlass;
-    }
-
-    public int getLineNumber()
-    {
-        return lineNumber;
-    }
-
-    public void setLineNumber( int lineNumber )
-    {
-        this.lineNumber = lineNumber;
-    }
-
-    public <T extends IdentifiableObject> void setMainId( T entity )
-    {
-        this.mainId = this.bundle.getIdentifier().getIdAndName( entity );
     }
 
     public static TrackerErrorReport.Builder newReport( TrackerErrorCode errorCode )
