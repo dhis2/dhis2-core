@@ -82,7 +82,7 @@ public class DefaultAnalyticsSecurityManagerTest
     }
 
     @Test
-    public void testExcludeNonAuthorizedCategoryOptionsWhenOneCategoryOptionIsNotAllowed()
+    public void testExcludeOnlyAuthorizedCategoryOptionsWhenOneCategoryOptionIsNotAllowed()
     {
         // Given
         final CategoryOption aCategoryOptionNotAllowed = stubCategoryOption( "cat-option-A", "uid-opt-A" );
@@ -104,13 +104,13 @@ public class DefaultAnalyticsSecurityManagerTest
             .thenReturn( canDataReadFalse );
         when( aclService.canDataRead( currentUserService.getCurrentUser(), aCategoryOptionAllowed ) )
             .thenReturn( canDataReadTrue );
-        defaultAnalyticsSecurityManager.excludeNonAuthorizedCategoryOptions( categories );
+        defaultAnalyticsSecurityManager.excludeOnlyAuthorizedCategoryOptions( categories );
 
         // Then
-        assertThat( aCategoryA.getCategoryOptions(), hasItems( aCategoryOptionAllowed ) );
-        assertThat( aCategoryB.getCategoryOptions(), hasItems( aCategoryOptionAllowed ) );
-        assertThat( aCategoryA.getCategoryOptions(), not( hasItems( aCategoryOptionNotAllowed ) ) );
-        assertThat( aCategoryB.getCategoryOptions(), not( hasItems( aCategoryOptionNotAllowed ) ) );
+        assertThat( aCategoryA.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed ) ) );
+        assertThat( aCategoryB.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed ) ) );
+        assertThat( aCategoryA.getCategoryOptions(), hasItems( aCategoryOptionNotAllowed ) );
+        assertThat( aCategoryB.getCategoryOptions(), hasItems( aCategoryOptionNotAllowed ) );
     }
 
     @Test
@@ -135,11 +135,11 @@ public class DefaultAnalyticsSecurityManagerTest
             .thenReturn( canDataReadTrue );
         when( aclService.canDataRead( currentUserService.getCurrentUser(), anotherCategoryOptionAllowed ) )
             .thenReturn( canDataReadTrue );
-        defaultAnalyticsSecurityManager.excludeNonAuthorizedCategoryOptions( categories );
+        defaultAnalyticsSecurityManager.excludeOnlyAuthorizedCategoryOptions( categories );
 
         // Then
-        assertThat( aCategoryA.getCategoryOptions(), hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) );
-        assertThat( aCategoryB.getCategoryOptions(), hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) );
+        assertThat( aCategoryA.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) ) );
+        assertThat( aCategoryB.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) ) );
     }
 
     @Test
