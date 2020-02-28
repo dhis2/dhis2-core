@@ -28,31 +28,47 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-import org.hisp.dhis.feedback.ErrorCode;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Optional;
+
+import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
+import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
+import org.hisp.dhis.dxf2.sync.SynchronizationJob;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
-@Slf4j
 @Component( "dataSyncJob" )
-public class DataSynchronizationJob
-    extends AbstractJob
+public class DataSynchronizationJob extends SynchronizationJob
 {
-    @Autowired
-    private SynchronizationManager synchronizationManager;
+    private final SynchronizationManager synchronizationManager;
+    private final Notifier notifier;
+    private final DataValueSynchronization dataValueSynchronization;
+    private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
 
-    @Autowired
-    private Notifier notifier;
+    public DataSynchronizationJob( Notifier notifier, DataValueSynchronization dataValueSynchronization,
+        CompleteDataSetRegistrationSynchronization completenessSynchronization,
+        SynchronizationManager synchronizationManager )
+    {
+        checkNotNull( notifier );
+        checkNotNull( dataValueSynchronization );
+        checkNotNull( completenessSynchronization );
+        checkNotNull( synchronizationManager );
+
+        this.notifier = notifier;
+        this.dataValueSynchronization = dataValueSynchronization;
+        this.completenessSynchronization = completenessSynchronization;
+        this.synchronizationManager = synchronizationManager;
+    }
+
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -67,31 +83,13 @@ public class DataSynchronizationJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        try
-        {
-            synchronizationManager.executeDataValuePush();
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( jobConfiguration, "Data value sync failed: " + ex.getMessage() );
-        }
-        catch ( WebMessageParseException e )
-        {
-            log.error("Error while executing data value sync task. "+ e.getMessage(), e );
-        }
+        DataSynchronizationJobParameters jobParameters =
+            (DataSynchronizationJobParameters) jobConfiguration.getJobParameters();
+        dataValueSynchronization.synchronizeData( jobParameters.getPageSize() );
+        notifier.notify( jobConfiguration, "Data value sync successful" );
 
-        try
-        {
-            synchronizationManager.executeCompleteDataSetRegistrationPush();
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( jobConfiguration, "Complete data set registration sync failed: " + ex.getMessage() );
-        }
-        catch ( WebMessageParseException e )
-        {
-            log.error( "Error while executing complete data set registration sync task. "+ e.getMessage(), e );
-        }
+        completenessSynchronization.synchronizeData();
+        notifier.notify( jobConfiguration, "Complete data set registration sync successful" );
 
         notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
     }
@@ -99,14 +97,9 @@ public class DataSynchronizationJob
     @Override
     public ErrorReport validate()
     {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
+            DataSynchronizationJob.class );
 
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return new ErrorReport( DataSynchronizationJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
-        }
-
-        return super.validate();
+        return errorReport.orElse( super.validate() );
     }
-
 }
