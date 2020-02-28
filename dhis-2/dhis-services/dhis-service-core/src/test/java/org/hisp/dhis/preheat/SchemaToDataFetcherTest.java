@@ -164,6 +164,43 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
                     hasProperty( "url", is( "http://ok" ) )
             )
         ) );
+    }
+
+    @Test
+    public void verifyUniqueFieldsAre()
+    {
+        Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
+            Stream.of(
+                createProperty( String.class, "name", true, true ),
+                createUniqueProperty( String.class, "url", true, true ),
+                createProperty( String.class, "code", true, true )).collect(toList())
+        );
+
+        mockSession( "SELECT url from " + schema.getKlass().getSimpleName() );
+
+        List<Object> l = new ArrayList();
+
+        l.add(  "http://ok"  );
+        l.add(  "http://is-ok"  );
+        l.add(  "http://also-ok"  );
+
+        when( query.getResultList() ).thenReturn( l );
+
+        List<DataElement> result = (List<DataElement>) subject.fetch( schema );
+
+        assertThat( result, hasSize( 3 ) );
+
+        assertThat( result, IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf(
+                        hasProperty( "url", is( "http://also-ok" ) )
+                ),
+                allOf(
+                        hasProperty( "url", is( "http://ok" ) )
+                ),
+                allOf(
+                        hasProperty( "url", is( "http://is-ok" ) )
+                )
+        ) );
 
 
     }

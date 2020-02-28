@@ -83,18 +83,28 @@ public class SchemaToDataFetcher
     }
 
     @SuppressWarnings("unchecked")
-    private List<? extends IdentifiableObject> mapUniqueFields(Schema schema )
+    private List<? extends IdentifiableObject> mapUniqueFields( Schema schema )
     {
         List<Property> uniqueProperties = schema.getUniqueProperties();
 
         final String fields = extractUniqueFields(uniqueProperties);
 
-        List<Object[]> objects = sessionFactory.getCurrentSession()
+        List objects = sessionFactory.getCurrentSession()
             .createQuery( "SELECT " + fields + " from " + schema.getKlass().getSimpleName() )
             .setReadOnly( true )
             .getResultList();
 
-        List<IdentifiableObject> resultsObjects = new ArrayList(objects.size());
+        // Hibernate returns a List containing an array of Objects if multiple columns are used in the query
+        // or a "simple" List if only one columns is used in the query
+        return uniqueProperties.size() == 1 ? handleSingleColumn( objects, uniqueProperties, schema )
+            : handleMultipleColumn( objects, uniqueProperties, schema );
+
+    }
+
+    private List<IdentifiableObject> handleMultipleColumn( List<Object[]> objects, List<Property> uniqueProperties,
+        Schema schema )
+    {
+        List<IdentifiableObject> resultsObjects = new ArrayList( objects.size() );
 
         for ( Object[] uniqueValuesArray : objects )
         {
@@ -105,23 +115,42 @@ public class SchemaToDataFetcher
                 valuesMap.put( uniqueProperties.get( i ).getFieldName(), uniqueValuesArray[i] );
             }
 
-            try
-            {
-                IdentifiableObject identifiableObject = (IdentifiableObject) schema.getKlass().newInstance();
-                BeanUtils.populate( identifiableObject, valuesMap );
-                resultsObjects.add( identifiableObject );
-            }
-            catch ( Exception e )
-            {
-                log.error( "Error during dynamic population of object type: " + schema.getKlass().getSimpleName(), e );
-            }
-
+            addToResult( schema, valuesMap, resultsObjects );
         }
 
         return resultsObjects;
+    }
+    
+    private List<IdentifiableObject> handleSingleColumn( List<Object> objects, List<Property> uniqueProperties,
+        Schema schema )
+    {
+        List<IdentifiableObject> resultsObjects = new ArrayList( objects.size() );
+        for ( Object uniqueValue : objects )
+        {
+            Map<String, Object> valuesMap = new HashMap<>();
+            valuesMap.put( uniqueProperties.get( 0 ).getFieldName(), uniqueValue );
 
+            addToResult( schema, valuesMap, resultsObjects );
+        }
+
+        return resultsObjects;
     }
 
+    private void addToResult( Schema schema, Map<String, Object> valuesMap, List<IdentifiableObject> resultsObjects )
+    {
+
+        try
+        {
+            IdentifiableObject identifiableObject = (IdentifiableObject) schema.getKlass().newInstance();
+            BeanUtils.populate( identifiableObject, valuesMap );
+            resultsObjects.add( identifiableObject );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Error during dynamic population of object type: " + schema.getKlass().getSimpleName(), e );
+        }
+    }
+    
     private String extractUniqueFields( List<Property> uniqueProperties )
     {
         return uniqueProperties.stream().map( Property::getFieldName ).collect( Collectors.joining( "," ) );
