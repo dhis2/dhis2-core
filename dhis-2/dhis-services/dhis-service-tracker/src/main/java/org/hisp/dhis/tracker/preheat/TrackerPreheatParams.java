@@ -33,7 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -67,11 +67,11 @@ public class TrackerPreheatParams
     private User user;
 
     /**
-     * What identifiers to match on.
+     * Identifiers to match metadata
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
+    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     /**
      * Tracked entities to import.

@@ -28,56 +28,57 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.util.ObjectUtils;
 
 /**
+ * Wrapper object to handle identifier-related parameters for tracker import/export
+ *
  * @author Stian Sandvold
  */
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerIdentifier
+public class TrackerIdentifierParams
 {
-    public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
-
-    public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
-
-    public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
-
+    /**
+     * Specific identifier to match data elements on.
+     */
+    @JsonProperty
     @Builder.Default
-    private TrackerIdScheme idScheme = TrackerIdScheme.UID;
+    private TrackerIdentifier dataElementIdScheme = TrackerIdentifier.UID;
 
+    /**
+     * Specific identifier to match organisation units on.
+     */
+    @JsonProperty
     @Builder.Default
-    private String value = null;
+    private TrackerIdentifier orgUnitIdScheme = TrackerIdentifier.UID;
 
-    public <T extends IdentifiableObject> String getIdentifier( T object )
-    {
-        switch ( idScheme )
-        {
-        case UID:
-            return object.getUid();
-        case CODE:
-            return object.getCode();
-        case ATTRIBUTE:
-            return object.getAttributeValues()
-                .stream()
-                .filter( av -> av.getAttribute().getUid().equals( value ) )
-                .map( AttributeValue::getValue )
-                .findFirst()
-                .orElse( null );
-        case AUTO:
-            return ObjectUtils.firstNonNull( object.getUid(), object.getCode() );
-        }
+    /**
+     * Specific identifier to match program on.
+     */
+    @JsonProperty
+    @Builder.Default
+    private TrackerIdentifier programIdScheme = TrackerIdentifier.UID;
 
-        throw new RuntimeException( "Unhandled identifier type." );
-    }
+    /**
+     * Specific identifier to match program stage on.
+     */
+    @JsonProperty
+    @Builder.Default
+    private TrackerIdentifier programStageIdScheme = TrackerIdentifier.UID;
+
+    /**
+     * Specific identifier to match all metadata on. Will be overridden by
+     * metadata-specific idSchemes.
+     */
+    @JsonProperty
+    @Builder.Default
+    private TrackerIdentifier idScheme = TrackerIdentifier.UID;
 
 }

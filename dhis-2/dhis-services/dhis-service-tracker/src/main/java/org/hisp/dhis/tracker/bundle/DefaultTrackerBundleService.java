@@ -43,7 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -438,7 +438,7 @@ public class DefaultTrackerBundleService
                 }
             }
 
-            TrackedEntityAttribute attribute = preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, at.getAttribute() );
+            TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, at.getAttribute() );
             TrackedEntityAttributeValue attributeValue = null;
 
             if ( attributeValueMap.containsKey( at.getAttribute() ) )
@@ -499,7 +499,7 @@ public class DefaultTrackerBundleService
 
     private void assignFileResource( Session session, TrackerPreheat preheat, String fr )
     {
-        FileResource fileResource = preheat.get( TrackerIdentifier.UID, FileResource.class, fr );
+        FileResource fileResource = preheat.get( TrackerIdScheme.UID, FileResource.class, fr );
 
         if ( fileResource == null )
         {
@@ -512,7 +512,7 @@ public class DefaultTrackerBundleService
 
     private void unassignFileResource( Session session, TrackerPreheat preheat, String fr )
     {
-        FileResource fileResource = preheat.get( TrackerIdentifier.UID, FileResource.class, fr );
+        FileResource fileResource = preheat.get( TrackerIdScheme.UID, FileResource.class, fr );
 
         if ( fileResource == null )
         {

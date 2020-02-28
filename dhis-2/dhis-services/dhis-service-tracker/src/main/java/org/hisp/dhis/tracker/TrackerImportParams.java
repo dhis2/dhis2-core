@@ -73,11 +73,11 @@ public class TrackerImportParams
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
-     * What identifiers to match on.
+     * Identifiers to match metadata
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
+    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     /**
      * Sets import strategy (create, update, etc).
@@ -182,6 +182,7 @@ public class TrackerImportParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+            .identifiers( identifiers )
             .atomicMode( atomicMode )
             .flushMode( flushMode )
             .validationMode( validationMode )

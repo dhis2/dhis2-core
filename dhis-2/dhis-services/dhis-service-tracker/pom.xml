@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.34-SNAPSHOT</version>
+    <version>2.35-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-tracker</artifactId>
@@ -57,6 +57,11 @@
       <artifactId>lombok</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
