@@ -90,13 +90,19 @@ public class DefaultAnalyticsSecurityManager
      *
      * @param programCategories the categories related to this program.
      */
-    void excludeNonAuthorizedCategoryOptions( final List<Category> programCategories )
+    void excludeOnlyAuthorizedCategoryOptions( final List<Category> programCategories )
     {
         if ( isNotEmpty( programCategories ) )
         {
             for ( Category category : programCategories )
             {
-                category.getCategoryOptions().removeIf( categoryOption -> !hasDataReadPermissionFor( categoryOption ) );
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
+
+                if ( isNotEmpty( categoryOptions ) )
+                {
+                    category.getCategoryOptions()
+                        .removeIf( categoryOption -> hasDataReadPermissionFor( categoryOption ) );
+                }
             }
         }
     }
@@ -167,7 +173,7 @@ public class DefaultAnalyticsSecurityManager
             if ( params.getProgram().hasCategoryCombo() )
             {
                 final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-                excludeNonAuthorizedCategoryOptions( programCategories );
+                excludeOnlyAuthorizedCategoryOptions( programCategories );
             }
         }
 
