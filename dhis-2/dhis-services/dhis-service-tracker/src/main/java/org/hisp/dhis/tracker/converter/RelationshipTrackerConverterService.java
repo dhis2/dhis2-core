@@ -64,21 +64,9 @@ public class RelationshipTrackerConverterService
 {
     private final TrackerPreheatService trackerPreheatService;
 
-    private final TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService;
-
-    private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
-
-    private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
-
-    public RelationshipTrackerConverterService( TrackerPreheatService trackerPreheatService,
-        TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
-        TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
-        TrackerConverterService<TrackedEntity, TrackedEntityInstance> trackedEntityTrackerConverterService )
+    public RelationshipTrackerConverterService( TrackerPreheatService trackerPreheatService )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
-        this.eventTrackerConverterService = eventTrackerConverterService;
-        this.trackedEntityTrackerConverterService = trackedEntityTrackerConverterService;
     }
 
     @Override
