@@ -46,7 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -132,12 +132,12 @@ public class TrackedEntityAttributeTest
 
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
 
-        assertNotNull( preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, "cNEZTkdAvmg" ) );
-        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityType.class, "KrYIdvLxkMb" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, "cNEZTkdAvmg" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityType.class, "KrYIdvLxkMb" ) );
 
-        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
-        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
-        assertNotNull( preheat.get( TrackerIdentifier.UID, TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
     }
 
     @Test

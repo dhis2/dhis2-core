@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.tracker;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -33,77 +33,52 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.user.User;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Used for setting up parameters for tracker preheat service. Normally not created directly, but rather
- * created through {@see org.hisp.dhis.tracker.bundle.TrackerBundleParams#toTrackerPreheatParams}.
+ * Wrapper object to handle identifier-related parameters for tracker import/export
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerPreheatParams
+public class TrackerIdentifierParams
 {
     /**
-     * User uid to use for import job.
-     */
-    @JsonProperty
-    private String userId;
-
-    /**
-     * User to use for import job.
-     */
-    private User user;
-
-    /**
-     * Identifiers to match metadata
+     * Specific identifier to match data elements on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+    private TrackerIdentifier dataElementIdScheme = TrackerIdentifier.UID;
 
     /**
-     * Tracked entities to import.
+     * Specific identifier to match organisation units on.
      */
     @JsonProperty
     @Builder.Default
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private TrackerIdentifier orgUnitIdScheme = TrackerIdentifier.UID;
 
     /**
-     * Enrollments to import.
+     * Specific identifier to match program on.
      */
     @JsonProperty
     @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
+    private TrackerIdentifier programIdScheme = TrackerIdentifier.UID;
 
     /**
-     * Events to import.
+     * Specific identifier to match program stage on.
      */
     @JsonProperty
     @Builder.Default
-    private List<Event> events = new ArrayList<>();
+    private TrackerIdentifier programStageIdScheme = TrackerIdentifier.UID;
 
     /**
-     * Relationships to import.
+     * Specific identifier to match all metadata on. Will be overridden by
+     * metadata-specific idSchemes.
      */
     @JsonProperty
     @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+    private TrackerIdentifier idScheme = TrackerIdentifier.UID;
 
-    @JsonProperty
-    public String getUsername()
-    {
-        return User.username( user );
-    }
 }

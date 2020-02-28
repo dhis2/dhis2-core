@@ -1,4 +1,4 @@
-package org.hisp.dhis.audit.payloads;
+package org.hisp.dhis.tracker;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,30 +28,28 @@ package org.hisp.dhis.audit.payloads;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder
-public class TrackedEntityAuditPayload implements AuditPayload
+public enum TrackerIdScheme
 {
-    @JsonProperty
-    private final TrackedEntityInstance trackedEntityInstance;
+    /**
+     * Preheat using UID identifiers.
+     */
+    UID,
 
-    @JsonProperty
-    private final String comment;
+    /**
+     * Preheat using CODE identifiers.
+     */
+    CODE,
 
-    @JsonProperty
-    private final String accessedBy;
+    /**
+     * Preheat using ATTRIBUTE identifiers
+     */
+    ATTRIBUTE,
 
-    @Override
-    public String getType()
-    {
-        return "trackedEntity";
-    }
+    /**
+     * Find first non-null identifier in order: UID, CODE
+     */
+    AUTO;
 }

@@ -80,6 +80,12 @@ public class AuditQuery
     private Set<String> code = new HashSet<>();
 
     /**
+     * This narrows the search by filtering records base on the values of {@link AuditAttributes}
+     */
+    @Builder.Default
+    private AuditAttributes auditAttributes = new AuditAttributes();
+
+    /**
      * From/To dates to query from.
      */
     private Range range;

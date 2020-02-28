@@ -34,6 +34,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -54,6 +57,7 @@ import java.util.Set;
 /**
  * @author Abyot Asalefew
  */
+@Auditable( scope = AuditScope.TRACKER )
 public class ProgramStageInstance
     extends BaseIdentifiableObject
 {
@@ -61,10 +65,13 @@ public class ProgramStageInstance
 
     private Date lastUpdatedAtClient;
 
+    @AuditAttribute
     private ProgramInstance programInstance;
 
+    @AuditAttribute
     private ProgramStage programStage;
 
+    @AuditAttribute
     private boolean deleted;
 
     private String storedBy;
@@ -73,8 +80,10 @@ public class ProgramStageInstance
 
     private Date executionDate;
 
+    @AuditAttribute
     private OrganisationUnit organisationUnit;
 
+    @AuditAttribute
     private CategoryOptionCombo attributeOptionCombo;
 
     private List<MessageConversation> messageConversations = new ArrayList<>();
@@ -85,6 +94,7 @@ public class ProgramStageInstance
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
+    @AuditAttribute
     private EventStatus status = EventStatus.ACTIVE;
 
     private String completedBy;

@@ -33,7 +33,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -127,10 +127,10 @@ public class EnrollmentTrackerConverterService
         List<ProgramInstance> programInstances = new ArrayList<>();
 
         enrollments.forEach( enrollment -> {
-            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdentifier.UID, enrollment.getEnrollment() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
-            Program program = preheat.get( TrackerIdentifier.UID, Program.class, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdentifier.UID, enrollment.getTrackedEntity() );
+            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
+            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
             if ( programInstance == null )
             {

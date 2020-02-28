@@ -472,6 +472,8 @@
         <value>F_EDIT_EXPIRED</value>
         <!-- Program Data Synchronization -->
         <value>F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION</value>
+        <!-- NG Tracker Importer -->
+        <value>F_TRACKER_IMPORTER_EXPERIMENTAL</value>
       </set>
     </property>
   </bean>
