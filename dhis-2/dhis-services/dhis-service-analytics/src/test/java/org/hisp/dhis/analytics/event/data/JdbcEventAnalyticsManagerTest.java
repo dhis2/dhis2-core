@@ -81,7 +81,7 @@ public class JdbcEventAnalyticsManagerTest
         final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
             newArrayList( aCategoryA ) );
 
-        final String theExpectedSql = " and ax.\"uid-cat-A\" in ('uid-opt-A', 'uid-opt-B') ";
+        final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A', 'uid-opt-B') ";
 
         // When
         final String actualSql = jdbcEventAnalyticsManager.getWhereClause( theEventQueryParams );
@@ -105,7 +105,7 @@ public class JdbcEventAnalyticsManagerTest
         final EventQueryParams theEventQueryParams = stubEventQueryParamsWithoutDimensions(
             newArrayList( aCategoryA, aCategoryB ) );
 
-        final String theExpectedSql = " and ax.\"uid-cat-A\" in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" in ('uid-opt-A', 'uid-opt-B') ";
+        final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" not in ('uid-opt-A', 'uid-opt-B') ";
 
         // When
         final String actualSql = jdbcEventAnalyticsManager.getWhereClause( theEventQueryParams );
@@ -115,7 +115,7 @@ public class JdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testQueryOnlyAllowedCategoryOptionEvents()
+    public void testFilterOutNotAuthorizedCategoryOptionEvents()
     {
         // Given
         final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
@@ -126,31 +126,31 @@ public class JdbcEventAnalyticsManagerTest
         final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B",
             newArrayList( aCategoryOptionA, aCategoryOptionB ) );
 
-        final String theExpectedSql = " and ax.\"uid-cat-A\" in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" in ('uid-opt-A', 'uid-opt-B') ";
+        final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" not in ('uid-opt-A', 'uid-opt-B') ";
 
         // When
         final String actualSql = jdbcEventAnalyticsManager
-            .queryOnlyAllowedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
+            .filterOutNotAuthorizedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
 
         // Then
         assertThat( actualSql, containsString( theExpectedSql ) );
     }
 
     @Test
-    public void testQueryOnlyAllowedCategoryOptionEventsWithNoCategories()
+    public void testFilterOutNotAuthorizedCategoryOptionEventsWithNoCategories()
     {
         // Given
         final List<Category> emptyCategoryList = newArrayList();
 
         // When
-        final String actualSql = jdbcEventAnalyticsManager.queryOnlyAllowedCategoryOptionEvents( emptyCategoryList );
+        final String actualSql = jdbcEventAnalyticsManager.filterOutNotAuthorizedCategoryOptionEvents( emptyCategoryList );
 
         // Then
         assertThat( actualSql, isEmptyString() );
     }
 
     @Test
-    public void testQueryOnlyAllowedCategoryOptionEventsWithNoCategoryOptions()
+    public void testFilterOutNotAuthorizedCategoryOptionEventsWithNoCategoryOptions()
     {
         // Given
         final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A", newArrayList() );
@@ -158,7 +158,7 @@ public class JdbcEventAnalyticsManagerTest
 
         // When
         final String actualSql = jdbcEventAnalyticsManager
-            .queryOnlyAllowedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
+            .filterOutNotAuthorizedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
 
         // Then
         assertThat( actualSql, isEmptyString() );
