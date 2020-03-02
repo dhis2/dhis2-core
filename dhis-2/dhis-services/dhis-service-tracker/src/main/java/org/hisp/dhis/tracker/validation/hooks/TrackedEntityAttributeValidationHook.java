@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_VALUE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -109,7 +109,7 @@ public class TrackedEntityAttributeValidationHook
     protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity trackedEntity, TrackedEntityInstance trackedEntityInstance, OrganisationUnit orgUnit )
     {
-        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
 
         // For looking up existing trackedEntityInstance attr. ie. if it is an update. Could/should this be done in the preheater instead?
         Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
@@ -225,7 +225,7 @@ public class TrackedEntityAttributeValidationHook
     public void validateAttributeValue( ValidationErrorReporter errorReporter,
         TrackedEntityAttributeValue attributeValue )
     {
-        Objects.requireNonNull( attributeValue, TRACKED_ENTITY_ATTRIBUTE_VALUE_CAN_T_BE_NULL );
+        Objects.requireNonNull( attributeValue, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         if ( attributeValue.getAttribute().getValueType() == null )
         {

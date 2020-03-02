@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -43,7 +42,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -54,7 +52,6 @@ import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,12 +60,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_IDENTIFIER_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -112,8 +104,8 @@ public abstract class AbstractTrackerValidationHook
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
-        Objects.requireNonNull( attr, Constants.ATTRIBUTE_CAN_T_BE_NULL );
-        Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CAN_T_BE_NULL );
+        Objects.requireNonNull( attr, Constants.ATTRIBUTE_CANT_BE_NULL );
+        Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
         if ( error != null )
@@ -129,7 +121,7 @@ public abstract class AbstractTrackerValidationHook
         TrackedEntityInstance trackedEntityInstanceUid,
         OrganisationUnit organisationUnit )
     {
-        Objects.requireNonNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
         {
@@ -176,8 +168,8 @@ public abstract class AbstractTrackerValidationHook
 
     protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
     {
-        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CAN_T_BE_NULL );
-        Objects.requireNonNull( te, TRACKED_ENTITY_CAN_T_BE_NULL );
+        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
+        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
@@ -192,8 +184,8 @@ public abstract class AbstractTrackerValidationHook
 
     protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
     {
-        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CAN_T_BE_NULL );
-        Objects.requireNonNull( te, TRACKED_ENTITY_CAN_T_BE_NULL );
+        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
+        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
@@ -209,8 +201,8 @@ public abstract class AbstractTrackerValidationHook
     protected ProgramInstance getProgramInstance( User actingUser, ProgramInstance programInstance,
         TrackedEntityInstance trackedEntityInstance, Program program )
     {
-        Objects.requireNonNull( program, PROGRAM_INSTANCE_CAN_T_BE_NULL );
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
 
         if ( program.isRegistration() )
         {

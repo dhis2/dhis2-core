@@ -52,8 +52,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_VALUE_MAP_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -157,9 +157,9 @@ public class EnrollmentAttributeValidationHook
     private void validateMandatoryAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
         Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
     {
-        Objects.requireNonNull( program, Constants.PROGRAM_CAN_T_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
-        Objects.requireNonNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
 
         // NOTE: This is my attempt to fix this after impl. Abyot's comments on the initial/original version.
         // 1. Get all tei attributes, map attrValue attr. into set of attr.

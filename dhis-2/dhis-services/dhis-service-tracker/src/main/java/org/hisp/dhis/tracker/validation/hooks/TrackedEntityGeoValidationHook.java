@@ -46,7 +46,6 @@ import java.util.List;
 public class TrackedEntityGeoValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {

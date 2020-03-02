@@ -1,5 +1,33 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -20,10 +48,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -32,7 +57,6 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NUL
 public class EventSecurityValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {
@@ -96,9 +120,9 @@ public class EventSecurityValidationHook
     protected void validateUpdateAndDelete( TrackerBundle bundle, ValidationErrorReporter reporter, User actingUser,
         Event event, ProgramStageInstance programStageInstance )
     {
-        Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CAN_T_BE_NULL );
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
-        Objects.requireNonNull( event, EVENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
         if ( bundle.getImportStrategy().isUpdate() )
         {
@@ -135,9 +159,9 @@ public class EventSecurityValidationHook
         ProgramStageInstance programStageInstance, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance, Program program )
     {
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
-        Objects.requireNonNull( event, EVENT_CAN_T_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
 
         programStage = (programStage == null && program.isWithoutRegistration())
             ? program.getProgramStageByStage( 1 ) : programStage;

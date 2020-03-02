@@ -45,11 +45,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -73,7 +69,7 @@ public class EnrollmentSecurityValidationHook
 
         // NOTE: This should be handled at a higher level. But this is pretty paramount to security checks,
         // conversion by convention like null==admin should be converted one place not on method input everywhere.
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
 
         for ( Enrollment enrollment : bundle.getEnrollments() )
         {
@@ -126,10 +122,10 @@ public class EnrollmentSecurityValidationHook
     protected void validateCreate( ValidationErrorReporter reporter, User actingUser, Program program,
         OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
     {
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CAN_T_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
 
@@ -145,8 +141,8 @@ public class EnrollmentSecurityValidationHook
     protected void validateUpdateAndDelete( TrackerBundle bundle, ValidationErrorReporter reporter,
         User actingUser, Enrollment enrollment )
     {
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
-        Objects.requireNonNull( enrollment, ENROLLMENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
 

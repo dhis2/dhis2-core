@@ -58,10 +58,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
 import static org.hisp.dhis.util.DateUtils.getIso8601;
 
 /**
@@ -122,9 +119,9 @@ public class EnrollmentExistingEnrollmentsValidationHook
     protected void validateNotEnrolledAlready( ValidationErrorReporter reporter, User actingUser,
         Enrollment enrollment, Program program, TrackedEntityInstance trackedEntityInstance )
     {
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         // Sort out only the programs the importing user has access too...
         // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
@@ -164,9 +161,9 @@ public class EnrollmentExistingEnrollmentsValidationHook
     public List<Enrollment> getEnrollmentsUserHasAccessTo( ValidationErrorReporter reporter, User actingUser,
         Program program, TrackedEntityInstance trackedEntityInstance )
     {
-        Objects.requireNonNull( actingUser, USER_CAN_T_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -201,7 +198,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
 
     public Enrollment getEnrollmentFromProgramInstance( ProgramInstance programInstance )
     {
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CAN_T_BE_NULL );
+        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
 
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
@@ -235,7 +232,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
         enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
-        enrollment.setEnrollmentDate( getIso8601(programInstance.getEnrollmentDate())  );
+        enrollment.setEnrollmentDate( getIso8601( programInstance.getEnrollmentDate() ) );
         enrollment.setIncidentDate( getIso8601( programInstance.getIncidentDate() ) );
         enrollment.setFollowup( programInstance.getFollowup() );
         enrollment.setCompletedDate( getIso8601( programInstance.getEndDate() ) );

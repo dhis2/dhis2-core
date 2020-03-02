@@ -81,9 +81,9 @@ public class EventDateValidationHook
     private void validateExpiryDays( ValidationErrorReporter errorReporter, Event event, Program program,
         ProgramStageInstance programStageInstance, User actingUser )
     {
-        Objects.requireNonNull( actingUser, Constants.USER_CAN_T_BE_NULL );
-        Objects.requireNonNull( event, Constants.EVENT_CAN_T_BE_NULL );
-        Objects.requireNonNull( program, Constants.PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( actingUser, Constants.USER_CANT_BE_NULL );
+        Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
+        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
         if ( program.getCompleteEventsExpiryDays() > 0
             && EventStatus.COMPLETED == event.getStatus()
@@ -124,8 +124,8 @@ public class EventDateValidationHook
     private void validatePeriodType( ValidationErrorReporter errorReporter, Event event,
         Program program, ProgramStageInstance programStageInstance )
     {
-        Objects.requireNonNull( event, Constants.EVENT_CAN_T_BE_NULL );
-        Objects.requireNonNull( program, Constants.PROGRAM_CAN_T_BE_NULL );
+        Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
+        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
         PeriodType periodType = program.getExpiryPeriodType();
 
@@ -171,7 +171,7 @@ public class EventDateValidationHook
 
     private void validateDateFormat( ValidationErrorReporter errorReporter, Event event )
     {
-        Objects.requireNonNull( event, Constants.EVENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
         if ( event.getDueDate() != null && !isValidDateString( event.getDueDate() ) )
         {

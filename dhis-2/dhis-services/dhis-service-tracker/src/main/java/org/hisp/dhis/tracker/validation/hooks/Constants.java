@@ -1,32 +1,60 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 public class Constants
 {
-    public static final String TRACKED_ENTITY_CAN_T_BE_NULL = "TrackedEntity can't be null";
+    public static final String TRACKED_ENTITY_CANT_BE_NULL = "TrackedEntity can't be null";
 
-    public static final String TRACKER_BUNDLE_CAN_T_BE_NULL = "TrackerBundle can't be null";
+    public static final String TRACKER_BUNDLE_CANT_BE_NULL = "TrackerBundle can't be null";
 
-    public static final String TRACKER_IDENTIFIER_CAN_T_BE_NULL = "TrackerIdentifier can't be null";
+    public static final String TRACKER_IDENTIFIER_CANT_BE_NULL = "TrackerIdentifier can't be null";
 
-    public static final String USER_CAN_T_BE_NULL = "User can't be null";
+    public static final String USER_CANT_BE_NULL = "User can't be null";
 
-    public static final String EVENT_CAN_T_BE_NULL = "Event can't be null";
+    public static final String EVENT_CANT_BE_NULL = "Event can't be null";
 
-    public static final String PROGRAM_CAN_T_BE_NULL = "Program can't be null";
+    public static final String PROGRAM_CANT_BE_NULL = "Program can't be null";
 
-    public static final String TRACKED_ENTITY_INSTANCE_CAN_T_BE_NULL = "TrackedEntityInstance can't be null";
+    public static final String TRACKED_ENTITY_INSTANCE_CANT_BE_NULL = "TrackedEntityInstance can't be null";
 
-    public static final String ATTRIBUTE_VALUE_MAP_CAN_T_BE_NULL = "AttributeValueMap can't be null";
+    public static final String ATTRIBUTE_VALUE_MAP_CANT_BE_NULL = "AttributeValueMap can't be null";
 
-    public static final String ATTRIBUTE_CAN_T_BE_NULL = "Attribute can't be null";
+    public static final String ATTRIBUTE_CANT_BE_NULL = "Attribute can't be null";
 
-    public static final String ENROLLMENT_CAN_T_BE_NULL = "Enrollment can't be null";
+    public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";
 
-    public static final String PROGRAM_INSTANCE_CAN_T_BE_NULL = "ProgramInstance can't be null";
+    public static final String PROGRAM_INSTANCE_CANT_BE_NULL = "ProgramInstance can't be null";
 
-    public static final String ORGANISATION_UNIT_CAN_T_BE_NULL = "OrganisationUnit can't be null";
+    public static final String ORGANISATION_UNIT_CANT_BE_NULL = "OrganisationUnit can't be null";
 
-    public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_CAN_T_BE_NULL = "TrackedEntityAttributeValue can't be null";
+    public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL = "TrackedEntityAttributeValue can't be null";
 
-    public static final String TRACKED_ENTITY_ATTRIBUTE_CAN_T_BE_NULL = "TrackedEntityAttribute can't be null";
+    public static final String TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL = "TrackedEntityAttribute can't be null";
 }

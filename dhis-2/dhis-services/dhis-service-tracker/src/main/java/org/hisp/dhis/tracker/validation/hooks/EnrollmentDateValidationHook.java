@@ -44,8 +44,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CAN_T_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -54,7 +54,6 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CAN_T_BE_
 public class EnrollmentDateValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {
@@ -100,7 +99,7 @@ public class EnrollmentDateValidationHook
 
     private void validateMandatoryDates( ValidationErrorReporter errorReporter, Enrollment enrollment )
     {
-        Objects.requireNonNull( enrollment, ENROLLMENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         // NOTE: getCreatedAtClient is always mandatory?
         if ( !isValidDateStringAndNotNull( enrollment.getCreatedAtClient() ) )
@@ -125,8 +124,8 @@ public class EnrollmentDateValidationHook
     private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter errorReporter, Program program,
         Enrollment enrollment )
     {
-        Objects.requireNonNull( program, PROGRAM_CAN_T_BE_NULL );
-        Objects.requireNonNull( enrollment, ENROLLMENT_CAN_T_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         if ( isValidDateStringAndNotNull( enrollment.getEnrollmentDate() )
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )

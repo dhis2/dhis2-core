@@ -47,7 +47,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class TrackedEntityExistValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {

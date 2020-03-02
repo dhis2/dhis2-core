@@ -53,7 +53,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class TrackedEntityRequiredValuesValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {
@@ -84,7 +83,7 @@ public class TrackedEntityRequiredValuesValidationHook
     protected void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
-        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( bundle.getImportStrategy().isCreate() )
         {
@@ -107,7 +106,7 @@ public class TrackedEntityRequiredValuesValidationHook
     protected void validateOrganisationUnit( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
-        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CAN_T_BE_NULL );
+        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( bundle.getImportStrategy().isCreate() )
         {
