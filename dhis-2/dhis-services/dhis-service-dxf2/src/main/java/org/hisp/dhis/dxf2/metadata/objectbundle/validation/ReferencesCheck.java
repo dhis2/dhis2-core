@@ -79,10 +79,13 @@ public class ReferencesCheck
 
             if ( errorReports.isEmpty() )
                 continue;
-
-            ObjectReport objectReport = new ObjectReport( object, bundle );
-            objectReport.addErrorReports( errorReports );
-            typeReport.addObjectReport( objectReport );
+            
+            if ( object != null )
+            {
+                ObjectReport objectReport = new ObjectReport( object, bundle );
+                objectReport.addErrorReports( errorReports );
+                typeReport.addObjectReport( objectReport );
+            }
         }
 
         if ( !typeReport.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode() )

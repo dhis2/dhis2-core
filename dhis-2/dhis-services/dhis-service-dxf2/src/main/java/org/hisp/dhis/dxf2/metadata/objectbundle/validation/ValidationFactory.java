@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
@@ -49,6 +51,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidationFactory
 {
+
+    private static final Log log = LogFactory.getLog( ValidationFactory.class );
 
     private final SchemaValidator schemaValidator;
 
@@ -173,7 +177,7 @@ public class ValidationFactory
                 }
                 catch ( InstantiationException | IllegalAccessException e )
                 {
-                    e.printStackTrace(); // TODO
+                    log.error("An error occurred during metadata import validation", e);
                 }
             }
             return typeReport;
