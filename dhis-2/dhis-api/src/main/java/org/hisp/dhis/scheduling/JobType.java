@@ -28,19 +28,11 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
-import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
-import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
-import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
-import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
-
 import java.util.Map;
+
+import org.hisp.dhis.scheduling.parameters.*;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Enum describing the different jobs in the system. Each job has a key, class, configurable
@@ -60,7 +52,7 @@ public enum JobType
         "skipTableTypes", "/api/analytics/tableTypes" ) ),
     CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY, ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes" ) ),
-    DATA_SYNC( "dataSyncJob", true ),
+    DATA_SYNC( "dataSyncJob", true, SchedulingType.CRON, DataSynchronizationJobParameters.class, null ),
     TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, SchedulingType.CRON, TrackerProgramsDataSynchronizationJobParameters.class, null ),
     EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, SchedulingType.CRON, EventProgramsDataSynchronizationJobParameters.class, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false ),

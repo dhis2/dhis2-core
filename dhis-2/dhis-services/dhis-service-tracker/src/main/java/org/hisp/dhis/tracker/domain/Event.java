@@ -85,7 +85,7 @@ public class Event
     private String trackedEntity;
 
     @JsonProperty
-    private Set<Relationship> relationships;
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
     private String eventDate;

@@ -28,7 +28,14 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
@@ -42,18 +49,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import static com.google.common.base.Preconditions.checkNotNull;
+
+import lombok.extern.slf4j.Slf4j;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Slf4j
 @Component
-public class EventSynchronization extends DataSynchronization
+public class EventSynchronization extends DataSynchronizationWithPaging
 {
     private final EventService eventService;
     private final SystemSettingManager systemSettingManager;
@@ -80,6 +83,7 @@ public class EventSynchronization extends DataSynchronization
         this.programStageDataElementService = programStageDataElementService;
     }
 
+    @Override
     public SynchronizationResult synchronizeData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
@@ -117,7 +121,8 @@ public class EventSynchronization extends DataSynchronization
         if ( objectsToSynchronize != 0 )
         {
             instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager, SyncEndpoint.EVENTS );
-            pages = ( objectsToSynchronize / pageSize ) + (( objectsToSynchronize % pageSize == 0 ) ? 0 : 1 );  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
+            //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
+            pages = ( objectsToSynchronize / pageSize ) + (( objectsToSynchronize % pageSize == 0 ) ? 0 : 1 );
 
             log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );
             log.info( "Remote server URL for Event programs POST synchronization: " + instance.getUrl() );
