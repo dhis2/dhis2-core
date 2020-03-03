@@ -62,10 +62,10 @@ public class DeletionCheck
 
             if ( object == null || object.getId() == 0 )
             {
-                ErrorReport errorReport = new ErrorReport(klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
-                        bundle.getPreheatIdentifier().getIdentifiersWithName(identifiableObject))
-                        .setMainId(object != null ? object.getUid() : null);
-                ValidationUtils.addObjectReport(errorReport, typeReport, object, bundle);
+                ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
+                        .setMainId( object != null ? object.getUid() : null );
+                ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
                 ctx.markForRemoval( object );
             }
         }

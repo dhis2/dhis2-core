@@ -66,8 +66,6 @@ public class ValidationFactory
 
     private List<ObjectBundleHook> objectBundleHooks;
 
-
-
     public ValidationFactory( SchemaValidator schemaValidator, SchemaService schemaService, AclService aclService,
         UserService userService, List<ObjectBundleHook> objectBundleHooks,
         Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap )
@@ -91,20 +89,20 @@ public class ValidationFactory
      * @return a {@see TypeReport} containing the outcome of the validation
      */
     public TypeReport validateBundle( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects)
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects )
     {
         ValidationContext ctx = getContext();
-        TypeReport typeReport =  new ValidationRunner( validatorMap.get( bundle.getImportMode() ) ).executeValidationChain( bundle, klass,
-            persistedObjects, nonPersistedObjects, ctx );
+        TypeReport typeReport = new ValidationRunner( validatorMap.get( bundle.getImportMode() ) )
+            .executeValidationChain( bundle, klass, persistedObjects, nonPersistedObjects, ctx );
 
         // remove from the bundle the invalid objects
-        removeFromBundle(klass, ctx, bundle );
+        removeFromBundle( klass, ctx, bundle );
 
         return addStatistics( typeReport, bundle, persistedObjects, nonPersistedObjects );
     }
 
     private TypeReport addStatistics( TypeReport typeReport, ObjectBundle bundle,
-                                      List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects )
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects )
     {
         if ( bundle.getImportMode().isCreateAndUpdate() )
         {
@@ -132,7 +130,8 @@ public class ValidationFactory
     /**
      *
      * @param klass the class of the objects to remove from bundle
-     * @param ctx the {@see ValidationContext} containing the list of objects to remove
+     * @param ctx the {@see ValidationContext} containing the list of objects to
+     *        remove
      * @param bundle the {@see ObjectBundle}
      */
     private void removeFromBundle( Class<? extends IdentifiableObject> klass, ValidationContext ctx,
@@ -177,11 +176,10 @@ public class ValidationFactory
                 }
                 catch ( InstantiationException | IllegalAccessException e )
                 {
-                    log.error("An error occurred during metadata import validation", e);
+                    log.error( "An error occurred during metadata import validation", e );
                 }
             }
             return typeReport;
         }
     }
-
 }

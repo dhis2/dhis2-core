@@ -108,7 +108,7 @@ public class ReferencesCheck
 
         Schema schema = ctx.getSchemaService().getDynamicSchema( object.getClass() );
         schema.getProperties().stream().filter( p -> p.isPersisted() && p.isOwner()
-            && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
+            && ( PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType() ) )
             .forEach( p -> {
                 if ( skipCheck( p.getKlass() ) || skipCheck( p.getItemKlass() ) )
                 {
