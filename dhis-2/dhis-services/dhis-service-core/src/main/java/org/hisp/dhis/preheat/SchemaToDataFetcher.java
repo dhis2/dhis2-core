@@ -87,18 +87,22 @@ public class SchemaToDataFetcher
     {
         List<Property> uniqueProperties = schema.getUniqueProperties();
 
-        final String fields = extractUniqueFields(uniqueProperties);
+        List objects = new ArrayList();
 
-        List objects = sessionFactory.getCurrentSession()
-            .createQuery( "SELECT " + fields + " from " + schema.getKlass().getSimpleName() )
-            .setReadOnly( true )
-            .getResultList();
+        if ( !uniqueProperties.isEmpty() )
+        {
+            final String fields = extractUniqueFields(uniqueProperties);
+
+            objects = sessionFactory.getCurrentSession()
+                .createQuery( "SELECT " + fields + " from " + schema.getKlass().getSimpleName() )
+                .setReadOnly( true )
+                .getResultList();
+        }
 
         // Hibernate returns a List containing an array of Objects if multiple columns are used in the query
         // or a "simple" List if only one columns is used in the query
         return uniqueProperties.size() == 1 ? handleSingleColumn( objects, uniqueProperties, schema )
             : handleMultipleColumn( objects, uniqueProperties, schema );
-
     }
 
     private List<IdentifiableObject> handleMultipleColumn( List<Object[]> objects, List<Property> uniqueProperties,
