@@ -31,6 +31,8 @@ package org.hisp.dhis.preheat;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Lists;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -47,6 +50,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.sms.command.SMSCommand;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,6 +90,30 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     public void verifyInput()
     {
         assertThat(subject.fetch( null ), hasSize(0));
+    }
+
+    @Test
+    public void verifyNoSqlWhenUniquePropertiesListIsEmpty()
+    {
+        Schema schema = createSchema( SMSCommand.class, "smsCommand", Lists.newArrayList() );
+
+        subject.fetch( schema );
+
+        verify( sessionFactory, times( 0 ) ).getCurrentSession();
+    }
+
+    @Test
+    public void verifyNoSqlWhenNoUniquePropertyExist()
+    {
+        Schema schema = createSchema( SMSCommand.class, "smsCommand",
+            Stream.of(
+            createProperty( String.class, "name", true, true ),
+            createProperty( String.class, "id", true, true ) ).collect( toList() )
+        );
+
+        subject.fetch( schema );
+
+        verify( sessionFactory, times( 0 ) ).getCurrentSession();
     }
 
     @Test
@@ -243,5 +271,4 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
         property.setUnique( true );
         return property;
     }
-
 }

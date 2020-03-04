@@ -103,7 +103,6 @@ public class SchemaToDataFetcher
         // or a "simple" List if only one columns is used in the query
         return uniqueProperties.size() == 1 ? handleSingleColumn( objects, uniqueProperties, schema )
             : handleMultipleColumn( objects, uniqueProperties, schema );
-
     }
 
     private List<IdentifiableObject> handleMultipleColumn( List<Object[]> objects, List<Property> uniqueProperties,
