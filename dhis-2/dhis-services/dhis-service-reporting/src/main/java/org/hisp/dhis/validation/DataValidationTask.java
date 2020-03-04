@@ -663,7 +663,7 @@ public class DataValidationTask
             String dx = (String) row.get( dxInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
             String ou = (String) row.get( ouInx );
-            Double vl = (Double) row.get( vlInx );
+            Double vl = ( (Number)row.get( vlInx ) ).doubleValue();
 
             OrganisationUnit orgUnit = ouLookup.get( ou );
             DimensionalItemObject eventItem = dxLookup.get( dx );
