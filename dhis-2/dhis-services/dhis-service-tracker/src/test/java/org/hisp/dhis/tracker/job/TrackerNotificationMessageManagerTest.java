@@ -31,9 +31,6 @@ package org.hisp.dhis.tracker.job;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
-import org.hisp.dhis.tracker.job.TrackerNotificationThread;
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -45,8 +42,12 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.ObjectFactory;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Zubair Asghar

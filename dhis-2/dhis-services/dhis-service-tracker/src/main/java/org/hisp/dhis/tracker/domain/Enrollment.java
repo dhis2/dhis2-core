@@ -37,9 +37,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -116,7 +114,7 @@ public class Enrollment
 
     @JsonProperty
     @Builder.Default
-    private Set<Relationship> relationships = new HashSet<>();
+    private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
     @Builder.Default

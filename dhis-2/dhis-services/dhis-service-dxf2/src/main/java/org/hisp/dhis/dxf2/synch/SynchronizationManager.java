@@ -45,14 +45,6 @@ public interface SynchronizationManager
     ImportSummary executeDataValuePush() throws WebMessageParseException;
 
     /**
-     * Executes CompleteDataSetRegistration data push to remote server.
-     *
-     * @return an {@link ImportSummary}
-     * @throws WebMessageParseException
-     */
-    ImportSummary executeCompleteDataSetRegistrationPush() throws WebMessageParseException;
-
-    /**
      * Executes a meta data pull operation from remote server.
      *
      * @param url the URL to the remote server.

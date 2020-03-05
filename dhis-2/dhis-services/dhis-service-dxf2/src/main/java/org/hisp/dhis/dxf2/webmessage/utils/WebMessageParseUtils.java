@@ -95,6 +95,7 @@ public class WebMessageParseUtils
         {
             throw new WebMessageParseException( "The object node is null. Could not parse the JSON." );
         }
+
         try
         {
             return JSON_MAPPER.readValue( responseNode.toString(), klass );

@@ -1,4 +1,5 @@
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.dxf2.sync;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,59 +28,27 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.Optional;
+
+import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.jackson.TrackerProgramsDataSynchronizationJobParametersDeserializer;
-
-import java.util.Optional;
+import org.hisp.dhis.scheduling.AbstractJob;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-@JsonDeserialize( using = TrackerProgramsDataSynchronizationJobParametersDeserializer.class )
-public class TrackerProgramsDataSynchronizationJobParameters
-    implements JobParameters
+public abstract class SynchronizationJob extends AbstractJob
 {
-    private static final long serialVersionUID = 368325562301563469L;
-
-    static final int PAGE_SIZE_MIN = 5;
-    static final int PAGE_SIZE_MAX = 100;
-
-    private int pageSize = 20;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageSize()
+    protected Optional<ErrorReport> validateRemoteServerAvailability( SynchronizationManager synchronizationManager,
+        Class<?> klass )
     {
-        return pageSize;
-    }
+        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-    public void setPageSize( final int pageSize )
-    {
-        this.pageSize = pageSize;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX )
+        if ( !isRemoteServerAvailable.isAvailable() )
         {
-            return Optional.of(
-                new ErrorReport(
-                    this.getClass(),
-                    ErrorCode.E4008,
-                    "pageSize",
-                    PAGE_SIZE_MIN,
-                    PAGE_SIZE_MAX,
-                    pageSize  )
-            );
+            return Optional.of( new ErrorReport( klass, ErrorCode.E7010, isRemoteServerAvailable.getMessage() ) );
         }
 
         return Optional.empty();

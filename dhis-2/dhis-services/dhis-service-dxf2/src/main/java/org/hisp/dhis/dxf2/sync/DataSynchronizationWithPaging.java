@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.dxf2.sync;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,27 +28,31 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.dxf2.synch.SystemInstance;
+import org.hisp.dhis.system.util.Clock;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class RelationshipItem
+public abstract class DataSynchronizationWithPaging
 {
-    @JsonProperty
-    private String trackedEntity;
+    protected boolean syncResult = false;
+    protected Clock clock;
+    protected int objectsToSynchronize;
+    protected SystemInstance instance;
+    protected int pages;
 
-    @JsonProperty
-    private String enrollment;
+    public abstract SynchronizationResult synchronizeData( final int pageSize );
 
-    @JsonProperty
-    private String event;
+    protected void runSyncWithPaging( int pageSize )
+    {
+        syncResult = true;
+
+        for ( int page = 1; page <= pages; page++ )
+        {
+            synchronizePage( page, pageSize );
+        }
+    }
+
+    protected abstract void synchronizePage( int page, int pageSize );
 }
