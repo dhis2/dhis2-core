@@ -79,9 +79,6 @@ public class Event
     private String orgUnit;
 
     @JsonProperty
-    private String orgUnitName;
-
-    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
@@ -100,22 +97,22 @@ public class Event
     private Coordinate coordinate;
 
     @JsonProperty
-    private boolean followup;
+    private boolean followUp;
 
     @JsonProperty
     private boolean deleted;
 
     @JsonProperty
-    private String created;
+    private String createdAt;
 
     @JsonProperty
-    private String lastUpdated;
+    private String updatedAt;
 
     @JsonProperty
-    private String createdAtClient;
+    private String clientCreatedAt;
 
     @JsonProperty
-    private String lastUpdatedAtClient;
+    private String clientUpdatedAt;
 
     @JsonProperty
     private String attributeOptionCombo;
@@ -127,7 +124,7 @@ public class Event
     private String completedBy;
 
     @JsonProperty
-    private String completedDate;
+    private String completedAt;
 
     @JsonProperty
     private Geometry geometry;

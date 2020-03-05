@@ -1,13 +1,13 @@
 {
   "trackedEntities": [
     {
-      "created": "2020-02-20T12:09:21.844",
+      "createdAt": "2020-02-20T12:09:21.844",
       "orgUnit": "cNEZTkdAvmg",
-      "createdAtClient": "2020-02-20T12:09:21.844",
+      "clientCreatedAt": "2020-02-20T12:09:21.844",
       "trackedEntity": "EEFkxTWB55Y",
-      "lastUpdated": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
       "trackedEntityType": "KrYIdvLxkMb",
-      "lastUpdatedAtClient": "2020-02-20T12:09:21.844",
+      "clientUpdatedAt": "2020-02-20T12:09:21.844",
       "inactive": false,
       "deleted": false,
       "featureType": "NONE",
@@ -21,37 +21,37 @@
       "relationships": [ ],
       "attributes": [
         {
-          "lastUpdated": "2020-02-20T12:09:21.852",
+          "updatedAt": "2020-02-20T12:09:21.852",
           "storedBy": "admin",
           "displayName": "Attribute_Integer",
-          "created": "2020-02-20T12:09:21.852",
+          "createdAt": "2020-02-20T12:09:21.852",
           "valueType": "INTEGER",
           "attribute": "sYn3tkL3XKa",
           "value": "321"
         },
         {
-          "lastUpdated": "2020-02-20T12:09:21.847",
+          "updatedAt": "2020-02-20T12:09:21.847",
           "storedBy": "admin",
           "displayName": "Attribute_Text",
-          "created": "2020-02-20T12:09:21.847",
+          "createdAt": "2020-02-20T12:09:21.847",
           "valueType": "TEXT",
           "attribute": "TsfP85GKsU5",
           "value": "TEXT"
         },
         {
-          "lastUpdated": "2020-02-20T12:09:21.850",
+          "updatedAt": "2020-02-20T12:09:21.850",
           "storedBy": "admin",
           "displayName": "Attribute_Date",
-          "created": "2020-02-20T12:09:21.850",
+          "createdAt": "2020-02-20T12:09:21.850",
           "valueType": "DATE",
           "attribute": "sTGqP5JNy6E",
           "value": "2020-02-20"
         },
         {
-          "lastUpdated": "2020-02-20T12:09:21.850",
+          "updatedAt": "2020-02-20T12:09:21.850",
           "storedBy": "admin",
           "displayName": "Attribute_Encrypted_Text",
-          "created": "2020-02-20T12:09:21.850",
+          "createdAt": "2020-02-20T12:09:21.850",
           "valueType": "TEXT",
           "attribute": "CWMLspQP2RH",
           "value": "Value To Encrypt"
@@ -62,17 +62,16 @@
   "enrollments": [
     {
       "storedBy": "admin",
-      "created": "2020-02-20T12:09:21.913",
+      "createdAt": "2020-02-20T12:09:21.913",
       "orgUnit": "cNEZTkdAvmg",
-      "createdAtClient": "2020-02-20T12:09:21.917",
+      "clientCreatedAt": "2020-02-20T12:09:21.917",
       "program": "hJUBNVQWl4e",
       "trackedEntity": "EEFkxTWB55Y",
       "enrollment": "NfX6INLTOVq",
-      "lastUpdated": "2020-02-20T12:09:21.918",
+      "updatedAt": "2020-02-20T12:09:21.918",
       "trackedEntityType": "KrYIdvLxkMb",
-      "lastUpdatedAtClient": "2020-02-20T12:09:21.918",
-      "orgUnitName": "Country",
-      "enrollmentDate": "2020-02-20T00:00:00.000",
+      "clientUpdatedAt": "2020-02-20T12:09:21.918",
+      "enrolledAt": "2020-02-20T00:00:00.000",
       "deleted": false,
       "incidentDate": "2020-02-20T00:00:00.000",
       "status": "ACTIVE",
@@ -80,10 +79,10 @@
       "relationships": [ ],
       "attributes": [
         {
-          "lastUpdated": "2020-02-20T12:09:21.848",
+          "updatedAt": "2020-02-20T12:09:21.848",
           "storedBy": "admin",
           "displayName": "Attribute_Identifier_Integer",
-          "created": "2020-02-20T12:09:21.848",
+          "createdAt": "2020-02-20T12:09:21.848",
           "valueType": "INTEGER_POSITIVE",
           "attribute": "p5TPww5Uhrd",
           "value": "321"

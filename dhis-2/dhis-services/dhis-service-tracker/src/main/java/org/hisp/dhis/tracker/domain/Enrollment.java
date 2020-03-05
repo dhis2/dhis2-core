@@ -52,16 +52,16 @@ public class Enrollment
     private String enrollment;
 
     @JsonProperty
-    private String created;
+    private String createdAt;
 
     @JsonProperty
-    private String lastUpdated;
+    private String updatedAt;
 
     @JsonProperty
-    private String createdAtClient;
+    private String clientCreatedAt;
 
     @JsonProperty
-    private String lastUpdatedAtClient;
+    private String clientUpdatedAt;
 
     @JsonProperty
     private String trackedEntityType;
@@ -79,22 +79,19 @@ public class Enrollment
     private String orgUnit;
 
     @JsonProperty
-    private String orgUnitName;
-
-    @JsonProperty
-    private Date enrollmentDate;
+    private Date enrolledAt;
 
     @JsonProperty
     private Date incidentDate;
 
     @JsonProperty
-    private boolean followup;
+    private boolean followUp;
 
     @JsonProperty
     private String completedBy;
 
     @JsonProperty
-    private Date completedDate;
+    private Date completedAt;
 
     @JsonProperty
     private Coordinate coordinate;

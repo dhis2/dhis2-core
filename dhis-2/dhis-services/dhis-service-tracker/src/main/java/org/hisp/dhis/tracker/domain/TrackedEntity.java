@@ -49,25 +49,25 @@ import java.util.List;
 public class TrackedEntity
 {
     @JsonProperty
-    private String trackedEntityType;
-
-    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
+    private String trackedEntityType;
+
+    @JsonProperty
+    private String createdAt;
+
+    @JsonProperty
+    private String updatedAt;
+
+    @JsonProperty
+    private String clientCreatedAt;
+
+    @JsonProperty
+    private String clientUpdatedAt;
+
+    @JsonProperty
     private String orgUnit;
-
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
-
-    @JsonProperty
-    private String createdAtClient;
-
-    @JsonProperty
-    private String lastUpdatedAtClient;
 
     @JsonProperty
     private boolean inactive;

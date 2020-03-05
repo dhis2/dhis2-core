@@ -148,12 +148,12 @@ public class EnrollmentTrackerConverterService
                 programInstance.setUid( CodeGenerator.generateUid() );
             }
 
-            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+            programInstance.setEnrollmentDate( enrollment.getEnrolledAt() );
             programInstance.setIncidentDate( enrollment.getIncidentDate() );
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
             programInstance.setEntityInstance( trackedEntityInstance );
-            programInstance.setFollowup( enrollment.isFollowup() );
+            programInstance.setFollowup( enrollment.isFollowUp() );
             programInstance.setGeometry( enrollment.getGeometry() );
 
             if ( enrollment.getStatus() == null )

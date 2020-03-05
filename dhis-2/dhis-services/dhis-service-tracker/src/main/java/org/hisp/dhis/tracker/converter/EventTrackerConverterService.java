@@ -100,18 +100,18 @@ public class EventTrackerConverterService
                 event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
             }
 
-            event.setFollowup( psi.getProgramInstance().getFollowup() );
+            event.setFollowUp( psi.getProgramInstance().getFollowup() );
             event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
             event.setStatus( psi.getStatus() );
             event.setEventDate( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
             event.setDueDate( DateUtils.getIso8601NoTz( psi.getDueDate() ) );
             event.setStoredBy( psi.getStoredBy() );
             event.setCompletedBy( psi.getCompletedBy() );
-            event.setCompletedDate( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
-            event.setCreated( DateUtils.getIso8601NoTz( psi.getCreated() ) );
-            event.setCreatedAtClient( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
-            event.setLastUpdated( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
-            event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
+            event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
+            event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
+            event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
+            event.setClientCreatedAt( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
+            event.setClientUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
@@ -120,7 +120,8 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( ou.getUid() );
-                event.setOrgUnitName( ou.getName() );
+                // TODO do we need this? this is not even the translated name..
+                // event.setOrgUnitName( ou.getName() );
             }
 
             Program program = psi.getProgramInstance().getProgram();
@@ -137,8 +138,8 @@ public class EventTrackerConverterService
             for ( EventDataValue dataValue : dataValues )
             {
                 DataValue value = new DataValue();
-                value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
-                value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+                value.setCreatedAt( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
+                value.setUpdatedAt( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
                 value.setDataElement( dataValue.getDataElement() );
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
@@ -224,12 +225,12 @@ public class EventTrackerConverterService
                 preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
             programStageInstance.setGeometry( e.getGeometry() );
             programStageInstance.setStatus( e.getStatus() );
-            programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getCreatedAtClient() ) );
-            programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( e.getLastUpdatedAtClient() ) );
+            programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getClientCreatedAt() ) );
+            programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( e.getClientUpdatedAt() ) );
 
             if ( programStageInstance.isCompleted() )
             {
-                Date completedDate = DateUtils.parseDate( e.getCompletedDate() );
+                Date completedDate = DateUtils.parseDate( e.getCompletedAt() );
 
                 if ( completedDate == null )
                 {

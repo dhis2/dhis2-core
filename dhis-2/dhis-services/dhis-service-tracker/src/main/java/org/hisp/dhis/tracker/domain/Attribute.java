@@ -45,29 +45,29 @@ import org.hisp.dhis.common.ValueType;
 public class Attribute
 {
     @JsonProperty
-    private String displayName;
-
-    @JsonProperty
     private String attribute;
-
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
-
-    @JsonProperty
-    private ValueType valueType;
 
     @JsonProperty
     private String code;
 
     @JsonProperty
-    private String value;
+    private String displayName;
+
+    @JsonProperty
+    private String createdAt;
+
+    @JsonProperty
+    private String updatedAt;
 
     @JsonProperty
     private String storedBy;
 
     @JsonProperty
     private boolean skipSynchronization;
+
+    @JsonProperty
+    private ValueType valueType;
+
+    @JsonProperty
+    private String value;
 }
