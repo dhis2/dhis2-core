@@ -47,10 +47,10 @@ public class Note
     private String note;
 
     @JsonProperty
-    private String storedBy;
+    private String storedAt;
 
     @JsonProperty
-    private String storedAt;
+    private String storedBy;
 
     @JsonProperty
     private String value;

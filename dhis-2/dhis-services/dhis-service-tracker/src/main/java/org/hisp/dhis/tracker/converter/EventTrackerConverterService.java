@@ -103,8 +103,8 @@ public class EventTrackerConverterService
             event.setFollowUp( psi.getProgramInstance().getFollowup() );
             event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
             event.setStatus( psi.getStatus() );
-            event.setEventDate( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
-            event.setDueDate( DateUtils.getIso8601NoTz( psi.getDueDate() ) );
+            event.setOccurredAt( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
+            event.setScheduledAt( DateUtils.getIso8601NoTz( psi.getDueDate() ) );
             event.setStoredBy( psi.getStoredBy() );
             event.setCompletedBy( psi.getCompletedBy() );
             event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
@@ -219,8 +219,8 @@ public class EventTrackerConverterService
 
             programStageInstance.setProgramStage( programStage );
             programStageInstance.setOrganisationUnit( organisationUnit );
-            programStageInstance.setExecutionDate( DateUtils.parseDate( e.getEventDate() ) );
-            programStageInstance.setDueDate( DateUtils.parseDate( e.getDueDate() ) );
+            programStageInstance.setExecutionDate( DateUtils.parseDate( e.getOccurredAt() ) );
+            programStageInstance.setDueDate( DateUtils.parseDate( e.getScheduledAt() ) );
             programStageInstance.setAttributeOptionCombo(
                 preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
             programStageInstance.setGeometry( e.getGeometry() );

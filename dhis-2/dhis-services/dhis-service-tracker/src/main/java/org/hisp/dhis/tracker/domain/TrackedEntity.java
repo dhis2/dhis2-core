@@ -34,7 +34,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.organisationunit.FeatureType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,13 +73,6 @@ public class TrackedEntity
 
     @JsonProperty
     private boolean deleted;
-
-    @JsonProperty
-    @Builder.Default
-    private FeatureType featureType = FeatureType.NONE;
-
-    @JsonProperty
-    private String coordinates;
 
     @JsonProperty
     private Geometry geometry;

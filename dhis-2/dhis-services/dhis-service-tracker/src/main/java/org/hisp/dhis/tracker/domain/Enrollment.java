@@ -36,7 +36,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -79,10 +78,10 @@ public class Enrollment
     private String orgUnit;
 
     @JsonProperty
-    private Date enrolledAt;
+    private String enrolledAt;
 
     @JsonProperty
-    private Date incidentDate;
+    private String occurredAt;
 
     @JsonProperty
     private boolean followUp;
@@ -91,10 +90,7 @@ public class Enrollment
     private String completedBy;
 
     @JsonProperty
-    private Date completedAt;
-
-    @JsonProperty
-    private Coordinate coordinate;
+    private String completedAt;
 
     @JsonProperty
     private boolean deleted;

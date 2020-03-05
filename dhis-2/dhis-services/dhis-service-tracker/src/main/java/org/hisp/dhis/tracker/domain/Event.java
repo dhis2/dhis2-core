@@ -85,16 +85,13 @@ public class Event
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    private String eventDate;
+    private String occurredAt;
 
     @JsonProperty
-    private String dueDate;
+    private String scheduledAt;
 
     @JsonProperty
     private String storedBy;
-
-    @JsonProperty
-    private Coordinate coordinate;
 
     @JsonProperty
     private boolean followUp;
@@ -128,12 +125,6 @@ public class Event
 
     @JsonProperty
     private Geometry geometry;
-
-    @JsonProperty
-    private String assignedUser;
-
-    @JsonProperty
-    private String assignedUserUsername;
 
     @JsonProperty
     @Builder.Default

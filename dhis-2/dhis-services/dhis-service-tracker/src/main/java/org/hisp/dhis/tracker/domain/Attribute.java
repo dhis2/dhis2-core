@@ -51,9 +51,6 @@ public class Attribute
     private String code;
 
     @JsonProperty
-    private String displayName;
-
-    @JsonProperty
     private String createdAt;
 
     @JsonProperty
@@ -61,9 +58,6 @@ public class Attribute
 
     @JsonProperty
     private String storedBy;
-
-    @JsonProperty
-    private boolean skipSynchronization;
 
     @JsonProperty
     private ValueType valueType;
