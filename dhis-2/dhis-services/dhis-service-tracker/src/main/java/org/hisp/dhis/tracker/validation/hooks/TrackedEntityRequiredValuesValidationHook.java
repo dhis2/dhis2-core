@@ -127,6 +127,7 @@ public class TrackedEntityRequiredValuesValidationHook
         }
         else if ( bundle.getImportStrategy().isUpdate() )
         {
+            // FLYTTE TIL DATA REF SJEKK etter på
             TrackedEntityInstance tei = PreheatHelper
                 .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
             if ( tei.getOrganisationUnit() == null )

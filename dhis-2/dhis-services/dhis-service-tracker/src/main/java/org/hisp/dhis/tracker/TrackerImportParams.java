@@ -189,7 +189,7 @@ public class TrackerImportParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
-            .skipPatternValidation( skipPatternValidation )
+            .skipTextPatternValidation( skipPatternValidation )
             .identifiers( identifiers )
             .atomicMode( atomicMode )
             .flushMode( flushMode )

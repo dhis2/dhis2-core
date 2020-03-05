@@ -111,7 +111,6 @@ public class EventSecurityValidationHook
 
                 validateUpdateAndDelete( bundle, reporter, actingUser, event, programStageInstance );
             }
-
         }
 
         return reporter.getReportList();

@@ -125,7 +125,7 @@ public class TrackerErrorReport
 
         protected Object value;
 
-        protected int lineNumber;
+        protected int listIndex;
 
         private TrackerErrorCode errorCode;
 
@@ -151,9 +151,9 @@ public class TrackerErrorReport
             return this;
         }
 
-        protected Builder withLineNumber( int lineNumber )
+        protected Builder withListIndex( int listIndex )
         {
-            this.lineNumber = lineNumber;
+            this.listIndex = listIndex;
             return this;
         }
 
@@ -180,7 +180,7 @@ public class TrackerErrorReport
                 this.mainId = parseArgs( identifier, this.mainObject );
             }
 
-            return new TrackerErrorReport( this.mainKlass, trackerErrorMessage, this.lineNumber, this.mainId,
+            return new TrackerErrorReport( this.mainKlass, trackerErrorMessage, this.listIndex, this.mainId,
                 this.mainKlass, this.errorProperties, this.value );
         }
 

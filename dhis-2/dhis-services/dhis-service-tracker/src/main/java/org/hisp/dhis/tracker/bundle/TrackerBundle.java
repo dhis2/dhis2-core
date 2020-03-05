@@ -88,8 +88,7 @@ public class TrackerBundle
      * Should text pattern validation be skipped or not, default is not.
      */
     @JsonProperty
-    @Builder.Default
-    private boolean skipPatternValidation = false;
+    private boolean skipTextPatternValidation;
 
     /**
      * Should import be treated as a atomic import (all or nothing).

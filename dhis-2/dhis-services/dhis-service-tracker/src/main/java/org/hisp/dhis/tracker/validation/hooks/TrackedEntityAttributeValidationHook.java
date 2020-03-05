@@ -38,6 +38,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -48,7 +49,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -111,18 +111,17 @@ public class TrackedEntityAttributeValidationHook
     {
         Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
 
-        // For looking up existing trackedEntityInstance attr. ie. if it is an update. Could/should this be done in the preheater instead?
-        Map<String, TrackedEntityAttributeValue> valueMap = getTeiAttributeValueMap(
-            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance ) );
+        Map<String, TrackedEntityAttributeValue> valueMap = Collections.EMPTY_MAP;
+        if ( trackedEntityInstance != null )
+        {
+            valueMap = trackedEntityInstance.getTrackedEntityAttributeValues()
+                .stream()
+                .collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
+        }
+
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            // Should this be an error instead maybe?
-            if ( StringUtils.isEmpty( attribute.getValue() ) )
-            {
-                continue;
-            }
-
             TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
                 .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
             if ( trackedEntityAttribute == null )
@@ -132,7 +131,13 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
-            // look up in the preheater
+            // Should this be an error instead maybe? if value is NULL empty -> delete
+            if ( StringUtils.isEmpty( attribute.getValue() ) )
+            {
+                continue;
+            }
+
+            // look up in the preheater?
             TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
 
             if ( trackedEntityAttributeValue == null )
@@ -157,12 +162,12 @@ public class TrackedEntityAttributeValidationHook
                 trackedEntityInstance,
                 orgUnit );
 
-            validateFileNotAlreadyAssigned( errorReporter, attribute, trackedEntityInstance );
+            validateFileNotAlreadyAssigned( errorReporter, bundle, attribute, trackedEntityInstance, valueMap );
         }
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, Attribute attr,
-        TrackedEntityInstance tei )
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+        Attribute attr, TrackedEntityInstance tei, Map<String, TrackedEntityAttributeValue> valueMap )
     {
         Objects.requireNonNull( attr, "Attribute can't be null" );
 
@@ -170,16 +175,29 @@ public class TrackedEntityAttributeValidationHook
 
         if ( tei != null && attrIsFile )
         {
-            List<String> existingValues = new ArrayList<>();
+//            List<String> existingValues = new ArrayList<>();
+//            tei.getTrackedEntityAttributeValues().stream()
+//                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
+//                .filter( attrVal -> attrVal.getAttribute().getUid()
+//                    .equals( attr.getAttribute() ) ) // << Unsure about this, this differs from the original "old" code.
+//                .forEach( attrVal -> existingValues.add( attrVal.getValue() ) );
 
-            tei.getTrackedEntityAttributeValues().stream()
-                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
-                .filter( attrVal -> attrVal.getAttribute().getUid()
-                    .equals( attr.getAttribute() ) ) // << Unsure about this, this differs from the original "old" code.
-                .forEach( attrVal -> existingValues.add( attrVal.getValue() ) );
+            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( attr.getAttribute() );
+            boolean isFile = trackedEntityAttributeValue.getAttribute().getValueType().isFile();
+            if ( !isFile )
+            {
+                return;
+            }
 
-            FileResource fileResource = fileResourceService.getFileResource( attr.getValue() );
-            if ( fileResource != null && fileResource.isAssigned() && !existingValues.contains( attr.getValue() ) )
+            FileResource fileResource = bundle.getPreheat()
+                .get( TrackerIdScheme.UID, FileResource.class, attr.getValue() );
+            if ( fileResource == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1084 )
+                    .addArg( attr.getValue() ) );
+            }
+
+            if ( fileResource != null && fileResource.isAssigned() )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1009 )
                     .addArg( attr.getValue() ) );
@@ -187,10 +205,11 @@ public class TrackedEntityAttributeValidationHook
         }
     }
 
-    protected boolean textPatternValueIsValid( TrackedEntityAttribute attribute, String value, String oldValue )
+    // For å ikke å blokke eksisterende reservete verdier så tilater man derfor  Objects.equals( value, oldValue )
+    protected boolean validateReservedValues( TrackedEntityAttribute attribute, String value, String oldValue )
     {
         Objects.requireNonNull( attribute, "TrackedEntityAttribute can't be null" );
-
+        // optimize to
         return Objects.equals( value, oldValue ) ||
             TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) ||
             reservedValueService.isReserved( attribute.getTextPattern(), value );
@@ -202,24 +221,22 @@ public class TrackedEntityAttributeValidationHook
         Objects.requireNonNull( attr, "Attribute can't be null" );
         Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
 
-        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipPatternValidation() )
+        // Should we check the text pattern even if its not generated?
+        // TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
+
+        // Should we fail of there is no pattern and its generated?
+
+        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipTextPatternValidation() )
         {
             String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
 
-            if ( !textPatternValueIsValid( teAttr, attr.getValue(), oldValue ) )
+
+            if ( !validateReservedValues( teAttr, attr.getValue(), oldValue ) )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1008 )
                     .addArg( attr.getValue() ) );
             }
         }
-    }
-
-    protected Map<String, TrackedEntityAttributeValue> getTeiAttributeValueMap(
-        List<TrackedEntityAttributeValue> values )
-    {
-        Objects.requireNonNull( values, "Map can't be null" );
-
-        return values.stream().collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
     }
 
     public void validateAttributeValue( ValidationErrorReporter errorReporter,
@@ -233,37 +250,24 @@ public class TrackedEntityAttributeValidationHook
                 .addArg( attributeValue.getAttribute().getValueType() ) );
         }
 
+        boolean confidentialBool = attributeValue.getAttribute().isConfidentialBool();
+
+
         // NOTE: Need some input on the encryption check here
 //        if ( attributeValue.getAttribute().isConfidentialBool() &&
 //            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
 //        {
+        //
+        // This straightfowarad just check config....
 //            throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
 //        }
 
         String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
         if ( result != null )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1078 )
+            errorReporter.addError( newReport( TrackerErrorCode.E1085 )
                 .addArg( attributeValue.getAttribute() )
                 .addArg( result ) );
         }
-
-//        if ( attributeValue.getAttribute().getValueType().isFile() && !addFileValue( attributeValue ) )
-//        {
-//            throw new IllegalQueryException(
-//                String.format( "FileResource with id '%s' not found", attributeValue.getValue() ) );
-//        }
-
-//        if ( attributeValue.getValue() != null )
-//        {
-//            attributeValueStore.saveVoid( attributeValue );
-//
-//            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
-//            {
-//                reservedValueService
-//                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
-//            }
-//        }
     }
-
 }

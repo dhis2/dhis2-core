@@ -51,7 +51,9 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -93,14 +95,16 @@ public class EventRequiredPropertiesValidationHook
                     .addArg( event.getEvent() ) );
             }
 
-            if ( bundle.getImportStrategy().isCreate() && organisationUnit == null )
+            //  bundle.getImportStrategy().isCreate() &&
+            if ( organisationUnit == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1011 )
                     .addArg( event.getOrgUnit() ) );
             }
 
-            if ( program == null )
+            if ( program == null && programStage == null )
             {
+
                 reporter.addError( newReport( TrackerErrorCode.E1034 )
                     .addArg( event ) );
 
@@ -108,8 +112,23 @@ public class EventRequiredPropertiesValidationHook
                 continue;
             }
 
-            programStage = (programStage == null && program.isWithoutRegistration())
-                ? program.getProgramStageByStage( 1 ) : programStage;
+            if ( program == null )
+            {
+                program = programStage.getProgram();
+
+                // 1. bundle.getPreheat().put() program
+                // 2. hente id scheme og velge riktig if så sette på event
+//                -->event.setProgram( program.getUid() );
+            }
+
+            if ( programStage == null && program.isRegistration() )
+            {
+                //TODO: ERROR!!!!
+            }
+
+            programStage = (programStage == null && program.isWithoutRegistration()) ?
+                program.getProgramStageByStage( 1 ) :
+                programStage;
 
             if ( programStage == null )
             {
@@ -117,8 +136,15 @@ public class EventRequiredPropertiesValidationHook
                     .addArg( event ) );
             }
 
-            programInstance = validateProgramInstance( reporter, actingUser, event, programStage, programInstance,
-                trackedEntityInstance, program );
+            if ( programStage != null && program.equals( programStage.getProgram() ) )
+            {
+                // TODO: ERROR!!!!
+                continue;//!!!!
+            }
+
+            // TODO: FLytte til egen hook rett etter REF sjekk og access sjekk.
+            validateProgramInstance( reporter, actingUser, event, programStage, programInstance, trackedEntityInstance,
+                program );
 
             if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
             {
@@ -130,7 +156,7 @@ public class EventRequiredPropertiesValidationHook
         return reporter.getReportList();
     }
 
-    protected ProgramInstance validateProgramInstance( ValidationErrorReporter reporter, User actingUser, Event event,
+    protected void validateProgramInstance( ValidationErrorReporter reporter, User actingUser, Event event,
         ProgramStage programStage, ProgramInstance programInstance, TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
@@ -148,6 +174,7 @@ public class EventRequiredPropertiesValidationHook
 
             if ( programInstance == null && trackedEntityInstance != null )
             {
+                // TODO: Needs to be optimized , maybe convert to non HQL..... BRUK-->countProgramInstances
                 List<ProgramInstance> activeProgramInstances = new ArrayList<>( programInstanceService
                     .getProgramInstances( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
 
@@ -187,7 +214,6 @@ public class EventRequiredPropertiesValidationHook
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
                 pi.setIncidentDate( new Date() );
-                pi.setProgram( program );
                 pi.setStatus( ProgramStatus.ACTIVE );
                 pi.setStoredBy( actingUser.getUsername() );
 
@@ -204,7 +230,7 @@ public class EventRequiredPropertiesValidationHook
             }
         }
 
-        return programInstance;
+        //return programInstance;
     }
 
 }

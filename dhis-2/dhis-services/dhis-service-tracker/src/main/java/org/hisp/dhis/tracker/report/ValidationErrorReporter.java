@@ -51,7 +51,7 @@ public class ValidationErrorReporter
 
     private Class<?> mainKlass;
 
-    private int lineNumber = 0;
+    private int listIndex = 0;
 
     private String mainId;
 
@@ -83,7 +83,7 @@ public class ValidationErrorReporter
     public void addError( TrackerErrorReport.Builder builder )
     {
         builder.withMainKlass( this.mainKlass );
-        builder.withLineNumber( this.lineNumber );
+        builder.withListIndex( this.listIndex );
         if ( this.mainId != null )
         {
             builder.setMainId( this.mainId );
@@ -99,19 +99,19 @@ public class ValidationErrorReporter
 
     public void increment( Enrollment enrollment )
     {
-        lineNumber += 1;
+        listIndex += 1;
         this.mainId = (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
     }
 
     public void increment( Event enrollment )
     {
-        lineNumber += 1;
+        listIndex += 1;
         this.mainId = (enrollment.getEvent() + " (" + enrollment.getClass().getSimpleName() + ")");
     }
 
     public void increment( TrackedEntity te )
     {
-        lineNumber += 1;
+        listIndex += 1;
         this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
     }
 }

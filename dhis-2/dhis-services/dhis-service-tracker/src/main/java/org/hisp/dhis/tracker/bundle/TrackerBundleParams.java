@@ -34,7 +34,6 @@ import java.util.List;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -89,8 +88,7 @@ public class TrackerBundleParams
      * Should text pattern validation be skipped or not, default is not.
      */
     @JsonProperty
-    @Builder.Default
-    private boolean skipPatternValidation = false;
+    private boolean skipTextPatternValidation;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -174,7 +172,7 @@ public class TrackerBundleParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
-            .skipPatternValidation( skipPatternValidation )
+            .skipTextPatternValidation( skipTextPatternValidation )
             .flushMode( flushMode )
             .validationMode( validationMode )
             .reportMode( reportMode )

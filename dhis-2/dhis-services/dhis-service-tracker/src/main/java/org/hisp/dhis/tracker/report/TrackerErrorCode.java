@@ -130,6 +130,10 @@ public enum TrackerErrorCode
     E1082( "Event: `{0}`, was already used and/or deleted. This event can not be modified." ),
     E1083( "User: `{0}`, is not authorized to uncomplete events" ),
 
+    E1084( "File resource: `{0}`, reference could not be found." ),
+    E1085( "Attribute: `{0}`, value type is not valid: `{1}`." ),
+
+
     E9999( "N/A" );
 
     private String message;

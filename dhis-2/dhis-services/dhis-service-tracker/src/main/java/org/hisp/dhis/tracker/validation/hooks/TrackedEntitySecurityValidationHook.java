@@ -86,8 +86,11 @@ public class TrackedEntitySecurityValidationHook
                     .addArg( entityType ) );
             }
 
+            // The tracker access manager canWrite (the original code is using the SEARCH variant).. could be bug in the existing code.
             OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
-            if ( orgUnit != null && !organisationUnitService.isInUserHierarchyCached( actingUser, orgUnit ) )
+            //
+            // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to tei in search scope 48a82e5f
+            if ( orgUnit != null && !organisationUnitService.isInUserSearchHierarchyCached( actingUser, orgUnit ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1000 )
                     .addArg( actingUser )

@@ -142,6 +142,7 @@ public abstract class AbstractTrackerValidationHook
     protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
         String coordinates, FeatureType featureType )
     {
+        // Is this still the current state? or have we removed coordinate yet?
         //NOTE: Is both (coordinates && geometry) at same time possible?
         if ( coordinates != null )
         {
