@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.trackedentity;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,13 +46,8 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,7 +62,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
     private final OrganisationUnitService organisationUnitService;
 
-    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager, OrganisationUnitService organisationUnitService )
+    public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager,
+        OrganisationUnitService organisationUnitService )
     {
         checkNotNull( aclService );
         checkNotNull( ownershipAccessManager );
