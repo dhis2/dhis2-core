@@ -28,13 +28,13 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 /**
