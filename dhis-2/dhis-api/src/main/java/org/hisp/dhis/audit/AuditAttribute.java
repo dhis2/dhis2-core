@@ -38,7 +38,6 @@ import java.lang.annotation.Target;
  * If the marked attribute is an {@link org.hisp.dhis.common.IdentifiableObject} then its UID will be extracted for saving,
  * otherwise the value object of the attribute will be saved.
  * All attributes's values will be put into {@link Audit}.attributes and saved to database as JSONB column.
- * The marked attribute will be ignored if it is a collection.
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD, ElementType.METHOD } )
