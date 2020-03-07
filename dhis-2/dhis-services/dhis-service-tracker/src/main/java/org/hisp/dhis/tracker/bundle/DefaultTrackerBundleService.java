@@ -349,7 +349,7 @@ public class DefaultTrackerBundleService
             }
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
-                .klass( ProgramInstance.class )
+                .klass( ProgramStageInstance.class )
                 .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
                 .eventRuleEffects( bundle.getEventRuleEffects() )
                 .object( programStageInstance )

@@ -30,10 +30,15 @@ package org.hisp.dhis.tracker.job;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+import java.io.IOException;
 
 /**
  * Producer and consumer for handling program rule actions.
@@ -48,9 +53,10 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
     public TrackerRuleEngineMessageManager(
             MessageManager messageManager,
             SchedulingManager schedulingManager,
+            RenderService renderService,
             ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory )
     {
-        super( messageManager, schedulingManager );
+        super( messageManager, schedulingManager, renderService );
         this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
     }
 
@@ -61,8 +67,10 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TrackerSideEffectDataBundle bundle )
+    public void consume( TextMessage message ) throws JMSException, IOException
     {
+        TrackerSideEffectDataBundle bundle = toBundle( message );
+
         TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
 
         notificationThread.setSideEffectDataBundle( bundle );
