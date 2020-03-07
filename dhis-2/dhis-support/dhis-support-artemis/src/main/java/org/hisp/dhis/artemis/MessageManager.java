@@ -41,11 +41,13 @@ import org.springframework.stereotype.Component;
 public class MessageManager
 {
     private final JmsTemplate jmsTemplate;
+    private final JmsTemplate jmsQueueTemplate;
     private final RenderService renderService;
 
-    public MessageManager( JmsTemplate jmsTemplate, RenderService renderService )
+    public MessageManager( JmsTemplate jmsTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService )
     {
         this.jmsTemplate = jmsTemplate;
+        this.jmsQueueTemplate = jmsQueueTemplate;
         this.renderService = renderService;
     }
 
@@ -61,6 +63,6 @@ public class MessageManager
 
     public void sendQueue( String destinationName, Message message )
     {
-        jmsTemplate.send( new JmsQueue( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+        jmsQueueTemplate.send( new JmsQueue( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 }

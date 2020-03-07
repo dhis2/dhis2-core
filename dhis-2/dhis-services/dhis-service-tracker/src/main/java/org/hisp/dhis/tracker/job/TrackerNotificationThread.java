@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.job;
  */
 
 import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -49,6 +50,7 @@ import java.util.function.Consumer;
 
 @Component
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
+@Slf4j
 public class TrackerNotificationThread   extends SecurityContextRunnable
 {
     private ProgramNotificationService programNotificationService;
@@ -76,6 +78,8 @@ public class TrackerNotificationThread   extends SecurityContextRunnable
             {
                 serviceMapper.get( object.getClass() ).accept( object.getId() );
             }
+
+            log.info( "Tracker notification side effects completed" );
         }
     }
 

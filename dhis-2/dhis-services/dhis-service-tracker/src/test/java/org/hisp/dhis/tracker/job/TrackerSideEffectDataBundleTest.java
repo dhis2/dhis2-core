@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -53,7 +54,7 @@ public class TrackerSideEffectDataBundleTest
         ProgramInstance programInstance = new ProgramInstance();
 
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .enrollmentRuleEffect( enrollment, Arrays.asList() )
+            .enrollmentRuleEffects( new HashMap<>() )
             .accessedBy( "testUser" )
             .importStrategy( TrackerImportStrategy.CREATE )
             .object( programInstance )
@@ -75,7 +76,7 @@ public class TrackerSideEffectDataBundleTest
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
 
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .eventRuleEffect( event, Arrays.asList() )
+            .eventRuleEffects( new HashMap<>() )
             .object( programStageInstance )
             .klass( ProgramStageInstance.class )
             .build();

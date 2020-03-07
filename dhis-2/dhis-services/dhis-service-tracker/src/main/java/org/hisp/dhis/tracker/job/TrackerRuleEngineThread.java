@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -50,6 +51,7 @@ import java.util.Map;
  */
 @Component
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
+@Slf4j
 public class TrackerRuleEngineThread extends SecurityContextRunnable
 {
     private final List<RuleActionImplementer> ruleActionImplementers;
@@ -66,27 +68,29 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
     {
         if ( sideEffectDataBundle != null )
         {
-            Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = sideEffectDataBundle.getEnrollmentRuleEffects();
-            Map<Event, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
+            Map<String, List<RuleEffect>> enrollmentRuleEffects = sideEffectDataBundle.getEnrollmentRuleEffects();
+            Map<String, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
 
             for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
             {
-                for ( Map.Entry<Enrollment, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
+                for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
                 {
                     entry.getValue()
                         .parallelStream()
                         .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                        .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey().getEnrollment() ) );
+                        .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey() ) );
                 }
 
-                for ( Map.Entry<Event, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
+                for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
                 {
                     entry.getValue()
                         .parallelStream()
                         .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                        .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey().getEvent() ) );
+                        .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey() ) );
                 }
             }
+
+            log.info( "Tracker Rule-engine side effects completed" );
         }
     }
 

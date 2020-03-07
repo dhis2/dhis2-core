@@ -28,6 +28,9 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -55,23 +58,31 @@ import java.util.Map;
 @AllArgsConstructor
 public class TrackerSideEffectDataBundle implements Message
 {
+    @JsonProperty
     private String uid;
 
+    @JsonProperty
     private Class<? extends BaseIdentifiableObject> klass;
 
+    @JsonProperty
     private BaseIdentifiableObject object;
 
-    @Singular
-    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+    @JsonProperty
+    @Builder.Default
+    private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
-    @Singular
-    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+    @JsonProperty
+    @Builder.Default
+    private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
+    @JsonProperty
     private TrackerImportStrategy importStrategy;
 
+    @JsonProperty
     private String accessedBy;
 
     @Override
+    @JsonProperty
     public MessageType getMessageType()
     {
         return MessageType.TRACKER_SIDE_EFFECT;

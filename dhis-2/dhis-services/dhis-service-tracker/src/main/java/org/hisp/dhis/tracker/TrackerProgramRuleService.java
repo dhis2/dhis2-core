@@ -43,7 +43,7 @@ import java.util.Map;
  */
 public interface TrackerProgramRuleService
 {
-    Map<Enrollment, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle );
+    Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle );
 
-    Map<Event, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle );
+    Map<String, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle );
 }
