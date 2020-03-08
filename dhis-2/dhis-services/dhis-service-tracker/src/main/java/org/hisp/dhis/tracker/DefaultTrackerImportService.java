@@ -201,7 +201,7 @@ public class DefaultTrackerImportService
 
     private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
     {
-        if ( parameters == null || parametersw.get( key ) == null || parameters.get( key ).isEmpty() )
+        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
         {
             return defaultValue;
         }
