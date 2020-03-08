@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.job;
  */
 
 import com.google.common.collect.ImmutableMap;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
