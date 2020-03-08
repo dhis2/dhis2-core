@@ -49,7 +49,7 @@ public class TrackedEntityGeoValidationHook
     @Override
     public int getOrder()
     {
-        return 4;
+        return 54;
     }
 
     @Override

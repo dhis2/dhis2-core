@@ -52,7 +52,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event
-    extends BaseLinkableObject
+    extends BaseLinkableObject implements TrackerDto
 {
     private String uid;
 

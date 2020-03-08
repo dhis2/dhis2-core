@@ -485,16 +485,21 @@ public class TrackedEntityImportValidationTest
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
+        // Validate first time, should contain no errors.
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
 
+        // Commit the validated bundle...
         trackerBundleService.commit( trackerBundle );
 
-        // Re-validate
+        // Re-validate, should now contain 13 errors...
         report = trackerValidationService.validate( trackerBundle );
         assertEquals( 13, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1002 ) ) ) );
+
+        // Tracker should now have 13 teis removed from the collection, since they all failed.
+        assertEquals( 0, trackerBundle.getTrackedEntities().size() );
 
         printErrors( report );
     }
@@ -619,7 +624,7 @@ public class TrackedEntityImportValidationTest
         // isInactive should now be true
         TrackedEntityInstance nCc1rCEOKaY = trackedEntityInstanceService.getTrackedEntityInstance( "NCc1rCEOKaY" );
 //        assertEquals( true, nCc1rCEOKaY.isInactive() );
-        // NOT WORKING... yet?
-       // assertEquals( true, nCc1rCEOKaY.isDeleted() );
+        //TODO: NOT WORKING... yet? should it not be deleted?
+//        assertEquals( true, nCc1rCEOKaY.isDeleted() );
     }
 }

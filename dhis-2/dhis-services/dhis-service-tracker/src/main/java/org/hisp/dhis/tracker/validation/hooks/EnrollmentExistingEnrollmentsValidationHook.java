@@ -58,7 +58,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 import static org.hisp.dhis.util.DateUtils.getIso8601;
 
 /**
@@ -123,7 +126,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        // Sort out only the programs the importing user has access too...
+        // TODO: Sort out only the programs the importing user has access too...
         // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
         // should import still be possible?
         Set<Enrollment> activeOrCompletedEnrollments = getEnrollmentsUserHasAccessTo( reporter, actingUser,

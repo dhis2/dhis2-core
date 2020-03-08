@@ -132,7 +132,8 @@ public enum TrackerErrorCode
 
     E1084( "File resource: `{0}`, reference could not be found." ),
     E1085( "Attribute: `{0}`, value type is not valid: `{1}`." ),
-
+    E1086( "Event: `{0}` has a program: `{1}`, that is a registration but its program stage is not valid or missing." ),
+    E1087( "Program: `{0}`, and program stage: `{0}` have different org units." ),
 
     E9999( "N/A" );
 

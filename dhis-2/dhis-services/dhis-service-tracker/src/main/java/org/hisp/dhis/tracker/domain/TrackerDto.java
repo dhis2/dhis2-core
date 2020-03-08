@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.domain;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,26 +28,9 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.springframework.core.Ordered;
-
-import java.util.List;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface TrackerValidationHook
-    extends Ordered
+public interface TrackerDto
 {
-
-    boolean isEnabled();
-
-    List<TrackerErrorReport> validate( TrackerBundle bundle );
-
-    @Override
-    default int getOrder()
-    {
-        return Ordered.LOWEST_PRECEDENCE;
-    }
 }

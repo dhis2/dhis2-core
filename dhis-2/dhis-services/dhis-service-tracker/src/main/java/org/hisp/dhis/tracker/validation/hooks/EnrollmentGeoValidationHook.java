@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -69,13 +70,9 @@ public class EnrollmentGeoValidationHook
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
 
-            // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
-            if ( program == null )
-            {
-                continue;
-            }
+            Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
-            // NOTE: which's feature type should we investigate here?
+            // TODO: Which's feature type should we investigate here?
             validateGeo( reporter,
                 enrollment.getGeometry(),
                 enrollment.getCoordinate() != null ? enrollment.getCoordinate().getCoordinateString() : null,

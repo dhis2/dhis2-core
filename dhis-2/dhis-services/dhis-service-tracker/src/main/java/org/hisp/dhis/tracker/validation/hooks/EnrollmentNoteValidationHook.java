@@ -68,7 +68,7 @@ public class EnrollmentNoteValidationHook
 
             for ( Note note : enrollment.getNotes() )
             {
-                // NOTE: This looks like a potential performance killer, existence check on every note...
+                //TODO: This looks like a potential performance killer, existence check on every note...
 
 //                if ( CodeGenerator.isValidUid( note.getNote() )
 //                    && commentService.trackedEntityCommentExists( note.getNote() )

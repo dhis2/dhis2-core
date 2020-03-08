@@ -94,13 +94,11 @@ public class EventCategoryOptValidationHook
                 .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
-            if ( program == null )
-            {
-                continue;
-            }
+            Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
             programStage = (programStage == null && program.isWithoutRegistration())
                 ? program.getProgramStageByStage( 1 ) : programStage;
+
             if ( programStage == null )
             {
                 continue;
@@ -122,7 +120,7 @@ public class EventCategoryOptValidationHook
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
-        // NOTE: Morten H. & Stian. Abyot : How do we solve this in the new importer?
+        // TODO: Morten H. & Stian. Abyot : How do we solve this in the new importer?
 //        CategoryOptionCombo categoryOptionCombo;
 //        if ( (event.getAttributeCategoryOptions() != null
 //            && program.getCategoryCombo() != null)

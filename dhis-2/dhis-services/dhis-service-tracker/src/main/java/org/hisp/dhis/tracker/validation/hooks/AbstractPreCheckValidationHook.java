@@ -29,53 +29,75 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 
+import java.util.Iterator;
 import java.util.List;
-
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-public class TrackedEntityExistValidationHook
+abstract public class AbstractPreCheckValidationHook
     extends AbstractTrackerValidationHook
+    implements TrackerValidationHook
 {
+
     @Override
-    public int getOrder()
+    public boolean isEnabled()
     {
-        return 2;
+        return true;
     }
+
+    abstract public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event );
+
+    abstract public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity );
+
+    abstract public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Enrollment enrollment );
 
     @Override
     public List<TrackerErrorReport> validate( TrackerBundle bundle )
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
-        {
-            reporter.increment( trackedEntity );
+        validateTrackerDTOs( reporter, ( tei, r ) -> validateTrackedEntities( r, bundle, tei ),
+            bundle.getTrackedEntities() );
 
-            boolean exists = PreheatHelper.getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() ) != null;
+        validateTrackerDTOs( reporter, ( enrollment, r ) -> validateEnrollments( r, bundle, enrollment ),
+            bundle.getEnrollments() );
 
-            if ( exists && bundle.getImportStrategy().isCreate() )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1002 )
-                    .addArg( trackedEntity.getTrackedEntity() ) );
-            }
-            else if ( !exists && (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1063 )
-                    .addArg( trackedEntity.getTrackedEntity() ) );
-            }
-        }
+        validateTrackerDTOs( reporter, ( event, r ) -> validateEvents( r, bundle, event ),
+            bundle.getEvents() );
 
         return reporter.getReportList();
+    }
+
+    public <T extends TrackerDto> void validateTrackerDTOs( ValidationErrorReporter reporter,
+        ValidationFunction<T> function, List<T> dtoInstances )
+    {
+        Iterator<T> iterator = dtoInstances.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            T tei = iterator.next();
+
+            ValidationErrorReporter reportFork = reporter.fork( tei );
+
+            function.validateObject( tei, reportFork );
+
+            if ( reportFork.hasErrors() )
+            {
+                iterator.remove();
+            }
+
+            reporter.merge( reportFork );
+        }
     }
 }

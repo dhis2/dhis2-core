@@ -60,7 +60,11 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.*;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -80,6 +84,12 @@ public abstract class AbstractTrackerValidationHook
 
     @Autowired
     protected ProgramInstanceService programInstanceService;
+
+    @Override
+    public boolean isEnabled()
+    {
+        return true;
+    }
 
     protected void validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
         FeatureType featureType )
@@ -260,4 +270,5 @@ public abstract class AbstractTrackerValidationHook
         return date != null && DateUtils.getMediumDateString( date ) != null
             && isValidDateString( DateUtils.getMediumDateString( date ) );
     }
+
 }

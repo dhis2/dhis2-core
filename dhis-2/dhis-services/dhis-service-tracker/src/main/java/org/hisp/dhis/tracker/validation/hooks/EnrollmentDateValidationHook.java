@@ -74,18 +74,13 @@ public class EnrollmentDateValidationHook
         {
             reporter.increment( enrollment );
 
-            Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-
             validateMandatoryDates( reporter, enrollment );
 
-            if ( program == null )
-            {
-                continue;
-            }
+            Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
 
             validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
 
-            // NOTE: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
+            // TODO: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
             if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
                 && !isValidDateStringAndNotNull( enrollment.getIncidentDate() ) )
             {

@@ -33,10 +33,12 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -51,7 +53,7 @@ public class ValidationErrorReporter
 
     private Class<?> mainKlass;
 
-    private int listIndex = 0;
+    private AtomicInteger listIndex = new AtomicInteger( 0 );
 
     private String mainId;
 
@@ -63,9 +65,23 @@ public class ValidationErrorReporter
         this.mainKlass = mainKlass;
     }
 
+    private ValidationErrorReporter( TrackerBundle bundle, Class<?> mainKlass, boolean isFailFast, int listIndex )
+    {
+        this.bundle = bundle;
+        this.reportList = new ArrayList<>();
+        this.isFailFast = isFailFast;
+        this.mainKlass = mainKlass;
+        this.listIndex.set( listIndex );
+    }
+
     public List<TrackerErrorReport> getReportList()
     {
         return reportList;
+    }
+
+    public int getTotalErrors()
+    {
+        return reportList.size();
     }
 
     public boolean isFailFast()
@@ -83,7 +99,7 @@ public class ValidationErrorReporter
     public void addError( TrackerErrorReport.Builder builder )
     {
         builder.withMainKlass( this.mainKlass );
-        builder.withListIndex( this.listIndex );
+        builder.withListIndex( this.listIndex.get() );
         if ( this.mainId != null )
         {
             builder.setMainId( this.mainId );
@@ -99,19 +115,65 @@ public class ValidationErrorReporter
 
     public void increment( Enrollment enrollment )
     {
-        listIndex += 1;
+        listIndex.incrementAndGet();
         this.mainId = (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
     }
 
     public void increment( Event enrollment )
     {
-        listIndex += 1;
+        listIndex.incrementAndGet();
         this.mainId = (enrollment.getEvent() + " (" + enrollment.getClass().getSimpleName() + ")");
     }
 
     public void increment( TrackedEntity te )
     {
-        listIndex += 1;
+        listIndex.incrementAndGet();
         this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
+    }
+
+    public <T extends TrackerDto> void increment( T tei )
+    {
+        listIndex.incrementAndGet();
+        if ( tei instanceof TrackedEntity )
+        {
+            TrackedEntity te = (TrackedEntity) tei;
+            this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
+        }
+    }
+
+    public <T extends TrackerDto> ValidationErrorReporter fork( T dto )
+    {
+        ValidationErrorReporter fork = new ValidationErrorReporter( this.bundle, this.mainKlass, isFailFast(),
+            listIndex.incrementAndGet() );
+
+
+        // TODO: Use interface method to build name?
+        if ( dto instanceof TrackedEntity )
+        {
+            TrackedEntity te = (TrackedEntity) dto;
+            fork.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
+        }
+        else if ( dto instanceof Enrollment )
+        {
+            Enrollment enrollment = (Enrollment) dto;
+            fork.mainId = (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
+        }
+        else if ( dto instanceof Event )
+        {
+            Event event = (Event) dto;
+            fork.mainId = (event.getEvent() + " (" + event.getClass().getSimpleName() + ")");
+        }
+
+        return fork;
+    }
+
+    public boolean hasErrors()
+    {
+        return this.reportList.size() > 0;
+    }
+
+    public void merge( ValidationErrorReporter reporter )
+    {
+        this.reportList.addAll( reporter.getReportList() );
     }
 }

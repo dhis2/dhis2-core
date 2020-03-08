@@ -29,53 +29,41 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EventExistValidationHook
-    extends AbstractTrackerValidationHook
+public class PreCheckOwnershipValidationHook
+    extends AbstractPreCheckValidationHook
 {
     @Override
     public int getOrder()
     {
-        return 103;
+        return 4;
     }
 
     @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
 
-        for ( Event event : bundle.getEvents() )
-        {
-            reporter.increment( event );
+    }
 
-            boolean exists = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() ) != null;
+    @Override
+    public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
+    {
 
-            if ( exists && bundle.getImportStrategy().isCreate() )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1030 )
-                    .addArg( event.getEvent() ) );
-            }
-            else if ( !exists && (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1032 )
-                    .addArg( event.getEvent() ) );
-            }
-        }
+    }
 
-        return reporter.getReportList();
+    @Override
+    public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+
     }
 }

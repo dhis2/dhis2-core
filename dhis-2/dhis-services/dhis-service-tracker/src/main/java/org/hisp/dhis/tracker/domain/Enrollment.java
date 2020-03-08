@@ -46,7 +46,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Enrollment
+public class Enrollment implements TrackerDto
 {
     @JsonProperty
     private String enrollment;
