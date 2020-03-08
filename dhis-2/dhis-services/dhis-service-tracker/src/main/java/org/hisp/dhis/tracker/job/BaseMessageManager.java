@@ -47,11 +47,12 @@ public abstract class BaseMessageManager
 {
     private final MessageManager messageManager;
     private final SchedulingManager schedulingManager;
-    protected final RenderService renderService;
+    private final RenderService renderService;
 
     public BaseMessageManager(
             MessageManager messageManager,
-            SchedulingManager schedulingManager, RenderService renderService )
+            SchedulingManager schedulingManager,
+            RenderService renderService )
     {
         this.messageManager = messageManager;
         this.schedulingManager = schedulingManager;
@@ -61,6 +62,7 @@ public abstract class BaseMessageManager
     public String addJob( TrackerSideEffectDataBundle sideEffectDataBundle )
     {
         String jobId = CodeGenerator.generateUid();
+        sideEffectDataBundle.setJobId( jobId );
 
         messageManager.sendQueue( getTopic(), sideEffectDataBundle );
 

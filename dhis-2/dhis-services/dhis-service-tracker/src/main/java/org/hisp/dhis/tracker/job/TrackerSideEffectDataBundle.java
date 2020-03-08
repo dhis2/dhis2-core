@@ -29,20 +29,16 @@ package org.hisp.dhis.tracker.job;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +64,9 @@ public class TrackerSideEffectDataBundle implements Message
     private BaseIdentifiableObject object;
 
     @JsonProperty
+    private JobConfiguration jobConfiguration;
+
+    @JsonProperty
     @Builder.Default
     private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
@@ -80,6 +79,9 @@ public class TrackerSideEffectDataBundle implements Message
 
     @JsonProperty
     private String accessedBy;
+
+    @JsonProperty
+    private String jobId;
 
     @Override
     @JsonProperty

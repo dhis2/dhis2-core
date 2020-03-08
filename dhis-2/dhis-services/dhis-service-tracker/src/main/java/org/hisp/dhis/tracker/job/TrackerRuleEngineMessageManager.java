@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.job;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
@@ -70,6 +72,10 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager
     public void consume( TextMessage message ) throws JMSException, IOException
     {
         TrackerSideEffectDataBundle bundle = toBundle( message );
+
+        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB, bundle.getAccessedBy(), true );
+
+        bundle.setJobConfiguration( jobConfiguration );
 
         TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
 

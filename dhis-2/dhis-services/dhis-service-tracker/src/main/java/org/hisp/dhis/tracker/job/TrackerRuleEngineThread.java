@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -51,16 +52,17 @@ import java.util.Map;
  */
 @Component
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
-@Slf4j
 public class TrackerRuleEngineThread extends SecurityContextRunnable
 {
     private final List<RuleActionImplementer> ruleActionImplementers;
+    private final Notifier notifier;
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers )
+    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier )
     {
         this.ruleActionImplementers = ruleActionImplementers;
+        this.notifier = notifier;
     }
 
     @Override
@@ -90,7 +92,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
                 }
             }
 
-            log.info( "Tracker Rule-engine side effects completed" );
+            notifier.notify( sideEffectDataBundle.getJobConfiguration(), "Tracker Rule-engine side effects completed" );
         }
     }
 
