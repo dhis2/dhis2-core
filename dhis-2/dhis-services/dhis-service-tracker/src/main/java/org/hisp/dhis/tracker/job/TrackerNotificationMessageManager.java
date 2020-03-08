@@ -73,6 +73,11 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
     {
         TrackerSideEffectDataBundle bundle = toBundle( message );
 
+        if ( bundle == null )
+        {
+            return;
+        }
+
         JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy(), true );
 
         bundle.setJobConfiguration( jobConfiguration );
