@@ -48,7 +48,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public class DataValueSynchronization extends DataSynchronization
+public class DataValueSynchronization extends DataSynchronizationWithPaging
 {
     private final DataValueService dataValueService;
     private final DataValueSetService dataValueSetService;
@@ -71,6 +71,7 @@ public class DataValueSynchronization extends DataSynchronization
         this.restTemplate = restTemplate;
     }
 
+    @Override
     public SynchronizationResult synchronizeData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )

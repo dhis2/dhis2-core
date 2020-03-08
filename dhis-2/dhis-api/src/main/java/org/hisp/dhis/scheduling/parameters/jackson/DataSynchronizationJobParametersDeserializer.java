@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,27 +28,24 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class RelationshipItem
+public class DataSynchronizationJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<DataSynchronizationJobParameters>
 {
-    @JsonProperty
-    private String trackedEntity;
+    public DataSynchronizationJobParametersDeserializer()
+    {
+        super( DataSynchronizationJobParameters.class,
+            DataSynchronizationJobParametersDeserializer.CustomJobParameters.class );
+    }
 
-    @JsonProperty
-    private String enrollment;
-
-    @JsonProperty
-    private String event;
+    @JsonDeserialize
+    public static class CustomJobParameters extends DataSynchronizationJobParameters
+    {
+    }
 }

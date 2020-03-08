@@ -32,17 +32,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.*;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import org.hisp.dhis.dxf2.sync.SynchronizationJob;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
@@ -59,11 +58,11 @@ import lombok.extern.slf4j.Slf4j;
  * through the dhis.conf.
  *
  * @author anilkumk
+ * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Slf4j
 @Component( "metadataSyncJob" )
-public class MetadataSyncJob
-    extends AbstractJob
+public class MetadataSyncJob extends SynchronizationJob
 {
     public static final String VERSION_KEY = "version";
     public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
@@ -155,14 +154,10 @@ public class MetadataSyncJob
     @Override
     public ErrorReport validate()
     {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
+            MetadataSyncJob.class );
 
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return new ErrorReport( MetadataSyncJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
-        }
-
-        return super.validate();
+        return errorReport.orElse( super.validate() );
     }
 
     synchronized void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )

@@ -66,10 +66,10 @@ public class MetadataSyncPreProcessor
     private final SystemSettingManager systemSettingManager;
     private final MetadataVersionService metadataVersionService;
     private final MetadataVersionDelegate metadataVersionDelegate;
-    private final DataSynchronization trackerSync;
-    private final DataSynchronization eventSync;
-    private final DataSynchronization dataValueSync;
-    private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
+    private final DataSynchronizationWithPaging trackerSync;
+    private final DataSynchronizationWithPaging eventSync;
+    private final DataSynchronizationWithPaging dataValueSync;
+    private final DataSynchronizationWithoutPaging completeDataSetRegistrationSync;
 
     public MetadataSyncPreProcessor(
         SystemSettingManager systemSettingManager,
@@ -256,7 +256,8 @@ public class MetadataSyncPreProcessor
     }
 
     public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context ) {
-        SynchronizationResult completenessSynchronizationResult = completeDataSetRegistrationSync.syncCompleteDataSetRegistrationData();
+        SynchronizationResult completenessSynchronizationResult =
+            completeDataSetRegistrationSync.synchronizeData();
 
         if ( completenessSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
