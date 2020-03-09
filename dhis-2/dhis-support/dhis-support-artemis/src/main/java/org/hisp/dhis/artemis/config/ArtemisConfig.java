@@ -85,7 +85,7 @@ public class ArtemisConfig
     }
 
     @Bean
-    public JmsTemplate jmsTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    public JmsTemplate jmsTopicTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
     {
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );

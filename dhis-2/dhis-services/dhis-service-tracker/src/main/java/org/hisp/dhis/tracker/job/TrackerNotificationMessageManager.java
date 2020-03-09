@@ -30,10 +30,17 @@ package org.hisp.dhis.tracker.job;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+import java.io.IOException;
 
 /**
  * Producer and consumer for handling tracker notifications.
@@ -48,9 +55,10 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
     public TrackerNotificationMessageManager(
             MessageManager messageManager,
             SchedulingManager schedulingManager,
+            RenderService renderService,
             ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory )
     {
-        super( messageManager, schedulingManager );
+        super( messageManager, schedulingManager, renderService );
         this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
     }
 
@@ -61,8 +69,19 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
-    public void consume( TrackerSideEffectDataBundle bundle )
+    public void consume( TextMessage message ) throws JMSException, IOException
     {
+        TrackerSideEffectDataBundle bundle = toBundle( message );
+
+        if ( bundle == null )
+        {
+            return;
+        }
+
+        JobConfiguration jobConfiguration = new JobConfiguration( "", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy(), true );
+
+        bundle.setJobConfiguration( jobConfiguration );
+
         TrackerNotificationThread notificationThread = trackerNotificationThreadObjectFactory.getObject();
 
         notificationThread.setSideEffectDataBundle( bundle );

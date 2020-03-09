@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.sideeffect;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -71,6 +72,7 @@ public class AuditSideEffectHandlerService implements SideEffectHandlerService
             .createdAt( LocalDateTime.now() )
             .createdBy( sideEffectDataBundle.getAccessedBy() )
             .klass( sideEffectDataBundle.getKlass().getName() )
+            .auditableEntity( new AuditableEntity( sideEffectDataBundle ) )
             .build();
 
         auditManager.send( audit );
