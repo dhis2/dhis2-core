@@ -36,7 +36,7 @@ import org.hisp.dhis.audit.AuditAttribute;
 
 public class NestedTestImplementation
     extends
-    TestImplementation
+        org.hisp.dhis.artemis.audit.listener.TestImplementation
 {
     private String testAttribute3;
 
