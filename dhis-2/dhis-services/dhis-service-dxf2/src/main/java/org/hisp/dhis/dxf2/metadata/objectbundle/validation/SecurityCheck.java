@@ -102,7 +102,7 @@ public class SecurityCheck
                         identifier.getIdentifiersWithName( bundle.getUser() ),
                         identifier.getIdentifiersWithName( object ) );
 
-                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
                     ctx.markForRemoval( object );
                     continue;
                 }
@@ -119,7 +119,7 @@ public class SecurityCheck
                             identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
                         ctx.markForRemoval( object );
                         continue;
                     }
@@ -132,7 +132,7 @@ public class SecurityCheck
                             identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
 
                         ctx.markForRemoval( object );
                         continue;
