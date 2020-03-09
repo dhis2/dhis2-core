@@ -66,17 +66,9 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.program.ProgramInstanceAuditQueryParams;
 import org.hisp.dhis.program.ProgramInstanceAuditService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,23 +95,14 @@ public class AuditController
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
     private DataValueAuditService dataValueAuditService;
 
     @Autowired
-    private TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
-
-    @Autowired
-    private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
-
-    @Autowired
     private DataApprovalAuditService dataApprovalAuditService;
-    
+
     @Autowired
     private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-    
+
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
 
@@ -292,7 +275,7 @@ public class AuditController
 
         return rootNode;
     }
-    
+
     @RequestMapping( value = "trackedEntityInstance", method = RequestMethod.GET )
     public @ResponseBody RootNode getTrackedEnityInstanceAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> tei,
@@ -321,20 +304,20 @@ public class AuditController
         params.setStartDate( startDate );
         params.setEndDate( endDate );
         params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
-        
+
         List<TrackedEntityInstanceAudit> teiAudits;
         Pager pager = null;
 
         if ( !params.isSkipPaging() )
-        {                    
+        {
             int total = trackedEntityInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
-            
+
             params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );            
+            params.setMax( pager.getPageSize() );
         }
-        
+
         teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -343,15 +326,15 @@ public class AuditController
         {
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
-    
+
         CollectionNode trackedEntityInstanceAudits = rootNode.addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
         trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 
         return rootNode;
-        
+
     }
-    
+
     @RequestMapping( value = "enrollment", method = RequestMethod.GET )
     public @ResponseBody RootNode getEnrollmentAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> en,
@@ -374,9 +357,9 @@ public class AuditController
         }
 
         ProgramInstanceAuditQueryParams params = new ProgramInstanceAuditQueryParams();
-        
+
         List<ProgramInstance> pis = getEnrollments( en );
-        
+
         List<Program> prs = getPrograms( pr );
 
         params.setProgramInstances( new HashSet<>( pis ) );
@@ -386,20 +369,20 @@ public class AuditController
         params.setStartDate( startDate );
         params.setEndDate( endDate );
         params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
-        
+
         List<ProgramInstanceAudit> piAudits;
         Pager pager = null;
 
         if ( !params.isSkipPaging() )
-        {                    
+        {
             int total = programInstanceAuditService.getProgramInstanceAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
-            
+
             params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );            
+            params.setMax( pager.getPageSize() );
         }
-        
+
         piAudits = programInstanceAuditService.getProgramInstanceAudits( params );
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -408,120 +391,18 @@ public class AuditController
         {
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
-    
+
         CollectionNode programInstanceAudits = rootNode.addChild( new CollectionNode( "programInstanceAudits", true ) );
         programInstanceAudits.addChildren( fieldFilterService.toCollectionNode( ProgramInstanceAudit.class,
             new FieldFilterParams( piAudits, fields ) ).getChildren() );
 
         return rootNode;
-        
+
     }
 
     //-----------------------------------------------------------------------------------------------------------------
     // Helpers
     //-----------------------------------------------------------------------------------------------------------------
-
-    private List<TrackedEntityInstance> getTrackedEntityInstances( List<String> teiIdentifiers ) throws WebMessageException
-    {
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
-
-        for ( String tei : teiIdentifiers )
-        {
-            TrackedEntityInstance trackedEntityInstance = getTrackedEntityInstance( tei );
-
-            if ( trackedEntityInstance != null )
-            {
-                trackedEntityInstances.add( trackedEntityInstance );
-            }
-        }
-
-        return trackedEntityInstances;
-    }
-
-    private TrackedEntityInstance getTrackedEntityInstance( String tei ) throws WebMessageException
-    {
-        if ( tei == null )
-        {
-            return null;
-        }
-
-        TrackedEntityInstance trackedEntityInstance = manager.get( TrackedEntityInstance.class, tei );
-
-        if ( trackedEntityInstance == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal trackedEntityInstance identifier: " + tei ) );
-        }
-
-        return trackedEntityInstance;
-    }
-
-    private List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> teaIdentifiers ) throws WebMessageException
-    {
-        List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-        for ( String tea : teaIdentifiers )
-        {
-            TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute( tea );
-
-            if ( trackedEntityAttribute != null )
-            {
-                trackedEntityAttributes.add( trackedEntityAttribute );
-            }
-        }
-
-        return trackedEntityAttributes;
-    }
-
-    private TrackedEntityAttribute getTrackedEntityAttribute( String tea ) throws WebMessageException
-    {
-        if ( tea == null )
-        {
-            return null;
-        }
-
-        TrackedEntityAttribute trackedEntityAttribute = manager.get( TrackedEntityAttribute.class, tea );
-
-        if ( trackedEntityAttribute == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal trackedEntityAttribute identifier: " + tea ) );
-        }
-
-        return trackedEntityAttribute;
-    }
-
-    private List<ProgramStageInstance> getProgramStageInstances( List<String> psIdentifiers ) throws WebMessageException
-    {
-        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
-
-        for ( String ps : psIdentifiers )
-        {
-            ProgramStageInstance programStageInstance = getProgramStageInstance( ps );
-
-            if ( programStageInstance != null )
-            {
-                programStageInstances.add( programStageInstance );
-            }
-        }
-
-        return programStageInstances;
-    }
-
-    private ProgramStageInstance getProgramStageInstance( String ps ) throws WebMessageException
-    {
-        if ( ps == null )
-        {
-            return null;
-        }
-
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( ps );
-
-        if ( programStageInstance == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal programStageInstance identifier: " + ps ) );
-        }
-
-        return programStageInstance;
-    }
 
     private List<DataElement> getDataElementsByDataSet( List<String> dsIdentifiers ) throws WebMessageException
     {
@@ -670,16 +551,16 @@ public class AuditController
 
         return manager.getByUid( DataApprovalWorkflow.class, wf );
     }
-    
+
     private List<ProgramInstance> getEnrollments( @RequestParam List<String> enrollmentIdentifiers ) throws WebMessageException
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
-        
+
         if ( enrollmentIdentifiers == null )
         {
             return programInstances;
         }
-        
+
         for ( String en : enrollmentIdentifiers )
         {
             ProgramInstance programInstance = manager.get( ProgramInstance.class, en );
@@ -691,19 +572,19 @@ public class AuditController
 
             programInstances.add( programInstance );
         }
-        
+
         return programInstances;
     }
-    
+
     private List<Program> getPrograms( @RequestParam List<String> programIdentifiers ) throws WebMessageException
     {
         List<Program> programs = new ArrayList<>();
-        
+
         if ( programIdentifiers == null )
         {
             return programs;
         }
-        
+
         for ( String pr : programIdentifiers )
         {
             Program program = manager.get( Program.class, pr );
