@@ -28,15 +28,15 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Strings;
+import java.util.Map;
 
-
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.audit.AuditScope;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import com.google.common.base.Strings;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -62,15 +62,16 @@ public class AuditProducerSupplier
 
         if ( !Strings.isNullOrEmpty( topic ) )
         {
-            log.debug( "sending auditing message to topic: [" + topic + "] with content: "
-                + audit.toString() );
-
+            if ( log.isDebugEnabled() )
+            {
+                log.debug( "sending auditing message to topic: [" + topic + "] with content: " + audit.toLog() );
+            }
             this.messageManager.send( topic, audit );
         }
         else
         {
             log.error( String.format( "Unable to map AuditScope [%s] to a topic name. Sending aborted",
-                audit ) );
+                audit.getAuditScope() ) );
         }
     }
 
