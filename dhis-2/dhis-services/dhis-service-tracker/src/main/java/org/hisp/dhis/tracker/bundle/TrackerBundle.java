@@ -141,13 +141,13 @@ public class TrackerBundle
      * Rule effects for Enrollments.
      */
     @Builder.Default
-    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+    private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
     /**
      * Rule effects for Events.
      */
     @Builder.Default
-    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+    private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
     @JsonProperty
     public String getUsername()

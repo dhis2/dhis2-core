@@ -28,18 +28,17 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,23 +54,37 @@ import java.util.Map;
 @AllArgsConstructor
 public class TrackerSideEffectDataBundle implements Message
 {
+    @JsonProperty
     private String uid;
 
+    @JsonProperty
     private Class<? extends BaseIdentifiableObject> klass;
 
+    @JsonProperty
     private BaseIdentifiableObject object;
 
-    @Singular
-    private Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+    @JsonProperty
+    private JobConfiguration jobConfiguration;
 
-    @Singular
-    private Map<Event, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+    @JsonProperty
+    @Builder.Default
+    private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
+    @JsonProperty
+    @Builder.Default
+    private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+
+    @JsonProperty
     private TrackerImportStrategy importStrategy;
 
+    @JsonProperty
     private String accessedBy;
 
+    @JsonProperty
+    private String jobId;
+
     @Override
+    @JsonProperty
     public MessageType getMessageType()
     {
         return MessageType.TRACKER_SIDE_EFFECT;
