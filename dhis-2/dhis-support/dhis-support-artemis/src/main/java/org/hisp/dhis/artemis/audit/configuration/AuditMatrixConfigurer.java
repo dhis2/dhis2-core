@@ -113,7 +113,7 @@ public class AuditMatrixConfigurer
             }
             else
             {
-                matrix.put( value, DEFAULT_AUDIT_CONFIGURATION);
+                matrix.put( value, DEFAULT_AUDIT_CONFIGURATION );
             }
         }
 
