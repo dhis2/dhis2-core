@@ -34,8 +34,6 @@ public class Constants
 
     public static final String TRACKER_BUNDLE_CANT_BE_NULL = "TrackerBundle can't be null";
 
-    public static final String TRACKER_IDENTIFIER_CANT_BE_NULL = "TrackerIdentifier can't be null";
-
     public static final String USER_CANT_BE_NULL = "User can't be null";
 
     public static final String EVENT_CANT_BE_NULL = "Event can't be null";

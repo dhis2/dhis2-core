@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -78,7 +79,7 @@ public class TrackedEntityAttributeValidationHook
     @Override
     public int getOrder()
     {
-        return 3;
+        return 53;
     }
 
     @Override
@@ -111,14 +112,13 @@ public class TrackedEntityAttributeValidationHook
     {
         Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
 
-        Map<String, TrackedEntityAttributeValue> valueMap = Collections.EMPTY_MAP;
+        Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
         if ( trackedEntityInstance != null )
         {
             valueMap = trackedEntityInstance.getTrackedEntityAttributeValues()
                 .stream()
                 .collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
         }
-
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
@@ -131,13 +131,12 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
-            // Should this be an error instead maybe? if value is NULL empty -> delete
             if ( StringUtils.isEmpty( attribute.getValue() ) )
             {
                 continue;
             }
 
-            // look up in the preheater?
+            // TODO: look up in the preheater?
             TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
 
             if ( trackedEntityAttributeValue == null )
@@ -154,8 +153,7 @@ public class TrackedEntityAttributeValidationHook
 
             validateAttrValueType( errorReporter, attribute, trackedEntityAttribute );
 
-            // NOTE: This is "THE" potential performance killer...
-            // "Error validating attribute, not unique; Error `{0}`"
+            // TODO: This is one "THE" potential performance killer...
             validateAttributeUniqueness( errorReporter,
                 attribute.getValue(),
                 trackedEntityAttribute,
@@ -175,16 +173,9 @@ public class TrackedEntityAttributeValidationHook
 
         if ( tei != null && attrIsFile )
         {
-//            List<String> existingValues = new ArrayList<>();
-//            tei.getTrackedEntityAttributeValues().stream()
-//                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
-//                .filter( attrVal -> attrVal.getAttribute().getUid()
-//                    .equals( attr.getAttribute() ) ) // << Unsure about this, this differs from the original "old" code.
-//                .forEach( attrVal -> existingValues.add( attrVal.getValue() ) );
-
             TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( attr.getAttribute() );
-            boolean isFile = trackedEntityAttributeValue.getAttribute().getValueType().isFile();
-            if ( !isFile )
+
+            if ( !trackedEntityAttributeValue.getAttribute().getValueType().isFile() )
             {
                 return;
             }
@@ -205,11 +196,12 @@ public class TrackedEntityAttributeValidationHook
         }
     }
 
-    // For å ikke å blokke eksisterende reservete verdier så tilater man derfor  Objects.equals( value, oldValue )
     protected boolean validateReservedValues( TrackedEntityAttribute attribute, String value, String oldValue )
     {
         Objects.requireNonNull( attribute, "TrackedEntityAttribute can't be null" );
-        // optimize to
+
+        // So that we don't block existing reserved values (on UPDATE) with an incompatible pattern,
+        // we have this check Objects.equals( value, oldValue )
         return Objects.equals( value, oldValue ) ||
             TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) ||
             reservedValueService.isReserved( attribute.getTextPattern(), value );
@@ -221,7 +213,7 @@ public class TrackedEntityAttributeValidationHook
         Objects.requireNonNull( attr, "Attribute can't be null" );
         Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
 
-        // Should we check the text pattern even if its not generated?
+        // TODO: Should we check the text pattern even if its not generated?
         // TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
 
         // Should we fail of there is no pattern and its generated?
@@ -229,7 +221,6 @@ public class TrackedEntityAttributeValidationHook
         if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipTextPatternValidation() )
         {
             String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
-
 
             if ( !validateReservedValues( teAttr, attr.getValue(), oldValue ) )
             {
@@ -252,13 +243,11 @@ public class TrackedEntityAttributeValidationHook
 
         boolean confidentialBool = attributeValue.getAttribute().isConfidentialBool();
 
-
-        // NOTE: Need some input on the encryption check here
 //        if ( attributeValue.getAttribute().isConfidentialBool() &&
 //            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
 //        {
         //
-        // This straightfowarad just check config....
+        //TODO: This is straightforward just check config....
 //            throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
 //        }
 

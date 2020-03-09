@@ -161,7 +161,7 @@ public class EnrollmentAttributeValidationHook
         Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
 
-        // NOTE: This is my attempt to fix this after impl. Abyot's comments on the initial/original version.
+        // TODO: This is my attempt to fix this after impl. Abyot's comments on the initial/original version.
         // 1. Get all tei attributes, map attrValue attr. into set of attr.
         Set<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityInstance.getTrackedEntityAttributeValues()
             .stream()

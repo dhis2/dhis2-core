@@ -111,8 +111,7 @@ public class TrackerImportParams
      * Should text pattern validation be skipped or not, default is not.
      */
     @JsonProperty
-    @Builder.Default
-    private boolean skipPatternValidation = false;
+    private boolean skipPatternValidation;
 
     /**
      * Name of file that was used for import (if available).

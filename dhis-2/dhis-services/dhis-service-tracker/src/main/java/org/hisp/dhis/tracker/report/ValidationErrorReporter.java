@@ -79,11 +79,6 @@ public class ValidationErrorReporter
         return reportList;
     }
 
-    public int getTotalErrors()
-    {
-        return reportList.size();
-    }
-
     public boolean isFailFast()
     {
         return isFailFast;

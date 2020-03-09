@@ -41,7 +41,10 @@ public interface TrackerValidationHook
     extends Ordered
 {
 
-    boolean isEnabled();
+    default boolean isEnabled()
+    {
+        return true;
+    }
 
     List<TrackerErrorReport> validate( TrackerBundle bundle );
 

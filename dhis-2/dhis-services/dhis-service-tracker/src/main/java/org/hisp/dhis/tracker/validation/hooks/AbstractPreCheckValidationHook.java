@@ -48,12 +48,6 @@ abstract public class AbstractPreCheckValidationHook
     implements TrackerValidationHook
 {
 
-    @Override
-    public boolean isEnabled()
-    {
-        return true;
-    }
-
     abstract public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event );
 
     abstract public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
@@ -86,11 +80,11 @@ abstract public class AbstractPreCheckValidationHook
 
         while ( iterator.hasNext() )
         {
-            T tei = iterator.next();
+            T dto = iterator.next();
 
-            ValidationErrorReporter reportFork = reporter.fork( tei );
+            ValidationErrorReporter reportFork = reporter.fork( dto );
 
-            function.validateObject( tei, reportFork );
+            function.validateObject( dto, reportFork );
 
             if ( reportFork.hasErrors() )
             {

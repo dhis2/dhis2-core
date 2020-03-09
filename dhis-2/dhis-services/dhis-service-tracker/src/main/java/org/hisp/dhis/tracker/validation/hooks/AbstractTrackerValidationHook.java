@@ -85,29 +85,25 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected ProgramInstanceService programInstanceService;
 
-    @Override
-    public boolean isEnabled()
-    {
-        return true;
-    }
-
     protected void validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
         FeatureType featureType )
     {
         Objects.requireNonNull( featureType, "FeatureType can't be null" );
 
-        if ( coordinates != null && FeatureType.NONE != featureType )
+        if ( coordinates == null || FeatureType.NONE == featureType )
         {
-            try
-            {
-                GeoUtils.getGeometryFromCoordinatesAndType( featureType, coordinates );
-            }
-            catch ( IOException e )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1013 )
-                    .addArg( coordinates )
-                    .addArg( e.getMessage() ) );
-            }
+            return;
+        }
+
+        try
+        {
+            GeoUtils.getGeometryFromCoordinatesAndType( featureType, coordinates );
+        }
+        catch ( IOException e )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1013 )
+                .addArg( coordinates )
+                .addArg( e.getMessage() ) );
         }
     }
 
@@ -133,47 +129,49 @@ public abstract class AbstractTrackerValidationHook
     {
         Objects.requireNonNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
-        if ( Boolean.TRUE.equals( trackedEntityAttribute.isUnique() ) )
+        if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
         {
-            String error = teAttrService.validateAttributeUniquenessWithinScope(
-                trackedEntityAttribute,
-                value,
-                trackedEntityInstanceUid,
-                organisationUnit );
+            return;
+        }
 
-            if ( error != null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1064 )
-                    .addArg( error ) );
-            }
+        String error = teAttrService.validateAttributeUniquenessWithinScope(
+            trackedEntityAttribute,
+            value,
+            trackedEntityInstanceUid,
+            organisationUnit );
+
+        if ( error != null )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1064 )
+                .addArg( error ) );
         }
     }
 
     protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
         String coordinates, FeatureType featureType )
     {
-        // Is this still the current state? or have we removed coordinate yet?
-        //NOTE: Is both (coordinates && geometry) at same time possible?
         if ( coordinates != null )
         {
             validateGeometryFromCoordinates( errorReporter, coordinates, featureType );
         }
 
-        if ( geometry != null )
+        if ( geometry == null )
         {
-            if ( featureType == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1074 ) );
-                return;
-            }
+            return;
+        }
 
-            FeatureType typeFromName = FeatureType.getTypeFromName( geometry.getGeometryType() );
+        if ( featureType == null )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1074 ) );
+            return;
+        }
 
-            if ( FeatureType.NONE == featureType || featureType != typeFromName )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1012 )
-                    .addArg( featureType.name() ) );
-            }
+        FeatureType typeFromName = FeatureType.getTypeFromName( geometry.getGeometryType() );
+
+        if ( FeatureType.NONE == featureType || featureType != typeFromName )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1012 )
+                .addArg( featureType.name() ) );
         }
     }
 
@@ -230,7 +228,7 @@ public abstract class AbstractTrackerValidationHook
         }
         else
         {
-            // NOTE: This is cached in the prev. event importer? What do we do here?
+            // TODO: This is cached in the prev. event importer? What do we do here?
             List<ProgramInstance> activeProgramInstances = programInstanceService
                 .getProgramInstances( program, ProgramStatus.ACTIVE );
 
@@ -264,11 +262,4 @@ public abstract class AbstractTrackerValidationHook
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
     }
-
-    public boolean isValidDateAndNotNull( Date date )
-    {
-        return date != null && DateUtils.getMediumDateString( date ) != null
-            && isValidDateString( DateUtils.getMediumDateString( date ) );
-    }
-
 }

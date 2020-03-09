@@ -51,25 +51,24 @@ import java.util.List;
 @Data
 public class TrackerErrorReport
 {
-
     protected final TrackerErrorMessage message;
 
     @JsonProperty
-    protected final Class<?> mainKlass;
+    private final Class<?> mainKlass;
 
     @JsonProperty
-    protected String mainId;
+    private String mainId;
 
     @JsonProperty
-    protected Class<?> errorKlass;
+    private Class<?> errorKlass;
 
     @JsonProperty
-    protected final String[] errorProperties;
+    private final String[] errorProperties;
 
     @JsonProperty
-    protected Object value;
+    private Object value;
 
-    protected final int lineNumber;
+    private final int lineNumber;
 
     public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
         Class<?> errorKlass, String[] errorProperties, Object value )
@@ -81,7 +80,6 @@ public class TrackerErrorReport
         this.errorKlass = errorKlass;
         this.errorProperties = errorProperties;
         this.value = value;
-
     }
 
     @JsonProperty
@@ -121,7 +119,7 @@ public class TrackerErrorReport
 
         protected Class<?> errorKlass;
 
-        protected String[] errorProperties = new String[0]; // En array isteden for en streng, default til tom TOM array, for å slippe null sjekk!!!
+        protected String[] errorProperties = new String[0];
 
         protected Object value;
 
