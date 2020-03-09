@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.trackedentity;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,16 +28,15 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,22 +46,25 @@ public interface TrackerAccessManager
     List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
 
     List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
-    
+
     List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck );
 
     List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck );
-    
+
     List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
     List<String> canCreate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+
     List<String> canUpdate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+
     List<String> canDelete( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
-    
     List<String> canCreate( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+
     List<String> canUpdate( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+
     List<String> canDelete( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, Relationship relationship );
@@ -89,7 +91,6 @@ public interface TrackerAccessManager
      */
     List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement, boolean skipOwnershipCheck );
 
-    
     List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
 
     List<String> canWrite( User user, CategoryOptionCombo categoryOptionCombo );

@@ -31,8 +31,7 @@ package org.hisp.dhis.tracker.job;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -53,41 +52,47 @@ import java.util.Map;
 public class TrackerRuleEngineThread extends SecurityContextRunnable
 {
     private final List<RuleActionImplementer> ruleActionImplementers;
+    private final Notifier notifier;
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers )
+    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier )
     {
         this.ruleActionImplementers = ruleActionImplementers;
+        this.notifier = notifier;
     }
 
     @Override
     public void call()
     {
-        if ( sideEffectDataBundle != null )
+        if ( sideEffectDataBundle == null )
         {
-            Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects = sideEffectDataBundle.getEnrollmentRuleEffects();
-            Map<Event, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
+            return;
+        }
 
-            for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = sideEffectDataBundle.getEnrollmentRuleEffects();
+        Map<String, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
+
+        for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
+        {
+            for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
             {
-                for ( Map.Entry<Enrollment, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
-                {
-                    entry.getValue()
-                        .parallelStream()
-                        .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                        .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey().getEnrollment() ) );
-                }
+                entry.getValue()
+                    .parallelStream()
+                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                    .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey() ) );
+            }
 
-                for ( Map.Entry<Event, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
-                {
-                    entry.getValue()
-                        .parallelStream()
-                        .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                        .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey().getEvent() ) );
-                }
+            for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
+            {
+                entry.getValue()
+                    .parallelStream()
+                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                    .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey() ) );
             }
         }
+
+        notifier.notify( sideEffectDataBundle.getJobConfiguration(), "Tracker Rule-engine side effects completed" );
     }
 
     public void setSideEffectDataBundle( TrackerSideEffectDataBundle sideEffectDataBundle )

@@ -28,7 +28,6 @@
 
 package org.hisp.dhis.analytics.cache;
 
-import static java.lang.Math.abs;
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
 import static java.time.ZoneOffset.UTC;
@@ -42,8 +41,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.setting.SystemSettingManager;
 
 public class TimeToLive
-    implements
-    Computable
+    implements Computable
 {
 
     static final long DEFAULT_MULTIPLIER = 1;

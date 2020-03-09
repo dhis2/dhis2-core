@@ -145,7 +145,7 @@ public class RelationshipTrackerConverterService
 
         fromRelationships.forEach( fromRelationship -> {
             org.hisp.dhis.relationship.Relationship toRelationship = preheat
-                .getRelationship( TrackerIdentifier.UID, fromRelationship.getRelationship() );
+                .getRelationship( TrackerIdScheme.UID, fromRelationship.getRelationship() );
             org.hisp.dhis.relationship.RelationshipType relationshipType = preheat
                 .get( TrackerIdScheme.UID, RelationshipType.class, fromRelationship.getRelationshipType() );
             org.hisp.dhis.relationship.RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
