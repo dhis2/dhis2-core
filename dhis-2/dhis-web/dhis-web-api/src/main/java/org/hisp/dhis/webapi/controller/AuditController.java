@@ -28,7 +28,16 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
@@ -71,7 +80,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
@@ -80,17 +88,15 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -100,45 +106,65 @@ import java.util.List;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AuditController
 {
-    @Autowired
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private final ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
-    private DataValueAuditService dataValueAuditService;
+    private final DataValueAuditService dataValueAuditService;
 
-    @Autowired
-    private TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
-    @Autowired
-    private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+    private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
-    @Autowired
-    private DataApprovalAuditService dataApprovalAuditService;
+    private final DataApprovalAuditService dataApprovalAuditService;
+
+    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
     
-    @Autowired
-    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-    
-    @Autowired
-    private ProgramInstanceAuditService programInstanceAuditService;
+    private final ProgramInstanceAuditService programInstanceAuditService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+    private final FieldFilterService fieldFilterService;
 
-    @Autowired
-    private ContextService contextService;
+    private final ContextService contextService;
 
-    @Autowired
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
+
+    public AuditController( IdentifiableObjectManager manager, ProgramStageInstanceService programStageInstanceService,
+        DataValueAuditService dataValueAuditService,
+        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        DataApprovalAuditService dataApprovalAuditService,
+        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
+        ProgramInstanceAuditService programInstanceAuditService, FieldFilterService fieldFilterService,
+        ContextService contextService, FileResourceService fileResourceService )
+    {
+        checkNotNull( manager );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( dataValueAuditService );
+        checkNotNull( trackedEntityDataValueAuditService );
+        checkNotNull( trackedEntityAttributeValueAuditService );
+        checkNotNull( dataApprovalAuditService );
+        checkNotNull( programInstanceAuditService );
+        checkNotNull( fieldFilterService );
+        checkNotNull( contextService );
+        checkNotNull( fileResourceService );
+
+        this.manager = manager;
+        this.programStageInstanceService = programStageInstanceService;
+        this.dataValueAuditService = dataValueAuditService;
+        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
+        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
+        this.dataApprovalAuditService = dataApprovalAuditService;
+        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
+        this.programInstanceAuditService = programInstanceAuditService;
+        this.fieldFilterService = fieldFilterService;
+        this.contextService = contextService;
+        this.fileResourceService = fileResourceService;
+    }
 
     /**
      * Returns the file with the given uid
      *
      * @param uid the unique id of the file resource
-     * @param response
-     * @throws WebMessageException
      */
     @RequestMapping( value = "/files/{uid}", method = RequestMethod.GET )
     public void getFileAudit( @PathVariable String uid, HttpServletResponse response )
@@ -242,6 +268,108 @@ public class AuditController
         return rootNode;
     }
 
+    @RequestMapping( value = "trackedEntityDataValue", method = RequestMethod.GET )
+    public @ResponseBody RootNode getTrackedEntityDataValueAudit(
+            @RequestParam( required = false, defaultValue = "" ) List<String> de,
+            @RequestParam( required = false, defaultValue = "" ) List<String> psi,
+            @RequestParam( required = false ) AuditType auditType,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+            @RequestParam( required = false, defaultValue = "1" ) int page
+    ) throws WebMessageException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        List<DataElement> dataElements = getDataElements( de );
+        List<ProgramStageInstance> programStageInstances = getProgramStageInstances( psi );
+
+        List<TrackedEntityDataValueAudit> dataValueAudits;
+        Pager pager = null;
+
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
+        {
+            dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
+                    dataElements, programStageInstances, auditType );
+        }
+        else
+        {
+            int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType );
+
+            pager = new Pager( page, total, pageSize );
+
+            dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
+                    dataElements, programStageInstances, auditType, pager.getOffset(), pager.getPageSize() );
+        }
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityDataValueAudits", true ) );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityDataValueAudit.class,
+                new FieldFilterParams( dataValueAudits, fields ) ).getChildren() );
+
+        return rootNode;
+    }
+
+    @RequestMapping( value = "trackedEntityAttributeValue", method = RequestMethod.GET )
+    public @ResponseBody RootNode getTrackedEntityAttributeValueAudit(
+            @RequestParam( required = false, defaultValue = "" ) List<String> tea,
+            @RequestParam( required = false, defaultValue = "" ) List<String> tei,
+            @RequestParam( required = false ) AuditType auditType,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+            @RequestParam( required = false, defaultValue = "1" ) int page
+    ) throws WebMessageException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        List<TrackedEntityAttribute> trackedEntityAttributes = getTrackedEntityAttributes( tea );
+        List<TrackedEntityInstance> trackedEntityInstances = getTrackedEntityInstances( tei );
+
+        List<TrackedEntityAttributeValueAudit> attributeValueAudits;
+        Pager pager = null;
+
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
+        {
+            attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
+                    trackedEntityAttributes, trackedEntityInstances, auditType );
+        }
+        else
+        {
+            int total = trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits( trackedEntityAttributes,
+                    trackedEntityInstances, auditType );
+
+            pager = new Pager( page, total, pageSize );
+
+            attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
+                    trackedEntityAttributes, trackedEntityInstances, auditType, pager.getOffset(), pager.getPageSize() );
+        }
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityAttributeValueAudits", true ) );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAttributeValueAudit.class,
+                new FieldFilterParams( attributeValueAudits, fields ) ).getChildren() );
+
+        return rootNode;
+    }
+
     @RequestMapping( value = "dataApproval", method = RequestMethod.GET )
     public @ResponseBody RootNode getDataApprovalAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> dal,
@@ -254,7 +382,7 @@ public class AuditController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
-    ) throws WebMessageException
+    )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -274,15 +402,15 @@ public class AuditController
 
         List<DataApprovalAudit> audits = dataApprovalAuditService.getDataApprovalAudits( params );
 
-        Pager pager = null;
+        Pager pager;
         RootNode rootNode = NodeUtils.createMetadata();
 
         if ( !PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             pager = new Pager( page, audits.size(), pageSize );
 
-            audits = audits.subList( pager.getOffset(), pager.getOffset() + pager.getPageSize() < audits.size() ?
-                pager.getOffset() + pager.getPageSize() : audits.size() );
+            audits = audits.subList( pager.getOffset(),
+                Math.min( pager.getOffset() + pager.getPageSize(), audits.size() ) );
 
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
@@ -293,7 +421,7 @@ public class AuditController
 
         return rootNode;
     }
-    
+
     @RequestMapping( value = "trackedEntityInstance", method = RequestMethod.GET )
     public @ResponseBody RootNode getTrackedEnityInstanceAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> tei,
@@ -305,7 +433,7 @@ public class AuditController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
-    ) throws WebMessageException
+    )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -322,20 +450,20 @@ public class AuditController
         params.setStartDate( startDate );
         params.setEndDate( endDate );
         params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
-        
+
         List<TrackedEntityInstanceAudit> teiAudits;
         Pager pager = null;
 
         if ( !params.isSkipPaging() )
-        {                    
+        {
             int total = trackedEntityInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
-            
+
             params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );            
+            params.setMax( pager.getPageSize() );
         }
-        
+
         teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -344,15 +472,15 @@ public class AuditController
         {
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
-    
+
         CollectionNode trackedEntityInstanceAudits = rootNode.addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
         trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 
         return rootNode;
-        
+
     }
-    
+
     @RequestMapping( value = "enrollment", method = RequestMethod.GET )
     public @ResponseBody RootNode getEnrollmentAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> en,
@@ -375,9 +503,9 @@ public class AuditController
         }
 
         ProgramInstanceAuditQueryParams params = new ProgramInstanceAuditQueryParams();
-        
+
         List<ProgramInstance> pis = getEnrollments( en );
-        
+
         List<Program> prs = getPrograms( pr );
 
         params.setProgramInstances( new HashSet<>( pis ) );
@@ -387,20 +515,20 @@ public class AuditController
         params.setStartDate( startDate );
         params.setEndDate( endDate );
         params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
-        
+
         List<ProgramInstanceAudit> piAudits;
         Pager pager = null;
 
         if ( !params.isSkipPaging() )
-        {                    
+        {
             int total = programInstanceAuditService.getProgramInstanceAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
-            
+
             params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );            
+            params.setMax( pager.getPageSize() );
         }
-        
+
         piAudits = programInstanceAuditService.getProgramInstanceAudits( params );
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -409,13 +537,13 @@ public class AuditController
         {
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
-    
+
         CollectionNode programInstanceAudits = rootNode.addChild( new CollectionNode( "programInstanceAudits", true ) );
         programInstanceAudits.addChildren( fieldFilterService.toCollectionNode( ProgramInstanceAudit.class,
             new FieldFilterParams( piAudits, fields ) ).getChildren() );
 
         return rootNode;
-        
+
     }
 
     //-----------------------------------------------------------------------------------------------------------------
@@ -598,8 +726,7 @@ public class AuditController
         return periods;
     }
 
-    private List<OrganisationUnit> getOrganisationUnit( List<String> ou ) throws WebMessageException
-    {
+    private List<OrganisationUnit> getOrganisationUnit( List<String> ou ) {
         if ( ou == null )
         {
             return new ArrayList<>();
@@ -608,8 +735,7 @@ public class AuditController
         return manager.getByUid( OrganisationUnit.class, ou );
     }
 
-    private List<CategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) throws WebMessageException
-    {
+    private List<CategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) {
         if ( coc == null )
         {
             return new ArrayList<>();
@@ -652,7 +778,7 @@ public class AuditController
         return attributeOptionCombo;
     }
 
-    private List<DataApprovalLevel> getDataApprovalLevel( @RequestParam List<String> dal ) throws WebMessageException
+    private List<DataApprovalLevel> getDataApprovalLevel( @RequestParam List<String> dal )
     {
         if ( dal == null )
         {
@@ -662,7 +788,7 @@ public class AuditController
         return manager.getByUid( DataApprovalLevel.class, dal );
     }
 
-    private List<DataApprovalWorkflow> getDataApprovalWorkflow( @RequestParam List<String> wf ) throws WebMessageException
+    private List<DataApprovalWorkflow> getDataApprovalWorkflow( @RequestParam List<String> wf )
     {
         if ( wf == null )
         {
@@ -671,16 +797,16 @@ public class AuditController
 
         return manager.getByUid( DataApprovalWorkflow.class, wf );
     }
-    
+
     private List<ProgramInstance> getEnrollments( @RequestParam List<String> enrollmentIdentifiers ) throws WebMessageException
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
-        
+
         if ( enrollmentIdentifiers == null )
         {
             return programInstances;
         }
-        
+
         for ( String en : enrollmentIdentifiers )
         {
             ProgramInstance programInstance = manager.get( ProgramInstance.class, en );
@@ -692,19 +818,19 @@ public class AuditController
 
             programInstances.add( programInstance );
         }
-        
+
         return programInstances;
     }
-    
+
     private List<Program> getPrograms( @RequestParam List<String> programIdentifiers ) throws WebMessageException
     {
         List<Program> programs = new ArrayList<>();
-        
+
         if ( programIdentifiers == null )
         {
             return programs;
         }
-        
+
         for ( String pr : programIdentifiers )
         {
             Program program = manager.get( Program.class, pr );

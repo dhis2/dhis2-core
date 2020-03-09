@@ -1448,8 +1448,6 @@ public abstract class ChartFacadeController {
     // Reflection helpers
     //--------------------------------------------------------------------------
 
-    private Class<Visualization> entityClass;
-
     private String entityName;
 
     private String entitySimpleName;

@@ -41,7 +41,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -71,7 +71,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 

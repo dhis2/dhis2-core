@@ -40,7 +40,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
@@ -80,9 +79,6 @@ public class TrackerProgramRuleBundleServiceTest
 
     @Autowired
     private TrackerBundleService trackerBundleService;
-
-    @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
 
     @Autowired
     private ProgramRuleService programRuleService;

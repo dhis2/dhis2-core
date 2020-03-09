@@ -30,14 +30,28 @@ package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -49,7 +63,12 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.schema.*;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -62,8 +81,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,9 +109,12 @@ public class DefaultPreheatService implements PreheatService
 
     private final MergeService mergeService;
 
+    private final SchemaToDataFetcher schemaToDataFetcher;
+
     public DefaultPreheatService( SchemaService schemaService, QueryService queryService,
         IdentifiableObjectManager manager, CurrentUserService currentUserService, PeriodStore periodStore,
-        PeriodService periodService, AttributeService attributeService, MergeService mergeService )
+        PeriodService periodService, AttributeService attributeService, MergeService mergeService,
+        SchemaToDataFetcher schemaToDataFetcher )
     {
         checkNotNull( schemaService );
         checkNotNull( queryService );
@@ -113,6 +133,7 @@ public class DefaultPreheatService implements PreheatService
         this.periodService = periodService;
         this.attributeService = attributeService;
         this.mergeService = mergeService;
+        this.schemaToDataFetcher = schemaToDataFetcher;
     }
 
     @Override
@@ -133,6 +154,7 @@ public class DefaultPreheatService implements PreheatService
         preheat.put( PreheatIdentifier.UID, preheat.getUser() );
         preheat.put( PreheatIdentifier.CODE, preheat.getUser() );
 
+        // assign an uid to objects without an uid
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
         {
             params.getObjects().get( klass ).stream()
@@ -222,10 +244,8 @@ public class DefaultPreheatService implements PreheatService
 
             for ( Class<? extends IdentifiableObject> klass : klasses )
             {
-                Query query = Query.from( schemaService.getDynamicSchema( klass ) );
-                query.setUser( preheat.getUser() );
-                List<? extends IdentifiableObject> objects = queryService.query( query );
-
+                List<? extends IdentifiableObject> objects = schemaToDataFetcher
+                    .fetch( schemaService.getDynamicSchema( klass ) );
                 if ( !objects.isEmpty() )
                 {
                     uniqueCollectionMap.put( klass, new ArrayList<>( objects ) );
@@ -439,11 +459,11 @@ public class DefaultPreheatService implements PreheatService
             return new HashMap<>();
         }
 
-        if ( Collection.class.isInstance( object ) )
+        if ( object instanceof Collection )
         {
             return collectReferences( (Collection<?>) object );
         }
-        else if ( Map.class.isInstance( object ) )
+        else if ( object instanceof Map )
         {
             return collectReferences( (Map<Class<?>, List<?>>) object );
         }
@@ -483,8 +503,7 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<?>, List<?>> targets = new HashMap<>();
-        targets.putAll( objects ); // Clone objects list, we don't want to modify it
+        Map<Class<?>, List<?>> targets = new HashMap<>( objects ); // Clone objects list, we don't want to modify it
         collectScanTargets( targets );
 
         for ( Class<?> klass : targets.keySet() )

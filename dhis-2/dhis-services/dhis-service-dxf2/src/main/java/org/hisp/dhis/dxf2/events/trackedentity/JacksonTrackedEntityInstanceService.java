@@ -43,7 +43,7 @@ import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
