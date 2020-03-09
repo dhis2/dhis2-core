@@ -531,21 +531,6 @@ public class ChartImageGenerator {
         return NumericSortWrapper.getObjectList( list );
     }
 
-
-    /**
-     * Returns a basic JFreeChart.
-     */
-    private JFreeChart getBasicJFreeChart( CategoryPlot plot )
-    {
-        JFreeChart jFreeChart = new JFreeChart( null, TITLE_FONT, plot, false );
-
-        jFreeChart.setBackgroundPaint( Color.WHITE );
-        jFreeChart.setAntiAlias( true );
-
-        return jFreeChart;
-    }
-
-
     /**
      * Returns a bar renderer.
      */

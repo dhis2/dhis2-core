@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -44,7 +43,6 @@ import java.util.stream.Collectors;
 /**
  * @author Enrico Colasante
  */
-@Slf4j
 @Service
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
