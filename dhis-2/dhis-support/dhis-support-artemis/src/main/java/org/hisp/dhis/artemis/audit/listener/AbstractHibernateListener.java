@@ -28,14 +28,24 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.cronutils.utils.Preconditions.checkNotNull;
@@ -43,24 +53,32 @@ import static com.cronutils.utils.Preconditions.checkNotNull;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public abstract class AbstractHibernateListener
 {
+    protected final String[] AUDIT_IGNORE_PROPERTIES = { "userAccesses", "userGroupAccesses", "user", "lastUpdatedBy" };
+
     final AuditManager auditManager;
     final AuditObjectFactory objectFactory;
     private final UsernameSupplier usernameSupplier;
 
+    private final ObjectMapper objectMapper;
+
     public AbstractHibernateListener(
         AuditManager auditManager,
         AuditObjectFactory objectFactory,
-        UsernameSupplier usernameSupplier )
+        UsernameSupplier usernameSupplier,
+        ObjectMapper objectMapper )
     {
         checkNotNull( auditManager );
         checkNotNull( objectFactory );
         checkNotNull( usernameSupplier );
+        checkNotNull( objectMapper );
 
         this.auditManager = auditManager;
         this.objectFactory = objectFactory;
         this.usernameSupplier = usernameSupplier;
+        this.objectMapper = objectMapper;
     }
 
     Optional<Auditable> getAuditable( Object object, String type )
