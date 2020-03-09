@@ -288,6 +288,7 @@ public class DefaultTrackerPreheatService
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
         List<List<String>> splitList )
     {

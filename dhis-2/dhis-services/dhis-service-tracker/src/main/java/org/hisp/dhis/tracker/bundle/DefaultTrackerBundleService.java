@@ -41,7 +41,6 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
@@ -101,8 +100,6 @@ public class DefaultTrackerBundleService
 
     private final DbmsManager dbmsManager;
 
-    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
     private final TrackerProgramRuleService trackerProgramRuleService;
 
     private final ReservedValueService reservedValueService;
@@ -133,7 +130,6 @@ public class DefaultTrackerBundleService
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
-        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
         TrackerProgramRuleService trackerProgramRuleService,
         ReservedValueService reservedValueService )
 
@@ -148,7 +144,6 @@ public class DefaultTrackerBundleService
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
-        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.reservedValueService = reservedValueService;
     }
