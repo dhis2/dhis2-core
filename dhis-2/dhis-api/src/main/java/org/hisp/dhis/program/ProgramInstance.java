@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -65,6 +66,7 @@ public class ProgramInstance
 
     private ProgramStatus status = ProgramStatus.ACTIVE;
 
+    @AuditAttribute
     private OrganisationUnit organisationUnit;
 
     private Date incidentDate;
@@ -73,8 +75,10 @@ public class ProgramInstance
 
     private Date endDate;
 
+    @AuditAttribute
     private TrackedEntityInstance entityInstance;
 
+    @AuditAttribute
     private Program program;
 
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
@@ -91,6 +95,7 @@ public class ProgramInstance
 
     private Geometry geometry;
 
+    @AuditAttribute
     private Boolean deleted = false;
 
     private String storedBy;
