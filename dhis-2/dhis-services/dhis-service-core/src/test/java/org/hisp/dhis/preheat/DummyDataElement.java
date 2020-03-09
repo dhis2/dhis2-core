@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.preheat;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,41 +28,54 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsQueue;
-import org.apache.qpid.jms.JmsTopic;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.option.OptionSet;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Component
-public class MessageManager
+public class DummyDataElement
+    extends
+    BaseDimensionalItemObject
+    implements
+    MetadataObject,
+    ValueTypedDimensionalItemObject
 {
-    private final JmsTemplate jmsTopicTemplate;
-    private final JmsTemplate jmsQueueTemplate;
-    private final RenderService renderService;
 
-    public MessageManager( JmsTemplate jmsTopicTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService )
+    private String url;
+
+    @Override
+    public boolean hasOptionSet()
     {
-        this.jmsTopicTemplate = jmsTopicTemplate;
-        this.jmsQueueTemplate = jmsQueueTemplate;
-        this.renderService = renderService;
+        return false;
     }
 
-    public void send( String destinationName, Message message )
+    @Override
+    public OptionSet getOptionSet()
     {
-        jmsTopicTemplate.send( destinationName, session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+        return null;
     }
 
-    public void sendTopic( String destinationName, Message message )
+    @Override
+    public ValueType getValueType()
     {
-        jmsTopicTemplate.send( new JmsTopic( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+        return null;
     }
 
-    public void sendQueue( String destinationName, Message message )
+    public String getUrl()
     {
-        jmsQueueTemplate.send( new JmsQueue( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+        return url;
+    }
+
+    public void setUrl( String url )
+    {
+        if ( url.endsWith( "-exception" ) )
+        {
+            throw new NullPointerException();
+        }
+        this.url = url;
     }
 }

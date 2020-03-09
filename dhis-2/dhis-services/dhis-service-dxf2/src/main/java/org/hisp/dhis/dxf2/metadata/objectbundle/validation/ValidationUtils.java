@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,52 +28,48 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
 
 /**
- * @author Enrico Colasante
+ * @author Luciano Fiandesio
  */
-@Service
-public class DefaultTrackerProgramRuleService
-    implements TrackerProgramRuleService
+public class ValidationUtils
 {
-    private final DefaultProgramRuleEngineService programRuleEngineService;
 
-    public DefaultTrackerProgramRuleService( DefaultProgramRuleEngineService programRuleEngineService )
+    public static List<IdentifiableObject> joinObjects( List<IdentifiableObject> persistedObjects,
+        List<IdentifiableObject> nonPersistedObjects )
     {
-        this.programRuleEngineService = programRuleEngineService;
+        return Stream.concat( persistedObjects.stream(), nonPersistedObjects.stream() ).collect( Collectors.toList() );
     }
 
-    @Override
-    public Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle )
+    public static void addObjectReports( List<ErrorReport> reports, TypeReport typeReport, IdentifiableObject object,
+        ObjectBundle bundle )
     {
-        return trackerBundle.getEnrollments()
-            .stream()
-            .collect( Collectors
-                .toMap(
-                    Enrollment::getEnrollment,
-                    e -> programRuleEngineService
-                        .evaluateEnrollment( e.getEnrollment() ) ) );
+        ObjectReport objectReport = new ObjectReport( object, bundle );
+        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
+        objectReport.addErrorReports( reports );
+
+        typeReport.addObjectReport( objectReport );
+        typeReport.getStats().incIgnored();
     }
 
-    @Override
-    public Map<String, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle )
+    public static void addObjectReport( ErrorReport report, TypeReport typeReport, IdentifiableObject object,
+        ObjectBundle bundle )
     {
-        return trackerBundle.getEvents()
-            .stream()
-            .collect( Collectors
-                .toMap(
-                    Event::getEvent,
-                    e -> programRuleEngineService.evaluateEvent( e.getEvent() ) ) );
+        ObjectReport objectReport = new ObjectReport( object, bundle );
+        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
+        objectReport.addErrorReport( report );
+
+        typeReport.addObjectReport( objectReport );
+        typeReport.getStats().incIgnored();
     }
 }

@@ -159,9 +159,9 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        Map<Enrollment, List<RuleEffect>> enrollmentRuleEffects =
+        Map<String, List<RuleEffect>> enrollmentRuleEffects =
             trackerProgramRuleService.calculateEnrollmentRuleEffects( trackerBundle );
-        Map<Event, List<RuleEffect>> eventRuleEffects =
+        Map<String, List<RuleEffect>> eventRuleEffects =
             trackerProgramRuleService.calculateEventRuleEffects( trackerBundle );
         trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
         trackerBundle.setEventRuleEffects( eventRuleEffects );
@@ -344,7 +344,7 @@ public class DefaultTrackerBundleService
             }
 
             TrackerSideEffectDataBundle sideEffectDataBundle = TrackerSideEffectDataBundle.builder()
-                .klass( ProgramInstance.class )
+                .klass( ProgramStageInstance.class )
                 .enrollmentRuleEffects( bundle.getEnrollmentRuleEffects() )
                 .eventRuleEffects( bundle.getEventRuleEffects() )
                 .object( programStageInstance )

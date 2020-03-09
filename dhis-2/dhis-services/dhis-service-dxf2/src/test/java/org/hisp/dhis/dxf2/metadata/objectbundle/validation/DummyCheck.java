@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,41 +28,45 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsQueue;
-import org.apache.qpid.jms.JmsTopic;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
+import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Component
-public class MessageManager
+public class DummyCheck
+    implements
+    ValidationCheck
 {
-    private final JmsTemplate jmsTopicTemplate;
-    private final JmsTemplate jmsQueueTemplate;
-    private final RenderService renderService;
 
-    public MessageManager( JmsTemplate jmsTopicTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService )
+    @Override
+    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+        ImportStrategy importStrategy, ValidationContext context )
     {
-        this.jmsTopicTemplate = jmsTopicTemplate;
-        this.jmsQueueTemplate = jmsQueueTemplate;
-        this.renderService = renderService;
-    }
 
-    public void send( String destinationName, Message message )
-    {
-        jmsTopicTemplate.send( destinationName, session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
+        TypeReport typeReport = new TypeReport( klass );
 
-    public void sendTopic( String destinationName, Message message )
-    {
-        jmsTopicTemplate.send( new JmsTopic( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
+        for ( IdentifiableObject nonPersistedObject : nonPersistedObjects )
+        {
+            if ( nonPersistedObject.getUid().startsWith( "u" ) )
+            {
 
-    public void sendQueue( String destinationName, Message message )
-    {
-        jmsQueueTemplate.send( new JmsQueue( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+                ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( nonPersistedObject ) )
+                        .setMainId( nonPersistedObject.getUid() );
+                ValidationUtils.addObjectReport( errorReport, typeReport, nonPersistedObject, bundle );
+
+                context.markForRemoval( nonPersistedObject );
+            }
+        }
+
+        return typeReport;
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,41 +28,52 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsQueue;
-import org.apache.qpid.jms.JmsTopic;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Component
-public class MessageManager
+public class ValidationHooksCheck
+    implements
+    ValidationCheck
 {
-    private final JmsTemplate jmsTopicTemplate;
-    private final JmsTemplate jmsQueueTemplate;
-    private final RenderService renderService;
 
-    public MessageManager( JmsTemplate jmsTopicTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService )
+    @Override
+    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+        ImportStrategy importStrategy, ValidationContext ctx )
     {
-        this.jmsTopicTemplate = jmsTopicTemplate;
-        this.jmsQueueTemplate = jmsQueueTemplate;
-        this.renderService = renderService;
+        TypeReport typeReport = new TypeReport( klass );
+
+        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+
+        if ( objects == null || objects.isEmpty() )
+        {
+            return typeReport;
+        }
+
+        for ( IdentifiableObject object : objects )
+        {
+            List<ErrorReport> errorReports = new ArrayList<>();
+            ctx.getObjectBundleHooks().forEach( hook -> errorReports.addAll( hook.validate( object, bundle ) ) );
+
+            if ( !errorReports.isEmpty() )
+            {
+                addObjectReports( errorReports, typeReport, object, bundle );
+                ctx.markForRemoval( object );
+            }
+        }
+
+        return typeReport;
     }
 
-    public void send( String destinationName, Message message )
-    {
-        jmsTopicTemplate.send( destinationName, session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
-
-    public void sendTopic( String destinationName, Message message )
-    {
-        jmsTopicTemplate.send( new JmsTopic( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
-
-    public void sendQueue( String destinationName, Message message )
-    {
-        jmsQueueTemplate.send( new JmsQueue( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
 }
