@@ -174,7 +174,7 @@ public class DefaultAnalyticsSecurityManager
      * Checks whether the given user has data read access to all programs,
      * program stages, data sets and category options in the request.
      *
-     * @param params the data query parameters.
+     * @param params the {@link {@link DataQueryParams}.
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
@@ -219,9 +219,18 @@ public class DefaultAnalyticsSecurityManager
     @Override
     public void decideAccessEventQuery( EventQueryParams params )
     {
-        User user = currentUserService.getCurrentUser();
-
         decideAccess( params );
+        decideAccessEventAnalyticsAuthority( params );
+    }
+
+    /**
+     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS} authority.
+     *
+     * @param params the {@link {@link DataQueryParams}.
+     */
+    private void decideAccessEventAnalyticsAuthority( EventQueryParams params )
+    {
+        User user = currentUserService.getCurrentUser();
 
         boolean notAuthorized = user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS );
 
