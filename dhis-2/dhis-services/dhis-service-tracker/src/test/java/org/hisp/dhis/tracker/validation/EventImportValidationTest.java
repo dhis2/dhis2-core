@@ -30,7 +30,11 @@ package org.hisp.dhis.tracker.validation;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -42,6 +46,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -57,6 +62,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -148,11 +157,33 @@ public class EventImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
+    protected void initMeta2()
+        throws IOException
+    {
+
+        renderService = _renderService;
+        userService = _userService;
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+        objectBundleParams.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        objectBundleParams.setImportStrategy( ImportStrategy.CREATE );
+        objectBundleParams.setObjects( metadata );
+
+        ObjectBundle objectBundle = objectBundleService.create( objectBundleParams );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( objectBundle );
+        assertTrue( validationReport.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( objectBundle );
+    }
+
     private void printErrors( TrackerValidationReport report )
     {
         for ( TrackerErrorReport errorReport : report.getErrorReports() )
         {
-            log.info( errorReport.toString() );
+            log.error( errorReport.toString() );
         }
     }
 
@@ -180,28 +211,6 @@ public class EventImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    protected void initMeta2()
-        throws IOException
-    {
-
-        renderService = _renderService;
-        userService = _userService;
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
-        objectBundleParams.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        objectBundleParams.setImportStrategy( ImportStrategy.CREATE );
-        objectBundleParams.setObjects( metadata );
-
-        ObjectBundle objectBundle = objectBundleService.create( objectBundleParams );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( objectBundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
-
-        objectBundleService.commit( objectBundle );
-    }
-
     @Test
     public void testEventMeta()
         throws IOException
@@ -224,6 +233,117 @@ public class EventImportValidationTest
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+    }
+
+    @Test
+    public void testEventMissingOrgUnit()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/events_error-orgunit-missing.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1011 ) ) ) );
+    }
+
+    @Test
+    public void testEventMissingProgramAndProgramStage()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/events_error-program-pstage-missing.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1088 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
+    }
+
+    @Test
+    public void testEventMissingProgramStageProgramIsRegistration()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/events_error-pstage-missing-isreg.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1086 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
+    }
+
+    @Test
+    public void testProgramStageProgramDifferentPrograms()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/events_error-pstage-program-different.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1089 ) ) ) );
     }
 
 }

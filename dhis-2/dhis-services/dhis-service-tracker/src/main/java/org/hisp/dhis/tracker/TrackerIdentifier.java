@@ -91,6 +91,6 @@ public class TrackerIdentifier
             return identifier + " (" + object.getClass().getSimpleName() + ")";
         }
 
-        return name + " " + identifier;
+        return name + " (" + identifier + ")";
     }
 }

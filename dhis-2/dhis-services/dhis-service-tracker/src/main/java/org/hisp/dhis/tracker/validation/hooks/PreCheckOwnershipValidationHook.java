@@ -28,12 +28,39 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.PreheatHelper;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -48,22 +75,234 @@ public class PreCheckOwnershipValidationHook
         return 4;
     }
 
-    @Override
-    public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-
-    }
+    @Autowired
+    private TrackerOwnershipManager trackerOwnershipManager;
 
     @Override
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
+        if ( !bundle.getImportStrategy().isDelete() )
+        {
+            return;
+        }
 
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+            .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
+
+        if ( trackedEntityInstance != null )
+        {
+            checkCanCascadeDeleteProgramInstances( reporter, bundle.getUser(), trackedEntityInstance );
+        }
     }
 
     @Override
     public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
+        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+
+        //TODO: This needs follow up, move to ownership validation
+        // This method "trackerOwnershipManager.hasAccess()" does a lot of things,
+        // is it better to use the above check directly when we are sure about the input org unit?
+        // 1. Does checking hasTemporaryAccess make sense?
+        // 2. Does checking isOpen make sense? we are importing not reading.
+        if ( !trackerOwnershipManager.hasAccess( bundle.getUser(), trackedEntityInstance, program ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1028 )
+                .addArg( trackedEntityInstance )
+                .addArg( program ) );
+            return;
+        }
+
+        if ( bundle.getImportStrategy().isCreate() )
+        {
+            validateCreateEnrollment( reporter, bundle.getUser(), program, organisationUnit, trackedEntityInstance );
+        }
+        else
+        {
+            validateUpdateAndDeleteEnrollment( bundle, reporter, bundle.getUser(), enrollment );
+        }
+    }
+
+    @Override
+    public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
+        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+        ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
+        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTrackedEntityInstance( bundle, event.getTrackedEntity() );
+
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        Objects.requireNonNull( programStage, Constants.PROGRAM_STAGE_CANT_BE_NULL );
+
+//        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+//        Objects.requireNonNull( programStageInstance, Constants.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
+//        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+
+        if ( bundle.getImportStrategy().isCreate() )
+        {
+            validateCreateEvent( reporter, bundle.getUser(), event, programStageInstance, programStage, programInstance,
+                organisationUnit,
+                trackedEntityInstance, program );
+        }
+        else if ( bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete() )
+        {
+            validateUpdateAndDeleteEvent( bundle, reporter, event, programStageInstance );
+        }
+    }
+
+    private void checkCanCascadeDeleteProgramInstances( ValidationErrorReporter errorReporter, User actingUser,
+        TrackedEntityInstance trackedEntityInstance )
+    {
+        Objects.requireNonNull( actingUser, Constants.USER_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+
+        Set<ProgramInstance> programInstances = trackedEntityInstance.getProgramInstances().stream()
+            .filter( pi -> !pi.isDeleted() )
+            .collect( Collectors.toSet() );
+
+        if ( !programInstances.isEmpty()
+            && !actingUser.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.NONE )
+                .addArg( trackedEntityInstance )
+                .addArg( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
+        }
+    }
+
+    protected void validateCreateEnrollment( ValidationErrorReporter reporter, User actingUser, Program program,
+        OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
+    {
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+
+        ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
+
+        List<String> errors = trackerAccessManager.canCreate( actingUser, programInstance, false );
+        if ( !errors.isEmpty() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1000 )
+                .addArg( actingUser )
+                .addArg( String.join( ",", errors ) ) );
+        }
+    }
+
+    protected void validateUpdateAndDeleteEnrollment( TrackerBundle bundle, ValidationErrorReporter reporter,
+        User actingUser, Enrollment enrollment )
+    {
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+
+        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+
+        if ( programInstance == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1015 )
+                .addArg( enrollment )
+                .addArg( enrollment.getEnrollment() ) );
+            return;
+        }
+
+        if ( bundle.getImportStrategy().isUpdate() )
+        {
+            List<String> errors = trackerAccessManager.canUpdate( actingUser, programInstance, false );
+            if ( !errors.isEmpty() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1000 )
+                    .addArg( actingUser )
+                    .addArg( programInstance ) );
+            }
+        }
+
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            List<String> errors = trackerAccessManager.canDelete( actingUser, programInstance, false );
+            if ( !errors.isEmpty() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1000 )
+                    .addArg( actingUser )
+                    .addArg( programInstance ) );
+            }
+        }
+    }
+
+    protected void validateUpdateAndDeleteEvent( TrackerBundle bundle, ValidationErrorReporter reporter,
+        Event event, ProgramStageInstance programStageInstance )
+    {
+        Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+
+        if ( bundle.getImportStrategy().isUpdate() )
+        {
+            List<String> errors = trackerAccessManager.canUpdate( bundle.getUser(), programStageInstance, false );
+            if ( !errors.isEmpty() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1050 )
+                    .addArg( bundle.getUser() )
+                    .addArg( String.join( ",", errors ) ) );
+            }
+
+            if ( event.getStatus() != programStageInstance.getStatus()
+                && EventStatus.COMPLETED == programStageInstance.getStatus()
+                && (!bundle.getUser().isSuper() && !bundle.getUser().isAuthorized( "F_UNCOMPLETE_EVENT" )) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1083 )
+                    .addArg( bundle.getUser() ) );
+            }
+        }
+
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            List<String> errors = trackerAccessManager.canDelete( bundle.getUser(),
+                programStageInstance, false );
+            if ( !errors.isEmpty() )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1050 )
+                    .addArg( bundle.getUser() )
+                    .addArg( String.join( ",", errors ) ) );
+            }
+        }
+    }
+
+    protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser, Event event,
+        ProgramStageInstance programStageInstance, ProgramStage programStage, ProgramInstance programInstance,
+        OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance, Program program )
+    {
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+
+        programStage = (programStage == null && program.isWithoutRegistration())
+            ? program.getProgramStageByStage( 1 ) : programStage;
+
+        programInstance = getProgramInstance( actingUser, programInstance, trackedEntityInstance, program );
+        if ( programStageInstance != null )
+        {
+            programStage = programStageInstance.getProgramStage();
+        }
+
+        ProgramStageInstance newProgramStageInstance = new ProgramStageInstance( programInstance, programStage )
+            .setOrganisationUnit( organisationUnit )
+            .setStatus( event.getStatus() );
+
+        List<String> errors = trackerAccessManager.canCreate( actingUser, newProgramStageInstance, false );
+        if ( !errors.isEmpty() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1050 )
+                .addArg( actingUser )
+                .addArg( String.join( ",", errors ) ) );
+        }
     }
 }

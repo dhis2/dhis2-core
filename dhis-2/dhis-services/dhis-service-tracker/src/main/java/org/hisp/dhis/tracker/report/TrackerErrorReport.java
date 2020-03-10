@@ -51,7 +51,7 @@ import java.util.List;
 @Data
 public class TrackerErrorReport
 {
-    protected final TrackerErrorMessage message;
+    private final TrackerErrorMessage message;
 
     @JsonProperty
     private final Class<?> mainKlass;

@@ -97,7 +97,7 @@ public class PreCheckMetaValidationHook
 
         if ( program == null && programStage == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1034 )
+            reporter.addError( newReport( TrackerErrorCode.E1088 )
                 .addArg( event ) );
         }
 
@@ -117,6 +117,7 @@ public class PreCheckMetaValidationHook
                 .addArg( program ) );
         }
 
+        // TODO: Should this be placed before the check above
         if ( program != null )
         {
             programStage = (programStage == null && program.isWithoutRegistration()) ?
@@ -132,7 +133,7 @@ public class PreCheckMetaValidationHook
 
         if ( program != null && programStage != null && !program.equals( programStage.getProgram() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1035 )
+            reporter.addError( newReport( TrackerErrorCode.E1089 )
                 .addArg( program )
                 .addArg( programStage ) );
         }

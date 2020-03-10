@@ -134,6 +134,8 @@ public enum TrackerErrorCode
     E1085( "Attribute: `{0}`, value type is not valid: `{1}`." ),
     E1086( "Event: `{0}` has a program: `{1}`, that is a registration but its program stage is not valid or missing." ),
     E1087( "Program: `{0}`, and program stage: `{0}` have different org units." ),
+    E1088( "Event: `{0}`, program: `{1}`, and program stage: `{2}` could not be found." ),
+    E1089( "Event: `{0}`, program stage program and event program don't match." ),
 
     E9999( "N/A" );
 

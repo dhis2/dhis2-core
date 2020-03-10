@@ -55,4 +55,8 @@ public class Constants
     public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL = "TrackedEntityAttributeValue can't be null";
 
     public static final String TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL = "TrackedEntityAttribute can't be null";
+
+    public static final String PROGRAM_STAGE_CANT_BE_NULL = "Program stage can't be null";
+
+    public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL = "Program stage instance can't be null";
 }
