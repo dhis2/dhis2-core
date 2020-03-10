@@ -30,15 +30,26 @@ package org.hisp.dhis.analytics.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllgalQueryExWhenTrue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -158,7 +169,8 @@ public class DefaultAnalyticsSecurityManager
 
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
-            throwExWhenTrue( notDescendant, String.format( "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
+            throwIllgalQueryExWhenTrue( notDescendant, String.format(
+                "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
         }
     }
 
@@ -219,7 +231,8 @@ public class DefaultAnalyticsSecurityManager
 
         String username = user != null ? user.getUsername() : "[None]";
 
-        throwExWhenTrue( notAuthorized, String.format( "User: '%s' is not allowed to view event analytics", username ) );
+        throwIllgalQueryExWhenTrue( notAuthorized, String.format(
+            "User: '%s' is not allowed to view event analytics", username ) );
     }
 
     @Override
@@ -250,7 +263,8 @@ public class DefaultAnalyticsSecurityManager
 
                 DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
 
-                throwExWhenTrue( approvalLevel == null, String.format( "Approval level does not exist: %s", params.getApprovalLevel() ) );
+                throwIllgalQueryExWhenTrue( approvalLevel == null, String.format(
+                    "Approval level does not exist: %s", params.getApprovalLevel() ) );
 
                 approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
             }
@@ -327,7 +341,7 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
-     * Applies user security constraint.
+     * Applies user security constraint, including dimension constraints.
      *
      * @param builder the data query parameters builder.
      * @param params the data query parameters.
@@ -350,7 +364,7 @@ public class DefaultAnalyticsSecurityManager
         for ( DimensionalObject dimension : dimensionConstraints )
         {
             // -----------------------------------------------------------------
-            // Check if constraint already is specified with items
+            // Check if dimension constraint already is specified with items
             // -----------------------------------------------------------------
 
             if ( params.hasDimensionOrFilterWithItems( dimension.getUid() ) )
@@ -364,9 +378,10 @@ public class DefaultAnalyticsSecurityManager
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
 
-            boolean hasNoReadItems =  canReadItems == null || canReadItems.isEmpty();
+            boolean hasNoReadItems = canReadItems == null || canReadItems.isEmpty();
 
-            throwExWhenTrue( hasNoReadItems, String.format( "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
+            throwIllgalQueryExWhenTrue( hasNoReadItems, String.format(
+                "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
 
             // -----------------------------------------------------------------
             // Apply constraint as filter, and remove potential all-dimension
@@ -380,22 +395,6 @@ public class DefaultAnalyticsSecurityManager
             builder.addFilter( constraint );
 
             log.debug( String.format( "User: %s constrained by dimension: %s", user.getUsername(), constraint.getDimension() ) );
-        }
-    }
-
-    /**
-     * Throws a {@link IllegalQueryException} with the given message if the
-     * given condition is true.
-     *
-     * @param condition the condition.
-     * @param message the message.
-     * @throws {@link IllegalQueryException}.
-     */
-    private void throwExWhenTrue( boolean condition, String message )
-    {
-        if ( condition )
-        {
-            throw new IllegalQueryException( message );
         }
     }
 }
