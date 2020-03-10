@@ -99,6 +99,7 @@ public interface AnalyticsSecurityManager
      * @return a data query parameters.
      */
     DataQueryParams withUserConstraints( DataQueryParams params );
+<<<<<<< HEAD
 
     /**
      * See {@link AnalyticsSecurityManager#withUserConstraints(DataQueryParams)}.
@@ -107,4 +108,6 @@ public interface AnalyticsSecurityManager
      * @return an event query parameters.
      */
     EventQueryParams withUserConstraints( EventQueryParams params );
+=======
+>>>>>>> master
 }
