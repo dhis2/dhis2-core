@@ -240,7 +240,7 @@ public class DefaultAnalyticsService
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
         // ---------------------------------------------------------------------
-        // Security and validation
+        // Decide access, add constraints and validate
         // ---------------------------------------------------------------------
 
         securityManager.decideAccess( params );

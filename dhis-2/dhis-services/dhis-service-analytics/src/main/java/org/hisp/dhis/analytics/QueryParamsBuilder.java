@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,38 +28,18 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.EventDataQueryRequest;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.DimensionalObject;
 
 /**
+ * Interface representing common methods for analytics query builders.
+ *
  * @author Lars Helge Overland
  */
-public interface EventDataQueryService
+public interface QueryParamsBuilder
 {
-    /**
-     * Creates an {@link EventQueryParams} based on the given request.
-     *
-     * @param request the {@link EventDataQueryRequest} containing the URL parameters.
-     * @return an {@link EventQueryParams}.
-     */
-    EventQueryParams getFromRequest( EventDataQueryRequest request );
+    QueryParamsBuilder addDimension( DimensionalObject dimension );
 
-    /**
-     * Creates an {@link EventQueryParams} based on the given event analytical object.
-     *
-     * @param request the {@link EventAnalyticalObject}.
-     * @return an {@link EventQueryParams}.
-     */
-    EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
+    QueryParamsBuilder removeDimensionOrFilter( String dimension );
 
-    /**
-     * Returns the coordinate column field to use for the given coordinate field. Coordinate field
-     * must match EVENT, a data element identifier or an attribute identifier.
-     *
-     * @param coordinate the coordinate field.
-     * @return the coordinate column field.
-     * @throws IllegalQueryException if the coordinate field is not valid.
-     */
-    String getCoordinateField( String coordinate );
+    QueryParamsBuilder addFilter( DimensionalObject filter );
 }

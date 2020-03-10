@@ -2418,6 +2418,7 @@ public class DataQueryParams
      * Builder for {@link DataQueryParams} instances.
      */
     public static class Builder
+        implements QueryParamsBuilder
     {
         private DataQueryParams params;
 
@@ -2468,6 +2469,7 @@ public class DataQueryParams
             return this;
         }
 
+        @Override
         public Builder removeDimensionOrFilter( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
@@ -2602,6 +2604,7 @@ public class DataQueryParams
             return this;
         }
 
+        @Override
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );

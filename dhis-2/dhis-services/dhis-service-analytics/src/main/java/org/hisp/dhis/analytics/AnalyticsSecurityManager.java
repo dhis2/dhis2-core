@@ -97,6 +97,18 @@ public interface AnalyticsSecurityManager
      *
      * @param params the data query parameters.
      * @return a data query parameters.
+     * @throws IllegalQueryException if user has dimension constraints specified
+     *          but no access to any items in those dimensions.
      */
     DataQueryParams withUserConstraints( DataQueryParams params );
+
+    /**
+     * See {@link AnalyticsSecurityManager#withUserConstraints(DataQueryParams)}.
+     *
+     * @param params the event query parameters.
+     * @return an event query parameters.
+     * @throws IllegalQueryException if user has dimension constraints specified
+     *          but no access to any items in those dimensions.
+     */
+    EventQueryParams withUserConstraints( EventQueryParams params );
 }
