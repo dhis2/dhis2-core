@@ -31,6 +31,8 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.common.DimensionalObject;
 
 /**
+ * Interface representing common methods for analytics query builders.
+ *
  * @author Lars Helge Overland
  */
 public interface QueryParamsBuilder
