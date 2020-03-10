@@ -345,11 +345,12 @@ public class DefaultAnalyticsSecurityManager
         // Apply constraint as filter, and remove potential all-dimension
         // -----------------------------------------------------------------
 
+        builder.removeDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
+
         List<OrganisationUnit> orgUnits = new ArrayList<>( user.getDataViewOrganisationUnits() );
 
         DimensionalObject constraint = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits );
 
-        builder.removeDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
         builder.addFilter( constraint );
 
         log.debug( String.format( "User: %s constrained by data view organisation units", user.getUsername() ) );
@@ -402,10 +403,11 @@ public class DefaultAnalyticsSecurityManager
             // Apply constraint as filter, and remove potential all-dimension
             // -----------------------------------------------------------------
 
+            builder.removeDimensionOrFilter( dimension.getDimension() );
+
             DimensionalObject constraint = new BaseDimensionalObject( dimension.getDimension(),
                 dimension.getDimensionType(), null, dimension.getDisplayName(), canReadItems );
 
-            builder.removeDimensionOrFilter( dimension.getDimension() );
             builder.addFilter( constraint );
 
             log.debug( String.format( "User: %s constrained by dimension: %s", user.getUsername(), constraint.getDimension() ) );
