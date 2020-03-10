@@ -186,6 +186,14 @@ public class DefaultEventAnalyticsService
     }
 
     @Override
+    public Grid getAggregatedEventData( AnalyticalObject object )
+    {
+        EventQueryParams params = eventDataQueryService.getFromAnalyticalObject( (EventAnalyticalObject) object );
+
+        return getAggregatedEventData( params );
+    }
+
+    @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
         securityManager.decideAccessEventQuery( params );
@@ -199,14 +207,6 @@ public class DefaultEventAnalyticsService
         }
 
         return getAggregatedEventDataGrid( params );
-    }
-
-    @Override
-    public Grid getAggregatedEventData( AnalyticalObject object )
-    {
-        EventQueryParams params = eventDataQueryService.getFromAnalyticalObject( (EventAnalyticalObject) object );
-
-        return getAggregatedEventData( params );
     }
 
     /**
