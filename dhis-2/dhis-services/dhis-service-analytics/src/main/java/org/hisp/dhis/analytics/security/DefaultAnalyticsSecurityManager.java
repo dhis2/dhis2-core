@@ -40,6 +40,7 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -87,7 +88,6 @@ public class DefaultAnalyticsSecurityManager
         SystemSettingManager systemSettingManager, DimensionService dimensionService, AclService aclService,
         CurrentUserService currentUserService )
     {
-
         checkNotNull( approvalLevelService );
         checkNotNull( systemSettingManager );
         checkNotNull( dimensionService );
@@ -292,12 +292,23 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
-    public DataQueryParams withDimensionConstraints( DataQueryParams params )
+    public DataQueryParams withUserConstraints( DataQueryParams params )
     {
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params );
 
         applyOrganisationUnitConstraint( builder, params );
-        applyUserConstraints( builder, params );
+        applyDimensionConstraints( builder, params );
+
+        return builder.build();
+    }
+
+    @Override
+    public EventQueryParams withUserConstraints( EventQueryParams params )
+    {
+        EventQueryParams.Builder builder = new EventQueryParams.Builder( params );
+
+        applyOrganisationUnitConstraint( builder, params );
+        applyDimensionConstraints( builder, params );
 
         return builder.build();
     }
@@ -305,10 +316,10 @@ public class DefaultAnalyticsSecurityManager
     /**
      * Applies organisation unit security constraint.
      *
-     * @param builder the data query parameters builder.
+     * @param builder the {@link QueryParamsBuilder}.
      * @param params the data query parameters.
      */
-    private void applyOrganisationUnitConstraint( DataQueryParams.Builder builder, DataQueryParams params )
+    private void applyOrganisationUnitConstraint( QueryParamsBuilder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -334,24 +345,23 @@ public class DefaultAnalyticsSecurityManager
         // Apply constraint as filter, and remove potential all-dimension
         // -----------------------------------------------------------------
 
-        builder.removeDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
-
         List<OrganisationUnit> orgUnits = new ArrayList<>( user.getDataViewOrganisationUnits() );
 
         DimensionalObject constraint = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits );
 
+        builder.removeDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
         builder.addFilter( constraint );
 
         log.debug( String.format( "User: %s constrained by data view organisation units", user.getUsername() ) );
     }
 
     /**
-     * Applies user security constraint, including dimension constraints.
+     * Applies dimension constraints.
      *
-     * @param builder the data query parameters builder.
+     * @param builder the {@link QueryParamsBuilder}.
      * @param params the data query parameters.
      */
-    private void applyUserConstraints( DataQueryParams.Builder builder, DataQueryParams params )
+    private void applyDimensionConstraints( QueryParamsBuilder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -392,11 +402,10 @@ public class DefaultAnalyticsSecurityManager
             // Apply constraint as filter, and remove potential all-dimension
             // -----------------------------------------------------------------
 
-            builder.removeDimensionOrFilter( dimension.getDimension() );
-
             DimensionalObject constraint = new BaseDimensionalObject( dimension.getDimension(),
                 dimension.getDimensionType(), null, dimension.getDisplayName(), canReadItems );
 
+            builder.removeDimensionOrFilter( dimension.getDimension() );
             builder.addFilter( constraint );
 
             log.debug( String.format( "User: %s constrained by dimension: %s", user.getUsername(), constraint.getDimension() ) );

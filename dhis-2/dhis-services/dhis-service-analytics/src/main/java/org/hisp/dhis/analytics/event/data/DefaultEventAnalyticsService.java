@@ -196,7 +196,13 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
+        // ---------------------------------------------------------------------
+        // Decide access, add constraints and validate
+        // ---------------------------------------------------------------------
+
         securityManager.decideAccessEventQuery( params );
+
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 

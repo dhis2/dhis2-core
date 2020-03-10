@@ -82,16 +82,24 @@ public interface AnalyticsSecurityManager
     DataQueryParams withDataApprovalConstraints( DataQueryParams params );
 
     /**
-     * Returns a query with dimension constraints. Dimension constraints with
-     * all accessible dimension items will be added as filters to this query.
-     * If current user has no dimension constraints, no action is taken. If the
-     * constraint dimensions are already specified with accessible items in the
-     * query, no action is taken. If the current user does not have accessible
+     * Returns a query with two constraints applied:
+     * <p>
+     * Organisation unit constraints will be added as filters to this query based
+     * on the "data view" organisation units associated with the current user. If
+     * organisation units are already specified with accessible items in the query,
+     * no action is taken.
+     * <p>
+     * Dimension constraints with all accessible dimension items will be added as
+     * filters to this query. If current user has no dimension constraints, no action
+     * is taken. If the constraint dimensions are already specified with accessible
+     * items in the query, no action is taken. If the current user does not have accessible
      * items in any dimension constraint, an IllegalQueryException is thrown.
      *
      * @param params the data query parameters.
      * @return a data query parameters.
      * @throws IllegalQueryException is the specified approval level does not exist.
      */
-    DataQueryParams withDimensionConstraints( DataQueryParams params );
+    DataQueryParams withUserConstraints( DataQueryParams params );
+
+    EventQueryParams withUserConstraints( EventQueryParams params );
 }
