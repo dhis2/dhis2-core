@@ -97,9 +97,14 @@ public interface AnalyticsSecurityManager
      *
      * @param params the data query parameters.
      * @return a data query parameters.
-     * @throws IllegalQueryException is the specified approval level does not exist.
      */
     DataQueryParams withUserConstraints( DataQueryParams params );
 
+    /**
+     * See {@link AnalyticsSecurityManager#withUserConstraints(DataQueryParams)}.
+     *
+     * @param params the event query parameters.
+     * @return an event query parameters.
+     */
     EventQueryParams withUserConstraints( EventQueryParams params );
 }
