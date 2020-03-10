@@ -75,13 +75,19 @@ public abstract class AbstractAnalyticsService
 
     protected Grid getGrid( EventQueryParams params )
     {
+        // ---------------------------------------------------------------------
+        // Decide access, add constraints and validate
+        // ---------------------------------------------------------------------
+
         securityManager.decideAccessEventQuery( params );
+
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 
         params = new EventQueryParams.Builder( params )
-                .withStartEndDatesForPeriods()
-                .build();
+            .withStartEndDatesForPeriods()
+            .build();
 
         // ---------------------------------------------------------------------
         // Headers
