@@ -30,9 +30,18 @@ package org.hisp.dhis.artemis.audit.configuration;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.audit.AuditScope.AGGREGATE;
+import static org.hisp.dhis.audit.AuditScope.METADATA;
 import static org.hisp.dhis.audit.AuditScope.TRACKER;
-import static org.hisp.dhis.audit.AuditType.*;
-import static org.junit.Assert.*;
+import static org.hisp.dhis.audit.AuditType.CREATE;
+import static org.hisp.dhis.audit.AuditType.DELETE;
+import static org.hisp.dhis.audit.AuditType.READ;
+import static org.hisp.dhis.audit.AuditType.SEARCH;
+import static org.hisp.dhis.audit.AuditType.SECURITY;
+import static org.hisp.dhis.audit.AuditType.UPDATE;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
@@ -78,17 +87,17 @@ public class AuditMatrixConfigurerTest
 
         matrix = this.subject.configure();
 
-        assertThat( matrix.get( AuditScope.METADATA ).keySet(), hasSize( 6 ) );
-        assertMatrixEnabled( AuditScope.METADATA, READ );
-        assertMatrixDisabled( AuditScope.METADATA, CREATE, UPDATE, DELETE );
+        assertThat( matrix.get( METADATA ).keySet(), hasSize( 6 ) );
+        assertMatrixEnabled( METADATA, READ );
+        assertMatrixDisabled( METADATA, CREATE, UPDATE, DELETE );
 
         assertThat( matrix.get( TRACKER ).keySet(), hasSize( 6 ) );
         assertMatrixDisabled( TRACKER, SEARCH, SECURITY );
         assertMatrixEnabled( TRACKER, CREATE, UPDATE, DELETE, READ );
 
-        assertThat( matrix.get( AuditScope.AGGREGATE ).keySet(), hasSize( 6 ) );
-        assertMatrixDisabled( AuditScope.AGGREGATE, READ, SECURITY, SEARCH );
-        assertMatrixEnabled( AuditScope.AGGREGATE, CREATE, UPDATE, DELETE );
+        assertThat( matrix.get( AGGREGATE ).keySet(), hasSize( 6 ) );
+        assertMatrixDisabled( AGGREGATE, READ, SECURITY, SEARCH );
+        assertMatrixEnabled( AGGREGATE, CREATE, UPDATE, DELETE );
     }
 
     @Test
@@ -97,9 +106,28 @@ public class AuditMatrixConfigurerTest
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READX;UPDATE" );
 
         matrix = this.subject.configure();
-        assertThat( matrix.get( AuditScope.METADATA ).keySet(), hasSize( 6 ) );
-        assertAllFalseBut( matrix.get( AuditScope.METADATA ), UPDATE );
+        assertThat( matrix.get( METADATA ).keySet(), hasSize( 6 ) );
+        assertAllFalseBut( matrix.get( METADATA ), UPDATE );
+    }
 
+    @Test
+    public void verifyDefaultAuditingConfiguration()
+    {
+        matrix = this.subject.configure();
+        assertMatrixDisabled( METADATA, READ );
+        assertMatrixEnabled( METADATA, CREATE );
+        assertMatrixEnabled( METADATA, UPDATE );
+        assertMatrixEnabled( METADATA, DELETE );
+
+        assertMatrixDisabled( TRACKER, READ );
+        assertMatrixEnabled( TRACKER, CREATE );
+        assertMatrixEnabled( TRACKER, UPDATE );
+        assertMatrixEnabled( TRACKER, DELETE );
+
+        assertMatrixDisabled( AGGREGATE, READ );
+        assertMatrixEnabled( AGGREGATE, CREATE );
+        assertMatrixEnabled( AGGREGATE, UPDATE );
+        assertMatrixEnabled( AGGREGATE, DELETE );
     }
 
     private void assertAllFalseBut( Map<AuditType, Boolean> auditTypeBooleanMap, AuditType trueAuditType )

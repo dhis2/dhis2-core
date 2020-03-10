@@ -68,9 +68,15 @@ public class AuditMatrixConfigurer
     private final DhisConfigurationProvider config;
     private final static String PROPERTY_PREFIX = "audit.";
     private final static String AUDIT_TYPE_STRING_SEPAR = ";";
-    private static final Map<AuditType, Boolean> ALL_DISABLED = ImmutableMap.<AuditType, Boolean>builder()
-        .put( AuditType.CREATE, false )
-        .put( AuditType.UPDATE, false )
+
+    /**
+     * Default Audit configuration: CREATE, UPDATE and DELETE operations are audited by default.
+     * Other Audit types have to be explicitly enabled by the user
+     */
+    private static final Map<AuditType, Boolean> DEFAULT_AUDIT_CONFIGURATION = ImmutableMap.<AuditType, Boolean>builder()
+        .put( AuditType.CREATE, true )
+        .put( AuditType.UPDATE, true )
+        .put( AuditType.DELETE, true )
         .put( AuditType.READ, false )
         .put( AuditType.SEARCH, false )
         .put( AuditType.SECURITY, false )
@@ -107,7 +113,7 @@ public class AuditMatrixConfigurer
             }
             else
             {
-                matrix.put( value, ALL_DISABLED );
+                matrix.put( value, DEFAULT_AUDIT_CONFIGURATION );
             }
         }
 

@@ -29,34 +29,26 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.system.util.AnnotationUtils;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 
 /**
  * @author Luciano Fiandesio
  */
-public class AnnotationUtilsTest
+public class TestImplementation
+    implements org.hisp.dhis.artemis.audit.listener.TestInterface
 {
-    @Test
-    public void testIsAnnotationPresent()
-    {
-        TestImplementation testImplementation = new TestImplementation();
-        NestedTestImplementation nestedTestImplementation = new NestedTestImplementation();
+    @AuditAttribute
+    private String testAttribute1;
 
-        assertTrue( AnnotationUtils.isAnnotationPresent( testImplementation.getClass(), Auditable.class ) );
-        assertTrue( AnnotationUtils.isAnnotationPresent( nestedTestImplementation.getClass(), Auditable.class ) );
+    private String testAttribute2;
+
+    public String getTestAttribute1()
+    {
+        return testAttribute1;
     }
 
-    @Test
-    public void testGetAnnotatedFields()
+    @AuditAttribute
+    public String getTestAttribute2()
     {
-        NestedTestImplementation testImplementation = new NestedTestImplementation();
-        assertEquals( 3, AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
+        return testAttribute2;
     }
-
 }
