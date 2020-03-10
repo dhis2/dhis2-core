@@ -353,7 +353,7 @@ public class DefaultAnalyticsSecurityManager
 
         builder.addFilter( constraint );
 
-        log.debug( String.format( "User: %s constrained by data view organisation units", user.getUsername() ) );
+        log.debug( String.format( "User: '%s' constrained by data view organisation units", user.getUsername() ) );
     }
 
     /**
