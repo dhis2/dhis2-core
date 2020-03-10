@@ -166,7 +166,7 @@ public class DefaultAnalyticsSecurityManager
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
             throwIllegalQueryExWhenTrue( notDescendant, String.format(
-                "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
+                "User: '%s' is not allowed to view org unit: '%s'", user.getUsername(), queryOrgUnit.getUid() ) );
         }
     }
 
@@ -210,7 +210,7 @@ public class DefaultAnalyticsSecurityManager
             if ( canNotRead )
             {
                 throw new IllegalQueryException( String.format(
-                    "User: %s is not allowed to read data for '%s': %s",
+                    "User: '%s' is not allowed to read data for %s: '%s'",
                     user.getUsername(), className, object.getUid() ) );
             }
         }
@@ -237,7 +237,7 @@ public class DefaultAnalyticsSecurityManager
         String username = user != null ? user.getUsername() : "[None]";
 
         throwIllegalQueryExWhenTrue( notAuthorized, String.format(
-            "User: '%s' is not allowed to view event analytics", username ) );
+            "User: '%s' is not allowed to view event analytics data", username ) );
     }
 
     @Override
@@ -269,7 +269,7 @@ public class DefaultAnalyticsSecurityManager
                 DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
 
                 throwIllegalQueryExWhenTrue( approvalLevel == null, String.format(
-                    "Approval level does not exist: %s", params.getApprovalLevel() ) );
+                    "Approval level does not exist: '%s'", params.getApprovalLevel() ) );
 
                 approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
             }
@@ -284,7 +284,7 @@ public class DefaultAnalyticsSecurityManager
             {
                 paramsBuilder.withDataApprovalLevels( approvalLevels );
 
-                log.debug( String.format( "User: %s constrained by data approval levels: %s", user.getUsername(), approvalLevels.values() ) );
+                log.debug( String.format( "User: '%s' constrained by data approval levels: '%s'", user.getUsername(), approvalLevels.values() ) );
             }
         }
 
@@ -397,7 +397,7 @@ public class DefaultAnalyticsSecurityManager
             boolean hasNoReadItems = canReadItems == null || canReadItems.isEmpty();
 
             throwIllegalQueryExWhenTrue( hasNoReadItems, String.format(
-                "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
+                "Current user is constrained by a dimension but has access to no associated dimension items: '%s'", dimension.getDimension() ) );
 
             // -----------------------------------------------------------------
             // Apply constraint as filter, and remove potential all-dimension
@@ -410,7 +410,7 @@ public class DefaultAnalyticsSecurityManager
 
             builder.addFilter( constraint );
 
-            log.debug( String.format( "User: %s constrained by dimension: %s", user.getUsername(), constraint.getDimension() ) );
+            log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(), constraint.getDimension() ) );
         }
     }
 }
