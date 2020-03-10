@@ -870,7 +870,7 @@ public class AnalyticsUtils
      * @param message the message.
      * @throws {@link IllegalQueryException}.
      */
-    public static void throwIllgalQueryExWhenTrue( boolean condition, String message )
+    public static void throwIllegalQueryExWhenTrue( boolean condition, String message )
     {
         if ( condition )
         {
