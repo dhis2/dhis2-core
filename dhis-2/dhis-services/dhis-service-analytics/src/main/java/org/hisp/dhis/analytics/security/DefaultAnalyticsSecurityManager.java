@@ -124,13 +124,13 @@ public class DefaultAnalyticsSecurityManager
                 if ( isNotEmpty( categoryOptions ) )
                 {
                     category.getCategoryOptions()
-                        .removeIf( categoryOption -> hasDataReadPermissionFor( categoryOption ) );
+                        .removeIf( categoryOption -> hasDataReadPermission( categoryOption ) );
                 }
             }
         }
     }
 
-    private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
+    private boolean hasDataReadPermission( final CategoryOption categoryOption )
     {
         return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
     }
