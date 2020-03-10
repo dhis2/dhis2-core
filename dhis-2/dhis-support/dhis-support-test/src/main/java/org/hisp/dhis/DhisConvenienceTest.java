@@ -2129,7 +2129,7 @@ public abstract class DhisConvenienceTest
         }
 
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setName( "DhisConvenienceTestUserRole" );
+        userAuthorityGroup.setName( "Superuser" );
         userAuthorityGroup.getAuthorities().addAll( authorities );
 
         userService.addUserAuthorityGroup( userAuthorityGroup );
