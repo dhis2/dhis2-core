@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllgalQueryExWhenTrue;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryExWhenTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -165,7 +165,7 @@ public class DefaultAnalyticsSecurityManager
 
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
-            throwIllgalQueryExWhenTrue( notDescendant, String.format(
+            throwIllegalQueryExWhenTrue( notDescendant, String.format(
                 "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
         }
     }
@@ -227,7 +227,7 @@ public class DefaultAnalyticsSecurityManager
 
         String username = user != null ? user.getUsername() : "[None]";
 
-        throwIllgalQueryExWhenTrue( notAuthorized, String.format(
+        throwIllegalQueryExWhenTrue( notAuthorized, String.format(
             "User: '%s' is not allowed to view event analytics", username ) );
     }
 
@@ -259,7 +259,7 @@ public class DefaultAnalyticsSecurityManager
 
                 DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
 
-                throwIllgalQueryExWhenTrue( approvalLevel == null, String.format(
+                throwIllegalQueryExWhenTrue( approvalLevel == null, String.format(
                     "Approval level does not exist: %s", params.getApprovalLevel() ) );
 
                 approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
@@ -283,12 +283,12 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
-    public DataQueryParams withDimensionConstraints( DataQueryParams params )
+    public DataQueryParams withUserConstraints( DataQueryParams params )
     {
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params );
 
         applyOrganisationUnitConstraint( builder, params );
-        applyUserConstraints( builder, params );
+        applyDimensionConstraints( builder, params );
 
         return builder.build();
     }
@@ -337,12 +337,12 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
-     * Applies user security constraint, including dimension constraints.
+     * Applies dimension constraints.
      *
      * @param builder the data query parameters builder.
      * @param params the data query parameters.
      */
-    private void applyUserConstraints( DataQueryParams.Builder builder, DataQueryParams params )
+    private void applyDimensionConstraints( DataQueryParams.Builder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -376,7 +376,7 @@ public class DefaultAnalyticsSecurityManager
 
             boolean hasNoReadItems = canReadItems == null || canReadItems.isEmpty();
 
-            throwIllgalQueryExWhenTrue( hasNoReadItems, String.format(
+            throwIllegalQueryExWhenTrue( hasNoReadItems, String.format(
                 "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
 
             // -----------------------------------------------------------------
