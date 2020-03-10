@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllgalQueryExWhenTrue;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryExWhenTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -165,7 +165,7 @@ public class DefaultAnalyticsSecurityManager
 
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
-            throwIllgalQueryExWhenTrue( notDescendant, String.format(
+            throwIllegalQueryExWhenTrue( notDescendant, String.format(
                 "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
         }
     }
@@ -236,7 +236,7 @@ public class DefaultAnalyticsSecurityManager
 
         String username = user != null ? user.getUsername() : "[None]";
 
-        throwIllgalQueryExWhenTrue( notAuthorized, String.format(
+        throwIllegalQueryExWhenTrue( notAuthorized, String.format(
             "User: '%s' is not allowed to view event analytics", username ) );
     }
 
@@ -268,7 +268,7 @@ public class DefaultAnalyticsSecurityManager
 
                 DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
 
-                throwIllgalQueryExWhenTrue( approvalLevel == null, String.format(
+                throwIllegalQueryExWhenTrue( approvalLevel == null, String.format(
                     "Approval level does not exist: %s", params.getApprovalLevel() ) );
 
                 approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
@@ -385,7 +385,7 @@ public class DefaultAnalyticsSecurityManager
 
             boolean hasNoReadItems = canReadItems == null || canReadItems.isEmpty();
 
-            throwIllgalQueryExWhenTrue( hasNoReadItems, String.format(
+            throwIllegalQueryExWhenTrue( hasNoReadItems, String.format(
                 "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
 
             // -----------------------------------------------------------------
