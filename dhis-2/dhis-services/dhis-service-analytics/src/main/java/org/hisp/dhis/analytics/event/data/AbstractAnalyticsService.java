@@ -60,7 +60,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
  */
 public abstract class AbstractAnalyticsService
 {
-
     final AnalyticsSecurityManager securityManager;
 
     final EventQueryValidator queryValidator;
@@ -104,7 +103,7 @@ public abstract class AbstractAnalyticsService
         // Data
         // ---------------------------------------------------------------------
 
-        long count = addData( grid, params );
+        long count = addEventData( grid, params );
 
         // ---------------------------------------------------------------------
         // Meta-data
@@ -137,7 +136,7 @@ public abstract class AbstractAnalyticsService
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );
 
-    protected abstract long addData(Grid grid, EventQueryParams params );
+    protected abstract long addEventData( Grid grid, EventQueryParams params );
 
     /**
      * Adds meta data values to the given grid based on the given data query
@@ -265,6 +264,11 @@ public abstract class AbstractAnalyticsService
         return dimensionItems;
     }
 
+    /**
+     * Substitutes metadata in the given grid.
+     *
+     * @param grid the {@link Grid}.
+     */
     private void substituteData( Grid grid )
     {
         for ( int i = 0; i < grid.getHeaders().size(); i++ )
