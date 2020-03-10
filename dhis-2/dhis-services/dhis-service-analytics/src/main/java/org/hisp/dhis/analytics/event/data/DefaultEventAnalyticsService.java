@@ -185,6 +185,30 @@ public class DefaultEventAnalyticsService
             getAggregatedEventData( params );
     }
 
+    @Override
+    public Grid getAggregatedEventData( EventQueryParams params )
+    {
+        securityManager.decideAccessEventQuery( params );
+
+        queryValidator.validate( params );
+
+        if ( dhisConfig.isAnalyticsCacheEnabled() )
+        {
+            final EventQueryParams query = new EventQueryParams.Builder( params ).build();
+            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).orElseGet(ListGrid::new);
+        }
+
+        return getAggregatedEventDataGrid( params );
+    }
+
+    @Override
+    public Grid getAggregatedEventData( AnalyticalObject object )
+    {
+        EventQueryParams params = eventDataQueryService.getFromAnalyticalObject( (EventAnalyticalObject) object );
+
+        return getAggregatedEventData( params );
+    }
+
     /**
      * Creates a grid with table layout for downloading event reports. The grid is dynamically
      * made from rows and columns input, which refers to the dimensions requested.
@@ -421,22 +445,6 @@ public class DefaultEventAnalyticsService
         }
     }
 
-    @Override
-    public Grid getAggregatedEventData( EventQueryParams params )
-    {
-        securityManager.decideAccessEventQuery( params );
-
-        queryValidator.validate( params );
-
-        if ( dhisConfig.isAnalyticsCacheEnabled() )
-        {
-            final EventQueryParams query = new EventQueryParams.Builder( params ).build();
-            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).orElseGet(ListGrid::new);
-        }
-
-        return getAggregatedEventDataGrid( params );
-    }
-
     private Grid getAggregatedEventDataGrid( EventQueryParams params )
     {
         params.removeProgramIndicatorItems(); // Not supported as items for aggregate
@@ -541,13 +549,9 @@ public class DefaultEventAnalyticsService
         return grid;
     }
 
-    @Override
-    public Grid getAggregatedEventData( AnalyticalObject object )
-    {
-        EventQueryParams params = eventDataQueryService.getFromAnalyticalObject( (EventAnalyticalObject) object );
-
-        return getAggregatedEventData( params );
-    }
+    // -------------------------------------------------------------------------
+    // Query
+    // -------------------------------------------------------------------------
 
     @Override
     public Grid getEvents( EventQueryParams params )
@@ -623,10 +627,6 @@ public class DefaultEventAnalyticsService
         queryCache.invalidateAll();
         log.info( "Event analytics cache cleared" );
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
 
     /**
      * Creates a grid with headers.
