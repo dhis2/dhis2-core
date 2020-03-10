@@ -116,23 +116,19 @@ public class DefaultAnalyticsSecurityManager
     {
         if ( isNotEmpty( programCategories ) )
         {
+            User user = currentUserService.getCurrentUser();
+
             for ( Category category : programCategories )
             {
-
                 final List<CategoryOption> categoryOptions = category.getCategoryOptions();
 
                 if ( isNotEmpty( categoryOptions ) )
                 {
                     category.getCategoryOptions()
-                        .removeIf( categoryOption -> hasDataReadPermission( categoryOption ) );
+                        .removeIf( categoryOption -> aclService.canDataRead( user, categoryOption ) );
                 }
             }
         }
-    }
-
-    private boolean hasDataReadPermission( final CategoryOption categoryOption )
-    {
-        return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
     }
 
     @Override
