@@ -34,7 +34,7 @@ import org.hisp.dhis.audit.AuditAttribute;
  * @author Luciano Fiandesio
  */
 public class TestImplementation
-    implements TestInterface
+    implements org.hisp.dhis.artemis.audit.listener.TestInterface
 {
     @AuditAttribute
     private String testAttribute1;

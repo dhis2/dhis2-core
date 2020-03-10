@@ -32,6 +32,7 @@ import java.util.Properties;
 
 import org.hisp.dhis.container.DhisPostgisContainerProvider;
 import org.hisp.dhis.container.DhisPostgreSQLContainer;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -65,6 +66,13 @@ public class IntegrationTestConfig
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
         properties.setProperty( "connection.username", postgreSQLContainer.getUsername() );
         properties.setProperty( "connection.password", postgreSQLContainer.getPassword() );
+        properties.setProperty( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED.getKey(), "off" );
+        properties.setProperty( "metadata.audit.persist", "on");
+        properties.setProperty( "tracker.audit.persist", "on");
+        properties.setProperty( "aggregate.audit.persist", "on");
+        properties.setProperty( "audit.metadata", "CREATE;UPDATE;DELETE");
+        properties.setProperty( "audit.tracker", "CREATE;UPDATE;DELETE");
+        properties.setProperty( "audit.aggregate", "CREATE;UPDATE;DELETE");
 
         dhisConfigurationProvider.addProperties( properties );
 

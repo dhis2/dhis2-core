@@ -90,6 +90,7 @@ public class ProgramStageInstance
 
     private List<TrackedEntityComment> comments = new ArrayList<>();
 
+    @AuditAttribute
     private Set<EventDataValue> eventDataValues = new HashSet<>();
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
