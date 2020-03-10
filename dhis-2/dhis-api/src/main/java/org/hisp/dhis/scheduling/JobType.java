@@ -33,7 +33,7 @@ import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisMultiJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 
 /**
@@ -65,7 +65,7 @@ public enum JobType
         "relativePeriods", "/api/periodTypes/relativePeriodTypes",
         "validationRuleGroups", "/api/validationRuleGroups"
     ) ),
-    PUSH_ANALYSIS( "pushAnalysisJob", true, PushAnalysisJobParameters.class, ImmutableMap.of(
+    PUSH_ANALYSIS( "pushAnalysisJob", true, PushAnalysisMultiJobParameters.class, ImmutableMap.of(
         "pushAnalysis", "/api/pushAnalysis"
     ) ),
     PREDICTOR( "predictorJob", true, PredictorJobParameters.class, ImmutableMap.of(
