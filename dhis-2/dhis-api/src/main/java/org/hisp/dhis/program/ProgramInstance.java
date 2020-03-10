@@ -28,12 +28,12 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.vividsolutions.jts.geom.Geometry;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -46,11 +46,12 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Abyot Asalefew
@@ -550,10 +551,10 @@ public class ProgramInstance
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             ", status=" + status +
-            ", organisationUnit=" + organisationUnit.getUid() +
+            ", organisationUnit=" + ( organisationUnit != null ? organisationUnit.getUid() : "null" ) +
             ", incidentDate=" + incidentDate +
             ", enrollmentDate=" + enrollmentDate +
-            ", entityInstance=" + entityInstance.getUid() +
+            ", entityInstance=" + ( entityInstance != null ? entityInstance.getUid() : "null" ) +
             ", program=" + program +
             ", deleted=" + deleted +
             ", storedBy='" + storedBy + '\'' +
