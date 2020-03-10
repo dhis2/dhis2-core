@@ -29,12 +29,12 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.google.common.base.Preconditions;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -48,9 +48,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -91,7 +88,8 @@ public class PreCheckDataRelationsValidationHook
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
 
-        if ( bundle.getImportStrategy().isUpdate() )
+        // TODO: Why is this possible in the first place, if bug needs to be documented and ref. preferably to git commit or jira issue?
+        if ( exists && bundle.getImportStrategy().isUpdate() )
         {
             TrackedEntityInstance tei = PreheatHelper
                 .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
@@ -176,23 +174,15 @@ public class PreCheckDataRelationsValidationHook
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
         ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
 
-        // TODO: Morten, what should we do with this mess?
-        programInstance = validateProgramInstance( reporter, bundle.getUser(), event, programStage,
+        validateProgramInstance( reporter, bundle.getUser(), event, programStage,
             programInstance,
             trackedEntityInstance,
             program );
-
-        if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1041 )
-                .addArg( organisationUnit ) );
-        }
     }
 
-    protected ProgramInstance validateProgramInstance( ValidationErrorReporter reporter, User actingUser, Event event,
+    protected void validateProgramInstance( ValidationErrorReporter reporter, User actingUser, Event event,
         ProgramStage programStage, ProgramInstance programInstance, TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
@@ -202,6 +192,14 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
+            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+            params.setProgram( program );
+            params.setTrackedEntityInstance( trackedEntityInstance );
+            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+            params.setUser( actingUser );
+
+            int count = programInstanceService.countProgramInstances( params );
+
             if ( trackedEntityInstance == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1036 )
@@ -210,34 +208,17 @@ public class PreCheckDataRelationsValidationHook
 
             if ( programInstance == null && trackedEntityInstance != null )
             {
-
-                // TODO: Needs to be optimized , maybe convert to non HQL..... Use-->countProgramInstances
-                List<ProgramInstance> activeProgramInstances = new ArrayList<>( programInstanceService
-                    .getProgramInstances( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
-
-//                ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-//                params.setProgram( program );
-//                // TODO: What OrganisationUnitSelectionMode should be used here...
-//                params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-//                params.setUser( actingUser );
-//                int count = programInstanceService.countProgramInstances( params );
-
-                if ( activeProgramInstances.isEmpty() )
+                if ( count == 0 )
                 {
                     reporter.addError( newReport( TrackerErrorCode.E1037 )
                         .addArg( trackedEntityInstance )
                         .addArg( program ) );
                 }
-                else if ( activeProgramInstances.size() > 1 )
+                else if ( count > 1 )
                 {
                     reporter.addError( newReport( TrackerErrorCode.E1038 )
                         .addArg( trackedEntityInstance )
                         .addArg( program ) );
-                }
-                else
-                {
-                    // TODO: If we should only use count above what to we do here?
-                    programInstance = activeProgramInstances.get( 0 );
                 }
             }
 
@@ -249,32 +230,18 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            // TODO: This is cached in the prev. event importer? What do we do here?
-            List<ProgramInstance> activeProgramInstances = programInstanceService
-                .getProgramInstances( program, ProgramStatus.ACTIVE );
+            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+            params.setProgram( program );
+            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+            params.setUser( actingUser );
 
-            if ( activeProgramInstances.isEmpty() )
-            {
-                ProgramInstance pi = new ProgramInstance();
-                pi.setEnrollmentDate( new Date() );
-                pi.setIncidentDate( new Date() );
-                pi.setStatus( ProgramStatus.ACTIVE );
-                pi.setStoredBy( actingUser.getUsername() );
+            int count = programInstanceService.countProgramInstances( params );
 
-                programInstance = pi;
-            }
-            else if ( activeProgramInstances.size() > 1 )
+            if ( count > 1 )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1040 )
                     .addArg( program ) );
             }
-            else
-            {
-                programInstance = activeProgramInstances.get( 0 );
-            }
         }
-        // TODO: How should we deal with the mutated programInstance here?
-        return programInstance;
-
     }
 }

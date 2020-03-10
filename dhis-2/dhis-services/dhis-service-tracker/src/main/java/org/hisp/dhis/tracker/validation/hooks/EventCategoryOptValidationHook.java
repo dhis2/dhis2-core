@@ -39,9 +39,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
@@ -89,9 +87,6 @@ public class EventCategoryOptValidationHook
             reporter.increment( event );
 
             ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
-            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
             Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
@@ -103,9 +98,6 @@ public class EventCategoryOptValidationHook
             {
                 continue;
             }
-
-            programInstance = getProgramInstance( actingUser, programInstance, trackedEntityInstance, program );
-            program = programInstance.getProgram();
 
             validateCategoryOptionCombo( bundle, reporter, actingUser, event, program );
         }

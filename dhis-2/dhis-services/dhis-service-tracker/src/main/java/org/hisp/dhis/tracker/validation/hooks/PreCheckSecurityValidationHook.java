@@ -101,7 +101,6 @@ public class PreCheckSecurityValidationHook
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-        // See note below on this.
         if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1028 )

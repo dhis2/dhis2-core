@@ -33,10 +33,7 @@ import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -49,22 +46,16 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -205,50 +196,6 @@ public abstract class AbstractTrackerValidationHook
         return bundle.getImportStrategy().isCreate()
             ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
             : trackedEntityType;
-    }
-
-    protected ProgramInstance getProgramInstance( User actingUser, ProgramInstance programInstance,
-        TrackedEntityInstance trackedEntityInstance, Program program )
-    {
-        Objects.requireNonNull( program, PROGRAM_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
-
-        if ( program.isRegistration() )
-        {
-            if ( programInstance == null && trackedEntityInstance != null )
-            {
-                List<ProgramInstance> activeProgramInstances = new ArrayList<>( programInstanceService
-                    .getProgramInstances( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
-
-                if ( activeProgramInstances.size() == 1 )
-                {
-                    programInstance = activeProgramInstances.get( 0 );
-                }
-            }
-        }
-        else
-        {
-            // TODO: This is cached in the prev. event importer? What do we do here?
-            List<ProgramInstance> activeProgramInstances = programInstanceService
-                .getProgramInstances( program, ProgramStatus.ACTIVE );
-
-            if ( activeProgramInstances.isEmpty() )
-            {
-                ProgramInstance pi = new ProgramInstance();
-                pi.setEnrollmentDate( new Date() );
-                pi.setIncidentDate( new Date() );
-                pi.setProgram( program );
-                pi.setStatus( ProgramStatus.ACTIVE );
-                pi.setStoredBy( actingUser.getUsername() );
-                programInstance = pi;
-            }
-            else if ( activeProgramInstances.size() == 1 )
-            {
-                programInstance = activeProgramInstances.get( 0 );
-            }
-        }
-
-        return programInstance;
     }
 
     public boolean isValidDateString( String dateString )

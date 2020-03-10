@@ -81,6 +81,12 @@ public class PreCheckMetaValidationHook
             reporter.addError( newReport( TrackerErrorCode.E1070 )
                 .addArg( enrollment.getTrackedEntity() ) );
         }
+
+        if ( (program != null && organisationUnit != null) && !program.hasOrganisationUnit( organisationUnit ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1041 )
+                .addArg( organisationUnit ) );
+        }
     }
 
     public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
@@ -105,6 +111,7 @@ public class PreCheckMetaValidationHook
         {
             program = programStage.getProgram();
             // TODO: Use id scheme!!!?
+
             bundle.getPreheat().put( TrackerIdentifier.UID, program );
             // TODO: Set correct id via scheme....
             event.setProgram( program.getUid() );

@@ -130,7 +130,7 @@ public class EventImportValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -345,5 +345,33 @@ public class EventImportValidationTest
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1089 ) ) ) );
     }
+
+    @Test
+    public void testNoWriteAccessToOrg()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "--netroms--" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
+    }
+
+
 
 }

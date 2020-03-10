@@ -42,6 +42,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
@@ -66,6 +67,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -131,7 +133,7 @@ public class EnrollmentImportValidationTest
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -306,4 +308,182 @@ public class EnrollmentImportValidationTest
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1070 ) ) ) );
     }
+
+    @Test
+    public void testNoWriteAccessToOrg()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "--netroms--" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1028 ) ) ) );
+    }
+
+    @Test
+    public void testEnrollmentCreateAlreadyExists()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        // Validate first time, should contain no errors.
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        // Commit the validated bundle...
+        trackerBundleService.commit( trackerBundle );
+
+        // Re-validate, should now contain 13 errors...
+        report = trackerValidationService.validate( trackerBundle );
+
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1080 ) ) ) );
+
+        // All should be removed
+        assertEquals( 0, trackerBundle.getEnrollments().size() );
+
+        printErrors( report );
+    }
+
+    @Test
+    public void testUpdateNotExists()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
+    }
+
+    @Test
+    public void testDeleteNotExists()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.DELETE );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
+    }
+
+    @Test
+    public void testNonRegProgram()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_error-nonreg-program.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1014 ) ) ) );
+    }
+
+    @Test
+    public void testNonExistTe()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_error-nonexist-te.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1068 ) ) ) );
+    }
+
+    @Test
+    public void testTrackedEntityTypeMismatch()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_error-program-tet-mismatch-te.json" )
+                    .getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1022 ) ) ) );
+    }
+
 }

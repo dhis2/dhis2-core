@@ -440,7 +440,7 @@
       "minAttributesRequiredToSearch": 1,
       "skipOffline": false,
       "version": 0,
-      "programType": "WITH_REGISTRATION",
+      "programType": "WITHOUT_REGISTRATION",
       "selectIncidentDatesInFuture": false,
       "publicAccess": "rw------",
       "displayFrontPageList": false
@@ -1097,6 +1097,34 @@
       },
       "translations": [ ],
       "name": "Person"
+    },
+    {
+      "featureType": "NONE",
+      "userAccesses": [ ],
+      "attributeValues": [ ],
+      "maxTeiCountToReturn": 0,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "id": "XXXbPJ0FMtc",
+      "userGroupAccesses": [
+        {
+          "displayName": "UGB",
+          "access": "rwrw----",
+          "userGroupUid": "jCDKJBruqjc",
+          "id": "jCDKJBruqjc"
+        } ],
+      "publicAccess": "rw------",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdated": "2019-03-29T09:20:08.103",
+
+      "created": "2019-03-29T09:20:08.103",
+      "allowAuditLog": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [ ],
+      "name": "PersonYYY"
     }
   ],
   "categoryCombos": [

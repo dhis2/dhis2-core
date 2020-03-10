@@ -61,7 +61,7 @@ public enum TrackerErrorCode
     E1019( "Only program attributes is allowed for enrollment; Non valid attributes: `{0}`." ),
     E1020( "Enrollment date: `{0}`, can`t be future date." ),
     E1021( "Incident date: `{0}`, can`t be future date." ),
-    E1022( "Tracked entity instance: `{0}`, must have same tracked entity as program `{1}`." ),
+    E1022( "Tracked entity instance: `{0}`, must have same tracked entity type as program `{1}`." ),
     E1023( "DisplayIncidentDate is true but IncidentDate is null or invalid formatted: `{0}`." ),
     E1024( "Invalid enrollment incident date; `{0}`." ),
     E1025( "Invalid enrollment date: `{0}`." ),

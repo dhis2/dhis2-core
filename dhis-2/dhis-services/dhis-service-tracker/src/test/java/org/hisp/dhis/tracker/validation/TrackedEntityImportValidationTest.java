@@ -123,7 +123,7 @@ public class TrackedEntityImportValidationTest
     {
         for ( TrackerErrorReport errorReport : report.getErrorReports() )
         {
-            log.info( errorReport.toString() );
+            log.error( errorReport.toString() );
         }
     }
 
@@ -165,7 +165,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.0
     public void testNoWriteAccessFailFast()
         throws IOException
     {
@@ -190,7 +189,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.0
     public void testNoWriteAccessToOrg()
         throws IOException
     {
@@ -214,7 +212,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.0
     public void testNoWriteAccessInAcl()
         throws IOException
     {
@@ -238,7 +235,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.0
     public void testWriteAccessInAclViaUserGroup()
         throws IOException
     {
@@ -258,7 +254,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.2
     public void testNonExistingTeType()
         throws IOException
     {
@@ -282,7 +277,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.2
     public void testNoTeType()
         throws IOException
     {
@@ -306,7 +300,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.3
     public void testEmptyOrgUnit()
         throws IOException
     {
@@ -330,7 +323,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.3
     public void testNoOrgUnit()
         throws IOException
     {
@@ -354,7 +346,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.3
     public void testNonExistingOrgUnit()
         throws IOException
     {
@@ -379,7 +370,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.5
     public void testGeoFeatureTypeMismatch()
         throws IOException
     {
@@ -403,7 +393,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.5
     public void testGeoFeatureTypeNone()
         throws IOException
     {
@@ -427,7 +416,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.5
     public void testGeoFailParseCoordinates()
         throws IOException
     {
@@ -451,7 +439,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.5
     public void testGeoOk()
         throws IOException
     {
@@ -471,7 +458,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.1
     public void testTeCreateAlreadyExists()
         throws IOException
     {
@@ -505,7 +491,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    //Ref. Tracker Validation sheet: TrackedEntity>c.4.1
     public void testTeAttrNonExistentAttr()
         throws IOException
     {
@@ -626,5 +611,51 @@ public class TrackedEntityImportValidationTest
 //        assertEquals( true, nCc1rCEOKaY.isInactive() );
         //TODO: NOT WORKING... yet? should it not be deleted?
 //        assertEquals( true, nCc1rCEOKaY.isDeleted() );
+    }
+
+    @Test
+    public void testUpdateNotExists()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 13, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1063 ) ) ) );
+    }
+
+    @Test
+    public void testDeleteNotExists()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.DELETE );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 13, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1063 ) ) ) );
     }
 }

@@ -287,7 +287,6 @@ public class PreCheckOwnershipValidationHook
         programStage = (programStage == null && program.isWithoutRegistration())
             ? program.getProgramStageByStage( 1 ) : programStage;
 
-        programInstance = getProgramInstance( actingUser, programInstance, trackedEntityInstance, program );
         if ( programStageInstance != null )
         {
             programStage = programStageInstance.getProgramStage();

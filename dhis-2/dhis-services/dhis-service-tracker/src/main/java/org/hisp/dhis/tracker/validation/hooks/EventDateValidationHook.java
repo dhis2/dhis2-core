@@ -76,11 +76,7 @@ public class EventDateValidationHook
         {
             reporter.increment( event );
 
-            ProgramStageInstance programStageInstance = PreheatHelper
-                .getProgramStageInstance( bundle, event.getEvent() );
-            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
+            ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
             if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
@@ -94,9 +90,6 @@ public class EventDateValidationHook
             {
                 continue;
             }
-
-            programInstance = getProgramInstance( actingUser, programInstance, trackedEntityInstance, program );
-            program = programInstance.getProgram();
 
             validateDateFormat( reporter, event );
             validateExpiryDays( reporter, event, program, programStageInstance, actingUser );
