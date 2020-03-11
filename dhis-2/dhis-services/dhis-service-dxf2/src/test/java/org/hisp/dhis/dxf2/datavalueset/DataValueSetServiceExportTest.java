@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -60,7 +59,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
@@ -72,7 +70,6 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Lars Helge Overland
  */
-//@Category( IntegrationTest.class )
 public class DataValueSetServiceExportTest
     extends IntegrationTestBase
 {
