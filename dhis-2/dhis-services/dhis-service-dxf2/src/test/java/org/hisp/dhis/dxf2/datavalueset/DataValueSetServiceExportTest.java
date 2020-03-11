@@ -38,6 +38,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -71,7 +72,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Lars Helge Overland
  */
-@Category( IntegrationTest.class )
+//@Category( IntegrationTest.class )
 public class DataValueSetServiceExportTest
     extends IntegrationTestBase
 {
@@ -123,6 +124,7 @@ public class DataValueSetServiceExportTest
 
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
+    private OrganisationUnit ouC;
 
     private User user;
 
@@ -179,6 +181,7 @@ public class DataValueSetServiceExportTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
+        ouC = createOrganisationUnit( 'C' ); // Not in hierarchy of A
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
@@ -431,5 +434,21 @@ public class DataValueSetServiceExportTest
 
         assertNotNull( dvs );
         assertEquals( 14, dvs.getDataValues().size() );
+    }
+
+    /**
+     * Org unit C is outside the hierarchy of the current user.
+     */
+    @Test(expected=IllegalQueryException.class)
+    public void testExportAccessOrgUnitHierarchy()
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouC ) )
+            .setPeriods( Sets.newHashSet( peA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
     }
 }
