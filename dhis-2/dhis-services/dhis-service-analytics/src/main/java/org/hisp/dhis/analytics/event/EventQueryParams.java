@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -414,7 +415,9 @@ public class EventQueryParams
      */
     public List<QueryItem> getItemsAndItemFilters()
     {
-        return ListUtils.union( items, itemFilters );
+        return ListUtils.union( items, itemFilters ).stream()
+            .filter( i -> i != null )
+            .collect( toList() );
     }
 
     /**
@@ -441,6 +444,7 @@ public class EventQueryParams
             .filter( QueryItem::hasLegendSet )
             .map( i -> i.getLegendSet().getLegends() )
             .flatMap( i -> i.stream() )
+            .filter( i -> i != null )
             .collect( Collectors.toSet() );
     }
 
@@ -453,6 +457,7 @@ public class EventQueryParams
             .filter( QueryItem::hasOptionSet )
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( q -> q.stream() )
+            .filter( q -> q != null )
             .collect( Collectors.toSet() );
     }
 
@@ -531,8 +536,8 @@ public class EventQueryParams
      */
     public EventQueryParams removeProgramIndicatorItems()
     {
-        items = items.stream().filter( item -> !item.isProgramIndicator() ).collect( Collectors.toList() );
-        itemFilters = itemFilters.stream().filter( item -> !item.isProgramIndicator() ).collect( Collectors.toList() );
+        items = items.stream().filter( item -> !item.isProgramIndicator() ).collect( toList() );
+        itemFilters = itemFilters.stream().filter( item -> !item.isProgramIndicator() ).collect( toList() );
         return this;
     }
 
