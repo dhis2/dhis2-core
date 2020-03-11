@@ -204,14 +204,11 @@ public class DefaultAnalyticsSecurityManager
 
         for ( IdentifiableObject object : objects )
         {
-            boolean canNotRead = !aclService.canDataRead( user, object );
-            String className = TextUtils.getPrettyClassName( object.getClass() );
-
-            if ( canNotRead )
+            if ( !aclService.canDataRead( user, object ) )
             {
                 throw new IllegalQueryException( String.format(
                     "User: '%s' is not allowed to read data for %s: '%s'",
-                    user.getUsername(), className, object.getUid() ) );
+                    user.getUsername(), TextUtils.getPrettyClassName( object.getClass() ), object.getUid() ) );
             }
         }
     }
@@ -394,9 +391,7 @@ public class DefaultAnalyticsSecurityManager
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
 
-            boolean hasNoReadItems = canReadItems == null || canReadItems.isEmpty();
-
-            throwIllegalQueryExWhenTrue( hasNoReadItems, String.format(
+            throwIllegalQueryExWhenTrue( canReadItems.isEmpty(), String.format(
                 "Current user is constrained by a dimension but has access to no associated dimension items: '%s'", dimension.getDimension() ) );
 
             // -----------------------------------------------------------------
