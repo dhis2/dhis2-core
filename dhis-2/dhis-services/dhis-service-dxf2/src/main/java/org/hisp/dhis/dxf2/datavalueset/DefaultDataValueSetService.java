@@ -149,7 +149,7 @@ public class DefaultDataValueSetService
 
     private final DataApprovalService approvalService;
 
-    private  BatchHandlerFactory batchHandlerFactory;
+    private BatchHandlerFactory batchHandlerFactory;
 
     private final CompleteDataSetRegistrationService registrationService;
 
@@ -372,6 +372,16 @@ public class DefaultDataValueSetService
     @Override
     public void decideAccess( DataExportParams params )
     {
+        User user = currentUserService.getCurrentUser();
+
+        for ( DataSet dataSet : params.getDataSets() )
+        {
+            if ( !aclService.canDataRead( user, dataSet ) )
+            {
+                throw new IllegalQueryException( "User is not allowed to read data for data set: " + dataSet.getUid() );
+            }
+        }
+
         for ( OrganisationUnit unit : params.getOrganisationUnits() )
         {
             if ( !organisationUnitService.isInUserHierarchy( unit ) )
