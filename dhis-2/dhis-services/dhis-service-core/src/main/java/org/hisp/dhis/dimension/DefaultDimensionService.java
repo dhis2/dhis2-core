@@ -142,7 +142,7 @@ public class DefaultDimensionService
     {
         List<T> list = new ArrayList<>( objects );
 
-        list.removeIf(object -> !aclService.canRead(user, object));
+        list.removeIf( object -> !aclService.canRead( user, object ) );
 
         return list;
     }

@@ -391,9 +391,7 @@ public class DefaultAnalyticsSecurityManager
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
 
-            boolean hasNoReadItems = canReadItems == null || canReadItems.isEmpty();
-
-            throwIllegalQueryExWhenTrue( hasNoReadItems, String.format(
+            throwIllegalQueryExWhenTrue( canReadItems.isEmpty(), String.format(
                 "Current user is constrained by a dimension but has access to no associated dimension items: '%s'", dimension.getDimension() ) );
 
             // -----------------------------------------------------------------
