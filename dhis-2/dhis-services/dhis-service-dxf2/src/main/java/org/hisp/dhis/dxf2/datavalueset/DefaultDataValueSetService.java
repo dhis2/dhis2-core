@@ -384,6 +384,16 @@ public class DefaultDataValueSetService
             }
         }
 
+        // Verify attribute option combination data read sharing
+
+        for ( CategoryOptionCombo optionCombo : params.getAttributeOptionCombos() )
+        {
+            if ( !aclService.canDataRead( user, optionCombo ) )
+            {
+                throw new IllegalQueryException( "User is not allowed to read data for attribute option combo: " + optionCombo.getUid() );
+            }
+        }
+
         // Verify org unit being located within user data capture hierarchy
 
         for ( OrganisationUnit unit : params.getOrganisationUnits() )
