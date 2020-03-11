@@ -227,13 +227,13 @@ public class DefaultAnalyticsService
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
         // ---------------------------------------------------------------------
-        // Security and validation
+        // Decide access, add constraints and validate
         // ---------------------------------------------------------------------
 
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
-        params = securityManager.withDimensionConstraints( params );
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 
@@ -260,7 +260,7 @@ public class DefaultAnalyticsService
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
-        params = securityManager.withDimensionConstraints( params );
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 
