@@ -374,6 +374,8 @@ public class DefaultDataValueSetService
     {
         User user = currentUserService.getCurrentUser();
 
+        // Verify data set read sharing
+
         for ( DataSet dataSet : params.getDataSets() )
         {
             if ( !aclService.canDataRead( user, dataSet ) )
@@ -381,6 +383,8 @@ public class DefaultDataValueSetService
                 throw new IllegalQueryException( "User is not allowed to read data for data set: " + dataSet.getUid() );
             }
         }
+
+        // Verify org unit being located within user data capture hierarchy
 
         for ( OrganisationUnit unit : params.getOrganisationUnits() )
         {
