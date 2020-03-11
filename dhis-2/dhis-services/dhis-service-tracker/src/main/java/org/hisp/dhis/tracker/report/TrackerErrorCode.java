@@ -137,6 +137,19 @@ public enum TrackerErrorCode
     E1088( "Event: `{0}`, program: `{1}`, and program stage: `{2}` could not be found." ),
     E1089( "Event: `{0}`, program stage program and event program don't match." ),
 
+    E1090( "User: `{0}`, has no create access to organisation unit: `{1}`." ),
+    E1091( "User: `{0}`, has no data write access to program: `{1}`." ),
+    E1092( "User: `{0}`, has no data read access to tracked entity type: `{1}`." ),
+    E1093( "User: `{0}`, got OWNERSHIP_ACCESS_DENIED to tracked entity: `{1}`, program: `{2}` combination" ),
+    E1094( "User: `{0}`, has no delete access to organisation unit: `{1}`" ),
+    E1095( "User: `{0}`, has no data write access to program stage: `{1}`." ),
+    E1096( "User: `{0}`, has no data read access to program: `{1}`." ),
+    E1097( "User: `{0}`, has no update access to organisation unit: `{1}`." ),
+    E1098( "User: `{0}`, has no write access to organisation unit: `{1}`." ),
+    E1099( "User: `{0}`, has no write access to category option: `{1}`." ),
+    E1100( "User: `{0}`, is lacking F_TEI_CASCADE_DELETE authority to delete tracked entity instance: `{1}`." ),
+    E1101( "User: `{0}`, has no read access to organisation unit: `{1}`." ),
+
     E9999( "N/A" );
 
     private String message;

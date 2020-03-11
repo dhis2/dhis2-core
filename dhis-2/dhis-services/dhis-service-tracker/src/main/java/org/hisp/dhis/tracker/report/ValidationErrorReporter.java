@@ -141,6 +141,11 @@ public class ValidationErrorReporter
         ValidationErrorReporter fork = new ValidationErrorReporter( this.bundle, this.mainKlass, isFailFast(),
             listIndex.incrementAndGet() );
 
+        if ( dto == null )
+        {
+            fork.mainId = this.mainId;
+            return fork;
+        }
 
         // TODO: Use interface method to build name?
         if ( dto instanceof TrackedEntity )

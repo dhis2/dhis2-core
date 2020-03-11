@@ -44,11 +44,11 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,6 +78,9 @@ public class PreCheckOwnershipValidationHook
     @Autowired
     private TrackerOwnershipManager trackerOwnershipManager;
 
+    @Autowired
+    private TrackerImportAccessManager trackerImportAccessManager;
+
     @Override
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
@@ -92,6 +95,7 @@ public class PreCheckOwnershipValidationHook
 
         if ( trackedEntityInstance != null )
         {
+            //TODO: This need clarification and follow up. +Documentation
             checkCanCascadeDeleteProgramInstances( reporter, bundle.getUser(), trackedEntityInstance );
         }
     }
@@ -101,7 +105,8 @@ public class PreCheckOwnershipValidationHook
     {
         Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+            .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
@@ -138,15 +143,12 @@ public class PreCheckOwnershipValidationHook
         ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
         ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
         ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTrackedEntityInstance( bundle, event.getTrackedEntity() );
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+            .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
 
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( programStage, Constants.PROGRAM_STAGE_CANT_BE_NULL );
-
-//        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
-//        Objects.requireNonNull( programStageInstance, Constants.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
-//        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
 
         if ( bundle.getImportStrategy().isCreate() )
         {
@@ -173,9 +175,9 @@ public class PreCheckOwnershipValidationHook
         if ( !programInstances.isEmpty()
             && !actingUser.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.NONE )
-                .addArg( trackedEntityInstance )
-                .addArg( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
+            errorReporter.addError( newReport( TrackerErrorCode.E1100 )
+                .addArg( actingUser )
+                .addArg( trackedEntityInstance ) );
         }
     }
 
@@ -189,13 +191,9 @@ public class PreCheckOwnershipValidationHook
 
         ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
 
-        List<String> errors = trackerAccessManager.canCreate( actingUser, programInstance, false );
-        if ( !errors.isEmpty() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1000 )
-                .addArg( actingUser )
-                .addArg( String.join( ",", errors ) ) );
-        }
+        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+
+        trackerImportAccessManager.canCreate( reporter, actingUser, program, programInstance, false );
     }
 
     protected void validateUpdateAndDeleteEnrollment( TrackerBundle bundle, ValidationErrorReporter reporter,
@@ -205,35 +203,16 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
-
-        if ( programInstance == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1015 )
-                .addArg( enrollment )
-                .addArg( enrollment.getEnrollment() ) );
-            return;
-        }
+        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
 
         if ( bundle.getImportStrategy().isUpdate() )
         {
-            List<String> errors = trackerAccessManager.canUpdate( actingUser, programInstance, false );
-            if ( !errors.isEmpty() )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1000 )
-                    .addArg( actingUser )
-                    .addArg( programInstance ) );
-            }
+            trackerImportAccessManager.canUpdate( reporter, actingUser, programInstance, false );
         }
 
         if ( bundle.getImportStrategy().isDelete() )
         {
-            List<String> errors = trackerAccessManager.canDelete( actingUser, programInstance, false );
-            if ( !errors.isEmpty() )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1000 )
-                    .addArg( actingUser )
-                    .addArg( programInstance ) );
-            }
+            trackerImportAccessManager.canDelete( reporter, actingUser, programInstance, false );
         }
     }
 
@@ -246,13 +225,8 @@ public class PreCheckOwnershipValidationHook
 
         if ( bundle.getImportStrategy().isUpdate() )
         {
-            List<String> errors = trackerAccessManager.canUpdate( bundle.getUser(), programStageInstance, false );
-            if ( !errors.isEmpty() )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1050 )
-                    .addArg( bundle.getUser() )
-                    .addArg( String.join( ",", errors ) ) );
-            }
+            trackerImportAccessManager.canUpdate( reporter, bundle.getUser(),
+                programStageInstance, false );
 
             if ( event.getStatus() != programStageInstance.getStatus()
                 && EventStatus.COMPLETED == programStageInstance.getStatus()
@@ -265,14 +239,7 @@ public class PreCheckOwnershipValidationHook
 
         if ( bundle.getImportStrategy().isDelete() )
         {
-            List<String> errors = trackerAccessManager.canDelete( bundle.getUser(),
-                programStageInstance, false );
-            if ( !errors.isEmpty() )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1050 )
-                    .addArg( bundle.getUser() )
-                    .addArg( String.join( ",", errors ) ) );
-            }
+            trackerImportAccessManager.canDelete( reporter, bundle.getUser(), programStageInstance, false );
         }
     }
 
@@ -296,12 +263,6 @@ public class PreCheckOwnershipValidationHook
             .setOrganisationUnit( organisationUnit )
             .setStatus( event.getStatus() );
 
-        List<String> errors = trackerAccessManager.canCreate( actingUser, newProgramStageInstance, false );
-        if ( !errors.isEmpty() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1050 )
-                .addArg( actingUser )
-                .addArg( String.join( ",", errors ) ) );
-        }
+        trackerImportAccessManager.canCreate( reporter, actingUser, newProgramStageInstance, false );
     }
 }

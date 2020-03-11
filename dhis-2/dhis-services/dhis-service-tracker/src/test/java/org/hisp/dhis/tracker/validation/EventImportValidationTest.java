@@ -39,9 +39,12 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitRepor
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
@@ -66,6 +69,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -98,6 +102,12 @@ public class EventImportValidationTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageServiceInstance;
 
     protected void initMeta1()
         throws IOException
@@ -372,6 +382,145 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
     }
 
+    @Test
+    public void testEventCreateAlreadyExists()
+        throws IOException
+    {
+        initMeta1();
 
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        // Validate first time, should contain no errors.
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        // Commit the validated bundle...
+        trackerBundleService.commit( trackerBundle );
+
+        // Re-validate, should now contain 13 errors...
+        report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1030 ) ) ) );
+
+        // All should be removed
+        assertEquals( 0, trackerBundle.getEnrollments().size() );
+    }
+
+    @Test
+    public void testUpdateNotExists()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1032 ) ) ) );
+
+        // All should be removed
+        assertEquals( 0, trackerBundle.getEnrollments().size() );
+    }
+
+    //TODO: Needs clarification, can't test this error: E1082.
+    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
+//    @Test
+//    public void testProgramStageDeleted()
+//        throws IOException
+//    {
+//        initMeta1();
+//
+//        TrackerBundleParams trackerBundleParams = renderService
+//            .fromJson(
+//                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
+//                TrackerBundleParams.class );
+//
+//        User user = userService.getUser( "M5zQapPyTZI" );
+//        trackerBundleParams.setUser( user );
+//
+//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+//        assertEquals( 1, trackerBundle.getEvents().size() );
+//
+//        // Validate first time, should contain no errors.
+//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+//        assertEquals( 0, report.getErrorReports().size() );
+//
+//        // Commit the validated bundle...
+//        trackerBundleService.commit( trackerBundle );
+//
+//        ProgramStageInstance psi = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
+////        psi.setDeleted( true );
+////        programStageServiceInstance.updateProgramStageInstance( psi );
+//        programStageServiceInstance.deleteProgramStageInstance( psi );
+//
+//        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+//        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+//        report = trackerValidationService.validate( trackerBundle );
+//        printErrors( report );
+//
+//        assertEquals( 1, report.getErrorReports().size() );
+//
+//        assertThat( report.getErrorReports(),
+//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
+//
+//        // All should be removed
+//        assertEquals( 0, trackerBundle.getEnrollments().size() );
+//    }
+
+    //TODO: Can't provoke this state,
+    // see comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:212
+//    @Test
+//    public void testIsRegButNoTei()
+//        throws IOException
+//    {
+//        initMeta1();
+//
+//        TrackerBundleParams trackerBundleParams = renderService
+//            .fromJson(
+//                new ClassPathResource( "tracker/validations/events_error-not-enrolled.json" ).getInputStream(),
+//                TrackerBundleParams.class );
+//
+//        User user = userService.getUser( "M5zQapPyTZI" );
+//        trackerBundleParams.setUser( user );
+//
+//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+//        assertEquals( 1, trackerBundle.getEvents().size() );
+//
+//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+//        printErrors( report );
+//        assertEquals( 1, report.getErrorReports().size() );
+//
+//        assertThat( report.getErrorReports(),
+//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1037 ) ) ) );
+//
+//        // All should be removed
+//        assertEquals( 0, trackerBundle.getEnrollments().size() );
+//    }
 
 }

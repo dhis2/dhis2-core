@@ -144,6 +144,18 @@ public class PreCheckDataRelationsValidationHook
                     .addArg( program ) );
             }
         }
+
+        if ( !bundle.getImportStrategy().isCreate() )
+        {
+            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+
+            if ( programInstance == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1015 )
+                    .addArg( enrollment )
+                    .addArg( enrollment.getEnrollment() ) );
+            }
+        }
     }
 
     @Override
@@ -162,6 +174,7 @@ public class PreCheckDataRelationsValidationHook
                 .addArg( event.getEvent() ) );
         }
 
+        //TODO: Morten: I can't make this state, when I do a delete on the programStageInstance, the exist check fails before this...
         ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
         if ( bundle.getImportStrategy().isUpdate()
             && (programStageInstance != null && programStageInstance.isDeleted()) )
@@ -192,6 +205,12 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
+            if ( trackedEntityInstance == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1036 )
+                    .addArg( event ) );
+            }
+
             ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
             params.setProgram( program );
             params.setTrackedEntityInstance( trackedEntityInstance );
@@ -200,12 +219,8 @@ public class PreCheckDataRelationsValidationHook
 
             int count = programInstanceService.countProgramInstances( params );
 
-            if ( trackedEntityInstance == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1036 )
-                    .addArg( event ) );
-            }
-
+            //TODO: I can't provoke this state where programInstance == NULL && program.isRegistration(),
+            // the meta check will complain about that "is a registration but its program stage is not valid or missing." (E1086)
             if ( programInstance == null && trackedEntityInstance != null )
             {
                 if ( count == 0 )
@@ -230,6 +245,7 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
+            //TODO: I don't understand the purpose of this here. This could be moved to preheater?
             ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
             params.setProgram( program );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );

@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +70,9 @@ public class EventCategoryOptValidationHook
 {
     @Autowired
     protected I18nManager i18nManager;
+
+    @Autowired
+    private TrackerImportAccessManager trackerImportAccessManager;
 
     @Override
     public int getOrder()
@@ -180,13 +184,8 @@ public class EventCategoryOptValidationHook
             }
         }
 
-        List<String> accessErrors;
-        accessErrors = trackerAccessManager.canWrite( actingUser, categoryOptionCombo );
-        if ( !accessErrors.isEmpty() )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1058 )
-                .addArg( String.join( ",", accessErrors ) ) );
-        }
+        // TODO: Move to ownership/security pre check hook...
+        trackerImportAccessManager.canWrite( errorReporter, actingUser, categoryOptionCombo );
     }
 
     private CategoryOptionCombo getAttributeOptionCombo( TrackerBundle bundle, CategoryCombo categoryCombo,

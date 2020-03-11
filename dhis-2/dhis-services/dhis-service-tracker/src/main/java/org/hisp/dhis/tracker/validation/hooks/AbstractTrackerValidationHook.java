@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -67,8 +66,8 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected TrackedEntityAttributeService teAttrService;
 
-    @Autowired
-    protected TrackerAccessManager trackerAccessManager;
+//    @Autowired
+//    protected TrackerAccessManager trackerAccessManager;
 
     @Autowired
     protected OrganisationUnitService organisationUnitService;

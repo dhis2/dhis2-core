@@ -82,6 +82,8 @@ abstract public class AbstractPreCheckValidationHook
         {
             T dto = iterator.next();
 
+            // Fork the report in order to be thread-safe so we can support multi-threaded validation in future.
+            // Iterator needs to be changed to split variant also...
             ValidationErrorReporter reportFork = reporter.fork( dto );
 
             function.validateObject( dto, reportFork );

@@ -32,10 +32,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
@@ -76,7 +74,8 @@ public class EventDateValidationHook
         {
             reporter.increment( event );
 
-            ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+            ProgramStageInstance programStageInstance = PreheatHelper
+                .getProgramStageInstance( bundle, event.getEvent() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
             if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )

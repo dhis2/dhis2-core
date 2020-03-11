@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,9 @@ public class EnrollmentExistingEnrollmentsValidationHook
 {
     @Autowired
     protected TrackerOwnershipManager trackerOwnershipManager;
+
+    @Autowired
+    private TrackerImportAccessManager trackerImportAccessManager;
 
     @Override
     public int getOrder()
@@ -179,19 +183,22 @@ public class EnrollmentExistingEnrollmentsValidationHook
 
         for ( ProgramInstance programInstance : programInstances )
         {
+            // TODO: Move to ownership/security pre check hook if possible?
             if ( trackerOwnershipManager.hasAccess( actingUser, programInstance ) )
             {
-                List<String> errors = trackerAccessManager.canRead( actingUser, programInstance, true );
-                if ( errors.isEmpty() )
+                // Always fork the reporter when used for checking/counting errors,
+                // will break hard otherwise when run in a multi threaded way
+                ValidationErrorReporter fork = reporter.fork( null );
+
+                trackerImportAccessManager.canRead( fork, actingUser, programInstance, true );
+
+                if ( !fork.hasErrors() )
                 {
                     enrollments.add( getEnrollmentFromProgramInstance( programInstance ) );
                 }
                 else
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1077 )
-                        .addArg( actingUser )
-                        .addArg( programInstance )
-                        .addArg( errors ) );
+                    reporter.merge( fork );
                 }
             }
         }

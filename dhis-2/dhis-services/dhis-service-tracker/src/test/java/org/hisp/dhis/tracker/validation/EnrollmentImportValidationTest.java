@@ -386,10 +386,13 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
     }
 
     @Test
@@ -410,10 +413,13 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
     }
 
     @Test
