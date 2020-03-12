@@ -919,7 +919,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder, AclService.LIKE_READ_DATA ) );
+            .addPredicates( getDataSharingPredicates( builder ) );
 
         return getList( builder, parameters );
     }
@@ -930,7 +930,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA ) );
+            .addPredicates( getDataSharingPredicates( builder, user ) );
 
         return getList( builder, parameters );
     }
@@ -963,7 +963,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder, AclService.LIKE_READ_DATA ) )
+            .addPredicates( getDataSharingPredicates( builder ) )
             .setFirstResult( first )
             .setMaxResults( max );
 
