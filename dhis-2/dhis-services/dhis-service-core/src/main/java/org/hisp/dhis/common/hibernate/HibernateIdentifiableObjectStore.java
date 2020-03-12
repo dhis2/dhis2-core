@@ -569,10 +569,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     public List<T> getAllLikeNameAndEqualsAttribute( Set<String> nameWords, String attribute, String attributeValue, int first, int max )
     {
-
         if ( StringUtils.isEmpty( attribute ) || StringUtils.isEmpty( attributeValue ) )
         {
-            return Collections.EMPTY_LIST;
+            return new ArrayList<>();
         }
 
         CriteriaBuilder builder = getCriteriaBuilder();
