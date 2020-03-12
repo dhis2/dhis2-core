@@ -1135,8 +1135,9 @@ public class JdbcEventStore
     {
         List<Long> userGroupIds = getIdentifiers( user.getGroups() );
 
-        String sql = " left join ("
-            + "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+        String sql = " left join ( ";
+
+        sql += "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
             + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
             + "left join ("
             + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
