@@ -1355,7 +1355,7 @@ public abstract class DhisConvenienceTest
 
         role.setUid( BASE_UID + uniqueCharacter );
         role.setName( "UserAuthorityGroup" + uniqueCharacter );
-        
+
         for ( String auth : auths )
         {
             role.getAuthorities().add( auth );
@@ -1572,12 +1572,12 @@ public abstract class DhisConvenienceTest
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
         }
-        
-        for ( AnalyticsPeriodBoundary boundary : boundaries ) 
+
+        for ( AnalyticsPeriodBoundary boundary : boundaries )
         {
             boundary.setAutoFields();
         }
-        
+
         indicator.setAnalyticsPeriodBoundaries( boundaries );
 
         return indicator;
@@ -1674,7 +1674,7 @@ public abstract class DhisConvenienceTest
 
         return attribute;
     }
-    
+
     public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
     {
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( uniqueChar );
@@ -2053,6 +2053,24 @@ public abstract class DhisConvenienceTest
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, boolean allAuth, String... auths )
     {
+        return createUserAndInjectSecurityContext( organisationUnits, dataViewOrganisationUnits, null, allAuth, auths );
+    }
+
+    /**
+     * Creates a user and injects into the security context with username
+     * "username". Requires <code>identifiableObjectManager</code> and
+     * <code>userService</code> to be injected into the test.
+     *
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the user.
+     * @param catDimensionConstraints the category dimension constraints of the user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
+     * @return the user.
+     */
+    protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, Set<Category> catDimensionConstraints, boolean allAuth, String... auths )
+    {
         Assert.notNull( userService, "UserService must be injected in test" );
 
         Set<String> authorities = new HashSet<>();
@@ -2083,6 +2101,11 @@ public abstract class DhisConvenienceTest
         if ( dataViewOrganisationUnits != null )
         {
             user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
+        }
+
+        if ( catDimensionConstraints != null )
+        {
+            user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
         }
 
         user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );

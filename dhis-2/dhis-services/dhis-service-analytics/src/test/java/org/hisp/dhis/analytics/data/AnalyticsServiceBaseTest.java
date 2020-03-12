@@ -110,7 +110,7 @@ public abstract class AnalyticsServiceBaseTest {
     {
         when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) )
                 .thenReturn( params );
-        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( securityManager.withUserConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
                 DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
     }
