@@ -988,11 +988,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Creates a detached criteria with data sharing restrictions relative to the
      * given user and access string.
      *
-     * @param user   the user.
+     * @param user the user.
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    private DetachedCriteria getDataSharingDetachedCriteria(UserInfo user, String access)
+    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -1046,7 +1046,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    private DetachedCriteria getSharingDetachedCriteria(UserInfo user, String access)
+    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -1289,11 +1289,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     /**
      * Checks whether the given user has public access to the given identifiable object.
      *
-     * @param user               the user.
+     * @param user the user.
      * @param identifiableObject the identifiable object.
      * @return true or false.
      */
-    private boolean checkPublicAccess(User user, IdentifiableObject identifiableObject)
+    private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
     {
         return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
             (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
@@ -1305,22 +1305,22 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return Dashboard.class.isAssignableFrom( clazz );
     }
 
-    private boolean sharingEnabled(User user)
+    private boolean sharingEnabled( User user )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
     }
 
-    private boolean sharingEnabled(UserInfo userInfo)
+    private boolean sharingEnabled( UserInfo userInfo )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
     }
 
-    private boolean dataSharingEnabled(UserInfo userInfo)
+    private boolean dataSharingEnabled( UserInfo userInfo )
     {
         return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
     }
 
-    private boolean isReadAllowed(T object, User user)
+    private boolean isReadAllowed( T object, User user )
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1335,7 +1335,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    private boolean isUpdateAllowed(T object, User user)
+    private boolean isUpdateAllowed( T object, User user )
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1350,7 +1350,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    private boolean isDeleteAllowed(T object, User user)
+    private boolean isDeleteAllowed( T object, User user )
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
