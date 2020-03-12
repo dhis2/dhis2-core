@@ -272,7 +272,7 @@ public class DefaultAnalyticsSecurityManager
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params );
 
         applyOrganisationUnitConstraint( builder, params );
-        applyUserConstraints( builder, params );
+        applyDimensionConstraints( builder, params );
 
         return builder.build();
     }
