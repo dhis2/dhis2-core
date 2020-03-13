@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
@@ -69,8 +70,8 @@ public class DefaultQueryPlanner implements QueryPlanner
     {
         // if only one filter, always set to Junction.Type AND
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND : query.getRootJunctionType();
-
-        if ( Junction.Type.OR == junctionType && !persistedOnly )
+        
+        if ( Junction.Type.OR == junctionType && !persistedOnly && !isFilterOnPersistedFieldOnly( query ))
         {
             return QueryPlan.QueryPlanBuilder
                 .aQueryPlan()
@@ -297,5 +298,22 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return criteriaJunction;
+    }
+    
+    private boolean isFilterOnPersistedFieldOnly( Query query )
+    {
+        Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
+        for ( Criterion criterion : query.getCriterions() )
+        {
+            if ( criterion instanceof Restriction )
+            {
+                Restriction restriction = (Restriction) criterion;
+                if ( !persistedFields.contains( restriction.getPath() ) )
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
