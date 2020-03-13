@@ -307,6 +307,40 @@ public class DataValueSetExportAccessControlTest
     }
 
     /**
+     * User has no data read sharing access to cocA through category options.
+     * Verifies that validation fails.
+     */
+    @Test(expected=IllegalQueryException.class)
+    public void testExportExplicitAttributeOptionComboAccess()
+    {
+        // User
+
+        User user = createUser( 'A' );
+        user.setOrganisationUnits( Sets.newHashSet( ouA ) );
+        setCurrentUser( user );
+
+        // Sharing
+
+        enableDataSharing( user, coA, DATA_READ );
+        enableDataSharing( user, dsA, DATA_READ );
+
+        idObjectManager.update( coA );
+        idObjectManager.update( dsA );
+
+        // Test
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setPeriods( Sets.newHashSet( peA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouA ) )
+            .setAttributeOptionCombos( Sets.newHashSet( cocA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+    }
+
+    /**
      * Inject current user in relevant services.
      *
      * @param user the user to inject.

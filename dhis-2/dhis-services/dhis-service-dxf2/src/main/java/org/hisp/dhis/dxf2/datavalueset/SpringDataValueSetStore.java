@@ -355,7 +355,7 @@ public class SpringDataValueSetStore
             sql += "limit " + params.getLimit();
         }
 
-        log.info( "Get data value set SQL: " + sql );
+        log.debug( "Get data value set SQL: " + sql );
 
         return sql;
     }
