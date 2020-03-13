@@ -91,13 +91,13 @@ public class DefaultDimensionService
         PeriodService periodService, OrganisationUnitService organisationUnitService, AclService aclService,
         CurrentUserService currentUserService, MergeService mergeService )
     {
-        checkNotNull(idObjectManager);
-        checkNotNull(categoryService);
-        checkNotNull(periodService);
-        checkNotNull(organisationUnitService);
-        checkNotNull(aclService);
-        checkNotNull(currentUserService);
-        checkNotNull(mergeService);
+        checkNotNull( idObjectManager );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( aclService );
+        checkNotNull( currentUserService );
+        checkNotNull( mergeService );
 
         this.idObjectManager = idObjectManager;
         this.categoryService = categoryService;
@@ -142,7 +142,7 @@ public class DefaultDimensionService
     {
         List<T> list = new ArrayList<>( objects );
 
-        list.removeIf(object -> !aclService.canRead(user, object));
+        list.removeIf( object -> !aclService.canRead( user, object ) );
 
         return list;
     }
