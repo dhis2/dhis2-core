@@ -114,7 +114,9 @@ public class ProgramStageObjectBundleHook
 
         programStage.getProgramStageSections().stream().forEach( pss -> {
             if ( pss.getProgramStage() == null )
+            {
                 pss.setProgramStage( programStage );
+            }
         } );
 
         session.update( programStage );

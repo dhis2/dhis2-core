@@ -55,6 +55,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.base.Preconditions;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -202,6 +204,8 @@ public class SpringDataValueSetStore
 
     private String getDataValueSql( DataExportParams params )
     {
+        Preconditions.checkArgument( !params.getAllDataElements().isEmpty() );
+
         IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
         String deScheme = idScheme.getDataElementIdScheme().getIdentifiableString().toLowerCase();
@@ -256,7 +260,7 @@ public class SpringDataValueSetStore
             sql += "left join orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
         }
 
-        sql += "where de.dataelementid in (" + (!dataElements.isEmpty() ? dataElements : "null") + ") ";
+        sql += "where de.dataelementid in (" + dataElements + ") ";
 
         if ( params.isIncludeChildren() )
         {
