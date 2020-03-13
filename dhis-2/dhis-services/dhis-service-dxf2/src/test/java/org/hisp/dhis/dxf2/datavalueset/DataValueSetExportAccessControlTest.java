@@ -177,7 +177,6 @@ public class DataValueSetExportAccessControlTest
         dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocB, "2" ) );
         dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocC, "3" ) );
         dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocD, "4" ) );
-
     }
 
     /**
