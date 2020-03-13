@@ -111,4 +111,11 @@ public interface ObjectBundleHook
      * @param bundle Current commit phase bundle
      */
     <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle );
+
+    /**
+     * Run in MetadataAsyncImporter, after transaction is committed and session is flushed
+     * This is to handle special case where object's reference is not updated after import job is done.
+     * @param klass
+     */
+    void clearCache( Class klass );
 }

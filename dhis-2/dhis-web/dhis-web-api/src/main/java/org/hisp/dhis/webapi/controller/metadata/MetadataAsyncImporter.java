@@ -30,18 +30,25 @@ package org.hisp.dhis.webapi.controller.metadata;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -63,7 +70,12 @@ public class MetadataAsyncImporter extends SecurityContextRunnable
     @Autowired
     private Notifier notifier;
 
+    @Autowired
+    private List<ObjectBundleHook> objectBundleHooks;
+
     private MetadataImportParams params;
+
+    private ImportReport importReport;
 
     @Override
     public void call()
@@ -79,7 +91,7 @@ public class MetadataAsyncImporter extends SecurityContextRunnable
             params.setOverrideUser( manager.get( User.class, params.getOverrideUser().getUid() ) );
         }
 
-        metadataImportService.importMetadata( params );
+        importReport = metadataImportService.importMetadata( params );
     }
 
     @Override
@@ -91,6 +103,7 @@ public class MetadataAsyncImporter extends SecurityContextRunnable
     @Override
     public void after()
     {
+        clearCache();
         DbmsUtils.unbindSessionFromThread( sessionFactory );
     }
 
@@ -104,5 +117,16 @@ public class MetadataAsyncImporter extends SecurityContextRunnable
     public void setParams( MetadataImportParams params )
     {
         this.params = params;
+    }
+
+    private void clearCache()
+    {
+        importReport.getTypeReports().forEach( type ->
+        {
+            if ( type.getStats().getUpdated() > 0 || type.getStats().getCreated() > 0 )
+            {
+                objectBundleHooks.forEach( hook -> hook.clearCache( type.getKlass() ) );
+            }
+        } );
     }
 }

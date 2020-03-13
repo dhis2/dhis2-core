@@ -112,4 +112,10 @@ public class AbstractObjectBundleHook implements ObjectBundleHook
     public <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle )
     {
     }
+
+    @Override
+    public void clearCache( Class klass )
+    {
+    }
+
 }
