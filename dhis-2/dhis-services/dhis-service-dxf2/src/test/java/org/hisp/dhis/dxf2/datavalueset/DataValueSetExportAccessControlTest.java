@@ -249,8 +249,10 @@ public class DataValueSetExportAccessControlTest
         // Sharing
 
         enableDataSharing( user, coA, DATA_READ );
+        enableDataSharing( user, coB, DATA_READ );
 
         idObjectManager.update( coA );
+        idObjectManager.update( coB );
 
         // Test
 
