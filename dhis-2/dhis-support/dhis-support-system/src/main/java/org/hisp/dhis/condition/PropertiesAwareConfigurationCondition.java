@@ -64,6 +64,11 @@ public abstract class PropertiesAwareConfigurationCondition
         return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
     }
 
+    protected boolean isAuditTest( ConditionContext context )
+    {
+        return SystemUtils.isAuditTest( context.getEnvironment().getActiveProfiles() );
+    }
+
     protected boolean getBooleanValue( ConfigurationKey key )
     {
         return getConfiguration().isEnabled(key);

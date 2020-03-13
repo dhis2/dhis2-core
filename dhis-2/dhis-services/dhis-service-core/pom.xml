@@ -67,8 +67,8 @@
       <artifactId>dhis-support-expression-parser</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hisp.dhis.support</groupId>
-      <artifactId>dhis-support-antlr-expression-parser</artifactId>
+      <groupId>org.hisp.dhis.parser</groupId>
+      <artifactId>dhis-antlr-expression-parser</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -216,6 +216,11 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

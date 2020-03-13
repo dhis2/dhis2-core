@@ -94,9 +94,6 @@ public class DefaultProgramInstanceService
     private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
-    private ProgramInstanceAuditService programInstanceAuditService;
-
-    @Autowired
     private AclService aclService;
 
     // -------------------------------------------------------------------------
@@ -142,11 +139,6 @@ public class DefaultProgramInstanceService
 
         User user = currentUserService.getCurrentUser();
 
-        if ( user != null )
-        {
-            addProgramInstanceAudit( programInstance, user.getUsername() );
-        }
-
         return programInstance;
     }
 
@@ -157,11 +149,6 @@ public class DefaultProgramInstanceService
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
 
         User user = currentUserService.getCurrentUser();
-
-        if ( user != null )
-        {
-            addProgramInstanceAudit( programInstance, user.getUsername() );
-        }
 
         return programInstance;
     }
@@ -308,11 +295,6 @@ public class DefaultProgramInstanceService
         }
 
         List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-
-        if ( user != null )
-        {
-            addProgramInstanceAudits( programInstances, user.getUsername() );
-        }
 
         return programInstances;
     }
@@ -643,23 +625,5 @@ public class DefaultProgramInstanceService
         programInstance.setEndDate( null );
 
         updateProgramInstance( programInstance );
-    }
-
-    private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
-    {
-        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() != AccessLevel.OPEN && accessedBy != null )
-        {
-            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
-
-            programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
-        }
-    }
-
-    private void addProgramInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
-    {
-        for ( ProgramInstance programInstance : programInstances )
-        {
-            addProgramInstanceAudit( programInstance, accessedBy );
-        }
     }
 }

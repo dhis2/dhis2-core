@@ -75,6 +75,7 @@ public class MetadataAuditConsumer implements AuditConsumer
     {
         try
         {
+            log.debug( "[MetadataAuditConsumer] Receiving message: "+ message  );
             String payload = message.getText();
 
             Audit auditMessage = objectMapper.readValue( payload, Audit.class );

@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
@@ -957,6 +958,7 @@ public class EventQueryParams
      * Builder for {@link DataQueryParams} instances.
      */
     public static class Builder
+        implements QueryParamsBuilder
     {
         private EventQueryParams params;
 
@@ -1017,6 +1019,13 @@ public class EventQueryParams
         public Builder removeDimension( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
+            return this;
+        }
+
+        public Builder removeDimensionOrFilter( String dimension )
+        {
+            this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
+            this.params.filters.remove( new BaseDimensionalObject( dimension ) );
             return this;
         }
 

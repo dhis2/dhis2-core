@@ -861,4 +861,20 @@ public class AnalyticsUtils
 
         return 0D;
     }
+
+    /**
+     * Throws a {@link IllegalQueryException} with the given message if the
+     * given condition is true.
+     *
+     * @param condition the condition.
+     * @param message the message.
+     * @throws {@link IllegalQueryException}.
+     */
+    public static void throwIllegalQueryExWhenTrue( boolean condition, String message )
+    {
+        if ( condition )
+        {
+            throw new IllegalQueryException( message );
+        }
+    }
 }

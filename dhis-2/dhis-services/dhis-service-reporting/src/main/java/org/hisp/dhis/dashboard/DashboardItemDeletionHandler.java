@@ -30,12 +30,10 @@ package org.hisp.dhis.dashboard;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
@@ -84,13 +82,13 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     {
         return dashboardService.countReportDashboardItems( report ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeleteDocument( Document document )
     {
         return dashboardService.countDocumentDashboardItems( document ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeleteUser( User user )
     {

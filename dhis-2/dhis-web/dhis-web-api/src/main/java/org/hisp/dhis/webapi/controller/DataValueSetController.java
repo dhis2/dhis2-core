@@ -129,7 +129,7 @@ public class DataValueSetController
         setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         OutputStream outputStream = compress( response, Compression.fromValue( compression ), "xml" );
@@ -383,10 +383,12 @@ public class DataValueSetController
     }
 
     /**
+     * Returns an output stream with the appropriate compression based on the
+     * given {@link Compression} argument.
      *
-     * @param response HttpServletResponse
-     * @param compression Compression {@link Compression}
-     * @param format File format, can be json, xml or csv
+     * @param response the {@link HttpServletResponse}.
+     * @param compression the Compression {@link Compression}
+     * @param format the file format, can be json, xml or csv.
      * @return Compressed OutputStream if given compression is given, otherwise just return uncompressed outputStream
      */
     private OutputStream compress( HttpServletResponse response, Compression compression, String format )

@@ -43,7 +43,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +72,6 @@ public class TrackedEntityProgramAttributeTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private TrackerPreheatService trackerPreheatService;
 
     @Autowired
     private TrackerBundleService trackerBundleService;

@@ -529,7 +529,7 @@ public class TrackerPreheat
         this.relationships = relationships;
     }
 
-    public Relationship getRelationship( TrackerIdentifier identifier, String relationship )
+    public Relationship getRelationship( TrackerIdScheme identifier, String relationship )
     {
         if ( !relationships.containsKey( identifier ) )
         {
