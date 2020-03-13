@@ -75,7 +75,9 @@ public interface QueryService
      * @param rootJunction Root junction (defaults to AND)
      * @return New query instance using provided filters/orders
      */
-    Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Junction.Type rootJunction ) throws QueryParserException;
+    Query getQueryFromUrl( Class<?> klass,  List<String> filters, List<Order> orders, PaginationData paginationData, Junction.Type rootJunction ) throws QueryParserException;
+
+    Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, PaginationData paginationData ) throws QueryParserException;
 
     Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException;
 }

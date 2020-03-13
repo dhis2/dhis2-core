@@ -28,10 +28,16 @@ package org.hisp.dhis.webapi.controller.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -60,14 +66,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -125,7 +127,7 @@ public class OrganisationUnitController
         else if ( options.isTrue( "levelSorted" ) )
         {
             objects = new ArrayList<>( manager.getAll( getEntityClass() ) );
-            Collections.sort( objects, OrganisationUnitByLevelComparator.INSTANCE );
+            objects.sort( OrganisationUnitByLevelComparator.INSTANCE );
         }
 
         // ---------------------------------------------------------------------
@@ -147,7 +149,7 @@ public class OrganisationUnitController
         // Standard Query handling
         // ---------------------------------------------------------------------
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
         query.setUser( currentUser );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
@@ -163,7 +165,7 @@ public class OrganisationUnitController
         // Collection member count in hierarchy handling
         // ---------------------------------------------------------------------
 
-        IdentifiableObject member = null;
+        IdentifiableObject member;
 
         if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
         {

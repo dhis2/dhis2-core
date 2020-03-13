@@ -39,6 +39,7 @@ import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.PaginationData;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
@@ -125,7 +126,7 @@ public class MapViewController
         throws QueryParserException
     {
         List<MapView> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 

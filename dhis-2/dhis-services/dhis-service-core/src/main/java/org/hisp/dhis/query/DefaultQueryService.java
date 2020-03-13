@@ -35,7 +35,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -57,7 +56,8 @@ public class DefaultQueryService
 
     private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
-    @Autowired
+    private final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
+
     public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
         CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
         InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
@@ -98,18 +98,24 @@ public class DefaultQueryService
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, PaginationData paginationData ) throws QueryParserException
     {
-        return getQueryFromUrl( klass, filters, orders, Junction.Type.AND );
+        return getQueryFromUrl( klass, filters, orders, paginationData, DEFAULT_JUNCTION_TYPE );
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Junction.Type rootJunction ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, PaginationData paginationData, Junction.Type rootJunction ) throws QueryParserException
     {
         Query query = queryParser.parse( klass, filters, rootJunction );
         query.addOrders( orders );
 
         return query;
+    }
+
+    @Override
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
+    {
+        return getQueryFromUrl( klass, filters, orders, new PaginationData(), DEFAULT_JUNCTION_TYPE );
     }
 
     //---------------------------------------------------------------------------------------------
