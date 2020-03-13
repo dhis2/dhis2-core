@@ -34,10 +34,24 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 /**
  * @author Luciano Fiandesio
  */
-public class PaginationUtils {
-
-    public static PaginationData getPaginationData(WebOptions options )
+public class PaginationUtils
+{
+    private final static PaginationData NO_PAGINATION = new PaginationData();
+    /**
+     * Calculates the paging first result based on pagination data from
+     * {@see WebOptions} if the WebOptions have pagination information
+     * 
+     * The first result is simply calculated by multiplying page * page size
+     * 
+     * @param options a {@see WebOptions} object
+     * @return a {@see PaginationData} object either empty or containing pagination
+     *         data
+     */
+    public static PaginationData getPaginationData( WebOptions options )
     {
-        return options.hasPaging() ? new PaginationData( options.getPage(), options.getPageSize() ) : new PaginationData( );
+        return options.hasPaging()
+            ? new PaginationData( options.getPage() == 1 ? 1 : ( options.getPage() * options.getPageSize() ),
+                options.getPageSize() )
+            : NO_PAGINATION;
     }
 }

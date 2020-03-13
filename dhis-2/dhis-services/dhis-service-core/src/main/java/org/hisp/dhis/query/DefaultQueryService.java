@@ -28,6 +28,8 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -35,8 +37,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
-
-import java.util.List;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
@@ -108,7 +108,12 @@ public class DefaultQueryService
     {
         Query query = queryParser.parse( klass, filters, rootJunction );
         query.addOrders( orders );
-
+        if ( paginationData.hasPagination() )
+        {
+            query.setFirstResult( paginationData.getFirstResult() );
+            query.setMaxResults( paginationData.getSize() );
+        }
+        
         return query;
     }
 

@@ -35,17 +35,17 @@ package org.hisp.dhis.query;
  */
 public class PaginationData
 {
-    private int page;
+    private int firstResult;
 
-    private int pageSize;
+    private int size;
 
     private boolean hasPagination = false;
 
-    public PaginationData( int page, int pageSize )
+    public PaginationData( int firstResult, int size )
     {
-        assert (pageSize > 0);
-        this.page = page;
-        this.pageSize = pageSize;
+        assert (size > 0);
+        this.firstResult = firstResult;
+        this.size = size;
         this.hasPagination = true;
     }
 
@@ -57,14 +57,14 @@ public class PaginationData
         // empty constructor
     }
 
-    public int getPage()
+    public int getFirstResult()
     {
-        return page;
+        return firstResult;
     }
 
-    public int getPageSize()
+    public int getSize()
     {
-        return pageSize;
+        return size;
     }
 
     public boolean hasPagination()

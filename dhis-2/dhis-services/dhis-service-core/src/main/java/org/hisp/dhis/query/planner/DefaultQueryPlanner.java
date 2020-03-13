@@ -28,6 +28,14 @@ package org.hisp.dhis.query.planner;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
+
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
@@ -37,13 +45,6 @@ import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,19 +67,21 @@ public class DefaultQueryPlanner implements QueryPlanner
     @Override
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
-        if ( Junction.Type.OR == query.getRootJunctionType() && !persistedOnly )
+        // if only one filter, always set to Junction.Type AND
+        Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND : query.getRootJunctionType();
+
+        if ( Junction.Type.OR == junctionType && !persistedOnly )
         {
-            return new QueryPlan(
-                Query.from( query.getSchema() ).setPlannedQuery( true ),
-                Query.from( query ).setPlannedQuery( true )
-            );
+            return QueryPlan.QueryPlanBuilder
+                .aQueryPlan()
+                .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
+                .nonPersistedQuery( Query.from( query ).setPlannedQuery( true ) )
+                .build();
         }
 
-        Query npQuery = Query.from( query )
-            .setUser( query.getUser() ).setPlannedQuery( true );
+        Query npQuery = Query.from( query ).setUser( query.getUser() ).setPlannedQuery( true );
 
-        Query pQuery = getQuery( npQuery, persistedOnly )
-            .setUser( query.getUser() ).setPlannedQuery( true );
+        Query pQuery = getQuery( npQuery, persistedOnly ).setUser( query.getUser() ).setPlannedQuery( true );
 
         // if there are any non persisted criterions left, we leave the paging to the in-memory engine
         if ( !npQuery.getCriterions().isEmpty() )
@@ -91,7 +94,11 @@ public class DefaultQueryPlanner implements QueryPlanner
             pQuery.setMaxResults( npQuery.getMaxResults() );
         }
 
-        return new QueryPlan( pQuery, npQuery );
+        return QueryPlan.QueryPlanBuilder
+            .aQueryPlan()
+            .persistedQuery( pQuery )
+            .nonPersistedQuery( npQuery )
+            .build();
     }
 
     @Override
