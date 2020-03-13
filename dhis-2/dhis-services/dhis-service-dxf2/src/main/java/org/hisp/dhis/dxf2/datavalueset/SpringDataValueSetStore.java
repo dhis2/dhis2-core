@@ -339,6 +339,7 @@ public class SpringDataValueSetStore
 
         if ( user != null && !user.isSuper() )
         {
+            System.out.println( "USER " + user );
             sql += getAttributeOptionComboClause( user );
         }
 
@@ -347,7 +348,7 @@ public class SpringDataValueSetStore
             sql += "limit " + params.getLimit();
         }
 
-        log.debug( "Get data value set SQL: " + sql );
+        log.info( "Get data value set SQL: " + sql );
 
         return sql;
     }
