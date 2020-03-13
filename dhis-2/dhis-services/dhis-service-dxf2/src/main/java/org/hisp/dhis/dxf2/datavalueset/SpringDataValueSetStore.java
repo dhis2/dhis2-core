@@ -69,7 +69,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SpringDataValueSetStore
     implements DataValueSetStore
 {
-    private final CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -80,6 +80,14 @@ public class SpringDataValueSetStore
 
         this.currentUserService = currentUserService;
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Use only for testing.
+     */
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
     //--------------------------------------------------------------------------
@@ -339,7 +347,6 @@ public class SpringDataValueSetStore
 
         if ( user != null && !user.isSuper() )
         {
-            System.out.println( "USER " + user );
             sql += getAttributeOptionComboClause( user );
         }
 
