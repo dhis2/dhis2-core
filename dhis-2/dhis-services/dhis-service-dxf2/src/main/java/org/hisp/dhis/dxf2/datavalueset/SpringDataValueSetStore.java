@@ -372,7 +372,6 @@ public class SpringDataValueSetStore
     {
         return
             "and dv.attributeoptioncomboid not in (" +
-                // Get inaccessible category option combinations
                 "select distinct(cocco.categoryoptioncomboid) " +
                 "from categoryoptioncombos_categoryoptions as cocco " +
                 // Get inaccessible category options
