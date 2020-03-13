@@ -372,20 +372,16 @@ public class SpringDataValueSetStore
     {
         return
             "and dv.attributeoptioncomboid not in (" +
-
                 // Get inaccessible category option combinations
                 "select distinct(cocco.categoryoptioncomboid) " +
                 "from categoryoptioncombos_categoryoptions as cocco " +
-
                 // Get inaccessible category options
                 "where cocco.categoryoptionid not in ( " +
                     "select co.categoryoptionid " +
                     "from dataelementcategoryoption co " +
-
                     // Public access check
                     "where co.publicaccess like '__r_____' " +
                     "or co.publicaccess is null " +
-
                     // User access check
                     "or exists ( " +
                         "select coua.categoryoptionid " +
@@ -394,7 +390,6 @@ public class SpringDataValueSetStore
                         "where coua.categoryoptionid = co.categoryoptionid " +
                         "and ua.access like '__r_____' " +
                         "and ua.userid = " + user.getId() + ") " +
-
                     // User group access check
                     "or exists ( " +
                         "select couga.categoryoptionid " +
