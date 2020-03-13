@@ -337,14 +337,14 @@ public class SpringDataValueSetStore
             sql += "and dv.lastupdated >= '" + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
         }
 
-        if ( params.hasLimit() )
-        {
-            sql += "limit " + params.getLimit();
-        }
-
         if ( user != null && !user.isSuper() )
         {
             sql += getAttributeOptionComboClause( user );
+        }
+
+        if ( params.hasLimit() )
+        {
+            sql += "limit " + params.getLimit();
         }
 
         log.debug( "Get data value set SQL: " + sql );
