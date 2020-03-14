@@ -236,11 +236,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.1</version>
           <configuration>
-            <!--
-            <release>11</release>
-            -->
-            <source>1.8</source>
-            <target>1.8</target>
+            <release>8</release>
             <encoding>${project.build.sourceEncoding}</encoding>
           </configuration>
           <dependencies>
