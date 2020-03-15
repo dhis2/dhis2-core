@@ -136,6 +136,13 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    @Transactional
+    public void save( List<IdentifiableObject> objects )
+    {
+        objects.forEach( o -> save( o, true ) );
+    }
+
+    @Override
     public void update( IdentifiableObject object )
     {
         update( object, currentUserService.getCurrentUser() );

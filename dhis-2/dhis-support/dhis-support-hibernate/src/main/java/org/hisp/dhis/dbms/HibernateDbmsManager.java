@@ -176,7 +176,7 @@ public class HibernateDbmsManager
         emptyTable( "eventchartusergroupaccesses" );
         emptyTable( "eventcharttranslations" );
         emptyTable( "eventchart" );
-        
+
         emptyTable( "dataelementgroupsetdimension_items" );
         emptyTable( "dataelementgroupsetdimension" );
         emptyTable( "categoryoptiongroupsetdimension" );
@@ -225,6 +225,7 @@ public class HibernateDbmsManager
         emptyTable( "datasetindicators" );
         emptyTable( "datasetoperands" );
         emptyTable( "datasetusergroupaccesses" );
+        emptyTable( "datasetuseraccesses" );
         emptyTable( "dataset" );
 
         emptyTable( "dataapprovalaudit" );
@@ -282,6 +283,7 @@ public class HibernateDbmsManager
         emptyTable( "dataelementaggregationlevels" );
         emptyTable( "dataelementoperand" );
         emptyTable( "dataelementusergroupaccesses" );
+        emptyTable( "dataelementuseraccesses" );
         emptyTable( "dataelement" );
 
         emptyTable( "categoryoptioncombos_categoryoptions" );
@@ -318,6 +320,7 @@ public class HibernateDbmsManager
         emptyTable( "categoryoptiongroupusergroupaccesses" );
         emptyTable( "categoryoptiongroup" );
 
+        emptyTable( "dataelementcategoryoptionuseraccesses" );
         emptyTable( "dataelementcategoryoptionusergroupaccesses" );
 
         emptyTable( "expression" );

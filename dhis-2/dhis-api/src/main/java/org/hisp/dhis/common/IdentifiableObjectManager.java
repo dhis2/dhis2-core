@@ -50,6 +50,8 @@ public interface IdentifiableObjectManager
 
     void save( IdentifiableObject object, boolean clearSharing );
 
+    void save( List<IdentifiableObject> objects );
+
     void update( IdentifiableObject object );
 
     void update( IdentifiableObject object, User user );
