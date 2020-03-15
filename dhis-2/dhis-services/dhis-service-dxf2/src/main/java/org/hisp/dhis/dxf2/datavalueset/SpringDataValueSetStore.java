@@ -41,7 +41,8 @@ import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
@@ -55,6 +56,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -66,8 +68,26 @@ public class SpringDataValueSetStore
 
     private static final char CSV_DELIM = ',';
 
-    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    private CurrentUserService currentUserService;
+
+    public SpringDataValueSetStore( CurrentUserService currentUserService, JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( currentUserService );
+        checkNotNull( jdbcTemplate );
+
+        this.currentUserService = currentUserService;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Use only for testing.
+     */
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     //--------------------------------------------------------------------------
     // DataValueSetStore implementation
@@ -155,7 +175,7 @@ public class SpringDataValueSetStore
             IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
             IdScheme ouScheme = idScheme.getOrgUnitIdScheme();
             IdScheme dataSetScheme = idScheme.getDataSetIdScheme();
-            
+
             dataValueSet.setDataSet( params.getFirstDataSet().getPropertyValue( dataSetScheme ) );
             dataValueSet.setCompleteDate( getLongGmtDateString( completeDate ) );
             dataValueSet.setPeriod( params.getFirstPeriod().getIsoDate() );
@@ -189,7 +209,7 @@ public class SpringDataValueSetStore
                 {
                     dataValue.setDeleted( deleted );
                 }
-                
+
                 dataValue.close();
             }
         } );
@@ -203,6 +223,8 @@ public class SpringDataValueSetStore
 
     private String getDataValueSql( DataExportParams params )
     {
+        User user = currentUserService.getCurrentUser();
+
         IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
         String deScheme = idScheme.getDataElementIdScheme().getIdentifiableString().toLowerCase();
@@ -217,7 +239,7 @@ public class SpringDataValueSetStore
         // Identifier schemes
         //----------------------------------------------------------------------
 
-        String deSql = idScheme.getDataElementIdScheme().isAttribute() ? 
+        String deSql = idScheme.getDataElementIdScheme().isAttribute() ?
             "coalesce((" +
             "select av.value as deid from attributevalue av " +
             "inner join dataelementattributevalues deav on av.attributevalueid=deav.attributevalueid " +
@@ -225,8 +247,8 @@ public class SpringDataValueSetStore
             "where dv.dataelementid=deav.dataelementid " +
             "limit 1), de.uid) as deid" :
             "de." + deScheme + " as deid";
-        
-        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ? 
+
+        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ?
             "coalesce((" +
             "select av.value as ouid from attributevalue av " +
             "inner join organisationunitattributevalues ouav on av.attributevalueid=ouav.attributevalueid " +
@@ -234,7 +256,7 @@ public class SpringDataValueSetStore
             "where dv.sourceid=ouav.organisationunitid " +
             "limit 1), ou.uid) as ouid" :
             "ou." + ouScheme + " as ouid";
-        
+
         String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
             "coalesce((" +
             "select av.value as cocid from attributevalue av " +
@@ -258,7 +280,7 @@ public class SpringDataValueSetStore
         //----------------------------------------------------------------------
 
         String sql =
-            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + 
+            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " +
             ouSql + ", " + cocSql + ", " + aocSql + ", " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
@@ -312,7 +334,7 @@ public class SpringDataValueSetStore
 
             sql += ") ";
         }
-        
+
         if ( !params.isIncludeDeleted() )
         {
             sql += "and dv.deleted is false ";
@@ -341,6 +363,11 @@ public class SpringDataValueSetStore
             sql += "and dv.lastupdated >= '" + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
         }
 
+        if ( user != null && !user.isSuper() )
+        {
+            sql += getAttributeOptionComboClause( user );
+        }
+
         if ( params.hasLimit() )
         {
             sql += "limit " + params.getLimit();
@@ -349,5 +376,48 @@ public class SpringDataValueSetStore
         log.debug( "Get data value set SQL: " + sql );
 
         return sql;
+    }
+
+    /**
+     * Returns an attribute option combo filter SQL clause. The filter enforces
+     * that only attribute option combinations which the given user has access
+     * to are returned.
+     *
+     * @param user the user.
+     * @return an SQL filter clause.
+     */
+    private String getAttributeOptionComboClause( User user )
+    {
+        return
+            "and dv.attributeoptioncomboid not in (" +
+                "select distinct(cocco.categoryoptioncomboid) " +
+                "from categoryoptioncombos_categoryoptions as cocco " +
+                // Get inaccessible category options
+                "where cocco.categoryoptionid not in ( " +
+                    "select co.categoryoptionid " +
+                    "from dataelementcategoryoption co " +
+                    // Public access check
+                    "where co.publicaccess like '__r_____' " +
+                    "or co.publicaccess is null " +
+                    // User access check
+                    "or exists ( " +
+                        "select coua.categoryoptionid " +
+                        "from dataelementcategoryoptionuseraccesses coua " +
+                        "inner join useraccess ua on coua.useraccessid = ua.useraccessid " +
+                        "where coua.categoryoptionid = co.categoryoptionid " +
+                        "and ua.access like '__r_____' " +
+                        "and ua.userid = " + user.getId() + ") " +
+                    // User group access check
+                    "or exists ( " +
+                        "select couga.categoryoptionid " +
+                        "from dataelementcategoryoptionusergroupaccesses couga " +
+                        "inner join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid " +
+                        "where couga.categoryoptionid = co.categoryoptionid " +
+                        "and uga.access like '__r_____' " +
+                        "and uga.usergroupid in ( " +
+                            "select ugm.usergroupid " +
+                            "from usergroupmembers ugm " +
+                            "where ugm.userid = " + user.getId() + ")))) ";
+
     }
 }
