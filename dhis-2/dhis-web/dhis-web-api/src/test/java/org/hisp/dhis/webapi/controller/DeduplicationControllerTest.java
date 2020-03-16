@@ -32,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.Status;

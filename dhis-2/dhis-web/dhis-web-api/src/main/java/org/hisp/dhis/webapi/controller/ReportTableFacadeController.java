@@ -1156,7 +1156,7 @@ public abstract class ReportTableFacadeController {
                 {
                     final ReportTable reportTable = new ReportTable();
                     BeanUtils.copyProperties( visualization, reportTable );
-                    
+
                     // Copy report params
                     if ( visualization.hasReportingParams() )
                     {
@@ -1389,8 +1389,6 @@ public abstract class ReportTableFacadeController {
     //--------------------------------------------------------------------------
     // Reflection helpers
     //--------------------------------------------------------------------------
-
-    private Class<Visualization> entityClass;
 
     private String entityName;
 

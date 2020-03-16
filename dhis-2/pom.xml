@@ -387,10 +387,43 @@
             </execution>
           </executions>
         </plugin>
+
         <plugin>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
           <version>1.18.10.0</version>
+        </plugin>
+
+        <plugin>
+          <groupId>io.committed</groupId>
+          <artifactId>speedy-spotless-maven-plugin</artifactId>
+          <version>0.1.0</version>
+          <executions>
+            <execution>
+              <id>install-formatter-hook</id>
+              <goals>
+                <goal>install-hooks</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <java>
+              <licenseHeader>
+                <file>${rootDir}/license-header.txt</file>
+              </licenseHeader>
+              <eclipse>
+                <file>${rootDir}/DHISFormatter.xml</file>
+                <version>4.9.0</version>
+              </eclipse>
+              <trimTrailingWhitespace />
+              <removeUnusedImports />
+              <importOrder>
+                <order>
+                  java,javax,org,com
+                </order>
+              </importOrder>
+            </java>
+          </configuration>
         </plugin>
       </plugins>
 
@@ -521,9 +554,9 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.hisp.dhis.support</groupId>
-        <artifactId>dhis-support-antlr-expression-parser</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>org.hisp.dhis.parser</groupId>
+        <artifactId>dhis-antlr-expression-parser</artifactId>
+        <version>1.0.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
@@ -1213,6 +1246,11 @@
         <artifactId>jackson-datatype-jts</artifactId>
         <version>2.4</version>
       </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-hibernate5</artifactId>
+        <version>2.9.2</version>
+      </dependency>
 
       <!-- GeoTools -->
       <dependency>
@@ -1504,6 +1542,12 @@
         <version>1.5.0</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>4.0.2</version>
+        <scope>test</scope>
+      </dependency>
       <dependency> <!-- can't be test scope, because we have separate library dhis-support-test -->
         <groupId>io.github.benas</groupId>
         <artifactId>random-beans</artifactId>
@@ -1541,8 +1585,8 @@
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <spring.version>5.2.3.RELEASE</spring.version>
-    <spring-security.version>5.2.1.RELEASE</spring-security.version>
+    <spring.version>5.2.4.RELEASE</spring.version>
+    <spring-security.version>5.2.2.RELEASE</spring-security.version>
     <spring-security-oauth2.version>2.4.0.RELEASE</spring-security-oauth2.version>
     <spring-session-data-redis.version>2.2.0.RELEASE</spring-session-data-redis.version>
     <lettuce.version>5.2.0.RELEASE</lettuce.version>

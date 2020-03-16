@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -38,6 +37,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -59,7 +59,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
@@ -71,7 +70,6 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Lars Helge Overland
  */
-@Category( IntegrationTest.class )
 public class DataValueSetServiceExportTest
     extends IntegrationTestBase
 {
@@ -123,6 +121,7 @@ public class DataValueSetServiceExportTest
 
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
+    private OrganisationUnit ouC;
 
     private User user;
 
@@ -179,6 +178,7 @@ public class DataValueSetServiceExportTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
+        ouC = createOrganisationUnit( 'C' ); // Not in hierarchy of A
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
@@ -431,5 +431,21 @@ public class DataValueSetServiceExportTest
 
         assertNotNull( dvs );
         assertEquals( 14, dvs.getDataValues().size() );
+    }
+
+    /**
+     * Org unit C is outside the hierarchy of the current user.
+     */
+    @Test(expected=IllegalQueryException.class)
+    public void testExportAccessOrgUnitHierarchy()
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsA ) )
+            .setOrganisationUnits( Sets.newHashSet( ouC ) )
+            .setPeriods( Sets.newHashSet( peA ) );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
     }
 }

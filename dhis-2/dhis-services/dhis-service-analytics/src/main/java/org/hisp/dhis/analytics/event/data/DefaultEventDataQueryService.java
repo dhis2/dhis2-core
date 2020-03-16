@@ -69,7 +69,6 @@ public class DefaultEventDataQueryService
     private static final String COL_NAME_EVENTDATE = "executiondate";
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
-    
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
         ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
@@ -407,5 +406,4 @@ public class DefaultEventDataQueryService
         throw new IllegalQueryException( "Value identifier does not reference any " +
             "data element or attribute which are numeric type and part of the program: " + value );
     }
-
 }

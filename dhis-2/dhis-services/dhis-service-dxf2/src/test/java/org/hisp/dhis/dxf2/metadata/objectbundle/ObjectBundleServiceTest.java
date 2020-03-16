@@ -180,19 +180,19 @@ public class ObjectBundleServiceTest
 
                 for ( ErrorReport errorReport : errorReports )
                 {
-                    assertTrue( PreheatErrorReport.class.isInstance( errorReport ) );
+                    assertTrue( errorReport instanceof PreheatErrorReport );
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
                     {
                         assertEquals( "p0KPaWEg3cf", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( User.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof User )
                     {
                         assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( OptionSet.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
                     {
                         assertEquals( "pQYCiuosBnZ", preheatErrorReport.getObjectReference().getUid() );
                     }
@@ -238,21 +238,21 @@ public class ObjectBundleServiceTest
 
                 for ( ErrorReport errorReport : errorReports )
                 {
-                    assertTrue( PreheatErrorReport.class.isInstance( errorReport ) );
+                    assertTrue( errorReport instanceof PreheatErrorReport );
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
                     {
-                        assertFalse( true );
+                        fail();
                     }
-                    else if ( User.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof User )
                     {
                         assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
                     }
-                    else if ( OptionSet.class.isInstance( preheatErrorReport.getValue() ) )
+                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
                     {
-                        assertFalse( true );
+                        fail();
                     }
                 }
             }

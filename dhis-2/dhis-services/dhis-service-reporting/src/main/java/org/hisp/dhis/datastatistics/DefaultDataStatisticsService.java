@@ -29,7 +29,6 @@ package org.hisp.dhis.datastatistics;
  */
 
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.datasummary.DataSummary;
@@ -38,7 +37,6 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.statistics.StatisticsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -107,7 +105,7 @@ public class DefaultDataStatisticsService
 
     @Override
     public DataStatistics getDataStatisticsSnapshot( Date day )
-    {        
+    {
         Calendar cal = Calendar.getInstance();
         cal.setTime( day );
         cal.add( Calendar.DATE, -1 );
@@ -130,7 +128,7 @@ public class DefaultDataStatisticsService
 
         Map<DataStatisticsEventType, Double> eventCountMap = dataStatisticsEventStore.getDataStatisticsEventCount( startDate, day );
 
-        DataStatistics dataStatistics = new DataStatistics( 
+        DataStatistics dataStatistics = new DataStatistics(
             eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
             eventCountMap.get( DataStatisticsEventType.CHART_VIEW ),
             eventCountMap.get( DataStatisticsEventType.REPORT_TABLE_VIEW ),
@@ -142,7 +140,7 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
             savedMaps, savedCharts, savedReportTables, savedVisualizations, savedEventReports,
             savedEventCharts, savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
-        
+
         return dataStatistics;
     }
 

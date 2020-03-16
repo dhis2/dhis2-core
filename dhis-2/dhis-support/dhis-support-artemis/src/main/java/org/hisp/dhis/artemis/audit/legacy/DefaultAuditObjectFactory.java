@@ -28,31 +28,29 @@ package org.hisp.dhis.artemis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.payloads.MetadataAuditPayload;
 import org.hisp.dhis.audit.payloads.TrackedEntityAuditPayload;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A factory for constructing @{@link org.hisp.dhis.audit.Audit} data payloads. This can be the object itself
@@ -60,33 +58,24 @@ import java.util.Optional;
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
-    private final RenderService renderService;
-
-    private final CacheProvider cacheProvider;
+    private final ObjectMapper objectMapper;
 
     /**
      * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes
      * Key is class name. Value is Map of {@link AuditAttribute} Fields and its getter Method
      */
-    private Cache<Map<Field, Method>> cachedAuditAttributeFields;
+    private Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
-    public DefaultAuditObjectFactory( RenderService renderService, CacheProvider cacheProvider )
+    public DefaultAuditObjectFactory( ObjectMapper objectMapper )
     {
-        this.renderService = renderService;
-        this.cacheProvider = cacheProvider;
-    }
+        this.objectMapper = objectMapper;
 
-    @PostConstruct
-    public void initCache()
-    {
-        cachedAuditAttributeFields = cacheProvider.newCacheBuilder( Field.class, Method.class )
-            .forRegion( "auditAttributeFields" )
-            .withInitialCapacity( 500 )
-            .withMaximumSize( 1000 )
-            .build();
+        // TODO consider moving this to CommonsConfig
+        objectMapper.registerModule( new Hibernate5Module() );
     }
 
     @Override
@@ -94,14 +83,13 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
     {
         switch ( auditScope )
         {
-            case METADATA:
-                return handleMetadataAudit( auditType, object, user );
-            case TRACKER:
-                return handleTracker( auditType, object, user );
-            case AGGREGATE:
-                return handleAggregate( auditType, object, user );
+        case METADATA:
+            return handleMetadataAudit( auditType, object, user );
+        case TRACKER:
+            return handleTracker( auditType, object, user );
+        case AGGREGATE:
+            return handleAggregate( auditType, object, user );
         }
-
         return null;
     }
 
@@ -114,16 +102,13 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 
             Object attributeObject = ReflectionUtils.invokeMethod( auditObject, entry.getValue() );
 
-            if ( !ReflectionUtils.isCollection( attributeObject ) )
+            if ( attributeObject instanceof IdentifiableObject )
             {
-                if ( attributeObject instanceof IdentifiableObject )
-                {
-                    auditAttributes.put( entry.getKey().getName(), ( ( IdentifiableObject ) attributeObject).getUid() );
-                }
-                else
-                {
-                    auditAttributes.put( entry.getKey().getName(), attributeObject );
-                }
+                auditAttributes.put( entry.getKey().getName(), ( ( IdentifiableObject ) attributeObject).getUid() );
+            }
+            else
+            {
+                auditAttributes.put( entry.getKey().getName(), attributeObject );
             }
         } );
 
@@ -132,32 +117,37 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 
     private Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
     {
-        return cachedAuditAttributeFields.get( auditClass.getName(), a -> AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class ) ).orElse( new HashMap<>() );
+        Map<Field, Method> map = cachedAuditAttributeFields.get( auditClass.getName() );
+
+        if ( map == null )
+        {
+            map = AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class );
+            cachedAuditAttributeFields.put( auditClass.getName(), map );
+        }
+
+        return map;
     }
 
     private Object handleTracker( AuditType auditType, Object object, String user )
     {
         if ( object instanceof TrackedEntityAttributeValue )
         {
-            TrackedEntityAttributeValue value = ( TrackedEntityAttributeValue ) object;
-            value.setAttribute( clearSharing( value.getAttribute() ) );
-
-            return  renderService.toJsonAsString( value );
+            return  toJson( handleTrackedEntityAttributeValue( ( TrackedEntityAttributeValue ) object ) );
         }
 
         if ( object instanceof TrackedEntityInstance )
         {
-            return  renderService.toJsonAsString( TrackedEntityAuditPayload.builder()
+            return  toJson( TrackedEntityAuditPayload.builder()
                 .trackedEntityInstance( ( TrackedEntityInstance ) object )
                 .build() );
         }
 
-        return renderService.toJsonAsString( object );
+        return toJson( object );
     }
 
     private Object handleAggregate( AuditType auditType, Object object, String user )
     {
-        return null;
+        return toJson( object );
     }
 
     private Object handleMetadataAudit( AuditType auditType, Object object, String user )
@@ -167,9 +157,33 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
             return null;
         }
 
-        return renderService.toJsonAsString( MetadataAuditPayload.builder()
-            .identifiableObject( clearSharing( ( BaseIdentifiableObject ) object ) )
+        return toJson( MetadataAuditPayload.builder()
+            .identifiableObject( (IdentifiableObject) object )
             .build() );
+    }
+
+    private TrackedEntityAttributeValue handleTrackedEntityAttributeValue( TrackedEntityAttributeValue value )
+    {
+        return value.setAttribute( clearSharing( value.getAttribute() ) );
+    }
+
+    private String toJson( Object object )
+    {
+        if ( object instanceof IdentifiableObject )
+        {
+            object = clearSharing( ( BaseIdentifiableObject ) object );
+        }
+
+        try
+        {
+            return  objectMapper.writeValueAsString( object );
+        }
+        catch ( JsonProcessingException e )
+        {
+            log.error( DebugUtils.getStackTrace( e ) );
+        }
+
+        return null;
     }
 
     private <T extends BaseIdentifiableObject> T clearSharing( T identifiableObject )

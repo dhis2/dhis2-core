@@ -46,6 +46,11 @@ public class SystemUtils
         return Arrays.asList(profiles).contains("test");
     }
 
+    public static boolean isAuditTest(String[] profiles)
+    {
+        return Arrays.asList(profiles).contains("test-audit");
+    }
+
     public static boolean isH2(String[] profiles)
     {
         return Arrays.asList(profiles).contains("test-h2");

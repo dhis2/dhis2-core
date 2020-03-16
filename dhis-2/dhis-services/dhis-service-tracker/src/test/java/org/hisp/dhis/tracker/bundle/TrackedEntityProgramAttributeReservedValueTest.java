@@ -37,7 +37,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -92,9 +91,6 @@ public class TrackedEntityProgramAttributeReservedValueTest
 
     @Autowired
     private IdentifiableObjectManager manager;
-
-    @Autowired
-    private FileResourceService fileResourceService;
 
     @Autowired
     private ReservedValueService reservedValueService;
