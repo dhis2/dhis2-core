@@ -73,8 +73,9 @@ public enum CacheStrategy
             return DAYS.toSeconds( 14 );
         case CACHE_6AM_TOMORROW:
             return getSecondsUntilTomorrow( 6 );
-        case RESPECT_SYSTEM_SETTING:
         case NO_CACHE:
+            return 0l;
+        case RESPECT_SYSTEM_SETTING:
         default:
             throw new UnsupportedOperationException();
         }

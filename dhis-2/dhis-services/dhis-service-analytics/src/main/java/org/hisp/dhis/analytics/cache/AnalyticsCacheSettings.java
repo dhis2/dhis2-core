@@ -117,7 +117,7 @@ public class AnalyticsCacheSettings
      * 
      * @return the predefined expiration time set or 0 (ZERO) if nothing is set.
      */
-    public long predefinedExpirationTimeOrDefault()
+    public long fixedExpirationTimeOrDefault()
     {
         final CacheStrategy cacheStrategy = (CacheStrategy) systemSettingManager.getSystemSetting( CACHE_STRATEGY );
 
@@ -136,8 +136,8 @@ public class AnalyticsCacheSettings
             }
             else
             {
-                // Return a default TTL
-                return CACHE_1_MINUTE.toSeconds();
+                // Return ZERO (always expire)
+                return NO_CACHE.toSeconds();
             }
         }
     }

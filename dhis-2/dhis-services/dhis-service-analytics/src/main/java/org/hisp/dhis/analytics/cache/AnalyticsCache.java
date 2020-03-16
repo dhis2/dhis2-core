@@ -136,7 +136,7 @@ public class AnalyticsCache
         else
         {
             // Respects the fixed (predefined) caching TTL
-            put( params.getKey(), grid, analyticsCacheSettings.predefinedExpirationTimeOrDefault() );
+            put( params.getKey(), grid, analyticsCacheSettings.fixedExpirationTimeOrDefault() );
         }
     }
 
@@ -172,7 +172,7 @@ public class AnalyticsCache
     {
         // Set a default expiration time to always expire, as the TTL will be
         // always overwritten during "put" operations.
-        final long initialExpirationTime = analyticsCacheSettings.predefinedExpirationTimeOrDefault();
+        final long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
 
         final boolean nonTestEnv = !isTestRun( this.environment.getActiveProfiles() );
 
