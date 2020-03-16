@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.data;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -107,7 +106,6 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Henning Haakonsen
  */
-@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends IntegrationTestBase
 {

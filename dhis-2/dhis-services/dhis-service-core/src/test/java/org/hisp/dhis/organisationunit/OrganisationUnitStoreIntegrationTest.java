@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.system.util.GeoUtils;
@@ -48,7 +47,6 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-@Category( IntegrationTest.class )
 public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
 {
     private final static long _150KM = 150_000;

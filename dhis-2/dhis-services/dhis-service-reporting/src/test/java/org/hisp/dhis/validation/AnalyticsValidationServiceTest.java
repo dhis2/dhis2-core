@@ -45,7 +45,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -93,7 +92,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-@Category( IntegrationTest.class )
 public class AnalyticsValidationServiceTest
     extends IntegrationTestBase
 {

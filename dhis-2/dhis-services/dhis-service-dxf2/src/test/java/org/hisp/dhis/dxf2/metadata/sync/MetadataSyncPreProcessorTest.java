@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -69,7 +68,6 @@ import static org.mockito.Mockito.*;
  * @author aamerm
  */
 @Ignore
-@Category( IntegrationTest.class )
 public class MetadataSyncPreProcessorTest
     extends IntegrationTestBase
 {

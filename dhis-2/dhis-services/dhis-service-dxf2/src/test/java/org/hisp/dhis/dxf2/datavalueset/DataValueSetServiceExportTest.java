@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -71,7 +70,6 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Lars Helge Overland
  */
-@Category( IntegrationTest.class )
 public class DataValueSetServiceExportTest
     extends IntegrationTestBase
 {

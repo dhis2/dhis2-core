@@ -29,7 +29,6 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
@@ -53,7 +52,6 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Category( IntegrationTest.class )
 public class AttributeValueServiceTest
     extends TransactionalIntegrationTestBase
 {

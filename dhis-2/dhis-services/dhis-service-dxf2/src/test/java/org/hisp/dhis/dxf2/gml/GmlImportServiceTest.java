@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -58,7 +57,6 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Halvdan Hoem Grelland
  */
-@Category( IntegrationTest.class )
 public class GmlImportServiceTest extends IntegrationTestBase
 {
     private InputStream inputStream;

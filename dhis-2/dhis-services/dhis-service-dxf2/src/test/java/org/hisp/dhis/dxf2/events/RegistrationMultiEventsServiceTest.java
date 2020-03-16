@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.HashSet;
 
 import org.hamcrest.CoreMatchers;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -69,7 +68,6 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Category( IntegrationTest.class )
 public class RegistrationMultiEventsServiceTest
     extends IntegrationTestBase
 {

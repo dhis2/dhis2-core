@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -48,7 +47,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Category( IntegrationTest.class )
 public class RelationshipStoreTest
     extends IntegrationTestBase
 {

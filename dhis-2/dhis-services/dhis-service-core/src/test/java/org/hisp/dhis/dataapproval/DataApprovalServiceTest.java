@@ -28,7 +28,6 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -67,7 +66,6 @@ import static org.junit.Assert.*;
 /**
  * @author Jim Grace
  */
-@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class DataApprovalServiceTest
     extends IntegrationTestBase
 {
@@ -1551,7 +1549,6 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStatuses()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
