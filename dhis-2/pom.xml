@@ -121,6 +121,16 @@
 
   <profiles>
     <profile>
+      <id>jdk9+</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
+    </profile>
+
+    <profile>
       <id>default</id>
       <activation>
         <activeByDefault>true</activeByDefault>
@@ -236,7 +246,9 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.1</version>
           <configuration>
-            <release>8</release>
+            <release>${maven.compiler.release}</release>
+            <source>${maven.compiler.source}</source>
+            <target>${maven.compiler.target}</target>
             <encoding>${project.build.sourceEncoding}</encoding>
           </configuration>
           <dependencies>
@@ -1579,6 +1591,8 @@
 
   <properties>
     <rootDir></rootDir>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <spring.version>5.2.4.RELEASE</spring.version>
