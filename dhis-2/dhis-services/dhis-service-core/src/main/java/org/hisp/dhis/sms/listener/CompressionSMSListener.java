@@ -46,12 +46,15 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.smscompression.SMSConsts.SMSEnrollmentStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
+import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSMetadata;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
@@ -75,6 +78,9 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
@@ -250,9 +256,8 @@ public abstract class CompressionSMSListener
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
         ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SMSDataValue> values,
-        SMSEventStatus eventStatus )
+        SMSEventStatus eventStatus, Date eventDate, Date dueDate, GeoPoint coordinates )
     {
-
         ArrayList<Object> errorUIDs = new ArrayList<>();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         // If we aren't given a UID for the event, it will be auto-generated
@@ -263,11 +268,12 @@ public abstract class CompressionSMSListener
         programStageInstance.setOrganisationUnit( orgUnit );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setExecutionDate( sms.getSentDate() );
-        programStageInstance.setDueDate( sms.getSentDate() );
+        programStageInstance.setExecutionDate( eventDate );
+        programStageInstance.setDueDate( dueDate );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setStoredBy( user.getUsername() );
         programStageInstance.setStatus( getCoreEventStatus( eventStatus ) );
+        programStageInstance.setGeometry( convertGeoPointToGeometry( coordinates ) );
 
         if ( eventStatus.equals( SMSEventStatus.COMPLETED ) )
         {
@@ -327,5 +333,34 @@ public abstract class CompressionSMSListener
         default:
             return null;
         }
+    }
+
+    protected ProgramStatus getCoreProgramStatus( SMSEnrollmentStatus enrollmentStatus )
+    {
+        switch ( enrollmentStatus )
+        {
+        case ACTIVE:
+            return ProgramStatus.ACTIVE;
+        case COMPLETED:
+            return ProgramStatus.COMPLETED;
+        case CANCELLED:
+            return ProgramStatus.CANCELLED;
+        default:
+            return null;
+        }
+    }
+
+    protected Geometry convertGeoPointToGeometry( GeoPoint coordinates )
+    {
+        if ( coordinates == null )
+        {
+            return null;
+        }
+
+        GeometryFactory gf = new GeometryFactory();
+        com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate(
+            coordinates.getLongitude(), coordinates.getLatitude() );
+
+        return gf.createPoint( co );
     }
 }

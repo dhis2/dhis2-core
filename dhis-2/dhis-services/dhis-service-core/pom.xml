@@ -187,7 +187,7 @@
     <dependency>
       <groupId>com.github.JasperTimm</groupId>
       <artifactId>sms-compression</artifactId>
-      <version>event-test-1</version>
+      <version>event-schema-1</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
