@@ -176,6 +176,11 @@ public class AggregateDataSetSMSListener
     {
         ArrayList<Object> errorElems = new ArrayList<>();
 
+        if ( values == null )
+        {
+            return errorElems;
+        }
+
         for ( SMSDataValue smsdv : values )
         {
             UID deid = smsdv.getDataElement();
