@@ -149,7 +149,7 @@ public class DefaultDataValueSetService
 
     private final DataApprovalService approvalService;
 
-    private  BatchHandlerFactory batchHandlerFactory;
+    private BatchHandlerFactory batchHandlerFactory;
 
     private final CompleteDataSetRegistrationService registrationService;
 
@@ -372,6 +372,30 @@ public class DefaultDataValueSetService
     @Override
     public void decideAccess( DataExportParams params )
     {
+        User user = currentUserService.getCurrentUser();
+
+        // Verify data set read sharing
+
+        for ( DataSet dataSet : params.getDataSets() )
+        {
+            if ( !aclService.canDataRead( user, dataSet ) )
+            {
+                throw new IllegalQueryException( "User is not allowed to read data for data set: " + dataSet.getUid() );
+            }
+        }
+
+        // Verify attribute option combination data read sharing
+
+        for ( CategoryOptionCombo optionCombo : params.getAttributeOptionCombos() )
+        {
+            if ( !aclService.canDataRead( user, optionCombo ) )
+            {
+                throw new IllegalQueryException( "User is not allowed to read data for attribute option combo: " + optionCombo.getUid() );
+            }
+        }
+
+        // Verify org unit being located within user data capture hierarchy
+
         for ( OrganisationUnit unit : params.getOrganisationUnits() )
         {
             if ( !organisationUnitService.isInUserHierarchy( unit ) )

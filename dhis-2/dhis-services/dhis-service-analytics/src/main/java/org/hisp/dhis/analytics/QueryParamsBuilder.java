@@ -1,7 +1,7 @@
-package org.hisp.dhis.antlr.operator;
+package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,18 @@ package org.hisp.dhis.antlr.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.antlr.AntlrExprItem;
-import org.hisp.dhis.antlr.AntlrExpressionVisitor;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.hisp.dhis.common.DimensionalObject;
 
 /**
- * Logical operator: And
- * <pre>
+ * Interface representing common methods for analytics query builders.
  *
- * Truth table (same as for SQL):
- *
- *       A      B    A and B
- *     -----  -----  -------
- *     null   null    null
- *     null   false   null
- *     null   true    null
- *
- *     false  null    false
- *     false  false   false
- *     false  true    false
- *
- *     true   null    null
- *     true   false   false
- *     true   true    true
- * </pre>
- *
- * @author Jim Grace
+ * @author Lars Helge Overland
  */
-public class AntlrOperatorLogicalAnd
-    implements AntlrExprItem
+public interface QueryParamsBuilder
 {
-    @Override
-    public Object evaluate( ExprContext ctx, AntlrExpressionVisitor visitor )
-    {
-        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
+    QueryParamsBuilder addDimension( DimensionalObject dimension );
 
-        if ( value != null && value )
-        {
-            value = visitor.castBooleanVisit( ctx.expr( 1 ) );
-        }
+    QueryParamsBuilder removeDimensionOrFilter( String dimension );
 
-        return value;
-    }
+    QueryParamsBuilder addFilter( DimensionalObject filter );
 }

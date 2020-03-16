@@ -38,11 +38,19 @@ import org.hisp.dhis.common.IllegalQueryException;
 public interface EventDataQueryService
 {
     /**
-     * Used for aggregate query.
-     * @param request the request wrapper containing the url params.
+     * Creates an {@link EventQueryParams} based on the given request.
+     *
+     * @param request the {@link EventDataQueryRequest} containing the URL parameters.
+     * @return an {@link EventQueryParams}.
      */
     EventQueryParams getFromRequest( EventDataQueryRequest request );
 
+    /**
+     * Creates an {@link EventQueryParams} based on the given event analytical object.
+     *
+     * @param request the {@link EventAnalyticalObject}.
+     * @return an {@link EventQueryParams}.
+     */
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 
     /**
