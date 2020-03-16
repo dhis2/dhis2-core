@@ -159,6 +159,7 @@ public class DefaultEventAnalyticsService
         return getAggregatedEventData( params );
     }
 
+
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
     {
@@ -168,14 +169,12 @@ public class DefaultEventAnalyticsService
 
         securityManager.decideAccessEventQuery( params );
 
-        params = securityManager.withUserConstraints( params );
-
         queryValidator.validate( params );
 
-        if ( dhisConfig.isAnalyticsCacheEnabled() )
+        if ( analyticsCache.isEnabled() )
         {
-            final EventQueryParams query = new EventQueryParams.Builder( params ).build();
-            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).orElseGet(ListGrid::new);
+            final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
+            return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
         }
 
         return getAggregatedEventDataGrid( params );
@@ -415,22 +414,6 @@ public class DefaultEventAnalyticsService
                 }
             }
         }
-    }
-
-    @Override
-    public Grid getAggregatedEventData( EventQueryParams params )
-    {
-        securityManager.decideAccessEventQuery( params );
-
-        queryValidator.validate( params );
-
-        if ( analyticsCache.isEnabled() )
-        {
-            final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
-            return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
-        }
-
-        return getAggregatedEventDataGrid( params );
     }
 
     private Grid getAggregatedEventDataGrid( EventQueryParams params )
