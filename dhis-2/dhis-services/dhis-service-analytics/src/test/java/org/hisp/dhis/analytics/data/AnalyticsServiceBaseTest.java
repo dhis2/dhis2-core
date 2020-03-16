@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.constant.ConstantService;
@@ -92,6 +93,9 @@ public abstract class AnalyticsServiceBaseTest
     private AnalyticsCache analyticsCache;
 
     @Mock
+    private AnalyticsCacheSettings analyticsCacheSettings;
+
+    @Mock
     private ExpressionResolver resolver;
 
     @Mock
@@ -106,10 +110,10 @@ public abstract class AnalyticsServiceBaseTest
 
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, resolver, dhisConfig, analyticsCache );
+            eventAnalyticsService, dataQueryService, resolver, analyticsCache );
 
         when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
-        when( dhisConfig.getAnalyticsCacheExpiration() ).thenReturn( 0L );
+        when( analyticsCacheSettings.predefinedExpirationTimeOrDefault() ).thenReturn( 0L );
     }
 
     void initMock( DataQueryParams params )

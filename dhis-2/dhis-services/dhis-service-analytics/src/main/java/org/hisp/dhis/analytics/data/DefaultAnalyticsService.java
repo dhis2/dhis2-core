@@ -189,8 +189,6 @@ public class DefaultAnalyticsService
 
     private final ExpressionResolver resolver;
 
-    private final DhisConfigurationProvider dhisConfig;
-
     private final AnalyticsCache analyticsCache;
 
     // -------------------------------------------------------------------------
@@ -203,7 +201,7 @@ public class DefaultAnalyticsService
         ConstantService constantService, ExpressionService expressionService,
         OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
         EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService, ExpressionResolver resolver,
-        DhisConfigurationProvider dhisConfig, AnalyticsCache analyticsCache )
+        AnalyticsCache analyticsCache )
     {
         checkNotNull( analyticsManager );
         checkNotNull( rawAnalyticsManager );
@@ -217,7 +215,6 @@ public class DefaultAnalyticsService
         checkNotNull( eventAnalyticsService );
         checkNotNull( dataQueryService );
         checkNotNull( resolver );
-        checkNotNull( dhisConfig );
         checkNotNull(analyticsCache);
 
         this.analyticsManager = analyticsManager;
@@ -232,7 +229,6 @@ public class DefaultAnalyticsService
         this.eventAnalyticsService = eventAnalyticsService;
         this.dataQueryService = dataQueryService;
         this.resolver = resolver;
-        this.dhisConfig = dhisConfig;
         this.analyticsCache = analyticsCache;
     }
 
@@ -250,7 +246,7 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( dhisConfig.isAnalyticsCacheEnabled() )
+        if ( analyticsCache.isEnabled() )
         {
             final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );

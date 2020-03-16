@@ -28,6 +28,11 @@ package org.hisp.dhis.common.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.concurrent.TimeUnit.DAYS;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.hisp.dhis.util.DateUtils.getSecondsUntilTomorrow;
+
 /**
  * CacheStrategies express web request caching settings.
  * Note that {@link #RESPECT_SYSTEM_SETTING} should only be used on a
@@ -38,10 +43,51 @@ package org.hisp.dhis.common.cache;
 public enum CacheStrategy
 {
     NO_CACHE,
+    CACHE_1_MINUTE,
+    CACHE_5_MINUTES,
+    CACHE_10_MINUTES,
     CACHE_15_MINUTES,
     CACHE_30_MINUTES,
     CACHE_1_HOUR,
     CACHE_6AM_TOMORROW,
     CACHE_TWO_WEEKS,
-    RESPECT_SYSTEM_SETTING
+    RESPECT_SYSTEM_SETTING;
+
+    public Long toSeconds()
+    {
+        switch ( this )
+        {
+        case CACHE_1_MINUTE:
+            return MINUTES.toSeconds( 1 );
+        case CACHE_5_MINUTES:
+            return MINUTES.toSeconds( 5 );
+        case CACHE_10_MINUTES:
+            return MINUTES.toSeconds( 10 );
+        case CACHE_15_MINUTES:
+            return MINUTES.toSeconds( 15 );
+        case CACHE_30_MINUTES:
+            return MINUTES.toSeconds( 30 );
+        case CACHE_1_HOUR:
+            return HOURS.toSeconds( 1 );
+        case CACHE_TWO_WEEKS:
+            return DAYS.toSeconds( 14 );
+        case CACHE_6AM_TOMORROW:
+            return getSecondsUntilTomorrow( 6 );
+        case RESPECT_SYSTEM_SETTING:
+        case NO_CACHE:
+        default:
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public boolean hasExpirationTimeSet()
+    {
+        switch ( this )
+        {
+        case NO_CACHE:
+        case RESPECT_SYSTEM_SETTING:
+            return false;
+        }
+        return true;
+    }
 }
