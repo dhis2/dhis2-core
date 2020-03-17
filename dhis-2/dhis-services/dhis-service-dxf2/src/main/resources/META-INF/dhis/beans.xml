@@ -46,6 +46,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OptionObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OptionSetObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserGroupObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.JobConfigurationObjectBundleHook">
