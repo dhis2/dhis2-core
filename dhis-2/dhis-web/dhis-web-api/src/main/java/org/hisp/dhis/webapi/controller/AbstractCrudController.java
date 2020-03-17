@@ -86,7 +86,7 @@ import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.PaginationData;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
@@ -1127,7 +1127,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
-    protected PaginationData getPaginationData( WebOptions options )
+    protected Pagination getPaginationData(WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
     } 

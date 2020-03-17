@@ -28,7 +28,17 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -44,11 +54,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,10 +124,45 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getAllQueryUrl() throws QueryParserException
+    public void getAllQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList(), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList(), Lists.newArrayList(),
+            new Pagination() );
         assertEquals( 6, queryService.query( query ).size() );
+    }
+
+    @Test
+    public void getAllQueryUrlWithPaginationReturnsPageSizeElements()
+        throws QueryParserException
+    {
+        List<? extends IdentifiableObject> resultPage1 = getResultWithPagination( 1, 3 );
+        List<? extends IdentifiableObject> resultPage2 = getResultWithPagination( 2, 3 );
+
+        String key1 = resultPage1.stream().map( IdentifiableObject::getUid ).collect( Collectors.joining( "," ) );
+        String key2 = resultPage2.stream().map( IdentifiableObject::getUid ).collect( Collectors.joining( "," ) );
+
+        assertEquals( 3, resultPage1.size() );
+        assertEquals( 3, resultPage2.size() );
+        // check that the actual results are different
+        assertThat( key1, not( key2 ) );
+    }
+
+    @Test
+    public void getAllQueryUrlWithPaginationReturnsNoDataWhenPageNumberHigherThanMaxNumberOfPages()
+            throws QueryParserException
+    {
+        List<? extends IdentifiableObject> resultPage = getResultWithPagination( 10, 3 );
+
+        assertEquals( 0, resultPage.size() );
+    }
+
+    private List<? extends IdentifiableObject> getResultWithPagination( int page, int pageSize )
+    {
+        Pagination pagination = new Pagination( page, pageSize );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList(), Lists.newArrayList(),
+                pagination);
+        return queryService.query( query );
     }
 
     @Test
@@ -154,7 +195,7 @@ public class QueryServiceTest
     @Test
     public void getEqQueryUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:eq:deabcdefghA" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:eq:deabcdefghA" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 1, objects.size() );
@@ -181,7 +222,7 @@ public class QueryServiceTest
     @Test
     public void getNeQueryUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:ne:deabcdefghA" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:ne:deabcdefghA" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 5, objects.size() );
@@ -208,7 +249,7 @@ public class QueryServiceTest
     @Test
     public void getLikeQueryUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "name:like:F" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "name:like:F" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 1, objects.size() );
@@ -232,7 +273,7 @@ public class QueryServiceTest
     @Test
     public void getGtQueryUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:gt:2003" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:gt:2003" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -258,7 +299,7 @@ public class QueryServiceTest
     @Test
     public void getLtQueryUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:lt:2003" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:lt:2003" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 2, objects.size() );
@@ -285,7 +326,7 @@ public class QueryServiceTest
     @Test
     public void getGeQueryUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:ge:2003" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:ge:2003" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 4, objects.size() );
@@ -313,7 +354,7 @@ public class QueryServiceTest
     @Test
     public void getLeQueryUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:le:2003" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:le:2003" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -529,7 +570,7 @@ public class QueryServiceTest
     @Test
     public void testIsNotNullUrl() throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "categoryCombo:!null" ), Lists.newArrayList(), new PaginationData() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "categoryCombo:!null" ), Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 6, objects.size() );

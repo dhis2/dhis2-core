@@ -28,7 +28,7 @@
 
 package org.hisp.dhis.webapi.utils;
 
-import org.hisp.dhis.query.PaginationData;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 
 /**
@@ -36,7 +36,8 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
  */
 public class PaginationUtils
 {
-    private final static PaginationData NO_PAGINATION = new PaginationData();
+    private final static Pagination NO_PAGINATION = new Pagination();
+
     /**
      * Calculates the paging first result based on pagination data from
      * {@see WebOptions} if the WebOptions have pagination information
@@ -47,10 +48,10 @@ public class PaginationUtils
      * @return a {@see PaginationData} object either empty or containing pagination
      *         data
      */
-    public static PaginationData getPaginationData( WebOptions options )
+    public static Pagination getPaginationData( WebOptions options )
     {
         return options.hasPaging()
-            ? new PaginationData( options.getPage() == 1 ? 1 : ( options.getPage() * options.getPageSize() ),
+            ? new Pagination( options.getPage() == 1 ? 1 : (options.getPage() * options.getPageSize()),
                 options.getPageSize() )
             : NO_PAGINATION;
     }

@@ -33,7 +33,7 @@ package org.hisp.dhis.query;
  * 
  * @author Luciano Fiandesio
  */
-public class PaginationData
+public class Pagination
 {
     private int firstResult;
 
@@ -41,7 +41,7 @@ public class PaginationData
 
     private boolean hasPagination = false;
 
-    public PaginationData( int firstResult, int size )
+    public Pagination(int firstResult, int size )
     {
         assert (size > 0);
         this.firstResult = firstResult;
@@ -52,7 +52,7 @@ public class PaginationData
     /**
      * This constructor can be used to signal that there is no pagination data
      */
-    public PaginationData()
+    public Pagination()
     {
         // empty constructor
     }

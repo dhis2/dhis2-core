@@ -98,20 +98,20 @@ public class DefaultQueryService
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, PaginationData paginationData ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination) throws QueryParserException
     {
-        return getQueryFromUrl( klass, filters, orders, paginationData, DEFAULT_JUNCTION_TYPE );
+        return getQueryFromUrl( klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE );
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, PaginationData paginationData, Junction.Type rootJunction ) throws QueryParserException
+    public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction ) throws QueryParserException
     {
         Query query = queryParser.parse( klass, filters, rootJunction );
         query.addOrders( orders );
-        if ( paginationData.hasPagination() )
+        if ( pagination.hasPagination() )
         {
-            query.setFirstResult( paginationData.getFirstResult() );
-            query.setMaxResults( paginationData.getSize() );
+            query.setFirstResult( pagination.getFirstResult() );
+            query.setMaxResults( pagination.getSize() );
         }
         
         return query;
@@ -120,7 +120,7 @@ public class DefaultQueryService
     @Override
     public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
     {
-        return getQueryFromUrl( klass, filters, orders, new PaginationData(), DEFAULT_JUNCTION_TYPE );
+        return getQueryFromUrl( klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE );
     }
 
     //---------------------------------------------------------------------------------------------
