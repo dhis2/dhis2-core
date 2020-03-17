@@ -161,6 +161,8 @@ public class EnrollmentSMSListenerTest
 
     private IncomingSms incomingSmsEnrollmentWithEvents;
 
+    private IncomingSms incomingSmsEnrollmentWithNulls;
+
     private OrganisationUnit organisationUnit;
 
     private Program program;
@@ -244,6 +246,18 @@ public class EnrollmentSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testEnrollmentWithNulls()
+    {
+        subject.receive( incomingSmsEnrollmentWithNulls );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
@@ -285,6 +299,7 @@ public class EnrollmentSMSListenerTest
 
         incomingSmsEnrollmentNoEvents = createSMSFromSubmission( createEnrollmentSubmissionNoEvents() );
         incomingSmsEnrollmentWithEvents = createSMSFromSubmission( createEnrollmentSubmissionWithEvents() );
+        incomingSmsEnrollmentWithNulls = createSMSFromSubmission( createEnrollmentSubmissionWithNulls() );
     }
 
     private EnrollmentSMSSubmission createEnrollmentSubmissionNoEvents()
@@ -311,22 +326,7 @@ public class EnrollmentSMSListenerTest
 
     private EnrollmentSMSSubmission createEnrollmentSubmissionWithEvents()
     {
-        EnrollmentSMSSubmission subm = new EnrollmentSMSSubmission();
-
-        subm.setUserID( user.getUid() );
-        subm.setOrgUnit( organisationUnit.getUid() );
-        subm.setTrackerProgram( program.getUid() );
-        subm.setTrackedEntityType( trackedEntityType.getUid() );
-        subm.setTrackedEntityInstance( trackedEntityInstance.getUid() );
-        subm.setEnrollment( programInstance.getUid() );
-        subm.setEnrollmentDate( new Date() );
-        subm.setIncidentDate( new Date() );
-        subm.setEnrollmentStatus( SMSEnrollmentStatus.ACTIVE );
-        subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
-        ArrayList<SMSAttributeValue> values = new ArrayList<>();
-        values.add( new SMSAttributeValue( trackedEntityAttribute.getUid(), ATTRIBUTE_VALUE ) );
-        subm.setValues( values );
-        subm.setSubmissionID( 1 );
+        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
 
         ArrayList<SMSEvent> events = new ArrayList<>();
         SMSEvent event = new SMSEvent();
@@ -343,6 +343,18 @@ public class EnrollmentSMSListenerTest
         event.setValues( eventValues );
         events.add( event );
         subm.setEvents( events );
+        return subm;
+    }
+
+    private EnrollmentSMSSubmission createEnrollmentSubmissionWithNulls()
+    {
+        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
+        subm.setEnrollmentDate( null );
+        subm.setIncidentDate( null );
+        subm.setCoordinates( null );
+        subm.setValues( null );
+        subm.setEvents( null );
+
         return subm;
     }
 
