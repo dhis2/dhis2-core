@@ -28,8 +28,14 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -37,22 +43,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -82,18 +73,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.EventSyncService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
@@ -128,22 +108,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -758,13 +724,6 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime )
-    {
-        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        return eventStore.getEventCount( params, null );
-    }
-
-    @Override
     public int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore )
     {
         EventSearchParams params = new EventSearchParams()
@@ -774,16 +733,6 @@ public abstract class AbstractEventService
             .setSkipChangedBefore( skipChangedBefore );
 
         return eventStore.getEventCount( params, null );
-    }
-
-    @Override
-    public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
-    {
-        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        Events anonymousEvents = new Events();
-        List<Event> events = eventStore.getEvents( params, null, Collections.emptyMap() );
-        anonymousEvents.setEvents( events );
-        return anonymousEvents;
     }
 
     @Override

@@ -26,9 +26,16 @@ package org.hisp.dhis.dxf2.sync;/*
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+import java.util.Date;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -39,21 +46,8 @@ import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Date;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import org.springframework.http.*;
+import org.springframework.web.client.*;
 
 /**
  * @author David Katuscak
@@ -420,5 +414,21 @@ public class SyncUtils
         }
 
         return true;
+    }
+
+    /**
+     * Filter out data values that should be skipped during the sync process
+     * @param events Events to sync
+     */
+    public static void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
+    {
+        for ( Event event : events.getEvents() )
+        {
+            event.setDataValues(
+                event.getDataValues().stream()
+                    .filter( dv -> !dv.isSkipSynchronization() )
+                    .collect( Collectors.toSet() )
+            );
+        }
     }
 }
