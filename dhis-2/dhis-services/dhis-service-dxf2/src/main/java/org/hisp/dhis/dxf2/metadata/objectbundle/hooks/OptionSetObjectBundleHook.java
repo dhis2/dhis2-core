@@ -40,14 +40,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OptionSetObjectBundleHook
     extends AbstractObjectBundleHook
 {
-    private final SessionFactory sessionFactory;
-
-    public OptionSetObjectBundleHook( SessionFactory sessionFactory )
-    {
-        checkNotNull( sessionFactory );
-        this.sessionFactory = sessionFactory;
-    }
-
     @Override
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
