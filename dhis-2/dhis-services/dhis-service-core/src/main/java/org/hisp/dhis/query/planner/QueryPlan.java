@@ -108,7 +108,7 @@ public class QueryPlan
         {
         }
 
-        public static QueryPlanBuilder aQueryPlan()
+        public static QueryPlanBuilder newBuilder()
         {
             return new QueryPlanBuilder();
         }

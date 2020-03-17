@@ -74,7 +74,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         if ( Junction.Type.OR == junctionType && !persistedOnly && !isFilterOnPersistedFieldOnly( query ))
         {
             return QueryPlan.QueryPlanBuilder
-                .aQueryPlan()
+                .newBuilder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
                 .nonPersistedQuery( Query.from( query ).setPlannedQuery( true ) )
                 .build();
@@ -96,7 +96,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return QueryPlan.QueryPlanBuilder
-            .aQueryPlan()
+            .newBuilder()
             .persistedQuery( pQuery )
             .nonPersistedQuery( npQuery )
             .build();
@@ -299,7 +299,13 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         return criteriaJunction;
     }
-    
+
+    /**
+     * Check if all the criteria for the given query are associated to "persisted" properties
+     *
+     * @param query a {@see Query} object
+     * @return true, if all criteria are on persisted properties
+     */
     private boolean isFilterOnPersistedFieldOnly( Query query )
     {
         Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
