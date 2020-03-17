@@ -28,12 +28,9 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-
-import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -47,27 +44,6 @@ public interface SynchronizationManager
      */
     ImportSummary executeDataPush() throws WebMessageParseException;
 
-    /**
-     * Executes an event push to remote server.
-     * 
-     * @return an {@link ImportSummaries}.
-     */
-    ImportSummaries executeEventPush() throws WebMessageParseException;
-
-    /**
-     * Returns the time of the last successful data sync operation.
-     *
-     * @return the time of the last successful data sync operation as a {@link Date}.
-     */
-    Date getLastDataSynchSuccess();
-
-    /**
-     * Returns the time of the last successful event sync operation.
-     *
-     * @return the time of the last successful event sync operation as a {@link Date}.
-     */
-    Date getLastEventSynchSuccess();
-    
     /**
      * Executes a meta data pull operation from remote server.
      * 
