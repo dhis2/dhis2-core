@@ -1459,6 +1459,18 @@ public abstract class DhisConvenienceTest
         return programRuleAction;
     }
 
+    public static ProgramRuleVariable createConstantProgramRuleVariable( char uniqueCharacter, Program parentProgram )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( uniqueCharacter + "1234567890" );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+
+        return programRuleVariable;
+    }
+
     public static ProgramRuleVariable createProgramRuleVariable( char uniqueCharacter, Program parentProgram )
     {
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
