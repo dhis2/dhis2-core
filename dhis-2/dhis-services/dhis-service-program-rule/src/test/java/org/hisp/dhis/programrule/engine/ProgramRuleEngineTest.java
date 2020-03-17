@@ -135,9 +135,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String expressionA = "#{ProgramRuleVariableA}=='malaria'";
 
-    private String expressionC = "A{ProgramRuleVariableC}=='test'";
+    private String expressionC = "A{C1234567890}=='test'";
 
-    private String expressionS = "A{ProgramRuleVariableS}=='xmen'";
+    private String expressionS = "A{S1234567890}=='xmen'";
 
     private String dataExpression = "d2:addDays('2018-04-15', '2')";
 
@@ -539,7 +539,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleVariableAge.setDataElement( dataElementAge );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableAge );
 
-        ProgramRuleVariable programRuleVariableC = createProgramRuleVariable( 'C', programA );
+        ProgramRuleVariable programRuleVariableC = createConstantProgramRuleVariable( 'C', programA );
         programRuleVariableC.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableC.setAttribute( attributeA );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableC );
@@ -549,7 +549,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleVariableD.setAttribute( attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableD );
 
-        ProgramRuleVariable programRuleVariableS = createProgramRuleVariable( 'S', programS );
+        ProgramRuleVariable programRuleVariableS = createConstantProgramRuleVariable( 'S', programS );
         programRuleVariableS.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableS.setAttribute( attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableS );
