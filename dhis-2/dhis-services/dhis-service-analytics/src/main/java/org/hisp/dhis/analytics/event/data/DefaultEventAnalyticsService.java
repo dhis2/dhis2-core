@@ -90,9 +90,6 @@ public class DefaultEventAnalyticsService
     private static final Option OPT_TRUE = new Option( "Yes", "1" );
     private static final Option OPT_FALSE = new Option( "No", "0" );
 
-    private static final int MAX_CACHE_ENTRIES = 20000;
-    private static final String CACHE_REGION = "eventAnalyticsQueryResponse";
-
     private final DataElementService dataElementService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;

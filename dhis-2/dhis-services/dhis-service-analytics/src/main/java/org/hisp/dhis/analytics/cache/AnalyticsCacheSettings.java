@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics.cache;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
-import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_MINUTE;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
