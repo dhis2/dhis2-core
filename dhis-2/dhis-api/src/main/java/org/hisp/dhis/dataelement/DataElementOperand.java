@@ -232,6 +232,33 @@ public class DataElementOperand
     }
 
     @Override
+    public String getDisplayShortName()
+    {
+        String displayShortName = null;
+
+        if ( dataElement != null )
+        {
+            displayShortName = dataElement.getDisplayShortName();
+        }
+
+        if ( hasNonDefaultCategoryOptionCombo() )
+        {
+            displayShortName += SPACE + categoryOptionCombo.getDisplayShortName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayShortName += SPACE + SYMBOL_WILDCARD;
+        }
+
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayShortName += SPACE + attributeOptionCombo.getDisplayShortName();
+        }
+
+        return displayShortName;
+    }
+
+    @Override
     public String getDisplayName()
     {
         String displayName = null;
