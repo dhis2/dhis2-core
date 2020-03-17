@@ -38,7 +38,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -105,9 +104,6 @@ public class RelationshipSMSListenerTest
 
     @Mock
     private CategoryService categoryService;
-
-    @Mock
-    private ProgramStageService programStageService;
 
     @Mock
     private ProgramStageInstanceService programStageInstanceService;

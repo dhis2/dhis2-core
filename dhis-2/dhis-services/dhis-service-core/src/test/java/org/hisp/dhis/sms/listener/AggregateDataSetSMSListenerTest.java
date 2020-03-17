@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSCompressionException;
@@ -109,9 +108,6 @@ public class AggregateDataSetSMSListenerTest
 
     @Mock
     private CategoryService categoryService;
-
-    @Mock
-    private ProgramStageService programStageService;
 
     @Mock
     private ProgramStageInstanceService programStageInstanceService;
