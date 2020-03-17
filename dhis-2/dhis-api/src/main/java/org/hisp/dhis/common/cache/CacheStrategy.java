@@ -83,10 +83,6 @@ public enum CacheStrategy
 
     public boolean hasExpirationTimeSet()
     {
-        if ( this == NO_CACHE || this == RESPECT_SYSTEM_SETTING )
-        {
-            return false;
-        }
-        return true;
+        return this != NO_CACHE && this != RESPECT_SYSTEM_SETTING;
     }
 }
