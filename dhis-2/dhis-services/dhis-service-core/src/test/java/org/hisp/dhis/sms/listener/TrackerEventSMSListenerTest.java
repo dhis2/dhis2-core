@@ -49,6 +49,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSCompressionException;
 import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
+import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSMSSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -235,7 +236,9 @@ public class TrackerEventSMSListenerTest
         subm.setEnrollment( programInstance.getUid() );
         subm.setEvent( programStageInstance.getUid() );
         subm.setEventStatus( SMSEventStatus.COMPLETED );
-        subm.setTimestamp( new Date() );
+        subm.setEventDate( new Date() );
+        subm.setDueDate( new Date() );
+        subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
         ArrayList<SMSDataValue> values = new ArrayList<>();
         values.add( new SMSDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
         subm.setValues( values );
