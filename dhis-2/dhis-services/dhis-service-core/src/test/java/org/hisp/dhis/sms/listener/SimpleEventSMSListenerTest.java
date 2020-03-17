@@ -140,6 +140,8 @@ public class SimpleEventSMSListenerTest
 
     private IncomingSms incomingSmsSimpleEvent;
 
+    private IncomingSms incomingSmsSimpleEventWithNulls;
+
     private OrganisationUnit organisationUnit;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -192,6 +194,18 @@ public class SimpleEventSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testSimpleEventWithNulls()
+    {
+        subject.receive( incomingSmsSimpleEventWithNulls );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
@@ -215,6 +229,7 @@ public class SimpleEventSMSListenerTest
         programStageInstance.setAutoFields();
 
         incomingSmsSimpleEvent = createSMSFromSubmission( createSimpleEventSubmission() );
+        incomingSmsSimpleEventWithNulls = createSMSFromSubmission( createSimpleEventSubmissionWithNulls() );
     }
 
     private SimpleEventSMSSubmission createSimpleEventSubmission()
@@ -237,4 +252,16 @@ public class SimpleEventSMSListenerTest
 
         return subm;
     }
+
+    private SimpleEventSMSSubmission createSimpleEventSubmissionWithNulls()
+    {
+        SimpleEventSMSSubmission subm = createSimpleEventSubmission();
+        subm.setEventDate( null );
+        subm.setDueDate( null );
+        subm.setCoordinates( null );
+        subm.setValues( null );
+
+        return subm;
+    }
+
 }
