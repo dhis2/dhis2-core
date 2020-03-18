@@ -138,6 +138,8 @@ public class SimpleEventSMSListenerTest
 
     private IncomingSms incomingSmsSimpleEventWithNulls;
 
+    private IncomingSms incomingSmsSimpleEventNoValues;
+
     private OrganisationUnit organisationUnit;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -202,6 +204,18 @@ public class SimpleEventSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testSimpleEventNoValues()
+    {
+        subject.receive( incomingSmsSimpleEventNoValues );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOVALUES_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
@@ -226,6 +240,7 @@ public class SimpleEventSMSListenerTest
 
         incomingSmsSimpleEvent = createSMSFromSubmission( createSimpleEventSubmission() );
         incomingSmsSimpleEventWithNulls = createSMSFromSubmission( createSimpleEventSubmissionWithNulls() );
+        incomingSmsSimpleEventNoValues = createSMSFromSubmission( createSimpleEventSubmissionNoValues() );
     }
 
     private SimpleEventSMSSubmission createSimpleEventSubmission()
@@ -255,9 +270,15 @@ public class SimpleEventSMSListenerTest
         subm.setEventDate( null );
         subm.setDueDate( null );
         subm.setCoordinates( null );
-        subm.setValues( null );
 
         return subm;
     }
 
+    private SimpleEventSMSSubmission createSimpleEventSubmissionNoValues()
+    {
+        SimpleEventSMSSubmission subm = createSimpleEventSubmission();
+        subm.setValues( null );
+
+        return subm;
+    }
 }
