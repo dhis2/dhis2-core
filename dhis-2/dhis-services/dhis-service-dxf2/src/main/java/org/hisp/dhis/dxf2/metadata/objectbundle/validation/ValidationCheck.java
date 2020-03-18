@@ -44,17 +44,17 @@ import org.hisp.dhis.importexport.ImportStrategy;
 public interface ValidationCheck
 {
     /**
-     * Execute a validation check against the {@see ObjectBundle}
+     * Execute a validation check against the {@link ObjectBundle}
      *
-     * @param bundle an {@see ObjectBundle} to validate
+     * @param bundle an {@link ObjectBundle} to validate
      * @param klass the class of Object to validate, within the bundle
      * @param persistedObjects a List of IdentifiableObject
      * @param nonPersistedObjects a List of IdentifiableObject
-     * @param importStrategy the {@see ImportStrategy}
-     * @param context a {@see ValidationContext} containing the services required
-     *        for validation
+     * @param importStrategy the {@link ImportStrategy}
+     * @param context a {@link ValidationContext} containing the services required
+     *         for validation
      *
-     * @return a {@see TypeReport}
+     * @return a {@link TypeReport}
      */
     TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
@@ -80,7 +80,5 @@ public interface ValidationCheck
         {
             return Collections.emptyList();
         }
-
     }
-
 }
