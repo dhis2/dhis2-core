@@ -163,6 +163,12 @@ public class EnrollmentSMSListenerTest
 
     private IncomingSms incomingSmsEnrollmentWithNulls;
 
+    private IncomingSms incomingSmsEnrollmentNoAttribs;
+
+    private IncomingSms incomingSmsEnrollmentEventWithNulls;
+
+    private IncomingSms incomingSmsEnrollmentEventNoValues;
+
     private OrganisationUnit organisationUnit;
 
     private Program program;
@@ -258,6 +264,30 @@ public class EnrollmentSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testEnrollmentNoAttribs()
+    {
+        subject.receive( incomingSmsEnrollmentNoAttribs );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOATTRIBS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    @Test
+    public void testEnrollmentEventWithNulls()
+    {
+        subject.receive( incomingSmsEnrollmentEventWithNulls );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
@@ -300,6 +330,9 @@ public class EnrollmentSMSListenerTest
         incomingSmsEnrollmentNoEvents = createSMSFromSubmission( createEnrollmentSubmissionNoEvents() );
         incomingSmsEnrollmentWithEvents = createSMSFromSubmission( createEnrollmentSubmissionWithEvents() );
         incomingSmsEnrollmentWithNulls = createSMSFromSubmission( createEnrollmentSubmissionWithNulls() );
+        incomingSmsEnrollmentNoAttribs = createSMSFromSubmission( createEnrollmentSubmissionNoAttribs() );
+        incomingSmsEnrollmentEventWithNulls = createSMSFromSubmission( createEnrollmentSubmissionEventWithNulls() );
+        incomingSmsEnrollmentEventNoValues = createSMSFromSubmission( createEnrollmentSubmissionEventNoValues() );
     }
 
     private EnrollmentSMSSubmission createEnrollmentSubmissionNoEvents()
@@ -329,6 +362,13 @@ public class EnrollmentSMSListenerTest
         EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
 
         ArrayList<SMSEvent> events = new ArrayList<>();
+        events.add( createEvent() );
+        subm.setEvents( events );
+        return subm;
+    }
+
+    private SMSEvent createEvent()
+    {
         SMSEvent event = new SMSEvent();
         event.setOrgUnit( organisationUnit.getUid() );
         event.setProgramStage( programStage.getUid() );
@@ -341,9 +381,8 @@ public class EnrollmentSMSListenerTest
         ArrayList<SMSDataValue> eventValues = new ArrayList<>();
         eventValues.add( new SMSDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
         event.setValues( eventValues );
-        events.add( event );
-        subm.setEvents( events );
-        return subm;
+
+        return event;
     }
 
     private EnrollmentSMSSubmission createEnrollmentSubmissionWithNulls()
@@ -352,10 +391,42 @@ public class EnrollmentSMSListenerTest
         subm.setEnrollmentDate( null );
         subm.setIncidentDate( null );
         subm.setCoordinates( null );
-        subm.setValues( null );
         subm.setEvents( null );
 
         return subm;
     }
 
+    private EnrollmentSMSSubmission createEnrollmentSubmissionNoAttribs()
+    {
+        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
+        subm.setValues( null );
+
+        return subm;
+    }
+
+    private EnrollmentSMSSubmission createEnrollmentSubmissionEventWithNulls()
+    {
+        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
+        SMSEvent event = createEvent();
+        event.setEventDate( null );
+        event.setDueDate( null );
+        event.setCoordinates( null );
+        ArrayList<SMSEvent> events = new ArrayList<>();
+        events.add( event );
+        subm.setEvents( events );
+
+        return subm;
+    }
+
+    private EnrollmentSMSSubmission createEnrollmentSubmissionEventNoValues()
+    {
+        EnrollmentSMSSubmission subm = createEnrollmentSubmissionNoEvents();
+        SMSEvent event = createEvent();
+        event.setValues( null );
+        ArrayList<SMSEvent> events = new ArrayList<>();
+        events.add( event );
+        subm.setEvents( events );
+
+        return subm;
+    }
 }

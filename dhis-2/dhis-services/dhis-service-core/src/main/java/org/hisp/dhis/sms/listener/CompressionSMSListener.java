@@ -282,30 +282,33 @@ public abstract class CompressionSMSListener
         }
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
-        for ( SMSDataValue dv : values )
+        if ( values != null )
         {
-            UID deid = dv.getDataElement();
-            String val = dv.getValue();
-
-            DataElement de = dataElementService.getDataElement( deid.uid );
-            // TODO: Is this the correct way of handling errors here?
-            if ( de == null )
+            for ( SMSDataValue dv : values )
             {
-                log.warn( String.format( "Given data element [%s] could not be found. Continuing with submission...",
-                    deid ) );
-                errorUIDs.add( deid );
-                continue;
-            }
-            else if ( val == null || StringUtils.isEmpty( val ) )
-            {
-                log.warn( String.format( "Value for atttribute [%s] is null or empty. Continuing with submission...",
-                    deid ) );
-                continue;
-            }
+                UID deid = dv.getDataElement();
+                String val = dv.getValue();
 
-            EventDataValue eventDataValue = new EventDataValue( deid.uid, dv.getValue(), user.getUsername() );
-            eventDataValue.setAutoFields();
-            dataElementsAndEventDataValues.put( de, eventDataValue );
+                DataElement de = dataElementService.getDataElement( deid.uid );
+                // TODO: Is this the correct way of handling errors here?
+                if ( de == null )
+                {
+                    log.warn( String
+                        .format( "Given data element [%s] could not be found. Continuing with submission...", deid ) );
+                    errorUIDs.add( deid );
+                    continue;
+                }
+                else if ( val == null || StringUtils.isEmpty( val ) )
+                {
+                    log.warn( String
+                        .format( "Value for atttribute [%s] is null or empty. Continuing with submission...", deid ) );
+                    continue;
+                }
+
+                EventDataValue eventDataValue = new EventDataValue( deid.uid, dv.getValue(), user.getUsername() );
+                eventDataValue.setAutoFields();
+                dataElementsAndEventDataValues.put( de, eventDataValue );
+            }
         }
 
         programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance,

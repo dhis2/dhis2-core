@@ -195,9 +195,12 @@ public class EnrollmentSMSListener
         // We now check if the enrollment has events to process
         User user = userService.getUser( subm.getUserID().uid );
         List<Object> errorUIDs = new ArrayList<>();
-        for ( SMSEvent event : subm.getEvents() )
+        if ( subm.getEvents() != null )
         {
-            errorUIDs.addAll( processEvent( event, user, enrollment, sms ) );
+            for ( SMSEvent event : subm.getEvents() )
+            {
+                errorUIDs.addAll( processEvent( event, user, enrollment, sms ) );
+            }
         }
 
         if ( !errorUIDs.isEmpty() )
@@ -205,7 +208,7 @@ public class EnrollmentSMSListener
             return SMSResponse.WARN_DVERR.setList( errorUIDs );
         }
 
-        if ( attributeValues.isEmpty() )
+        if ( attributeValues == null || attributeValues.isEmpty() )
         {
             // TODO: Is this correct handling?
             return SMSResponse.WARN_AVEMPTY;
@@ -223,6 +226,10 @@ public class EnrollmentSMSListener
     private Set<TrackedEntityAttributeValue> getSMSAttributeValues( EnrollmentSMSSubmission submission,
         TrackedEntityInstance entityInstance )
     {
+        if ( submission.getValues() == null )
+        {
+            return null;
+        }
         return submission.getValues().stream().map( v -> createTrackedEntityValue( v, entityInstance ) )
             .collect( Collectors.toSet() );
     }
