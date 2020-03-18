@@ -30,9 +30,25 @@ package org.hisp.dhis.dataelement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import org.hisp.dhis.category.*;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryComboStore;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroupSetStore;
+import org.hisp.dhis.category.CategoryOptionGroupStore;
+import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;

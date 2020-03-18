@@ -43,7 +43,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * Program indicator expression item
  * <p/>
  * The only two methods that are used by program indicator-only items are
- * {@ExpressionItem.getDescription} and {@ExpressionItem.getSql}.
+ * {@link ExpressionItem#getDescription} and {@link ExpressionItem#getSql}.
  * <p/>
  * getDescription checks the expression item syntax, and returns the
  * expected return data type. For data items, it also registers the
