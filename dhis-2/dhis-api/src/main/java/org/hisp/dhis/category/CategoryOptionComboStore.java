@@ -40,19 +40,19 @@ public interface CategoryOptionComboStore
     extends IdentifiableObjectStore<CategoryOptionCombo>
 {
     CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
-    
+
     void updateNames();
 
     void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
 
     /**
-     * Fetch all {@see CategoryOptionCombo} from a given {@see CategoryOptionGroup} uid.
+     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
      *
-     * A {@see CategoryOptionGroup} is a collection of {@see CategoryOption}. Therefore, this method finds all
-     * {@see CategoryOptionCombo} for all the members of the given {@see CategoryOptionGroup}
+     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
+     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
      *
-     * @param groupId a {@see CategoryOptionGroup} uid
-     * @return a List of {@see CategoryOptionCombo} or empty List
+     * @param groupId a {@link CategoryOptionGroup} uid
+     * @return a List of {@link CategoryOptionCombo} or empty List
      */
     List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
 }
