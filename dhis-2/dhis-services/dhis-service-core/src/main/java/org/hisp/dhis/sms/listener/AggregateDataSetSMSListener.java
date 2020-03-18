@@ -163,7 +163,7 @@ public class AggregateDataSetSMSListener
         {
             return SMSResponse.WARN_DVERR.setList( errorElems );
         }
-        else if ( subm.getValues().isEmpty() )
+        else if ( subm.getValues() == null || subm.getValues().isEmpty() )
         {
             // TODO: Should we save if there are no data values?
             return SMSResponse.WARN_DVEMPTY;

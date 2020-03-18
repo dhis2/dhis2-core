@@ -201,7 +201,7 @@ public class AggregateDataSetSMSListenerTest
 
         assertNotNull( updatedIncomingSms );
         assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+        assertEquals( NOVALUES_MESSAGE, message );
 
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }

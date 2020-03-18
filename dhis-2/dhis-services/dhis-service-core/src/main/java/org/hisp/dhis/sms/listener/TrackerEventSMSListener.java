@@ -124,7 +124,7 @@ public class TrackerEventSMSListener
         {
             return SMSResponse.WARN_DVERR.setList( errorUIDs );
         }
-        else if ( subm.getValues().isEmpty() )
+        else if ( subm.getValues() == null || subm.getValues().isEmpty() )
         {
             // TODO: Should we save the event if there are no data values?
             return SMSResponse.WARN_DVEMPTY;

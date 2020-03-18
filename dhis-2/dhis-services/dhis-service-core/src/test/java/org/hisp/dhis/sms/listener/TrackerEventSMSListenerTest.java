@@ -143,6 +143,8 @@ public class TrackerEventSMSListenerTest
 
     private IncomingSms incomingSmsTrackerEventWithNulls;
 
+    private IncomingSms incomingSmsTrackerEventNoValues;
+
     private OrganisationUnit organisationUnit;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -210,6 +212,18 @@ public class TrackerEventSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testTrackerEventNoValues()
+    {
+        subject.receive( incomingSmsTrackerEventNoValues );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOVALUES_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
@@ -238,6 +252,7 @@ public class TrackerEventSMSListenerTest
 
         incomingSmsTrackerEvent = createSMSFromSubmission( createTrackerEventSubmission() );
         incomingSmsTrackerEventWithNulls = createSMSFromSubmission( createTrackerEventSubmissionWithNulls() );
+        incomingSmsTrackerEventNoValues = createSMSFromSubmission( createTrackerEventSubmissionNoValues() );
     }
 
     private TrackerEventSMSSubmission createTrackerEventSubmission()
@@ -268,6 +283,13 @@ public class TrackerEventSMSListenerTest
         subm.setEventDate( null );
         subm.setDueDate( null );
         subm.setCoordinates( null );
+
+        return subm;
+    }
+
+    private TrackerEventSMSSubmission createTrackerEventSubmissionNoValues()
+    {
+        TrackerEventSMSSubmission subm = createTrackerEventSubmission();
         subm.setValues( null );
 
         return subm;
