@@ -28,8 +28,10 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -72,6 +74,9 @@ public class ProgramInstanceServiceTest
     @Autowired
     private ProgramStageService programStageService;
 
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
     private Date incidenDate;
 
     private Date enrollmentDate;
@@ -85,6 +90,8 @@ public class ProgramInstanceServiceTest
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
+
+    private ProgramStageInstance programStageInstanceA;
 
     private ProgramInstance programInstanceA;
 
@@ -154,6 +161,10 @@ public class ProgramInstanceServiceTest
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnitA );
 
+        programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
+        programInstanceA.setUid( "UID-PSI-A" );
+        programInstanceA.setOrganisationUnit( organisationUnitA );
+
         programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programB );
         programInstanceB.setUid( "UID-B" );
         programInstanceB.setStatus( ProgramStatus.CANCELLED );
@@ -197,6 +208,48 @@ public class ProgramInstanceServiceTest
 
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programInstanceService.getProgramInstance( idB ) );
+    }
+
+    @Test
+    public void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance()
+    {
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+//        programInstanceA.setId( idA );
+        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
+        programInstanceService.updateProgramInstance( programInstanceA );
+
+        assertNotNull( programInstanceService.getProgramInstance( idA ) );
+        assertNotNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+
+        programInstanceService.deleteProgramInstance( programInstanceA );
+
+        assertNull( programInstanceService.getProgramInstance( idA ) );
+        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+
+    }
+
+    @Test
+    public void testHardDeleteProgramInstanceAndLinkedProgramStageInstance()
+    {
+        long idA = programInstanceService.addProgramInstance( programInstanceA );
+        long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+//        programInstanceA.setId( idA );
+        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
+        programInstanceService.updateProgramInstance( programInstanceA );
+
+        assertNotNull( programInstanceService.getProgramInstance( idA ) );
+        assertNotNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+
+        programInstanceService.deleteProgramInstance( programInstanceA, true );
+
+        assertNull( programInstanceService.getProgramInstance( idA ) );
+        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+
+        List<String> uids = Lists.newArrayList();
+        uids.add( programStageInstanceA.getUid() );
+        assertTrue( programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted( uids ).isEmpty() );
+
     }
 
     @Test
@@ -328,10 +381,10 @@ public class ProgramInstanceServiceTest
     {
         programInstanceA.setStatus( ProgramStatus.COMPLETED );
         programInstanceD.setStatus( ProgramStatus.COMPLETED );
-        
+
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idD = programInstanceService.addProgramInstance( programInstanceD );
-        
+
         programInstanceService.incompleteProgramInstanceStatus( programInstanceA );
         programInstanceService.incompleteProgramInstanceStatus( programInstanceD );
 
