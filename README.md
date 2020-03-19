@@ -7,9 +7,9 @@ DHIS 2 is a flexible information system for data capture, management, validation
 
 Issues can be reported and browsed in [JIRA](https://jira.dhis2.org).
 
-For documentation please visit the [doc page](https://www.dhis2.org/documentation/).
+For documentation please visit the [documentation portal](https://docs.dhis2.org/).
 
-You can download pre-built WAR files from the [continuous integration server](http://ci.dhis2.org/).
+You can download pre-built WAR files from the [continuous integration server](https://ci.dhis2.org/).
 
 You can explore various demos of DHIS 2 in the [play environment](https://play.dhis2.org/).
 
@@ -17,7 +17,7 @@ For support and discussions visit the [community forum](https://community.dhis2.
 
 For general info please visit the [project web page](https://www.dhis2.org/).
 
-For software development guides please visit the [project wiki](http://dhis2.github.io/).
+For software developer resources please visit the [developer portal](https://developers.dhis2.org/).
 
 The software is open source and released under the [BSD license](https://opensource.org/licenses/BSD-2-Clause).
 
