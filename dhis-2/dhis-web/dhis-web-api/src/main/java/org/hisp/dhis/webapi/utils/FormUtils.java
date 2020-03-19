@@ -375,7 +375,6 @@ public class FormUtils
 
     private static Set<OrganisationUnit> getChildren( OrganisationUnit ou, Set<OrganisationUnit> children )
     {
-
         if ( ou != null && ou.getChildren() != null )
         {
             for ( OrganisationUnit organisationUnit : ou.getChildren() )

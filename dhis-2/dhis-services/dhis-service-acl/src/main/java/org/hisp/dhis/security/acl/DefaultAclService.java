@@ -697,7 +697,7 @@ public class DefaultAclService implements AclService
 
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            /**
+            /*
              * Is the user allowed to read this object through group access?
              *
              */
@@ -710,7 +710,7 @@ public class DefaultAclService implements AclService
 
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
-            /**
+            /*
              * Is the user allowed to read to this object through user access?
              *
              */

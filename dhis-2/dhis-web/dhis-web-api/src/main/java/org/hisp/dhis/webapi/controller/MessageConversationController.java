@@ -81,6 +81,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +181,7 @@ public class MessageConversationController
             messageConversations = new ArrayList<>( messageService.getMessageConversations( ) );
         }
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( messageConversations );
@@ -199,7 +200,7 @@ public class MessageConversationController
                 "messages.text:" + queryOperator + ":" + options.get( "queryString" ),
                 "messages.sender.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
             Query subQuery = queryService
-                .getQueryFromUrl( getEntityClass(), queryFilter, Arrays.asList(), Junction.Type.OR );
+                .getQueryFromUrl( getEntityClass(), queryFilter, Collections.emptyList(), getPaginationData(options), Junction.Type.OR );
             subQuery.setObjects( messageConversations );
             messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
         }
