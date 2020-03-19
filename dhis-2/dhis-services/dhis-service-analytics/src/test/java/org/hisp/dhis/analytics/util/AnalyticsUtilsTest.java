@@ -105,7 +105,7 @@ public class AnalyticsUtilsTest
     }
 
     @Test
-    public void testConvertDxToOperandCocOnlyNoDmensions()
+    public void testConvertDxToOperandCocOnlyNoDimensions()
     {
         Map<String, Double> map = new HashMap<>();
         map.put( "GauDLAiXPKT-kC1OT9Q1n1j", 10d );

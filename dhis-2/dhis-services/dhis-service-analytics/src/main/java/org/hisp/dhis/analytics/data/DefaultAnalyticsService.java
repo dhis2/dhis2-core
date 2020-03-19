@@ -29,36 +29,9 @@ package org.hisp.dhis.analytics.data;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.DataQueryParams.Builder;
-import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.*;
+import static org.hisp.dhis.common.DataDimensionItemType.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
@@ -141,7 +114,6 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.hisp.dhis.visualization.Visualization;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -640,6 +612,10 @@ public class DefaultAnalyticsService
 
         //TODO Check if data was dim or filter
 
+        List<String> operandKeys = operands.stream()
+            .map( o -> AnalyticsUtils.convertDimensionToOperand( AnalyticsUtils.getOperandKey( o ), totalType ) )
+            .collect( Collectors.toList() );
+
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params )
             .removeDimension( DATA_X_DIM_ID )
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, dataElements ) );
@@ -662,15 +638,19 @@ public class DefaultAnalyticsService
 
         for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
         {
-            Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
-
-            grid.addRow()
-                .addValues( entry.getKey().split( DIMENSION_SEP ) )
-                .addValue( value );
-
-            if ( params.isIncludeNumDen() )
+            // only add the operand if it's included in the DataQueryParams
+            if ( operandKeys.stream().anyMatch( k -> entry.getKey().startsWith( k ) ) )
             {
-                grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
+                Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
+
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( value );
+
+                if ( params.isIncludeNumDen() )
+                {
+                    grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
+                }
             }
         }
     }

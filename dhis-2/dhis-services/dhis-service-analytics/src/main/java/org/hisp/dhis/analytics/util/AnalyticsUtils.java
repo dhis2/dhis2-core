@@ -29,12 +29,7 @@ package org.hisp.dhis.analytics.util;
  */
 
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -46,6 +41,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -95,7 +91,6 @@ import org.joda.time.DateTime;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -293,7 +288,32 @@ public class AnalyticsUtils
     }
 
     /**
-     * Converts the data and option combo identifiers to an operand identifier,
+     * Generates an operand identifier from a {@see DataElementOperand} object
+     *
+     * The identifier has the following format:
+     *
+     * [dataElementUid]-[CoCUid]-[AoCUid]
+     *
+     * @param dataElementOperand a {@see DataElementOperand}
+     * @return an identifier
+     */
+    public static String getOperandKey( DataElementOperand dataElementOperand )
+    {
+        String key = dataElementOperand.getDataElement().getUid();
+        if ( dataElementOperand.getCategoryOptionCombo() != null )
+        {
+            key += DimensionalObject.DIMENSION_SEP + dataElementOperand.getCategoryOptionCombo().getUid();
+        }
+        if ( dataElementOperand.getAttributeOptionCombo() != null )
+        {
+            key += DimensionalObject.DIMENSION_SEP + dataElementOperand.getAttributeOptionCombo().getUid();
+
+        }
+        return key;
+    }
+    
+    /**
+     * Converts the map keys (data value and option combo identifiers) to an operand identifier,
      * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link TotalType#AOC_ONLY}
      * a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be inserted after the data
      * item.
@@ -304,30 +324,37 @@ public class AnalyticsUtils
      */
     public static <T> Map<String, T> convertDxToOperand( Map<String, T> valueMap, TotalType totalType )
     {
-        Map<String, T> map = Maps.newHashMap();
+        return valueMap.entrySet().stream()
+            .collect( Collectors.toMap( k -> convertDimensionToOperand( k.getKey(), totalType ), Entry::getValue ) );
+    }
 
-        for ( Entry<String, T> entry : valueMap.entrySet() )
+    /**
+     * Converts the data and option combo identifiers to an operand identifier,
+     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link TotalType#AOC_ONLY}
+     * a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be inserted after the data
+     * item.
+     *
+     * @param identifier a data value + option combo identifier.
+     * @param totalType the {@link TotalType}.
+     * @return an operand identifier
+     */
+    public static String convertDimensionToOperand( String identifier, TotalType totalType )
+    {
+        List<String> items = Lists.newArrayList( identifier.split( DimensionalObject.DIMENSION_SEP ) );
+        List<String> operands = Lists.newArrayList( items.subList( 0, totalType.getPropertyCount() + 1 ) );
+        List<String> dimensions = Lists.newArrayList( items.subList( totalType.getPropertyCount() + 1, items.size() ) );
+
+        // Add wild card in place of category option combination
+
+        if ( TotalType.AOC_ONLY == totalType )
         {
-            List<String> items = Lists.newArrayList( entry.getKey().split( DimensionalObject.DIMENSION_SEP ) );
-            List<String> operands = Lists.newArrayList( items.subList( 0, totalType.getPropertyCount() + 1 ) );
-            List<String> dimensions = Lists.newArrayList( items.subList( totalType.getPropertyCount() + 1, items.size() ) );
-
-            // Add wild card in place of category option combination
-
-            if ( TotalType.AOC_ONLY == totalType )
-            {
-                operands.add( 1, SYMBOL_WILDCARD );
-            }
-
-            String operand = StringUtils.join( operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP );
-            String dimension = StringUtils.join( dimensions, DimensionalObject.DIMENSION_SEP );
-            dimension = !dimension.isEmpty() ? ( DimensionalObject.DIMENSION_SEP + dimension ) : StringUtils.EMPTY;
-            String key = operand + dimension;
-
-            map.put( key, entry.getValue() );
+            operands.add( 1, SYMBOL_WILDCARD );
         }
 
-        return map;
+        String operand = StringUtils.join( operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP );
+        String dimension = StringUtils.join( dimensions, DimensionalObject.DIMENSION_SEP );
+        dimension = !dimension.isEmpty() ? (DimensionalObject.DIMENSION_SEP + dimension) : StringUtils.EMPTY;
+        return operand + dimension;
     }
 
     /**
