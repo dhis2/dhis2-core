@@ -28,8 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -44,7 +44,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.Translation;
@@ -65,6 +64,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+
 import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
 /**
@@ -83,11 +84,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private static final Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 2, TimeUnit.HOURS )
-        .initialCapacity( 4 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10 )
-        .build();
+    private static Cache<IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
     @Autowired
     private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
@@ -104,10 +101,25 @@ public class DefaultIdentifiableObjectManager
     @Autowired
     protected SchemaService schemaService;
 
+    @Autowired
+    private CacheProvider cacheProvider;
+    
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
 
+    @PostConstruct
+    public void init()
+    {
+        DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
+            .forRegion( "defaultObjectCache" )
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .withInitialCapacity( 4 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10 )
+            .build();
+    }
+    
     //--------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
     //--------------------------------------------------------------------------
@@ -956,10 +968,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> HibernateUtils.initializeProxy( getByName( Category.class, "default" ) ) ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> HibernateUtils.initializeProxy( getByName( CategoryCombo.class, "default" ) ) ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> HibernateUtils.initializeProxy( getByName( CategoryOption.class, "default" ) ) ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> HibernateUtils.initializeProxy( getByName( CategoryOptionCombo.class, "default" ) ) ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> getByName( Category.class, "default" ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
             .build();
     }
 

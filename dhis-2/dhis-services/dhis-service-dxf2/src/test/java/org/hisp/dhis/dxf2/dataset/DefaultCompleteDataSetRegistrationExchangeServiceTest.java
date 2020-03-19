@@ -161,7 +161,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         CacheProvider cacheProvider = new DefaultCacheProvider();
 
-        InputUtils inputUtils = new InputUtils( categoryService, idObjManager );
+        InputUtils inputUtils = new InputUtils( categoryService, idObjManager, cacheProvider );
 
         DefaultAggregateAccessManager aggregateAccessManager = new DefaultAggregateAccessManager( aclService );
 

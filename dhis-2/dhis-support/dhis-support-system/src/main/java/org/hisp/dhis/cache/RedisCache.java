@@ -61,7 +61,7 @@ public class RedisCache<V> implements Cache<V>
      * @param cacheBuilder The cache builder instance
      */
     @SuppressWarnings( "unchecked" )
-    public RedisCache( CacheBuilder<V> cacheBuilder )
+    public RedisCache( ExtendedCacheBuilder<V> cacheBuilder )
     {
         this.redisTemplate = (RedisTemplate<String, V>) cacheBuilder.getRedisTemplate();
         this.refreshExpriryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
@@ -171,7 +171,12 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public void invalidateAll()
     {
-        Set<String> keysToDelete = redisTemplate.keys( cacheRegion.concat( ":*" ) );
-        redisTemplate.delete( keysToDelete );
+        // No operation
+    }
+    
+    @Override
+    public CacheType getCacheType()
+    {
+        return CacheType.REDIS;
     }
 }

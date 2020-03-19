@@ -919,6 +919,7 @@
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="cacheProvider" ref="cacheProvider" />
   </bean>
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"

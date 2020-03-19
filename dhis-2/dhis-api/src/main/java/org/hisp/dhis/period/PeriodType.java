@@ -29,8 +29,8 @@ package org.hisp.dhis.period;
  */
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.calendar.DateInterval;
@@ -63,10 +63,11 @@ public abstract class PeriodType
     implements Serializable
 {
     // Cache for period lookup, uses calendar.name() + periodType.getName() + date.getTime() as key
-    private static Cache<String, Period> PERIOD_CACHE = Caffeine.newBuilder()
+    private static Cache<Period> PERIOD_CACHE = new SimpleCacheBuilder<Period>()
+        .forRegion( "periodCache" )
         .expireAfterAccess( 12, TimeUnit.HOURS )
-        .initialCapacity( 10000 )
-        .maximumSize( 30000 )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 30000 )
         .build();
 
     private String getCacheKey( Date date )
@@ -295,7 +296,7 @@ public abstract class PeriodType
      */
     public Period createPeriod( final Date date )
     {
-        return PERIOD_CACHE.get( getCacheKey( date ), s -> createPeriod( createCalendarInstance( date ) ) );
+        return PERIOD_CACHE.get( getCacheKey( date ), s -> createPeriod( createCalendarInstance( date ) ) ).orElse( null );
     }
 
     public Period createPeriod( Calendar cal )
@@ -317,7 +318,7 @@ public abstract class PeriodType
      */
     public Period createPeriod( final Date date, final org.hisp.dhis.calendar.Calendar calendar )
     {
-        return PERIOD_CACHE.get( getCacheKey( calendar, date ), p -> createPeriod( calendar.fromIso( DateTimeUnit.fromJdkDate( date ) ), calendar ) );
+        return PERIOD_CACHE.get( getCacheKey( calendar, date ), p -> createPeriod( calendar.fromIso( DateTimeUnit.fromJdkDate( date ) ), calendar ) ).orElse( null );
     }
 
     public Period toIsoPeriod( DateTimeUnit start, DateTimeUnit end )
