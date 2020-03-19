@@ -183,7 +183,7 @@ public class TrackedEntityImportValidationTest
                 new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
-        User user = userService.getUser( "--netroms--" );
+        User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -207,7 +207,7 @@ public class TrackedEntityImportValidationTest
                 new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
-        User user = userService.getUser( "--netroms--" );
+        User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -230,7 +230,7 @@ public class TrackedEntityImportValidationTest
                 new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
-        User user = userService.getUser( "--morten---" );
+        User user = userService.getUser( "---USER1---" );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -253,7 +253,7 @@ public class TrackedEntityImportValidationTest
                 new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
-        User user = userService.getUser( "---nils----" );
+        User user = userService.getUser( "---USER3---" );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -667,5 +667,67 @@ public class TrackedEntityImportValidationTest
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1063 ) ) ) );
+    }
+
+    @Test
+    public void testDeleteCascadeProgramInstances()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+        importProgramInstances();
+
+        trackerBundleParams = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user2 = userService.getUser( "---USER4---" );
+        trackerBundleParams.setUser( user2 );
+
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.DELETE );
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
+
+        report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1100 ) ) ) );
+    }
+
+    protected void importProgramInstances()
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 }

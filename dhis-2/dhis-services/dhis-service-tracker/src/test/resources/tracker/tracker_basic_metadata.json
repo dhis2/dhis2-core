@@ -536,7 +536,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "--netroms--"
+          "id": "---USER2---"
         },
         "name": "netroms netroms",
         "displayName": "netroms netroms",
@@ -565,7 +565,7 @@
       },
       "firstName": "netroms",
       "surname": "netroms",
-      "id": "--netroms--",
+      "id": "---USER2---",
       "attributeValues": [ ]
     },
 
@@ -598,7 +598,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "--morten---"
+          "id": "---USER1---"
         },
         "name": "morten morten",
         "displayName": "morten morten",
@@ -627,7 +627,7 @@
       },
       "firstName": "morten",
       "surname": "morten",
-      "id": "--morten---",
+      "id": "---USER1---",
       "attributeValues": [ ]
     },
 
@@ -662,7 +662,7 @@
         ],
         "lastUpdated": "2019-03-29T08:57:41.766",
         "userInfo": {
-          "id": "---nils----"
+          "id": "---USER3---"
         },
         "name": "nils nilsen",
         "displayName": "nils nilsen",
@@ -691,11 +691,72 @@
       },
       "firstName": "nils",
       "surname": "nilsen",
-      "id": "---nils----",
+      "id": "---USER3---",
       "attributeValues": [ ]
     }
 
-
+    ,
+    {
+      "dataViewOrganisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "teiSearchOrganisationUnits": [ ],
+      "created": "2019-03-25T13:58:35.560",
+      "code": "user4",
+      "organisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "lastUpdated": "2019-03-29T08:57:41.890",
+      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+      "userCredentials": {
+        "attributeValues": [ ],
+        "favorite": false,
+        "catDimensionConstraints": [ ],
+        "userAccesses": [ ],
+        "disabled": false,
+        "userRoles": [
+          {
+            "id": "---user----"
+          }
+        ],
+        "lastUpdated": "2019-03-29T08:57:41.766",
+        "userInfo": {
+          "id": "---USER4---"
+        },
+        "name": "admin admin",
+        "displayName": "admin admin",
+        "favorites": [ ],
+        "selfRegistered": false,
+        "externalAccess": false,
+        "externalAuth": false,
+        "twoFA": false,
+        "username": "user4",
+        "id": "___USER4___",
+        "userGroupAccesses": [ ],
+        "created": "2019-03-29T08:57:41.766",
+        "access": {
+          "externalize": true,
+          "read": true,
+          "manage": true,
+          "delete": true,
+          "write": true,
+          "update": true
+        },
+        "cogsDimensionConstraints": [ ],
+        "invitation": false,
+        "lastLogin": "2019-03-29T12:42:06.495",
+        "translations": [ ],
+        "passwordLastUpdated": "2019-03-29T08:57:41.766"
+      },
+      "firstName": "user4",
+      "surname": "user4",
+      "id": "---USER4---",
+      "attributeValues": [ ]
+    }
 
   ],
   "userGroups": [
@@ -706,14 +767,17 @@
       "name": "UGA",
       "users": [
         {
-          "id": "---nils----"
+          "id": "---USER3---"
+        },
+        {
+          "id": "---USER4---"
         }
       ],
       "id": "hlXvBLHZwCt",
       "created": "2016-03-03T07:15:44.419+0000",
       "publicAccess": "rw------",
       "user": {
-        "id": "---nils----"
+        "id": "---USER3---"
       },
       "managedGroups": []
     },
@@ -724,13 +788,16 @@
       "attributeValues": [],
       "users": [
         {
-          "id": "---nils----"
+          "id": "---USER3---"
+        },
+        {
+          "id": "---USER4---"
         }
       ],
       "managedGroups": [],
       "publicAccess": "rw------",
       "user": {
-        "id": "---nils----"
+        "id": "---USER3---"
       },
       "created": "2016-03-03T07:15:52.940+0000",
       "id": "jCDKJBruqjc"
@@ -818,7 +885,6 @@
         "F_PERFORM_MAINTENANCE",
         "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
         "F_METADATA_EXPORT",
-        "F_TEI_CASCADE_DELETE",
         "F_EXPORT_DATA",
         "F_APPROVE_DATA",
         "F_ACCEPT_DATA_LOWER_LEVELS",

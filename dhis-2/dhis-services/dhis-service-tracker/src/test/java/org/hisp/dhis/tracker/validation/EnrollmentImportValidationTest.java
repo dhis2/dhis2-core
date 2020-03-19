@@ -318,7 +318,7 @@ public class EnrollmentImportValidationTest
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
-        User user = userService.getUser( "--netroms--" );
+        User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
