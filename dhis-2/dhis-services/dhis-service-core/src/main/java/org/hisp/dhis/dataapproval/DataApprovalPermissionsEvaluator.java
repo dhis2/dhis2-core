@@ -28,8 +28,8 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -72,9 +72,11 @@ class DataApprovalPermissionsEvaluator
     {
     }
 
-    private static Cache<String, DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 10, TimeUnit.MINUTES ).initialCapacity( 10000 )
-        .maximumSize( 50000 ).build();
+    private static Cache<DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE = new SimpleCacheBuilder<DataApprovalLevel>().forRegion( "userApprovalLevelCache" )
+        .expireAfterAccess( 10, TimeUnit.MINUTES )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     /**
      * Clears the user approval level cache, for unit testing when the same user
@@ -237,7 +239,7 @@ class DataApprovalPermissionsEvaluator
         userApprovalLevel = USER_APPROVAL_LEVEL_CACHE.get( user.getId() + "-" + organisationUnitUid,
             c -> dataApprovalLevelService.getUserApprovalLevel( user,
                 organisationUnitService.getOrganisationUnit( organisationUnitUid ),
-                dataApprovalWorkflow.getSortedLevels() ) );
+                dataApprovalWorkflow.getSortedLevels() ) ).orElse( null );
 
         return userApprovalLevel;
     }

@@ -45,7 +45,7 @@ public class NoOpCache<V> implements Cache<V>
 {
     private V defaultValue;
 
-    public NoOpCache( CacheBuilder<V> cacheBuilder )
+    public NoOpCache( SimpleCacheBuilder<V> cacheBuilder )
     {
         this.defaultValue = cacheBuilder.getDefaultValue();
     }
@@ -98,5 +98,11 @@ public class NoOpCache<V> implements Cache<V>
     public void invalidateAll()
     {
         // No operation
+    }
+    
+    @Override
+    public CacheType getCacheType()
+    {
+        return CacheType.NONE;
     }
 }

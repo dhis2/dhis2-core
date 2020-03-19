@@ -38,14 +38,16 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -55,10 +57,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
-    private static final Cache<String, List<String>> CAN_DATA_WRITE_COC_CACHE = Caffeine.newBuilder()
-        .expireAfterWrite( 3, TimeUnit.HOURS )
-        .initialCapacity( 1000 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+    private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
 
     private final AclService aclService;
 
@@ -67,6 +66,17 @@ public class DefaultAggregateAccessManager
         checkNotNull( aclService );
 
         this.aclService = aclService;
+    }
+    
+    @PostConstruct
+    public void init()
+    {
+        CAN_DATA_WRITE_COC_CACHE = new SimpleCacheBuilder<List<String>>().forRegion( "canDataWriteCocCache" )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 )
+            .build();
     }
 
     // ---------------------------------------------------------------------
@@ -173,7 +183,7 @@ public class DefaultAggregateAccessManager
     {
         String cacheKey = user.getUid() + "-" + optionCombo.getUid();
 
-        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) );
+        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) ).orElse( null );
     }
 
     @Override

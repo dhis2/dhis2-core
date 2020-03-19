@@ -109,4 +109,11 @@ public interface Cache<V>
      * this method does not clear anything.
      */
     void invalidateAll();
+   
+    /**
+     * Returns the type of the cache. IN_MEMORY or REDIS or NONE.
+     * 
+     * @return
+     */
+    CacheType getCacheType();
 }

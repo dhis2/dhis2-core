@@ -28,8 +28,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Service for retrieving information about the currently
@@ -62,11 +64,7 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase.
      * Take care not to cache user info which might change during runtime.
      */
-    private static final Cache<String, Integer> USERNAME_ID_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 1, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 4000 )
-        .build();
+    private static Cache<Integer> USERNAME_ID_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -77,6 +75,21 @@ public class DefaultCurrentUserService
 
     @Autowired
     private SessionRegistry sessionRegistry;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
+    
+    @PostConstruct
+    public void init()
+    {
+        USERNAME_ID_CACHE = cacheProvider.newCacheBuilder( Integer.class )
+            .forRegion( "userIdCache" )
+            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 4000 )
+            .build();
+    }
 
 
     // -------------------------------------------------------------------------
@@ -94,7 +107,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Integer userId = USERNAME_ID_CACHE.get( username, this::getUserId);
+        Integer userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
 
         if ( userId == null )
         {
@@ -115,7 +128,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
+        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) ).orElse( null );
 
         if ( userId == null )
         {

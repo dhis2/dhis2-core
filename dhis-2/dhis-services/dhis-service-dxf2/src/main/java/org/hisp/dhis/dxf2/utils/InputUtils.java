@@ -39,12 +39,14 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,22 +55,34 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class InputUtils
 {
-    private static final Cache<String, Integer> ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
-        .expireAfterWrite( 3, TimeUnit.HOURS )
-        .initialCapacity( 1000 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+    private static Cache<Integer> ATTR_OPTION_COMBO_ID_CACHE;
 
     private final CategoryService categoryService;
 
     private final IdentifiableObjectManager idObjectManager;
+    
+    private CacheProvider cacheProvider;
 
-    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager )
+    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
     {
         checkNotNull( categoryService );
         checkNotNull( idObjectManager );
 
         this.categoryService = categoryService;
         this.idObjectManager = idObjectManager;
+        this.cacheProvider = cacheProvider;
+    }
+    
+    @PostConstruct
+    public void init()
+    {
+        ATTR_OPTION_COMBO_ID_CACHE = cacheProvider.newCacheBuilder( Integer.class )
+            .forRegion( "attrOptionComboIdCache" )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 )
+            .build();
     }
 
     /**
@@ -87,7 +101,7 @@ public class InputUtils
     {
         String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
 
-        Integer id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
+        Integer id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey ).orElse( null );
 
         if ( id != null )
         {
