@@ -41,6 +41,7 @@ import org.hisp.dhis.category.CategoryService;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -55,36 +56,26 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class InputUtils
 {
-    private static Cache<Integer> ATTR_OPTION_COMBO_ID_CACHE;
+    private static Cache<Integer>  ATTR_OPTION_COMBO_ID_CACHE = new SimpleCacheBuilder<Integer>()
+        .expireAfterWrite( 3, TimeUnit.HOURS )
+        .withInitialCapacity( 1000 )
+        .forceInMemory()
+        .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 )
+        .build();
 
     private final CategoryService categoryService;
 
     private final IdentifiableObjectManager idObjectManager;
     
-    private CacheProvider cacheProvider;
-
-    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
+    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager )
     {
         checkNotNull( categoryService );
         checkNotNull( idObjectManager );
 
         this.categoryService = categoryService;
         this.idObjectManager = idObjectManager;
-        this.cacheProvider = cacheProvider;
     }
     
-    @PostConstruct
-    public void init()
-    {
-        ATTR_OPTION_COMBO_ID_CACHE = cacheProvider.newCacheBuilder( Integer.class )
-            .forRegion( "attrOptionComboIdCache" )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
-            .withInitialCapacity( 1000 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 )
-            .build();
-    }
-
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as
      * status code along with a textual message will be set on the response in
