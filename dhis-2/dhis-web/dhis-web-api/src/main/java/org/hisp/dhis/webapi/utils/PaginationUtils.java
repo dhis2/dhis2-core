@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,68 +26,33 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+package org.hisp.dhis.webapi.utils;
 
-import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.query.Pagination;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public abstract class Criteria
+public class PaginationUtils
 {
-    protected List<Criterion> criterions = new ArrayList<>();
+    private final static Pagination NO_PAGINATION = new Pagination();
 
-    protected Set<String> aliases = new HashSet<>();
-
-    protected final Schema schema;
-
-    public Criteria( Schema schema )
+    /**
+     * Calculates the paging first result based on pagination data from
+     * {@see WebOptions} if the WebOptions have pagination information
+     * 
+     * The first result is simply calculated by multiplying page * page size
+     * 
+     * @param options a {@see WebOptions} object
+     * @return a {@see PaginationData} object either empty or containing pagination
+     *         data
+     */
+    public static Pagination getPaginationData( WebOptions options )
     {
-        this.schema = schema;
-    }
-
-    public List<Criterion> getCriterions()
-    {
-        return criterions;
-    }
-
-    public Set<String> getAliases()
-    {
-        return aliases;
-    }
-
-    public Criteria add( Criterion criterion )
-    {
-        if ( !(criterion instanceof Restriction) )
-        {
-            this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
-            return this;
-        }
-
-        Restriction restriction = (Restriction) criterion;
-
-        this.criterions.add( restriction );
-
-        return this;
-    }
-
-    public Criteria add( Criterion... criterions )
-    {
-        for ( Criterion criterion : criterions )
-        {
-            add( criterion );
-        }
-
-        return this;
-    }
-
-    public Criteria add( Collection<Criterion> criterions )
-    {
-        criterions.forEach( this::add );
-        return this;
+        return options.hasPaging()
+            ? new Pagination( options.getPage() == 1 ? 1 : (options.getPage() * options.getPageSize()),
+                options.getPageSize() )
+            : NO_PAGINATION;
     }
 }
