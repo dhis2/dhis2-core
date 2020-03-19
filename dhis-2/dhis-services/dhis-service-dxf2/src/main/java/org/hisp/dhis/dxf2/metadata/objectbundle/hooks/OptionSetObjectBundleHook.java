@@ -1,4 +1,4 @@
-package org.hisp.dhis.category;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,31 +28,50 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.option.OptionSet;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Set;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author Lars Helge Overland
- */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+@Component
+public class OptionSetObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+    @Override
+    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !OptionSet.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
 
-    void updateNames();
+        updateOption( (OptionSet) persistedObject );
+    }
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( !OptionSet.class.isInstance( persistedObject ) )
+        {
+            return;
+        }
 
-    /**
-     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
-     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
-     */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
+        updateOption( (OptionSet) persistedObject );
+    }
+
+    private void updateOption( OptionSet optionSet )
+    {
+        optionSet.getOptions().forEach( option -> {
+
+            if ( option.getOptionSet() == null )
+            {
+                option.setOptionSet( optionSet );
+            }
+        } );
+
+        sessionFactory.getCurrentSession().refresh( optionSet );
+    }
 }

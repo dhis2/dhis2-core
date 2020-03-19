@@ -28,7 +28,6 @@ package org.hisp.dhis.resourcetable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 
 import java.util.List;
@@ -37,7 +36,6 @@ import java.util.Optional;
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
 public abstract class ResourceTable<T>
 {
     protected static final String TEMP_TABLE_SUFFIX = "_temp";
