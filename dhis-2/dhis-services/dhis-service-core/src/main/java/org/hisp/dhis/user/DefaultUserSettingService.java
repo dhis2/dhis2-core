@@ -75,8 +75,6 @@ public class DefaultUserSettingService implements UserSettingService
 
     private final Environment env;
 
-    private final TransactionTemplate transactionTemplate;
-
     private final CacheProvider cacheProvider;
 
     private final CurrentUserService currentUserService;
@@ -100,7 +98,6 @@ public class DefaultUserSettingService implements UserSettingService
         checkNotNull( systemSettingManager );
 
         this.env = env;
-        this.transactionTemplate = transactionTemplate;
         this.cacheProvider = cacheProvider;
         this.currentUserService = currentUserService;
         this.userSettingStore = userSettingStore;
@@ -344,8 +341,7 @@ public class DefaultUserSettingService implements UserSettingService
             return Optional.empty();
         }
 
-        UserSetting setting = transactionTemplate
-            .execute( status -> userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() ) );
+        UserSetting setting = userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() );
 
         Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
 
