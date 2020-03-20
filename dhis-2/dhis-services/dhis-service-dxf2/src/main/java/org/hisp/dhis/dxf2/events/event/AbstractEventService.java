@@ -34,12 +34,14 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import java.io.IOException;
 import java.util.*;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -250,6 +252,13 @@ public abstract class AbstractEventService
     private CachingMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new CachingMap<>();
 
     private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
+
+    private static Cache<Boolean> PROGRAM_HAS_ORG_UNIT_CACHE = new SimpleCacheBuilder<Boolean>()
+        .forRegion( "programHasOrgUnitCache" )
+        .expireAfterAccess( 60, TimeUnit.MINUTES )
+        .withInitialCapacity( 1000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     private Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
@@ -509,7 +518,12 @@ public abstract class AbstractEventService
             programStage = programStageInstance.getProgramStage();
         }
 
-        if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
+        final Program instanceProgram = programInstance.getProgram();
+        final String cacheKey = instanceProgram.getUid() + organisationUnit.getUid();
+        boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( cacheKey,
+            key -> instanceProgram.hasOrganisationUnit( organisationUnit ) ).get();
+
+        if ( !programHasOrgUnit )
         {
             return new ImportSummary( ImportStatus.ERROR, "Program is not assigned to this organisation unit: " + event.getOrgUnit() )
                 .setReference( event.getEvent() ).incrementIgnored();
@@ -1438,7 +1452,7 @@ public abstract class AbstractEventService
             {
                 entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
             }
-            
+
             ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" ).incrementDeleted();
             importSummary.setReference( uid );
             return importSummary;
