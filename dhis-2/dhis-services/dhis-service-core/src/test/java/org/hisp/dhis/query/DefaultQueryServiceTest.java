@@ -65,8 +65,6 @@ public class DefaultQueryServiceTest
     @Mock
     private QueryParser queryParser;
 
-    private QueryPlanner queryPlanner;
-
     @Mock
     private CriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
 
@@ -79,7 +77,7 @@ public class DefaultQueryServiceTest
     @Before
     public void setUp()
     {
-        queryPlanner = new DefaultQueryPlanner( schemaService );
+        QueryPlanner queryPlanner = new DefaultQueryPlanner( schemaService );
         subject = new DefaultQueryService( queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine );
     }
 
@@ -111,8 +109,8 @@ public class DefaultQueryServiceTest
         return result;
     }
 
-    class QueryWithPagination
-        extends
+    static class QueryWithPagination
+        implements
         ArgumentMatcher<Query>
     {
         int first;
@@ -126,10 +124,9 @@ public class DefaultQueryServiceTest
         }
 
         @Override
-        public boolean matches( Object o )
+        public boolean matches( Query query )
         {
-            Query q = (Query) o;
-            return q.getFirstResult() == first && q.getMaxResults() == size;
+            return query.getFirstResult() == first && query.getMaxResults() == size;
         }
     }
 
