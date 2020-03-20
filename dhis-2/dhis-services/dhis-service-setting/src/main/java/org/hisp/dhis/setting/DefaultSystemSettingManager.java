@@ -47,7 +47,6 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -105,7 +104,6 @@ public class DefaultSystemSettingManager
         this.systemSettingStore = systemSettingStore;
         this.transactionTemplate = new TransactionTemplate( transactionManager );
         this.transactionTemplate.setReadOnly( true );
-        this.transactionTemplate.setPropagationBehavior( TransactionDefinition.PROPAGATION_REQUIRES_NEW );
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
