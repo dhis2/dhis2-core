@@ -162,8 +162,8 @@ public class ProgramInstanceServiceTest
         programInstanceA.setOrganisationUnit( organisationUnitA );
 
         programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
-        programInstanceA.setUid( "UID-PSI-A" );
-        programInstanceA.setOrganisationUnit( organisationUnitA );
+        programStageInstanceA.setUid( "UID-PSI-A" );
+        programStageInstanceA.setOrganisationUnit( organisationUnitA );
 
         programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programB );
         programInstanceB.setUid( "UID-B" );
