@@ -296,6 +296,13 @@ public abstract class AbstractEventService
             .withMaximumSize( 50000 )
             .build();
 
+    private static Cache<Boolean> PROGRAM_HAS_ORG_UNIT_CACHE = new SimpleCacheBuilder<Boolean>()
+        .forRegion( "programHasOrgUnitCache" )
+        .expireAfterAccess( 60, TimeUnit.MINUTES )
+        .withInitialCapacity( 1000 )
+        .withMaximumSize( 50000 )
+        .build();
+
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
@@ -598,7 +605,12 @@ public abstract class AbstractEventService
             programStage = programStageInstance.getProgramStage();
         }
 
-        if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
+        final Program instanceProgram = programInstance.getProgram();
+        final String cacheKey = instanceProgram.getUid() + organisationUnit.getUid();
+        boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( cacheKey,
+            key -> instanceProgram.hasOrganisationUnit( organisationUnit ) ).get();
+
+        if ( !programHasOrgUnit )
         {
             return new ImportSummary( ImportStatus.ERROR, "Program is not assigned to this organisation unit: " + event.getOrgUnit() )
                 .setReference( event.getEvent() ).incrementIgnored();
@@ -976,7 +988,7 @@ public abstract class AbstractEventService
         {
 
             DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
-            
+
             if ( dataElement != null )
             {
                 errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
@@ -1405,7 +1417,7 @@ public abstract class AbstractEventService
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event, importOptions );
-        
+
         eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
@@ -2119,7 +2131,7 @@ public abstract class AbstractEventService
             }
         }
     }
-    
+
     private ProgramStage getProgramStage( IdScheme idScheme, String id )
     {
         if ( id == null )
