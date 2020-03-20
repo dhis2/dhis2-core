@@ -215,7 +215,7 @@ public class ProgramInstanceServiceTest
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-//        programInstanceA.setId( idA );
+
         programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
         programInstanceService.updateProgramInstance( programInstanceA );
 
@@ -226,29 +226,6 @@ public class ProgramInstanceServiceTest
 
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
-
-    }
-
-    @Test
-    public void testHardDeleteProgramInstanceAndLinkedProgramStageInstance()
-    {
-        long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-//        programInstanceA.setId( idA );
-        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
-        programInstanceService.updateProgramInstance( programInstanceA );
-
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
-
-        programInstanceService.deleteProgramInstance( programInstanceA, true );
-
-        assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
-
-        List<String> uids = Lists.newArrayList();
-        uids.add( programStageInstanceA.getUid() );
-        assertTrue( programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted( uids ).isEmpty() );
 
     }
 

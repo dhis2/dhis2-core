@@ -39,6 +39,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
@@ -62,7 +63,7 @@ import com.google.common.collect.Sets;
  */
 @Repository( "org.hisp.dhis.program.ProgramStageInstanceStore" )
 public class HibernateProgramStageInstanceStore
-    extends HibernateIdentifiableObjectStore<ProgramStageInstance>
+    extends SoftDeleteHibernateObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
 {
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =

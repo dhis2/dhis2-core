@@ -1,4 +1,4 @@
-package org.hisp.dhis.program;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,67 +28,49 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Iterator;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.audit.AuditAttribute;
 
 /**
- * @author Quang Nguyen
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.program.ProgramInstanceDeletionHandler" )
-public class ProgramInstanceDeletionHandler
-    extends DeletionHandler
+@JacksonXmlRootElement( localName = "softDeletableObject", namespace = DxfNamespaces.DXF_2_0 )
+public class SoftDeletableObject extends BaseIdentifiableObject
 {
+    /**
+     * Boolean to check if the object is soft deleted.
+     */
+    @AuditAttribute
+    private boolean deleted = false;
+
     // -------------------------------------------------------------------------
-    // Dependencies
+    // Constructors
     // -------------------------------------------------------------------------
 
-    private final ProgramInstanceService programInstanceService;
-
-    public ProgramInstanceDeletionHandler( ProgramInstanceService programInstanceService )
+    public SoftDeletableObject()
     {
-        checkNotNull( programInstanceService );
-        this.programInstanceService = programInstanceService;
+    }
+
+    public SoftDeletableObject( boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     // -------------------------------------------------------------------------
-    // Implementation methods
+    // Setters and getters
     // -------------------------------------------------------------------------
 
-    @Override
-    public String getClassName()
+    @JsonProperty
+    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
     {
-        return ProgramInstance.class.getSimpleName();
+        return deleted;
     }
 
-    @Override
-    public void deleteTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public void setDeleted( Boolean deleted )
     {
-        for ( ProgramInstance programInstance : trackedEntityInstance.getProgramInstances() )
-        {
-            programInstanceService.deleteProgramInstance( programInstance );
-        }
-    }
-
-    @Override
-    public void deleteProgram( Program program )
-    {
-        Collection<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program );
-
-        if ( programInstances != null )
-        {
-            Iterator<ProgramInstance> iterator = programInstances.iterator();
-            while ( iterator.hasNext() )
-            {
-                ProgramInstance programInstance = iterator.next();
-                iterator.remove();
-                programInstanceService.deleteProgramInstance( programInstance );
-            }
-        }
+        this.deleted = deleted;
     }
 }

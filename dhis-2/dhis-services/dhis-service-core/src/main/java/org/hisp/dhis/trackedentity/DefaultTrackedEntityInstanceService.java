@@ -120,11 +120,11 @@ public class DefaultTrackedEntityInstanceService
     private final AclService aclService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
-    
+
     private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
     private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
-    
+
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -926,8 +926,7 @@ public class DefaultTrackedEntityInstanceService
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
-        instance.setDeleted( true );
-        trackedEntityInstanceStore.update( instance );
+        trackedEntityInstanceStore.delete( instance );
     }
 
     @Override

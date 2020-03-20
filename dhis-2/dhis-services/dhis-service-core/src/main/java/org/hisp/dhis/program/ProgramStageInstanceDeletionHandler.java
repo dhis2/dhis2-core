@@ -82,7 +82,7 @@ public class ProgramStageInstanceDeletionHandler
     {
         for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
         {
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance, false );
+            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
         }
     }
 
