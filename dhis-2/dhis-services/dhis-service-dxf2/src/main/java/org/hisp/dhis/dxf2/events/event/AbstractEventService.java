@@ -605,9 +605,9 @@ public abstract class AbstractEventService
             programStage = programStageInstance.getProgramStage();
         }
 
-        final ProgramInstance finalProgramInstance = programInstance;
+        final Program instanceProgram = programInstance.getProgram();
         boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( organisationUnit.getUid(),
-            key -> finalProgramInstance.getProgram().hasOrganisationUnit( organisationUnit ) ).get();
+            key -> instanceProgram.hasOrganisationUnit( organisationUnit ) ).get();
 
         if ( !programHasOrgUnit )
         {
