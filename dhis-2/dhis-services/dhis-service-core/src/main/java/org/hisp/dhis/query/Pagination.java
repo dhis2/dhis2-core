@@ -1,5 +1,3 @@
-package org.hisp.dhis.query;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,68 +26,49 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.schema.Schema;
+package org.hisp.dhis.query;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Simple POJO containing the pagination directive from the HTTP Request
+ * 
+ * @author Luciano Fiandesio
  */
-public abstract class Criteria
+public class Pagination
 {
-    protected List<Criterion> criterions = new ArrayList<>();
+    private int firstResult;
 
-    protected Set<String> aliases = new HashSet<>();
+    private int size;
 
-    protected final Schema schema;
+    private boolean hasPagination = false;
 
-    public Criteria( Schema schema )
+    public Pagination(int firstResult, int size )
     {
-        this.schema = schema;
+        assert (size > 0);
+        this.firstResult = firstResult;
+        this.size = size;
+        this.hasPagination = true;
     }
 
-    public List<Criterion> getCriterions()
+    /**
+     * This constructor can be used to signal that there is no pagination data
+     */
+    public Pagination()
     {
-        return criterions;
+        // empty constructor
     }
 
-    public Set<String> getAliases()
+    public int getFirstResult()
     {
-        return aliases;
+        return firstResult;
     }
 
-    public Criteria add( Criterion criterion )
+    public int getSize()
     {
-        if ( !(criterion instanceof Restriction) )
-        {
-            this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
-            return this;
-        }
-
-        Restriction restriction = (Restriction) criterion;
-
-        this.criterions.add( restriction );
-
-        return this;
+        return size;
     }
 
-    public Criteria add( Criterion... criterions )
+    public boolean hasPagination()
     {
-        for ( Criterion criterion : criterions )
-        {
-            add( criterion );
-        }
-
-        return this;
-    }
-
-    public Criteria add( Collection<Criterion> criterions )
-    {
-        criterions.forEach( this::add );
-        return this;
+        return hasPagination;
     }
 }

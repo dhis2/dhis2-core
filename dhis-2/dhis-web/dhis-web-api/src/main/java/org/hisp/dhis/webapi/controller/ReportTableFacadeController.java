@@ -113,6 +113,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.BeanUtils;
@@ -509,7 +510,8 @@ public abstract class ReportTableFacadeController {
             throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, uid ) );
         }
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
+            PaginationUtils.getPaginationData( options ), options.getRootJunction() );
         query.setUser( user );
         query.setObjects( entities );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
@@ -1080,7 +1082,8 @@ public abstract class ReportTableFacadeController {
         throws QueryParserException
     {
         List<Visualization> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders,
+            PaginationUtils.getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
