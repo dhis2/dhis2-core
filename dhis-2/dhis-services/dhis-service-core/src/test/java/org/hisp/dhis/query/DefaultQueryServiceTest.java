@@ -92,7 +92,7 @@ public class DefaultQueryServiceTest
 
         // Here we make sure that the pagination info are actually passed to the
         // Hibernate query engine
-        when( criteriaQueryEngine.query( argThat( new QueryWithPagination( query ) ) ) )
+        when( criteriaQueryEngine.query( argThat(new QueryWithPagination(query)) ) )
             .thenReturn( createOrgUnits( 20 ) );
 
         List<? extends IdentifiableObject> orgUnits = subject.query( query );
@@ -111,10 +111,8 @@ public class DefaultQueryServiceTest
         return result;
     }
 
-    class QueryWithPagination
-        extends
-        ArgumentMatcher<Query>
-    {
+    static class QueryWithPagination
+            implements ArgumentMatcher<Query> {
         int first;
 
         int size;
@@ -126,10 +124,9 @@ public class DefaultQueryServiceTest
         }
 
         @Override
-        public boolean matches( Object o )
+        public boolean matches( Query query )
         {
-            Query q = (Query) o;
-            return q.getFirstResult() == first && q.getMaxResults() == size;
+            return query.getFirstResult() == first && query.getMaxResults() == size;
         }
     }
 
