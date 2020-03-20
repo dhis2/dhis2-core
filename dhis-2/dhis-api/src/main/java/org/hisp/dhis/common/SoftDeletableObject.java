@@ -33,6 +33,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.audit.AuditAttribute;
 
+import java.util.Objects;
+
 /**
  * @author Enrico Colasante
  */
@@ -64,13 +66,38 @@ public class SoftDeletableObject extends BaseIdentifiableObject
 
     @JsonProperty
     @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isDeleted()
+    public boolean isDeleted()
     {
         return deleted;
     }
 
-    public void setDeleted( Boolean deleted )
+    public void setDeleted( boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+        SoftDeletableObject that = (SoftDeletableObject) o;
+        return deleted == that.deleted;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), deleted );
     }
 }
