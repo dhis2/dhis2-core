@@ -45,6 +45,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -103,6 +104,7 @@ public class DefaultUserSettingService implements UserSettingService
         this.env = env;
         this.transactionTemplate = new TransactionTemplate( transactionManager );
         this.transactionTemplate.setReadOnly( true );
+        this.transactionTemplate.setPropagationBehavior( TransactionDefinition.PROPAGATION_REQUIRES_NEW );
         this.cacheProvider = cacheProvider;
         this.currentUserService = currentUserService;
         this.userSettingStore = userSettingStore;
