@@ -105,7 +105,7 @@ function Selection()
     }
 
     this.getDisplayShortNames = function() {
-        return sessionStorage[ OU_USESHORTNAME_KEY ] 
+        return sessionStorage[ OU_USESHORTNAME_KEY ]
             ? sessionStorage[ OU_USESHORTNAME_KEY ] === "true" 
             : false;
     }
@@ -233,7 +233,7 @@ function Selection()
         // clear out old tree
         dhis2.ou.store.removeAll(OU_KEY).always(function() {
           // set new tree
-          dhis2.ou.store.setAll(OU_KEY, ous).always(function() { 
+          dhis2.ou.store.setAll(OU_KEY, ous).always(function() {
             def.resolve();
           });
         });
@@ -507,7 +507,7 @@ function Selection()
 
           if( selection.getSelected() && selection.getSelected().length === 0 ) {
         	  setTimeout(doSync, 1000); // Workaround for indexeddb slowness
-          } 
+          }
           else {
         	  doSync();
           }
