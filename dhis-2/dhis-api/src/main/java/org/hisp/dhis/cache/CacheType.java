@@ -1,6 +1,7 @@
 package org.hisp.dhis.cache;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +28,8 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Provides cache builder to build instances.
- * 
- * @author Ameen Mohamed
- */
-public interface CacheProvider
+public enum CacheType
 {
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
-     * stores the valueType specified.
-     * 
-     * 
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}
-     */
-    <V> CacheBuilder<V> newCacheBuilder(Class<V> valueType);
-}
+    NONE, IN_MEMORY, REDIS;
+
+} 

@@ -37,10 +37,11 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
+import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.util.Date;
@@ -57,10 +58,23 @@ public class HibernatePeriodStore
     extends HibernateIdentifiableObjectStore<Period>
     implements PeriodStore
 {
-    private static Cache<String, Integer> PERIOD_ID_CACHE =  Caffeine.newBuilder()
-        .expireAfterWrite( 24, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+    private static Cache<Integer> PERIOD_ID_CACHE;
+
+    @Autowired
+    private CacheProvider cacheProvider;
+    
+    @PostConstruct
+    public void init()
+    {
+
+        PERIOD_ID_CACHE = cacheProvider.newCacheBuilder( Integer.class )
+            .forRegion( "periodIdCache" )
+            .expireAfterWrite( 24, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 )
+            .build();
+    }
     
     // -------------------------------------------------------------------------
     // Period
@@ -171,7 +185,8 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Integer id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
+        Integer id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
+            .orElse( null );  
         
         Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
 

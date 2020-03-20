@@ -39,12 +39,15 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,15 +56,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class InputUtils
 {
-    private static final Cache<String, Integer> ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
+    private static Cache<Integer>  ATTR_OPTION_COMBO_ID_CACHE = new SimpleCacheBuilder<Integer>()
         .expireAfterWrite( 3, TimeUnit.HOURS )
-        .initialCapacity( 1000 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+        .withInitialCapacity( 1000 )
+        .forceInMemory()
+        .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 )
+        .build();
 
     private final CategoryService categoryService;
 
     private final IdentifiableObjectManager idObjectManager;
-
+    
     public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager )
     {
         checkNotNull( categoryService );
@@ -70,7 +75,7 @@ public class InputUtils
         this.categoryService = categoryService;
         this.idObjectManager = idObjectManager;
     }
-
+    
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as
      * status code along with a textual message will be set on the response in
@@ -87,7 +92,7 @@ public class InputUtils
     {
         String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
 
-        Integer id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
+        Integer id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey ).orElse( null );
 
         if ( id != null )
         {

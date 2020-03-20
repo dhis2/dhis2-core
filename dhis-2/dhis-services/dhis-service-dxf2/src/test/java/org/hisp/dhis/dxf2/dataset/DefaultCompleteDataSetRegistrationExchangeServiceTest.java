@@ -13,8 +13,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.cache.DefaultCacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -56,6 +54,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
@@ -64,6 +63,7 @@ import com.google.common.collect.Sets;
 
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( DefaultCompleteDataSetRegistrationExchangeService.class )
+@PowerMockIgnore("javax.management.*")
 public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
 
@@ -159,8 +159,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 
         when( environment.getActiveProfiles() ).thenReturn( new String[] { "test" } );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
-        CacheProvider cacheProvider = new DefaultCacheProvider();
-
         InputUtils inputUtils = new InputUtils( categoryService, idObjManager );
 
         DefaultAggregateAccessManager aggregateAccessManager = new DefaultAggregateAccessManager( aclService );
