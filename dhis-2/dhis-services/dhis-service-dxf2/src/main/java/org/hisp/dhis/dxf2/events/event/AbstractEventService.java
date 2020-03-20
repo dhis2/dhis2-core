@@ -606,7 +606,8 @@ public abstract class AbstractEventService
         }
 
         final Program instanceProgram = programInstance.getProgram();
-        boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( organisationUnit.getUid(),
+        final String cacheKey = instanceProgram.getUid() + organisationUnit.getUid();
+        boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( cacheKey,
             key -> instanceProgram.hasOrganisationUnit( organisationUnit ) ).get();
 
         if ( !programHasOrgUnit )
