@@ -101,6 +101,7 @@ public class DefaultUserSettingService implements UserSettingService
 
         this.env = env;
         this.transactionTemplate = transactionTemplate;
+        this.transactionTemplate.setReadOnly( true );
         this.cacheProvider = cacheProvider;
         this.currentUserService = currentUserService;
         this.userSettingStore = userSettingStore;

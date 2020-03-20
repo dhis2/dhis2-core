@@ -102,6 +102,7 @@ public class DefaultSystemSettingManager
 
         this.systemSettingStore = systemSettingStore;
         this.transactionTemplate = transactionTemplate;
+        this.transactionTemplate.setReadOnly( true );
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
@@ -258,6 +259,7 @@ public class DefaultSystemSettingManager
     public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
     {
         SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
+
         if ( setting != null )
         {
             return setting.getTranslation( locale );
