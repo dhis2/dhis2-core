@@ -46,6 +46,7 @@ import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -89,19 +90,19 @@ public class DefaultSystemSettingManager
 
     private List<String> flags;
 
-    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore, TransactionTemplate transactionTemplate,
+    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore, PlatformTransactionManager transactionManager,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
         Environment environment, List<String> flags )
     {
         checkNotNull( systemSettingStore );
-        checkNotNull( transactionTemplate );
+        checkNotNull( transactionManager );
         checkNotNull( pbeStringEncryptor );
         checkNotNull( cacheProvider );
         checkNotNull( environment );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
-        this.transactionTemplate = transactionTemplate;
+        this.transactionTemplate = new TransactionTemplate( transactionManager );
         this.transactionTemplate.setReadOnly( true );
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.cacheProvider = cacheProvider;

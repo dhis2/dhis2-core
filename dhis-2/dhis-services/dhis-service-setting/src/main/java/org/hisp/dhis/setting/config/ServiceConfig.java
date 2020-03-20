@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * @author Luciano Fiandesio
@@ -52,7 +52,7 @@ public class ServiceConfig
     private SystemSettingStore systemSettingStore;
 
     @Autowired
-    private TransactionTemplate transactionTemplate;
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     private CacheProvider cacheProvider;
@@ -190,7 +190,7 @@ public class ServiceConfig
         flags.add( "zanzibar" );
         flags.add( "zimbabwe" );
         flags.add( "who" );
-        return new DefaultSystemSettingManager( systemSettingStore, transactionTemplate, pbeStringEncryptor,
+        return new DefaultSystemSettingManager( systemSettingStore, transactionManager, pbeStringEncryptor,
             cacheProvider, environment, flags );
     }
 }

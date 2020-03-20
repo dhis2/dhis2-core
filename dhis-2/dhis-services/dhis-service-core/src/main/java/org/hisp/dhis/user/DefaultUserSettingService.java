@@ -44,6 +44,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -88,11 +89,11 @@ public class DefaultUserSettingService implements UserSettingService
     private final SystemSettingManager systemSettingManager;
 
     public DefaultUserSettingService( Environment env,
-        TransactionTemplate transactionTemplate, CacheProvider cacheProvider, CurrentUserService currentUserService,
+        PlatformTransactionManager transactionManager, CacheProvider cacheProvider, CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
         checkNotNull( env );
-        checkNotNull( transactionTemplate );
+        checkNotNull( transactionManager );
         checkNotNull( cacheProvider );
         checkNotNull( currentUserService );
         checkNotNull( userSettingStore );
@@ -100,7 +101,7 @@ public class DefaultUserSettingService implements UserSettingService
         checkNotNull( systemSettingManager );
 
         this.env = env;
-        this.transactionTemplate = transactionTemplate;
+        this.transactionTemplate = new TransactionTemplate( transactionManager );
         this.transactionTemplate.setReadOnly( true );
         this.cacheProvider = cacheProvider;
         this.currentUserService = currentUserService;
