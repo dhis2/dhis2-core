@@ -118,6 +118,7 @@ public class FileResourceCleanUpJobTest
     }
 
     @Test
+    @Ignore
     public void testRetention()
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
