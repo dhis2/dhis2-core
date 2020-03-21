@@ -36,5 +36,15 @@ import org.hisp.dhis.common.GenericStore;
 public interface SystemSettingStore
     extends GenericStore<SystemSetting>
 {
+    /**
+     * Returns the {@link SystemSetting} with the given name.
+     * <p>
+     * Note: This method invocation will occur within a transaction.
+     *
+     * @param name the system setting name.
+     * @return a system setting.
+     */
+    SystemSetting getByNameTx( String name );
+
     SystemSetting getByName( String name );
 }

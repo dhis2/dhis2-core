@@ -88,7 +88,7 @@ public class DefaultUserSettingService
     public DefaultUserSettingService( Environment env, CacheProvider cacheProvider, CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
-        checkNotNull( env );;
+        checkNotNull( env );
         checkNotNull( cacheProvider );
         checkNotNull( currentUserService );
         checkNotNull( userSettingStore );
@@ -268,6 +268,7 @@ public class DefaultUserSettingService
         {
             return new ArrayList<>();
         }
+
         List<UserSetting> userSettings = userSettingStore.getAllUserSettings( user );
         Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings( user );
 
