@@ -113,7 +113,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
 
         assertTrue( result );
 
-        smsGatewayConfig = new GenericHttpGatewayConfig();
+        smsGatewayConfig = new GenericHttpGetGatewayConfig();
         result = bulkSmsGateway.accept( smsGatewayConfig );
 
         assertFalse( result );
