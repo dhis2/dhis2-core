@@ -66,6 +66,7 @@ public class SmsGatewayController
     private static final ImmutableMap<String, Class<? extends SmsGatewayConfig>> TYPE_MAPPER = new
         ImmutableMap.Builder<String, Class<? extends SmsGatewayConfig>>()
         .put( "http", GenericHttpGetGatewayConfig.class  )
+        .put( "generic", GenericHttpGatewayConfig.class  )
         .put( "bulksms", BulkSmsGatewayConfig.class  )
         .put( "clickatell", ClickatellGatewayConfig.class  )
         .put( "smpp", SMPPGatewayConfig.class  )

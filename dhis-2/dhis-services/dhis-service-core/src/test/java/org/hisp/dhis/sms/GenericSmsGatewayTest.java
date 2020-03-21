@@ -1,7 +1,4 @@
 package org.hisp.dhis.sms;
-
-import static org.hamcrest.CoreMatchers.is;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -48,9 +45,7 @@ import java.util.Set;
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
-import org.hisp.dhis.sms.config.GenericHttpGetGatewayConfig;
 import org.hisp.dhis.sms.config.SimplisticHttpGateWay;
-import org.hisp.dhis.sms.config.SimplisticHttpGetGateWay;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.junit.Before;
 import org.junit.Rule;

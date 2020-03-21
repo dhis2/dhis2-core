@@ -50,7 +50,8 @@ public class GatewayAdministrationServiceTest
 
     private BulkSmsGatewayConfig bulkConfig;
     private ClickatellGatewayConfig clickatellConfig;
-    private GenericHttpGetGatewayConfig genericHttpGatewayConfig;
+    private GenericHttpGetGatewayConfig genericHttpGetGatewayConfig;
+    private GenericHttpGatewayConfig genericHttpGatewayConfig;
     private SmsConfiguration spyConfiguration;
 
     // -------------------------------------------------------------------------
@@ -77,7 +78,11 @@ public class GatewayAdministrationServiceTest
         clickatellConfig = new ClickatellGatewayConfig();
         clickatellConfig.setName( CLICKATELL );
 
-        genericHttpGatewayConfig = new GenericHttpGetGatewayConfig();
+        genericHttpGetGatewayConfig = new GenericHttpGetGatewayConfig();
+        genericHttpGetGatewayConfig.setName( GENERIC_GATEWAY );
+        genericHttpGetGatewayConfig.setContentType( ContentType.from( "application/json" ).get() );
+        
+        genericHttpGatewayConfig = new GenericHttpGatewayConfig();
         genericHttpGatewayConfig.setName( GENERIC_GATEWAY );
         genericHttpGatewayConfig.setContentType( ContentType.from( "application/json" ).get() );
 
@@ -132,7 +137,7 @@ public class GatewayAdministrationServiceTest
         assertEquals( bulkConfig, spyConfiguration.getGateways().get( 0 ) );
         assertTrue( spyConfiguration.getGateways().get( 0 ).isDefault() );
 
-        assertTrue( subject.addGateway( genericHttpGatewayConfig ) );
+        assertTrue( subject.addGateway( genericHttpGetGatewayConfig ) );
     }
 
     @Test
