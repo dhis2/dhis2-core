@@ -45,7 +45,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.collect.Sets;
 
@@ -59,7 +58,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Torgeir Lorange Ostby
  */
 @Service( "org.hisp.dhis.user.UserSettingService" )
-public class DefaultUserSettingService implements UserSettingService
+public class DefaultUserSettingService
+    implements UserSettingService
 {
     /**
      * Cache for user settings. Does not accept nulls. Disabled during test phase.
@@ -85,12 +85,10 @@ public class DefaultUserSettingService implements UserSettingService
 
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultUserSettingService( Environment env,
-        TransactionTemplate transactionTemplate, CacheProvider cacheProvider, CurrentUserService currentUserService,
+    public DefaultUserSettingService( Environment env, CacheProvider cacheProvider, CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
-        checkNotNull( env );
-        checkNotNull( transactionTemplate );
+        checkNotNull( env );;
         checkNotNull( cacheProvider );
         checkNotNull( currentUserService );
         checkNotNull( userSettingStore );
@@ -114,7 +112,6 @@ public class DefaultUserSettingService implements UserSettingService
     {
         userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
             .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
-
     }
 
     // -------------------------------------------------------------------------
@@ -208,8 +205,8 @@ public class DefaultUserSettingService implements UserSettingService
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getUserSettingOptional}.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key )
@@ -218,8 +215,8 @@ public class DefaultUserSettingService implements UserSettingService
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getUserSettingOptional}.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key, User user )
@@ -323,12 +320,11 @@ public class DefaultUserSettingService implements UserSettingService
     }
 
     /**
-     * Get user setting optional. The database call is executed in a
-     * programmatic transaction. If the user setting exists and has a value,
+     * Get user setting optional. If the user setting exists and has a value,
      * the value is returned. If not, the default value for the key is returned,
      * if not present, an empty optional is returned.
      *
-     * @param key      the user setting key.
+     * @param key the user setting key.
      * @param username the username of the user.
      * @return an optional user setting value.
      */
@@ -348,6 +344,13 @@ public class DefaultUserSettingService implements UserSettingService
         return Optional.ofNullable( value );
     }
 
+    /**
+     * Returns the cache key for the given setting name and username.
+     *
+     * @param settingName the setting name.
+     * @param username the username.
+     * @return the cache key.
+     */
     private String getCacheKey( String settingName, String username )
     {
         return settingName + DimensionalObject.ITEM_SEP + username;
