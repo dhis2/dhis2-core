@@ -50,7 +50,7 @@ public class GatewayAdministrationServiceTest
 
     private BulkSmsGatewayConfig bulkConfig;
     private ClickatellGatewayConfig clickatellConfig;
-    private GenericHttpGatewayConfig genericHttpGatewayConfig;
+    private GenericHttpGetGatewayConfig genericHttpGatewayConfig;
     private SmsConfiguration spyConfiguration;
 
     // -------------------------------------------------------------------------
@@ -77,7 +77,7 @@ public class GatewayAdministrationServiceTest
         clickatellConfig = new ClickatellGatewayConfig();
         clickatellConfig.setName( CLICKATELL );
 
-        genericHttpGatewayConfig = new GenericHttpGatewayConfig();
+        genericHttpGatewayConfig = new GenericHttpGetGatewayConfig();
         genericHttpGatewayConfig.setName( GENERIC_GATEWAY );
         genericHttpGatewayConfig.setContentType( ContentType.from( "application/json" ).get() );
 

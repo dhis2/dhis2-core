@@ -73,7 +73,7 @@ public class SmsConfiguration
     @XmlElementWrapper( name = "gateways" )
     @XmlElements( { @XmlElement( name = "bulksms", type = BulkSmsGatewayConfig.class ),
         @XmlElement( name = "clickatell", type = ClickatellGatewayConfig.class ),
-        @XmlElement( name = "http", type = GenericHttpGatewayConfig.class ) })
+        @XmlElement( name = "http", type = GenericHttpGetGatewayConfig.class ) })
     public List<SmsGatewayConfig> getGateways()
     {
         return gateways;

@@ -34,7 +34,7 @@ import static org.hamcrest.CoreMatchers.*;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
-import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
+import org.hisp.dhis.sms.config.GenericHttpGetGatewayConfig;
 import org.hisp.dhis.sms.config.SimplisticHttpGetGateWay;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.junit.Before;
@@ -98,7 +98,7 @@ public class GenericSmsGatewayTest
 
     private SimplisticHttpGetGateWay subject;
 
-    private GenericHttpGatewayConfig gatewayConfig;
+    private GenericHttpGetGatewayConfig gatewayConfig;
 
     private GenericGatewayParameter username;
 
@@ -115,7 +115,7 @@ public class GenericSmsGatewayTest
     {
         subject = new SimplisticHttpGetGateWay( restTemplate );
 
-        gatewayConfig = new GenericHttpGatewayConfig();
+        gatewayConfig = new GenericHttpGetGatewayConfig();
         gatewayConfig.setUseGet( false );
         gatewayConfig.setName( "generic" );
         gatewayConfig.setUrlTemplate( GATEWAY_URL );

@@ -33,13 +33,15 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 
-public class GenericHttpGatewayConfig
+public class GenericHttpGetGatewayConfig
     extends SmsGatewayConfig
 {
     private static final long serialVersionUID = 6340853488475760213L;
 
-    private String configurationTemplate;
+    private String messageParameter;
     
+    private String recipientParameter;
+
     private boolean useGet;
 
     private ContentType contentType = ContentType.FORM_URL_ENCODED;
@@ -57,6 +59,28 @@ public class GenericHttpGatewayConfig
         this.parameters = parameters;
     }
     
+    @JsonProperty( value = "messageParameter" )
+    public String getMessageParameter()
+    {
+        return messageParameter;
+    }
+
+    public void setMessageParameter( String messageParameter )
+    {
+        this.messageParameter = messageParameter;
+    }
+
+    @JsonProperty( value = "recipientParameter" )
+    public String getRecipientParameter()
+    {
+        return recipientParameter;
+    }
+
+    public void setRecipientParameter( String recipientParameter )
+    {
+        this.recipientParameter = recipientParameter;
+    }
+
     @JsonProperty
     public boolean isUseGet()
     {
@@ -66,17 +90,6 @@ public class GenericHttpGatewayConfig
     public void setUseGet( boolean useGet )
     {
         this.useGet = useGet;
-    }
-
-    @JsonProperty
-    public String getConfigurationTemplate()
-    {
-        return configurationTemplate;
-    }
-
-    public void setConfigurationTemplate( String configurationTemplate )
-    {
-        this.configurationTemplate = configurationTemplate;
     }
 
     @JsonProperty

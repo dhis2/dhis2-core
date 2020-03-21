@@ -36,6 +36,7 @@ import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
+import org.hisp.dhis.sms.config.GenericHttpGetGatewayConfig;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -64,7 +65,7 @@ public class SmsGatewayController
 {
     private static final ImmutableMap<String, Class<? extends SmsGatewayConfig>> TYPE_MAPPER = new
         ImmutableMap.Builder<String, Class<? extends SmsGatewayConfig>>()
-        .put( "http", GenericHttpGatewayConfig.class  )
+        .put( "http", GenericHttpGetGatewayConfig.class  )
         .put( "bulksms", BulkSmsGatewayConfig.class  )
         .put( "clickatell", ClickatellGatewayConfig.class  )
         .put( "smpp", SMPPGatewayConfig.class  )
@@ -165,6 +166,24 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/generichttp", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
+    public void addOrUpdateGenericGetConfiguration( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        GenericHttpGetGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
+            GenericHttpGetGatewayConfig.class );
+
+        if ( gatewayAdminService.addOrUpdateGateway( payLoad, GenericHttpGetGatewayConfig.class ) )
+        {
+            webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
+        }
+    }
+    
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @RequestMapping( value = "/generic", method = { RequestMethod.POST, RequestMethod.PUT }, produces = "application/json" )
     public void addOrUpdateGenericConfiguration( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {

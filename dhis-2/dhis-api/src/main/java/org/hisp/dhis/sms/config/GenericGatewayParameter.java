@@ -49,6 +49,8 @@ public class GenericGatewayParameter
     private boolean encode;
 
     private boolean confidential;
+    
+    private boolean classified;
 
     @JsonProperty( value = "key" )
     public String getKey()
@@ -86,6 +88,19 @@ public class GenericGatewayParameter
     public void setConfidential( boolean confidential )
     {
         this.confidential = confidential;
+        this.classified = confidential;
+    }
+    
+    @JsonProperty( value = "classified" )
+    public boolean isClassified()
+    {
+        return classified;
+    }
+
+    public void setClassified( boolean classified )
+    {
+        this.classified = classified;
+        this.confidential = classified;
     }
 
     @JsonProperty
