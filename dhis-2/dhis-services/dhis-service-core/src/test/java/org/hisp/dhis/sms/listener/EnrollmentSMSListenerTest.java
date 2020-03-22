@@ -287,6 +287,20 @@ public class EnrollmentSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    // For now there's no warning if an event within the event
+    // list has no values. This might be changed in the future.
+    @Test
+    public void testEnrollmentEventNoValues()
+    {
+        subject.receive( incomingSmsEnrollmentEventNoValues );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
         throws SMSCompressionException
     {
