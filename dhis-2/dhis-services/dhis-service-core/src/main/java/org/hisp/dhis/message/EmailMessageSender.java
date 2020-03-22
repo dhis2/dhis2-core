@@ -111,7 +111,7 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
     // MessageSender implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
@@ -191,7 +191,7 @@ public class EmailMessageSender
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
         return new AsyncResult<>(response);
     }
-    
+
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
@@ -294,7 +294,7 @@ public class EmailMessageSender
         email.setFrom( sender, getEmailName() );
         email.setSmtpPort( port );
         email.setStartTLSEnabled( tls );
-        
+
         if ( username != null && password != null )
         {
             email.setAuthenticator( new DefaultAuthenticator( username, password ) );
@@ -357,17 +357,17 @@ public class EmailMessageSender
 
     private String getPrefixedSubject( String subject )
     {
-        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE, DEFAULT_APPLICATION_TITLE );
+        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         return "[" + title + "] " + subject;
     }
-    
+
     private String getEmailName()
     {
         String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         appTitle = ObjectUtils.firstNonNull( StringUtils.trimToNull( emailNameEncode( appTitle ) ), DEFAULT_APPLICATION_TITLE );
         return appTitle + " message [No reply]";
     }
-    
+
     private String emailNameEncode( String name )
     {
         return name != null ? TextUtils.removeNewlines( name ) : null;
