@@ -52,7 +52,7 @@ public class HibernateSystemSettingStore
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public SystemSetting getByNameTx( String name )
     {
         return getByName( name );

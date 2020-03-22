@@ -80,7 +80,7 @@ public class HibernateUserSettingStore
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public UserSetting getUserSettingTx( User user, String name )
     {
         return getUserSetting( user, name );
