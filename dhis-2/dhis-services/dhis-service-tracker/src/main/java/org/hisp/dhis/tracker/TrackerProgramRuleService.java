@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 
 import java.util.List;
 import java.util.Map;
