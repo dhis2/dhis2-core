@@ -47,7 +47,6 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.collect.Lists;
 
@@ -79,8 +78,6 @@ public class DefaultSystemSettingManager
 
     private SystemSettingStore systemSettingStore;
 
-    private TransactionTemplate transactionTemplate;
-
     private PBEStringEncryptor pbeStringEncryptor;
 
     private CacheProvider cacheProvider;
@@ -89,19 +86,17 @@ public class DefaultSystemSettingManager
 
     private List<String> flags;
 
-    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore, TransactionTemplate transactionTemplate,
+    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
         Environment environment, List<String> flags )
     {
         checkNotNull( systemSettingStore );
-        checkNotNull( transactionTemplate );
         checkNotNull( pbeStringEncryptor );
         checkNotNull( cacheProvider );
         checkNotNull( environment );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
-        this.transactionTemplate = transactionTemplate;
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
@@ -195,8 +190,8 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getSystemSettingOptional} on cache miss.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key )
@@ -208,18 +203,20 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getSystemSettingOptional}.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
-        return getSystemSettingOptional( key.getName(), defaultValue ).orElse( null );
+        Optional<Serializable> value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, defaultValue ).orElse( null ) );
+
+        return value.orElse( null );
     }
 
     /**
-     * Get system setting optional. The database call is executed in a
-     * programmatic transaction.
+     * Get system setting optional.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.
@@ -227,7 +224,7 @@ public class DefaultSystemSettingManager
      */
     private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( name ) );
+        SystemSetting setting = systemSettingStore.getByNameTx( name );
 
         if ( setting != null && setting.hasValue() )
         {
@@ -255,9 +252,11 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
     {
-        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
         if ( setting != null )
         {
             return setting.getTranslation( locale );

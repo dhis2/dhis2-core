@@ -35,6 +35,7 @@ import org.hisp.dhis.setting.SystemSettingStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -48,6 +49,13 @@ public class HibernateSystemSettingStore
     public HibernateSystemSettingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, SystemSetting.class, true );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SystemSetting getByNameTx( String name )
+    {
+        return getByName( name );
     }
 
     @Override
