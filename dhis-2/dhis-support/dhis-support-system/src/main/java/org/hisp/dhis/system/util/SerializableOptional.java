@@ -36,6 +36,7 @@ import java.io.Serializable;
  * @author Lars Helge Overland
  */
 public class SerializableOptional
+    implements Serializable
 {
     private final Serializable value;
 
