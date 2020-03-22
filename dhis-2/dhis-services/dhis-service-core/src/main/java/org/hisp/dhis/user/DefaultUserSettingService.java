@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.SerializableOptional;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +65,7 @@ public class DefaultUserSettingService
     /**
      * Cache for user settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache<Serializable> userSettingCache;
+    private Cache<SerializableOptional> userSettingCache;
 
     private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
@@ -110,8 +111,10 @@ public class DefaultUserSettingService
     @PostConstruct
     public void init()
     {
-        userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+        userSettingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
+            .forRegion( "userSetting" )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -211,7 +214,7 @@ public class DefaultUserSettingService
     @Override
     public Serializable getUserSetting( UserSettingKey key )
     {
-        return getUserSetting( key, Optional.empty() ).orElse( null );
+        return getUserSetting( key, Optional.empty() ).get();
     }
 
     /**
@@ -221,7 +224,7 @@ public class DefaultUserSettingService
     @Override
     public Serializable getUserSetting( UserSettingKey key, User user )
     {
-        return getUserSetting( key, Optional.ofNullable( user ) ).orElse( null );
+        return getUserSetting( key, Optional.ofNullable( user ) ).get();
     }
 
     @Override
@@ -295,23 +298,23 @@ public class DefaultUserSettingService
     // Private methods
     // -------------------------------------------------------------------------
 
-    private Optional<Serializable> getUserSetting( UserSettingKey key, Optional<User> user )
+    private SerializableOptional getUserSetting( UserSettingKey key, Optional<User> user )
     {
         if ( key == null )
         {
-            return Optional.empty();
+            return SerializableOptional.empty();
         }
 
         String username = user.isPresent() ? user.get().getUsername() : currentUserService.getCurrentUsername();
 
         String cacheKey = getCacheKey( key.getName(), username );
 
-        Optional<Serializable> result = userSettingCache
-            .get( cacheKey, c -> getUserSettingOptional( key, username ).orElse( null ) );
+        SerializableOptional result = userSettingCache
+            .get( cacheKey, c -> getUserSettingOptional( key, username ) ).get();
 
         if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
         {
-            return Optional.ofNullable(
+            return SerializableOptional.of(
                 systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) );
         }
         else
@@ -329,20 +332,20 @@ public class DefaultUserSettingService
      * @param username the username of the user.
      * @return an optional user setting value.
      */
-    private Optional<Serializable> getUserSettingOptional( UserSettingKey key, String username )
+    private SerializableOptional getUserSettingOptional( UserSettingKey key, String username )
     {
         UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
 
         if ( userCredentials == null )
         {
-            return Optional.empty();
+            return SerializableOptional.empty();
         }
 
         UserSetting setting = userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() );
 
         Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
 
-        return Optional.ofNullable( value );
+        return SerializableOptional.of( value );
     }
 
     /**
