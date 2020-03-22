@@ -1,7 +1,5 @@
 package org.hisp.dhis.sms.listener;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -30,6 +28,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
