@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -101,17 +102,24 @@ public class DefaultAnalyticsSecurityManager
 
     /**
      * Will remove/exclude, from DataQueryParams, any category option that the
-     * current user is not allowed to read.
+     * current user is authorized to read, so we can filter out the category options
+     * not authorized later on (if any).
      *
      * @param programCategories the categories related to this program.
      */
-    void excludeNonAuthorizedCategoryOptions( final List<Category> programCategories )
+    void excludeOnlyAuthorizedCategoryOptions( final List<Category> programCategories )
     {
         if ( isNotEmpty( programCategories ) )
         {
             for ( Category category : programCategories )
             {
-                category.getCategoryOptions().removeIf( categoryOption -> !hasDataReadPermissionFor( categoryOption ) );
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
+
+                if ( isNotEmpty( categoryOptions ) )
+                {
+                    category.getCategoryOptions()
+                        .removeIf( categoryOption -> hasDataReadPermissionFor( categoryOption ) );
+                }
             }
         }
     }
@@ -182,7 +190,7 @@ public class DefaultAnalyticsSecurityManager
             if ( params.getProgram().hasCategoryCombo() )
             {
                 final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-                excludeNonAuthorizedCategoryOptions( programCategories );
+                excludeOnlyAuthorizedCategoryOptions( programCategories );
             }
         }
 
@@ -208,9 +216,19 @@ public class DefaultAnalyticsSecurityManager
     @Override
     public void decideAccessEventQuery( EventQueryParams params )
     {
-        User user = currentUserService.getCurrentUser();
-
         decideAccess( params );
+        decideAccessEventAnalyticsAuthority( params );
+
+    }
+
+    /**
+     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS} authority.
+     *
+     * @param params the {@link {@link DataQueryParams}.
+     */
+    private void decideAccessEventAnalyticsAuthority( EventQueryParams params )
+    {
+        User user = currentUserService.getCurrentUser();
 
         boolean notAuthorized = user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS );
 
@@ -270,12 +288,23 @@ public class DefaultAnalyticsSecurityManager
     }
 
     @Override
-    public DataQueryParams withDimensionConstraints( DataQueryParams params )
+    public DataQueryParams withUserConstraints( DataQueryParams params )
     {
         DataQueryParams.Builder builder = DataQueryParams.newBuilder( params );
 
         applyOrganisationUnitConstraint( builder, params );
-        applyUserConstraints( builder, params );
+        applyDimensionConstraints( builder, params );
+
+        return builder.build();
+    }
+
+    @Override
+    public EventQueryParams withUserConstraints( EventQueryParams params )
+    {
+        EventQueryParams.Builder builder = new EventQueryParams.Builder( params );
+
+        applyOrganisationUnitConstraint( builder, params );
+        applyDimensionConstraints( builder, params );
 
         return builder.build();
     }
@@ -283,10 +312,10 @@ public class DefaultAnalyticsSecurityManager
     /**
      * Applies organisation unit security constraint.
      *
-     * @param builder the data query parameters builder.
+     * @param builder the query parameters builder.
      * @param params the data query parameters.
      */
-    private void applyOrganisationUnitConstraint( DataQueryParams.Builder builder, DataQueryParams params )
+    private void applyOrganisationUnitConstraint( QueryParamsBuilder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -326,10 +355,10 @@ public class DefaultAnalyticsSecurityManager
     /**
      * Applies user security constraint.
      *
-     * @param builder the data query parameters builder.
+     * @param builder the query parameters builder.
      * @param params the data query parameters.
      */
-    private void applyUserConstraints( DataQueryParams.Builder builder, DataQueryParams params )
+    private void applyDimensionConstraints( QueryParamsBuilder builder, DataQueryParams params )
     {
         User user = currentUserService.getCurrentUser();
 

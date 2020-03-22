@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -151,14 +152,12 @@ public class SecurityConfig
     }
 
     @Autowired
-    private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
-
-    @Autowired
     private DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
 
     @Autowired
     public void configureGlobal( AuthenticationManagerBuilder auth, UserService userService,
-        UserDetailsService userDetailsService, SecurityService securityService )
+        UserDetailsService userDetailsService, SecurityService securityService,
+        @Lazy CustomLdapAuthenticationProvider customLdapAuthenticationProvider )
         throws Exception
     {
         TwoFactorAuthenticationProvider twoFactorAuthenticationProvider = new TwoFactorAuthenticationProvider();

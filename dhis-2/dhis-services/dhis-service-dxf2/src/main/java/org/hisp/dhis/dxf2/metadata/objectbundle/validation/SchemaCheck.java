@@ -1,7 +1,7 @@
-package org.hisp.dhis.artemis.audit.listener;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,49 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.event.spi.PostLoadEvent;
-import org.hibernate.event.spi.PostLoadEventListener;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
-import org.hisp.dhis.artemis.config.UsernameSupplier;
-import org.hisp.dhis.audit.AuditType;
-import org.springframework.stereotype.Component;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
 
-import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * @author Morten Olav Hansen
+ * @author Luciano Fiandesio
  */
-@Component
-public class PostLoadAuditListener
-    extends AbstractHibernateListener implements PostLoadEventListener
+public class SchemaCheck
+    implements
+    ValidationCheck
 {
-    public PostLoadAuditListener(
-        AuditManager auditManager,
-        AuditLegacyObjectFactory auditLegacyObjectFactory,
-        UsernameSupplier userNameSupplier )
-    {
-        super( auditManager, auditLegacyObjectFactory, userNameSupplier );
-    }
-
     @Override
-    public void onPostLoad( PostLoadEvent postLoadEvent )
+    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+        ImportStrategy importStrategy, ValidationContext context )
     {
-        Object entity = postLoadEvent.getEntity();
+        TypeReport typeReport = new TypeReport( klass );
 
-        getAuditable( entity, "read" ).ifPresent( auditable -> {
-            auditManager.send( Audit.builder()
-                .withAuditType( AuditType.READ )
-                .withAuditScope( auditable.scope() )
-                .withCreatedAt( new Date() )
-                .withCreatedBy( getCreatedBy() )
-                .withObject( entity )
-                .withData( this.legacyObjectFactory.create( auditable.scope(), AuditType.READ, entity, getCreatedBy() ) )
-                .build() );
-        } );
+        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+
+        if ( objects == null || objects.isEmpty() )
+        {
+            return typeReport;
+        }
+
+        for ( IdentifiableObject object : objects )
+        {
+            List<ErrorReport> validationErrorReports = context.getSchemaValidator().validate( object );
+
+            if ( !validationErrorReports.isEmpty() )
+            {
+                addObjectReports( validationErrorReports, typeReport, object, bundle );
+                context.markForRemoval( object );
+            }
+        }
+
+        return typeReport;
     }
+
 }

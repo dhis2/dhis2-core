@@ -1,5 +1,4 @@
 package org.hisp.dhis.sms;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,14 +27,27 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
-import org.hisp.dhis.sms.config.SimplisticHttpGetGateWay;
+import org.hisp.dhis.sms.config.SimplisticHttpGateWay;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,17 +67,7 @@ import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
 import org.testcontainers.shaded.org.apache.commons.lang.text.StrSubstitutor;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 /**
  * @Author Zubair Asghar.
@@ -96,7 +98,7 @@ public class GenericSmsGatewayTest
     @Captor
     private ArgumentCaptor<HttpMethod> httpMethodArgumentCaptor;
 
-    private SimplisticHttpGetGateWay subject;
+    private SimplisticHttpGateWay subject;
 
     private GenericHttpGatewayConfig gatewayConfig;
 
@@ -113,7 +115,7 @@ public class GenericSmsGatewayTest
     @Before
     public void setUp()
     {
-        subject = new SimplisticHttpGetGateWay( restTemplate );
+        subject = new SimplisticHttpGateWay( restTemplate );
 
         gatewayConfig = new GenericHttpGatewayConfig();
         gatewayConfig.setUseGet( false );

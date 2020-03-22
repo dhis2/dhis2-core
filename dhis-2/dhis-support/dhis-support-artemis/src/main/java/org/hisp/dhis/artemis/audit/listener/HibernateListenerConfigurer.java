@@ -62,23 +62,19 @@ public class HibernateListenerConfigurer
     private final PostInsertAuditListener postInsertAuditListener;
     private final PostUpdateEventListener postUpdateEventListener;
     private final PostDeleteEventListener postDeleteEventListener;
-    private final PostLoadEventListener postLoadEventListener;
 
     public HibernateListenerConfigurer(
         PostInsertAuditListener postInsertAuditListener,
         PostUpdateEventListener postUpdateEventListener,
-        PostDeleteEventListener postDeleteEventListener,
-        PostLoadEventListener postLoadEventListener )
+        PostDeleteEventListener postDeleteEventListener )
     {
         checkNotNull( postDeleteEventListener );
         checkNotNull( postUpdateEventListener );
         checkNotNull( postInsertAuditListener );
-        checkNotNull( postLoadEventListener );
 
         this.postInsertAuditListener = postInsertAuditListener;
         this.postUpdateEventListener = postUpdateEventListener;
         this.postDeleteEventListener = postDeleteEventListener;
-        this.postLoadEventListener = postLoadEventListener;
     }
 
     @PostConstruct
@@ -94,6 +90,5 @@ public class HibernateListenerConfigurer
 
         registry.getEventListenerGroup( EventType.POST_DELETE ).appendListener( postDeleteEventListener );
 
-        registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
     }
 }
