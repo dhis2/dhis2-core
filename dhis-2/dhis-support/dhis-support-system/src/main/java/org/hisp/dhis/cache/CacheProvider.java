@@ -41,10 +41,9 @@ public interface CacheProvider
      * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
      * stores the valueType specified.
      *
-     *
      * @param valueType The class type of values to be stored in cache.
      * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}
+     *          {@link ExtendedCacheBuilder}.
      */
     <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
 
@@ -54,7 +53,7 @@ public interface CacheProvider
      *
      * @param valueType The class type of values to be stored in cache.
      * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}
+     *          {@link ExtendedCacheBuilder}.
      */
     <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType );
 }
