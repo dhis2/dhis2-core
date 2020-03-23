@@ -40,6 +40,13 @@ import java.util.Map;
 public class WebOptions
     extends Options
 {
+    public final static String PAGING = "paging";
+    public final static String PAGE = "page";
+    public final static String PAGE_SIZE = "pageSize";
+    public final static String ROOT_JUNCTION = "rootJunction";
+    public final static String VIEW_CLASS = "viewClass";
+    public final static String MANAGE = "manage";
+
     public WebOptions( Map<String, String> options )
     {
         super( options );
@@ -51,37 +58,37 @@ public class WebOptions
 
     public boolean hasPaging()
     {
-        return stringAsBoolean( options.get( "paging" ), true );
+        return stringAsBoolean( options.get( PAGING ), true );
     }
 
     public int getPage()
     {
-        return stringAsInt( options.get( "page" ), 1 );
+        return stringAsInt( options.get( PAGE ), 1 );
     }
 
     public String getViewClass()
     {
-        return stringAsString( options.get( "viewClass" ), null );
+        return stringAsString( options.get( VIEW_CLASS ), null );
     }
 
     public String getViewClass( String defaultValue )
     {
-        return stringAsString( options.get( "viewClass" ), defaultValue );
+        return stringAsString( options.get( VIEW_CLASS ), defaultValue );
     }
 
     public int getPageSize()
     {
-        return stringAsInt( options.get( "pageSize" ), Pager.DEFAULT_PAGE_SIZE );
+        return stringAsInt( options.get( PAGE_SIZE ), Pager.DEFAULT_PAGE_SIZE );
     }
 
     public boolean isManage()
     {
-        return stringAsBoolean( options.get( "manage" ), false );
+        return stringAsBoolean( options.get( MANAGE ), false );
     }
 
     public Junction.Type getRootJunction()
     {
-        String rootJunction = options.get( "rootJunction" );
+        String rootJunction = options.get( ROOT_JUNCTION );
         return "OR".equals( rootJunction ) ? Junction.Type.OR : Junction.Type.AND;
     }
 }
