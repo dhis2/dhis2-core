@@ -47,6 +47,7 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -110,8 +111,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -223,9 +222,6 @@ public abstract class AbstractEventService
 
     @Autowired
     protected EventStore eventStore;
-
-    @Autowired
-    protected I18nManager i18nManager;
 
     @Autowired
     protected Notifier notifier;
@@ -2428,8 +2424,6 @@ public abstract class AbstractEventService
 
     private void validateAttributeOptionComboDate( CategoryOptionCombo attributeOptionCombo, Date date )
     {
-        I18nFormat i18nFormat = i18nManager.getI18nFormat();
-
         if ( date == null )
         {
             throw new IllegalQueryException( "Event date can not be empty" );
@@ -2439,15 +2433,15 @@ public abstract class AbstractEventService
         {
             if ( option.getStartDate() != null && date.compareTo( option.getStartDate() ) < 0 )
             {
-                throw new IllegalQueryException( "Event date " + i18nFormat.formatDate( date )
-                    + " is before start date " + i18nFormat.formatDate( option.getStartDate() )
+                throw new IllegalQueryException( "Event date " + getMediumDateString( date )
+                    + " is before start date " + getMediumDateString( option.getStartDate() )
                     + " for attributeOption '" + option.getName() + "'" );
             }
 
             if ( option.getEndDate() != null && date.compareTo( option.getEndDate() ) > 0 )
             {
-                throw new IllegalQueryException( "Event date " + i18nFormat.formatDate( date )
-                    + " is after end date " + i18nFormat.formatDate( option.getEndDate() )
+                throw new IllegalQueryException( "Event date " + getMediumDateString( date )
+                    + " is after end date " + getMediumDateString( option.getEndDate() )
                     + " for attributeOption '" + option.getName() + "'" );
             }
         }
