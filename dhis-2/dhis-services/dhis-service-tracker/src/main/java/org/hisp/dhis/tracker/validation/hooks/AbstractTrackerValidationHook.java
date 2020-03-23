@@ -171,7 +171,7 @@ public abstract class AbstractTrackerValidationHook
         Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+            .getTei( bundle, te.getTrackedEntity() );
 
         OrganisationUnit organisationUnit =
             trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
@@ -187,7 +187,7 @@ public abstract class AbstractTrackerValidationHook
         Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTrackedEntityInstance( bundle, te.getTrackedEntity() );
+            .getTei( bundle, te.getTrackedEntity() );
 
         TrackedEntityType trackedEntityType =
             trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;

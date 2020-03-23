@@ -69,7 +69,7 @@ import static org.hisp.dhis.util.DateUtils.getIso8601;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentExistingEnrollmentsValidationHook
+public class EnrollmentInExistingValidationHook
     extends AbstractTrackerValidationHook
 {
     @Autowired
@@ -107,7 +107,7 @@ public class EnrollmentExistingEnrollmentsValidationHook
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
+                .getTei( bundle, enrollment.getTrackedEntity() );
 
             // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
             if ( (program == null || trackedEntityInstance == null)
@@ -117,31 +117,32 @@ public class EnrollmentExistingEnrollmentsValidationHook
                 continue;
             }
 
-            validateNotEnrolledAlready( reporter, actingUser, enrollment, program, trackedEntityInstance );
+            validateTeiNotEnrolledAlready( reporter, actingUser, enrollment, program, trackedEntityInstance );
         }
 
         return reporter.getReportList();
     }
 
-    protected void validateNotEnrolledAlready( ValidationErrorReporter reporter, User actingUser,
-        Enrollment enrollment, Program program, TrackedEntityInstance trackedEntityInstance )
+    protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter, User actingUser,
+        Enrollment enrollment, Program program, TrackedEntityInstance tei )
     {
         Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        // TODO: Sort out only the programs the importing user has access too...
+        // TODO: SQLOPT Sort out only the programs the importing user has access too...
+        //   create a dedicated sql query....?
         // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
         // should import still be possible?
-        Set<Enrollment> activeOrCompletedEnrollments = getEnrollmentsUserHasAccessTo( reporter, actingUser,
-            program, trackedEntityInstance ).stream()
+        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, actingUser, program, tei )
+            .stream()
             .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
                 || EnrollmentStatus.COMPLETED == programEnrollment.getStatus() )
             .collect( Collectors.toSet() );
 
         if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
         {
-            Set<Enrollment> activeEnrollments = activeOrCompletedEnrollments.stream()
+            Set<Enrollment> activeEnrollments = activeAndCompleted.stream()
                 .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus() )
                 .collect( Collectors.toSet() );
 
@@ -149,23 +150,22 @@ public class EnrollmentExistingEnrollmentsValidationHook
             {
                 //Error: TrackedEntityInstance already has an active enrollment in another program...
                 reporter.addError( newReport( TrackerErrorCode.E1015 )
-                    .addArg( trackedEntityInstance )
+                    .addArg( tei )
                     .addArg( program ) );
             }
         }
 
         // Enrollment(¶4.b.ii) - The error of enrolling more than once is possible only if the imported enrollment
         // has a state other than CANCELLED...
-        if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() )
-            && !activeOrCompletedEnrollments.isEmpty() )
+        if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !activeAndCompleted.isEmpty() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1016 )
-                .addArg( trackedEntityInstance )
+                .addArg( tei )
                 .addArg( program ) );
         }
     }
 
-    public List<Enrollment> getEnrollmentsUserHasAccessTo( ValidationErrorReporter reporter, User actingUser,
+    public List<Enrollment> getAllEnrollments( ValidationErrorReporter reporter, User actingUser,
         Program program, TrackedEntityInstance trackedEntityInstance )
     {
         Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
@@ -179,31 +179,31 @@ public class EnrollmentExistingEnrollmentsValidationHook
         params.setTrackedEntityInstance( trackedEntityInstance );
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
 
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<Enrollment> all = new ArrayList<>();
 
         for ( ProgramInstance programInstance : programInstances )
         {
             // TODO: Move to ownership/security pre check hook if possible?
             if ( trackerOwnershipManager.hasAccess( actingUser, programInstance ) )
             {
-                // Always fork the reporter when used for checking/counting errors,
-                // will break hard otherwise when run in a multi threaded way
-                ValidationErrorReporter fork = reporter.fork( null );
+                // Always create a fork of the reporter when used for checking/counting errors,
+                // this is needed for thread safety in parallel mode.
+                ValidationErrorReporter reporterFork = reporter.fork( null );
 
-                trackerImportAccessManager.canRead( fork, actingUser, programInstance, true );
+                trackerImportAccessManager.canRead( reporterFork, actingUser, programInstance, true );
 
-                if ( !fork.hasErrors() )
+                if ( reporterFork.hasErrors() )
                 {
-                    enrollments.add( getEnrollmentFromProgramInstance( programInstance ) );
+                    reporter.merge( reporterFork );
                 }
                 else
                 {
-                    reporter.merge( fork );
+                    all.add( getEnrollmentFromProgramInstance( programInstance ) );
                 }
             }
         }
 
-        return enrollments;
+        return all;
     }
 
     public Enrollment getEnrollmentFromProgramInstance( ProgramInstance programInstance )

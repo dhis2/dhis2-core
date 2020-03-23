@@ -97,7 +97,7 @@ public class TrackedEntityAttributeValidationHook
             reporter.increment( trackedEntity );
 
             TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
+                .getTei( bundle, trackedEntity.getTrackedEntity() );
 
             OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
 

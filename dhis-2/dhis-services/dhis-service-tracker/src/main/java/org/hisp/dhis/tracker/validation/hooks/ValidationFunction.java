@@ -10,6 +10,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 public interface ValidationFunction<T extends TrackerDto>
 {
 
-    void validateObject( T obj, ValidationErrorReporter reportFork );
+    void validateTrackerDto( T obj, ValidationErrorReporter reportFork );
 
 }

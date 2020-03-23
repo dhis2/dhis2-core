@@ -86,7 +86,7 @@ abstract public class AbstractPreCheckValidationHook
             // Iterator needs to be changed to split variant also...
             ValidationErrorReporter reportFork = reporter.fork( dto );
 
-            function.validateObject( dto, reportFork );
+            function.validateTrackerDto( dto, reportFork );
 
             if ( reportFork.hasErrors() )
             {

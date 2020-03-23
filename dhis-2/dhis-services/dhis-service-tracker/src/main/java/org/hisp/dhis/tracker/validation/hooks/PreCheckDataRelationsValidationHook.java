@@ -75,24 +75,22 @@ public class PreCheckDataRelationsValidationHook
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
-        boolean exists = PreheatHelper.getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() ) != null;
+        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
 
-        if ( exists && bundle.getImportStrategy().isCreate() )
+        if ( tei != null && bundle.getImportStrategy().isCreate() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1002 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
-        else if ( !exists && (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
+        else if ( tei == null && (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1063 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
 
-        // TODO: Why is this possible in the first place, if bug needs to be documented and ref. preferably to git commit or jira issue?
-        if ( exists && bundle.getImportStrategy().isUpdate() )
+        if ( tei != null && bundle.getImportStrategy().isUpdate() )
         {
-            TrackedEntityInstance tei = PreheatHelper
-                .getTrackedEntityInstance( bundle, trackedEntity.getTrackedEntity() );
+            // Make sure tei has org unit set.
             if ( tei.getOrganisationUnit() == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1011 )
@@ -125,7 +123,7 @@ public class PreCheckDataRelationsValidationHook
         }
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
+            .getTei( bundle, enrollment.getTrackedEntity() );
         if ( trackedEntityInstance == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1068 )
@@ -185,7 +183,7 @@ public class PreCheckDataRelationsValidationHook
 
         ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTrackedEntityInstance( bundle, event.getTrackedEntity() );
+            .getTei( bundle, event.getTrackedEntity() );
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
         ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
 

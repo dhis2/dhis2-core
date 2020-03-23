@@ -55,7 +55,7 @@ public class PreheatHelper
         return bundle.getPreheat().get( bundle.getIdentifier(), OrganisationUnit.class, id );
     }
 
-    public static TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String id )
+    public static TrackedEntityInstance getTei( TrackerBundle bundle, String id )
     {
         return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), id );
     }

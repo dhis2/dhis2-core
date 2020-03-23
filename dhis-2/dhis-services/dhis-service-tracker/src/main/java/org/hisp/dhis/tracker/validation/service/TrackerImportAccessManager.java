@@ -44,53 +44,53 @@ import java.util.List;
  */
 public interface TrackerImportAccessManager
 {
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
+//    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
+//    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
 
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program,
-        boolean skipOwnershipCheck );
+//    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program,
+//        boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program,
-        boolean skipOwnershipCheck );
+//    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program,
+//        boolean skipOwnershipCheck );
 
     void canRead( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
         boolean skipOwnershipCheck );
 
-    void canCreate( ValidationErrorReporter reporter, User user, Program program, ProgramInstance programInstance,
+    void canCreateEnrollment( ValidationErrorReporter reporter, User user, Program program, ProgramInstance programInstance,
         boolean skipOwnershipCheck );
 
-    void canUpdate( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
+    void canUpdateEnrollment( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
         boolean skipOwnershipCheck );
 
-    void canDelete( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
+    void canDeleteEnrollment( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
         boolean skipOwnershipCheck );
 
-    List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+//    List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
-    void canCreate( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance,
+    void canCreateEnrollment( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance,
         boolean skipOwnershipCheck );
 
-    void canUpdate( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance,
+    void canUpdateEnrollment( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance,
         boolean skipOwnershipCheck );
 
-    void canDelete( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance,
+    void canDeleteEnrollment( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance,
         boolean skipOwnershipCheck );
 
 //    List<String> canRead( User user, Relationship relationship );
 
 //    List<String> canWrite( User user, Relationship relationship );
 
-    /**
-     * Checks the sharing read access to EventDataValue
-     *
-     * @param user                 User validated for write access
-     * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
-     * @param dataElement          DataElement of EventDataValue
-     * @return Empty list if read access allowed, list of errors otherwise.
-     */
-    List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement,
-        boolean skipOwnershipCheck );
+//    /**
+//     * Checks the sharing read access to EventDataValue
+//     *
+//     * @param user                 User validated for write access
+//     * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
+//     * @param dataElement          DataElement of EventDataValue
+//     * @return Empty list if read access allowed, list of errors otherwise.
+//     */
+//    List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement,
+//        boolean skipOwnershipCheck );
 
 //    /**
 //     * Checks the sharing write access to EventDataValue
@@ -103,7 +103,7 @@ public interface TrackerImportAccessManager
 //    List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement,
 //        boolean skipOwnershipCheck );
 
-    List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
+//    List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
 
     void canWrite( ValidationErrorReporter reporter, User user, CategoryOptionCombo categoryOptionCombo );
 }

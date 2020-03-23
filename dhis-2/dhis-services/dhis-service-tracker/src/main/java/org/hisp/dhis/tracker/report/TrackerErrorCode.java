@@ -78,7 +78,7 @@ public enum TrackerErrorCode
     E1037( "Tracked entity instance: `{0}`, is not enrolled in program `{1}`." ),
     E1038( "Tracked entity instance: `{0}`, has multiple active enrollments in program `{1}`." ),
     E1039( "Program stage is not repeatable and an event already exists." ),
-    E1040( "Multiple active program instances exists for program: `{0}`." ),
+    E1040( "Multiple active enrollments exists for program: `{0}`." ),
     E1041( "Program is not assigned to this organisation unit: `{0}`." ),
     E1042( "Event: `{0}`, needs to have completed date." ),
     E1043( "Event: `{0}`, completeness date has expired. Not possible to make changes to this event." ),
@@ -89,7 +89,7 @@ public enum TrackerErrorCode
     E1048(
         "Geometry type: `{0}`, does not conform to the feature type: `{1}`, specified for the program stage: `{2}`." ),
     E1049( "Invalid longitude or latitude for property `coordinates`." ),
-    E1050( "User: `{0}`, do not have access to create program instance: `{1}`." ),
+    E1050( "User: `{0}`, do not have access to create enrollment: `{1}`." ),
     E1051( "Invalid event due date: `{0}`." ),
     E1052( "Invalid event date: `{0}`." ),
     E1053( "Invalid event created at client date: `{0}`." ),
@@ -105,8 +105,8 @@ public enum TrackerErrorCode
     E1062( "Does non`t point to a valid enrollment: `{0}`." ),
     E1063( "Tracked entity instance: `{0}`, does not exist." ),
     E1064( "Error validating attribute, not unique; Error `{0}`" ),
-    E1065( "Could not find program instance: `{0}`." ),
-    E1066( "User: `{0}`, has no write access to program instance: `{1}`." ),
+    E1065( "Could not find enrollment: `{0}`." ),
+    E1066( "User: `{0}`, has no write access to enrollment: `{1}`." ),
     E1067( "Could not find organization unit in tracked entity instance: `{0}`." ),
 
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to enrollment." ),
