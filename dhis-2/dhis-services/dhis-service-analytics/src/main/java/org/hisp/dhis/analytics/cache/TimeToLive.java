@@ -96,7 +96,7 @@ public class TimeToLive
      */
     private long daysBetweenDateAndNow( final Instant date )
     {
-        final long diff = DAYS.between( ofInstant( date, systemDefault()), now() );
+        final long diff = DAYS.between( ofInstant( date, systemDefault() ), now() );
         return diff >= 0 ? diff : 0;
     }
 
