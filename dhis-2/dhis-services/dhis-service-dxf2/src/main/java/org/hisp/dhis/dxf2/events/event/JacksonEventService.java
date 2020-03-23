@@ -36,19 +36,12 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.util.Clock;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -58,7 +51,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of EventService that uses Jackson for serialization and
@@ -70,10 +62,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class JacksonEventService extends AbstractEventService
 {
-    private static final Log log = LogFactory.getLog( JacksonEventService.class );
-
     // -------------------------------------------------------------------------
-    // EventService Impl
+    // EventService implementation
     // -------------------------------------------------------------------------
 
     private final static ObjectMapper XML_MAPPER = new XmlMapper();
