@@ -1226,6 +1226,12 @@ public abstract class AbstractTrackedEntityInstanceService
                     continue;
                 }
 
+                if ( attribute.getValue().length() > 1200 )
+                {
+                    // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
+                    importConflicts.add( new ImportConflict( "Attribute.value", "Value exceeds the character limit of 1200 characters: '" + attribute.getValue().substring( 0, 25) + "...'" ) );
+                }
+
                 TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
                     .get( daoEntityAttribute.getUid() );
 
