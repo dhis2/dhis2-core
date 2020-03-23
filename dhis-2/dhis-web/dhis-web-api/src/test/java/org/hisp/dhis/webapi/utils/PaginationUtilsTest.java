@@ -1,15 +1,5 @@
 package org.hisp.dhis.webapi.utils;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.junit.Test;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -37,6 +27,16 @@ import org.junit.Test;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.hisp.dhis.query.Pagination;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.junit.Test;
 
 /**
  * @author Luciano Fiandesio
