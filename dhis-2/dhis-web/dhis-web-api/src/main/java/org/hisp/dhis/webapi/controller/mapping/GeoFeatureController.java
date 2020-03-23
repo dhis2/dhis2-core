@@ -102,7 +102,7 @@ public class GeoFeatureController
 
     public GeoFeatureController( DataQueryService dataQueryService,
         OrganisationUnitGroupService organisationUnitGroupService, CurrentUserService currentUserService,
-                                 RenderService renderService)
+        RenderService renderService)
     {
         this.dataQueryService = dataQueryService;
         this.organisationUnitGroupService = organisationUnitGroupService;
@@ -133,7 +133,8 @@ public class GeoFeatureController
         List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request,
             response, includeGroupSets, apiVersion );
 
-        return ResponseEntity.ok().header( HttpHeaders.CACHE_CONTROL, GEOFEATURE_CACHE.getHeaderValue() )
+        return ResponseEntity.ok()
+            .header( HttpHeaders.CACHE_CONTROL, GEOFEATURE_CACHE.getHeaderValue() )
             .body( features );
     }
 
@@ -170,17 +171,17 @@ public class GeoFeatureController
     // -------------------------------------------------------------------------
 
     /**
-     * Returns list of geo features. Returns null if not modified based on the
+     * Returns a list of {@link GeoFeature}. Returns null if not modified based on the
      * request.
      *
-     * @param ou                 the organisation unit parameter
-     * @param oug                the organisation unit group parameter
-     * @param displayProperty    the display property.
+     * @param ou the organisation unit parameter
+     * @param oug the organisation unit group parameter
+     * @param displayProperty the display property.
      * @param relativePeriodDate the date to use as basis for relative periods.
-     * @param userOrgUnit        the user organisation unit parameter.
-     * @param request            the HTTP request.
-     * @param response           the HTTP response.
-     * @param includeGroupSets   whether to include organisation unit group sets.
+     * @param userOrgUnit the user organisation unit parameter.
+     * @param request the HTTP request.
+     * @param response the HTTP response.
+     * @param includeGroupSets whether to include organisation unit group sets.
      * @return a list of geo features or null.
      */
     private List<GeoFeature> getGeoFeatures( String ou, String oug, DisplayProperty displayProperty, Date relativePeriodDate,
@@ -215,11 +216,10 @@ public class GeoFeatureController
 
         dimensionalItemObjects = dimensionalItemObjects.stream().filter( object -> {
             CoordinateObject coordinateObject = (CoordinateObject) object;
-
-            return coordinateObject != null && coordinateObject.getFeatureType() != null &&
+            return coordinateObject != null &&
+                coordinateObject.getFeatureType() != null &&
                 coordinateObject.hasCoordinates() &&
-                (coordinateObject.getFeatureType() != FeatureType.POINT ||
-                    ValidationUtils.coordinateIsValid( coordinateObject.getCoordinates() ));
+                (coordinateObject.getFeatureType() != FeatureType.POINT || ValidationUtils.coordinateIsValid( coordinateObject.getCoordinates() ));
         } ).collect( Collectors.toList() );
 
         boolean modified = !ContextUtils.clearIfNotModified( request, response, dimensionalItemObjects );
@@ -229,11 +229,26 @@ public class GeoFeatureController
             return null;
         }
 
+        return getGeoFeatures( params, dimensionalItemObjects, includeGroupSets, useOrgUnitGroup );
+    }
+
+    /**
+     * Returns a list of {@link GeoFeature}.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param dimensionalItemObjects the list of {@link DimensionalItemObject}.
+     * @param includeGroupSets whether to include group sets.
+     * @param useOrgUnitGroup whether to use org unit group when retrieving features.
+     * @return a list of {@link GeoFeature}.
+     */
+    private List<GeoFeature> getGeoFeatures( DataQueryParams params,
+        List<DimensionalItemObject> dimensionalItemObjects, boolean includeGroupSets, boolean useOrgUnitGroup )
+    {
+        List<GeoFeature> features = new ArrayList<>();
+
         List<OrganisationUnitGroupSet> groupSets = includeGroupSets ?
             organisationUnitGroupService.getAllOrganisationUnitGroupSets() :
             new ArrayList<>();
-
-        List<GeoFeature> features = new ArrayList<>();
 
         Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
@@ -244,8 +259,7 @@ public class GeoFeatureController
             CoordinateObject coordinateObject = (CoordinateObject) unit;
 
             Integer ty = coordinateObject.getFeatureType() != null ?
-                FEATURE_TYPE_MAP.get( coordinateObject.getFeatureType() ) :
-                null;
+                FEATURE_TYPE_MAP.get( coordinateObject.getFeatureType() ) : null;
 
             feature.setId( unit.getUid() );
             feature.setCode( unit.getCode() );

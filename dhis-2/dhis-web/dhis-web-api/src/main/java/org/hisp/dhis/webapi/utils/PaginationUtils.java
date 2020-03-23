@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,34 +26,33 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+package org.hisp.dhis.webapi.utils;
 
-import java.util.List;
-import java.util.Map;
+import org.hisp.dhis.query.Pagination;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 
 /**
- * Calculates rule effects calling rule engine on enrollments or events.
- *
- * @author Enrico Colasante
+ * @author Luciano Fiandesio
  */
-public interface TrackerProgramRuleService
+public class PaginationUtils
 {
-    /**
-     * It feeds in enrollments given in {@link TrackerBundle} into rule engine and return a map of provided enrollments and
-     * their associated rule effects which are returned by rule engine.
-     *
-     * @param trackerBundle
-     * @return Map containing enrollment uid and its associated rule effects.
-     */
-    Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle );
+    private final static Pagination NO_PAGINATION = new Pagination();
 
     /**
-     * It feeds in events given in {@link TrackerBundle} into rule engine and return a map of events and
-     * their associated rule effects.
-     *
-     * @param trackerBundle
-     * @return Map containing event uid and its associated rule effects.
+     * Calculates the paging first result based on pagination data from
+     * {@see WebOptions} if the WebOptions have pagination information
+     * 
+     * The first result is simply calculated by multiplying page * page size
+     * 
+     * @param options a {@see WebOptions} object
+     * @return a {@see PaginationData} object either empty or containing pagination
+     *         data
      */
-    Map<String, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle );
+    public static Pagination getPaginationData( WebOptions options )
+    {
+        return options.hasPaging()
+            ? new Pagination( options.getPage() == 1 ? 1 : (options.getPage() * options.getPageSize()),
+                options.getPageSize() )
+            : NO_PAGINATION;
+    }
 }

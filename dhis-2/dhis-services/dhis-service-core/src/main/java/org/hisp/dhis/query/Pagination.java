@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,34 +26,49 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-
-import java.util.List;
-import java.util.Map;
+package org.hisp.dhis.query;
 
 /**
- * Calculates rule effects calling rule engine on enrollments or events.
- *
- * @author Enrico Colasante
+ * Simple POJO containing the pagination directive from the HTTP Request
+ * 
+ * @author Luciano Fiandesio
  */
-public interface TrackerProgramRuleService
+public class Pagination
 {
-    /**
-     * It feeds in enrollments given in {@link TrackerBundle} into rule engine and return a map of provided enrollments and
-     * their associated rule effects which are returned by rule engine.
-     *
-     * @param trackerBundle
-     * @return Map containing enrollment uid and its associated rule effects.
-     */
-    Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle );
+    private int firstResult;
+
+    private int size;
+
+    private boolean hasPagination = false;
+
+    public Pagination(int firstResult, int size )
+    {
+        assert (size > 0);
+        this.firstResult = firstResult;
+        this.size = size;
+        this.hasPagination = true;
+    }
 
     /**
-     * It feeds in events given in {@link TrackerBundle} into rule engine and return a map of events and
-     * their associated rule effects.
-     *
-     * @param trackerBundle
-     * @return Map containing event uid and its associated rule effects.
+     * This constructor can be used to signal that there is no pagination data
      */
-    Map<String, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle );
+    public Pagination()
+    {
+        // empty constructor
+    }
+
+    public int getFirstResult()
+    {
+        return firstResult;
+    }
+
+    public int getSize()
+    {
+        return size;
+    }
+
+    public boolean hasPagination()
+    {
+        return hasPagination;
+    }
 }
