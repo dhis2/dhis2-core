@@ -350,7 +350,7 @@ public class DefaultUserSettingService
             return SerializableOptional.empty();
         }
 
-        UserSetting setting = userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() );
+        UserSetting setting = userSettingStore.getUserSettingTx( userCredentials.getUserInfo(), key.getName() );
 
         Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
 
