@@ -111,7 +111,8 @@ public class DefaultSystemSettingManager
     @PostConstruct
     public void init()
     {
-        settingCache = cacheProvider.newCacheBuilder( SerializableOptional.class ).forRegion( "systemSetting" )
+        settingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
+            .forRegion( "systemSetting" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
     }
