@@ -51,8 +51,7 @@ public class PaginationUtils
     public static Pagination getPaginationData( WebOptions options )
     {
         return options.hasPaging()
-            ? new Pagination( options.getPage() == 1 ? 1 : (options.getPage() * options.getPageSize()),
-                options.getPageSize() )
+            ? new Pagination( (options.getPage() - 1) * options.getPageSize(), options.getPageSize() )
             : NO_PAGINATION;
     }
 }
