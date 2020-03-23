@@ -351,7 +351,6 @@ public class JdbcEventStore
         return list;
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
