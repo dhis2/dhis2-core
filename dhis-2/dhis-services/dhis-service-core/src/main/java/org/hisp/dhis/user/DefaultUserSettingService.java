@@ -298,6 +298,14 @@ public class DefaultUserSettingService
     // Private methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns a user setting optional. If the user settings does not have
+     * a value or default value, a corresponding system setting will be looked up.
+     *
+     * @param key the user setting key.
+     * @param user an optional {@link User}.
+     * @return an optional user setting value.
+     */
     private SerializableOptional getUserSetting( UserSettingKey key, Optional<User> user )
     {
         if ( key == null )
@@ -324,9 +332,10 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Get user setting optional. If the user setting exists and has a value,
-     * the value is returned. If not, the default value for the key is returned,
-     * if not present, an empty optional is returned.
+     * Get user setting optional. If the user setting exists and has a value, the
+     * value is returned. If not, the default value for the key is returned, if not
+     * present, an empty optional is returned. The return object is never null in
+     * order to cache requests for system settings which have no value or default value.
      *
      * @param key the user setting key.
      * @param username the username of the user.

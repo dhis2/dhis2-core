@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.system.util.SerializableOptional;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
@@ -70,7 +71,7 @@ public class DefaultSystemSettingManager
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache<Serializable> settingCache;
+    private Cache<SerializableOptional> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -110,7 +111,7 @@ public class DefaultSystemSettingManager
     @PostConstruct
     public void init()
     {
-        settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
+        settingCache = cacheProvider.newCacheBuilder( SerializableOptional.class ).forRegion( "systemSetting" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
     }
@@ -196,10 +197,10 @@ public class DefaultSystemSettingManager
     @Override
     public Serializable getSystemSetting( SettingKey key )
     {
-        Optional<Serializable> value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, key.getDefaultValue() ).orElse( null ) );
+        SerializableOptional value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, key.getDefaultValue() ) ).get();
 
-        return value.orElse( null );
+        return value.get();
     }
 
     /**
@@ -209,20 +210,21 @@ public class DefaultSystemSettingManager
     @Override
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
-        Optional<Serializable> value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, defaultValue ).orElse( null ) );
+        SerializableOptional value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, defaultValue ) ).get();
 
-        return value.orElse( null );
+        return value.get();
     }
 
     /**
-     * Get system setting optional.
+     * Get system setting {@link SerializableOptional}. The return object is never
+     * null in order to cache requests for system settings which have no value or default value.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.
      * @return an optional system setting value.
      */
-    private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
+    private SerializableOptional getSystemSettingOptional( String name, Serializable defaultValue )
     {
         SystemSetting setting = systemSettingStore.getByNameTx( name );
 
@@ -232,22 +234,22 @@ public class DefaultSystemSettingManager
             {
                 try
                 {
-                    return Optional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
+                    return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing
+                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted or not existing
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
-                    return Optional.empty();
+                    return SerializableOptional.empty();
                 }
             }
             else
             {
-                return Optional.ofNullable( setting.getDisplayValue() );
+                return SerializableOptional.of( setting.getDisplayValue() );
             }
         }
         else
         {
-            return Optional.ofNullable( defaultValue );
+            return SerializableOptional.of( defaultValue );
         }
     }
 
