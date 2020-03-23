@@ -139,24 +139,6 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    public List<String> getUidsIncludingDeleted( List<String> uids )
-    {
-        String hql = "select psi.uid from ProgramStageInstance as psi where psi.uid in (:uids)";
-        List<String> resultUids = new ArrayList<>();
-        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
-
-        for ( List<String> uidsPartition : uidsPartitions )
-        {
-            if ( !uidsPartition.isEmpty() )
-            {
-                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
-            }
-        }
-
-        return resultUids;
-    }
-
-    @Override
     public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
     {
         String hql = "update ProgramStageInstance set lastSynchronized = :lastSynchronized WHERE uid in :programStageInstances";
