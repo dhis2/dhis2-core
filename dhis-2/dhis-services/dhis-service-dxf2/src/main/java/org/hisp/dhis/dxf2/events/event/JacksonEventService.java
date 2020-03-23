@@ -49,7 +49,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.geometry.JtsXmlModule;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -103,7 +102,7 @@ public class JacksonEventService extends AbstractEventService
         OrganisationUnitService organisationUnitService, DataElementService dataElementService,
         CurrentUserService currentUserService, EventDataValueService eventDataValueService,
         TrackedEntityInstanceService entityInstanceService, TrackedEntityCommentService commentService,
-        EventStore eventStore, I18nManager i18nManager, Notifier notifier, SessionFactory sessionFactory,
+        EventStore eventStore, Notifier notifier, SessionFactory sessionFactory,
         DbmsManager dbmsManager, IdentifiableObjectManager manager, CategoryService categoryService,
         FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
         TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
@@ -112,7 +111,7 @@ public class JacksonEventService extends AbstractEventService
     {
         super( programService, programStageService, programInstanceService, programStageInstanceService,
             organisationUnitService, dataElementService, currentUserService, eventDataValueService,
-            entityInstanceService, commentService, eventStore, i18nManager, notifier, sessionFactory, dbmsManager,
+            entityInstanceService, commentService, eventStore, notifier, sessionFactory, dbmsManager,
             manager, categoryService, fileResourceService, schemaService, queryService, trackerAccessManager,
             trackerOwnershipAccessManager, aclService, eventPublisher, relationshipService, userService,
             eventSyncService, ruleVariableService );
