@@ -1219,7 +1219,7 @@ public abstract class AbstractEnrollmentService
             if ( attributeValueMap.get( trackedEntityAttribute.getUid() ).length() > 1200 )
             {
                 // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
-                importConflicts.add( new ImportConflict( "Attribute.value", "Value exceeds the character limit of 1200 characters: '" + attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25) + "...'" ) );
+                importConflicts.add( new ImportConflict( "Attribute.value", "Value exceeds the character limit of 1200 characters: '" + attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) + "...'" ) );
             }
 
 
