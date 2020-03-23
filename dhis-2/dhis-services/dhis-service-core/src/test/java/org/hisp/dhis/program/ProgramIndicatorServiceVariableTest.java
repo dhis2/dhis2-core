@@ -59,9 +59,6 @@ public class ProgramIndicatorServiceVariableTest
     @Autowired
     private ProgramService programService;
 
-    @Autowired
-    private ProgramStageService programStageService;
-
     private Program programA;
 
     private ProgramIndicator piA;

@@ -370,7 +370,7 @@ public interface CategoryService
 
     /**
      * Retrieves the CategoryOptionCombo with the given uid and
-     * {@see IdentifiableProperty}.
+     * {@link IdentifiableProperty}.
      *
      * @param id the id of the CategoryOptionCombo.
      * @param property the type of id to use

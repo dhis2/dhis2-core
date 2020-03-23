@@ -1,5 +1,3 @@
-package org.hisp.dhis.category;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,31 +26,49 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import java.util.List;
-import java.util.Set;
+package org.hisp.dhis.query;
 
 /**
- * @author Lars Helge Overland
+ * Simple POJO containing the pagination directive from the HTTP Request
+ * 
+ * @author Luciano Fiandesio
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+public class Pagination
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+    private int firstResult;
 
-    void updateNames();
+    private int size;
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+    private boolean hasPagination = false;
+
+    public Pagination(int firstResult, int size )
+    {
+        assert (size > 0);
+        this.firstResult = firstResult;
+        this.size = size;
+        this.hasPagination = true;
+    }
 
     /**
-     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
-     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
+     * This constructor can be used to signal that there is no pagination data
      */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
+    public Pagination()
+    {
+        // empty constructor
+    }
+
+    public int getFirstResult()
+    {
+        return firstResult;
+    }
+
+    public int getSize()
+    {
+        return size;
+    }
+
+    public boolean hasPagination()
+    {
+        return hasPagination;
+    }
 }

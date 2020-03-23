@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
  * in place which can be modified with a fluent builder api.
- * 
+ *
  * @author Ameen Mohamed
  *
  * @param <V> The Value type to be stored in cache
@@ -43,14 +43,14 @@ public interface CacheBuilder<V>
     /**
      * Set the maximum size for the cache instance to be built. If set to 0, no
      * caching will take place. Cannot be a negative value.
-     * 
+     *
      * @param maximumSize The maximum size
      * @return The builder instance
      * @throws IllegalArgumentException if specified maximumSize is a negative
-     *         value.
+     *          value.
      */
     public CacheBuilder<V> withMaximumSize( long maximumSize );
-    
+
     /**
      * Sets the minimum total size for the internal data structures.
      *
@@ -63,7 +63,7 @@ public interface CacheBuilder<V>
     /**
      * Set the cacheRegion for the cache instance to be built. If not specified
      * default is "default" region.
-     * 
+     *
      * @param region The cache region name to be used.
      * @return The builder instance.
      * @throws IllegalArgumentException if specified region is null.
@@ -73,7 +73,7 @@ public interface CacheBuilder<V>
     /**
      * Configure the cache instance to expire the keys, if the expiry duration
      * elapses after last access.
-     * 
+     *
      * @param duration The duration
      * @param timeUnit The time unit of the duration
      * @return The builder instance.
@@ -83,7 +83,7 @@ public interface CacheBuilder<V>
     /**
      * Configure the cache instance to expire the keys, if the expiry duration
      * elapses after writing. The key expires irrespective of the last access.
-     * 
+     *
      * @param duration The duration
      * @param timeUnit The time unit of the duration
      * @return The builder instance.
@@ -93,27 +93,27 @@ public interface CacheBuilder<V>
 
     /**
      * Configure the cache instance to have a default value if the key does not have an associated value in cache. The default value will not be stored in the cache.
-     * 
+     *
      * @param defaultValue The default value
      * @return The builder instance.
      */
     public CacheBuilder<V> withDefaultValue( V defaultValue );
-    
+
     /**
      * Configure the cache instance to use local inmemory storage even in clustered or standalone environment.
      * Ideally used in scenarios where stale data is not critical and faster lookup is preferred.
-     * 
+     *
      * @return The builder instance.
      */
     public CacheBuilder<V> forceInMemory();
 
     /**
      * Configure the cache instance to disable caching.
-     * 
+     *
      * @return The builder instance.
      */
     public CacheBuilder<V> disabled();
-    
+
     /**
      * Construct the cache instance based on the input parameters and return it.
      * @return The cache instance created.
@@ -125,7 +125,7 @@ public interface CacheBuilder<V>
      * @return the maximumSize value set in the builder
      */
     public long getMaximumSize();
-    
+
     /**
      * Getter for initialCapacity
      * @return the initialCapacity value set in the builder
@@ -143,13 +143,13 @@ public interface CacheBuilder<V>
      * @return the refreshExpiryOnAccess flag set in the builder
      */
     public boolean isRefreshExpiryOnAccess();
-    
+
     /**
      * Getter for expiryEnabled
      * @return the expiryEnabled flag set in the builder
      */
     public boolean isExpiryEnabled();
-    
+
     /**
      * Getter for expiryInSeconds
      * @return the expiryInSeconds value set in the builder
@@ -161,5 +161,4 @@ public interface CacheBuilder<V>
      * @return the defaultvalue value set in the builder
      */
     public V getDefaultValue();
-
 }
