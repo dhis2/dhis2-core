@@ -52,6 +52,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -151,24 +152,6 @@ public class HibernateProgramStageInstanceStore
         query.setParameter( 1, uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
-    }
-
-    @Override
-    public List<String> getUidsIncludingDeleted( List<String> uids )
-    {
-        String hql = "select psi.uid from ProgramStageInstance as psi where psi.uid in (:uids)";
-        List<String> resultUids = new ArrayList<>();
-        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
-
-        for ( List<String> uidsPartition : uidsPartitions )
-        {
-            if ( !uidsPartition.isEmpty() )
-            {
-                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
-            }
-        }
-
-        return resultUids;
     }
 
     @Override
