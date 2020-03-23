@@ -88,4 +88,19 @@ public class PaginationUtilsTest
         assertThat( paginationData.hasPagination(), is( false ) );
     }
 
+    @Test
+    public void verifyIgnoreNegativePage()
+    {
+        Map<String, String> options = new HashMap<>();
+        options.put( WebOptions.PAGING, "true" );
+        options.put( WebOptions.PAGE, "-2" );
+        options.put( WebOptions.PAGE_SIZE, "200" );
+        WebOptions webOptions = new WebOptions( options );
+
+        Pagination paginationData = PaginationUtils.getPaginationData( webOptions );
+
+        assertThat( paginationData.getFirstResult(), is( 0 ) );
+        assertThat( paginationData.getSize(), is( 200 ) );
+    }
+
 }
