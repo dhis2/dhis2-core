@@ -91,8 +91,7 @@ public enum JobType
 
     // Deprecated, present to satisfy code using the old enumeration TaskCategory
     @Deprecated GML_IMPORT( null, false ),
-    @Deprecated ANALYTICSTABLE_UPDATE( null, false ),
-    @Deprecated PROGRAM_DATA_SYNC( "programDataSync", false );
+    @Deprecated ANALYTICSTABLE_UPDATE( null, false );
 
     private final String key;
 
