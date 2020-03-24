@@ -28,17 +28,39 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,23 +68,18 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.FinancialAprilPeriodType;
+import org.hisp.dhis.period.FinancialJulyPeriodType;
+import org.hisp.dhis.period.FinancialNovemberPeriodType;
+import org.hisp.dhis.period.FinancialOctoberPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -170,7 +187,7 @@ public class AnalyticsUtilsTest
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
 
-        assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
+        assertNull( AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
         assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ) );
         assertEquals( 3d, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
         assertEquals( 3.1, (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01 );
@@ -183,15 +200,15 @@ public class AnalyticsUtilsTest
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
 
-        assertEquals( null, AnalyticsUtils.getRoundedValue( paramsA, null, null ) );
+        assertNull( AnalyticsUtils.getRoundedValue( paramsA, null, null ) );
         assertEquals( 3d, AnalyticsUtils.getRoundedValue( paramsA, null, 3d ).doubleValue(), 0.01 );
         assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, null, 3.123 ).doubleValue(), 0.01 );
         assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, 1, 3.123 ).doubleValue(), 0.01 );
         assertEquals( 3.12, AnalyticsUtils.getRoundedValue( paramsA, 2, 3.123 ).doubleValue(), 0.01 );
         assertEquals( 3.123, AnalyticsUtils.getRoundedValue( paramsB, 3, 3.123 ).doubleValue(), 0.01 );
-        assertEquals( 3l, AnalyticsUtils.getRoundedValue( paramsB, 0, 3.123 ).longValue() );
-        assertEquals( 12l, AnalyticsUtils.getRoundedValue( paramsB, 0, 12.34 ).longValue() );
-        assertEquals( 13l, AnalyticsUtils.getRoundedValue( paramsB, 0, 13.999 ).longValue() );
+        assertEquals( 3L, AnalyticsUtils.getRoundedValue( paramsB, 0, 3.123 ).longValue() );
+        assertEquals( 12L, AnalyticsUtils.getRoundedValue( paramsB, 0, 12.34 ).longValue() );
+        assertEquals( 13L, AnalyticsUtils.getRoundedValue( paramsB, 0, 13.999 ).longValue() );
     }
 
     @Test
@@ -269,8 +286,8 @@ public class AnalyticsUtilsTest
     @Test
     public void testGetCocNameMap()
     {
-        CategoryCombo ccA = createCategoryCombo( 'A', new Category[0] );
-        CategoryCombo ccB = createCategoryCombo( 'B', new Category[0] );
+        CategoryCombo ccA = createCategoryCombo( 'A' );
+        CategoryCombo ccB = createCategoryCombo( 'B' );
 
         CategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
         CategoryOptionCombo cocB = createCategoryOptionCombo( 'B' );
@@ -543,22 +560,22 @@ public class AnalyticsUtilsTest
         Integer threeYearsAgo = currentYear - 3;
 
         // maxYears = 0 should always return false
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 0 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 0 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 0 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 0 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 0 ) );
 
         // maxYears = 1 should only return true for years other than thisYear
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 1 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 1 ) );
         assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 1 ) );
         assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 1 ) );
         assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 1 ) );
 
         // maxYears = 4 should only return false for all three years defined
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 5 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 5 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 5 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 5 ) );
+        assertFalse( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 5 ) );
     }
 
     @Test
@@ -605,5 +622,23 @@ public class AnalyticsUtilsTest
         assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType() ), 0 );
         assertEquals( 10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType() ), 0 ) ;
         assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
+    }
+
+    @Test
+    public void testGetOperandKey()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        DataElementOperand dataElementOperand = new DataElementOperand( dataElement );
+
+        assertEquals( AnalyticsUtils.getOperandKey( dataElementOperand ), dataElement.getUid() );
+
+        CategoryOptionCombo coc = createCategoryOptionCombo( createCategoryCombo( 'B' ) );
+        dataElementOperand = new DataElementOperand( dataElement, coc );
+        assertEquals( AnalyticsUtils.getOperandKey( dataElementOperand ), dataElement.getUid() + "-" + coc.getUid() );
+
+        CategoryOptionCombo aoc = createCategoryOptionCombo( createCategoryCombo( 'C' ) );
+        dataElementOperand = new DataElementOperand( dataElement, coc, aoc );
+        assertEquals( AnalyticsUtils.getOperandKey( dataElementOperand ),
+            dataElement.getUid() + "-" + coc.getUid() + "-" + aoc.getUid() );
     }
 }

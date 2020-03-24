@@ -55,7 +55,6 @@ import static org.mockito.Mockito.*;
 @RunWith( MockitoJUnitRunner.Silent.class )
 public abstract class AnalyticsServiceBaseTest
 {
-
     @Mock
     protected AnalyticsManager analyticsManager;
 
