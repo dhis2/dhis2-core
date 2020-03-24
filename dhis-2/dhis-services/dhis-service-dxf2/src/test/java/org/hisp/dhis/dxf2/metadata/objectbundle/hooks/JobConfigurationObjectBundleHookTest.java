@@ -211,12 +211,12 @@ public class JobConfigurationObjectBundleHookTest
         String jobConfigUid = "jsdhJSJHD";
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICS_TABLE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( jobConfigUid );
-        jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
+        jobConfiguration.setJobType( JobType.ANALYTICS_TABLE );
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
@@ -230,16 +230,16 @@ public class JobConfigurationObjectBundleHookTest
         String jobConfigUid = "o8kG3Qk3nG3";
         JobConfiguration contAnalyticsTableJobConfig = new JobConfiguration();
         contAnalyticsTableJobConfig.setUid( jobConfigUid );
-        contAnalyticsTableJobConfig.setJobType( JobType.CONTINUOUS_ANALYTICSTABLE_UPDATE );
+        contAnalyticsTableJobConfig.setJobType( JobType.CONTINUOUS_ANALYTICS_TABLE );
 
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
             .thenReturn( contAnalyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.CONTINUOUS_ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.CONTINUOUS_ANALYTICS_TABLE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( jobConfigUid );
-        jobConfiguration.setJobType( JobType.CONTINUOUS_ANALYTICSTABLE_UPDATE );
+        jobConfiguration.setJobType( JobType.CONTINUOUS_ANALYTICS_TABLE );
         jobConfiguration.setJobParameters( new ContinuousAnalyticsJobParameters( 1, null, null ) );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
