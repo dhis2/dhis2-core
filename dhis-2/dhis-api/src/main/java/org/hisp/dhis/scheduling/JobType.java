@@ -95,7 +95,8 @@ public enum JobType
     TEI_IMPORT( null, false ),
     LEADER_ELECTION( "leaderElectionJob", false ),
     LEADER_RENEWAL( "leaderRenewalJob", false ),
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false );
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false ),
+    PROGRAM_DATA_SYNC( null, false );
 
     private final String key;
 
