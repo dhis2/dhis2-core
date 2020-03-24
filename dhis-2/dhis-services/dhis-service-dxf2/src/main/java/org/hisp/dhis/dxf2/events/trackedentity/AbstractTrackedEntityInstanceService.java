@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  */
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 import java.io.IOException;
 import java.util.*;
@@ -1226,10 +1227,10 @@ public abstract class AbstractTrackedEntityInstanceService
                     continue;
                 }
 
-                if ( attribute.getValue().length() > 1200 )
+                if ( attribute.getValue().length() > TEA_VALUE_MAX_LENGTH )
                 {
                     // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
-                    importConflicts.add( new ImportConflict( "Attribute.value", "Value exceeds the character limit of 1200 characters: '" + attribute.getValue().substring( 0, 25 ) + "...'" ) );
+                    importConflicts.add( new ImportConflict( "Attribute.value", String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
                 }
 
                 TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
