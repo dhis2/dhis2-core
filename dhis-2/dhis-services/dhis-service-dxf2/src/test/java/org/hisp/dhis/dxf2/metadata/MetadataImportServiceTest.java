@@ -44,7 +44,6 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;

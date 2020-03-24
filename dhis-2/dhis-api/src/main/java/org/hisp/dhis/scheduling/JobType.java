@@ -75,21 +75,24 @@ public enum JobType
     TRACKER_IMPORT_NOTIFICATION_JOB( "trackerImportNotificationJob", false ),
     TRACKER_IMPORT_RULE_ENGINE_JOB( "trackerImportRuleEngineJob", false ),
 
+    // Internal jobs
+    LEADER_ELECTION( "leaderElectionJob", false ),
+    LEADER_RENEWAL( "leaderRenewalJob", false ),
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false ),
+    DATAVALUE_IMPORT_INTERNAL( null, false ),
+    METADATA_IMPORT( null, false ),
+    DATAVALUE_IMPORT( null, false ),
+    EVENT_IMPORT( null, false ),
+    ENROLLMENT_IMPORT( null, false ),
+    TEI_IMPORT( null, false ),
+
     // Testing purposes
     MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),
 
     // Deprecated, present to satisfy code using the old enumeration TaskCategory
-    DATAVALUE_IMPORT( null, false ),
-    ANALYTICSTABLE_UPDATE( null, false ),
-    METADATA_IMPORT( null, false ),
-    GML_IMPORT( null, false ),
-    DATAVALUE_IMPORT_INTERNAL( null, false ),
-    EVENT_IMPORT( null, false ),
-    ENROLLMENT_IMPORT( null, false ),
-    TEI_IMPORT( null, false ),
-    LEADER_ELECTION( "leaderElectionJob", false ),
-    LEADER_RENEWAL( "leaderRenewalJob", false ),
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false );
+    @Deprecated GML_IMPORT( null, false ),
+    @Deprecated ANALYTICSTABLE_UPDATE( null, false ),
+    @Deprecated PROGRAM_DATA_SYNC( "programDataSync", false );
 
     private final String key;
 
