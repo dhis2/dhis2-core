@@ -1,5 +1,3 @@
-package org.hisp.dhis.relationship;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,23 +25,21 @@ package org.hisp.dhis.relationship;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
+
+import java.util.Objects;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author Enrico Colasante
  */
 @Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
 public class RelationshipTypeDeletionHandler
-    extends DeletionHandler
+    extends
+    DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -69,10 +65,9 @@ public class RelationshipTypeDeletionHandler
     @Override
     public void deleteProgram( Program program )
     {
-        relationshipTypeService.getAllRelationshipTypes()
-            .stream()
-            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program ) ||
-                Objects.equals( type.getToConstraint().getProgram(), program ) )
-            .forEach( type -> relationshipTypeService.deleteRelationshipType( type ) );
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
     }
 }
