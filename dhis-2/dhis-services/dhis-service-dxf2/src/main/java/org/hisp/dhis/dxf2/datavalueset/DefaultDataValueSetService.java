@@ -28,24 +28,8 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
-import static org.hisp.dhis.util.DateUtils.parseDate;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.csvreader.CsvReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.calendar.CalendarService;
@@ -100,7 +84,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -121,10 +104,24 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-
-import com.csvreader.CsvReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.system.notification.NotificationLevel.*;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -171,20 +168,35 @@ public class DefaultDataValueSetService
 
     private final DataValueService dataValueService;
 
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
 
-    private AclService aclService;
+    private final AclService aclService;
 
-    private AggregateAccessManager accessManager;
+    private final AggregateAccessManager accessManager;
 
-    public DefaultDataValueSetService( IdentifiableObjectManager identifiableObjectManager,
-        CategoryService categoryService, OrganisationUnitService organisationUnitService, PeriodService periodService,
-        DataApprovalService approvalService, BatchHandlerFactory batchHandlerFactory,
-        CompleteDataSetRegistrationService registrationService, CurrentUserService currentUserService,
-        DataValueSetStore dataValueSetStore, SystemSettingManager systemSettingManager,
-        LockExceptionStore lockExceptionStore, I18nManager i18nManager, Notifier notifier, InputUtils inputUtils,
-        CalendarService calendarService, DataValueService dataValueService, FileResourceService fileResourceService,
-        AclService aclService, AggregateAccessManager accessManager )
+    private final ObjectMapper jsonMapper;
+
+    public DefaultDataValueSetService(
+        IdentifiableObjectManager identifiableObjectManager,
+        CategoryService categoryService,
+        OrganisationUnitService organisationUnitService,
+        PeriodService periodService,
+        DataApprovalService approvalService,
+        BatchHandlerFactory batchHandlerFactory,
+        CompleteDataSetRegistrationService registrationService,
+        CurrentUserService currentUserService,
+        DataValueSetStore dataValueSetStore,
+        SystemSettingManager systemSettingManager,
+        LockExceptionStore lockExceptionStore,
+        I18nManager i18nManager,
+        Notifier notifier,
+        InputUtils inputUtils,
+        CalendarService calendarService,
+        DataValueService dataValueService,
+        FileResourceService fileResourceService,
+        AclService aclService,
+        AggregateAccessManager accessManager,
+        ObjectMapper jsonMapper )
     {
         checkNotNull( identifiableObjectManager );
         checkNotNull( categoryService );
@@ -205,6 +217,7 @@ public class DefaultDataValueSetService
         checkNotNull( fileResourceService );
         checkNotNull( aclService );
         checkNotNull( accessManager );
+        checkNotNull( jsonMapper );
 
         this.identifiableObjectManager = identifiableObjectManager;
         this.categoryService = categoryService;
@@ -225,6 +238,7 @@ public class DefaultDataValueSetService
         this.fileResourceService = fileResourceService;
         this.aclService = aclService;
         this.accessManager = accessManager;
+        this.jsonMapper = jsonMapper;
     }
 
     /**
@@ -641,7 +655,7 @@ public class DefaultDataValueSetService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            DataValueSet dataValueSet = DefaultRenderService.getJsonMapper().readValue( in, DataValueSet.class );
+            DataValueSet dataValueSet = jsonMapper.readValue( in, DataValueSet.class );
             return saveDataValueSet( importOptions, id, dataValueSet );
         }
         catch ( Exception ex )
@@ -697,7 +711,7 @@ public class DefaultDataValueSetService
     @Override
     public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions )
     {
-       return saveDataValueSetPdf( in, importOptions, null );
+        return saveDataValueSetPdf( in, importOptions, null );
     }
 
     /**
@@ -716,7 +730,6 @@ public class DefaultDataValueSetService
      * <p>
      * If id scheme is specific in the data value set, any id schemes in the import
      * options will be ignored.
-     *
      */
     private ImportSummary saveDataValueSet( ImportOptions importOptions, JobConfiguration id, DataValueSet dataValueSet )
     {
@@ -1100,7 +1113,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictPeriods && !dataElementPeriodTypesMap.get( dataElement.getUid(),
-                    dataElement::getPeriodTypes).contains( period.getPeriodType() ) )
+                dataElement::getPeriodTypes ).contains( period.getPeriodType() ) )
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getPeriod(),
                     "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
@@ -1115,7 +1128,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
-                    dataElement::getCategoryOptionCombos).contains( categoryOptionCombo ) )
+                dataElement::getCategoryOptionCombos ).contains( categoryOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( categoryOptionCombo.getUid(),
                     "Category option combo: " + categoryOptionCombo.getUid() + " must be part of category combo of data element: " + dataElement.getUid() ) );
@@ -1123,7 +1136,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictAttrOptionCombos && !dataElementAttrOptionComboMap.get( dataElement.getUid(),
-                    dataElement::getDataSetCategoryOptionCombos).contains( attrOptionCombo ) )
+                dataElement::getDataSetCategoryOptionCombos ).contains( attrOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( attrOptionCombo.getUid(),
                     "Attribute option combo: " + attrOptionCombo.getUid() + " must be part of category combo of data sets of data element: " + dataElement.getUid() ) );
@@ -1157,10 +1170,10 @@ public class DefaultDataValueSetService
 
             final CategoryOptionCombo aoc = attrOptionCombo;
 
-            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), aoc::getDateRange);
+            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), aoc::getDateRange );
 
-            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0 )
-                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0 ) )
+            if ( (aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0)
+                || (aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of attribute option combo: " + attrOptionCombo.getUid() ) );
@@ -1179,7 +1192,7 @@ public class DefaultDataValueSetService
             }
 
             final DataSet approvalDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
-                    dataElement::getApprovalDataSet);
+                dataElement::getApprovalDataSet );
 
             if ( approvalDataSet != null && !forceDataInput ) // Data element is assigned to at least one data set
             {
@@ -1191,7 +1204,7 @@ public class DefaultDataValueSetService
                     continue;
                 }
 
-                Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), dataElement::getLatestOpenFuturePeriod);
+                Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), dataElement::getLatestOpenFuturePeriod );
 
                 if ( period.isAfter( latestFuturePeriod ) && isIso8601 )
                 {

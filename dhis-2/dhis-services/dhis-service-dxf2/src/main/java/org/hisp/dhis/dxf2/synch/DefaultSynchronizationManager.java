@@ -28,12 +28,8 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -49,7 +45,6 @@ import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -61,7 +56,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -80,10 +79,17 @@ public class DefaultSynchronizationManager
     private final CurrentUserService currentUserService;
     private final SystemSettingManager systemSettingManager;
     private final RestTemplate restTemplate;
+    private final ObjectMapper jsonMapper;
 
-    public DefaultSynchronizationManager( DataValueSetService dataValueSetService, DataValueService dataValueService,
-        MetadataImportService importService, SchemaService schemaService, CurrentUserService currentUserService,
-        SystemSettingManager systemSettingManager, RestTemplate restTemplate )
+    public DefaultSynchronizationManager(
+        DataValueSetService dataValueSetService,
+        DataValueService dataValueService,
+        MetadataImportService importService,
+        SchemaService schemaService,
+        CurrentUserService currentUserService,
+        SystemSettingManager systemSettingManager,
+        RestTemplate restTemplate,
+        ObjectMapper jsonMapper )
     {
         checkNotNull( dataValueSetService );
         checkNotNull( dataValueService );
@@ -92,6 +98,7 @@ public class DefaultSynchronizationManager
         checkNotNull( currentUserService );
         checkNotNull( systemSettingManager );
         checkNotNull( restTemplate );
+        checkNotNull( jsonMapper );
 
         this.dataValueSetService = dataValueSetService;
         this.dataValueService = dataValueService;
@@ -100,6 +107,7 @@ public class DefaultSynchronizationManager
         this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;
+        this.jsonMapper = jsonMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -223,7 +231,7 @@ public class DefaultSynchronizationManager
 
         try
         {
-            metadata = DefaultRenderService.getJsonMapper().readValue( json, Metadata.class );
+            metadata = jsonMapper.readValue( json, Metadata.class );
         }
         catch ( IOException ex )
         {

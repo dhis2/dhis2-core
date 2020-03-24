@@ -72,6 +72,16 @@ public class JacksonObjectMapperConfig
         return xmlMapper;
     }
 
+    public static ObjectMapper staticJsonMapper()
+    {
+        return jsonMapper;
+    }
+
+    public static ObjectMapper staticXmlMapper()
+    {
+        return xmlMapper;
+    }
+
     static
     {
         SimpleModule module = new SimpleModule();
