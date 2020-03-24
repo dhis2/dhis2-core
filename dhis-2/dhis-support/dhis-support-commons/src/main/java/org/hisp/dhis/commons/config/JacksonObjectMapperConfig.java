@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -53,7 +54,7 @@ import java.util.Date;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Configuration
-public class CommonsConfig
+public class JacksonObjectMapperConfig
 {
     public static final ObjectMapper jsonMapper = new ObjectMapper();
     public static final ObjectMapper xmlMapper = new XmlMapper();
@@ -85,7 +86,8 @@ public class CommonsConfig
             objectMapper.registerModules( module,
                 new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ),
                 new JavaTimeModule(),
-                new Jdk8Module()
+                new Jdk8Module(),
+                new Hibernate5Module()
             );
 
             objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
