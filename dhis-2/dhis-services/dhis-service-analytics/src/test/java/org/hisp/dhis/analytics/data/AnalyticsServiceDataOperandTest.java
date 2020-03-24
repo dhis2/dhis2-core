@@ -69,55 +69,17 @@ public class AnalyticsServiceDataOperandTest
     extends
     AnalyticsServiceBaseTest
 {
-
-    private DataElementOperand create( char dataElementChar, char cocChar )
-    {
-        DataElement de = createDataElement( dataElementChar );
-        CategoryOptionCombo coc = createCategoryOptionCombo( cocChar );
-        return new DataElementOperand( de, coc );
-    }
-
-    private String getDataElementUid( DataElementOperand dataElementOperand )
-    {
-        return dataElementOperand.getDataElement().getUid();
-    }
-
-    private String getCoCUid( DataElementOperand dataElementOperand )
-    {
-        return dataElementOperand.getCategoryOptionCombo().getUid();
-    }
-
-    private String getDeCocKey( DataElementOperand dataElementOperand, char separator )
-    {
-        return getDataElementUid( dataElementOperand ) + separator + getCoCUid( dataElementOperand );
-    }
-
-    private Map<String, Object> buildResponse( List<DimensionalItemObject> periods, DataElementOperand... operands )
-    {
-        Map<String, Object> result = new HashMap<>();
-        for ( DataElementOperand operand : operands )
-        {
-            for ( DimensionalItemObject period : periods )
-            {
-                Period p = (Period) period;
-                result.put( getDeCocKey( operand, '-' ) + "-" + p.getIsoDate(), RandomUtils.nextLong() );
-            }
-        }
-
-        return result;
-    }
-
     @Test
-    public void t1()
+    public void verifyAnalyticsServiceFiltersOutUnwantedDataElementOperands()
     {
         int timeUnit = 3;
 
-        DataElementOperand dataElementOperand1 = create( 'A', 'B' );
-        DataElementOperand dataElementOperand2 = create( 'C', 'D' );
-        DataElementOperand dataElementOperand3 = create( 'E', 'F' );
-        // these operands are not requested in the query //
-        DataElementOperand dataElementOperand4 = create( 'G', 'H' );
-        DataElementOperand dataElementOperand5 = create( 'I', 'L' );
+        DataElementOperand dataElementOperand1 = createOperand( 'A', 'B' );
+        DataElementOperand dataElementOperand2 = createOperand( 'C', 'D' );
+        DataElementOperand dataElementOperand3 = createOperand( 'E', 'F' );
+        // these operands are not requested by the query //
+        DataElementOperand dataElementOperand4 = createOperand( 'G', 'H' );
+        DataElementOperand dataElementOperand5 = createOperand( 'I', 'L' );
 
         List<DimensionalItemObject> periods = new ArrayList<>();
 
@@ -166,5 +128,42 @@ public class AnalyticsServiceDataOperandTest
             }
         }
         return false;
+    }
+
+    private DataElementOperand createOperand(char dataElementChar, char cocChar )
+    {
+        DataElement de = createDataElement( dataElementChar );
+        CategoryOptionCombo coc = createCategoryOptionCombo( cocChar );
+        return new DataElementOperand( de, coc );
+    }
+
+    private String getDataElementUid( DataElementOperand dataElementOperand )
+    {
+        return dataElementOperand.getDataElement().getUid();
+    }
+
+    private String getCoCUid( DataElementOperand dataElementOperand )
+    {
+        return dataElementOperand.getCategoryOptionCombo().getUid();
+    }
+
+    private String getDeCocKey( DataElementOperand dataElementOperand, char separator )
+    {
+        return getDataElementUid( dataElementOperand ) + separator + getCoCUid( dataElementOperand );
+    }
+
+    private Map<String, Object> buildResponse( List<DimensionalItemObject> periods, DataElementOperand... operands )
+    {
+        Map<String, Object> result = new HashMap<>();
+        for ( DataElementOperand operand : operands )
+        {
+            for ( DimensionalItemObject period : periods )
+            {
+                Period p = (Period) period;
+                result.put( getDeCocKey( operand, '-' ) + "-" + p.getIsoDate(), RandomUtils.nextLong() );
+            }
+        }
+
+        return result;
     }
 }
