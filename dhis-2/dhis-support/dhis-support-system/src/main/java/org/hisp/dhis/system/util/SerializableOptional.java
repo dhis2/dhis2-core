@@ -1,4 +1,4 @@
-package org.hisp.dhis.cache;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,32 +28,66 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
+import java.io.Serializable;
 
 /**
- * Provides cache builder to build instances.
+ * Optional for {@link Serializable} values. Accepts nulls.
  *
- * @author Ameen Mohamed
+ * @author Lars Helge Overland
  */
-public interface CacheProvider
+public class SerializableOptional
+    implements Serializable
 {
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
-     * stores the valueType specified.
-     *
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *          {@link ExtendedCacheBuilder}.
-     */
-    <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
+    private final Serializable value;
+
+    private SerializableOptional()
+    {
+        this.value = null;
+    }
+
+    private SerializableOptional( Serializable value )
+    {
+        this.value = value;
+    }
 
     /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
-     * stores the Map of keyType and valueType specified.
+     * Creates a {@link SerializableOptional} with the given value.
      *
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *          {@link ExtendedCacheBuilder}.
+     * @param value the value.
+     * @return a {@link SerializableOptional}.
      */
-    <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType );
+    public static SerializableOptional of( Serializable value )
+    {
+        return new SerializableOptional( value );
+    }
+
+    /**
+     * Returns a {@link SerializableOptional} with a null value.
+     *
+     * @return a {@link SerializableOptional} with a null value.
+     */
+    public static SerializableOptional empty()
+    {
+        return new SerializableOptional();
+    }
+
+    /**
+     * Indicates whether a value is present.
+     *
+     * @return true if a value is present.
+     */
+    public boolean isPresent()
+    {
+        return value != null;
+    }
+
+    /**
+     * Returns the value, may be null.
+     *
+     * @return the value.
+     */
+    public Serializable get()
+    {
+        return value;
+    }
 }
