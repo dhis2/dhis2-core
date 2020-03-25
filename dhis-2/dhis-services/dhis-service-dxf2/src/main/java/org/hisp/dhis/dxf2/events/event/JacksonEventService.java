@@ -49,7 +49,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.hisp.dhis.node.geometry.JtsXmlModule;
+import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
