@@ -29,7 +29,6 @@
 package org.hisp.dhis.analytics.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
@@ -154,10 +153,8 @@ public class AnalyticsCacheSettings
     }
 
     /**
-     * Returns the TTL factor set in system settings or the default value if nothing
-     * is set.
-     *
-     * If a negative TTL factor was set, the default value will be returned.
+     * Returns the TTL factor set in system settings or 1 (when the factor is set to
+     * ZERO or negative).
      *
      * @return the ttl factor
      */
@@ -166,6 +163,6 @@ public class AnalyticsCacheSettings
         final Integer ttlFactor = (Integer) systemSettingManager
             .getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR );
 
-        return max( abs( ttlFactor ), 1 );
+        return max( ttlFactor, 1 );
     }
 }

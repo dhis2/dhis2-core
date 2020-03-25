@@ -29,6 +29,7 @@
 package org.hisp.dhis.analytics.cache;
 
 import static java.lang.Long.valueOf;
+import static java.lang.Math.abs;
 import static java.util.Calendar.DATE;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
@@ -178,7 +179,7 @@ public class AnalyticsCacheSettingsTest
         // Given
         final int aTtlFactor = -20;
         final int oneDayDiff = 1;
-        final int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
+        final int theExpectedTtlFactor = 1;
         final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
         // When
@@ -187,7 +188,7 @@ public class AnalyticsCacheSettingsTest
         final long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
 
         // Then
-        assertThat( expirationTime, is( valueOf( theDefaultTtlFactor ) ) );
+        assertThat( expirationTime, is( valueOf( theExpectedTtlFactor ) ) );
     }
 
     @Test
