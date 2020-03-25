@@ -173,8 +173,6 @@ public class DefaultSqlViewService
         grid.setTitle( sqlView.getName() );
         grid.setSubtitle( sqlView.getDescription() );
 
-        validateSqlView( sqlView, criteria, variables );
-
         log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
 
         String sql = sqlView.isQuery() ?
