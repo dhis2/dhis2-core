@@ -263,11 +263,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
 
         getSession().save( object );
-
-        if ( MetadataObject.class.isInstance( object ) )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-        }
     }
 
     @Override
@@ -306,11 +301,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( object != null )
         {
             getSession().update( object );
-        }
-
-        if ( MetadataObject.class.isInstance( object ) )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
     }
 

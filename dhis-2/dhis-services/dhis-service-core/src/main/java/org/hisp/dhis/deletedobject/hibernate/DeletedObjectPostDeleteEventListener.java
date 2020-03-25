@@ -36,21 +36,27 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class DeletedObjectPostDeleteEventListener implements PostDeleteEventListener
 {
     @Override
     public void onPostDelete( PostDeleteEvent event )
     {
+        if ( !IdentifiableObject.class.isAssignableFrom( event.getEntity().getClass() ) )
+        {
+            return;
+        }
+
         if ( MetadataObject.class.isInstance( event.getEntity() ) && !EmbeddedObject.class.isInstance( event.getEntity() ) )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
             DeletedObject deletedObject = new DeletedObject( identifiableObject );
             deletedObject.setDeletedBy( getUsername() );
-
             event.getSession().persist( deletedObject );
         }
     }
