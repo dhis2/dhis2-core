@@ -163,7 +163,7 @@ public class UserController
             ( orders == null ) ? null : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() ) );
 
         // keep the memory query on the result
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );

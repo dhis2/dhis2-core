@@ -39,7 +39,7 @@ public class GenericHttpGatewayConfig
     private static final long serialVersionUID = 6340853488475760213L;
 
     private String configurationTemplate;
-
+    
     private boolean useGet;
 
     private ContentType contentType = ContentType.FORM_URL_ENCODED;
@@ -56,7 +56,7 @@ public class GenericHttpGatewayConfig
     {
         this.parameters = parameters;
     }
-
+    
     @JsonProperty
     public boolean isUseGet()
     {

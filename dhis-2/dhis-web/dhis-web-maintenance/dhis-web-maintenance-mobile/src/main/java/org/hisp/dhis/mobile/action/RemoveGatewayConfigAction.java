@@ -36,6 +36,7 @@ import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
+import org.hisp.dhis.sms.config.GenericHttpGetGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
@@ -105,6 +106,11 @@ public class RemoveGatewayConfigAction
                     gatewayAdminService.getGatewayConfigurationMap().remove( gatewayConfig.getName() );
                 }
 
+                if ( gatewayConfig instanceof GenericHttpGetGatewayConfig )
+                {
+                    gatewayAdminService.getGatewayConfigurationMap().remove( gatewayConfig.getName() );
+                }
+                //TODO Why not merge all ifs into a single if. the body is same for all
                 if ( gatewayConfig instanceof GenericHttpGatewayConfig )
                 {
                     gatewayAdminService.getGatewayConfigurationMap().remove( gatewayConfig.getName() );

@@ -28,6 +28,14 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.*;
@@ -38,8 +46,8 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.*;
@@ -505,6 +513,24 @@ public class EventQueryParams
             return true;
         }
 
+        if ( program != null )
+        {
+            return validateProgramHasOrgUnitField( program );
+        }
+
+        if ( !itemProgramIndicators.isEmpty() )
+        {
+            // Fail validation if at least one program indicator is invalid
+
+            return !itemProgramIndicators.stream().anyMatch( pi -> !validateProgramHasOrgUnitField( pi.getProgram() ) );
+        }
+
+        return false;
+    }
+
+    private boolean validateProgramHasOrgUnitField( Program program )
+    {
+
         if ( program.getTrackedEntityAttributes().stream()
             .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
         {
@@ -917,6 +943,7 @@ public class EventQueryParams
      * Builder for {@link DataQueryParams} instances.
      */
     public static class Builder
+        implements QueryParamsBuilder
     {
         private EventQueryParams params;
 
@@ -968,6 +995,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addDimension( DimensionalObject dimension )
         {
             this.params.addDimension( dimension );
@@ -980,12 +1008,21 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
+        public Builder removeDimensionOrFilter( String dimension )
+        {
+            this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
+            this.params.filters.remove( new BaseDimensionalObject( dimension ) );
+            return this;
+        }
+
         public Builder withOrganisationUnits( List<? extends DimensionalItemObject> organisationUnits )
         {
             this.params.setDimensionOptions( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null, asList( organisationUnits ) );
             return this;
         }
 
+        @Override
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );

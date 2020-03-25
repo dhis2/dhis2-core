@@ -1,4 +1,4 @@
-package org.hisp.dhis.query;
+package org.hisp.dhis.sms.config;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,68 +28,78 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.hisp.dhis.schema.Schema;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public abstract class Criteria
+public class GenericHttpGetGatewayConfig
+    extends SmsGatewayConfig
 {
-    protected List<Criterion> criterions = new ArrayList<>();
+    private static final long serialVersionUID = 6340853488475760213L;
 
-    protected Set<String> aliases = new HashSet<>();
+    private String messageParameter;
+    
+    private String recipientParameter;
 
-    protected final Schema schema;
+    private boolean useGet;
 
-    public Criteria( Schema schema )
+    private ContentType contentType = ContentType.FORM_URL_ENCODED;
+
+    private List<GenericGatewayParameter> parameters = Lists.newArrayList();
+
+    @JsonProperty
+    public List<GenericGatewayParameter> getParameters()
     {
-        this.schema = schema;
+        return parameters;
     }
 
-    public List<Criterion> getCriterions()
+    public void setParameters( List<GenericGatewayParameter> parameters )
     {
-        return criterions;
+        this.parameters = parameters;
+    }
+    
+    @JsonProperty( value = "messageParameter" )
+    public String getMessageParameter()
+    {
+        return messageParameter;
     }
 
-    public Set<String> getAliases()
+    public void setMessageParameter( String messageParameter )
     {
-        return aliases;
+        this.messageParameter = messageParameter;
     }
 
-    public Criteria add( Criterion criterion )
+    @JsonProperty( value = "recipientParameter" )
+    public String getRecipientParameter()
     {
-        if ( !(criterion instanceof Restriction) )
-        {
-            this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
-            return this;
-        }
-
-        Restriction restriction = (Restriction) criterion;
-
-        this.criterions.add( restriction );
-
-        return this;
+        return recipientParameter;
     }
 
-    public Criteria add( Criterion... criterions )
+    public void setRecipientParameter( String recipientParameter )
     {
-        for ( Criterion criterion : criterions )
-        {
-            add( criterion );
-        }
-
-        return this;
+        this.recipientParameter = recipientParameter;
     }
 
-    public Criteria add( Collection<Criterion> criterions )
+    @JsonProperty
+    public boolean isUseGet()
     {
-        criterions.forEach( this::add );
-        return this;
+        return useGet;
+    }
+
+    public void setUseGet( boolean useGet )
+    {
+        this.useGet = useGet;
+    }
+
+    @JsonProperty
+    public ContentType getContentType()
+    {
+        return contentType;
+    }
+
+    public void setContentType( ContentType contentType )
+    {
+        this.contentType = contentType;
     }
 }

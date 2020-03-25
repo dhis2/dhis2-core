@@ -1,7 +1,7 @@
-package org.hisp.dhis.query;
+package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,68 +28,18 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.common.DimensionalObject;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Interface representing common methods for analytics query builders.
+ *
+ * @author Lars Helge Overland
  */
-public abstract class Criteria
+public interface QueryParamsBuilder
 {
-    protected List<Criterion> criterions = new ArrayList<>();
+    QueryParamsBuilder addDimension( DimensionalObject dimension );
 
-    protected Set<String> aliases = new HashSet<>();
+    QueryParamsBuilder removeDimensionOrFilter( String dimension );
 
-    protected final Schema schema;
-
-    public Criteria( Schema schema )
-    {
-        this.schema = schema;
-    }
-
-    public List<Criterion> getCriterions()
-    {
-        return criterions;
-    }
-
-    public Set<String> getAliases()
-    {
-        return aliases;
-    }
-
-    public Criteria add( Criterion criterion )
-    {
-        if ( !(criterion instanceof Restriction) )
-        {
-            this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
-            return this;
-        }
-
-        Restriction restriction = (Restriction) criterion;
-
-        this.criterions.add( restriction );
-
-        return this;
-    }
-
-    public Criteria add( Criterion... criterions )
-    {
-        for ( Criterion criterion : criterions )
-        {
-            add( criterion );
-        }
-
-        return this;
-    }
-
-    public Criteria add( Collection<Criterion> criterions )
-    {
-        criterions.forEach( this::add );
-        return this;
-    }
+    QueryParamsBuilder addFilter( DimensionalObject filter );
 }
