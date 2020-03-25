@@ -29,6 +29,8 @@
 package org.hisp.dhis.analytics.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
@@ -163,8 +165,7 @@ public class AnalyticsCacheSettings
     {
         final Integer ttlFactor = (Integer) systemSettingManager
             .getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR );
-        final boolean ttlNotNullAndPositive = ttlFactor != null && ttlFactor > 0;
 
-        return ttlNotNullAndPositive ? ttlFactor : (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
+        return max( abs( ttlFactor ), 1 );
     }
 }
