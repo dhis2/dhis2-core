@@ -44,12 +44,16 @@ public class DeletedObjectPostDeleteEventListener implements PostDeleteEventList
     @Override
     public void onPostDelete( PostDeleteEvent event )
     {
-        if ( MetadataObject.class.isInstance( event.getEntity() ) )
+        if ( !IdentifiableObject.class.isAssignableFrom( event.getEntity().getClass() ) )
+        {
+            return;
+        }
+
+        if ( MetadataObject.class.isInstance( event.getEntity() ) && !EmbeddedObject.class.isInstance( event.getEntity() ) )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
             DeletedObject deletedObject = new DeletedObject( identifiableObject );
             deletedObject.setDeletedBy( getUsername() );
-
             event.getSession().persist( deletedObject );
         }
     }
