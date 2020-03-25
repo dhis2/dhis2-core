@@ -44,6 +44,7 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -94,7 +95,6 @@ public class JacksonObjectMapperConfig
         for ( ObjectMapper objectMapper : objectMappers )
         {
             objectMapper.registerModules( module,
-                new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ),
                 new JavaTimeModule(),
                 new Jdk8Module(),
                 new Hibernate5Module()
@@ -116,5 +116,8 @@ public class JacksonObjectMapperConfig
             objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
             objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
         }
+
+        jsonMapper.registerModule( new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ) );
+        xmlMapper.registerModule( new JtsXmlModule() );
     }
 }

@@ -1,21 +1,34 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -26,9 +39,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -66,69 +80,104 @@ import java.util.stream.Collectors;
 @Transactional
 public class JacksonEnrollmentService extends AbstractEnrollmentService
 {
+    public JacksonEnrollmentService(
+        ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService,
+        ProgramService programService,
+        TrackedEntityInstanceService trackedEntityInstanceService,
+        TrackerOwnershipManager trackerOwnershipAccessManager,
+        RelationshipService relationshipService,
+        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
+        TrackedEntityAttributeService trackedEntityAttributeService,
+        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+        CurrentUserService currentUserService,
+        TrackedEntityCommentService commentService,
+        IdentifiableObjectManager manager,
+        I18nManager i18nManager,
+        UserService userService,
+        DbmsManager dbmsManager,
+        EventService eventService,
+        TrackerAccessManager trackerAccessManager,
+        SchemaService schemaService,
+        QueryService queryService,
+        Notifier notifier,
+        ApplicationEventPublisher eventPublisher,
+        ObjectMapper jsonMapper,
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+    {
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( programService );
+        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( trackerOwnershipAccessManager );
+        checkNotNull( relationshipService );
+        checkNotNull( teiService );
+        checkNotNull( trackedEntityAttributeService );
+        checkNotNull( trackedEntityAttributeValueService );
+        checkNotNull( currentUserService );
+        checkNotNull( commentService );
+        checkNotNull( manager );
+        checkNotNull( i18nManager );
+        checkNotNull( userService );
+        checkNotNull( dbmsManager );
+        checkNotNull( eventService );
+        checkNotNull( trackerAccessManager );
+        checkNotNull( schemaService );
+        checkNotNull( queryService );
+        checkNotNull( notifier );
+        checkNotNull( eventPublisher );
+        checkNotNull( jsonMapper );
+        checkNotNull( xmlMapper );
+
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+        this.relationshipService = relationshipService;
+        this.teiService = teiService;
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
+        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+        this.currentUserService = currentUserService;
+        this.commentService = commentService;
+        this.manager = manager;
+        this.i18nManager = i18nManager;
+        this.userService = userService;
+        this.dbmsManager = dbmsManager;
+        this.eventService = eventService;
+        this.trackerAccessManager = trackerAccessManager;
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+        this.notifier = notifier;
+        this.eventPublisher = eventPublisher;
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
+    }
     // -------------------------------------------------------------------------
     // EnrollmentService Impl
     // -------------------------------------------------------------------------
 
-    private final static ObjectMapper XML_MAPPER = new XmlMapper();
-
-    private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
-
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( InputStream inputStream, Class<?> clazz ) throws IOException
+    private <T> T fromXml( InputStream inputStream, Class<?> clazz ) throws IOException
     {
-        return (T) XML_MAPPER.readValue( inputStream, clazz );
+        return (T) xmlMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( String input, Class<?> clazz ) throws IOException
+    private <T> T fromXml( String input, Class<?> clazz ) throws IOException
     {
-        return (T) XML_MAPPER.readValue( input, clazz );
+        return (T) xmlMapper.readValue( input, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( InputStream inputStream, Class<?> clazz ) throws IOException
+    private <T> T fromJson( InputStream inputStream, Class<?> clazz ) throws IOException
     {
-        return (T) JSON_MAPPER.readValue( inputStream, clazz );
+        return (T) jsonMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( String input, Class<?> clazz ) throws IOException
+    private <T> T fromJson( String input, Class<?> clazz ) throws IOException
     {
-        return (T) JSON_MAPPER.readValue( input, clazz );
-    }
-
-    static
-    {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.registerModule( module );
-        JSON_MAPPER.registerModule( new JtsModule() );
-
-        XML_MAPPER.registerModule( module );
-        XML_MAPPER.registerModule( new JtsModule() );
+        return (T) jsonMapper.readValue( input, clazz );
     }
 
     // -------------------------------------------------------------------------
@@ -173,7 +222,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     {
         List<Enrollment> enrollments = new ArrayList<>();
 
-        JsonNode root = JSON_MAPPER.readTree( input );
+        JsonNode root = jsonMapper.readTree( input );
 
         if ( root.get( "enrollments" ) != null )
         {
