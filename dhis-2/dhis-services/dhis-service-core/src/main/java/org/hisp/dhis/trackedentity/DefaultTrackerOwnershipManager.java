@@ -254,29 +254,30 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public boolean hasAccess( User user, ProgramInstance programInstance )
-    {
-        Program program = programInstance.getProgram();
-        TrackedEntityInstance entityInstance = programInstance.getEntityInstance();
-
-        if ( programInstance == null || canSkipOwnershipCheck( user, program ) || entityInstance == null )
-        {
-            return true;
-        }
-
-        OrganisationUnit ou = getOwner( entityInstance, program );
-
-        if ( program.isOpen() || program.isAudited() )
-        {
-            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
-        }
-        else
-        {
-            return organisationUnitService.isInUserHierarchyCached( user, ou ) || hasTemporaryAccess( entityInstance, program, user );
-        }
-    }
+    //TODO: Why have a separate method (with diff params, but same...) that does the same as above?
+//    @Override
+//    @Transactional(readOnly = true)
+//    public boolean hasAccess( User user, ProgramInstance programInstance )
+//    {
+//        Program program = programInstance.getProgram();
+//        TrackedEntityInstance entityInstance = programInstance.getEntityInstance();
+//
+//        if ( programInstance == null || canSkipOwnershipCheck( user, program ) || entityInstance == null )
+//        {
+//            return true;
+//        }
+//
+//        OrganisationUnit ou = getOwner( entityInstance, program );
+//
+//        if ( program.isOpen() || program.isAudited() )
+//        {
+//            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
+//        }
+//        else
+//        {
+//            return organisationUnitService.isInUserHierarchyCached( user, ou ) || hasTemporaryAccess( entityInstance, program, user );
+//        }
+//    }
 
     // -------------------------------------------------------------------------
     // Private Helper Methods

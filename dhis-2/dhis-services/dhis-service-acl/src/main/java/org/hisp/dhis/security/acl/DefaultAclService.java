@@ -703,8 +703,10 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        return schemaService.getSchema( object.getClass() ) == null;
+        boolean b = schemaService.getSchema( object.getClass() ) == null;
+        return b;
     }
+
 
     private boolean writeCommonCheck( Schema schema, User user, IdentifiableObject object )
     {

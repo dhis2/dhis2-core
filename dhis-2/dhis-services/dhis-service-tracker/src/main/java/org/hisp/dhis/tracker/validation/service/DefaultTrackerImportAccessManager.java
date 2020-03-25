@@ -51,8 +51,8 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_STAGE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
 /**
@@ -81,8 +81,7 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void canRead( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
-        boolean skipOwnershipCheck )
+    public void canRead( ValidationErrorReporter reporter, User user, ProgramInstance programInstance )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
@@ -109,10 +108,9 @@ public class DefaultTrackerImportAccessManager
 //                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            if ( !skipOwnershipCheck &&
-                !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+            if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1093 )
+                reporter.addError( newReport( TrackerErrorCode.E1102 )
                     .addArg( user )
                     .addArg( programInstance.getEntityInstance() )
                     .addArg( program ) );
@@ -136,19 +134,21 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void canCreateEnrollment( ValidationErrorReporter reporter, User user, Program program,
-        ProgramInstance programInstance, boolean skipOwnershipCheck )
+    public void canWriteEnrollment( ValidationErrorReporter reporter, User user, Program program,
+        ProgramInstance programInstance )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_CANT_BE_NULL );
+        //TODO: Investigate, must all program have a tei type?
+        // Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_CANT_BE_NULL );
 
         OrganisationUnit ou = programInstance.getOrganisationUnit();
         Objects.requireNonNull( ou, ORGANISATION_UNIT_CANT_BE_NULL );
         //TODO should ou != null be allowed?
 //        if ( ou != null )
 //        {
+
         if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1090 )
@@ -165,126 +165,32 @@ public class DefaultTrackerImportAccessManager
 
         if ( !program.isWithoutRegistration() )
         {
-            checkProgramWithoutRegistration( reporter, user, programInstance, skipOwnershipCheck, program );
-        }
-    }
-
-    @Override
-    public void canUpdateEnrollment( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
-        boolean skipOwnershipCheck )
-    {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-
-        Program program = programInstance.getProgram();
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1091 )
-                .addArg( user )
-                .addArg( program ) );
-//            errors.add( "User has no data write access to program: " + program.getUid() );
-        }
-
-        if ( !program.isWithoutRegistration() )
-        {
-            checkProgramWithoutRegistration( reporter, user, programInstance, skipOwnershipCheck, program );
-        }
-        else
-        {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
-            if ( ou != null )
+            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
             {
-                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1098 )
-                        .addArg( user )
-                        .addArg( ou ) );
-//                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-                }
-            }
-        }
-    }
-
-    @Override
-    public void canDeleteEnrollment( ValidationErrorReporter reporter, User user, ProgramInstance programInstance,
-        boolean skipOwnershipCheck )
-    {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-
-        Program program = programInstance.getProgram();
-
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1091 )
-                .addArg( user )
-                .addArg( program ) );
-//            errors.add( "User has no data write access to program: " + program.getUid() );
-        }
-
-        if ( !program.isWithoutRegistration() )
-        {
-            checkProgramWithoutRegistration( reporter, user, programInstance, skipOwnershipCheck, program );
-        }
-        else
-        {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1094 )
-                        .addArg( user )
-                        .addArg( ou ) );
-//                    errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
-                }
-            }
-        }
-
-    }
-
-    protected void checkProgramWithoutRegistration( ValidationErrorReporter reporter, User user,
-        ProgramInstance programInstance, boolean skipOwnershipCheck, Program program )
-    {
-        if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1092 )
-                .addArg( user )
-                .addArg( program.getTrackedEntityType() ) );
+                reporter.addError( newReport( TrackerErrorCode.E1092 )
+                    .addArg( user )
+                    .addArg( program.getTrackedEntityType() ) );
 //                errors.add(
 //                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-        }
-        if ( !skipOwnershipCheck &&
-            !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1093 )
-                .addArg( user )
-                .addArg( programInstance.getEntityInstance() )
-                .addArg( program ) );
+            }
+            if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1102 )
+                    .addArg( user )
+                    .addArg( programInstance.getEntityInstance() )
+                    .addArg( program ) );
 //                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
+            }
         }
     }
 
     @Override
-    public void canCreateEnrollment( ValidationErrorReporter reporter, User user,
-        ProgramStageInstance programStageInstance,
-        boolean skipOwnershipCheck )
+    public void canWriteEvent( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
-
-        ProgramStage programStage = programStageInstance.getProgramStage();
-
-        // TODO: Check this and document
-        if ( isNull( programStage ) )
-        {
-            return;
-        }
-
-        Program program = programStage.getProgram();
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( programStageInstance.getProgramStage(), PROGRAM_STAGE_CANT_BE_NULL );
+        Objects.requireNonNull( programStageInstance.getProgramStage().getProgram(), PROGRAM_CANT_BE_NULL );
 
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
         if ( ou != null )
@@ -300,136 +206,8 @@ public class DefaultTrackerImportAccessManager
             }
         }
 
-        if ( program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataWrite( user, program ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1091 )
-                    .addArg( user )
-                    .addArg( program ) );
-//                errors.add( "User has no data write access to program: " + program.getUid() );
-            }
-        }
-        else
-        {
-            checkCanWriteProgramStage( reporter, user, programStageInstance, skipOwnershipCheck );
-        }
-
-        if ( programStageInstance.getAttributeOptionCombo() != null )
-        {
-            canWrite( reporter, user, programStageInstance.getAttributeOptionCombo() );
-        }
-    }
-
-    @Override
-    public void canUpdateEnrollment( ValidationErrorReporter reporter, User user,
-        ProgramStageInstance programStageInstance,
-        boolean skipOwnershipCheck )
-    {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
-
-        ProgramStage programStage = programStageInstance.getProgramStage();
-
-        if ( isNull( programStage ) )
-        {
-            //TODO: Need to document this...
-            return;
-        }
-
-        Program program = programStage.getProgram();
-
-        if ( program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataWrite( user, program ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1091 )
-                    .addArg( user )
-                    .addArg( program ) );
-//                errors.add( "User has no data write access to program: " + program.getUid() );
-            }
-        }
-        else
-        {
-            if ( !aclService.canDataWrite( user, programStage ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1095 )
-                    .addArg( user )
-                    .addArg( program ) );
-//                errors.add( "User has no data write access to program stage: " + programStage.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1096 )
-                    .addArg( user )
-                    .addArg( program ) );
-//                errors.add( "User has no data read access to program: " + program.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1092 )
-                    .addArg( user )
-                    .addArg( program.getTrackedEntityType() ) );
-//                errors.add(
-//                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1097 )
-                        .addArg( user )
-                        .addArg( ou ) );
-//                    errors.add( "User has no update access to organisation unit: " + ou.getUid() );
-                }
-            }
-
-            if ( !skipOwnershipCheck && !ownershipAccessManager
-                .hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1093 )
-                    .addArg( user )
-                    .addArg( programStageInstance.getProgramInstance().getEntityInstance() )
-                    .addArg( program ) );
-//                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-
-        if ( programStageInstance.getAttributeOptionCombo() != null )
-        {
-            canWrite( reporter, user, programStageInstance.getAttributeOptionCombo() );
-        }
-//        errors.addAll( canWrite( user, programStageInstance.getAttributeOptionCombo() ) );
-
-//        return errors;
-    }
-
-    @Override
-    public void canDeleteEnrollment( ValidationErrorReporter reporter, User user,
-        ProgramStageInstance programStageInstance,
-        boolean skipOwnershipCheck )
-    {
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
-        Objects.requireNonNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
-
         if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
         {
-            OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1094 )
-                        .addArg( user )
-                        .addArg( ou ) );
-//                    errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
-                }
-            }
-
             if ( !aclService.canDataWrite( user, programStageInstance.getProgramStage().getProgram() ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1091 )
@@ -440,57 +218,52 @@ public class DefaultTrackerImportAccessManager
         }
         else
         {
-            checkCanWriteProgramStage( reporter, user, programStageInstance, skipOwnershipCheck );
-        }
-        if ( programStageInstance.getAttributeOptionCombo() != null )
-        {
-            canWrite( reporter, user, programStageInstance.getAttributeOptionCombo() );
-        }
-    }
-
-    protected void checkCanWriteProgramStage( ValidationErrorReporter reporter, User user,
-        ProgramStageInstance programStageInstance, boolean skipOwnershipCheck )
-    {
-        if ( !aclService.canDataWrite( user, programStageInstance.getProgramStage() ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1095 )
-                .addArg( user )
-                .addArg( programStageInstance.getProgramStage() ) );
+            if ( !aclService.canDataWrite( user, programStageInstance.getProgramStage() ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1095 )
+                    .addArg( user )
+                    .addArg( programStageInstance.getProgramStage() ) );
 //                errors.add( "User has no data write access to program stage: " + programStage.getUid() );
-        }
+            }
 
-        if ( !aclService.canDataRead( user, programStageInstance.getProgramStage().getProgram() ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1096 )
-                .addArg( user )
-                .addArg( programStageInstance.getProgramStage() ) );
+            if ( !aclService.canDataRead( user, programStageInstance.getProgramStage().getProgram() ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1096 )
+                    .addArg( user )
+                    .addArg( programStageInstance.getProgramStage() ) );
 //                errors.add( "User has no data read access to program: " + program.getUid() );
-        }
+            }
 
-        if ( !aclService
-            .canDataRead( user, programStageInstance.getProgramStage().getProgram().getTrackedEntityType() ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1092 )
-                .addArg( user )
-                .addArg( programStageInstance.getProgramStage() ) );
+            if ( !aclService
+                .canDataRead( user, programStageInstance.getProgramStage().getProgram().getTrackedEntityType() ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1092 )
+                    .addArg( user )
+                    .addArg( programStageInstance.getProgramStage() ) );
 //                errors.add(
 //                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
+            }
+
+            if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(),
+                programStageInstance.getProgramStage().getProgram() ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1102 )
+                    .addArg( user )
+                    .addArg( programStageInstance.getProgramInstance().getEntityInstance() )
+                    .addArg( programStageInstance.getProgramStage().getProgram() ) );
+//                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
+            }
         }
 
-        if ( !skipOwnershipCheck && !ownershipAccessManager
-            .hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(),
-                programStageInstance.getProgramStage().getProgram() ) )
+        if ( programStageInstance.getAttributeOptionCombo() != null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1093 )
-                .addArg( user )
-                .addArg( programStageInstance.getProgramInstance().getEntityInstance() )
-                .addArg( programStageInstance.getProgramStage().getProgram() ) );
-//                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
+            canWriteCategoryOptionCombo( reporter, user, programStageInstance.getAttributeOptionCombo() );
         }
     }
 
     @Override
-    public void canWrite( ValidationErrorReporter reporter, User user, CategoryOptionCombo categoryOptionCombo )
+    public void canWriteCategoryOptionCombo( ValidationErrorReporter reporter, User user,
+        CategoryOptionCombo categoryOptionCombo )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( categoryOptionCombo, Constants.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
@@ -505,8 +278,6 @@ public class DefaultTrackerImportAccessManager
 //                errors.add( "User has no write access to category option: " + categoryOption.getUid() );
             }
         }
-
-//        return errors;
     }
 
     private boolean isNull( ProgramStage programStage )

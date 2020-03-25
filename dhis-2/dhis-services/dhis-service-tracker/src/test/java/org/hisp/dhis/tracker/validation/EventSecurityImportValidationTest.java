@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation.service;
+package org.hisp.dhis.tracker.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,27 +26,21 @@ package org.hisp.dhis.tracker.validation.service;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface TrackerImportAccessManager
+public class EventSecurityImportValidationTest extends DhisSpringTest
 {
-    void canRead( ValidationErrorReporter reporter, User user, ProgramInstance programInstance );
 
-    void canWriteEnrollment( ValidationErrorReporter reporter, User user, Program program,
-        ProgramInstance programInstance );
+    @Test
+    public void testEmpty()
+    {
 
-    void canWriteEvent( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance );
-
-    void canWriteCategoryOptionCombo( ValidationErrorReporter reporter, User user,
-        CategoryOptionCombo categoryOptionCombo );
+    }
 }

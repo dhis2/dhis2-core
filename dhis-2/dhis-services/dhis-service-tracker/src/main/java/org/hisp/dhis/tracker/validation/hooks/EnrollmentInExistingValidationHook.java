@@ -184,13 +184,14 @@ public class EnrollmentInExistingValidationHook
         for ( ProgramInstance programInstance : programInstances )
         {
             // TODO: Move to ownership/security pre check hook if possible?
-            if ( trackerOwnershipManager.hasAccess( actingUser, programInstance ) )
+            if ( trackerOwnershipManager
+                .hasAccess( actingUser, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
                 // Always create a fork of the reporter when used for checking/counting errors,
                 // this is needed for thread safety in parallel mode.
                 ValidationErrorReporter reporterFork = reporter.fork( null );
 
-                trackerImportAccessManager.canRead( reporterFork, actingUser, programInstance, true );
+                trackerImportAccessManager.canRead( reporterFork, actingUser, programInstance );
 
                 if ( reporterFork.hasErrors() )
                 {

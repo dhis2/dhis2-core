@@ -185,7 +185,7 @@ public class EventCategoryOptValidationHook
         }
 
         // TODO: Move to ownership/security pre check hook...
-        trackerImportAccessManager.canWrite( errorReporter, actingUser, categoryOptionCombo );
+        trackerImportAccessManager.canWriteCategoryOptionCombo( errorReporter, actingUser, categoryOptionCombo );
     }
 
     private CategoryOptionCombo getAttributeOptionCombo( TrackerBundle bundle, CategoryCombo categoryCombo,

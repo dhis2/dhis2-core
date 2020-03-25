@@ -1362,6 +1362,20 @@ public abstract class DhisConvenienceTest
     public static Program createProgram( char uniqueCharacter )
     {
         return createProgram( uniqueCharacter, null, null );
+
+    }
+
+    public static Program createProgram2( String uuid, char uniqueCharacter, Set<ProgramStage> programStages,
+        OrganisationUnit unit )
+    {
+        Set<OrganisationUnit> units = new HashSet<>();
+
+        if ( unit != null )
+        {
+            units.add( unit );
+        }
+
+        return createProgram2( uuid,uniqueCharacter, programStages, null, units, null );
     }
 
     public static Program createProgram( char uniqueCharacter, Set<ProgramStage> programStages,
@@ -1375,6 +1389,59 @@ public abstract class DhisConvenienceTest
         }
 
         return createProgram( uniqueCharacter, programStages, null, units, null );
+    }
+
+    public static Program createProgram2( String uuid, char uniqueCharacter, Set<ProgramStage> programStages,
+        Set<TrackedEntityAttribute> attributes, Set<OrganisationUnit> organisationUnits, CategoryCombo categoryCombo )
+    {
+        Program program = new Program();
+        program.setAutoFields();
+
+        program.setUid( uuid );
+        program.setName( "Program" + uniqueCharacter );
+        program.setCode( "ProgramCode" + uniqueCharacter );
+        program.setShortName( "ProgramShort" + uniqueCharacter );
+        program.setDescription( "Description" + uniqueCharacter );
+        program.setEnrollmentDateLabel( "DateOfEnrollmentDescription" );
+        program.setIncidentDateLabel( "DateOfIncidentDescription" );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
+
+        if ( programStages != null )
+        {
+            for ( ProgramStage programStage : programStages )
+            {
+                programStage.setProgram( program );
+                program.getProgramStages().add( programStage );
+            }
+        }
+
+        if ( attributes != null )
+        {
+            for ( TrackedEntityAttribute attribute : attributes )
+            {
+                ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute( program, attribute, false,
+                    false );
+                ptea.setAutoFields();
+
+                program.getProgramAttributes().add( ptea );
+            }
+        }
+
+        if ( organisationUnits != null )
+        {
+            program.getOrganisationUnits().addAll( organisationUnits );
+        }
+
+        if ( categoryCombo != null )
+        {
+            program.setCategoryCombo( categoryCombo );
+        }
+        else if ( categoryService != null )
+        {
+            program.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
+        }
+
+        return program;
     }
 
     public static Program createProgram( char uniqueCharacter, Set<ProgramStage> programStages,
@@ -1679,6 +1746,16 @@ public abstract class DhisConvenienceTest
         TrackedEntityInstance entityInstance = new TrackedEntityInstance();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
+
+        return entityInstance;
+    }
+
+    public static TrackedEntityInstance createTrackedEntityInstance2( String uuid, OrganisationUnit organisationUnit )
+    {
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        entityInstance.setAutoFields();
+        entityInstance.setOrganisationUnit( organisationUnit );
+        entityInstance.setUid( uuid );
 
         return entityInstance;
     }

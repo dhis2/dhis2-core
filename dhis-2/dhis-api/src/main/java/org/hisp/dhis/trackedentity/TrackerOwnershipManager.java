@@ -72,15 +72,16 @@ public interface TrackerOwnershipManager
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
 
 
-    /**
-     * Check whether the user has access (as owner or has temporarily broken the
-     * glass) for the program instance.
-     *
-     * @param user The user with which access has to be checked for.
-     * @param programInstance The program instance.
-     * @return true if the user has access, false otherwise.
-     */
-    boolean hasAccess( User user, ProgramInstance programInstance );
+    //TODO: This method looks redundant
+//    /**
+//     * Check whether the user has access (as owner or has temporarily broken the
+//     * glass) for the program instance.
+//     *
+//     * @param user The user with which access has to be checked for.
+//     * @param programInstance The program instance.
+//     * @return true if the user has access, false otherwise.
+//     */
+//    boolean hasAccess( User user, ProgramInstance programInstance );
 
     /**
      * Grant temporary ownership for a user for a specific tei-program

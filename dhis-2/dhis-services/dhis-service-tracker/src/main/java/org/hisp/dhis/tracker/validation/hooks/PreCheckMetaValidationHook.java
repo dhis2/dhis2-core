@@ -85,7 +85,9 @@ public class PreCheckMetaValidationHook
         if ( (program != null && organisationUnit != null) && !program.hasOrganisationUnit( organisationUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1041 )
-                .addArg( organisationUnit ) );
+                .addArg( organisationUnit )
+                .addArg( program )
+                .addArg( program.getOrganisationUnits() ) );
         }
     }
 

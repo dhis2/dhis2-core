@@ -100,9 +100,8 @@ public class PreCheckSecurityValidationHook
         if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1028 )
-                .addArg( bundle.getUser() )
-                .addArg( enrollment )
-                .addArg( program ) );
+                .addArg( organisationUnit )
+                .addArg( bundle.getUser() ) );
         }
     }
 

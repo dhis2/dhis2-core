@@ -67,7 +67,7 @@ public enum TrackerErrorCode
     E1025( "Invalid enrollment date: `{0}`." ),
     E1026( "Invalid enrollment created at client date: `{0}`." ),
     E1027( "Invalid enrollment last updated at client date: `{0}`." ),
-    E1028( "User: `{0}`, does not have access to assign ownership for the entity-program combination; `{1}`, `{2}`." ),
+    E1028( "Organisation unit: `{0}`, is not part of the hierarchy of the user: `{1}`, organisation units." ),
     E1029( "Comment: `{0}`, already exist, only create allowed; `{1}`." ),
     E1030( "Event `{0}` already exists or was deleted earlier." ),
     E1031( "Event date is required." ),
@@ -79,7 +79,7 @@ public enum TrackerErrorCode
     E1038( "Tracked entity instance: `{0}`, has multiple active enrollments in program `{1}`." ),
     E1039( "Program stage is not repeatable and an event already exists." ),
     E1040( "Multiple active enrollments exists for program: `{0}`." ),
-    E1041( "Program is not assigned to this organisation unit: `{0}`." ),
+    E1041( "Enrollment organization unit: `{0}`, and program: `{1}`, organization unit: `{2}`,  don't match." ),
     E1042( "Event: `{0}`, needs to have completed date." ),
     E1043( "Event: `{0}`, completeness date has expired. Not possible to make changes to this event." ),
     E1044( "Event: `{0}`, needs to have event date." ),
@@ -111,7 +111,7 @@ public enum TrackerErrorCode
 
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to enrollment." ),
     E1069( "Could not find Program: `{0}`, linked to enrollment." ),
-    E1070( "Could not find OrganisationUnit: `{0}`, linked to enrollment." ),
+    E1070( "Could not find organization unit: `{0}`, linked to enrollment." ),
 
     E1071( "Event: `{0}` does not exist." ),
 
@@ -128,27 +128,25 @@ public enum TrackerErrorCode
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
     E1082( "Event: `{0}`, was already used and/or deleted. This event can not be modified." ),
-    E1083( "User: `{0}`, is not authorized to uncomplete events" ),
+    E1083( "User: `{0}`, is not authorized to modify uncompleted events." ),
 
     E1084( "File resource: `{0}`, reference could not be found." ),
     E1085( "Attribute: `{0}`, value type is not valid: `{1}`." ),
     E1086( "Event: `{0}` has a program: `{1}`, that is a registration but its program stage is not valid or missing." ),
-    E1087( "Program: `{0}`, and program stage: `{0}` have different org units." ),
+    E1087( "Program: `{0}`, and program stage: `{0}` have different organization units." ),
     E1088( "Event: `{0}`, program: `{1}`, and program stage: `{2}` could not be found." ),
     E1089( "Event: `{0}`, program stage program and event program don't match." ),
 
-    E1090( "User: `{0}`, has no create access to organisation unit: `{1}`." ),
+    E1090( "User: `{0}`, has no data write access to organisation unit: `{1}`." ),
     E1091( "User: `{0}`, has no data write access to program: `{1}`." ),
     E1092( "User: `{0}`, has no data read access to tracked entity type: `{1}`." ),
-    E1093( "User: `{0}`, got OWNERSHIP_ACCESS_DENIED to tracked entity: `{1}`, program: `{2}` combination" ),
-    E1094( "User: `{0}`, has no delete access to organisation unit: `{1}`" ),
+
     E1095( "User: `{0}`, has no data write access to program stage: `{1}`." ),
     E1096( "User: `{0}`, has no data read access to program: `{1}`." ),
-    E1097( "User: `{0}`, has no update access to organisation unit: `{1}`." ),
-    E1098( "User: `{0}`, has no write access to organisation unit: `{1}`." ),
     E1099( "User: `{0}`, has no write access to category option: `{1}`." ),
     E1100( "User: `{0}`, is lacking F_TEI_CASCADE_DELETE authority to delete tracked entity instance: `{1}`." ),
     E1101( "User: `{0}`, has no read access to organisation unit: `{1}`." ),
+    E1102( "User: `{0}`, does not have access to the tracked entity: `{1}`, program: `{2}`, combination." ),
 
     E9999( "N/A" );
 

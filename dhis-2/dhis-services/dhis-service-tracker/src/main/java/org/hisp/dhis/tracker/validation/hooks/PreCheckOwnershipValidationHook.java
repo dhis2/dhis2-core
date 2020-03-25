@@ -36,7 +36,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -54,7 +53,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
@@ -76,27 +74,36 @@ public class PreCheckOwnershipValidationHook
     }
 
     @Autowired
-    private TrackerOwnershipManager trackerOwnershipManager;
-
-    @Autowired
     private TrackerImportAccessManager trackerImportAccessManager;
 
     @Override
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
-        if ( !bundle.getImportStrategy().isDelete() )
-        {
-            return;
-        }
+//        if ( !bundle.getImportStrategy().isDelete() )
+//        {
+//            return;
+//        }
 
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTei( bundle, trackedEntity.getTrackedEntity() );
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
 
         if ( trackedEntityInstance != null )
         {
             //TODO: This need clarification and follow up. +Documentation
-            checkCanCascadeDeleteProgramInstances( reporter, bundle.getUser(), trackedEntityInstance );
+            Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );
+            Objects.requireNonNull( trackedEntityInstance, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+
+            Set<ProgramInstance> programInstances = trackedEntityInstance.getProgramInstances().stream()
+                .filter( pi -> !pi.isDeleted() )
+                .collect( Collectors.toSet() );
+
+            if ( !programInstances.isEmpty()
+                && !bundle.getUser().isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1100 )
+                    .addArg( bundle.getUser() )
+                    .addArg( trackedEntityInstance ) );
+            }
         }
     }
 
@@ -112,27 +119,13 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        //TODO: This needs follow up, move to ownership validation
-        // This method "trackerOwnershipManager.hasAccess()" does a lot of things,
-        // is it better to use the above check directly when we are sure about the input org unit?
-        // 1. Does checking hasTemporaryAccess make sense?
-        // 2. Does checking isOpen make sense? we are importing not reading.
-        if ( !trackerOwnershipManager.hasAccess( bundle.getUser(), trackedEntityInstance, program ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1028 )
-                .addArg( trackedEntityInstance )
-                .addArg( program ) );
-            return;
-        }
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
 
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            validateCreateEnrollment( reporter, bundle.getUser(), program, organisationUnit, trackedEntityInstance );
-        }
-        else
-        {
-            validateUpdateAndDeleteEnrollment( bundle, reporter, bundle.getUser(), enrollment );
-        }
+        ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
+
+        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+
+        trackerImportAccessManager.canWriteEnrollment( reporter, bundle.getUser(), program, programInstance );
     }
 
     @Override
@@ -160,60 +153,6 @@ public class PreCheckOwnershipValidationHook
         }
     }
 
-    private void checkCanCascadeDeleteProgramInstances( ValidationErrorReporter errorReporter, User actingUser,
-        TrackedEntityInstance trackedEntityInstance )
-    {
-        Objects.requireNonNull( actingUser, Constants.USER_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
-
-        Set<ProgramInstance> programInstances = trackedEntityInstance.getProgramInstances().stream()
-            .filter( pi -> !pi.isDeleted() )
-            .collect( Collectors.toSet() );
-
-        if ( !programInstances.isEmpty()
-            && !actingUser.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1100 )
-                .addArg( actingUser )
-                .addArg( trackedEntityInstance ) );
-        }
-    }
-
-    protected void validateCreateEnrollment( ValidationErrorReporter reporter, User actingUser, Program program,
-        OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
-    {
-        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
-
-        ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
-
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-
-        trackerImportAccessManager.canCreateEnrollment( reporter, actingUser, program, programInstance, false );
-    }
-
-    protected void validateUpdateAndDeleteEnrollment( TrackerBundle bundle, ValidationErrorReporter reporter,
-        User actingUser, Enrollment enrollment )
-    {
-        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
-        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-
-        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-
-        if ( bundle.getImportStrategy().isUpdate() )
-        {
-            trackerImportAccessManager.canUpdateEnrollment( reporter, actingUser, programInstance, false );
-        }
-
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            trackerImportAccessManager.canDeleteEnrollment( reporter, actingUser, programInstance, false );
-        }
-    }
-
     protected void validateUpdateAndDeleteEvent( TrackerBundle bundle, ValidationErrorReporter reporter,
         Event event, ProgramStageInstance programStageInstance )
     {
@@ -223,8 +162,7 @@ public class PreCheckOwnershipValidationHook
 
         if ( bundle.getImportStrategy().isUpdate() )
         {
-            trackerImportAccessManager.canUpdateEnrollment( reporter, bundle.getUser(),
-                programStageInstance, false );
+            trackerImportAccessManager.canWriteEvent( reporter, bundle.getUser(), programStageInstance );
 
             if ( event.getStatus() != programStageInstance.getStatus()
                 && EventStatus.COMPLETED == programStageInstance.getStatus()
@@ -237,7 +175,7 @@ public class PreCheckOwnershipValidationHook
 
         if ( bundle.getImportStrategy().isDelete() )
         {
-            trackerImportAccessManager.canDeleteEnrollment( reporter, bundle.getUser(), programStageInstance, false );
+            trackerImportAccessManager.canWriteEvent( reporter, bundle.getUser(), programStageInstance );
         }
     }
 
@@ -249,8 +187,8 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
 
-        programStage = (programStage == null && program.isWithoutRegistration())
-            ? program.getProgramStageByStage( 1 ) : programStage;
+        boolean noProgramStageAndProgramIsWithoutReg = programStage == null && program.isWithoutRegistration();
+        programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
         if ( programStageInstance != null )
         {
@@ -261,6 +199,6 @@ public class PreCheckOwnershipValidationHook
             .setOrganisationUnit( organisationUnit )
             .setStatus( event.getStatus() );
 
-        trackerImportAccessManager.canCreateEnrollment( reporter, actingUser, newProgramStageInstance, false );
+        trackerImportAccessManager.canWriteEvent( reporter, actingUser, newProgramStageInstance );
     }
 }
