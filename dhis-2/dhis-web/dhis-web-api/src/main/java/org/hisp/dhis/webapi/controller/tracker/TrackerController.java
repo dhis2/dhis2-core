@@ -64,7 +64,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RestController
+// @RestController
 @RequestMapping( value = TrackerController.RESOURCE_PATH )
 public class TrackerController
 {
