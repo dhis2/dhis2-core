@@ -28,30 +28,50 @@ package org.hisp.dhis.deletedobject.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.boot.Metadata;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.integrator.spi.Integrator;
-import org.hibernate.service.spi.SessionFactoryServiceRegistry;
+import org.hibernate.event.spi.PostCommitInsertEventListener;
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class DeletedObjectIntegrator implements Integrator
+@Component
+public class DeletedObjectPostInsertEventListener
+    implements PostCommitInsertEventListener
 {
-    @Override
-    public void integrate( Metadata metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
-    {
-        final EventListenerRegistry registry = serviceRegistry.getService( EventListenerRegistry.class );
+    private final DeletedObjectService deletedObjectService;
 
-        DeletedObjectPostDeleteEventListener listener = new DeletedObjectPostDeleteEventListener();
-        registry.appendListeners( EventType.POST_DELETE, listener );
+    public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService )
+    {
+        this.deletedObjectService = deletedObjectService;
     }
 
     @Override
-    public void disintegrate( SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
+    public boolean requiresPostCommitHanding( EntityPersister persister )
     {
+        return true;
+    }
 
+    @Override
+    public void onPostInsert( PostInsertEvent event )
+    {
+        if ( !IdentifiableObject.class.isAssignableFrom( event.getEntity().getClass() ) )
+        {
+            return;
+        }
+
+        if ( MetadataObject.class.isInstance( event.getEntity() ) && !EmbeddedObject.class.isInstance( event.getEntity() ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) event.getEntity() ) );
+        }
+    }
+
+    @Override
+    public void onPostInsertCommitFailed( PostInsertEvent event )
+    {
     }
 }
