@@ -1,3 +1,5 @@
+package org.hisp.dhis.system.util;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,37 +28,66 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.utils;
-
-import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
+import java.io.Serializable;
 
 /**
- * @author Luciano Fiandesio
+ * Optional for {@link Serializable} values. Accepts nulls.
+ *
+ * @author Lars Helge Overland
  */
-public class PaginationUtils
+public class SerializableOptional
+    implements Serializable
 {
-    private final static Pagination NO_PAGINATION = new Pagination();
+    private final Serializable value;
+
+    private SerializableOptional()
+    {
+        this.value = null;
+    }
+
+    private SerializableOptional( Serializable value )
+    {
+        this.value = value;
+    }
 
     /**
-     * Calculates the paging first result based on pagination data from
-     * {@see WebOptions} if the WebOptions have pagination information
-     * 
-     * The first result is simply calculated by multiplying page -1 * page size
-     * 
-     * @param options a {@see WebOptions} object
-     * @return a {@see PaginationData} object either empty or containing pagination
-     *         data
+     * Creates a {@link SerializableOptional} with the given value.
+     *
+     * @param value the value.
+     * @return a {@link SerializableOptional}.
      */
-    public static Pagination getPaginationData( WebOptions options )
+    public static SerializableOptional of( Serializable value )
     {
-        if ( options.hasPaging() )
-        {
-            // ignore if page < 0
-            int page = Math.max( options.getPage(), 1 );
-            return new Pagination( (page - 1) * options.getPageSize(), options.getPageSize() );
-        }
+        return new SerializableOptional( value );
+    }
 
-        return NO_PAGINATION;
+    /**
+     * Returns a {@link SerializableOptional} with a null value.
+     *
+     * @return a {@link SerializableOptional} with a null value.
+     */
+    public static SerializableOptional empty()
+    {
+        return new SerializableOptional();
+    }
+
+    /**
+     * Indicates whether a value is present.
+     *
+     * @return true if a value is present.
+     */
+    public boolean isPresent()
+    {
+        return value != null;
+    }
+
+    /**
+     * Returns the value, may be null.
+     *
+     * @return the value.
+     */
+    public Serializable get()
+    {
+        return value;
     }
 }
