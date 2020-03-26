@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentity;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,10 +25,13 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
 import static org.junit.Assert.*;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -46,14 +47,14 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
  */
 public class TrackedEntityInstanceServiceTest
-    extends DhisSpringTest
+    extends
+    DhisSpringTest
 {
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -175,7 +176,7 @@ public class TrackedEntityInstanceServiceTest
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         long psIdA = programInstanceService.addProgramInstance( programInstanceA );
         long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-//        programInstanceA.setId( idA );
+
         programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
         entityInstanceA1.setProgramInstances( Sets.newHashSet( programInstanceA ) );
 
