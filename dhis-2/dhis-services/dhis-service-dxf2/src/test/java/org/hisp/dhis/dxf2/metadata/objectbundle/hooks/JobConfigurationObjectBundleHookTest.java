@@ -211,12 +211,12 @@ public class JobConfigurationObjectBundleHookTest
         String jobConfigUid = "jsdhJSJHD";
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICS_TABLE ) ) )
+        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();
         jobConfiguration.setUid( jobConfigUid );
-        jobConfiguration.setJobType( JobType.ANALYTICS_TABLE );
+        jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
