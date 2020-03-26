@@ -28,6 +28,7 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.system.notification.InMemoryNotifier;
@@ -45,7 +46,6 @@ import org.springframework.data.redis.core.RedisTemplate;
  * whether redis is enabled or not.
  *
  * @author Ameen Mohamed
- *
  */
 @Configuration
 public class NotifierConfiguration
@@ -53,13 +53,16 @@ public class NotifierConfiguration
     @Autowired( required = false )
     private RedisTemplate<?, ?> redisTemplate;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @SuppressWarnings( "unchecked" )
     @Bean
     @Qualifier( "notifier" )
     @Conditional( RedisEnabledCondition.class )
     public Notifier redisNotifier()
     {
-        return new RedisNotifier( (RedisTemplate<String, String>) redisTemplate );
+        return new RedisNotifier( (RedisTemplate<String, String>) redisTemplate, objectMapper );
     }
 
     @Bean
