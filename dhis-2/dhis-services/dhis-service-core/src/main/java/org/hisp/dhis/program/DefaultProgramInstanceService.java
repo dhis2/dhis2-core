@@ -137,8 +137,6 @@ public class DefaultProgramInstanceService
     {
         ProgramInstance programInstance = programInstanceStore.get( id );
 
-        User user = currentUserService.getCurrentUser();
-
         return programInstance;
     }
 
@@ -147,8 +145,6 @@ public class DefaultProgramInstanceService
     public ProgramInstance getProgramInstance( String uid )
     {
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
-
-        User user = currentUserService.getCurrentUser();
 
         return programInstance;
     }
