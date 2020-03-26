@@ -41,13 +41,12 @@
 
     <property name="created" not-null="true" type="timestamp" />
 
-    <list name="comments" table="interpretation_comments" cascade="all,delete-orphan">
+    <set name="comments" table="interpretation_comments" cascade="all, delete-orphan" order-by="interpretationcommentid">
       <cache usage="read-write" />
       <key column="interpretationid" foreign-key="fk_interpretation_comments_interpretationid" />
-      <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.interpretation.InterpretationComment" column="interpretationcommentid"
         unique="true" foreign-key="fk_interpretation_comments_interpretationcommentid" />
-    </list>
+    </set>
 
     <property name="likes" />
 

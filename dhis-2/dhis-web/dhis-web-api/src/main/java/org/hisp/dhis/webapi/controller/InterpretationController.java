@@ -28,7 +28,16 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -70,15 +79,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -426,8 +427,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
-        HttpServletResponse response )
+    public void deleteComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid )
         throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
@@ -436,26 +436,28 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Interpretation does not exist: " + uid ) );
         }
-
-        Iterator<InterpretationComment> iterator = interpretation.getComments().iterator();
-
-        while ( iterator.hasNext() )
+        else
         {
-            InterpretationComment comment = iterator.next();
+            Iterator<InterpretationComment> iterator = interpretation.getComments().iterator();
 
-            if ( comment.getUid().equals( cuid ) )
+            while ( iterator.hasNext() )
             {
-                if ( !currentUserService.getCurrentUser().equals( comment.getUser() )
-                    && !currentUserService.currentUserIsSuper() )
+                InterpretationComment comment = iterator.next();
+
+                if ( comment.getUid().equals( cuid ) )
                 {
-                    throw new AccessDeniedException( "You are not allowed to delete this comment." );
+                    if ( !currentUserService.getCurrentUser().equals( comment.getUser() )
+                        && !currentUserService.currentUserIsSuper() )
+                    {
+                        throw new AccessDeniedException( "You are not allowed to delete this comment." );
+                    }
+
+                    iterator.remove();
                 }
-
-                iterator.remove();
             }
-        }
 
-        interpretationService.updateInterpretation( interpretation );
+            interpretationService.updateInterpretation( interpretation );
+        }
     }
 
     // -------------------------------------------------------------------------

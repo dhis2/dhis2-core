@@ -92,7 +92,7 @@ public class Interpretation
 
     private String text;
 
-    private List<InterpretationComment> comments = new ArrayList<>();
+    private Set<InterpretationComment> comments = new HashSet<>();
 
     private int likes;
 
@@ -488,12 +488,12 @@ public class Interpretation
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "comments", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "comment", namespace = DXF_2_0 )
-    public List<InterpretationComment> getComments()
+    public Set<InterpretationComment> getComments()
     {
         return comments;
     }
 
-    public void setComments( List<InterpretationComment> comments )
+    public void setComments( Set<InterpretationComment> comments )
     {
         this.comments = comments;
     }
