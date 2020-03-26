@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -93,11 +94,10 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class EnrollmentSecurityImportValidationTest
-    extends DhisSpringTest
+    extends CommonImportValidationTest
 {
-    private static final Logger log = LoggerFactory.getLogger( EnrollmentSecurityImportValidationTest.class );
-
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -248,9 +248,8 @@ public class EnrollmentSecurityImportValidationTest
         List<ErrorReport> objectReport = commit.getErrorReports();
         assertTrue( objectReport.isEmpty() );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -277,10 +276,8 @@ public class EnrollmentSecurityImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
@@ -346,10 +343,8 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_orgunit-mismatch.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_orgunit-mismatch.json" );
 
         trackerBundleParams.setUser( user );
 
@@ -379,10 +374,8 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_no-access-tei.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_no-access-tei.json" );
 
         trackerBundleParams.setUser( user );
 
@@ -413,10 +406,8 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_no-access-program.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_no-access-program.json" );
 
         trackerBundleParams.setUser( user );
 
@@ -434,12 +425,12 @@ public class EnrollmentSecurityImportValidationTest
     }
 
     @Test
-    public void testUserNoWriteAccessToProgram2()
+    public void testUserHasWriteAccessToProgram()
         throws IOException
     {
         setUpTest2();
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
 
         User user = createUser( "user1" )
@@ -447,10 +438,8 @@ public class EnrollmentSecurityImportValidationTest
 
         injectSecurityContext( user );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_no-access-program.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_no-access-program.json" );
 
         trackerBundleParams.setUser( user );
 
@@ -460,12 +449,10 @@ public class EnrollmentSecurityImportValidationTest
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
 
-        assertEquals( 1, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1091 ) ) ) );
-
+        assertEquals( 0, report.getErrorReports().size() );
     }
+
+
 
     private Enrollment createEnrollment( String program, String person )
     {

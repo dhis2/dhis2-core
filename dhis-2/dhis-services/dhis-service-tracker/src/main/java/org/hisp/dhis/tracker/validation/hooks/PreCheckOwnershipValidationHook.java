@@ -115,15 +115,12 @@ public class PreCheckOwnershipValidationHook
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
             .getTei( bundle, enrollment.getTrackedEntity() );
 
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
-
         ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
-
-        Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
 
         trackerImportAccessManager.canWriteEnrollment( reporter, bundle.getUser(), program, programInstance );
     }
@@ -143,11 +140,11 @@ public class PreCheckOwnershipValidationHook
 
         if ( bundle.getImportStrategy().isCreate() )
         {
-            validateCreateEvent( reporter, bundle.getUser(), event, programStageInstance, programStage, programInstance,
+            validateCreateEvent( reporter, bundle.getUser(), event, programStage, programInstance,
                 organisationUnit,
                 program );
         }
-        else if ( bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete() )
+        else
         {
             validateUpdateAndDeleteEvent( bundle, reporter, event, programStageInstance );
         }
@@ -160,10 +157,11 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
+        trackerImportAccessManager.canWriteEvent( reporter, bundle.getUser(), programStageInstance );
+
+        // TODO: Should it be possible to delete a completed event, but not update? with current check above it is...
         if ( bundle.getImportStrategy().isUpdate() )
         {
-            trackerImportAccessManager.canWriteEvent( reporter, bundle.getUser(), programStageInstance );
-
             if ( event.getStatus() != programStageInstance.getStatus()
                 && EventStatus.COMPLETED == programStageInstance.getStatus()
                 && (!bundle.getUser().isSuper() && !bundle.getUser().isAuthorized( "F_UNCOMPLETE_EVENT" )) )
@@ -172,15 +170,10 @@ public class PreCheckOwnershipValidationHook
                     .addArg( bundle.getUser() ) );
             }
         }
-
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            trackerImportAccessManager.canWriteEvent( reporter, bundle.getUser(), programStageInstance );
-        }
     }
 
     protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser, Event event,
-        ProgramStageInstance programStageInstance, ProgramStage programStage, ProgramInstance programInstance,
+        ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Program program )
     {
         Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
@@ -188,16 +181,11 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
 
         boolean noProgramStageAndProgramIsWithoutReg = programStage == null && program.isWithoutRegistration();
+
         programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
-        if ( programStageInstance != null )
-        {
-            programStage = programStageInstance.getProgramStage();
-        }
-
         ProgramStageInstance newProgramStageInstance = new ProgramStageInstance( programInstance, programStage )
-            .setOrganisationUnit( organisationUnit )
-            .setStatus( event.getStatus() );
+            .setOrganisationUnit( organisationUnit );
 
         trackerImportAccessManager.canWriteEvent( reporter, actingUser, newProgramStageInstance );
     }

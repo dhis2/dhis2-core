@@ -618,7 +618,7 @@ public class TrackedEntityImportValidationTest
 
         // isInactive should now be true
         TrackedEntityInstance nCc1rCEOKaY = trackedEntityInstanceService.getTrackedEntityInstance( "NCc1rCEOKaY" );
-//        assertEquals( true, nCc1rCEOKaY.isInactive() );
+        assertEquals( true, nCc1rCEOKaY.isInactive() );
         //TODO: NOT WORKING... yet? should it not be deleted?
 //        assertEquals( true, nCc1rCEOKaY.isDeleted() );
     }

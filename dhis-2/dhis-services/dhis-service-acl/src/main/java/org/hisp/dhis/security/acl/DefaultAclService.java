@@ -703,8 +703,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        boolean b = schemaService.getSchema( object.getClass() ) == null;
-        return b;
+        return schemaService.getSchema( object.getClass() ) == null;
     }
 
 

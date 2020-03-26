@@ -128,7 +128,7 @@ public enum TrackerErrorCode
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
     E1082( "Event: `{0}`, was already used and/or deleted. This event can not be modified." ),
-    E1083( "User: `{0}`, is not authorized to modify uncompleted events." ),
+    E1083( "User: `{0}`, is not authorized to modify completed events." ),
 
     E1084( "File resource: `{0}`, reference could not be found." ),
     E1085( "Attribute: `{0}`, value type is not valid: `{1}`." ),
