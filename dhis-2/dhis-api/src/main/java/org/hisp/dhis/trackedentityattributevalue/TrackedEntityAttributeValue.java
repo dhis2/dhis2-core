@@ -311,7 +311,7 @@ public class TrackedEntityAttributeValue
      * value when requested.
      *
      * @param value the value to be stored.
-     * @return
+     * @return a {@link TrackedEntityAttributeValue}.
      */
     public TrackedEntityAttributeValue setValue( String value )
     {

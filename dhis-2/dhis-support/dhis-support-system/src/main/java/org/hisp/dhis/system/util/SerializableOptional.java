@@ -1,4 +1,4 @@
-package org.hisp.dhis.category;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,31 +28,66 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import java.util.List;
-import java.util.Set;
+import java.io.Serializable;
 
 /**
+ * Optional for {@link Serializable} values. Accepts nulls.
+ *
  * @author Lars Helge Overland
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+public class SerializableOptional
+    implements Serializable
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+    private final Serializable value;
 
-    void updateNames();
+    private SerializableOptional()
+    {
+        this.value = null;
+    }
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+    private SerializableOptional( Serializable value )
+    {
+        this.value = value;
+    }
 
     /**
-     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
+     * Creates a {@link SerializableOptional} with the given value.
      *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
-     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
+     * @param value the value.
+     * @return a {@link SerializableOptional}.
      */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
+    public static SerializableOptional of( Serializable value )
+    {
+        return new SerializableOptional( value );
+    }
+
+    /**
+     * Returns a {@link SerializableOptional} with a null value.
+     *
+     * @return a {@link SerializableOptional} with a null value.
+     */
+    public static SerializableOptional empty()
+    {
+        return new SerializableOptional();
+    }
+
+    /**
+     * Indicates whether a value is present.
+     *
+     * @return true if a value is present.
+     */
+    public boolean isPresent()
+    {
+        return value != null;
+    }
+
+    /**
+     * Returns the value, may be null.
+     *
+     * @return the value.
+     */
+    public Serializable get()
+    {
+        return value;
+    }
 }

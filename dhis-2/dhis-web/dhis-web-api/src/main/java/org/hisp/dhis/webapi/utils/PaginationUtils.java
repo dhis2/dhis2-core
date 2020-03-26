@@ -1,5 +1,3 @@
-package org.hisp.dhis.category;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,31 +26,37 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+package org.hisp.dhis.webapi.utils;
 
-import java.util.List;
-import java.util.Set;
+import org.hisp.dhis.query.Pagination;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+public class PaginationUtils
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
-
-    void updateNames();
-
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+    private final static Pagination NO_PAGINATION = new Pagination();
 
     /**
-     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
-     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
+     * Calculates the paging first result based on pagination data from
+     * {@see WebOptions} if the WebOptions have pagination information
+     * 
+     * The first result is simply calculated by multiplying page -1 * page size
+     * 
+     * @param options a {@see WebOptions} object
+     * @return a {@see PaginationData} object either empty or containing pagination
+     *         data
      */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
+    public static Pagination getPaginationData( WebOptions options )
+    {
+        if ( options.hasPaging() )
+        {
+            // ignore if page < 0
+            int page = Math.max( options.getPage(), 1 );
+            return new Pagination( (page - 1) * options.getPageSize(), options.getPageSize() );
+        }
+
+        return NO_PAGINATION;
+    }
 }

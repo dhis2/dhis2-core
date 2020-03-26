@@ -41,13 +41,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.system.util.SerializableOptional;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.collect.Lists;
 
@@ -71,15 +71,13 @@ public class DefaultSystemSettingManager
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache<Serializable> settingCache;
+    private Cache<SerializableOptional> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private SystemSettingStore systemSettingStore;
-
-    private TransactionTemplate transactionTemplate;
 
     private PBEStringEncryptor pbeStringEncryptor;
 
@@ -89,19 +87,17 @@ public class DefaultSystemSettingManager
 
     private List<String> flags;
 
-    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore, TransactionTemplate transactionTemplate,
+    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
         Environment environment, List<String> flags )
     {
         checkNotNull( systemSettingStore );
-        checkNotNull( transactionTemplate );
         checkNotNull( pbeStringEncryptor );
         checkNotNull( cacheProvider );
         checkNotNull( environment );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
-        this.transactionTemplate = transactionTemplate;
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.cacheProvider = cacheProvider;
         this.environment = environment;
@@ -115,7 +111,8 @@ public class DefaultSystemSettingManager
     @PostConstruct
     public void init()
     {
-        settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
+        settingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
+            .forRegion( "systemSetting" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
     }
@@ -195,39 +192,42 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getSystemSettingOptional} on cache miss.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key )
     {
-        Optional<Serializable> value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, key.getDefaultValue() ).orElse( null ) );
+        SerializableOptional value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, key.getDefaultValue() ) ).get();
 
-        return value.orElse( null );
+        return value.get();
     }
 
     /**
-     * No transaction for this method, transaction is initiated in
-     * {@link #getSystemSettingOptional}.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
-        return getSystemSettingOptional( key.getName(), defaultValue ).orElse( null );
+        SerializableOptional value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, defaultValue ) ).get();
+
+        return value.get();
     }
 
     /**
-     * Get system setting optional. The database call is executed in a
-     * programmatic transaction.
+     * Get system setting {@link SerializableOptional}. The return object is never
+     * null in order to cache requests for system settings which have no value or default value.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.
      * @return an optional system setting value.
      */
-    private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
+    private SerializableOptional getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( name ) );
+        SystemSetting setting = systemSettingStore.getByNameTx( name );
 
         if ( setting != null && setting.hasValue() )
         {
@@ -235,29 +235,31 @@ public class DefaultSystemSettingManager
             {
                 try
                 {
-                    return Optional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
+                    return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted, or not existing
+                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted or not existing
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
-                    return Optional.empty();
+                    return SerializableOptional.empty();
                 }
             }
             else
             {
-                return Optional.ofNullable( setting.getDisplayValue() );
+                return SerializableOptional.of( setting.getDisplayValue() );
             }
         }
         else
         {
-            return Optional.ofNullable( defaultValue );
+            return SerializableOptional.of( defaultValue );
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
     {
-        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( key.getName() ) );
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
+
         if ( setting != null )
         {
             return setting.getTranslation( locale );

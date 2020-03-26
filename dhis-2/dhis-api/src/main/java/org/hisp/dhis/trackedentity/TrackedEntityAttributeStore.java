@@ -44,19 +44,18 @@ public interface TrackedEntityAttributeStore
 {
     String ID = TrackedEntityAttributeStore.class.getName();
 
-
     /**
      * Get attributes which are displayed in visit schedule
-     * 
+     *
      * @param displayOnVisitSchedule True/False value
-     * 
+     *
      * @return List of attributes
      */
     List<TrackedEntityAttribute> getByDisplayOnVisitSchedule( boolean displayOnVisitSchedule );
 
     /**
      * Get attributes which are displayed in visit schedule
-     * 
+     *
      * @return List of attributes
      */
     List<TrackedEntityAttribute> getDisplayInListNoProgram();
@@ -71,18 +70,18 @@ public interface TrackedEntityAttributeStore
     Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Fetches all {@see TrackedEntityAttribute} linked to all
-     * {@see TrackedEntityType} present in the system
+     * Fetches all {@link TrackedEntityAttribute} linked to all
+     * {@link TrackedEntityType} present in the system
      *
-     * @return a Set of {@see TrackedEntityAttribute}
+     * @return a Set of {@link TrackedEntityAttribute}
      */
     Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
 
     /**
-     * Fetches all {@see TrackedEntityAttribute} and groups them by {@see Program}
+     * Fetches all {@link TrackedEntityAttribute} and groups them by {@link Program}
      *
-     * @return a Map, where the key is the {@see Program} and the values is a Set of {@see TrackedEntityAttribute} associated
-     * to the {@see Program} in the key
+     * @return a Map, where the key is the {@link Program} and the values is a Set of
+     * {@link TrackedEntityAttribute} associated to the {@link Program} in the key
      */
     Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
 }
