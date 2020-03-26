@@ -30,15 +30,19 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class CommonImportValidationTest extends DhisSpringTest
+public abstract class AbstractImportValidationTest
+    extends DhisSpringTest
 {
     protected TrackerBundleParams createBundleFromJson( String s )
         throws IOException
@@ -47,5 +51,18 @@ public abstract class CommonImportValidationTest extends DhisSpringTest
             .fromJson(
                 new ClassPathResource( s ).getInputStream(),
                 TrackerBundleParams.class );
+    }
+
+    protected Enrollment createEnrollment( String program, String person )
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
+//        enrollment.setOrgUnit( organisationUnitA.getUid() );
+        enrollment.setProgram( program );
+        enrollment.setTrackedEntityInstance( person );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+
+        return enrollment;
     }
 }

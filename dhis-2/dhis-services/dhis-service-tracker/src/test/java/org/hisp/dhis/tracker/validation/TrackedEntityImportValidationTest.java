@@ -77,7 +77,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class TrackedEntityImportValidationTest
-    extends DhisSpringTest
+    extends AbstractImportValidationTest
 
 {
     private static final Logger log = LoggerFactory.getLogger( TrackedEntityImportValidationTest.class );
@@ -141,9 +141,8 @@ public class TrackedEntityImportValidationTest
     public void testTeValidationOkGenerateId()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok_no_uuids.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_ok_no_uuids.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -160,9 +159,7 @@ public class TrackedEntityImportValidationTest
     public void testTeValidationOkAll()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -178,10 +175,7 @@ public class TrackedEntityImportValidationTest
     public void testNoWriteAccessFailFast()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
@@ -202,10 +196,7 @@ public class TrackedEntityImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
@@ -225,10 +216,7 @@ public class TrackedEntityImportValidationTest
     public void testNoWriteAccessInAcl()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "---USER1---" );
         trackerBundleParams.setUser( user );
@@ -248,10 +236,7 @@ public class TrackedEntityImportValidationTest
     public void testWriteAccessInAclViaUserGroup()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "---USER3---" );
         trackerBundleParams.setUser( user );
@@ -267,10 +252,8 @@ public class TrackedEntityImportValidationTest
     public void testNonExistingTeType()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_teType-non-existing.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_teType-non-existing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -290,10 +273,8 @@ public class TrackedEntityImportValidationTest
     public void testNoTeType()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_teType-null.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_teType-null.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -313,10 +294,8 @@ public class TrackedEntityImportValidationTest
     public void testEmptyOrgUnit()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_orgunit-empty.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_orgunit-empty.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -336,10 +315,8 @@ public class TrackedEntityImportValidationTest
     public void testNoOrgUnit()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_orgunit-null.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_orgunit-null.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -359,11 +336,8 @@ public class TrackedEntityImportValidationTest
     public void testNonExistingOrgUnit()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_orgunit-non-existing.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_orgunit-non-existing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -383,10 +357,8 @@ public class TrackedEntityImportValidationTest
     public void testGeoFeatureTypeMismatch()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_geo-ftype-mismatch.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_geo-ftype-mismatch.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -406,10 +378,8 @@ public class TrackedEntityImportValidationTest
     public void testGeoFeatureTypeNone()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_geo-ftype-none.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_geo-ftype-none.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -429,10 +399,8 @@ public class TrackedEntityImportValidationTest
     public void testGeoFailParseCoordinates()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_geo-unparsable.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_geo-unparsable.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -452,10 +420,8 @@ public class TrackedEntityImportValidationTest
     public void testGeoOk()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_geo-ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_geo-ok.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -471,9 +437,7 @@ public class TrackedEntityImportValidationTest
     public void testTeCreateAlreadyExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -504,10 +468,8 @@ public class TrackedEntityImportValidationTest
     public void testTeAttrNonExistentAttr()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/te-data_error_attr-non-existing.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/te-data_error_attr-non-existing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -527,9 +489,7 @@ public class TrackedEntityImportValidationTest
     public void testUpdate()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -554,9 +514,7 @@ public class TrackedEntityImportValidationTest
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        TrackerBundleParams trackerBundleParamsUpdate = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParamsUpdate = createBundleFromJson( "tracker/validations/te-data.json" );
 
         trackerBundleParamsUpdate.setUser( user );
 
@@ -579,9 +537,7 @@ public class TrackedEntityImportValidationTest
     public void testDelete()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -598,9 +554,7 @@ public class TrackedEntityImportValidationTest
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        TrackerBundleParams trackerBundleParamsUpdate = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParamsUpdate = createBundleFromJson( "tracker/validations/te-data.json" );
 
         trackerBundleParamsUpdate.setUser( user );
 
@@ -627,9 +581,7 @@ public class TrackedEntityImportValidationTest
     public void testUpdateNotExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -650,9 +602,7 @@ public class TrackedEntityImportValidationTest
     public void testDeleteNotExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/te-data_ok.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -673,9 +623,8 @@ public class TrackedEntityImportValidationTest
     public void testDeleteCascadeProgramInstances()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -713,10 +662,8 @@ public class TrackedEntityImportValidationTest
     protected void importProgramInstances()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );

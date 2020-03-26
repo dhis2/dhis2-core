@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -44,8 +43,10 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -67,7 +68,10 @@ public class PreCheckSecurityValidationHook
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
+        Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+
         TrackedEntityType entityType = getTrackedEntityType( bundle, trackedEntity );
+
         if ( entityType != null && !aclService.canDataWrite( bundle.getUser(), entityType ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1001 )
@@ -76,7 +80,7 @@ public class PreCheckSecurityValidationHook
         }
 
         OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
-
+        // TODO: Should org unit == NULL be ok?
         // TODO: Added comment to make sure the reason for this not so intuitive reason,
         // This should be better commented and documented somewhere
         // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to tei in search scope 48a82e5f
@@ -91,15 +95,14 @@ public class PreCheckSecurityValidationHook
     @Override
     public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
+        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+        Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
 
         if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1028 )
+            reporter.addError( newReport( TrackerErrorCode.E1000 )
                 .addArg( organisationUnit )
                 .addArg( bundle.getUser() ) );
         }
@@ -108,8 +111,10 @@ public class PreCheckSecurityValidationHook
     @Override
     public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
+        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
+        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
+        // TODO: Should org unit == null be allowed?
         if ( organisationUnit != null &&
             !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
         {

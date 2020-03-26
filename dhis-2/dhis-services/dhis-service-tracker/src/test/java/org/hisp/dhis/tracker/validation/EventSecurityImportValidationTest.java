@@ -35,7 +35,7 @@ import org.junit.Test;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class EventSecurityImportValidationTest extends DhisSpringTest
+public class EventSecurityImportValidationTest extends AbstractImportValidationTest
 {
 
     @Test

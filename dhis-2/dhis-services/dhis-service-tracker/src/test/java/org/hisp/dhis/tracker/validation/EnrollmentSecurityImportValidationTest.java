@@ -30,17 +30,11 @@ package org.hisp.dhis.tracker.validation;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -73,13 +67,10 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +87,7 @@ import static org.junit.Assert.assertTrue;
  */
 @Slf4j
 public class EnrollmentSecurityImportValidationTest
-    extends CommonImportValidationTest
+    extends AbstractImportValidationTest
 {
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
@@ -153,6 +144,8 @@ public class EnrollmentSecurityImportValidationTest
 
     private ProgramStage programStageB;
 
+    private TrackedEntityType trackedEntityType;
+
     protected void setUpTest2()
     {
         userService = _userService;
@@ -179,6 +172,13 @@ public class EnrollmentSecurityImportValidationTest
 
         programA = createProgram2( "E8o1E9tAXXX", 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
+
+        trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
+        TrackedEntityType trackedEntityTypeFromProgram = createTrackedEntityType( 'C' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeFromProgram );
+
         manager.save( programA );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
@@ -204,9 +204,6 @@ public class EnrollmentSecurityImportValidationTest
         manager.update( programStageA );
         manager.update( programStageB );
         manager.update( programA );
-
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
         maleA = createTrackedEntityInstance2( "Kj6vYde4XXX", organisationUnitA );
         maleB = createTrackedEntityInstance( organisationUnitB );
@@ -291,42 +288,7 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1028 ) ) ) );
-    }
-
-    /**
-     * program = DATA READ/WRITE
-     * orgUnit = Not Accessible
-     * status = ERROR
-     */
-    @Test( expected = IllegalQueryException.class )
-    public void testUserWithDataReadWriteNoOrgUnit()
-    {
-
-        setUpTest2();
-
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        manager.update( programA );
-
-        User user = createUser( "user1" );
-
-        injectSecurityContext( user );
-
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
-            .getStatus() );
-
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
-            .getStatus() );
-
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
-            .getStatus() );
-
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
-            .getStatus() );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
     }
 
     @Test
@@ -421,7 +383,6 @@ public class EnrollmentSecurityImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1091 ) ) ) );
-
     }
 
     @Test
@@ -452,19 +413,41 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 0, report.getErrorReports().size() );
     }
 
-
-
-    private Enrollment createEnrollment( String program, String person )
+    @Test
+    public void testUserHasNoAccessToProgramTeiType()
+        throws IOException
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setOrgUnit( organisationUnitA.getUid() );
-        enrollment.setProgram( program );
-        enrollment.setTrackedEntityInstance( person );
-        enrollment.setEnrollmentDate( new Date() );
-        enrollment.setIncidentDate( new Date() );
+        setUpTest2();
 
-        return enrollment;
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        
+        // TODO: What is the difference here? Why does it fail when program has a tei type set,
+        //  this is the same tei type as the enrollment's tei is having...
+        programA.setTrackedEntityType( trackedEntityType );
+        manager.update( programA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_program-teitype-missmatch.json" );
+
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        // TODO: What is the difference here? Why does it fail when program has a tei type set,
+        //  this is the same tei type as the enrollment's tei is having...
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1092 ) ) ) );
     }
 
 }

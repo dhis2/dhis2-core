@@ -93,6 +93,7 @@ public class DefaultTrackerImportAccessManager
                 .addArg( programInstance.getProgram() ) );
         }
 
+        // TODO: can we use isReg instead?
         if ( !programInstance.getProgram().isWithoutRegistration() )
         {
             checkTeiTypeAndTeiProgramAccess( reporter, user, programInstance.getEntityInstance(),
@@ -114,6 +115,7 @@ public class DefaultTrackerImportAccessManager
         TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
+        //TODO: TeiType
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1092 )
@@ -140,14 +142,15 @@ public class DefaultTrackerImportAccessManager
         //TODO: Investigate, must all program have a tei type?
         // Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_CANT_BE_NULL );
 
-        OrganisationUnit ou = programInstance.getOrganisationUnit();
-        // TODO: Investigate programInstance without ou possible or bug?
-        if ( ou != null && !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1090 )
-                .addArg( user )
-                .addArg( ou ) );
-        }
+//        OrganisationUnit ou = programInstance.getOrganisationUnit();
+//        // TODO: Investigate programInstance without ou possible or bug?
+        // TODO: This is already checked in the PreCheckSecurityValidationHook
+//        if ( ou != null && !organisationUnitService.isInUserHierarchyCached( user, ou ) )
+//        {
+//            reporter.addError( newReport( TrackerErrorCode.E1090 )
+//                .addArg( user )
+//                .addArg( ou ) );
+//        }
 
         if ( !aclService.canDataWrite( user, program ) )
         {
@@ -177,7 +180,7 @@ public class DefaultTrackerImportAccessManager
             !organisationUnitService.isInUserSearchHierarchyCached( user, ou )
             : !organisationUnitService.isInUserHierarchyCached( user, ou )) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1090 )
+            reporter.addError( newReport( TrackerErrorCode.E1000 )
                 .addArg( user )
                 .addArg( ou ) );
         }

@@ -67,7 +67,7 @@ public enum TrackerErrorCode
     E1025( "Invalid enrollment date: `{0}`." ),
     E1026( "Invalid enrollment created at client date: `{0}`." ),
     E1027( "Invalid enrollment last updated at client date: `{0}`." ),
-    E1028( "Organisation unit: `{0}`, is not part of the hierarchy of the user: `{1}`, organisation units." ),
+
     E1029( "Comment: `{0}`, already exist, only create allowed; `{1}`." ),
     E1030( "Event `{0}` already exists or was deleted earlier." ),
     E1031( "Event date is required." ),
@@ -137,7 +137,7 @@ public enum TrackerErrorCode
     E1088( "Event: `{0}`, program: `{1}`, and program stage: `{2}` could not be found." ),
     E1089( "Event: `{0}`, program stage program and event program don't match." ),
 
-    E1090( "User: `{0}`, has no data write access to organisation unit: `{1}`." ),
+
     E1091( "User: `{0}`, has no data write access to program: `{1}`." ),
     E1092( "User: `{0}`, has no data read access to tracked entity type: `{1}`." ),
 

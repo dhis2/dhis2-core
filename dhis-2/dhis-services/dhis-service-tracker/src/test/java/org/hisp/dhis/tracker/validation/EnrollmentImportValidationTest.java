@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -75,7 +74,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class EnrollmentImportValidationTest
-    extends DhisSpringTest
+    extends AbstractImportValidationTest
 
 {
     private static final Logger log = LoggerFactory.getLogger( EnrollmentImportValidationTest.class );
@@ -125,9 +124,8 @@ public class EnrollmentImportValidationTest
         List<ErrorReport> objectReport = commit.getErrorReports();
         assertTrue( objectReport.isEmpty() );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -154,10 +152,8 @@ public class EnrollmentImportValidationTest
     public void testEnrollmentValidationOkAll()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -170,17 +166,14 @@ public class EnrollmentImportValidationTest
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
-
     }
 
     @Test
     public void testDatesMissing()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-dates-missing.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-dates-missing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -214,10 +207,8 @@ public class EnrollmentImportValidationTest
     public void testDatesInFuture()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-dates-future.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-dates-future.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -241,10 +232,8 @@ public class EnrollmentImportValidationTest
     public void testDisplayIncidentDateTrueButDateValueNotPresentOrInvalid()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-displayIncident.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-displayIncident.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -265,10 +254,8 @@ public class EnrollmentImportValidationTest
     public void testMissingProgram()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-program-missing.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-program-missing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -289,10 +276,8 @@ public class EnrollmentImportValidationTest
     public void testMissingOrgUnit()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-orgunit-missing.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-orgunit-missing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -313,10 +298,8 @@ public class EnrollmentImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
@@ -330,17 +313,15 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1028 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
     }
 
     @Test
     public void testEnrollmentCreateAlreadyExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -372,10 +353,8 @@ public class EnrollmentImportValidationTest
     public void testUpdateNotExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -399,10 +378,8 @@ public class EnrollmentImportValidationTest
     public void testDeleteNotExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -426,10 +403,8 @@ public class EnrollmentImportValidationTest
     public void testNonRegProgram()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-nonreg-program.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-nonreg-program.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -449,10 +424,8 @@ public class EnrollmentImportValidationTest
     public void testNonExistTe()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-nonexist-te.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-nonexist-te.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -472,11 +445,8 @@ public class EnrollmentImportValidationTest
     public void testTrackedEntityTypeMismatch()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/enrollments_error-program-tet-mismatch-te.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_error-program-tet-mismatch-te.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );

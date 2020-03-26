@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -77,7 +76,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class EventImportValidationTest
-    extends DhisSpringTest
+    extends AbstractImportValidationTest
 
 {
     private static final Logger log = LoggerFactory.getLogger( EventImportValidationTest.class );
@@ -132,9 +131,8 @@ public class EventImportValidationTest
         List<ErrorReport> objectReport = commit.getErrorReports();
         assertTrue( objectReport.isEmpty() );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -203,10 +201,7 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -227,10 +222,7 @@ public class EventImportValidationTest
     {
         initMeta2();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/event_events.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -251,10 +243,8 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events_error-orgunit-missing.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-orgunit-missing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -275,11 +265,8 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events_error-program-pstage-missing.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-program-pstage-missing.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -305,11 +292,8 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events_error-pstage-missing-isreg.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-pstage-missing-isreg.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -335,11 +319,8 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events_error-pstage-program-different.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-pstage-program-different.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -362,10 +343,7 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( "---USER2---" );
         trackerBundleParams.setUser( user );
@@ -388,10 +366,7 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
@@ -424,10 +399,7 @@ public class EventImportValidationTest
     {
         initMeta1();
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson(
-                new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );

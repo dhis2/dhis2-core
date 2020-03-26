@@ -53,10 +53,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
@@ -80,10 +82,7 @@ public class PreCheckOwnershipValidationHook
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
-//        if ( !bundle.getImportStrategy().isDelete() )
-//        {
-//            return;
-//        }
+        Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
 
@@ -110,6 +109,9 @@ public class PreCheckOwnershipValidationHook
     @Override
     public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
+        Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+        Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+
         Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
@@ -128,6 +130,8 @@ public class PreCheckOwnershipValidationHook
     @Override
     public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
+        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
         ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
