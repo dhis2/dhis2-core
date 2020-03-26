@@ -2,6 +2,8 @@ package org.hisp.dhis.db.migration.v34;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,26 +23,27 @@ public class V2_34_22__Add_teav_btree_index
     extends BaseJavaMigration
 {
     private final static String COP_POST_URL = "https://community.dhis2.org/t/draft-important-database-upgrade-for-tracker-performance/38766";
+    private static final Logger log = LoggerFactory.getLogger( V2_34_22__Add_teav_btree_index.class );
 
     @Override
     public void migrate( Context context )
-        throws Exception
     {
+
         try ( Statement statement = context.getConnection().createStatement() )
         {
             statement
-                .execute( String.format( "alter table trackedentityattributevalue alter column value set data type varchar(1200)", TEA_VALUE_MAX_LENGTH ) );
+                .execute( "alter table trackedentityattributevalue alter column value set data type varchar(1200)" );
             statement.execute(
                 "create index in_trackedentity_attribute_value on trackedentityattributevalue using btree (trackedentityattributeid, lower(value)) " );
         }
-        catch ( SQLException sqlException )
+        catch ( Exception e )
         {
             String message = "Could not perform upgrade of table 'trackedentityattributevalue'. " +
                     String.format( "Column 'value' should be altered to data type varchar(%s) and receive a new index. ", TEA_VALUE_MAX_LENGTH ) +
                     String.format( "For more information, please see the following post: '%s'. ", COP_POST_URL ) +
-                    String.format( "Error message was: %s", sqlException.getMessage() );
+                    String.format( "Error message was: %s", e.getMessage() );
 
-            throw new Exception( message );
+            log.warn( message );
         }
     }
 }
