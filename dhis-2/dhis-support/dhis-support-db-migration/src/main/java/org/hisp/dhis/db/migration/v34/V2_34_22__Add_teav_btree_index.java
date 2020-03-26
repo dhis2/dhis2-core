@@ -46,4 +46,10 @@ public class V2_34_22__Add_teav_btree_index
             log.warn( message );
         }
     }
+    
+    @Override
+    public boolean canExecuteInTransaction()
+    {
+        return false;
+    }
 }
