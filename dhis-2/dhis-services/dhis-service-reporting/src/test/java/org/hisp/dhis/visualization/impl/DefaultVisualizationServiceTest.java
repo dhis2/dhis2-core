@@ -64,7 +64,6 @@ import org.mockito.junit.MockitoRule;
 
 public class DefaultVisualizationServiceTest
 {
-
     @Mock
     private VisualizationStore visualizationStore;
 
