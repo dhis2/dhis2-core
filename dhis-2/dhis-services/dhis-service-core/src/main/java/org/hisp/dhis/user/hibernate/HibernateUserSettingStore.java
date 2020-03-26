@@ -37,6 +37,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -76,6 +77,13 @@ public class HibernateUserSettingStore
         Session session = sessionFactory.getCurrentSession();
 
         session.update( userSetting );
+    }
+
+    @Override
+    @Transactional
+    public UserSetting getUserSettingTx( User user, String name )
+    {
+        return getUserSetting( user, name );
     }
 
     @Override
