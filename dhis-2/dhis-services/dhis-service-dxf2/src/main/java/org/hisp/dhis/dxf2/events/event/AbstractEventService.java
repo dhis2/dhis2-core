@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.event;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
 import java.util.*;
@@ -67,8 +68,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -152,8 +151,6 @@ public abstract class AbstractEventService
 
     private final EventStore eventStore;
 
-    protected final I18nManager i18nManager;
-
     protected final Notifier notifier;
 
     protected final SessionFactory sessionFactory;
@@ -193,7 +190,7 @@ public abstract class AbstractEventService
         OrganisationUnitService organisationUnitService, DataElementService dataElementService,
         CurrentUserService currentUserService, EventDataValueService eventDataValueService,
         TrackedEntityInstanceService entityInstanceService, TrackedEntityCommentService commentService,
-        EventStore eventStore, I18nManager i18nManager, Notifier notifier, SessionFactory sessionFactory,
+        EventStore eventStore, Notifier notifier, SessionFactory sessionFactory,
         DbmsManager dbmsManager, IdentifiableObjectManager manager, CategoryService categoryService,
         FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
         TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
@@ -212,7 +209,6 @@ public abstract class AbstractEventService
         checkNotNull( entityInstanceService );
         checkNotNull( commentService );
         checkNotNull( eventStore );
-        checkNotNull( i18nManager );
         checkNotNull( notifier );
         checkNotNull( sessionFactory );
         checkNotNull( dbmsManager );
@@ -240,7 +236,6 @@ public abstract class AbstractEventService
         this.entityInstanceService = entityInstanceService;
         this.commentService = commentService;
         this.eventStore = eventStore;
-        this.i18nManager = i18nManager;
         this.notifier = notifier;
         this.sessionFactory = sessionFactory;
         this.dbmsManager = dbmsManager;
@@ -295,6 +290,13 @@ public abstract class AbstractEventService
             .withInitialCapacity( 1000 )
             .withMaximumSize( 50000 )
             .build();
+
+    private static Cache<Boolean> PROGRAM_HAS_ORG_UNIT_CACHE = new SimpleCacheBuilder<Boolean>()
+        .forRegion( "programHasOrgUnitCache" )
+        .expireAfterAccess( 60, TimeUnit.MINUTES )
+        .withInitialCapacity( 1000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -598,7 +600,12 @@ public abstract class AbstractEventService
             programStage = programStageInstance.getProgramStage();
         }
 
-        if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
+        final Program instanceProgram = programInstance.getProgram();
+        final String cacheKey = instanceProgram.getUid() + organisationUnit.getUid();
+        boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( cacheKey,
+            key -> instanceProgram.hasOrganisationUnit( organisationUnit ) ).get();
+
+        if ( !programHasOrgUnit )
         {
             return new ImportSummary( ImportStatus.ERROR, "Program is not assigned to this organisation unit: " + event.getOrgUnit() )
                 .setReference( event.getEvent() ).incrementIgnored();
@@ -976,7 +983,7 @@ public abstract class AbstractEventService
         {
 
             DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
-            
+
             if ( dataElement != null )
             {
                 errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
@@ -1405,7 +1412,7 @@ public abstract class AbstractEventService
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event, importOptions );
-        
+
         eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
@@ -2119,7 +2126,7 @@ public abstract class AbstractEventService
             }
         }
     }
-    
+
     private ProgramStage getProgramStage( IdScheme idScheme, String id )
     {
         if ( id == null )
@@ -2214,8 +2221,6 @@ public abstract class AbstractEventService
 
     private void validateAttributeOptionComboDate( CategoryOptionCombo attributeOptionCombo, Date date )
     {
-        I18nFormat i18nFormat = i18nManager.getI18nFormat();
-
         if ( date == null )
         {
             throw new IllegalQueryException( "Event date can not be empty" );
@@ -2225,15 +2230,15 @@ public abstract class AbstractEventService
         {
             if ( option.getStartDate() != null && date.compareTo( option.getStartDate() ) < 0 )
             {
-                throw new IllegalQueryException( "Event date " + i18nFormat.formatDate( date )
-                    + " is before start date " + i18nFormat.formatDate( option.getStartDate() )
+                throw new IllegalQueryException( "Event date " + getMediumDateString( date )
+                    + " is before start date " + getMediumDateString( option.getStartDate() )
                     + " for attributeOption '" + option.getName() + "'" );
             }
 
             if ( option.getEndDate() != null && date.compareTo( option.getEndDate() ) > 0 )
             {
-                throw new IllegalQueryException( "Event date " + i18nFormat.formatDate( date )
-                    + " is after end date " + i18nFormat.formatDate( option.getEndDate() )
+                throw new IllegalQueryException( "Event date " + getMediumDateString( date )
+                    + " is after end date " + getMediumDateString( option.getEndDate() )
                     + " for attributeOption '" + option.getName() + "'" );
             }
         }

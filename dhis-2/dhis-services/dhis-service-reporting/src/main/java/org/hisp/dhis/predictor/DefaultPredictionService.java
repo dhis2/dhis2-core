@@ -30,7 +30,6 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.http.util.TextUtils.isEmpty;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
@@ -43,6 +42,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -165,7 +165,8 @@ public class DefaultPredictionService
      * Used only for testing, remove when test is refactored
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService(CurrentUserService currentUserService)
+    {
         this.currentUserService = currentUserService;
     }
 
@@ -459,7 +460,7 @@ public class DefaultPredictionService
         MapMap<Period, DimensionalItemObject, Double> sampleMap2,
         Expression skipTest, Map<String, Constant> constantMap )
     {
-        if ( skipTest == null || isEmpty( skipTest.getExpression() ) )
+        if ( skipTest == null || StringUtils.isEmpty( skipTest.getExpression() ) )
         {
             return sampleMap2;
         }

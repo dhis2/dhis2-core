@@ -49,6 +49,18 @@ public interface UserSettingStore
     /**
      * Retrieves the UserSetting associated with the given User for the given
      * UserSetting name.
+     * <p>
+     * Note: This method invocation will occur within a transaction.
+     *
+     * @param user the User.
+     * @param name the name of the UserSetting.
+     * @return the UserSetting.
+     */
+    UserSetting getUserSettingTx( User user, String name );
+
+    /**
+     * Retrieves the UserSetting associated with the given User for the given
+     * UserSetting name.
      *
      * @param user the User.
      * @param name the name of the UserSetting.
@@ -73,7 +85,7 @@ public interface UserSettingStore
 
     /**
      * Removes all user settings associated with the given user.
-     * 
+     *
      * @param user the user.
      */
     void removeUserSettings( User user );
