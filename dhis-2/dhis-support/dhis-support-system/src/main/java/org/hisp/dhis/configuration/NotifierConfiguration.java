@@ -53,14 +53,11 @@ public class NotifierConfiguration
     @Autowired( required = false )
     private RedisTemplate<?, ?> redisTemplate;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @SuppressWarnings( "unchecked" )
     @Bean
     @Qualifier( "notifier" )
     @Conditional( RedisEnabledCondition.class )
-    public Notifier redisNotifier()
+    public Notifier redisNotifier( ObjectMapper objectMapper )
     {
         return new RedisNotifier( (RedisTemplate<String, String>) redisTemplate, objectMapper );
     }
