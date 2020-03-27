@@ -191,7 +191,7 @@ public class EnrollmentInExistingValidationHook
                 // this is needed for thread safety in parallel mode.
                 ValidationErrorReporter reporterFork = reporter.fork( null );
 
-                trackerImportAccessManager.canRead( reporterFork, actingUser, programInstance );
+                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, actingUser, programInstance );
 
                 if ( reporterFork.hasErrors() )
                 {

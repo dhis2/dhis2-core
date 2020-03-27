@@ -40,13 +40,13 @@ import org.hisp.dhis.user.User;
  */
 public interface TrackerImportAccessManager
 {
-    void canRead( ValidationErrorReporter reporter, User user, ProgramInstance programInstance );
+    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, User user, ProgramInstance programInstance );
 
-    void canWriteEnrollment( ValidationErrorReporter reporter, User user, Program program,
+    void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, User user, Program program,
         ProgramInstance programInstance );
 
-    void canWriteEvent( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance );
+    void checkEventWriteAccess( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance );
 
-    void canWriteCategoryOptionCombo( ValidationErrorReporter reporter, User user,
+    void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user,
         CategoryOptionCombo categoryOptionCombo );
 }

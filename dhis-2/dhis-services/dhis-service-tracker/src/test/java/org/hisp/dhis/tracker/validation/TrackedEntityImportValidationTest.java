@@ -28,7 +28,7 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -50,14 +50,11 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -76,12 +73,11 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class TrackedEntityImportValidationTest
     extends AbstractImportValidationTest
 
 {
-    private static final Logger log = LoggerFactory.getLogger( TrackedEntityImportValidationTest.class );
-
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -127,14 +123,6 @@ public class TrackedEntityImportValidationTest
         List<ErrorReport> errorReports1 = commit.getErrorReports();
         assertTrue( errorReports1.isEmpty() );
 
-    }
-
-    private void printErrors( TrackerValidationReport report )
-    {
-        for ( TrackerErrorReport errorReport : report.getErrorReports() )
-        {
-            log.error( errorReport.toString() );
-        }
     }
 
     @Test

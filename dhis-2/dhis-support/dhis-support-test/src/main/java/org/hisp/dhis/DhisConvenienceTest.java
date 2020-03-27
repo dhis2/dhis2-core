@@ -194,6 +194,7 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_COC_UID = "cuabcdefgh";
     protected static final String BASE_USER_UID = "userabcdef";
     protected static final String BASE_USER_GROUP_UID = "ugabcdefgh";
+    protected static final String BASE_PG_UID = "pgabcdefgh";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
@@ -1568,6 +1569,7 @@ public abstract class DhisConvenienceTest
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
 
+        programStage.setUid( BASE_PG_UID + uniqueCharacter );
         programStage.setName( "ProgramStage" + uniqueCharacter );
         programStage.setDescription( "description" + uniqueCharacter );
         programStage.setMinDaysFromStart( minDays );

@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -124,7 +125,7 @@ public class PreCheckOwnershipValidationHook
 
         ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
 
-        trackerImportAccessManager.canWriteEnrollment( reporter, bundle.getUser(), program, programInstance );
+        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, bundle.getUser(), program, programInstance );
     }
 
     @Override
@@ -138,13 +139,22 @@ public class PreCheckOwnershipValidationHook
         ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
         ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
 
+        CategoryOptionCombo categoryOptionCombo = null;
+
+        // TODO: how do we do this? i.e. how/where do we look up the CategoryOptionCombo, is they always in default map?
+        categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults().get( CategoryOptionCombo.class );
+        String attributeOptionCombo = event.getAttributeOptionCombo();
+        // TODO: What about         String attributeCategoryOptions = event.getAttributeCategoryOptions(); ?
+        // TODO: Fix this hack?
+
+
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( programStage, Constants.PROGRAM_STAGE_CANT_BE_NULL );
 
         if ( bundle.getImportStrategy().isCreate() )
         {
-            validateCreateEvent( reporter, bundle.getUser(), event, programStage, programInstance,
+            validateCreateEvent( reporter, bundle.getUser(), categoryOptionCombo, programStage, programInstance,
                 organisationUnit,
                 program );
         }
@@ -154,34 +164,12 @@ public class PreCheckOwnershipValidationHook
         }
     }
 
-    protected void validateUpdateAndDeleteEvent( TrackerBundle bundle, ValidationErrorReporter reporter,
-        Event event, ProgramStageInstance programStageInstance )
-    {
-        Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
-        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
-
-        trackerImportAccessManager.canWriteEvent( reporter, bundle.getUser(), programStageInstance );
-
-        // TODO: Should it be possible to delete a completed event, but not update? with current check above it is...
-        if ( bundle.getImportStrategy().isUpdate() )
-        {
-            if ( event.getStatus() != programStageInstance.getStatus()
-                && EventStatus.COMPLETED == programStageInstance.getStatus()
-                && (!bundle.getUser().isSuper() && !bundle.getUser().isAuthorized( "F_UNCOMPLETE_EVENT" )) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1083 )
-                    .addArg( bundle.getUser() ) );
-            }
-        }
-    }
-
-    protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser, Event event,
+    protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser,
+        CategoryOptionCombo categoryOptionCombo,
         ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Program program )
     {
         Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
-        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
 
         boolean noProgramStageAndProgramIsWithoutReg = programStage == null && program.isWithoutRegistration();
@@ -190,7 +178,56 @@ public class PreCheckOwnershipValidationHook
 
         ProgramStageInstance newProgramStageInstance = new ProgramStageInstance( programInstance, programStage )
             .setOrganisationUnit( organisationUnit );
+        newProgramStageInstance.setAttributeOptionCombo( categoryOptionCombo );
 
-        trackerImportAccessManager.canWriteEvent( reporter, actingUser, newProgramStageInstance );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, actingUser, newProgramStageInstance );
+    }
+
+//    @Override
+//    @Transactional( readOnly = true )
+//    public void decideAccess( ProgramInstanceQueryParams params )
+//    {
+//        if ( params.hasProgram() )
+//        {
+//            if ( !aclService.canDataRead( params.getUser(), params.getProgram() ) )
+//            {
+//                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
+//            }
+//
+//            if ( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
+//            {
+//                throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
+//            }
+//
+//        }
+//
+//        if ( params.hasTrackedEntityType() && !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
+//        {
+//            throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
+//        }
+//    }
+
+    protected void validateUpdateAndDeleteEvent( TrackerBundle bundle, ValidationErrorReporter reporter,
+        Event event, ProgramStageInstance programStageInstance )
+    {
+        Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+
+        trackerImportAccessManager.checkEventWriteAccess( reporter, bundle.getUser(), programStageInstance );
+
+        // TODO: Should it be possible to delete a completed event, but not update? with current check above it is...
+        if ( bundle.getImportStrategy().isUpdate() )
+        {
+            if ( event.getStatus() != programStageInstance.getStatus()
+                && EventStatus.COMPLETED == programStageInstance.getStatus()
+                && (!bundle.getUser().isSuper()
+                // TODO: Shouldn't this be a CONSTANT somewhere? can only find it ref. 1 time in the existing code...
+                && !bundle.getUser().isAuthorized( "F_UNCOMPLETE_EVENT" )) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1083 )
+                    .addArg( bundle.getUser() ) );
+            }
+        }
     }
 }

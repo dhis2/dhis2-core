@@ -964,28 +964,7 @@
       "userGroupAccesses": [ ],
       "orgunitScope": false
     }
-  ],
-  "categoryOptionCombos": [
-    {
-      "id": "HllvX50cXC0",
-      "translations": [ ],
-      "name": "default",
-      "categoryOptions": [
-        {
-          "id": "xYerKDKCefk"
-        }
-      ],
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [ ],
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "code": "default",
-      "created": "2019-03-25T13:40:24.775"
-    }
-  ],
-  "dataElements": [
+  ],"dataElements": [
     {
       "user": {
         "id": "M5zQapPyTZI"
@@ -1191,6 +1170,26 @@
       },
       "translations": [ ],
       "name": "PersonYYY"
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "id": "HllvX50cXC0",
+      "translations": [ ],
+      "name": "default",
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ],
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [ ],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "code": "default",
+      "created": "2019-03-25T13:40:24.775"
     }
   ],
   "categoryCombos": [

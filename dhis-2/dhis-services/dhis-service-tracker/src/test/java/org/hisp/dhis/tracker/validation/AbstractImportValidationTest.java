@@ -33,6 +33,8 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -64,5 +66,13 @@ public abstract class AbstractImportValidationTest
         enrollment.setIncidentDate( new Date() );
 
         return enrollment;
+    }
+
+    protected void printErrors( TrackerValidationReport report )
+    {
+        for ( TrackerErrorReport errorReport : report.getErrorReports() )
+        {
+            log.error( errorReport.toString() );
+        }
     }
 }

@@ -29,18 +29,284 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.render.RenderFormat;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class EventSecurityImportValidationTest extends AbstractImportValidationTest
+@Slf4j
+public class EventSecurityImportValidationTest
+    extends AbstractImportValidationTest
 {
 
-    @Test
-    public void testEmpty()
-    {
+    @Autowired
+    protected TrackedEntityInstanceService trackedEntityInstanceService;
 
+    @Autowired
+    private TrackerBundleService trackerBundleService;
+
+    @Autowired
+    private ObjectBundleService objectBundleService;
+
+    @Autowired
+    private ObjectBundleValidationService objectBundleValidationService;
+
+    @Autowired
+    private DefaultTrackerValidationService trackerValidationService;
+
+    @Autowired
+    private RenderService _renderService;
+
+    @Autowired
+    private UserService _userService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageServiceInstance;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
+    private ProgramStageDataElementService programStageDataElementService;
+
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
+
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+
+    private OrganisationUnit organisationUnitA;
+
+    private OrganisationUnit organisationUnitB;
+
+    private Program programA;
+
+    private DataElement dataElementA;
+
+    private DataElement dataElementB;
+
+    private ProgramStage programStageA;
+
+    private ProgramStage programStageB;
+
+    private TrackedEntityType trackedEntityType;
+
+    protected void initMeta()
+        throws IOException
+    {
+        renderService = _renderService;
+        userService = _userService;
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
+        List<ErrorReport> errorReports = validationReport.getErrorReports();
+        assertTrue( errorReports.isEmpty() );
+
+        ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
+        List<ErrorReport> objectReport = commit.getErrorReports();
+        assertTrue( objectReport.isEmpty() );
+
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/enrollments_te_te-data.json" );
+
+        User user = userService.getUser( "M5zQapPyTZI" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+        ////////////////////////////////////////
+
+        trackerBundleParams = renderService
+            .fromJson(
+                new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
+                TrackerBundleParams.class );
+
+        trackerBundleParams.setUser( user );
+
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEnrollments().size() );
+
+        report = trackerValidationService.validate( trackerBundle );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        bundleReport = trackerBundleService.commit( trackerBundle );
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+    }
+
+    protected void setupData()
+    {
+        organisationUnitA = createOrganisationUnit( 'A' );
+        organisationUnitB = createOrganisationUnit( 'B' );
+        manager.save( organisationUnitA );
+        manager.save( organisationUnitB );
+
+        dataElementA = createDataElement( 'A' );
+        dataElementB = createDataElement( 'B' );
+        dataElementA.setValueType( ValueType.INTEGER );
+        dataElementB.setValueType( ValueType.INTEGER );
+
+        manager.save( dataElementA );
+        manager.save( dataElementB );
+
+        programStageA = createProgramStage( 'A', 0 );
+        programStageB = createProgramStage( 'B', 0 );
+        programStageB.setRepeatable( true );
+
+        manager.save( programStageA );
+        manager.save( programStageB );
+
+        programA = createProgram2( "E8o1E9tAXXX", 'A', new HashSet<>(), organisationUnitA );
+        programA.setProgramType( ProgramType.WITH_REGISTRATION );
+
+        trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
+        TrackedEntityType trackedEntityTypeFromProgram = createTrackedEntityType( 'C' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeFromProgram );
+
+        manager.save( programA );
+
+        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+        programStageDataElement.setDataElement( dataElementA );
+        programStageDataElement.setProgramStage( programStageA );
+        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
+
+        programStageA.getProgramStageDataElements().add( programStageDataElement );
+        programStageA.setProgram( programA );
+
+        programStageDataElement = new ProgramStageDataElement();
+        programStageDataElement.setDataElement( dataElementB );
+        programStageDataElement.setProgramStage( programStageB );
+        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
+
+        programStageB.getProgramStageDataElements().add( programStageDataElement );
+        programStageB.setProgram( programA );
+        programStageB.setMinDaysFromStart( 2 );
+
+        programA.getProgramStages().add( programStageA );
+        programA.getProgramStages().add( programStageB );
+
+        manager.update( programStageA );
+        manager.update( programStageB );
+        manager.update( programA );
+
+        maleA = createTrackedEntityInstance2( "Kj6vYde4XXX", organisationUnitA );
+        maleB = createTrackedEntityInstance( organisationUnitB );
+        femaleA = createTrackedEntityInstance( organisationUnitA );
+        femaleB = createTrackedEntityInstance( organisationUnitB );
+
+        maleA.setTrackedEntityType( trackedEntityType );
+        maleB.setTrackedEntityType( trackedEntityType );
+        femaleA.setTrackedEntityType( trackedEntityType );
+        femaleB.setTrackedEntityType( trackedEntityType );
+
+        manager.save( maleA );
+        manager.save( maleB );
+        manager.save( femaleA );
+        manager.save( femaleB );
+    }
+
+    @Test
+    public void testNoWriteAccessToProgramStage()
+        throws IOException
+    {
+        initMeta();
+        setupData();
+
+        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events_error-no-programStage-access.json" );
+
+        User user = userService.getUser( "---USER3---" );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
+        assertEquals( 2, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 }

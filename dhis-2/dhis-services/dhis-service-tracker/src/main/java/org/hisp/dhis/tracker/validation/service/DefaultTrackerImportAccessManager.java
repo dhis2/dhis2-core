@@ -34,6 +34,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -80,18 +81,14 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void canRead( ValidationErrorReporter reporter, User user, ProgramInstance programInstance )
+    public void checkReadEnrollmentAccess( ValidationErrorReporter reporter, User user,
+        ProgramInstance programInstance )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( programInstance.getProgram(), PROGRAM_CANT_BE_NULL );
 
-        if ( !aclService.canDataRead( user, programInstance.getProgram() ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1096 )
-                .addArg( user )
-                .addArg( programInstance.getProgram() ) );
-        }
+        checkProgramReadAccess( reporter, user, programInstance.getProgram() );
 
         // TODO: can we use isReg instead?
         if ( !programInstance.getProgram().isWithoutRegistration() )
@@ -133,7 +130,7 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void canWriteEnrollment( ValidationErrorReporter reporter, User user, Program program,
+    public void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, User user, Program program,
         ProgramInstance programInstance )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
@@ -152,12 +149,7 @@ public class DefaultTrackerImportAccessManager
 //                .addArg( ou ) );
 //        }
 
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1091 )
-                .addArg( user )
-                .addArg( program ) );
-        }
+        checkProgramWriteAccess( reporter, user, program );
 
         // TODO: IS without reg. always same as isReg? or is NULL also a state?
         if ( !program.isWithoutRegistration() )
@@ -167,7 +159,8 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void canWriteEvent( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance )
+    public void checkEventWriteAccess( ValidationErrorReporter reporter, User user,
+        ProgramStageInstance programStageInstance )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
@@ -175,7 +168,8 @@ public class DefaultTrackerImportAccessManager
         Objects.requireNonNull( programStageInstance.getProgramStage().getProgram(), PROGRAM_CANT_BE_NULL );
 
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-        // TODO: ou possible?
+        // TODO: ou possible? Move to PreCheckSecurityValidationHook?
+        //   See comment about possible double check in PreCheckSecurityValidationHook:validateEvents():121
         if ( ou != null && (programStageInstance.isCreatableInSearchScope() ?
             !organisationUnitService.isInUserSearchHierarchyCached( user, ou )
             : !organisationUnitService.isInUserHierarchyCached( user, ou )) )
@@ -187,28 +181,14 @@ public class DefaultTrackerImportAccessManager
 
         if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
         {
-            if ( !aclService.canDataWrite( user, programStageInstance.getProgramStage().getProgram() ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1091 )
-                    .addArg( user )
-                    .addArg( programStageInstance.getProgramStage().getProgram() ) );
-            }
+            checkProgramWriteAccess( reporter, user, programStageInstance.getProgramStage().getProgram() );
         }
         else
         {
-            if ( !aclService.canDataWrite( user, programStageInstance.getProgramStage() ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1095 )
-                    .addArg( user )
-                    .addArg( programStageInstance.getProgramStage() ) );
-            }
+            Objects.requireNonNull( programStageInstance.getProgramInstance(), PROGRAM_INSTANCE_CANT_BE_NULL );
 
-            if ( !aclService.canDataRead( user, programStageInstance.getProgramStage().getProgram() ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1096 )
-                    .addArg( user )
-                    .addArg( programStageInstance.getProgramStage() ) );
-            }
+            checkProgramStageWriteAccess( reporter, user, programStageInstance.getProgramStage() );
+            checkProgramReadAccess( reporter, user, programStageInstance.getProgramStage().getProgram() );
 
             checkTeiTypeAndTeiProgramAccess( reporter, user,
                 programStageInstance.getProgramInstance().getEntityInstance(),
@@ -217,12 +197,45 @@ public class DefaultTrackerImportAccessManager
 
         if ( programStageInstance.getAttributeOptionCombo() != null )
         {
-            canWriteCategoryOptionCombo( reporter, user, programStageInstance.getAttributeOptionCombo() );
+            checkWriteCategoryOptionComboAccess( reporter, user, programStageInstance.getAttributeOptionCombo() );
+        }
+    }
+
+    protected void checkProgramReadAccess( ValidationErrorReporter reporter, User user,
+        Program program )
+    {
+        if ( !aclService.canDataRead( user, program ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1096 )
+                .addArg( user )
+                .addArg( program ) );
+        }
+    }
+
+    protected void checkProgramStageWriteAccess( ValidationErrorReporter reporter, User user,
+        ProgramStage programStage )
+    {
+        if ( !aclService.canDataWrite( user, programStage ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1095 )
+                .addArg( user )
+                .addArg( programStage ) );
+        }
+    }
+
+    protected void checkProgramWriteAccess( ValidationErrorReporter reporter, User user,
+        Program program )
+    {
+        if ( !aclService.canDataWrite( user, program ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1091 )
+                .addArg( user )
+                .addArg( program ) );
         }
     }
 
     @Override
-    public void canWriteCategoryOptionCombo( ValidationErrorReporter reporter, User user,
+    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user,
         CategoryOptionCombo categoryOptionCombo )
     {
         Objects.requireNonNull( user, USER_CANT_BE_NULL );

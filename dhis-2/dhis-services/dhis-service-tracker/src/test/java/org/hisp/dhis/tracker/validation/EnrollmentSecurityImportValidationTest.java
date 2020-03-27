@@ -261,14 +261,6 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    private void printErrors( TrackerValidationReport report )
-    {
-        for ( TrackerErrorReport errorReport : report.getErrorReports() )
-        {
-            log.error( errorReport.toString() );
-        }
-    }
-
     @Test
     public void testNoWriteAccessToOrg()
         throws IOException
@@ -420,7 +412,7 @@ public class EnrollmentSecurityImportValidationTest
         setUpTest2();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        
+
         // TODO: What is the difference here? Why does it fail when program has a tei type set,
         //  this is the same tei type as the enrollment's tei is having...
         programA.setTrackedEntityType( trackedEntityType );
@@ -444,10 +436,7 @@ public class EnrollmentSecurityImportValidationTest
 
         assertEquals( 1, report.getErrorReports().size() );
 
-        // TODO: What is the difference here? Why does it fail when program has a tei type set,
-        //  this is the same tei type as the enrollment's tei is having...
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1092 ) ) ) );
     }
-
 }

@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -75,12 +76,11 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class EventImportValidationTest
     extends AbstractImportValidationTest
 
 {
-    private static final Logger log = LoggerFactory.getLogger( EventImportValidationTest.class );
-
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -187,13 +187,7 @@ public class EventImportValidationTest
         objectBundleService.commit( objectBundle );
     }
 
-    private void printErrors( TrackerValidationReport report )
-    {
-        for ( TrackerErrorReport errorReport : report.getErrorReports() )
-        {
-            log.error( errorReport.toString() );
-        }
-    }
+
 
     @Test
     public void testEventValidationOkAll()

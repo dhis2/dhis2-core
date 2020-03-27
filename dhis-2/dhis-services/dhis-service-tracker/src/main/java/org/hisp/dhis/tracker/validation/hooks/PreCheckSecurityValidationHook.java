@@ -115,6 +115,9 @@ public class PreCheckSecurityValidationHook
 
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
         // TODO: Should org unit == null be allowed?
+        // TODO: this check is also done in PreCheckSecurityValidationHook:179-186,
+        //  one case is laxer and this check will possibly overrule in that case when programStageInstance.isCreatableInSearchScope == TRUE
+        //  Investigate....
         if ( organisationUnit != null &&
             !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
         {
