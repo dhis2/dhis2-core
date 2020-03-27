@@ -17,6 +17,9 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
  * write a custom message, including a link to a community.dhis2.org post explaining this upgrade, and how to deal with any
  * upgrade failures.
  *
+ * By setting canExecuteInTransaction to false, we let this upgrade run outside the main flow of flyway, allowing us
+ * to ignore that the upgrade potentially fails.
+ *
  * @author Stian
  */
 public class V2_34_22__Add_teav_btree_index
@@ -36,7 +39,7 @@ public class V2_34_22__Add_teav_btree_index
             statement.execute(
                 "create index in_trackedentity_attribute_value on trackedentityattributevalue using btree (trackedentityattributeid, lower(value)) " );
         }
-        catch ( Exception e )
+        catch ( SQLException e )
         {
             String message = "Could not perform upgrade of table 'trackedentityattributevalue'. " +
                     String.format( "Column 'value' should be altered to data type varchar(%s) and receive a new index. ", TEA_VALUE_MAX_LENGTH ) +
