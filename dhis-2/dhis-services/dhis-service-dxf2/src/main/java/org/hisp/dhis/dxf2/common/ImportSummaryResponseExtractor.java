@@ -28,8 +28,8 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
 
@@ -49,6 +49,6 @@ public class ImportSummaryResponseExtractor
     @Override
     public ImportSummary extractData( ClientHttpResponse response ) throws IOException
     {
-        return DefaultRenderService.getJsonMapper().readValue( response.getBody(), ImportSummary.class );
+        return JacksonObjectMapperConfig.staticJsonMapper().readValue( response.getBody(), ImportSummary.class );
     }
 }

@@ -54,7 +54,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -88,31 +87,37 @@ public class AccountController
     private static final int MAX_LENGTH = 80;
     private static final int MAX_PHONE_NO_LENGTH = 30;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final ConfigurationService configurationService;
+    private final PasswordManager passwordManager;
+    private final SecurityService securityService;
+    private final SystemSettingManager systemSettingManager;
+    private final WebMessageService webMessageService;
+    private final PasswordValidationService passwordValidationService;
+    private final ObjectMapper jsonMapper;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
-    private PasswordManager passwordManager;
-
-    @Autowired
-    private SecurityService securityService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private WebMessageService webMessageService;
-
-    @Autowired
-    private PasswordValidationService passwordValidationService;
-
-    private ObjectMapper objectMapper = new ObjectMapper();
+    public AccountController(
+        UserService userService,
+        AuthenticationManager authenticationManager,
+        ConfigurationService configurationService,
+        PasswordManager passwordManager,
+        SecurityService securityService,
+        SystemSettingManager systemSettingManager,
+        WebMessageService webMessageService,
+        PasswordValidationService passwordValidationService,
+        ObjectMapper jsonMapper )
+    {
+        this.userService = userService;
+        this.authenticationManager = authenticationManager;
+        this.configurationService = configurationService;
+        this.passwordManager = passwordManager;
+        this.securityService = securityService;
+        this.systemSettingManager = systemSettingManager;
+        this.webMessageService = webMessageService;
+        this.passwordValidationService = passwordValidationService;
+        this.jsonMapper = jsonMapper;
+    }
 
     @RequestMapping( value = "/recovery", method = RequestMethod.POST )
     public void recoverAccount(
@@ -440,7 +445,7 @@ public class AccountController
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Username is not valid, redirecting to login." );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -451,7 +456,7 @@ public class AccountController
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Account is not expired, redirecting to login." );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -460,7 +465,7 @@ public class AccountController
             result.put( "status", "NON_MATCHING_PASSWORD" );
             result.put( "message", "Old password is wrong, please correct and try again." );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -471,7 +476,7 @@ public class AccountController
             result.put( "status", "PASSWORD_INVALID" );
             result.put( "message", passwordValidationResult.getErrorMessage() );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -480,7 +485,7 @@ public class AccountController
             result.put( "status", "PASSWORD_EQUAL_TO_USERNAME" );
             result.put( "message", "Password cannot be equal to username" );
 
-            ContextUtils.badRequestResponse( response, objectMapper.writeValueAsString( result ) );
+            ContextUtils.badRequestResponse( response, jsonMapper.writeValueAsString( result ) );
             return;
         }
 
@@ -491,7 +496,7 @@ public class AccountController
 
         result.put( "message", "Account was updated." );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/username", method = RequestMethod.GET )
@@ -499,7 +504,7 @@ public class AccountController
     {
         Map<String, String> result = validateUserName( username );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/validateUsername", method = RequestMethod.POST )
@@ -507,7 +512,7 @@ public class AccountController
     {
         Map<String, String> result = validateUserName( username );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/password", method = RequestMethod.GET )
@@ -515,7 +520,7 @@ public class AccountController
     {
         Map<String, String> result = validatePassword( password );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     @RequestMapping( value = "/validatePassword", method = RequestMethod.POST )
@@ -523,7 +528,7 @@ public class AccountController
     {
         Map<String, String> result = validatePassword( password );
 
-        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+        ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
     // ---------------------------------------------------------------------

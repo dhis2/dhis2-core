@@ -28,15 +28,9 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
-import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.util.Set;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -56,15 +50,19 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Set;
+
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -92,6 +90,9 @@ public class DataValueSetExportAccessControlTest
 
     @Autowired
     private DataValueSetStore dataValueSetStore;
+
+    @Autowired
+    private ObjectMapper jsonMapper;
 
     private DataElement deA;
     private DataElement deB;
@@ -185,7 +186,7 @@ public class DataValueSetExportAccessControlTest
      * combinations are returned.
      */
     @Test
-    public void testExportAttributeOptionComboAccessLimitedUserA()
+    public void testExportAttributeOptionComboAccessLimitedUserA() throws IOException
     {
         // User
 
@@ -216,7 +217,7 @@ public class DataValueSetExportAccessControlTest
 
         dataValueSetService.writeDataValueSetJson( params, out );
 
-        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
 
         Set<String> expectedOptionCombos = Sets.newHashSet( cocA.getUid(), cocB.getUid() );
 
@@ -238,7 +239,7 @@ public class DataValueSetExportAccessControlTest
      * combinations are used.
      */
     @Test
-    public void testExportAttributeOptionComboAccessSuperUser()
+    public void testExportAttributeOptionComboAccessSuperUser() throws IOException
     {
         // User
 
@@ -265,7 +266,7 @@ public class DataValueSetExportAccessControlTest
 
         dataValueSetService.writeDataValueSetJson( params, out );
 
-        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+        DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
 
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -276,7 +277,7 @@ public class DataValueSetExportAccessControlTest
      * User does not have data read sharing access to data set. Verifies
      * that validation fails.
      */
-    @Test(expected=IllegalQueryException.class)
+    @Test( expected = IllegalQueryException.class )
     public void testExportDataSetAccess()
     {
         // User
@@ -311,7 +312,7 @@ public class DataValueSetExportAccessControlTest
      * User has no data read sharing access to cocA through category options.
      * Verifies that validation fails.
      */
-    @Test(expected=IllegalQueryException.class)
+    @Test( expected = IllegalQueryException.class )
     public void testExportExplicitAttributeOptionComboAccess()
     {
         // User

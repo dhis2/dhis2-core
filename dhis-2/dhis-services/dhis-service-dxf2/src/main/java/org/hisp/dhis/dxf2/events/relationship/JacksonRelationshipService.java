@@ -28,23 +28,24 @@ package org.hisp.dhis.dxf2.events.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationships;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -55,8 +56,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Service( "org.hisp.dhis.dxf2.events.relationship.RelationshipService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
@@ -64,42 +66,48 @@ import java.util.List;
 public class JacksonRelationshipService
     extends AbstractRelationshipService
 {
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    private final static ObjectMapper XML_MAPPER = new XmlMapper();
-
-    private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
-
-    static
+    public JacksonRelationshipService(
+        DbmsManager dbmsManager,
+        CurrentUserService currentUserService,
+        SchemaService schemaService,
+        QueryService queryService,
+        TrackerAccessManager trackerAccessManager,
+        org.hisp.dhis.relationship.RelationshipService relationshipService,
+        TrackedEntityInstanceService trackedEntityInstanceService,
+        EnrollmentService enrollmentService,
+        EventService eventService,
+        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService,
+        UserService userService,
+        ObjectMapper jsonMapper,
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
+        checkNotNull( dbmsManager );
+        checkNotNull( currentUserService );
+        checkNotNull( schemaService );
+        checkNotNull( queryService );
+        checkNotNull( trackerAccessManager );
+        checkNotNull( relationshipService );
+        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( enrollmentService );
+        checkNotNull( eventService );
+        checkNotNull( teiDaoService );
+        checkNotNull( userService );
+        checkNotNull( jsonMapper );
+        checkNotNull( xmlMapper );
 
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.registerModule( module );
-        XML_MAPPER.registerModule( module );
+        this.dbmsManager = dbmsManager;
+        this.currentUserService = currentUserService;
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+        this.trackerAccessManager = trackerAccessManager;
+        this.relationshipService = relationshipService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.enrollmentService = enrollmentService;
+        this.eventService = eventService;
+        this.teiDaoService = teiDaoService;
+        this.userService = userService;
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
     }
 
     @Override
@@ -109,13 +117,15 @@ public class JacksonRelationshipService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Relationship> relationships = new ArrayList<>();
 
-        JsonNode root = JSON_MAPPER.readTree( input );
+        JsonNode root = jsonMapper.readTree( input );
 
-        if ( root.get( "relationships" ) != null ) {
+        if ( root.get( "relationships" ) != null )
+        {
             Relationships fromJson = fromJson( input, Relationships.class );
             relationships.addAll( fromJson.getRelationships() );
         }
-        else {
+        else
+        {
             Relationship fromJson = fromJson( input, Relationship.class );
             relationships.add( fromJson );
         }
@@ -130,11 +140,13 @@ public class JacksonRelationshipService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Relationship> relationships = new ArrayList<>();
 
-        try {
+        try
+        {
             Relationships fromXml = fromXml( input, Relationships.class );
             relationships.addAll( fromXml.getRelationships() );
         }
-        catch ( JsonMappingException ex ) {
+        catch ( JsonMappingException ex )
+        {
             Relationship fromXml = fromXml( input, Relationship.class );
             relationships.add( fromXml );
         }
@@ -179,30 +191,30 @@ public class JacksonRelationshipService
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( InputStream inputStream, Class<?> clazz )
+    private <T> T fromXml( InputStream inputStream, Class<?> clazz )
         throws IOException
     {
-        return (T) XML_MAPPER.readValue( inputStream, clazz );
+        return (T) xmlMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( String input, Class<?> clazz )
+    private <T> T fromXml( String input, Class<?> clazz )
         throws IOException
     {
-        return (T) XML_MAPPER.readValue( input, clazz );
+        return (T) xmlMapper.readValue( input, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( InputStream inputStream, Class<?> clazz )
+    private <T> T fromJson( InputStream inputStream, Class<?> clazz )
         throws IOException
     {
-        return (T) JSON_MAPPER.readValue( inputStream, clazz );
+        return (T) jsonMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( String input, Class<?> clazz )
+    private <T> T fromJson( String input, Class<?> clazz )
         throws IOException
     {
-        return (T) JSON_MAPPER.readValue( input, clazz );
+        return (T) jsonMapper.readValue( input, clazz );
     }
 }
