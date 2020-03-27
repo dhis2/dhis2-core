@@ -66,13 +66,13 @@ public enum ValueType
     USERNAME( String.class, false ),
     COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
-    AGE( Date.class, false ),
+    AGE( Integer.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class, false ),
     IMAGE( String.class, false);
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
-        INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
+        AGE, INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
 
     public static final Set<ValueType> DECIMAL_TYPES =ImmutableSet.of(
         NUMBER, UNIT_INTERVAL, PERCENTAGE );
@@ -84,7 +84,7 @@ public enum ValueType
         TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL );
 
     public static final Set<ValueType> DATE_TYPES = ImmutableSet.of(
-        DATE, DATETIME, AGE );
+        DATE, DATETIME );
 
     public static final Set<ValueType> FILE_TYPES = ImmutableSet.of(
         FILE_RESOURCE, IMAGE );
