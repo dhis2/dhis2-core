@@ -29,29 +29,38 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.assertThat;
 import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.List;
 
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -183,6 +192,57 @@ public class JdbcEventAnalyticsManagerTest
 
         // Then
         assertThat( actualSql, isEmptyString() );
+    }
+
+    @Test
+    public void verifySortingIsNotAppliedWhenProgramIndicatorIsUsedForSorting()
+    {
+        Program program = createProgram( 'P' );
+        ProgramIndicator piA = createProgramIndicator( 'A', program, ".", "." );
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        Period peA = PeriodType.getPeriodFromIsoString( "201501" );
+
+        DataQueryParams params = DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
+                .withTableName( "analytics" ).withPeriodType( QuarterlyPeriodType.NAME )
+                .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.DEFAULT ) )
+                .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA ) ) )
+                .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
+                .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
+
+        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
+                .withProgram( program ).addAscSortItem( piA );
+
+        String sql = jdbcEventAnalyticsManager.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
+
+        assertThat( sql, not( containsString( "order by" ) ) );
+    }
+
+    @Test
+    public void verifySortingIsOnlyAppliedToDimItemWithColumn()
+    {
+        Program program = createProgram( 'P' );
+        ProgramIndicator piA = createProgramIndicator( 'A', program, ".", "." );
+        DataElement deA = createDataElement( 'D' );
+        deA.setUid( "deabcdefghD" );
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        Period peA = PeriodType.getPeriodFromIsoString( "201501" );
+
+        DataQueryParams params = DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
+                .withTableName( "analytics" ).withPeriodType( QuarterlyPeriodType.NAME )
+                .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.DEFAULT ) )
+                .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA ) ) )
+                .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
+                .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
+
+        final EventQueryParams eventQueryParams = new EventQueryParams.Builder( params )
+                .withProgram( program )
+                .addAscSortItem( piA )
+                .addAscSortItem( deA )
+                .build();
+
+        String sql = jdbcEventAnalyticsManager.getEventsOrEnrollmentsSql( eventQueryParams, 100 );
+
+        assertThat( sql, containsString( "order by ax.\"deabcdefghD\" asc" ) );
     }
 
     private Category stubCategory( final String name, final String uid, final List<CategoryOption> categoryOptions )

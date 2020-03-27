@@ -161,4 +161,10 @@ public class BaseDimensionalItemObject
     {
         this.aggregationType = aggregationType;
     }
+
+    @Override
+    public boolean hasDatabaseColumn()
+    {
+        return true;
+    }
 }

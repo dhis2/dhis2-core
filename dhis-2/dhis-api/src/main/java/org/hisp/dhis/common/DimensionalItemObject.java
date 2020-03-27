@@ -91,4 +91,13 @@ public interface DimensionalItemObject
      * should be aggregated across multiple values.
      */
     TotalAggregationType getTotalAggregationType();
+
+    /**
+     * True if this Dimensional Object can be mapped to an analytics database column
+     * Certain Dimensional Objects (such as Program Indicators) are calculated
+     * and are not mapped to a physical DB column.
+     *
+     * @return boolean
+     */
+    boolean hasDatabaseColumn();
 }

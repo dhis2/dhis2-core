@@ -36,6 +36,7 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.QueryTimeoutException;
 
@@ -134,19 +135,20 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isSorting() )
         {
-            sql += "order by ";
+            sql = params.getAsc().stream()
+                .filter( DimensionalItemObject::hasDatabaseColumn )
+                .map( i -> quoteAlias( i.getUid() ) + " asc" )
+                .collect( Collectors.joining( "," ) );
 
-            for ( DimensionalItemObject item : params.getAsc() )
+            sql += params.getDesc().stream()
+                .filter( DimensionalItemObject::hasDatabaseColumn )
+                .map( i -> quoteAlias( i.getUid() ) + " asc" )
+                .collect( Collectors.joining( "," ) );
+
+            if ( !sql.equals( "" ) )
             {
-                sql += quoteAlias( item.getUid() ) + " asc,";
+                sql = "order by " + sql + " ";
             }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " desc,";
-            }
-
-            sql = TextUtils.removeLastComma( sql ) + " ";
         }
 
         return sql;

@@ -94,4 +94,10 @@ public class BaseDataDimensionalItemObject
     {
         this.aggregateExportAttributeOptionCombo = aggregateExportAttributeOptionCombo;
     }
+
+    @Override
+    public boolean hasDatabaseColumn()
+    {
+        return true;
+    }
 }

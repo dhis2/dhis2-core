@@ -391,4 +391,10 @@ public class ProgramIndicator
     {
         this.formName = formName;
     }
+
+    @Override
+    public boolean hasDatabaseColumn()
+    {
+        return false;
+    }
 }
