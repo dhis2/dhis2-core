@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -48,7 +47,7 @@ import java.util.StringJoiner;
 public class SystemSetting
     implements Serializable
 {
-    private static final ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private long id;
 
