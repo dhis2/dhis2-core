@@ -28,6 +28,8 @@ package org.hisp.dhis.deletedobject.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -39,7 +41,12 @@ import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @Component
+@Slf4j
 public class DeletedObjectPostInsertEventListener
     implements PostCommitInsertEventListener
 {
@@ -47,6 +54,7 @@ public class DeletedObjectPostInsertEventListener
 
     public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService )
     {
+        checkNotNull( deletedObjectService );
         this.deletedObjectService = deletedObjectService;
     }
 
@@ -59,19 +67,37 @@ public class DeletedObjectPostInsertEventListener
     @Override
     public void onPostInsert( PostInsertEvent event )
     {
-        if ( !IdentifiableObject.class.isAssignableFrom( event.getEntity().getClass() ) )
+        if ( IdentifiableObject.class.isInstance( event.getEntity() )
+            && MetadataObject.class.isInstance( event.getEntity() )
+            && !EmbeddedObject.class.isInstance( event.getEntity() ) )
         {
-            return;
-        }
+            StatelessSession session = event.getPersister().getFactory().openStatelessSession();
+            session.beginTransaction();
 
-        if ( MetadataObject.class.isInstance( event.getEntity() ) && !EmbeddedObject.class.isInstance( event.getEntity() ) )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) event.getEntity() ) );
+            try
+            {
+                List<DeletedObject> deletedObjects = deletedObjectService
+                    .getDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) event.getEntity() ) );
+
+                deletedObjects.forEach( deletedObject -> session.delete( deletedObject ) );
+
+                session.getTransaction().commit();
+            }
+            catch ( Exception ex )
+            {
+                log.error( "Failed to delete DeletedObject for:" + event.getEntity() );
+                session.getTransaction().rollback();
+            }
+            finally
+            {
+                session.close();
+            }
         }
     }
 
     @Override
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
+        log.debug( "onPostInsertCommitFailed: " + event );
     }
 }
