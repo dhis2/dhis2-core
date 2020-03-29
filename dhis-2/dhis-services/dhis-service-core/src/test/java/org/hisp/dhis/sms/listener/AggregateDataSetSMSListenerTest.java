@@ -195,6 +195,19 @@ public class AggregateDataSetSMSListenerTest
     }
 
     @Test
+    public void testAggregateDatasetListenerRepeat()
+    {
+        subject.receive( incomingSmsAggregate );
+        subject.receive( incomingSmsAggregate );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
     public void testAggregateDatasetListenerNoValues()
     {
         subject.receive( incomingSmsAggregateNoValues );

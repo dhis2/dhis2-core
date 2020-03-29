@@ -252,6 +252,19 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
+    public void testEnrollmentWithEventsRepeat()
+    {
+        subject.receive( incomingSmsEnrollmentWithEvents );
+        subject.receive( incomingSmsEnrollmentWithEvents );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
     public void testEnrollmentWithNulls()
     {
         subject.receive( incomingSmsEnrollmentWithNulls );

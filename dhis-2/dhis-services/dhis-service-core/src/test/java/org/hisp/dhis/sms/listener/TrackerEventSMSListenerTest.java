@@ -201,6 +201,19 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
+    public void testTrackerEventRepeat()
+    {
+        subject.receive( incomingSmsTrackerEvent );
+        subject.receive( incomingSmsTrackerEvent );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
     public void testTrackerEventWithNulls()
     {
         subject.receive( incomingSmsTrackerEventWithNulls );
