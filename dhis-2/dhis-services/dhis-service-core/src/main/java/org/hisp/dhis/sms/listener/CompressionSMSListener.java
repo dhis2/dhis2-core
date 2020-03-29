@@ -260,12 +260,18 @@ public abstract class CompressionSMSListener
         SMSEventStatus eventStatus, Date eventDate, Date dueDate, GeoPoint coordinates )
     {
         ArrayList<Object> errorUIDs = new ArrayList<>();
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        ProgramStageInstance programStageInstance;
         // If we aren't given a UID for the event, it will be auto-generated
-        if ( eventUid != null )
+        if ( programStageInstanceService.programStageInstanceExists( eventUid ) )
         {
+            programStageInstance = programStageInstanceService.getProgramStageInstance( eventUid );
+        }
+        else
+        {
+            programStageInstance = new ProgramStageInstance();
             programStageInstance.setUid( eventUid );
         }
+
         programStageInstance.setOrganisationUnit( orgUnit );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setProgramInstance( programInstance );
