@@ -1250,6 +1250,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
+        credentials.setUser( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
