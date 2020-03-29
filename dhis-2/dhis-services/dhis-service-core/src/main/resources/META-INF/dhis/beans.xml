@@ -1510,6 +1510,18 @@
 
   <!-- DeletionHandlers -->
 
+  <bean id="org.hisp.dhis.deletedobject.hibernate.DeletedObjectPostDeleteEventListener" class="org.hisp.dhis.deletedobject.hibernate.DeletedObjectPostDeleteEventListener"/>
+
+  <bean id="org.hisp.dhis.deletedobject.hibernate.DeletedObjectPostInsertEventListener" class="org.hisp.dhis.deletedobject.hibernate.DeletedObjectPostInsertEventListener">
+         <constructor-arg ref="org.hisp.dhis.deletedobject.DeletedObjectService"/>
+  </bean>
+
+  <bean id="org.hisp.dhis.deletedobject.hibernate.DeletedObjectListenerConfigurer" class="org.hisp.dhis.deletedobject.hibernate.DeletedObjectListenerConfigurer">
+    <constructor-arg name="insertEventListener" ref="org.hisp.dhis.deletedobject.hibernate.DeletedObjectPostInsertEventListener"/>
+    <constructor-arg name="deleteEventListener" ref="org.hisp.dhis.deletedobject.hibernate.DeletedObjectPostDeleteEventListener"/>
+    <constructor-arg name="sessionFactory" ref="sessionFactory"/>
+  </bean>
+
   <bean id="org.hisp.dhis.dataapproval.DataApprovalDeletionHandler" class="org.hisp.dhis.dataapproval.DataApprovalDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>

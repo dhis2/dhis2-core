@@ -115,11 +115,11 @@ public class ProgramDataEntryServiceTest
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
 
-        ProgramStageDataElement programStageDataElementA = new ProgramStageDataElement( stageA, dataElementA, false, 1 );
+        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement(  stageA, dataElementA, 1 );
         stageA.getProgramStageDataElements().add( programStageDataElementA );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementA );
 
-        ProgramStageDataElement programStageDataElementB = new ProgramStageDataElement( stageA, dataElementB, false, 2 );
+        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( stageA, dataElementB, 2 );
         stageA.getProgramStageDataElements().add( programStageDataElementB );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementB );
 
