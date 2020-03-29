@@ -60,13 +60,13 @@ public class HibernateListenerConfigurer
     private EntityManagerFactory emf;
 
     private final PostInsertAuditListener postInsertAuditListener;
-    private final PostUpdateEventListener postUpdateEventListener;
-    private final PostDeleteEventListener postDeleteEventListener;
+    private final PostUpdateAuditListener postUpdateEventListener;
+    private final PostDeleteAuditListener postDeleteEventListener;
 
     public HibernateListenerConfigurer(
         PostInsertAuditListener postInsertAuditListener,
-        PostUpdateEventListener postUpdateEventListener,
-        PostDeleteEventListener postDeleteEventListener )
+        PostUpdateAuditListener postUpdateEventListener,
+        PostDeleteAuditListener postDeleteEventListener )
     {
         checkNotNull( postDeleteEventListener );
         checkNotNull( postUpdateEventListener );

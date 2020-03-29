@@ -35,11 +35,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,6 +42,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -59,7 +60,7 @@ public class DataElementStoreTest
 
     @Autowired
     private AttributeService attributeService;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -111,58 +112,6 @@ public class DataElementStoreTest
         dataElementA = dataElementStore.get( idA );
         assertNotNull( dataElementA.getValueType() );
         assertEquals( ValueType.BOOLEAN, dataElementA.getValueType() );
-    }
-
-    @Test
-    public void testDeleteAndGetDataElement()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        dataElementStore.save( dataElementA );
-        long idA = dataElementA.getId();
-        dataElementStore.save( dataElementB );
-        long idB = dataElementB.getId();
-        dataElementStore.save( dataElementC );
-        long idC = dataElementC.getId();
-        dataElementStore.save( dataElementD );
-        long idD = dataElementD.getId();
-
-        assertNotNull( dataElementStore.get( idA ) );
-        assertNotNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementA = dataElementStore.get( idA );
-        dataElementB = dataElementStore.get( idB );
-        dataElementC = dataElementStore.get( idC );
-        dataElementD = dataElementStore.get( idD );
-
-        dataElementStore.delete( dataElementA );
-        assertNull( dataElementStore.get( idA ) );
-        assertNotNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementStore.delete( dataElementB );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementStore.delete( dataElementC );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-
-        dataElementStore.delete( dataElementD );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNull( dataElementStore.get( idC ) );
-        assertNull( dataElementStore.get( idD ) );
     }
 
     @Test
@@ -255,7 +204,6 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.get( idA ).getAggregationLevels().size() );
         assertEquals( aggregationLevels, dataElementStore.get( idA ).getAggregationLevels() );
     }
-
 
     @Test
     public void testGetDataElementsWithoutGroups()

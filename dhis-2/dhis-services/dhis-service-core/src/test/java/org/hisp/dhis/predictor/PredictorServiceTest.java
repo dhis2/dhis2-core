@@ -390,7 +390,9 @@ public class PredictorServiceTest
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
 
-        predictorService.deletePredictor( predictorA );
+        predictors.remove( predictorA );
+
+        predictorService.updatePredictorGroup( predictorGroupA );
 
         predictors = predictorGroupA.getMembers();
 

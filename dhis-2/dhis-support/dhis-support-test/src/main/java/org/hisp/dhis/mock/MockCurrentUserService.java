@@ -135,6 +135,12 @@ public class MockCurrentUserService
     }
 
     @Override
+    public UserCredentials getCurrentUserCredentials()
+    {
+        return currentUser.getUserCredentials();
+    }
+
+    @Override
     public void expireUserSessions()
     {
         currentUser = null;

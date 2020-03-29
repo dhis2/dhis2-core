@@ -104,15 +104,14 @@ public class ProgramRuleServiceTest
 
         programStageA = createProgramStage( 'A', 1 );
         programStageA.setProgram( programA );
+        programStageService.saveProgramStage( programStageA );
+
         Set<ProgramStage> stagesA = new HashSet<>();
         stagesA.add( programStageA );
         programA.setProgramStages( stagesA );
+        programService.updateProgram( programA );
 
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-        programService.addProgram( programC );
 
-        programStageService.saveProgramStage( programStageA );
 
         //Add a tree of variables, rules and actions to programA:
         programRuleA = createProgramRule( 'A', programA );
@@ -219,8 +218,6 @@ public class ProgramRuleServiceTest
 
         assertEquals( ruleH, programRuleService.getProgramRule( idH ) );
     }
-
-
 
     @Test
     public void testDeleteProgramRule()

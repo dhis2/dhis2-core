@@ -95,4 +95,11 @@ public interface CurrentUserService
      * Expire all the sessions associated with current user.
      */
     void expireUserSessions();
+
+    /**
+     * Return UserCredentials of current User
+     *
+     * @return UserCredentials of current User
+     */
+    UserCredentials getCurrentUserCredentials();
 }
