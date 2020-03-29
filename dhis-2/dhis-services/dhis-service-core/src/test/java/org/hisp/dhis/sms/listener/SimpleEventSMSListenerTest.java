@@ -193,6 +193,19 @@ public class SimpleEventSMSListenerTest
     }
 
     @Test
+    public void testSimpleEventRepeat()
+    {
+        subject.receive( incomingSmsSimpleEvent );
+        subject.receive( incomingSmsSimpleEvent );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
     public void testSimpleEventWithNulls()
     {
         subject.receive( incomingSmsSimpleEventWithNulls );
