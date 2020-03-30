@@ -29,7 +29,6 @@
 package org.hisp.dhis.analytics.cache;
 
 import static java.lang.Long.valueOf;
-import static java.lang.Math.abs;
 import static java.util.Calendar.DATE;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
@@ -118,7 +117,7 @@ public class AnalyticsCacheSettingsTest
         final boolean progressiveCacheFlag = analyticsCacheSettings.isProgressiveCachingEnabled();
 
         // Then
-        assertThat( progressiveCacheFlag, is( false ) );
+        assertThat( progressiveCacheFlag, is( true ) );
     }
 
     @Test
@@ -261,22 +260,6 @@ public class AnalyticsCacheSettingsTest
 
         // When
         when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TTL_MODE ) ).thenReturn( fixedCacheTtlMode );
-        when( systemSettingManager.getSystemSetting( CACHE_STRATEGY ) ).thenReturn( cacheStrategyNoCache );
-        final boolean actualReturn = analyticsCacheSettings.isCachingEnabled();
-
-        // Then
-        assertThat( actualReturn, is( false ) );
-    }
-
-    @Test
-    public void testIsCachingEnabledWhenProgressiveExpirationTimeIsSetAndStrategyIsNoCache()
-    {
-        // Given
-        final AnalyticsCacheTtlMode progressiveCacheTtlMode = PROGRESSIVE;
-        final CacheStrategy cacheStrategyNoCache = NO_CACHE;
-
-        // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TTL_MODE ) ).thenReturn( progressiveCacheTtlMode );
         when( systemSettingManager.getSystemSetting( CACHE_STRATEGY ) ).thenReturn( cacheStrategyNoCache );
         final boolean actualReturn = analyticsCacheSettings.isCachingEnabled();
 

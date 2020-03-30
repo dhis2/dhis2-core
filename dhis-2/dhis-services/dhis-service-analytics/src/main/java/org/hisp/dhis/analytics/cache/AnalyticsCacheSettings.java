@@ -60,7 +60,7 @@ public class AnalyticsCacheSettings
 
     /**
      * Returns true if the analytics cache mode, at application level, is set to
-     * PROGRESSIVE.
+     * PROGRESSIVE. If enabled, it overrides the fixed predefined settings.
      * 
      * @see AnalyticsCacheTtlMode#PROGRESSIVE
      * 
@@ -72,9 +72,7 @@ public class AnalyticsCacheSettings
         final AnalyticsCacheTtlMode analyticsCacheMode = (AnalyticsCacheTtlMode) systemSettingManager
             .getSystemSetting( ANALYTICS_CACHE_TTL_MODE );
 
-        final CacheStrategy cacheStrategy = (CacheStrategy) systemSettingManager.getSystemSetting( CACHE_STRATEGY );
-
-        return PROGRESSIVE == analyticsCacheMode && cacheStrategy != null && cacheStrategy != NO_CACHE;
+        return PROGRESSIVE == analyticsCacheMode;
     }
 
     /**

@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
-import static org.hisp.dhis.setting.SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
@@ -96,19 +95,35 @@ public class WebCache
     }
 
     /**
-     * Returns the analytics year threshold used to configure the response cache.
-     * 
-     * @see org.hisp.dhis.setting.SettingKey#CACHE_ANALYTICS_DATA_YEAR_THRESHOLD
+     * Defines and return a CacheControl object with the correct expiration time and
+     * cacheability based on a provided time to live, in SECONDS.
      *
-     * @return the threshold defined.
+     * @param timeToLive in SECONDS
+     *
+     * @return a CacheControl object configured based on current cacheability
+     *         settings and the provided time to live.
      */
-    public int getAnalyticsResponseCacheYearThreshold()
+    public CacheControl getCacheControlFor( final long timeToLive )
     {
-        return (int) systemSettingManager.getSystemSetting( CACHE_ANALYTICS_DATA_YEAR_THRESHOLD );
+        final CacheControl cacheControl;
+
+        if ( timeToLive > 0 )
+        {
+            cacheControl = maxAge( timeToLive, SECONDS );
+
+            setCacheabilityFor( cacheControl );
+        }
+        else
+        {
+            cacheControl = noCache();
+        }
+
+        return cacheControl;
     }
 
     /**
-     * Sets the cacheability (defined as system setting) into the given CacheControl.
+     * Sets the cacheability (defined as system setting) into the given
+     * CacheControl.
      * 
      * @see org.hisp.dhis.setting.SettingKey#CACHEABILITY
      * 

@@ -29,11 +29,10 @@ package org.hisp.dhis.webapi.utils;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
+import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,6 +45,7 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -101,11 +101,15 @@ public class ContextUtils
     private static final Pattern CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN = Pattern.compile( "attachment;\\s*filename=\"?([^;\"]+)\"?");
 
     private final WebCache webCache;
+    private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    public ContextUtils( final WebCache webCache )
+    public ContextUtils( final WebCache webCache, final AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( webCache );
+        checkNotNull( analyticsCacheSettings );
+
         this.webCache = webCache;
+        this.analyticsCacheSettings = analyticsCacheSettings;
     }
 
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy )
@@ -113,27 +117,38 @@ public class ContextUtils
         configureResponse( response, contentType, cacheStrategy, null, false );
     }
 
-    public void configureAnalyticsResponse(HttpServletResponse response, String contentType, CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
+    public void configureAnalyticsResponse( HttpServletResponse response, String contentType,
+        CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
     {
-        int cacheThreshold = webCache.getAnalyticsResponseCacheYearThreshold();
-        Calendar threshold = Calendar.getInstance();
-        threshold.add( Calendar.YEAR, cacheThreshold * -1 );
-
-        if ( latestEndDate != null && cacheThreshold > 0 && threshold.getTime().before( latestEndDate ) )
+        // Progressive cache will always take priority.
+        if ( RESPECT_SYSTEM_SETTING == cacheStrategy
+            && analyticsCacheSettings.isProgressiveCachingEnabled()
+            && latestEndDate != null )
         {
-            configureResponse( response, contentType, NO_CACHE, filename, attachment );
+            // Uses the progressive TTL
+            final CacheControl cacheControl = webCache
+                .getCacheControlFor( analyticsCacheSettings.progressiveExpirationTimeOrDefault( latestEndDate ) );
+
+            configureResponse( response, contentType, filename, attachment, cacheControl );
         }
         else
         {
+            // Respects the fixed (predefined) settings.
             configureResponse( response, contentType, cacheStrategy, filename, attachment );
         }
     }
 
-    public void configureResponse(final HttpServletResponse response, final String contentType,
+    public void configureResponse( final HttpServletResponse response, final String contentType,
                                   final CacheStrategy cacheStrategy, final String filename, final boolean attachment )
     {
         final CacheControl cacheControl = webCache.getCacheControlFor( cacheStrategy );
 
+        configureResponse( response, contentType, filename, attachment, cacheControl );
+    }
+
+    private void configureResponse( final HttpServletResponse response, final String contentType, final String filename,
+        final boolean attachment, final CacheControl cacheControl )
+    {
         if ( contentType != null )
         {
             response.setContentType( contentType );

@@ -111,6 +111,50 @@ public class WebCacheTest
         assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
     }
 
+    @Test
+    public void testGetAnalyticsCacheControlForWhenTimeToLiveIsZero()
+    {
+        // Given
+        final long zeroTimeToLive = 0;
+        final CacheControl expectedCacheControl = noCache();
+
+        // When
+        final CacheControl actualCacheControl = webCache.getCacheControlFor( zeroTimeToLive );
+
+        // Then
+        assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
+    }
+
+    @Test
+    public void testGetAnalyticsCacheControlForWhenTimeToLiveIsNegative()
+    {
+        // Given
+        final long zeroTimeToLive = -1;
+        final CacheControl expectedCacheControl = noCache();
+
+        // When
+        final CacheControl actualCacheControl = webCache.getCacheControlFor( zeroTimeToLive );
+
+        // Then
+        assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
+    }
+
+    @Test
+    public void testGetAnalyticsCacheControlForWhenTimeToLiveIsPositive()
+    {
+        // Given
+        final long positiveTimeToLive = 60;
+        final CacheControl expectedCacheControl = stubPublicCacheControl ( positiveTimeToLive );
+        final Cacheability setCacheability = PUBLIC;
+
+        // When
+        when( systemSettingManager.getSystemSetting( CACHEABILITY ) ).thenReturn( setCacheability );
+        final CacheControl actualCacheControl = webCache.getCacheControlFor( positiveTimeToLive );
+
+        // Then
+        assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
+    }
+
     @Test( expected = UnsupportedOperationException.class )
     public void testGetCacheControlForWhenCacheStrategyIsRespectSystemSettingNotUsedInObjectBasis()
     {
@@ -295,6 +339,11 @@ public class WebCacheTest
 
     private CacheControl stubPublicCacheControl( final CacheStrategy cacheStrategy )
     {
-        return maxAge( cacheStrategy.toSeconds(), SECONDS ).cachePublic();
+        return stubPublicCacheControl( cacheStrategy.toSeconds() );
+    }
+
+    private CacheControl stubPublicCacheControl( final long seconds )
+    {
+        return maxAge( seconds, SECONDS ).cachePublic();
     }
 }

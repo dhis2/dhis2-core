@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.cache;
 
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
+import static java.time.ZoneId.systemDefault;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.springframework.util.Assert.isTrue;
@@ -98,7 +99,7 @@ public class TimeToLive
      */
     private long daysBetweenDateBeforeTodayAndNow( final Instant dateBeforeToday )
     {
-        final long diff = DAYS.between( ofInstant( dateBeforeToday, UTC ), now() );
+        final long diff = DAYS.between( ofInstant( dateBeforeToday, systemDefault() ), now() );
         return diff >= 0 ? diff : 0;
     }
 }

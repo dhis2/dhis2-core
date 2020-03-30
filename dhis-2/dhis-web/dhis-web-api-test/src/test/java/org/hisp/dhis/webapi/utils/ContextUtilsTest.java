@@ -27,8 +27,12 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.time.ZonedDateTime.now;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Calendar.YEAR;
 import static java.util.Calendar.getInstance;
+import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
+import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_10_MINUTES;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_15_MINUTES;
@@ -42,8 +46,9 @@ import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
-import static org.hisp.dhis.setting.SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.setting.SettingKey.getAsRealClass;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getAttachmentFileName;
@@ -56,6 +61,7 @@ import java.util.Calendar;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.Before;
@@ -156,26 +162,65 @@ public class ContextUtilsTest
     }
 
     @Test
-    public void testConfigureAnalyticsResponseReturnsCorrectCacheHeaders()
+    public void testConfigureAnalyticsResponseWhenProgressiveIsDisabled()
     {
+        Calendar dateBeforeToday = getInstance();
+        dateBeforeToday.add( YEAR, -5 );
 
-        Calendar thisYear = getInstance();
-        Calendar fiveYearBack = getInstance();
+        DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
 
-        fiveYearBack.add( YEAR, -5 );
-
-        DataQueryParams withinThreshold = newBuilder().withEndDate( thisYear.getTime() ).build();
-        DataQueryParams outsideThreshold = newBuilder().withEndDate( fiveYearBack.getTime() ).build();
-
-        systemSettingManager.saveSystemSetting( CACHE_ANALYTICS_DATA_YEAR_THRESHOLD, 3 );
+        // Progressive caching is not enabled
+        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, FIXED );
 
         response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, CACHE_1_HOUR, null, false, withinThreshold.getLatestEndDate() );
-        assertEquals( "no-cache", response.getHeader( "Cache-Control" ) );
-
-        response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, CACHE_1_HOUR, null, false, outsideThreshold.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, null, CACHE_1_HOUR, null, false, params.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
+    }
+
+    @Test
+    public void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsOverridden()
+    {
+        // Cache strategy overridden
+        CacheStrategy overriddenCacheStrategy = CACHE_1_HOUR;
+
+        Calendar dateBeforeToday = getInstance();
+        dateBeforeToday.add( YEAR, -5 );
+
+        DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
+
+        // Progressive caching is not enabled
+        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE );
+        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, 10 );
+
+        response.reset();
+        contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false, params.getLatestEndDate() );
+        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
+    }
+
+    @Test
+    public void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsRespectSystemSetting()
+    {
+        Calendar dateBeforeToday = getInstance();
+        dateBeforeToday.add( YEAR, -5 );
+
+        // Cache strategy set to respect system settings
+        CacheStrategy respectSystemSetting = RESPECT_SYSTEM_SETTING;
+
+        // Defined TTL Factor
+        int ttlFactor = 10;
+
+        // Expected timeToLive. See {@link TimeToLive.compute()}
+        long timeToLive = DAYS.between( dateBeforeToday.toInstant(), now() ) * ttlFactor;
+
+        DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
+
+        // Progressive caching is not enabled
+        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE );
+        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, ttlFactor );
+
+        response.reset();
+        contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false, params.getLatestEndDate() );
+        assertEquals( "max-age=" + timeToLive +", public", response.getHeader( "Cache-Control" ) );
     }
 
     @Test
