@@ -42,6 +42,7 @@ import javax.persistence.QueryTimeoutException;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -141,7 +142,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isSorting() )
         {
-            sql += "order by " + getSortColumns( params, "asc" ) + getSortColumns( params, "desc" );
+            sql += "order by " + getSortColumns( params, SortOrder.ASC ) + getSortColumns( params, SortOrder.DESC );
 
             sql = TextUtils.removeLastComma( sql ) + " ";
         }
@@ -149,11 +150,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return sql;
     }
 
-    private String getSortColumns(EventQueryParams params , String order) {
+    private String getSortColumns(EventQueryParams params , SortOrder order) {
 
         String sql = "";
 
-        for ( DimensionalItemObject item : order.equals( "asc" ) ? params.getAsc() : params.getDesc() )
+        for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
         {
             if ( item.getDimensionItemType().equals( DimensionItemType.PROGRAM_INDICATOR ) )
             {
@@ -163,7 +164,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 sql += quoteAlias( item.getUid() );
             }
-            sql += order.equals( "asc" ) ? " asc," : " desc,";
+            sql += order.equals( SortOrder.ASC ) ? " asc," : " desc,";
         }
 
         return sql;

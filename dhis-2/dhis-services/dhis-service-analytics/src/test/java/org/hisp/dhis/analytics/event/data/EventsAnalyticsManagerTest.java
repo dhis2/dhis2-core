@@ -32,11 +32,18 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -317,7 +324,8 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 
-        assertThat(sql, containsString("order by \"" + piA.getUid() + "\" asc,ax.\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ));
+        assertThat( sql, containsString(
+            "order by \"" + piA.getUid() + "\" asc,ax.\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ) );
     }
 
     private void verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType analyticsAggregationType )
