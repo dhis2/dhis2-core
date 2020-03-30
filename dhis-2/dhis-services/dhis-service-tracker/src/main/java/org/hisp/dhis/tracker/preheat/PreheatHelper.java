@@ -36,7 +36,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
@@ -44,7 +43,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
  */
 public class PreheatHelper
 {
-
     private PreheatHelper()
     {
         throw new IllegalStateException( "Utility class" );

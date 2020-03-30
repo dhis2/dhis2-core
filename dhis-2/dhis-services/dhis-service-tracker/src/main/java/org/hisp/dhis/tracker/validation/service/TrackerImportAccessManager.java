@@ -45,7 +45,8 @@ public interface TrackerImportAccessManager
     void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, User user, Program program,
         ProgramInstance programInstance );
 
-    void checkEventWriteAccess( ValidationErrorReporter reporter, User user, ProgramStageInstance programStageInstance );
+    void checkEventWriteAccess( ValidationErrorReporter reporter, User user,
+        ProgramStageInstance programStageInstance );
 
     void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user,
         CategoryOptionCombo categoryOptionCombo );

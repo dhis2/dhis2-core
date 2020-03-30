@@ -83,8 +83,7 @@ public class EnrollmentAttributeValidationHook
             reporter.increment( enrollment );
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTei( bundle, enrollment.getTrackedEntity() );
+            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
 
             Map<String, String> attributeValueMap = Maps.newHashMap();
             for ( Attribute attribute : enrollment.getAttributes() )
@@ -112,16 +111,16 @@ public class EnrollmentAttributeValidationHook
                 validateAttributeUniqueness( reporter,
                     attribute.getValue(),
                     teAttribute,
-                    trackedEntityInstance,
-                    trackedEntityInstance.getOrganisationUnit() );
+                    tei,
+                    tei.getOrganisationUnit() );
             }
 
-            if ( program == null || trackedEntityInstance == null )
+            if ( program == null || tei == null )
             {
                 continue;
             }
 
-            validateMandatoryAttributes( bundle, reporter, program, trackedEntityInstance, attributeValueMap );
+            validateMandatoryAttributes( bundle, reporter, program, tei, attributeValueMap );
         }
 
         return reporter.getReportList();

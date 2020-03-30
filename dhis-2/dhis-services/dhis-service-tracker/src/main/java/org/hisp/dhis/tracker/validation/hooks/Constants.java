@@ -61,5 +61,4 @@ public class Constants
     public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL = "Program stage instance can't be null";
 
     public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL = "Category combo can't be null";
-
 }

@@ -87,7 +87,7 @@ public class PreCheckOwnershipValidationHook
 
         TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
 
-        if ( trackedEntityInstance != null )
+        if ( trackedEntityInstance != null && bundle.getImportStrategy().isDelete() )
         {
             //TODO: This need clarification and follow up. +Documentation
             Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );
@@ -115,15 +115,14 @@ public class PreCheckOwnershipValidationHook
 
         Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTei( bundle, enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
 
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        ProgramInstance programInstance = new ProgramInstance( program, trackedEntityInstance, organisationUnit );
+        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
 
         trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, bundle.getUser(), program, programInstance );
     }
@@ -147,7 +146,6 @@ public class PreCheckOwnershipValidationHook
         // TODO: What about         String attributeCategoryOptions = event.getAttributeCategoryOptions(); ?
         // TODO: Fix this hack?
 
-
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( programStage, Constants.PROGRAM_STAGE_CANT_BE_NULL );
@@ -165,8 +163,7 @@ public class PreCheckOwnershipValidationHook
     }
 
     protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser,
-        CategoryOptionCombo categoryOptionCombo,
-        ProgramStage programStage, ProgramInstance programInstance,
+        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Program program )
     {
         Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
@@ -182,30 +179,6 @@ public class PreCheckOwnershipValidationHook
 
         trackerImportAccessManager.checkEventWriteAccess( reporter, actingUser, newProgramStageInstance );
     }
-
-//    @Override
-//    @Transactional( readOnly = true )
-//    public void decideAccess( ProgramInstanceQueryParams params )
-//    {
-//        if ( params.hasProgram() )
-//        {
-//            if ( !aclService.canDataRead( params.getUser(), params.getProgram() ) )
-//            {
-//                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
-//            }
-//
-//            if ( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
-//            {
-//                throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
-//            }
-//
-//        }
-//
-//        if ( params.hasTrackedEntityType() && !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
-//        {
-//            throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
-//        }
-//    }
 
     protected void validateUpdateAndDeleteEvent( TrackerBundle bundle, ValidationErrorReporter reporter,
         Event event, ProgramStageInstance programStageInstance )

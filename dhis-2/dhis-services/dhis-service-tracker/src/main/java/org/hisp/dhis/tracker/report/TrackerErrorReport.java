@@ -94,21 +94,6 @@ public class TrackerErrorReport
         return message.getMessage();
     }
 
-    @Override
-    public String toString()
-    {
-        return "TrackerErrorReport{" +
-            "message=" + message.getMessage() +
-            ", errorCode=" + message.getErrorCode() +
-            ", mainId='" + mainId + '\'' +
-            ", mainKlass=" + mainKlass +
-            ", errorKlass=" + errorKlass +
-            ", errorProperties=" + Arrays.toString( errorProperties ) +
-            ", value=" + value +
-            ", lineNumber=" + lineNumber +
-            '}';
-    }
-
     public static class Builder
     {
         protected TrackerErrorMessage message;
@@ -214,5 +199,20 @@ public class TrackerErrorReport
 
             return "";
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerErrorReport{" +
+            "message=" + message.getMessage() +
+            ", errorCode=" + message.getErrorCode() +
+            ", mainId='" + mainId + '\'' +
+            ", mainKlass=" + mainKlass +
+            ", errorKlass=" + errorKlass +
+            ", errorProperties=" + Arrays.toString( errorProperties ) +
+            ", value=" + value +
+            ", lineNumber=" + lineNumber +
+            '}';
     }
 }

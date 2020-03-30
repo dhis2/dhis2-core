@@ -45,7 +45,6 @@ import java.util.List;
 public class EnrollmentNoteValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {
@@ -81,5 +80,4 @@ public class EnrollmentNoteValidationHook
 
         return reporter.getReportList();
     }
-
 }

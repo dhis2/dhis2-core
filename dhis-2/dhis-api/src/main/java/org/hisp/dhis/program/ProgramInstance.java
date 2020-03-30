@@ -96,6 +96,7 @@ public class ProgramInstance
 
     private Geometry geometry;
 
+    @AuditAttribute
     private Boolean deleted = false;
 
     private String storedBy;

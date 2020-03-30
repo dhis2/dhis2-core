@@ -61,13 +61,9 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CA
  */
 public abstract class AbstractTrackerValidationHook
     implements TrackerValidationHook
-
 {
     @Autowired
     protected TrackedEntityAttributeService teAttrService;
-
-//    @Autowired
-//    protected TrackerAccessManager trackerAccessManager;
 
     @Autowired
     protected OrganisationUnitService organisationUnitService;

@@ -61,7 +61,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
@@ -146,10 +145,8 @@ public class EnrollmentSecurityImportValidationTest
 
     private TrackedEntityType trackedEntityType;
 
-    protected void setUpTest2()
+    protected void setupMetaData()
     {
-        userService = _userService;
-
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
@@ -170,7 +167,7 @@ public class EnrollmentSecurityImportValidationTest
         manager.save( programStageA );
         manager.save( programStageB );
 
-        programA = createProgram2( "E8o1E9tAXXX", 'A', new HashSet<>(), organisationUnitA );
+        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
 
         trackedEntityType = createTrackedEntityType( 'A' );
@@ -205,7 +202,7 @@ public class EnrollmentSecurityImportValidationTest
         manager.update( programStageB );
         manager.update( programA );
 
-        maleA = createTrackedEntityInstance2( "Kj6vYde4XXX", organisationUnitA );
+        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
         maleB = createTrackedEntityInstance( organisationUnitB );
         femaleA = createTrackedEntityInstance( organisationUnitA );
         femaleB = createTrackedEntityInstance( organisationUnitB );
@@ -248,7 +245,7 @@ public class EnrollmentSecurityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -268,7 +265,7 @@ public class EnrollmentSecurityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( "---USER2---" );
+        User user = userService.getUser( USER_2 );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -287,7 +284,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testEnrollmentOrgUnitProgramOrgUnitMismatch()
         throws IOException
     {
-        setUpTest2();
+        setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
@@ -318,7 +315,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserNoAccessToTrackedEntity()
         throws IOException
     {
-        setUpTest2();
+        setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
@@ -350,7 +347,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserNoWriteAccessToProgram()
         throws IOException
     {
-        setUpTest2();
+        setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
@@ -381,7 +378,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserHasWriteAccessToProgram()
         throws IOException
     {
-        setUpTest2();
+        setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
@@ -409,7 +406,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserHasNoAccessToProgramTeiType()
         throws IOException
     {
-        setUpTest2();
+        setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 

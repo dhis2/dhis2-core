@@ -50,14 +50,11 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -79,7 +76,6 @@ import static org.junit.Assert.assertTrue;
 @Slf4j
 public class EventImportValidationTest
     extends AbstractImportValidationTest
-
 {
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
@@ -134,7 +130,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -187,8 +183,6 @@ public class EventImportValidationTest
         objectBundleService.commit( objectBundle );
     }
 
-
-
     @Test
     public void testEventValidationOkAll()
         throws IOException
@@ -197,7 +191,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -218,7 +212,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/event_events.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -240,7 +234,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-orgunit-missing.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -262,7 +256,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-program-pstage-missing.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -289,7 +283,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-missing-isreg.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -316,7 +310,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-program-different.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -339,7 +333,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
-        User user = userService.getUser( "---USER2---" );
+        User user = userService.getUser( USER_2 );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -362,7 +356,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -395,7 +389,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );

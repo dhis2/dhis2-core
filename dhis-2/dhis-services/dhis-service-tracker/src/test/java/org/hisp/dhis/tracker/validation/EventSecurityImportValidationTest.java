@@ -46,6 +46,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -89,7 +90,6 @@ import static org.junit.Assert.assertTrue;
 public class EventSecurityImportValidationTest
     extends AbstractImportValidationTest
 {
-
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -129,6 +129,9 @@ public class EventSecurityImportValidationTest
     @Autowired
     private EnrollmentService enrollmentService;
 
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -153,7 +156,8 @@ public class EventSecurityImportValidationTest
 
     private TrackedEntityType trackedEntityType;
 
-    protected void initMeta()
+    @Override
+    protected void setUpTest()
         throws IOException
     {
         renderService = _renderService;
@@ -210,7 +214,7 @@ public class EventSecurityImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    protected void setupData()
+    protected void setupMetaData()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
@@ -232,7 +236,7 @@ public class EventSecurityImportValidationTest
         manager.save( programStageA );
         manager.save( programStageB );
 
-        programA = createProgram2( "E8o1E9tAXXX", 'A', new HashSet<>(), organisationUnitA );
+        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
 
         trackedEntityType = createTrackedEntityType( 'A' );
@@ -267,7 +271,7 @@ public class EventSecurityImportValidationTest
         manager.update( programStageB );
         manager.update( programA );
 
-        maleA = createTrackedEntityInstance2( "Kj6vYde4XXX", organisationUnitA );
+        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
         maleB = createTrackedEntityInstance( organisationUnitB );
         femaleA = createTrackedEntityInstance( organisationUnitA );
         femaleB = createTrackedEntityInstance( organisationUnitB );
@@ -287,12 +291,12 @@ public class EventSecurityImportValidationTest
     public void testNoWriteAccessToProgramStage()
         throws IOException
     {
-        initMeta();
-        setupData();
+        setupMetaData();
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events_error-no-programStage-access.json" );
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-no-programStage-access.json" );
 
-        User user = userService.getUser( "---USER3---" );
+        User user = userService.getUser( USER_3 );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );

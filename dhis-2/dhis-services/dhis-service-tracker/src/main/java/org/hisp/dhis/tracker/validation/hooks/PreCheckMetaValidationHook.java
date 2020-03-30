@@ -111,12 +111,12 @@ public class PreCheckMetaValidationHook
 
         if ( program == null && programStage != null )
         {
+            // We use a little trick here to put a program into the event and bundle
+            // if program is missing from event but exists on the program stage.
             program = programStage.getProgram();
-            // TODO: Use id scheme!!!?
-
-            bundle.getPreheat().put( TrackerIdentifier.UID, program );
-            // TODO: Set correct id via scheme....
-            event.setProgram( program.getUid() );
+            TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getProgramIdScheme();
+            bundle.getPreheat().put( identifier, program );
+            event.setProgram( identifier.getIdentifier( program ) );
         }
 
         if ( program != null && programStage == null && program.isRegistration() )
@@ -126,7 +126,7 @@ public class PreCheckMetaValidationHook
                 .addArg( program ) );
         }
 
-        // TODO: Should this be placed before the check above
+        // TODO: Should this be placed before the check above?
         if ( program != null )
         {
             programStage = (programStage == null && program.isWithoutRegistration()) ?

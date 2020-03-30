@@ -30,15 +30,12 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
-import java.util.Date;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -46,6 +43,16 @@ import java.util.Date;
 public abstract class AbstractImportValidationTest
     extends DhisSpringTest
 {
+    public static final String ADMIN_USER = "M5zQapPyTZI";
+
+    public static final String USER_1 = "---USER1---";
+
+    public static final String USER_2 = "---USER2---";
+
+    public static final String USER_3 = "---USER3---";
+
+    public static final String USER_4 = "---USER4---";
+
     protected TrackerBundleParams createBundleFromJson( String s )
         throws IOException
     {
@@ -53,19 +60,6 @@ public abstract class AbstractImportValidationTest
             .fromJson(
                 new ClassPathResource( s ).getInputStream(),
                 TrackerBundleParams.class );
-    }
-
-    protected Enrollment createEnrollment( String program, String person )
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-//        enrollment.setOrgUnit( organisationUnitA.getUid() );
-        enrollment.setProgram( program );
-        enrollment.setTrackedEntityInstance( person );
-        enrollment.setEnrollmentDate( new Date() );
-        enrollment.setIncidentDate( new Date() );
-
-        return enrollment;
     }
 
     protected void printErrors( TrackerValidationReport report )

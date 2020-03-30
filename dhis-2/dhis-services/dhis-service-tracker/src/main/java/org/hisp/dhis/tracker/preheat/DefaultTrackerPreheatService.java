@@ -141,6 +141,7 @@ public class DefaultTrackerPreheatService
         Timer timer = new SystemTimer().start();
 
         TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdentifiers( params.getIdentifiers() );
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
 

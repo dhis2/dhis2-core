@@ -108,18 +108,18 @@ public class TrackerIdentifierCollector
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Event> events )
     {
         events.forEach( event -> {
-            addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID, event.getTrackedEntity() );
-            addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, event.getEnrollment() );
-            addIdentifier( map, Event.class, TrackerIdScheme.UID, event.getEvent() );
-            addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), event.getProgram() );
-            addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
-                event.getProgramStage() );
-            addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
-            addIdentifier( map, CategoryOptionCombo.class, TrackerIdScheme.UID, event.getAttributeOptionCombo() );
+                addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID, event.getTrackedEntity() );
+                addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, event.getEnrollment() );
+                addIdentifier( map, Event.class, TrackerIdScheme.UID, event.getEvent() );
+                addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), event.getProgram() );
+                addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
+                    event.getProgramStage() );
+                addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
+                addIdentifier( map, CategoryOptionCombo.class, TrackerIdScheme.UID, event.getAttributeOptionCombo() );
 
-            event.getDataValues().forEach( dv -> {
-                addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), dv.getDataElement() );
-            } );
+                event.getDataValues().forEach( dv -> {
+                    addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), dv.getDataElement() );
+                } );
         } );
     }
 

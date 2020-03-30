@@ -48,14 +48,11 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -127,7 +124,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -147,7 +144,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -160,14 +157,14 @@ public class EnrollmentImportValidationTest
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
     }
 
-    @Test
+    @Test( expected = javax.persistence.PersistenceException.class )
     public void testDatesMissing()
         throws IOException
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-dates-missing.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -191,8 +188,7 @@ public class EnrollmentImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1023 ) ) ) );
 
         // Should cause DB constraint error
-//        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
-//        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
     }
 
     @Test
@@ -202,7 +198,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-dates-future.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -227,7 +223,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-displayIncident.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -249,7 +245,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-program-missing.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -271,7 +267,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-orgunit-missing.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -293,7 +289,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( "---USER2---" );
+        User user = userService.getUser( USER_2 );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -315,7 +311,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -348,7 +344,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
@@ -373,7 +369,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.DELETE );
@@ -398,7 +394,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-nonreg-program.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -419,7 +415,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-nonexist-te.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -440,7 +436,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-program-tet-mismatch-te.json" );
 
-        User user = userService.getUser( "M5zQapPyTZI" );
+        User user = userService.getUser( ADMIN_USER );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -453,5 +449,4 @@ public class EnrollmentImportValidationTest
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1022 ) ) ) );
     }
-
 }

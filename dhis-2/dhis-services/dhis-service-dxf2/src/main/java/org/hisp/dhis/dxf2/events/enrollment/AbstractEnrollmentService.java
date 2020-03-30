@@ -218,7 +218,8 @@ public abstract class AbstractEnrollmentService
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            if ( programInstance != null && trackerOwnershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
+            if ( programInstance != null && trackerOwnershipAccessManager
+                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
                 enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
             }

@@ -47,7 +47,6 @@ import java.util.Objects;
 public class EnrollmentGeoValidationHook
     extends AbstractTrackerValidationHook
 {
-
     @Override
     public int getOrder()
     {
@@ -81,5 +80,4 @@ public class EnrollmentGeoValidationHook
 
         return reporter.getReportList();
     }
-
 }
