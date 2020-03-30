@@ -44,6 +44,14 @@ public class ParseDateStdDeserializer extends JsonDeserializer<Date>
     @Override
     public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
     {
-        return DateUtils.parseDate( parser.getValueAsString() );
+        try
+        {
+            return DateUtils.parseDate( parser.getValueAsString() );
+        }
+        catch ( Exception ignored )
+        {
+        }
+
+        return new Date( parser.getValueAsLong() );
     }
 }
