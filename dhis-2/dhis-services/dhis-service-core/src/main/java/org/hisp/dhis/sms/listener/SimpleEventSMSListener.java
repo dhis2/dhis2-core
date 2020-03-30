@@ -146,12 +146,13 @@ public class SimpleEventSMSListener
         ProgramStage programStage = programStages.iterator().next();
 
         List<Object> errorUIDs = saveNewEvent( subm.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
-            user, subm.getValues(), subm.getEventStatus() );
+            user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
+            subm.getCoordinates() );
         if ( !errorUIDs.isEmpty() )
         {
             return SMSResponse.WARN_DVERR.setList( errorUIDs );
         }
-        else if ( subm.getValues().isEmpty() )
+        else if ( subm.getValues() == null || subm.getValues().isEmpty() )
         {
             // TODO: Should we save the event if there are no data values?
             return SMSResponse.WARN_DVEMPTY;

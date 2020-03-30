@@ -122,7 +122,8 @@ public class RelationshipSMSListener
 
         Relationship rel = new Relationship();
 
-        // If we aren't given a UID for the relationship, it will be auto-generated
+        // If we aren't given a UID for the relationship, it will be
+        // auto-generated
         if ( subm.getRelationship() != null )
         {
             rel.setUid( subm.getRelationship().uid );
