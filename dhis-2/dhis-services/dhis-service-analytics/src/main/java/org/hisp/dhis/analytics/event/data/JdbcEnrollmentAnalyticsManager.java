@@ -335,8 +335,7 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     /**
-     * Returns an encoded column name wrapped in lower directive if not numeric
-     * or boolean.
+     * Returns an quoted column name.
      *
      * @param item the {@link QueryItem}.
      */
@@ -357,8 +356,7 @@ public class JdbcEnrollmentAnalyticsManager
         }
         else
         {
-            colName = quoteAlias( colName );
-            return  item.isText() ? "lower(" + colName + ")" : colName;
+            return quoteAlias( colName );
         }
     }
 
