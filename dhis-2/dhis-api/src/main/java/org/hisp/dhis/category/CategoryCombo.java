@@ -156,6 +156,7 @@ public class CategoryCombo
     public List<List<CategoryOption>> getCategoryOptionsAsLists()
     {
         return categories.stream()
+            .filter( ca -> !ca.getCategoryOptions().isEmpty() )
             .map( ca -> ca.getCategoryOptions() )
             .collect( Collectors.toList() );
     }
