@@ -163,6 +163,27 @@ public class ProgramSqlGeneratorVariablesTest
     }
 
     @Test
+    public void testCompletedDateForEnrollment()
+    {
+        ProgramIndicator pi = makeEnrollmentProgramIndicator();
+        initSubject( pi );
+
+        String sql = (String) subject.visit( mockContext( V_COMPLETED_DATE ) );
+        assertThat( sql,
+            is( "(select completeddate from analytics_event_" + pi.getProgram().getUid() + " where analytics_event_"
+                + pi.getProgram().getUid()
+                + ".pi = ax.pi and completeddate is not null order by executiondate desc limit 1 )" ) );
+    }
+
+    @Test
+    public void testCompletedDateForEvent()
+    {
+        String sql = (String) subject.visit( mockContext( V_COMPLETED_DATE ) );
+
+        assertThat( sql, is( "completeddate" ) );
+    }
+
+    @Test
     public void testCurrentDateForEvent()
     {
         String sql = (String) subject.visit( mockContext( V_CURRENT_DATE ) );
