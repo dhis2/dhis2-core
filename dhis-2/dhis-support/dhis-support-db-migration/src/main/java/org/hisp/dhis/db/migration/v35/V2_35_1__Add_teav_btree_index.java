@@ -1,4 +1,4 @@
-package org.hisp.dhis.db.migration.v34;
+package org.hisp.dhis.db.migration.v35;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -16,23 +16,24 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
  * This upograde will fail is any value in the table exceeds 1200 characters. Due to this, we catch any SQLException and
  * write a custom message, including a link to a community.dhis2.org post explaining this upgrade, and how to deal with any
  * upgrade failures.
- *
+ * <p>
  * By setting canExecuteInTransaction to false, we let this upgrade run outside the main flow of flyway, allowing us
  * to ignore that the upgrade potentially fails.
  *
  * @author Stian
  */
-public class V2_34_22__Add_teav_btree_index
+public class V2_35_1__Add_teav_btree_index
     extends BaseJavaMigration
 {
-    private final static String COP_POST_URL = "https://community.dhis2.org/t/draft-important-database-upgrade-for-tracker-performance/38766";
-    private static final Logger log = LoggerFactory.getLogger( V2_34_22__Add_teav_btree_index.class );
+    private final static String COP_POST_URL = "https://community.dhis2.org/t/important-database-upgrade-for-tracker-performance/38766";
+
+    private static final Logger log = LoggerFactory.getLogger( V2_35_1__Add_teav_btree_index.class );
 
     @Override
     public void migrate( Context context )
     {
 
-        try ( Statement statement = context.getConnection().createStatement() )
+        try (Statement statement = context.getConnection().createStatement())
         {
             statement
                 .execute( "alter table trackedentityattributevalue alter column value set data type varchar(1200)" );
@@ -42,14 +43,14 @@ public class V2_34_22__Add_teav_btree_index
         catch ( SQLException e )
         {
             String message = "Could not perform upgrade of table 'trackedentityattributevalue'. " +
-                    String.format( "Column 'value' should be altered to data type varchar(%s) and receive a new index. ", TEA_VALUE_MAX_LENGTH ) +
-                    String.format( "For more information, please see the following post: '%s'. ", COP_POST_URL ) +
-                    String.format( "Error message was: %s", e.getMessage() );
+                String.format( "Column 'value' should be altered to data type varchar(%s) and receive a new index. ", TEA_VALUE_MAX_LENGTH ) +
+                String.format( "For more information, please see the following post: '%s'. ", COP_POST_URL ) +
+                String.format( "Error message was: %s", e.getMessage() );
 
             log.warn( message );
         }
     }
-    
+
     @Override
     public boolean canExecuteInTransaction()
     {
