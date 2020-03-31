@@ -28,23 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.attribute.AttributeService;
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -95,7 +84,6 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
@@ -116,6 +104,7 @@ import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -126,6 +115,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -195,6 +195,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected AttributeService attributeService;
+
+    @Autowired
+    protected ObjectMapper jsonMapper;
+
+    @Autowired
+    @Qualifier( "xmlMapper" )
+    protected ObjectMapper xmlMapper;
 
     //--------------------------------------------------------------------------
     // GET
@@ -422,13 +429,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( isJson( request ) )
         {
             patch = patchService.diff(
-                new PatchParams( DefaultRenderService.getJsonMapper().readTree( request.getInputStream() ) )
+                new PatchParams( jsonMapper.readTree( request.getInputStream() ) )
             );
         }
         else if ( isXml( request ) )
         {
             patch = patchService.diff(
-                new PatchParams( DefaultRenderService.getXmlMapper().readTree( request.getInputStream() ) )
+                new PatchParams( xmlMapper.readTree( request.getInputStream() ) )
             );
         }
 
@@ -679,7 +686,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -861,7 +868,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -917,7 +924,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node ->
                 {
                     node.getChildren().stream()
-                        .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !( (SimpleNode) child ).getValue().equals( pvItemId ) )
+                        .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !((SimpleNode) child).getValue().equals( pvItemId ) )
                         .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
                 } );
             }
@@ -1058,7 +1065,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return renderService.fromJson( request.getInputStream(), getEntityClass() );
     }
 
-    protected T deserializeXmlEntity( HttpServletRequest request) throws IOException
+    protected T deserializeXmlEntity( HttpServletRequest request ) throws IOException
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
     }
@@ -1133,11 +1140,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
-    protected Pagination getPaginationData(WebOptions options )
+    protected Pagination getPaginationData( WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
-    } 
-    
+    }
+
     @SuppressWarnings( "unchecked" )
     protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException

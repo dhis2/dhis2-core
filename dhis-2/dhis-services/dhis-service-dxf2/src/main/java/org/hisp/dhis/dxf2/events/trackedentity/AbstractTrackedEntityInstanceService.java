@@ -28,13 +28,10 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
@@ -46,7 +43,6 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -84,10 +80,12 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,24 +97,46 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
+
     protected TrackedEntityAttributeService trackedEntityAttributeService;
+
     protected RelationshipService _relationshipService;
+
     protected org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
+
     protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
     protected IdentifiableObjectManager manager;
+
     protected UserService userService;
+
     protected DbmsManager dbmsManager;
+
     protected EnrollmentService enrollmentService;
+
     protected ProgramInstanceService programInstanceService;
+
     protected CurrentUserService currentUserService;
+
     protected SchemaService schemaService;
+
     protected QueryService queryService;
+
     protected ReservedValueService reservedValueService;
+
     protected TrackerAccessManager trackerAccessManager;
+
     protected FileResourceService fileResourceService;
+
     protected TrackerOwnershipManager trackerOwnershipAccessManager;
+
     protected Notifier notifier;
+
+    protected ObjectMapper jsonMapper;
+
+    protected ObjectMapper xmlMapper;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -133,11 +153,11 @@ public abstract class AbstractTrackedEntityInstanceService
     /**
      * Merges the two sets, if the passed condition is true
      *
-     * @param set1 a Set
-     * @param set2 a second Set
+     * @param set1      a Set
+     * @param set2      a second Set
      * @param condition a boolean condition
      * @return if condition is true, a new Set consisting of the first and second
-     *         set. If false, the first set
+     * set. If false, the first set
      */
     private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2,
         boolean condition )
@@ -171,9 +191,9 @@ public abstract class AbstractTrackedEntityInstanceService
                 for ( Program program : teaByProgram.keySet() )
                 {
                     attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
-                            trackerOwnershipAccessManager.hasAccess( user, t, program ) );
+                        trackerOwnershipAccessManager.hasAccess( user, t, program ) );
                 }
-                dtoTeis.add( getTei( t, attributes , params, user ) );
+                dtoTeis.add( getTei( t, attributes, params, user ) );
 
             } );
         }
@@ -386,11 +406,12 @@ public abstract class AbstractTrackedEntityInstanceService
      * Filters out Tracked Entity Instances which are already present in the database (regardless of the 'deleted' state)
      *
      * @param trackedEntityInstances TEIs to import
-     * @param importSummaries ImportSummaries used for import
+     * @param importSummaries        ImportSummaries used for import
      * @return TEIs that is possible to import (pass validation)
      */
     private List<TrackedEntityInstance> resolveImportableTeis( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportSummaries importSummaries ) {
+        ImportSummaries importSummaries )
+    {
 
         List<String> conflictingTeiUids = checkForExistingTeisIncludingDeleted( trackedEntityInstances, importSummaries );
 
@@ -848,13 +869,13 @@ public abstract class AbstractTrackedEntityInstanceService
         List<Relationship> delete = new ArrayList<>( daoEntityInstance.getRelationshipItems().stream()
             .map( RelationshipItem::getRelationship )
 
-                // Remove items we cant write to
-                .filter(
-                    relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
-                .filter(
-                    relationship -> isTeiPartOfRelationship( relationship, daoEntityInstance )
-                )
-                .map( org.hisp.dhis.relationship.Relationship::getUid )
+            // Remove items we cant write to
+            .filter(
+                relationship -> trackerAccessManager.canWrite( importOptions.getUser(), relationship ).isEmpty() )
+            .filter(
+                relationship -> isTeiPartOfRelationship( relationship, daoEntityInstance )
+            )
+            .map( org.hisp.dhis.relationship.Relationship::getUid )
 
             // Remove items we are already referencing
             .filter( ( uid ) -> !relationshipUids.contains( uid ) )
@@ -1504,7 +1525,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             readableAttributesCopy = readableAttributes.stream()
                 .filter( att -> !att.getSkipSynchronization() )
-                .collect( Collectors.toSet() ) ;
+                .collect( Collectors.toSet() );
 
             IdSchemes idSchemes = new IdSchemes();
             for ( String programUid : programs )

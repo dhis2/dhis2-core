@@ -52,6 +52,9 @@ import java.util.Map;
 @Service( "org.hisp.dhis.node.NodeService" )
 public class DefaultNodeService implements NodeService
 {
+    @Autowired
+    private FieldFilterService fieldFilterService;
+
     @Autowired( required = false )
     private List<NodeSerializer> nodeSerializers = Lists.newArrayList();
 
@@ -61,9 +64,6 @@ public class DefaultNodeService implements NodeService
     private Map<String, NodeSerializer> nodeSerializerMap = Maps.newHashMap();
 
     private Map<String, NodeDeserializer> nodeDeserializerMap = Maps.newHashMap();
-
-    @Autowired
-    private FieldFilterService fieldFilterService;
 
     @PostConstruct
     private void init()

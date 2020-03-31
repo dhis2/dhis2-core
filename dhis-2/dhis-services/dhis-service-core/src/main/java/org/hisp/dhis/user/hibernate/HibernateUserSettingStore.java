@@ -37,6 +37,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -79,12 +80,18 @@ public class HibernateUserSettingStore
     }
 
     @Override
+    @Transactional
+    public UserSetting getUserSettingTx( User user, String name )
+    {
+        return getUserSetting( user, name );
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public UserSetting getUserSetting( User user, String name )
     {
         Session session = sessionFactory.getCurrentSession();
-
         Query<UserSetting> query = session.createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
-
         query.setParameter( "user", user );
         query.setParameter( "name", name );
         query.setCacheable( CACHEABLE );
@@ -93,6 +100,7 @@ public class HibernateUserSettingStore
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<UserSetting> getAllUserSettings( User user )
     {
         Session session = sessionFactory.getCurrentSession();

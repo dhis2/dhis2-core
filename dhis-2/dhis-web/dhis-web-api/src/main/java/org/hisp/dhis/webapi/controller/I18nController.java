@@ -29,13 +29,11 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,11 +54,17 @@ import java.util.Map;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class I18nController
 {
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    @Autowired
-    private RenderService renderService;
+    private final ObjectMapper jsonMapper;
+
+    public I18nController(
+        I18nManager i18nManager,
+        ObjectMapper jsonMapper )
+    {
+        this.i18nManager = i18nManager;
+        this.jsonMapper = jsonMapper;
+    }
 
     @RequestMapping( method = RequestMethod.POST )
     public void postI18n( @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
@@ -69,7 +73,7 @@ public class I18nController
         I18n i18n = i18nManager.getI18n( searchPackage );
         Map<String, String> output = new HashMap<>();
 
-        List<String> input = DefaultRenderService.getJsonMapper().readValue( inputStream, new TypeReference<List<String>>()
+        List<String> input = jsonMapper.readValue( inputStream, new TypeReference<List<String>>()
         {
         } );
 
@@ -84,6 +88,6 @@ public class I18nController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), output );
+        jsonMapper.writeValue( response.getOutputStream(), output );
     }
 }
