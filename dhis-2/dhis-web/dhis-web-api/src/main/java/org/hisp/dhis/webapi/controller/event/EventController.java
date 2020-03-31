@@ -527,9 +527,6 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-//            ImportSummaries importSummaries = accept.isCompatibleWith( Me )
-//                ? eventService.addEventsXml( inputStream, importOptions )
-//                : eventService.addEventsJson( inputStream, importOptions );
             ImportSummaries importSummaries = eventService.addEventsJson(inputStream, importOptions);
             importSummaries.setImportOptions( importOptions );
 
