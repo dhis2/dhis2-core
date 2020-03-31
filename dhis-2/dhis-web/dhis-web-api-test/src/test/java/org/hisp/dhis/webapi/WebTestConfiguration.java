@@ -71,7 +71,7 @@ import org.springframework.stereotype.Service;
         org.hisp.dhis.validation.config.StoreConfig.class,
         org.hisp.dhis.reporting.config.StoreConfig.class,
         org.hisp.dhis.analytics.config.ServiceConfig.class,
-        org.hisp.dhis.commons.config.CommonsConfig.class} )
+        org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class} )
 public class WebTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )

@@ -28,19 +28,17 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringEscapeUtils;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
-
-import org.apache.commons.lang.StringEscapeUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Stian Strandli

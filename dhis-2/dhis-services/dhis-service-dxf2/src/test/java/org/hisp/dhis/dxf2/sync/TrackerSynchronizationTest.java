@@ -28,8 +28,7 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
@@ -48,7 +47,14 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -56,6 +62,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -118,9 +127,17 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     @Autowired
     private Notifier notifier;
 
+    @Autowired
+    private ObjectMapper jsonMapper;
+
+    @Autowired
+    @Qualifier( "xmlMapper" )
+    private ObjectMapper xmlMapper;
+
     private TrackedEntityInstanceService subject;
 
     private TrackedEntityInstanceQueryParams queryParams;
+
     private TrackedEntityInstanceParams params;
 
     private Session currentSession;
@@ -173,7 +190,8 @@ public class TrackerSynchronizationTest extends DhisSpringTest
         subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
             _relationshipService, relationshipService, trackedEntityAttributeValueService, manager, _userService,
             dbmsManager, enrollmentService, programInstanceService, currentUserService, schemaService, queryService,
-            reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager, notifier );
+            reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager, notifier,
+            jsonMapper, xmlMapper );
 
         prepareSyncParams();
         prepareDataForTest();
@@ -196,6 +214,6 @@ public class TrackerSynchronizationTest extends DhisSpringTest
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis =
             subject.getTrackedEntityInstances( queryParams, params, true );
 
-        assertEquals( 1, fetchedTeis.get(0).getAttributes().size() );
+        assertEquals( 1, fetchedTeis.get( 0 ).getAttributes().size() );
     }
 }

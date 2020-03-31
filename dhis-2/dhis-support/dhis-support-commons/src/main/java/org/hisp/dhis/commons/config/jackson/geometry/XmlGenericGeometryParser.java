@@ -1,4 +1,4 @@
-package org.hisp.dhis.node.geometry;
+package org.hisp.dhis.commons.config.jackson.geometry;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
