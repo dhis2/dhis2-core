@@ -28,9 +28,23 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
@@ -47,7 +61,6 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -80,6 +93,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -101,21 +115,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 
 /**
  * The following statements are added not to cause api break.
@@ -236,12 +238,15 @@ public class TrackedEntityInstanceController
 
         if ( trackedEntityInstance == null )
         {
-            if (useFast) {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2(queryParams,
-                        getTrackedEntityInstanceParams(fields), false);
-            } else {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(queryParams,
-                        getTrackedEntityInstanceParams(fields), false);
+            if ( useFast )
+            {
+                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
+                    getTrackedEntityInstanceParams( fields ), false );
+            }
+            else
+            {
+                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                    getTrackedEntityInstanceParams( fields ), false );
             }
         }
         else
