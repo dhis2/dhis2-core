@@ -257,6 +257,7 @@ public class EmailMessageSender
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
+        log.error( "MESSAGE:" + text);
         return sendMessage( subject, text, Sets.newHashSet( recipient ) );
     }
 

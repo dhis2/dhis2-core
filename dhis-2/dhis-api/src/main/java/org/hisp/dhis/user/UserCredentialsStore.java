@@ -64,4 +64,13 @@ public interface UserCredentialsStore
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsByLdapId( String ldapId );
+
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
+     * restore token.
+     *
+     * @param token the restore token of the User.
+     * @return the UserCredentials.
+     */
+    UserCredentials getUserCredentialsByRestoreToken( String token );
 }

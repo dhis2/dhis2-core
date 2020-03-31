@@ -73,4 +73,12 @@ public class HibernateUserCredentialsStore
         query.setParameter( "ldapId", ldapId );
         return query.uniqueResult();
     }
+
+    @Override
+    public UserCredentials getUserCredentialsByRestoreToken( String token )
+    {
+        Query query = getQuery( "from UserCredentials uc where uc.restoreToken = :token" );
+        query.setParameter( "token", token );
+        return ( UserCredentials ) query.uniqueResult();
+    }
 }

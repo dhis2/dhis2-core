@@ -198,6 +198,14 @@ public interface UserService
      */
     void updateUserCredentials( UserCredentials userCredentials );
 
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
+     * restore token.
+     *
+     * @param token the restore token of the User.
+     * @return the UserCredentials.
+     */
+    public UserCredentials getUserCredentialsByRestoreToken( String token );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given

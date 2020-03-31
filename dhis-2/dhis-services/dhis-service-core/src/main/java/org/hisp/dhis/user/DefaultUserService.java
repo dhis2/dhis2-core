@@ -539,6 +539,13 @@ public class DefaultUserService
 
     @Override
     @Transactional(readOnly = true)
+    public UserCredentials getUserCredentialsByRestoreToken( String token )
+    {
+        return userCredentialsStore.getUserCredentialsByRestoreToken( token );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         return userCredentialsStore.getUserCredentialsByUsername( username );

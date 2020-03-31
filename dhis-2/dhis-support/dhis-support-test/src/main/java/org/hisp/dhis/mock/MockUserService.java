@@ -167,6 +167,19 @@ public class MockUserService implements UserService
     }
 
     @Override
+    public UserCredentials getUserCredentialsByRestoreToken( String token )
+    {
+        for ( User user : users )
+        {
+            if ( user.getUserCredentials().getRestoreToken().equals( token ) )
+            {
+                return user.getUserCredentials();
+            }
+        }
+        return null;
+    }
+
+    @Override
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         for ( User user : users )

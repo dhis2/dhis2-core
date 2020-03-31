@@ -531,6 +531,55 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
+    @RequestMapping( value = "/tokenValidation", method = RequestMethod.POST )
+    public void validateTokenPost( @RequestParam String token, HttpServletResponse response ) throws IOException
+    {
+        Map<String, String> result = validatePassword( token );
+
+        ContextUtils.okResponse( response, objectMapper.writeValueAsString( result ) );
+
+
+
+//        if ( userCredentials == null )
+//        {
+//            return ERROR;
+//        }
+
+//        String email = userCredentials.getUserInfo().getEmail();
+
+        RestoreOptions restoreOptions = securityService.getRestoreOptions( token );
+
+//        if ( restoreOptions != null )
+//        {
+//            usernameChoice = Boolean.toString( restoreOptions.isUsernameChoice() );
+//        }
+
+
+//        return errorMessage == null ? SUCCESS : ERROR;
+
+
+    }
+
+    private Map<String, String> validateToken( String token )
+    {
+        UserCredentials userCredentials = userService.getUserCredentialsByRestoreToken( token );
+
+        String errorMessage = securityService.verifyToken( userCredentials, token, RestoreType.INVITE );
+
+
+        // Custom code required because of our hacked jQuery validation
+
+        Map<String, String> result = new HashMap<>();
+
+        result.put( "response", errorMessage == null ? "success" : "error" );
+        result.put( "message", errorMessage == null ? "" : errorMessage );
+
+        return result;
+    }
+
+
+
+
     // ---------------------------------------------------------------------
     // Supportive methods
     // ---------------------------------------------------------------------
