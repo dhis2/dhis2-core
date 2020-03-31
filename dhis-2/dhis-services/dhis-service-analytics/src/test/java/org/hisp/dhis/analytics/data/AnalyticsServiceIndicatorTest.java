@@ -95,6 +95,18 @@ public class AnalyticsServiceIndicatorTest
         dataElementService.addDataElement( dataElementA );
     }
 
+    @Test
+    public void verifyIndicatorWithStaticValuesIsComputedAndValueReturned()
+    {
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "1", "5" );
+        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
+
+        assertThat( grid.getRow( 0 ).get( 0 ), is( "mindicatorF" ) );
+        assertThat( grid.getRow( 0 ).get( 2 ), is( 20.0 ) );
+    }
+
     /**
      * IndicatorF -> IndicatorG -> IndicatorH -> IndicatorI
      *
