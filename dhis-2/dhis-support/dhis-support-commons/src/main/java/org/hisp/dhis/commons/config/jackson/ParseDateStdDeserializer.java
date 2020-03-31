@@ -44,14 +44,27 @@ public class ParseDateStdDeserializer extends JsonDeserializer<Date>
     @Override
     public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
     {
+        Date date = null;
+
         try
         {
-            return DateUtils.parseDate( parser.getValueAsString() );
+            date = DateUtils.parseDate( parser.getValueAsString() );
+
+            if ( date == null )
+            {
+                date = new Date( parser.getValueAsLong() );
+            }
         }
         catch ( Exception ignored )
         {
         }
 
-        return new Date( parser.getValueAsLong() );
+        if ( date == null )
+        {
+            throw new IOException( String.format(
+                "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.", parser.getValueAsString() ) );
+        }
+
+        return date;
     }
 }
