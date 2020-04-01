@@ -28,11 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -45,14 +40,26 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.smscompression.SMSConsts.SMSEnrollmentStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
-import org.hisp.dhis.smscompression.models.*;
+import org.hisp.dhis.smscompression.models.GeoPoint;
+import org.hisp.dhis.smscompression.models.SMSDataValue;
+import org.hisp.dhis.smscompression.models.SMSMetadata;
+import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
+import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -62,8 +69,19 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -112,6 +130,7 @@ public abstract class CompressionSMSListener
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
         checkNotNull( dataElementService );
+        checkNotNull( programStageInstanceService );
 
         this.userService = userService;
         this.trackedEntityTypeService = trackedEntityTypeService;
@@ -237,24 +256,30 @@ public abstract class CompressionSMSListener
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
         ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SMSDataValue> values,
-        SMSEventStatus eventStatus )
+        SMSEventStatus eventStatus, Date eventDate, Date dueDate, GeoPoint coordinates )
     {
-
         ArrayList<Object> errorUIDs = new ArrayList<>();
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        ProgramStageInstance programStageInstance;
         // If we aren't given a UID for the event, it will be auto-generated
-        if ( eventUid != null )
+        if ( programStageInstanceService.programStageInstanceExists( eventUid ) )
         {
+            programStageInstance = programStageInstanceService.getProgramStageInstance( eventUid );
+        }
+        else
+        {
+            programStageInstance = new ProgramStageInstance();
             programStageInstance.setUid( eventUid );
         }
+
         programStageInstance.setOrganisationUnit( orgUnit );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setExecutionDate( sms.getSentDate() );
-        programStageInstance.setDueDate( sms.getSentDate() );
+        programStageInstance.setExecutionDate( eventDate );
+        programStageInstance.setDueDate( dueDate );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setStoredBy( user.getUsername() );
         programStageInstance.setStatus( getCoreEventStatus( eventStatus ) );
+        programStageInstance.setGeometry( convertGeoPointToGeometry( coordinates ) );
 
         if ( eventStatus.equals( SMSEventStatus.COMPLETED ) )
         {
@@ -263,30 +288,33 @@ public abstract class CompressionSMSListener
         }
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
-        for ( SMSDataValue dv : values )
+        if ( values != null )
         {
-            UID deid = dv.getDataElement();
-            String val = dv.getValue();
-
-            DataElement de = dataElementService.getDataElement( deid.uid );
-            // TODO: Is this the correct way of handling errors here?
-            if ( de == null )
+            for ( SMSDataValue dv : values )
             {
-                log.warn( String.format( "Given data element [%s] could not be found. Continuing with submission...",
-                    deid ) );
-                errorUIDs.add( deid );
-                continue;
-            }
-            else if ( val == null || StringUtils.isEmpty( val ) )
-            {
-                log.warn( String.format( "Value for atttribute [%s] is null or empty. Continuing with submission...",
-                    deid ) );
-                continue;
-            }
+                UID deid = dv.getDataElement();
+                String val = dv.getValue();
 
-            EventDataValue eventDataValue = new EventDataValue( deid.uid, dv.getValue(), user.getUsername() );
-            eventDataValue.setAutoFields();
-            dataElementsAndEventDataValues.put( de, eventDataValue );
+                DataElement de = dataElementService.getDataElement( deid.uid );
+                // TODO: Is this the correct way of handling errors here?
+                if ( de == null )
+                {
+                    log.warn( String
+                        .format( "Given data element [%s] could not be found. Continuing with submission...", deid ) );
+                    errorUIDs.add( deid );
+                    continue;
+                }
+                else if ( val == null || StringUtils.isEmpty( val ) )
+                {
+                    log.warn( String
+                        .format( "Value for atttribute [%s] is null or empty. Continuing with submission...", deid ) );
+                    continue;
+                }
+
+                EventDataValue eventDataValue = new EventDataValue( deid.uid, dv.getValue(), user.getUsername() );
+                eventDataValue.setAutoFields();
+                dataElementsAndEventDataValues.put( de, eventDataValue );
+            }
         }
 
         programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance,
@@ -314,5 +342,34 @@ public abstract class CompressionSMSListener
         default:
             return null;
         }
+    }
+
+    protected ProgramStatus getCoreProgramStatus( SMSEnrollmentStatus enrollmentStatus )
+    {
+        switch ( enrollmentStatus )
+        {
+        case ACTIVE:
+            return ProgramStatus.ACTIVE;
+        case COMPLETED:
+            return ProgramStatus.COMPLETED;
+        case CANCELLED:
+            return ProgramStatus.CANCELLED;
+        default:
+            return null;
+        }
+    }
+
+    protected Geometry convertGeoPointToGeometry( GeoPoint coordinates )
+    {
+        if ( coordinates == null )
+        {
+            return null;
+        }
+
+        GeometryFactory gf = new GeometryFactory();
+        com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate(
+            coordinates.getLongitude(), coordinates.getLatitude() );
+
+        return gf.createPoint( co );
     }
 }

@@ -28,31 +28,47 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSAttributeValue;
+import org.hisp.dhis.smscompression.models.SMSEvent;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.UID;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,20 +83,26 @@ public class EnrollmentSMSListener
 
     private final ProgramInstanceService programInstanceService;
 
+    private final ProgramStageService programStageService;
+
+    private final UserService userService;
+
     public EnrollmentSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        TrackedEntityInstanceService teiService, ProgramInstanceService programInstanceService,
-        IdentifiableObjectManager identifiableObjectManager )
+        DataElementService dataElementService, ProgramStageService programStageService,
+        ProgramStageInstanceService programStageInstanceService, TrackedEntityInstanceService teiService,
+        ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
             programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
             identifiableObjectManager );
 
         this.teiService = teiService;
+        this.programStageService = programStageService;
         this.programInstanceService = programInstanceService;
+        this.userService = userService;
     }
 
     @Override
@@ -89,11 +111,13 @@ public class EnrollmentSMSListener
     {
         EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
 
-        Date submissionTimestamp = subm.getTimestamp();
+        Date enrollmentDate = subm.getEnrollmentDate();
+        Date incidentDate = subm.getIncidentDate();
         UID teiUID = subm.getTrackedEntityInstance();
         UID progid = subm.getTrackerProgram();
         UID tetid = subm.getTrackedEntityType();
         UID ouid = subm.getOrgUnit();
+        UID enrollmentid = subm.getEnrollment();
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
 
         Program program = programService.getProgram( progid.uid );
@@ -114,9 +138,9 @@ public class EnrollmentSMSListener
         }
 
         TrackedEntityInstance entityInstance;
-        boolean existsOnServer = teiService.trackedEntityInstanceExists( teiUID.uid );
+        boolean teiExists = teiService.trackedEntityInstanceExists( teiUID.uid );
 
-        if ( existsOnServer )
+        if ( teiExists )
         {
             log.info( String.format( "Given TEI [%s] exists. Updating...", teiUID ) );
             entityInstance = teiService.getTrackedEntityInstance( teiUID.uid );
@@ -132,7 +156,7 @@ public class EnrollmentSMSListener
 
         Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues( subm, entityInstance );
 
-        if ( existsOnServer )
+        if ( teiExists )
         {
             entityInstance.setTrackedEntityAttributeValues( attributeValues );
             teiService.updateTrackedEntityInstance( entityInstance );
@@ -144,17 +168,47 @@ public class EnrollmentSMSListener
 
         TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID.uid );
 
-        Date enrollmentDate = new Date();
-        // TODO: Should we check if the TEI is already enrolled? If so do we
-        // skip this?
-        ProgramInstance enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate,
-            submissionTimestamp, orgUnit );
+        // TODO: Unsure about this handling for enrollments, this needs to be
+        // checked closely
+        ProgramInstance enrollment;
+        boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.uid );
+        if ( enrollmentExists )
+        {
+            enrollment = programInstanceService.getProgramInstance( enrollmentid.uid );
+            // Update these dates in case they've changed
+            enrollment.setEnrollmentDate( enrollmentDate );
+            enrollment.setIncidentDate( incidentDate );
+        }
+        else
+        {
+            enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
+                orgUnit );
+        }
         if ( enrollment == null )
         {
             throw new SMSProcessingException( SMSResponse.ENROLL_FAILED.set( teiUID, progid ) );
         }
+        enrollment.setStatus( getCoreProgramStatus( subm.getEnrollmentStatus() ) );
+        enrollment.setGeometry( convertGeoPointToGeometry( subm.getCoordinates() ) );
+        programInstanceService.updateProgramInstance( enrollment );
 
-        if ( attributeValues.isEmpty() )
+        // We now check if the enrollment has events to process
+        User user = userService.getUser( subm.getUserID().uid );
+        List<Object> errorUIDs = new ArrayList<>();
+        if ( subm.getEvents() != null )
+        {
+            for ( SMSEvent event : subm.getEvents() )
+            {
+                errorUIDs.addAll( processEvent( event, user, enrollment, sms ) );
+            }
+        }
+
+        if ( !errorUIDs.isEmpty() )
+        {
+            return SMSResponse.WARN_DVERR.setList( errorUIDs );
+        }
+
+        if ( attributeValues == null || attributeValues.isEmpty() )
         {
             // TODO: Is this correct handling?
             return SMSResponse.WARN_AVEMPTY;
@@ -172,6 +226,10 @@ public class EnrollmentSMSListener
     private Set<TrackedEntityAttributeValue> getSMSAttributeValues( EnrollmentSMSSubmission submission,
         TrackedEntityInstance entityInstance )
     {
+        if ( submission.getValues() == null )
+        {
+            return null;
+        }
         return submission.getValues().stream().map( v -> createTrackedEntityValue( v, entityInstance ) )
             .collect( Collectors.toSet() );
     }
@@ -197,5 +255,36 @@ public class EnrollmentSMSListener
         trackedEntityAttributeValue.setEntityInstance( tei );
         trackedEntityAttributeValue.setValue( val );
         return trackedEntityAttributeValue;
+    }
+
+    protected List<Object> processEvent( SMSEvent event, User user, ProgramInstance programInstance, IncomingSms sms )
+    {
+        UID stageid = event.getProgramStage();
+        UID aocid = event.getAttributeOptionCombo();
+        UID orgunitid = event.getOrgUnit();
+
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.uid );
+        if ( orgUnit == null )
+        {
+            throw new SMSProcessingException( SMSResponse.INVALID_ORGUNIT.set( orgunitid ) );
+        }
+
+        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
+        if ( programStage == null )
+        {
+            throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
+        }
+
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        if ( aoc == null )
+        {
+            throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
+        }
+
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
+            user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
+            event.getCoordinates() );
+
+        return errorUIDs;
     }
 }
