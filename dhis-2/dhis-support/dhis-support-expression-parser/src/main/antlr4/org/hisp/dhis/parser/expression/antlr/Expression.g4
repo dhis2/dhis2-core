@@ -41,6 +41,7 @@ expr
 
     |   'V{' fun='analytics_period_end' '}'
     |   'V{' fun='analytics_period_start' '}'
+    |   'V{' fun='completed_date' '}'
     |   'V{' fun='creation_date' '}'
     |   'V{' fun='current_date' '}'
     |   'V{' fun='due_date' '}'
@@ -200,6 +201,7 @@ DAYS        : '[days]';
 
 V_ANALYTICS_PERIOD_END  : 'analytics_period_end';
 V_ANALYTICS_PERIOD_START: 'analytics_period_start';
+V_COMPLETED_DATE        : 'completed_date';
 V_CREATION_DATE         : 'creation_date';
 V_CURRENT_DATE          : 'current_date';
 V_DUE_DATE              : 'due_date';
