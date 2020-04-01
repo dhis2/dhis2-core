@@ -584,6 +584,7 @@ public abstract class AbstractEventService
 //            }
 //            // TODO: luciano ->  handle this situation where we store the PI to use
 //            programInstance = programInstances.get( 0 );
+
         }
 
         program = programInstance.getProgram();
@@ -625,6 +626,27 @@ public abstract class AbstractEventService
         }
 
         else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+
+        {
+//            Coordinate coordinate = event.getCoordinate();
+//      FIXME: luciano to-rule ->  EventGeometryCheck
+//            try
+//            {
+//                // TODO: luciano -> this is a side effect and should take place after validation
+//                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+//            }
+//            catch ( IOException e )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." ).setReference( event.getEvent() ).incrementIgnored();
+//            }
+        }
+
+        // TODO: luciano -> start access control  block
+        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
+            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
+
+        if ( !errors.isEmpty() )
+
             {
 //            Coordinate coordinate = event.getCoordinate();
 //      FIXME: luciano to-rule ->  EventGeometryCheck
@@ -1782,6 +1804,7 @@ public abstract class AbstractEventService
 //
 //            return importSummary;
 //        }
+        // TODO luciano end validation block
 
         Date executionDate = null;
 
@@ -1843,11 +1866,14 @@ public abstract class AbstractEventService
         Date eventDate = executionDate != null ? executionDate : dueDate;
 
         // TODO: luciano question -> here we throw an exception, rather than using ImportSummary, why?
+
         validateAttributeOptionComboDate( aoc, eventDate );
+        // TODO luciano end validation block
 
         // FIXME: luciano to-rule -> AttributeOptionComboAclCheck
         errors = trackerAccessManager.canWrite( user, aoc );
         // TODO end access control block
+
 
 //        if ( !errors.isEmpty() )
 //        {

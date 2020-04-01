@@ -33,9 +33,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramCheck
-    implements
-    ValidationCheck
+public class ProgramCheck implements ValidationCheck
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

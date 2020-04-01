@@ -37,9 +37,7 @@ import org.hisp.dhis.program.Program;
 /**
  * @author Luciano Fiandesio
  */
-public class AttributeOptionComboCheck
-    implements
-    ValidationCheck
+public class AttributeOptionComboCheck implements ValidationCheck
 {
 
     @Override
@@ -56,6 +54,7 @@ public class AttributeOptionComboCheck
                 "Default attribute option combo is not allowed since program has non-default category combo" ) );
             importSummary.setStatus( ImportStatus.ERROR );
             return importSummary.incrementIgnored();
+
         }
 
         return new ImportSummary();

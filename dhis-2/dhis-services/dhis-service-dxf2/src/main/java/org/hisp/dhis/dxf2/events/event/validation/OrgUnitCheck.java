@@ -33,9 +33,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 /**
  * @author Luciano Fiandesio
  */
-public class OrgUnitCheck
-    implements
-    ValidationCheck
+public class OrgUnitCheck implements ValidationCheck
 {
 
     @Override

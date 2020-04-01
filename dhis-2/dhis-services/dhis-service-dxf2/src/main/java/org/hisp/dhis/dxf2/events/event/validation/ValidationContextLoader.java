@@ -68,6 +68,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -75,6 +76,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Responsible for loading the Validation Context cache with enough data to
@@ -100,23 +103,30 @@ public class ValidationContextLoader
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    private final CurrentUserService currentUserService;
+
     private final static String PROGRAM_CACHE_KEY = "0";
 
-    Cache<String,Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
-            .expireAfterWrite(30, TimeUnit.MINUTES)    // expire/refresh after 5 minutes
-            .resilienceDuration(30, TimeUnit.SECONDS) // cope with at most 30 seconds
-            .refreshAhead(true)                       // keep fresh when expiring
-            .loader(this::loadPrograms)         // auto populating function
-            .build();
+    Cache<String,Map<String, Program>> programsCache = null;
+
+    @PostConstruct
+    void buildProgramsCache()
+    {
+        programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
+                .expireAfterWrite(30, TimeUnit.MINUTES)    // expire/refresh after 5 minutes
+                .build();
+    }
 
     public ValidationContextLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        ProgramInstanceStore programInstanceStore, TrackerAccessManager trackerAccessManager,
-        AttributeOptionComboLoader attributeOptionComboLoader, IdentifiableObjectManager manager,
-        ProgramRuleVariableService programRuleVariableService, ApplicationEventPublisher applicationEventPublisher )
+                                    ProgramInstanceStore programInstanceStore, TrackerAccessManager trackerAccessManager,
+                                    CurrentUserService currentUserService,
+                                    AttributeOptionComboLoader attributeOptionComboLoader, IdentifiableObjectManager manager,
+                                    ProgramRuleVariableService programRuleVariableService, ApplicationEventPublisher applicationEventPublisher )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( programInstanceStore );
         checkNotNull( trackerAccessManager );
+        checkNotNull( currentUserService );
         checkNotNull( attributeOptionComboLoader );
         checkNotNull( manager );
         checkNotNull( programRuleVariableService );
@@ -129,24 +139,30 @@ public class ValidationContextLoader
         this.attributeOptionComboLoader = attributeOptionComboLoader;
         this.programRuleVariableService = programRuleVariableService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.currentUserService = currentUserService;
     }
 
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
+        if ( programMap == null )
+        {
+            programMap = loadPrograms();
+            programsCache.put( PROGRAM_CACHE_KEY, programMap );
+        }
         // @formatter:off
         return WorkContext.builder()
-            .importOptions( importOptions )
-            .programsMap( programMap )
-            .organisationUnitMap( loadOrganisationUnits( events ) )
-            .trackedEntityInstanceMap( loadTrackedEntityInstances( events ) )
-            .programInstanceMap( loadProgramInstances( events, programMap ) )
-            .programStageInstanceMap( loadProgramStageInstances( events ) )
-            .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
-            .dataElementMap( loadDateElements( events, importOptions) )
-            .assignedUserMap( loadAssignedUsers( events ) )
-            .serviceDelegator( loadServices() )
-            .build();
+                .importOptions( importOptions )
+                .programsMap( programMap )
+                .organisationUnitMap( loadOrganisationUnits( events ) )
+                .trackedEntityInstanceMap( loadTrackedEntityInstances( events ) )
+                .programInstanceMap( loadProgramInstances( events, programMap ) )
+                .programStageInstanceMap( loadProgramStageInstances( events ) )
+                .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
+                .dataElementMap( loadDateElements( events, importOptions) )
+                .assignedUserMap( loadAssignedUsers( events ) )
+                .serviceDelegator( loadServices() )
+                .build();
         // @formatter:on
     }
 
@@ -300,6 +316,7 @@ public class ValidationContextLoader
         return new HashMap<>();
     }
 
+
     private Program getProgramById( long id, Collection<Program> programs )
     {
         for ( Program program : programs )
@@ -436,17 +453,17 @@ public class ValidationContextLoader
         return new HashMap<>();
 
     }
-
-    private Map<String, Program> loadPrograms(String key)
+    private Map<String, Program> loadPrograms()
     {
-        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid as catcombo_uid, c.name as catcombo_name, " +
-                "ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
-            + "from program p\n" + "         LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid\n"
-            + "        LEFT JOIN programstage ps on p.programid = ps.programid\n"
-            + "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid\n"
-            + "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid\n" + "\n"
-            + "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order\n"
-            + "order by p.programid, ps.sort_order;";
+        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n" +
+                "from program p\n" +
+                "         LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid\n" +
+                "        LEFT JOIN programstage ps on p.programid = ps.programid\n" +
+                "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid\n" +
+                "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid\n" +
+                "\n" +
+                "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid , ps.featuretype, ps.sort_order\n" +
+                "order by p.programid, ps.sort_order;";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();
@@ -486,6 +503,7 @@ public class ValidationContextLoader
                 else
                 {
                     results.get( rs.getString( "uid" ) ).getProgramStages().add( toProgramStage( rs ) );
+
                 }
             }
             return results;

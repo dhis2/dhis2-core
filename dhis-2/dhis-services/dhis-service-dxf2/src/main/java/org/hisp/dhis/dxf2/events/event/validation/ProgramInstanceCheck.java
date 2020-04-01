@@ -41,9 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceCheck
-    implements
-    ValidationCheck
+public class ProgramInstanceCheck implements ValidationCheck
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

@@ -33,9 +33,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageCheck
-    implements
-    ValidationCheck
+public class ProgramStageCheck implements ValidationCheck
 {
 
     @Override
@@ -43,8 +41,8 @@ public class ProgramStageCheck
     {
         // TODO luciano shouldn't we also check if program stage belongs to program? -> asked Morten, said probably yes!
 
-        return checkNull( event.getUid(), "Event.programStage does not point to a valid programStage: " + event.getProgramStage(), event);
-
+        return checkNull( event.getUid(),
+            "Event.programStage does not point to a valid programStage: " + event.getProgramStage(), event );
     }
 
     @Override
