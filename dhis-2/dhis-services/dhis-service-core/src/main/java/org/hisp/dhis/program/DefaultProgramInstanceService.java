@@ -35,8 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,14 +52,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Abyot Asalefew
  */
 @Slf4j
 @Service( "org.hisp.dhis.program.ProgramInstanceService" )
 public class DefaultProgramInstanceService
-    implements
-    ProgramInstanceService
+    implements ProgramInstanceService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -210,18 +209,17 @@ public class DefaultProgramInstanceService
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
 
-        TrackedEntityType te = trackedEntityType != null
-            ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType )
-            : null;
+        TrackedEntityType te =
+            trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
 
         if ( trackedEntityType != null && te == null )
         {
             throw new IllegalQueryException( "Tracked entity does not exist: " + program );
         }
 
-        TrackedEntityInstance tei = trackedEntityInstance != null
-            ? trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance )
-            : null;
+        TrackedEntityInstance tei = trackedEntityInstance != null ?
+            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) :
+            null;
 
         if ( trackedEntityInstance != null && tei == null )
         {
@@ -326,26 +324,27 @@ public class DefaultProgramInstanceService
         {
             if ( !aclService.canDataRead( params.getUser(), params.getProgram() ) )
             {
-                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  "
-                    + params.getProgram().getUid() );
+                throw new IllegalQueryException(
+                    "Current user is not authorized to read data from selected program:  " +
+                        params.getProgram().getUid() );
             }
 
-            if ( params.getProgram().getTrackedEntityType() != null
-                && !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
+            if ( params.getProgram().getTrackedEntityType() != null &&
+                !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
             {
                 throw new IllegalQueryException(
-                    "Current user is not authorized to read data from selected program's tracked entity type:  "
-                        + params.getProgram().getTrackedEntityType().getUid() );
+                    "Current user is not authorized to read data from selected program's tracked entity type:  " +
+                        params.getProgram().getTrackedEntityType().getUid() );
             }
 
         }
 
-        if ( params.hasTrackedEntityType()
-            && !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
+        if ( params.hasTrackedEntityType() &&
+            !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException(
-                "Current user is not authorized to read data from selected tracked entity type:  "
-                    + params.getTrackedEntityType().getUid() );
+                "Current user is not authorized to read data from selected tracked entity type:  " +
+                    params.getTrackedEntityType().getUid() );
         }
     }
 
@@ -362,14 +361,14 @@ public class DefaultProgramInstanceService
 
         User user = params.getUser();
 
-        if ( !params.hasOrganisationUnits()
-            && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
+        if ( !params.hasOrganisationUnits() &&
+            !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
         {
             violation = "At least one organisation unit must be specified";
         }
 
-        if ( params.isOrganisationUnitMode( ACCESSIBLE )
-            && (user == null || !user.hasDataViewOrganisationUnitWithFallback()) )
+        if ( params.isOrganisationUnitMode( ACCESSIBLE ) &&
+            (user == null || !user.hasDataViewOrganisationUnitWithFallback()) )
         {
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
         }
@@ -445,8 +444,8 @@ public class DefaultProgramInstanceService
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit,
         String uid )
     {
-        if ( program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
+        if ( program.getTrackedEntityType() != null &&
+            !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException(
                 "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
@@ -485,8 +484,8 @@ public class DefaultProgramInstanceService
     public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate, incidentDate,
-            organisationUnit, CodeGenerator.generateUid() );
+        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
+            incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
@@ -499,7 +498,8 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
 
         ProgramInstance programInstance = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE,
-            enrollmentDate, incidentDate, organisationUnit, uid );
+            enrollmentDate,
+            incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
 
         // ---------------------------------------------------------------------
