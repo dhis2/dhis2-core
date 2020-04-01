@@ -28,31 +28,22 @@ package org.hisp.dhis.dxf2.webmessage.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.Date;
 
 /**
  * Created by vanyas on 5/4/17.
  */
 public class WebMessageParseUtils
 {
-    private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
-    private final static ObjectMapper XML_MAPPER = new XmlMapper();
-
+    private final static ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
 
     public static <T> T fromWebMessageResponse( InputStream input, Class<T> klass ) throws WebMessageParseException
     {
@@ -104,36 +95,5 @@ public class WebMessageParseUtils
         {
             throw new WebMessageParseException( "Could not parse the JSON." + e.getMessage(), e );
         }
-    }
-
-
-    static
-    {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
-        JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        XML_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        JSON_MAPPER.registerModule( module );
-        XML_MAPPER.registerModule( module );
     }
 }

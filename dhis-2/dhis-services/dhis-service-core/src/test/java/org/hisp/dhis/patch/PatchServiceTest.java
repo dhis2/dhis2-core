@@ -28,14 +28,8 @@ package org.hisp.dhis.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
@@ -44,9 +38,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
@@ -59,7 +50,6 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -79,35 +69,8 @@ public class PatchServiceTest
     @Autowired
     private UserService _userService;
 
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
-
-    static
-    {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        jsonMapper.registerModule( module );
-
-        jsonMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-        jsonMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
-        jsonMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
-        jsonMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
-        jsonMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
-
-        jsonMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        jsonMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
-        jsonMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
-
-        jsonMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        jsonMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        jsonMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        jsonMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        jsonMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        jsonMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
-    }
+    @Autowired
+    private ObjectMapper jsonMapper;
 
     @Override
     protected void setUpTest() throws Exception

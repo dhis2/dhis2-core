@@ -233,21 +233,31 @@ public class HibernateProgramInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Query query = getSession().createNativeQuery( "select count(*) from programinstance where uid=? and deleted is false" );
-        query.setParameter( 1, uid );
-        int count = ( (Number) query.getSingleResult() ).intValue();
+        if ( uid == null )
+        {
+            return false;
+        }
 
-        return count > 0;
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programinstance where uid=? and deleted is false)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Query query = getSession().createNativeQuery( "select count(*) from programinstance where uid=?" );
-        query.setParameter( 1, uid );
-        int count = ( (Number) query.getSingleResult() ).intValue();
+        if ( uid == null )
+        {
+            return false;
+        }
 
-        return count > 0;
+        Query query = getSession().createNativeQuery(
+            "select exists(select 1 from programinstance where uid=?)" );
+        query.setParameter( 1, uid );
+
+        return ((Boolean) query.getSingleResult()).booleanValue();
     }
 
     @Override

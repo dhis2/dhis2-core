@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -43,6 +44,7 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -53,7 +55,7 @@ import java.util.Date;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Configuration
-public class CommonsConfig
+public class JacksonObjectMapperConfig
 {
     public static final ObjectMapper jsonMapper = new ObjectMapper();
     public static final ObjectMapper xmlMapper = new XmlMapper();
@@ -71,6 +73,16 @@ public class CommonsConfig
         return xmlMapper;
     }
 
+    public static ObjectMapper staticJsonMapper()
+    {
+        return jsonMapper;
+    }
+
+    public static ObjectMapper staticXmlMapper()
+    {
+        return xmlMapper;
+    }
+
     static
     {
         SimpleModule module = new SimpleModule();
@@ -83,9 +95,9 @@ public class CommonsConfig
         for ( ObjectMapper objectMapper : objectMappers )
         {
             objectMapper.registerModules( module,
-                new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ),
                 new JavaTimeModule(),
-                new Jdk8Module()
+                new Jdk8Module(),
+                new Hibernate5Module()
             );
 
             objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
@@ -104,5 +116,8 @@ public class CommonsConfig
             objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
             objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
         }
+
+        jsonMapper.registerModule( new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ) );
+        xmlMapper.registerModule( new JtsXmlModule() );
     }
 }

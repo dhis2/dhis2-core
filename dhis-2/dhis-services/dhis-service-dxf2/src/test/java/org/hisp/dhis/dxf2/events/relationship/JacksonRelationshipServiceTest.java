@@ -1,19 +1,11 @@
 package org.hisp.dhis.dxf2.events.relationship;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
@@ -28,6 +20,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
@@ -37,6 +30,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.util.HashMap;
+import java.util.Optional;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -71,7 +72,6 @@ import org.mockito.junit.MockitoRule;
  */
 public class JacksonRelationshipServiceTest
 {
-
     @Mock
     protected DbmsManager dbmsManager;
 
@@ -105,6 +105,12 @@ public class JacksonRelationshipServiceTest
     @Mock
     private UserService userService;
 
+    @Mock
+    private ObjectMapper jsonMapper;
+
+    @Mock
+    private ObjectMapper xmlMapper;
+
     @InjectMocks
     private JacksonRelationshipService subject;
 
@@ -130,7 +136,7 @@ public class JacksonRelationshipServiceTest
     {
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
-                .thenReturn( Optional.empty() );
+            .thenReturn( Optional.empty() );
 
         ImportSummary importSummary = subject.addRelationship( relationship, rnd.randomObject( ImportOptions.class ) );
 
@@ -142,11 +148,11 @@ public class JacksonRelationshipServiceTest
     public void verifyRelationshipIsNotImportedWhenDoesExist()
     {
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
-        daoRelationship.setUid("12345");
+        daoRelationship.setUid( "12345" );
 
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
-                .thenReturn( Optional.of( daoRelationship ) );
+            .thenReturn( Optional.of( daoRelationship ) );
 
         ImportSummary importSummary = subject.addRelationship( relationship, rnd.randomObject( ImportOptions.class ) );
 
@@ -193,7 +199,7 @@ public class JacksonRelationshipServiceTest
         from.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         RelationshipItem to = new RelationshipItem();
-        to.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class )  );
+        to.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         relationship.setFrom( from );
         relationship.setTo( to );
