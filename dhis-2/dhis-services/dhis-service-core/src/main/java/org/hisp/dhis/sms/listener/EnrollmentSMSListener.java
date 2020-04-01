@@ -183,7 +183,7 @@ public class EnrollmentSMSListener
         else
         {
             enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
-                orgUnit );
+                orgUnit, enrollmentid.uid );
         }
         if ( enrollment == null )
         {
