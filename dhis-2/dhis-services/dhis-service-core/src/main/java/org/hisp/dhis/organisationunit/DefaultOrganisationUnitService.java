@@ -469,7 +469,7 @@ public class DefaultOrganisationUnitService
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
         return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
-            .get();
+            .orElse( false );
     }
 
     @Override
@@ -505,7 +505,7 @@ public class DefaultOrganisationUnitService
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
         return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE
-            .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).get();
+            .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).orElse( false );
     }
 
     @Override
