@@ -219,7 +219,7 @@ public class EnrollmentSMSListenerTest
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
         when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
             .thenReturn( trackedEntityAttribute );
-        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any() ) )
+        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
             .thenReturn( programInstance );
 
         doAnswer( invocation -> {
