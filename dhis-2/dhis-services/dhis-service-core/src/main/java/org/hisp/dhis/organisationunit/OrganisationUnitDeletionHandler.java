@@ -28,20 +28,25 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
 @Component( "org.hisp.dhis.organisationunit.OrganisationUnitDeletionHandler" )
 public class OrganisationUnitDeletionHandler
-    extends DeletionHandler
+    extends
+    DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
@@ -76,7 +81,17 @@ public class OrganisationUnitDeletionHandler
     {
         for ( OrganisationUnit unit : user.getOrganisationUnits() )
         {
-            unit.getUsers().remove( user );
+            unit.removeUser( user );
+            idObjectManager.updateNoAcl( unit );
+        }
+    }
+
+    @Override
+    public void deleteProgram( Program program )
+    {
+        for ( OrganisationUnit unit : program.getOrganisationUnits() )
+        {
+            unit.removeProgram( program );
             idObjectManager.updateNoAcl( unit );
         }
     }
@@ -86,14 +101,25 @@ public class OrganisationUnitDeletionHandler
     {
         for ( OrganisationUnit unit : group.getMembers() )
         {
-            unit.getGroups().remove( group );
+            unit.removeOrganisationUnitGroup( group );
             idObjectManager.updateNoAcl( unit );
+        }
+    }
+
+    @Override
+    public void deleteOrganisationUnit( OrganisationUnit unit )
+    {
+        if ( unit.getParent() != null )
+        {
+            unit.getParent().getChildren().remove( unit );
+            idObjectManager.updateNoAcl( unit.getParent() );
         }
     }
 
     @Override
     public String allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
-        return unit.getChildren().isEmpty() ? null : ERROR;
+        return unit.getChildren().isEmpty() ? null
+            : unit.getChildren().stream().map( BaseIdentifiableObject::getName ).collect( Collectors.joining( "," ) );
     }
 }

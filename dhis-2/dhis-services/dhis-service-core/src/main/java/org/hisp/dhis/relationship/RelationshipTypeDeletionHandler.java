@@ -1,5 +1,3 @@
-package org.hisp.dhis.commons.config.jackson;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,55 +25,49 @@ package org.hisp.dhis.commons.config.jackson;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
-import java.io.IOException;
-import java.util.Date;
+import java.util.Objects;
 
-import org.hisp.dhis.util.DateUtils;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-public class ParseDateStdDeserializer
+@Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
+public class RelationshipTypeDeletionHandler
     extends
-    JsonDeserializer<Date>
+    DeletionHandler
 {
-    @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private final RelationshipTypeService relationshipTypeService;
+
+    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
     {
-        Date date = null;
+        this.relationshipTypeService = relationshipTypeService;
+    }
 
-        try
-        {
-            date = DateUtils.parseDate( parser.getValueAsString() );
-        }
-        catch ( Exception ignored )
-        {
-        }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-        if ( date == null )
-        {
-            try
-            {
-                date = new Date( parser.getValueAsLong() );
-            }
-            catch ( Exception ignored )
-            {
-            }
-        }
+    @Override
+    public String getClassName()
+    {
+        return RelationshipType.class.getSimpleName();
+    }
 
-        if ( date == null )
-        {
-            throw new IOException(
-                String.format( "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.",
-                    parser.getValueAsString() ) );
-        }
-
-        return date;
+    @Override
+    public void deleteProgram( Program program )
+    {
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
     }
 }
