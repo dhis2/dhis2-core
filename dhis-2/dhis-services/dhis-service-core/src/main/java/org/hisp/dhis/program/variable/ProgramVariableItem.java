@@ -47,6 +47,7 @@ public class ProgramVariableItem
     private final static ImmutableMap<Integer, ProgramVariable> PROGRAM_VARIABLES = ImmutableMap.<Integer, ProgramVariable>builder()
         .put( V_ANALYTICS_PERIOD_END, new vAnalyticsPeriodEnd() )
         .put( V_ANALYTICS_PERIOD_START, new vAnalyticsPeriodStart() )
+        .put( V_COMPLETED_DATE, new vCompletedDate() )
         .put( V_CREATION_DATE, new vCreationDate() )
         .put( V_CURRENT_DATE, new vCurrentDate() )
         .put( V_DUE_DATE, new vDueDate() )
