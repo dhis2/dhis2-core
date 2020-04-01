@@ -39,11 +39,14 @@ import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
 
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 /**
  * This component encapsulates the caching settings and object definitions
@@ -54,10 +57,16 @@ public class WebCache
 {
     private final SystemSettingManager systemSettingManager;
 
-    public WebCache( final SystemSettingManager systemSettingManager )
+    private final AnalyticsCacheSettings analyticsCacheSettings;
+
+    public WebCache( final SystemSettingManager systemSettingManager,
+        final AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( systemSettingManager );
+        checkNotNull( analyticsCacheSettings );
+
         this.systemSettingManager = systemSettingManager;
+        this.analyticsCacheSettings = analyticsCacheSettings;
     }
 
     /**
@@ -96,16 +105,18 @@ public class WebCache
 
     /**
      * Defines and return a CacheControl object with the correct expiration time and
-     * cacheability based on a provided time to live, in SECONDS.
+     * cacheability, based on a provided date, in SECONDS.
      *
-     * @param timeToLive in SECONDS
+     * @param latestEndDate
      *
      * @return a CacheControl object configured based on current cacheability
      *         settings and the provided time to live.
      */
-    public CacheControl getCacheControlFor( final long timeToLive )
+    public CacheControl getCacheControlFor( final Date latestEndDate )
     {
         final CacheControl cacheControl;
+
+        final long timeToLive = analyticsCacheSettings.progressiveExpirationTimeOrDefault( latestEndDate );
 
         if ( timeToLive > 0 )
         {
@@ -119,6 +130,15 @@ public class WebCache
         }
 
         return cacheControl;
+    }
+
+    /**
+     * See {@link AnalyticsCacheSettings#isProgressiveCachingEnabled()}
+     *
+     * @return true if progressive caching is enabled, false otherwise
+     */
+    public boolean isProgressiveCachingEnabled() {
+        return analyticsCacheSettings.isProgressiveCachingEnabled();
     }
 
     /**

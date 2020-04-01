@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics.cache;
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
 import static java.time.ZoneId.systemDefault;
-import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.springframework.util.Assert.isTrue;
 import static org.springframework.util.Assert.notNull;
@@ -59,6 +58,7 @@ public class TimeToLive
     {
         notNull( dateBeforeToday, "Param dateBeforeToday must not be null" );
         isTrue( ttlFactor > 0, "Param ttlFactor must be greater than zero" );
+
         this.dateBeforeToday = dateBeforeToday;
         this.ttlFactor = ttlFactor;
     }

@@ -53,6 +53,9 @@ import static org.mockito.junit.MockitoJUnit.rule;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
 
+import java.util.Date;
+
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -69,6 +72,9 @@ public class WebCacheTest
     @Mock
     private SystemSettingManager systemSettingManager;
 
+    @Mock
+    private AnalyticsCacheSettings analyticsCacheSettings;
+
     @Rule
     public MockitoRule mockitoRule = rule();
 
@@ -77,7 +83,7 @@ public class WebCacheTest
     @Before
     public void setUp()
     {
-        webCache = new WebCache( systemSettingManager );
+        webCache = new WebCache( systemSettingManager, analyticsCacheSettings );
     }
 
     @Test
@@ -116,10 +122,12 @@ public class WebCacheTest
     {
         // Given
         final long zeroTimeToLive = 0;
+        final Date aDate = new Date();
         final CacheControl expectedCacheControl = noCache();
 
         // When
-        final CacheControl actualCacheControl = webCache.getCacheControlFor( zeroTimeToLive );
+        when( analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDate ) ).thenReturn( zeroTimeToLive );
+        final CacheControl actualCacheControl = webCache.getCacheControlFor( aDate );
 
         // Then
         assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
@@ -130,10 +138,12 @@ public class WebCacheTest
     {
         // Given
         final long zeroTimeToLive = -1;
+        final Date aDate = new Date();
         final CacheControl expectedCacheControl = noCache();
 
         // When
-        final CacheControl actualCacheControl = webCache.getCacheControlFor( zeroTimeToLive );
+        when( analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDate ) ).thenReturn( zeroTimeToLive );
+        final CacheControl actualCacheControl = webCache.getCacheControlFor( aDate );
 
         // Then
         assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
@@ -144,12 +154,14 @@ public class WebCacheTest
     {
         // Given
         final long positiveTimeToLive = 60;
+        final Date aDate = new Date();
         final CacheControl expectedCacheControl = stubPublicCacheControl ( positiveTimeToLive );
         final Cacheability setCacheability = PUBLIC;
 
         // When
         when( systemSettingManager.getSystemSetting( CACHEABILITY ) ).thenReturn( setCacheability );
-        final CacheControl actualCacheControl = webCache.getCacheControlFor( positiveTimeToLive );
+        when( analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDate ) ).thenReturn( positiveTimeToLive );
+        final CacheControl actualCacheControl = webCache.getCacheControlFor( aDate );
 
         // Then
         assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );

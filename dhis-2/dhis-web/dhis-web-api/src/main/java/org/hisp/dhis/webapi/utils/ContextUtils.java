@@ -101,15 +101,12 @@ public class ContextUtils
     private static final Pattern CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN = Pattern.compile( "attachment;\\s*filename=\"?([^;\"]+)\"?");
 
     private final WebCache webCache;
-    private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    public ContextUtils( final WebCache webCache, final AnalyticsCacheSettings analyticsCacheSettings )
+    public ContextUtils( final WebCache webCache )
     {
         checkNotNull( webCache );
-        checkNotNull( analyticsCacheSettings );
 
         this.webCache = webCache;
-        this.analyticsCacheSettings = analyticsCacheSettings;
     }
 
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy )
@@ -122,12 +119,11 @@ public class ContextUtils
     {
         // Progressive cache will always take priority.
         if ( RESPECT_SYSTEM_SETTING == cacheStrategy
-            && analyticsCacheSettings.isProgressiveCachingEnabled()
+            && webCache.isProgressiveCachingEnabled()
             && latestEndDate != null )
         {
             // Uses the progressive TTL
-            final CacheControl cacheControl = webCache
-                .getCacheControlFor( analyticsCacheSettings.progressiveExpirationTimeOrDefault( latestEndDate ) );
+            final CacheControl cacheControl = webCache.getCacheControlFor( latestEndDate );
 
             configureResponse( response, contentType, filename, attachment, cacheControl );
         }
