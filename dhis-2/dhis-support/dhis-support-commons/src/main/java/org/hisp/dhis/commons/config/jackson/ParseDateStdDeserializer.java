@@ -28,22 +28,54 @@ package org.hisp.dhis.commons.config.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.util.Date;
+
+import org.hisp.dhis.util.DateUtils;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.hisp.dhis.util.DateUtils;
-
-import java.io.IOException;
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ParseDateStdDeserializer extends JsonDeserializer<Date>
+public class ParseDateStdDeserializer
+    extends
+    JsonDeserializer<Date>
 {
     @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+    public Date deserialize( JsonParser parser, DeserializationContext context )
+        throws IOException
     {
-        return DateUtils.parseDate( parser.getValueAsString() );
+        Date date = null;
+
+        try
+        {
+            date = DateUtils.parseDate( parser.getValueAsString() );
+        }
+        catch ( Exception ignored )
+        {
+        }
+
+        if ( date == null )
+        {
+            try
+            {
+                date = new Date( parser.getValueAsLong() );
+            }
+            catch ( Exception ignored )
+            {
+            }
+        }
+
+        if ( date == null )
+        {
+            throw new IOException(
+                String.format( "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.",
+                    parser.getValueAsString() ) );
+        }
+
+        return date;
     }
 }
