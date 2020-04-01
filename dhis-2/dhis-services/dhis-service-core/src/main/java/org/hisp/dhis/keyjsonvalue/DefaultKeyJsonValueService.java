@@ -28,11 +28,14 @@ package org.hisp.dhis.keyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.hisp.dhis.system.util.JacksonUtils;
-import java.util.List;
+
+import java.io.UncheckedIOException;
 import java.util.Date;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,9 +47,13 @@ public class DefaultKeyJsonValueService
     implements KeyJsonValueService
 {
     private final KeyJsonValueStore keyJsonValueStore;
+    private final ObjectMapper jsonMapper;
 
-    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore )
+    public DefaultKeyJsonValueService(
+        KeyJsonValueStore keyJsonValueStore,
+        ObjectMapper jsonMapper )
     {
+        this.jsonMapper = jsonMapper;
         checkNotNull( keyJsonValueStore );
 
         this.keyJsonValueStore = keyJsonValueStore;
@@ -57,21 +64,21 @@ public class DefaultKeyJsonValueService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> getNamespaces()
     {
         return keyJsonValueStore.getNamespaces();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> getKeysInNamespace( String namespace )
     {
         return keyJsonValueStore.getKeysInNamespace( namespace );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
         return keyJsonValueStore.getKeysInNamespace( namespace, lastUpdated );
@@ -85,19 +92,19 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public KeyJsonValue getKeyJsonValue( String namespace, String key )
     {
         return keyJsonValueStore.getKeyJsonValue( namespace, key );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
     {
         return keyJsonValueStore.getKeyJsonValueByNamespace( namespace );
     }
-   
+
     @Override
     @Transactional
     public long addKeyJsonValue( KeyJsonValue keyJsonValue )
@@ -122,7 +129,7 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public <T> T getValue( String namespace, String key, Class<T> clazz )
     {
         KeyJsonValue value = getKeyJsonValue( namespace, key );
@@ -131,18 +138,34 @@ public class DefaultKeyJsonValueService
         {
             return null;
         }
-        
-        return JacksonUtils.fromJson( value.getJbPlainValue(), clazz );
+
+        try
+        {
+            return jsonMapper.readValue( value.getJbPlainValue(), clazz );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
     }
 
     @Override
     @Transactional
     public <T> void addValue( String namespace, String key, T object )
     {
-        String value = JacksonUtils.toJson( object );
-        
+        String value = null;
+
+        try
+        {
+            value = jsonMapper.writeValueAsString( object );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+
         KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
-        
+
         keyJsonValueStore.save( keyJsonValue );
     }
 
@@ -151,17 +174,26 @@ public class DefaultKeyJsonValueService
     public <T> void updateValue( String namespace, String key, T object )
     {
         KeyJsonValue keyJsonValue = getKeyJsonValue( namespace, key );
-        
+
         if ( keyJsonValue == null )
         {
-            throw new IllegalStateException( String.format( 
+            throw new IllegalStateException( String.format(
                 "No object found for namespace '%s' and key '%s'", namespace, key ) );
         }
 
-        String value = JacksonUtils.toJson( object );
-        
+        String value = null;
+
+        try
+        {
+            value = jsonMapper.writeValueAsString( object );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+
         keyJsonValue.setValue( value );
-        
+
         keyJsonValueStore.update( keyJsonValue );
     }
 }

@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +62,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -69,6 +69,7 @@ import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
 import org.hisp.dhis.webapi.webdomain.form.Form;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -132,6 +133,10 @@ public class DataSetController
     @Autowired
     private InputUtils inputUtils;
 
+    @Autowired
+    @Qualifier( "xmlMapper" )
+    protected ObjectMapper xmlMapper;
+
     // -------------------------------------------------------------------------
     // Controller
     // -------------------------------------------------------------------------
@@ -150,7 +155,7 @@ public class DataSetController
         metadata.setDataSets( (List<DataSet>) metadataMap.get( DataSet.class ) );
         metadata.setCategoryOptionCombos( (List<CategoryOptionCombo>) metadataMap.get( CategoryOptionCombo.class ) );
 
-        InputStream input = new ByteArrayInputStream( DefaultRenderService.getXmlMapper().writeValueAsString( metadata ).getBytes( "UTF-8" ) );
+        InputStream input = new ByteArrayInputStream( xmlMapper.writeValueAsString( metadata ).getBytes( "UTF-8" ) );
 
         TransformerFactory tf = TransformerFactory.newInstance();
         tf.setURIResolver( new ClassPathUriResolver() );

@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
@@ -46,29 +45,22 @@ import static com.cronutils.utils.Preconditions.checkNotNull;
  */
 public abstract class AbstractHibernateListener
 {
-    protected final String[] AUDIT_IGNORE_PROPERTIES = { "userAccesses", "userGroupAccesses", "user", "lastUpdatedBy" };
-
-    final AuditManager auditManager;
-    final AuditObjectFactory objectFactory;
+    protected final AuditManager auditManager;
+    protected final AuditObjectFactory objectFactory;
     private final UsernameSupplier usernameSupplier;
-
-    private final ObjectMapper objectMapper;
 
     public AbstractHibernateListener(
         AuditManager auditManager,
         AuditObjectFactory objectFactory,
-        UsernameSupplier usernameSupplier,
-        ObjectMapper objectMapper )
+        UsernameSupplier usernameSupplier )
     {
         checkNotNull( auditManager );
         checkNotNull( objectFactory );
         checkNotNull( usernameSupplier );
-        checkNotNull( objectMapper );
 
         this.auditManager = auditManager;
         this.objectFactory = objectFactory;
         this.usernameSupplier = usernameSupplier;
-        this.objectMapper = objectMapper;
     }
 
     Optional<Auditable> getAuditable( Object object, String type )

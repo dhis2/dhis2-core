@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.commons.config.jackson.geometry;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,54 +28,39 @@ package org.hisp.dhis.commons.config.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.hisp.dhis.util.DateUtils;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-public class ParseDateStdDeserializer
-    extends
-    JsonDeserializer<Date>
+@Slf4j
+public class XmlGenericGeometryParser
+    extends BaseParser
+    implements GeometryParser<Geometry>
 {
-    @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
+    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
     {
-        Date date = null;
+        super( geometryFactory );
+    }
 
+    public Geometry geometryFromJson( JsonNode node )
+    {
+        WKTReader wktR = new WKTReader();
         try
         {
-            date = DateUtils.parseDate( parser.getValueAsString() );
+            return wktR.read( node.asText() );
         }
-        catch ( Exception ignored )
+        catch ( ParseException e )
         {
+            log.error( "Error reading WKT of geometry", e );
+            return null;
         }
-
-        if ( date == null )
-        {
-            try
-            {
-                date = new Date( parser.getValueAsLong() );
-            }
-            catch ( Exception ignored )
-            {
-            }
-        }
-
-        if ( date == null )
-        {
-            throw new IOException(
-                String.format( "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.",
-                    parser.getValueAsString() ) );
-        }
-
-        return date;
     }
 }

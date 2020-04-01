@@ -1,5 +1,3 @@
-package org.hisp.dhis.node.geometry;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,35 +25,49 @@ package org.hisp.dhis.node.geometry;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
-import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
-import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import java.util.Objects;
+
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Enrico Colasante
  */
-public class JtsXmlModule
-    extends SimpleModule
+@Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
+public class RelationshipTypeDeletionHandler
+    extends
+    DeletionHandler
 {
-    public JtsXmlModule()
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private final RelationshipTypeService relationshipTypeService;
+
+    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
     {
-        this( new GeometryFactory() );
+        this.relationshipTypeService = relationshipTypeService;
     }
 
-    public JtsXmlModule( GeometryFactory geometryFactory )
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
     {
-        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
-        this.addSerializer( Geometry.class, new GeometrySerializer() );
-        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
-        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
+        return RelationshipType.class.getSimpleName();
     }
 
-    public void setupModule( SetupContext context )
+    @Override
+    public void deleteProgram( Program program )
     {
-        super.setupModule( context );
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
     }
 }
