@@ -29,6 +29,8 @@ package org.hisp.dhis.fileresource;
  */
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -40,6 +42,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Sets;
+import org.apache.commons.io.FilenameUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +53,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -64,6 +70,12 @@ public class DefaultFileResourceService
 
     public static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
         ( fr -> !fr.isAssigned() );
+
+    private static final Set<String> CONTENT_TYPE_BLACKLIST = Sets.newHashSet( "text/html",
+        "application/vnd.debian.binary-package", "application/x-rpm", "application/x-ms-dos-executable",
+        "application/vnd.microsoft.portable-executable" );
+
+    private static final Set<String> FILE_EXTENSION_BLACKLIST = Sets.newHashSet( "html", "deb", "rpm", "exe" );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -128,6 +140,8 @@ public class DefaultFileResourceService
     @Transactional
     public void saveFileResource( FileResource fileResource, File file )
     {
+        validateFileResource( fileResource );
+
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
         sessionFactory.getCurrentSession().flush();
@@ -263,6 +277,29 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Validates the given {@link FileResource}. Throws an exception if not.
+     *
+     * @param fileResource the file resource.
+     * @throws IllegalQueryException if the given file resource is invalid.
+     */
+    private void validateFileResource( FileResource fileResource )
+        throws IllegalQueryException
+    {
+        String filename = fileResource.getName();
+
+        if ( filename == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E6100 );
+        }
+
+        if ( CONTENT_TYPE_BLACKLIST.contains( fileResource.getContentType() )
+            || FILE_EXTENSION_BLACKLIST.contains( FilenameUtils.getExtension( filename ) ) )
+        {
+            throw new IllegalQueryException( ErrorCode.E6101 );
+        }
+    }
 
     private FileResource checkStorageStatus( FileResource fileResource )
     {
