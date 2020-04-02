@@ -77,7 +77,7 @@ public class EventBaseCheck
 
     private List<String> validate( Event event, ValidationContext ctx )
     {
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getEvent() );
+        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         ImportOptions importOptions = ctx.getImportOptions();
 
         List<String> errors = new ArrayList<>();

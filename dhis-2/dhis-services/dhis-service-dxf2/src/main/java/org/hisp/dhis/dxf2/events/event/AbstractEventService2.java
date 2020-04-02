@@ -106,8 +106,8 @@ public abstract class AbstractEventService2
             importSummaries
                 .addImportSummaries( addEvents( accumulator.getCreate(), importOptions, validationContext ) );
             // -- old code -- : -- please refactor --
-            importSummaries.addImportSummaries( updateEvents( accumulator.getUpdate(), importOptions, false, true ) );
-            importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(), true ) );
+//            importSummaries.addImportSummaries( updateEvents( accumulator.getUpdate(), importOptions, false, true ) );
+//            importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(), true ) );
         }
 
         if ( jobId != null )
@@ -144,7 +144,9 @@ public abstract class AbstractEventService2
         // @formatter:on
 
         // collect the UIDs of events that did not pass validation
-        List<String> failedUids = importSummaries.getImportSummaries().stream().map( ImportSummary::getReference )
+        List<String> failedUids = importSummaries.getImportSummaries().stream()
+            .filter( i -> i.isStatus( ImportStatus.ERROR ) )
+            .map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
         ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( ctx );
@@ -157,7 +159,10 @@ public abstract class AbstractEventService2
             .collect( Collectors.toList() );
         // @formatter:on
 
-        jdbcEventStore.saveEvents( eventsToPersist );
+        if ( !eventsToPersist.isEmpty() )
+        {
+            jdbcEventStore.saveEvents( eventsToPersist );
+        }
 
         return importSummaries;
     }

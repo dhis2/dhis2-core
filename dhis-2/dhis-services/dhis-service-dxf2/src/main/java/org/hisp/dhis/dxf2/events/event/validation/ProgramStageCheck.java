@@ -62,6 +62,8 @@ public class ProgramStageCheck
             return new ImportSummary( ImportStatus.ERROR, "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );
         }
 
+        event.setProgramStage( programStage.getUid() );
+
         return new ImportSummary();
     }
 
