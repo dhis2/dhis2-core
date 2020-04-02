@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,40 +28,30 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AttributeOptionComboCheck implements ValidationCheck
+public class ProgramStageInstanceMapper
 {
 
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    private ValidationContext validationContext;
+
+    public ProgramStageInstanceMapper( ValidationContext ctx )
     {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getUid() );
-
-        if ( coc != null && coc.isDefault() && program.getCategoryCombo() != null
-            && !program.getCategoryCombo().isDefault() )
-        {
-            ImportSummary importSummary = new ImportSummary( event.getEvent() );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo",
-                "Default attribute option combo is not allowed since program has non-default category combo" ) );
-            importSummary.setStatus( ImportStatus.ERROR );
-            return importSummary.incrementIgnored();
-        }
-
-        return new ImportSummary();
+        this.validationContext = ctx;
     }
 
-    @Override
-    public boolean isFinal()
+    public ProgramStageInstance convert( Event event )
     {
-        return true;
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+
+        programStageInstance.setUid( event.getUid() );
+
+        return programStageInstance;
+
     }
+
 }

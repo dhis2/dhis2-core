@@ -168,6 +168,7 @@ public abstract class AbstractEventService2
             // @formatter:on
         }
 
+
         return importSummaries;
     }
 

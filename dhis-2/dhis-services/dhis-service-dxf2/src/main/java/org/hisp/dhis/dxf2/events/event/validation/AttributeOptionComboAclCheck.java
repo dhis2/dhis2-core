@@ -54,6 +54,7 @@ public class AttributeOptionComboAclCheck
         ImportOptions importOptions = ctx.getImportOptions();
         CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
 
+
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), categoryOptionCombo );
         if ( !errors.isEmpty() )
         {

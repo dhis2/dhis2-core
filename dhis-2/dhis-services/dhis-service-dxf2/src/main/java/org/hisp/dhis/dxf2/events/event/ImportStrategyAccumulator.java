@@ -1,5 +1,4 @@
 package org.hisp.dhis.dxf2.events.event;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -44,7 +43,6 @@ import lombok.Getter;
 @Getter
 public class ImportStrategyAccumulator
 {
-
     private List<Event> create = new ArrayList<>();
 
     private List<Event> update = new ArrayList<>();
@@ -52,7 +50,7 @@ public class ImportStrategyAccumulator
     private List<String> delete = new ArrayList<>();
 
     public ImportStrategyAccumulator partitionEvents( List<Event> events, ImportStrategy importStrategy,
-        Map<String, ProgramStageInstance> existingEvents )
+                                                      Map<String, ProgramStageInstance> existingEvents )
     {
 
         if ( importStrategy.isCreate() )
@@ -92,7 +90,7 @@ public class ImportStrategyAccumulator
     }
 
     private void sortCreatesAndUpdates( Event event, List<Event> create, List<Event> update,
-        Map<String, ProgramStageInstance> existingEvents )
+                                        Map<String, ProgramStageInstance> existingEvents )
     {
         ProgramStageInstance programStageInstance = existingEvents.get( event.getEvent() );
 

@@ -50,6 +50,7 @@ public class UidGenerator
     public List<Event> assignUidToEvents( List<Event> events )
     {
         return events.stream().peek( e -> e.setUid( CodeGenerator.generateUid() ) ).collect( Collectors.toList() );
+
     }
 
 }

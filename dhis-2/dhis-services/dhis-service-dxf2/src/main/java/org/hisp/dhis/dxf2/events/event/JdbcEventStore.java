@@ -137,6 +137,7 @@ public class JdbcEventStore
     public JdbcEventStore( StatementBuilder statementBuilder,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, CurrentUserService currentUserService,
         IdentifiableObjectManager identifiableObjectManager )
+
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
@@ -371,6 +372,7 @@ public class JdbcEventStore
         {
             final List<ProgramStageInstance> batchList = events.subList( i,
                 Math.min( i + INSERT_BATCH_SIZE, events.size() ) );
+
 
             jdbcTemplate.batchUpdate( SQL_INSERT, new BatchPreparedStatementSetter()
             {

@@ -41,6 +41,7 @@ import org.hisp.dhis.dxf2.events.event.preprocess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.update.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboCheck;
+import org.hisp.dhis.dxf2.events.event.validation.EventAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventCreationAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventBaseCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventDateCheck;
@@ -199,6 +200,7 @@ public class ServiceConfig
             ProgramOrgUnitCheck.class,
             EventGeometryCheck.class,
             EventCreationAclCheck.class,
+            EventAclCheck.class,
             EventBaseCheck.class,
             AttributeOptionComboCheck.class,
             AttributeOptionComboAclCheck.class

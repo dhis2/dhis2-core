@@ -122,6 +122,7 @@ public class ValidationContextLoader
                                     CurrentUserService currentUserService,
                                     AttributeOptionComboLoader attributeOptionComboLoader, IdentifiableObjectManager manager,
                                     ProgramRuleVariableService programRuleVariableService, ApplicationEventPublisher applicationEventPublisher )
+
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( programInstanceStore );
@@ -153,6 +154,7 @@ public class ValidationContextLoader
         // @formatter:off
         return WorkContext.builder()
                 .importOptions( importOptions )
+
                 .programsMap( programMap )
                 .organisationUnitMap( loadOrganisationUnits( events ) )
                 .trackedEntityInstanceMap( loadTrackedEntityInstances( events ) )
@@ -230,6 +232,7 @@ public class ValidationContextLoader
                 CategoryOptionCombo coc = attributeOptionComboLoader.getCategoryOptionCombo(idScheme, event.getAttributeOptionCombo());
                 coc.isDefault();
                 eventToCocMap.put( event.getUid(), coc );
+
             }
             // if event has no "attribute option combo", fetch the default aoc
             else if ( StringUtils.isEmpty( event.getAttributeOptionCombo() )
@@ -238,6 +241,7 @@ public class ValidationContextLoader
                 CategoryOptionCombo coc = attributeOptionComboLoader.getDefault();
                 coc.isDefault();
                 eventToCocMap.put( event.getUid(), coc );
+
             }
             else if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isNotEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
@@ -246,6 +250,7 @@ public class ValidationContextLoader
                         event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme);
                 coc.isDefault();
                 eventToCocMap.put( event.getUid(), coc);
+
             }
 
         }
@@ -455,15 +460,13 @@ public class ValidationContextLoader
     }
     private Map<String, Program> loadPrograms()
     {
-        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n" +
-                "from program p\n" +
-                "         LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid\n" +
-                "        LEFT JOIN programstage ps on p.programid = ps.programid\n" +
-                "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid\n" +
-                "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid\n" +
-                "\n" +
-                "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid , ps.featuretype, ps.sort_order\n" +
-                "order by p.programid, ps.sort_order;";
+        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
+            + "from program p\n" + "         LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid\n"
+            + "        LEFT JOIN programstage ps on p.programid = ps.programid\n"
+            + "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid\n"
+            + "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid\n" + "\n"
+            + "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid , ps.featuretype, ps.sort_order\n"
+            + "order by p.programid, ps.sort_order;";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();

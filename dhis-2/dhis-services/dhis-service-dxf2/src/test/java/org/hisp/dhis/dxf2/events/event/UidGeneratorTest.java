@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
@@ -59,12 +59,12 @@ public class UidGeneratorTest
         Event event2 = new Event();
         Event event3 = new Event();
         Event event4 = new Event();
-        event4.setEvent( "aaaaaaa");
+        event4.setEvent( "aaaaaaa" );
 
         List<Event> events = subject.assignUidToEvents( Lists.newArrayList( event1, event2, event3, event4 ) );
 
         assertThat( events, hasSize( 4 ) );
-        events.forEach(e -> assertNotNull( e.getUid() ));
+        events.forEach( e -> assertNotNull( e.getUid() ) );
     }
 
 }

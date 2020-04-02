@@ -661,6 +661,7 @@ public abstract class AbstractEventService
 //            }
         }
 
+
         // FIXME: luciano to-rule -> EventAclCheck
 //        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
 //            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
@@ -1804,7 +1805,6 @@ public abstract class AbstractEventService
 //
 //            return importSummary;
 //        }
-        // TODO luciano end validation block
 
         Date executionDate = null;
 
@@ -1866,14 +1866,11 @@ public abstract class AbstractEventService
         Date eventDate = executionDate != null ? executionDate : dueDate;
 
         // TODO: luciano question -> here we throw an exception, rather than using ImportSummary, why?
-
         validateAttributeOptionComboDate( aoc, eventDate );
-        // TODO luciano end validation block
 
         // FIXME: luciano to-rule -> AttributeOptionComboAclCheck
         errors = trackerAccessManager.canWrite( user, aoc );
         // TODO end access control block
-
 
 //        if ( !errors.isEmpty() )
 //        {
@@ -2036,6 +2033,10 @@ public abstract class AbstractEventService
             //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
+        // TODO: luciano question -> what is this ???
+        eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+        // TODO: luciano question -> why are we calling update after an insert???
+        programStageInstanceService.updateProgramStageInstance( programStageInstance );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, String storedBy )
