@@ -74,7 +74,7 @@ public class TwoFactorAuthenticationProvider
 
         String username = auth.getName();
 
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
+        UserCredentials userCredentials = userService.getUserCredentialsWithEagerFetchAuthorities( username );
 
         if ( userCredentials == null )
         {
