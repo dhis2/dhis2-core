@@ -36,6 +36,7 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author Luciano Fiandesio
  */
-@Component
+@Component( "trackerEventsValidationFactory" )
 @Slf4j
 public class ValidationFactory
 {
@@ -95,7 +96,12 @@ public class ValidationFactory
                 try
                 {
                     ValidationCheck validationCheck = validator.newInstance();
-                    return validationCheck.check( event, ctx );
+                    ImportSummary importSummary = validationCheck.check( event, ctx );
+                    //System.out.println( validationCheck.getClass().getName());
+                    if ( importSummary.isStatus( ImportStatus.ERROR ) )
+                    {
+                        return importSummary;
+                    }
                 }
                 catch ( InstantiationException | IllegalAccessException e )
                 {

@@ -47,7 +47,7 @@ public class AttributeOptionComboCheck
     public ImportSummary check( Event event, ValidationContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getEvent() );
+        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getUid() );
 
         if ( coc != null && coc.isDefault() && program.getCategoryCombo() != null
             && !program.getCategoryCombo().isDefault() )

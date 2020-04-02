@@ -55,24 +55,27 @@ public class ImportStrategyAccumulator
         Map<String, ProgramStageInstance> existingEvents )
     {
 
-        switch ( importStrategy )
+        if ( importStrategy.isCreate() )
         {
-        case CREATE:
             create.addAll( events );
-            break;
-        case CREATE_AND_UPDATE:
+        }
+        else if ( importStrategy.isCreateAndUpdate() )
+        {
             for ( Event event : events )
             {
                 sortCreatesAndUpdates( event, create, update, existingEvents );
             }
-            break;
-        case UPDATE:
+        }
+        else if ( importStrategy.isUpdate() )
+        {
             update.addAll( events );
-            break;
-        case DELETE:
+        }
+        else if ( importStrategy.isDelete() )
+        {
             delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
-            break;
-        case SYNC:
+        }
+        else if ( importStrategy.isSync() )
+        {
             for ( Event event : events )
             {
                 if ( event.isDeleted() )
@@ -84,7 +87,6 @@ public class ImportStrategyAccumulator
                     sortCreatesAndUpdates( event, create, update, existingEvents );
                 }
             }
-            break;
         }
         return this;
     }

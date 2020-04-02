@@ -131,21 +131,25 @@ public class ValidationContextLoader
             if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) )
             {
-                eventToCocMap.put( event.getEvent(),
-                    attributeOptionComboLoader.getCategoryOptionCombo( idScheme, event.getAttributeOptionCombo() ) );
+                CategoryOptionCombo coc = attributeOptionComboLoader.getCategoryOptionCombo(idScheme, event.getAttributeOptionCombo());
+                coc.isDefault();
+                eventToCocMap.put( event.getUid(), coc );
             }
             // if event has no "attribute option combo", fetch the default aoc
             else if ( StringUtils.isEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
             {
-                eventToCocMap.put( event.getEvent(), attributeOptionComboLoader.getDefault() );
+                CategoryOptionCombo coc = attributeOptionComboLoader.getDefault();
+                coc.isDefault();
+                eventToCocMap.put( event.getUid(), coc );
             }
             else if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isNotEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
             {
-                eventToCocMap.put( event.getEvent(),
-                    attributeOptionComboLoader.getAttributeOptionCombo( program.getCategoryCombo(),
-                        event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme ) );
+                CategoryOptionCombo coc = attributeOptionComboLoader.getAttributeOptionCombo(program.getCategoryCombo(),
+                        event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme);
+                coc.isDefault();
+                eventToCocMap.put( event.getUid(), coc);
             }
 
         }
@@ -181,7 +185,7 @@ public class ValidationContextLoader
     private Map<String, ProgramInstance> loadProgramInstances( List<Event> events, Map<String, Program> programMap )
     {
         // @formatter:off
-        // Collect all the org unit uids to pass as SQL query argument
+        // Collect all the program instance UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()
             .filter( e -> e.getEnrollment() != null )
             .map( Event::getEnrollment ).collect( Collectors.toSet() );
@@ -189,27 +193,31 @@ public class ValidationContextLoader
         // Create a bi-directional map tei uid -> org unit id
         Map<String, String> programInstanceToEvent = events.stream()
             .filter( e -> e.getEnrollment() != null )
-            .collect( Collectors.toMap( Event::getEnrollment, Event::getEvent  ) );
+            .collect( Collectors.toMap( Event::getEnrollment, Event::getUid  ) );
         // @formatter:on
 
-        final String sql = "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.uid in (:ids)";
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "ids", programInstanceUids );
+        if ( !programInstanceUids.isEmpty() )
+        {
+            final String sql = "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.uid in (:ids)";
+            MapSqlParameterSource parameters = new MapSqlParameterSource();
+            parameters.addValue( "ids", programInstanceUids );
 
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, ProgramInstance> results = new HashMap<>();
+            return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+                Map<String, ProgramInstance> results = new HashMap<>();
 
-            while ( rs.next() )
-            {
-                ProgramInstance pi = new ProgramInstance();
-                pi.setId( rs.getLong( "programinstanceid" ) );
-                pi.setUid( rs.getString( "uid" ) );
-                pi.setProgram( getProgramById( rs.getLong( "programid" ), programMap.values() ) );
-                results.put( programInstanceToEvent.get( pi.getUid() ), pi );
+                while ( rs.next() )
+                {
+                    ProgramInstance pi = new ProgramInstance();
+                    pi.setId( rs.getLong( "programinstanceid" ) );
+                    pi.setUid( rs.getString( "uid" ) );
+                    pi.setProgram( getProgramById( rs.getLong( "programid" ), programMap.values() ) );
+                    results.put( programInstanceToEvent.get( pi.getUid() ), pi );
 
-            }
-            return results;
-        } );
+                }
+                return results;
+            } );
+        }
+        return new HashMap<>();
     }
 
     private Program getProgramById( long id, Collection<Program> programs )
@@ -235,7 +243,7 @@ public class ValidationContextLoader
         // Create a bi-directional map tei uid -> org unit id
         Map<String, String> teiToEvent = events.stream()
             .filter( e -> e.getTrackedEntityInstance() != null )
-            .collect( Collectors.toMap( Event::getTrackedEntityInstance, Event::getEvent  ) );
+            .collect( Collectors.toMap( Event::getTrackedEntityInstance, Event::getUid  ) );
         // @formatter:on
 
         final String sql = "select tei.trackedentityinstanceid, tei.uid, tei.code from trackedentityinstance tei where tei.uid in (:ids)";
@@ -276,7 +284,7 @@ public class ValidationContextLoader
         // Create a bi-directional map event uid -> org unit uid
         Map<String, String> orgUnitToEvent = events.stream()
             .filter( e -> e.getOrgUnit() != null )
-            .collect( Collectors.toMap( Event::getOrgUnit, Event::getEvent  ) );
+            .collect( Collectors.toMap( Event::getOrgUnit, Event::getUid  ) );
         // @formatter:on
 
         final String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.path, ou.hierarchylevel from organisationunit ou where ou.uid in (:ids)";
@@ -321,39 +329,44 @@ public class ValidationContextLoader
 
         // Create a map user -> event
         Map<String, String> userToEvent = events.stream()
-                .filter( e -> e.getTrackedEntityInstance() != null )
-                .collect( Collectors.toMap( Event::getAssignedUser, Event::getEvent  ) );
+                .filter( e -> e.getAssignedUser() != null )
+                .collect( Collectors.toMap( Event::getAssignedUser, Event::getUid  ) );
         // @formatter:on
 
-        final String sql = "select u.userid, u.uid, u.disabled from users u where u.uid in (:ids);";
+        if ( !userUids.isEmpty() )
+        {
+            final String sql = "select u.userid, u.uid, u.disabled from users u where u.uid in (:ids);";
 
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "ids", userUids );
+            MapSqlParameterSource parameters = new MapSqlParameterSource();
+            parameters.addValue( "ids", userUids );
 
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, User> results = new HashMap<>();
+            return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+                Map<String, User> results = new HashMap<>();
 
-            while ( rs.next() )
-            {
-                User user = new User();
-                user.setId( rs.getLong( "organisationunitid" ) );
-                user.setUid( rs.getString( "uid" ) );
+                while ( rs.next() )
+                {
+                    User user = new User();
+                    user.setId( rs.getLong( "organisationunitid" ) );
+                    user.setUid( rs.getString( "uid" ) );
 
-                results.put( userToEvent.get( user.getUid() ), user );
-            }
-            return results;
-        } );
+                    results.put( userToEvent.get( user.getUid() ), user );
+                }
+                return results;
+            } );
+        }
+        return new HashMap<>();
 
     }
 
     private Map<String, Program> loadPrograms()
     {
-        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
+        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid as catcombo_uid, c.name as catcombo_name, " +
+                "ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
             + "from program p\n" + "         LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid\n"
             + "        LEFT JOIN programstage ps on p.programid = ps.programid\n"
             + "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid\n"
             + "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid\n" + "\n"
-            + "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid , ps.featuretype, ps.sort_order\n"
+            + "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order\n"
             + "order by p.programid, ps.sort_order;";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
@@ -371,9 +384,10 @@ public class ValidationContextLoader
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
 
                     ProgramStage programStage = new ProgramStage();
+                    programStage.setId( rs.getLong( "ps_id"));
                     programStage.setUid( rs.getString( "ps_uid" ) );
                     programStage.setFeatureType( FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) ) );
-                    programStage.setSortOrder( rs.getInt( "ps_sort_order" ) );
+                    programStage.setSortOrder( rs.getInt( "sort_order" ) );
                     programStages.add( programStage );
 
                     CategoryCombo categoryCombo = new CategoryCombo();
@@ -399,7 +413,7 @@ public class ValidationContextLoader
                 {
                     ProgramStage programStage = new ProgramStage();
                     programStage.setUid( rs.getString( "ps_uid" ) );
-                    programStage.setSortOrder( rs.getInt( "ps_sort_order" ) );
+                    programStage.setSortOrder( rs.getInt( "sort_order" ) );
                     results.get( rs.getString( "uid" ) ).getProgramStages().add( programStage );
                 }
             }

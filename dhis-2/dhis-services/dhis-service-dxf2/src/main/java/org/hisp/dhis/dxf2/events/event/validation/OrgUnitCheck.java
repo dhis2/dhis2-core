@@ -42,7 +42,7 @@ public class OrgUnitCheck
     @Override
     public ImportSummary check( Event event, ValidationContext ctx )
     {
-        return checkNull( ctx.getOrganisationUnitMap().get( event.getEvent() ),
+        return checkNull( ctx.getOrganisationUnitMap().get( event.getUid() ),
             "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit(), event );
     }
 

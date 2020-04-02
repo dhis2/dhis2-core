@@ -197,6 +197,9 @@ public class ServiceConfig
     @Bean( "eventValidatorMap" )
     public Map<ImportStrategy, List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>>> eventValidatorMap()
     {
-        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_CHECKS );
+        return ImmutableMap.of(
+            ImportStrategy.CREATE, CREATE_EVENTS_CHECKS,
+            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_CHECKS,
+            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
     }
 }

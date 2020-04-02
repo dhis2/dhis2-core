@@ -344,28 +344,28 @@ public class JdbcEventStore
     {
         final String SQL_INSERT = "insert into programstageinstance (" +
         // @formatter:off
-            "programstageinstanceid, " +    // 1
-            "programinstanceid, " +         // 2
-            "programstageid, " +            // 3
-            "duedate, " +                   // 4
-            "executiondate, " +             // 5
-            "organisationunitid, " +        // 6
-            "status, " +                    // 7
-            "completeddate, " +             // 8
-            "uid, " +                       // 9
-            "created, " +                   // 10
-            "lastupdated, " +               // 11
-            "attributeoptioncomboid, " +    // 12
-            "storedby, " +                  // 13
-            "completedby, " +               // 14
-            "deleted, " +                   // 15
-            "code, " +                      // 16
-            "createdatclient, " +           // 17
-            "lastupdatedatclient, " +       // 18
+            "programstageinstanceid, " +    // 0
+            "programinstanceid, " +         // 1
+            "programstageid, " +            // 2
+            "duedate, " +                   // 3
+            "executiondate, " +             // 4
+            "organisationunitid, " +        // 5
+            "status, " +                    // 6
+            "completeddate, " +             // 7
+            "uid, " +                       // 8
+            "created, " +                   // 9
+            "lastupdated, " +               // 10
+            "attributeoptioncomboid, " +    // 11
+            "storedby, " +                  // 12
+            "completedby, " +               // 13
+            "deleted, " +                   // 14
+            "code, " +                      // 15
+            "createdatclient, " +           // 16
+            "lastupdatedatclient, " +       // 17
             //"geometry, " +                  // 19
-            "assigneduserid) " +            // 19
+            "assigneduserid) " +            // 18
             // @formatter:on
-            "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );";
+            "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );";
 
         for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
         {
@@ -380,27 +380,34 @@ public class JdbcEventStore
                 {
                     ProgramStageInstance event = batchList.get( j );
                     // @formatter:off
-                    pStmt.setLong(      1,  0L ); // TODO how to PK
-                    pStmt.setLong(      2,  event.getProgramInstance().getId() );
-                    pStmt.setLong(      3,  event.getProgramStage().getId() );
-                    pStmt.setTimestamp( 4,  new Timestamp( event.getDueDate().getTime() ) );
-                    pStmt.setTimestamp( 5,  new Timestamp( event.getExecutionDate().getTime() ) );
-                    pStmt.setLong(      6,  event.getOrganisationUnit().getId() );
-                    pStmt.setString(    7,  event.getStatus().toString() );
-                    pStmt.setTimestamp( 8,  new Timestamp( event.getCompletedDate().getTime() ) );
-                    pStmt.setString(    9,  event.getUid() );
-                    pStmt.setTimestamp( 10, null ); // TODO event.getCreated -> who set this?
-                    pStmt.setTimestamp( 11, null ); // TODO event.getLastUpdated() -> who set this?
-                    pStmt.setLong(      12, event.getAttributeOptionCombo().getId() );
-                    pStmt.setString(    13, event.getStoredBy() );
-                    pStmt.setString(    14, event.getCompletedBy() );
-                    pStmt.setBoolean(   15, false ); // TODO: deleted set to false not sure it's correct
-                    pStmt.setString(    16, event.getCode() );
-                    pStmt.setTimestamp( 17, new Timestamp( event.getCreatedAtClient().getTime() ) );
-                    pStmt.setTimestamp( 18, new Timestamp( event.getLastUpdatedAtClient().getTime() ) );
+                    pStmt.setLong(      1,  event.getProgramInstance().getId() );
+                    pStmt.setLong(      2,  event.getProgramStage().getId() );
+                    pStmt.setTimestamp( 3,  new Timestamp( event.getDueDate().getTime() ) );
+                    pStmt.setTimestamp( 4,  new Timestamp( event.getExecutionDate().getTime() ) );
+                    pStmt.setLong(      5,  event.getOrganisationUnit().getId() );
+                    pStmt.setString(    6,  event.getStatus().toString() );
+                    pStmt.setTimestamp( 7,  toTimestamp(event.getCompletedDate() ) );
+                    pStmt.setString(    8,  event.getUid() );
+                    pStmt.setTimestamp( 9, null ); // TODO event.getCreated -> who set this?
+                    pStmt.setTimestamp( 10, null ); // TODO event.getLastUpdated() -> who set this?
+                    pStmt.setLong(      11, event.getAttributeOptionCombo().getId() );
+                    pStmt.setString(    12, event.getStoredBy() );
+                    pStmt.setString(    13, event.getCompletedBy() );
+                    pStmt.setBoolean(   14, false ); // TODO: deleted set to false not sure it's correct
+                    pStmt.setString(    15, event.getCode() );
+                    pStmt.setTimestamp( 16, toTimestamp( event.getCreatedAtClient() ) );
+                    pStmt.setTimestamp( 17, toTimestamp( event.getLastUpdatedAtClient() ) );
                     //pStmt.setObject(    19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
-                    pStmt.setLong(      19, event.getAssignedUser().getId() );
                     // @formatter:on
+                    if ( event.getAssignedUser() != null )
+                    {
+                        pStmt.setLong( 18, event.getAssignedUser().getId() );
+                    }
+                    else
+                    {
+                        pStmt.setObject( 18, null );
+                    }
+
                 }
 
                 @Override
@@ -411,6 +418,18 @@ public class JdbcEventStore
             } );
         }
 
+    }
+
+    private Timestamp toTimestamp( Date date )
+    {
+        if ( date == null )
+        {
+            return null;
+        }
+        else
+        {
+            return new Timestamp( date.getTime() );
+        }
     }
 
     private void validateIdentifiersPresence( SqlRowSet rowSet, IdSchemes idSchemes,
