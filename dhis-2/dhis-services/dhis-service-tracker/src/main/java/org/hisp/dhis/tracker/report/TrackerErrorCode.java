@@ -116,6 +116,9 @@ public enum TrackerErrorCode
     E1100( "User: `{0}`, is lacking F_TEI_CASCADE_DELETE authority to delete tracked entity instance: `{1}`." ),
     E1102( "User: `{0}`, does not have access to the tracked entity: `{1}`, program: `{2}`, combination." ),
 
+    E1103( "User: `{0}`, is lacking F_ENROLLMENT_CASCADE_DELETE authority to delete enrollment : `{1}`." ),
+
+
     E9999( "N/A" );
 
     private String message;

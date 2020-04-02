@@ -28,8 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -37,7 +35,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -61,30 +58,19 @@ public class PreCheckSecurityValidationHook
         return 2;
     }
 
-    @Autowired
-    protected AclService aclService;
-
     @Override
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
         Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
-        TrackedEntityType entityType = getTrackedEntityType( bundle, trackedEntity );
-
-        if ( entityType != null && !aclService.canDataWrite( bundle.getUser(), entityType ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1001 )
-                .addArg( bundle.getUser() )
-                .addArg( entityType ) );
-        }
-
         OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
-        // TODO: Should org unit == NULL be ok?
+        Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+
         // TODO: Added comment to make sure the reason for this not so intuitive reason,
         // This should be better commented and documented somewhere
         // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to tei in search scope 48a82e5f
-        if ( orgUnit != null && !organisationUnitService.isInUserSearchHierarchyCached( bundle.getUser(), orgUnit ) )
+        if ( !organisationUnitService.isInUserSearchHierarchyCached( bundle.getUser(), orgUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )
                 .addArg( bundle.getUser() )
@@ -99,6 +85,7 @@ public class PreCheckSecurityValidationHook
         Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
         {
@@ -114,12 +101,12 @@ public class PreCheckSecurityValidationHook
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
-        // TODO: Should org unit == null be allowed?
-        // TODO: this check is also done in PreCheckSecurityValidationHook:179-186,
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+
+        // TODO: this check is also done in DefaultTrackerImportAccessManager,
         //  one case is laxer and this check will possibly overrule in that case when programStageInstance.isCreatableInSearchScope == TRUE
         //  Investigate....
-        if ( organisationUnit != null &&
-            !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
+        if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )
                 .addArg( bundle.getUser() )

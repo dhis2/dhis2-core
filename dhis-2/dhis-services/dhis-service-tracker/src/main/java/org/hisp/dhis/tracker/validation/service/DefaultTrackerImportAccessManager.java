@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -49,10 +50,13 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_STAGE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
 /**
@@ -80,6 +84,19 @@ public class DefaultTrackerImportAccessManager
         this.organisationUnitService = organisationUnitService;
     }
 
+    public void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,
+        TrackedEntityType trackedEntityType )
+    {
+        Objects.requireNonNull( trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL );
+
+        if ( !aclService.canDataWrite( user, trackedEntityType ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1095 )
+                .addArg( user )
+                .addArg( trackedEntityType ) );
+        }
+    }
+
     @Override
     public void checkReadEnrollmentAccess( ValidationErrorReporter reporter, User user,
         ProgramInstance programInstance )
@@ -90,8 +107,7 @@ public class DefaultTrackerImportAccessManager
 
         checkProgramReadAccess( reporter, user, programInstance.getProgram() );
 
-        // TODO: can we use isReg instead?
-        if ( !programInstance.getProgram().isWithoutRegistration() )
+        if ( programInstance.getProgram().isRegistration() )
         {
             checkTeiTypeAndTeiProgramAccess( reporter, user, programInstance.getEntityInstance(),
                 programInstance.getProgram() );
@@ -112,7 +128,11 @@ public class DefaultTrackerImportAccessManager
         TrackedEntityInstance trackedEntityInstance,
         Program program )
     {
-        //TODO: TeiType
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL );
+
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1092 )
@@ -136,24 +156,12 @@ public class DefaultTrackerImportAccessManager
         Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        //TODO: Investigate, must all program have a tei type?
-        // Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_CANT_BE_NULL );
-
-//        OrganisationUnit ou = programInstance.getOrganisationUnit();
-//        // TODO: Investigate programInstance without ou possible or bug?
-        // TODO: This is already checked in the PreCheckSecurityValidationHook
-//        if ( ou != null && !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-//        {
-//            reporter.addError( newReport( TrackerErrorCode.E1090 )
-//                .addArg( user )
-//                .addArg( ou ) );
-//        }
 
         checkProgramWriteAccess( reporter, user, program );
 
-        // TODO: IS without reg. always same as isReg? or is NULL also a state?
-        if ( !program.isWithoutRegistration() )
+        if ( program.isRegistration() )
         {
+            Objects.requireNonNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
             checkTeiTypeAndTeiProgramAccess( reporter, user, programInstance.getEntityInstance(), program );
         }
     }
@@ -166,13 +174,14 @@ public class DefaultTrackerImportAccessManager
         Objects.requireNonNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance.getProgramStage(), PROGRAM_STAGE_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance.getProgramStage().getProgram(), PROGRAM_CANT_BE_NULL );
+        Objects.requireNonNull( programStageInstance.getOrganisationUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-        // TODO: ou possible? Move to PreCheckSecurityValidationHook?
-        //   See comment about possible double check in PreCheckSecurityValidationHook:validateEvents():121
-        if ( ou != null && (programStageInstance.isCreatableInSearchScope() ?
+
+        // TODO: Get better explanation for isCreatableInSearchScope() what is this
+        if ( programStageInstance.isCreatableInSearchScope() ?
             !organisationUnitService.isInUserSearchHierarchyCached( user, ou )
-            : !organisationUnitService.isInUserHierarchyCached( user, ou )) )
+            : !organisationUnitService.isInUserHierarchyCached( user, ou ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )
                 .addArg( user )

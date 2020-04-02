@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitRepor
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderFormat;
@@ -408,8 +409,8 @@ public class EventImportValidationTest
         assertEquals( 0, trackerBundle.getEnrollments().size() );
     }
 
-    //TODO: Needs clarification, can't test this error: E1082.
-    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
+//    //TODO: Needs clarification, can't test this error: E1082.
+//    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
 //    @Test
 //    public void testProgramStageDeleted()
 //        throws IOException

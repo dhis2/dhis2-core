@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -59,6 +60,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NUL
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
@@ -89,7 +91,6 @@ public class PreCheckOwnershipValidationHook
 
         if ( trackedEntityInstance != null && bundle.getImportStrategy().isDelete() )
         {
-            //TODO: This need clarification and follow up. +Documentation
             Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );
             Objects.requireNonNull( trackedEntityInstance, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
@@ -105,6 +106,9 @@ public class PreCheckOwnershipValidationHook
                     .addArg( trackedEntityInstance ) );
             }
         }
+
+        TrackedEntityType entityType = getTrackedEntityType( bundle, trackedEntity );
+        trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), entityType );
     }
 
     @Override
@@ -122,7 +126,33 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
+        ProgramInstance programInstance;
+        if ( bundle.getImportStrategy().isCreate() )
+        {
+            programInstance = new ProgramInstance( program, tei, organisationUnit );
+        }
+        else
+        {
+            programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+        }
+
+        Objects.requireNonNull( programInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
+
+        if ( bundle.getImportStrategy().isDelete() )
+        {
+            Set<ProgramStageInstance> notDeletedProgramStageInstances = programInstance.getProgramStageInstances()
+                .stream()
+                .filter( psi -> !psi.isDeleted() )
+                .collect( Collectors.toSet() );
+
+            if ( !notDeletedProgramStageInstances.isEmpty()
+                && !bundle.getUser().isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1103 )
+                    .addArg( bundle.getUser() )
+                    .addArg( programInstance ) );
+            }
+        }
 
         trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, bundle.getUser(), program, programInstance );
     }

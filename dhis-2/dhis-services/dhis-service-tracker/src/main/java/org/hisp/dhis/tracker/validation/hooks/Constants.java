@@ -32,6 +32,8 @@ public class Constants
 {
     public static final String TRACKED_ENTITY_CANT_BE_NULL = "TrackedEntity can't be null";
 
+    public static final String TRACKED_ENTITY_TYPE_CANT_BE_NULL = "TrackedEntityType can't be null";
+
     public static final String TRACKER_BUNDLE_CANT_BE_NULL = "TrackerBundle can't be null";
 
     public static final String USER_CANT_BE_NULL = "User can't be null";
@@ -56,9 +58,9 @@ public class Constants
 
     public static final String TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL = "TrackedEntityAttribute can't be null";
 
-    public static final String PROGRAM_STAGE_CANT_BE_NULL = "Program stage can't be null";
+    public static final String PROGRAM_STAGE_CANT_BE_NULL = "ProgramStage can't be null";
 
-    public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL = "Program stage instance can't be null";
+    public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL = "ProgramStageInstance can't be null";
 
-    public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL = "Category combo can't be null";
+    public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL = "CategoryCombo can't be null";
 }
