@@ -28,18 +28,19 @@ package org.hisp.dhis.dxf2.importsummary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -68,6 +69,14 @@ public class ImportSummaries extends AbstractWebMessageResponse
     public void addImportSummaries( ImportSummaries importSummaries )
     {
         importSummaries.getImportSummaries().forEach( this::addImportSummary );
+    }
+
+    public void addImportSummaries( List<ImportSummary> importSummaries )
+    {
+        for ( ImportSummary importSummary : importSummaries )
+        {
+            this.addImportSummary( importSummary );
+        }
     }
 
     public ImportSummaries addImportSummary( ImportSummary importSummary )

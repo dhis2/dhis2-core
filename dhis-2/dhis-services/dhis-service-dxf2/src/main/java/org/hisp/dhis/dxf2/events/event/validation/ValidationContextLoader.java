@@ -42,16 +42,22 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.AttributeOptionComboLoader;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -59,6 +65,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
+ * Responsible for loading the Validation Context cache with enough data to
+ * resolve all validation logic without accessing the database.
+ *
+ *
  * @author Luciano Fiandesio
  */
 @Component
@@ -68,12 +78,24 @@ public class ValidationContextLoader
 
     private final ProgramInstanceStore programInstanceStore;
 
-    public ValidationContextLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ProgramInstanceStore programInstanceStore )
+    private final TrackerAccessManager trackerAccessManager;
+
+    private final AttributeOptionComboLoader attributeOptionComboLoader;
+
+    public ValidationContextLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        ProgramInstanceStore programInstanceStore, TrackerAccessManager trackerAccessManager,
+        AttributeOptionComboLoader attributeOptionComboLoader )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( programInstanceStore );
+        checkNotNull( trackerAccessManager );
+        checkNotNull( attributeOptionComboLoader );
+
         this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
         this.programInstanceStore = programInstanceStore;
+        this.trackerAccessManager = trackerAccessManager;
+        this.attributeOptionComboLoader = attributeOptionComboLoader;
+
     }
 
     public ValidationContext load( ImportOptions importOptions, List<Event> events )
@@ -83,15 +105,78 @@ public class ValidationContextLoader
         return ValidationContext.builder()
             .importOptions( importOptions )
             .programInstanceStore( this.programInstanceStore )
+            .trackerAccessManager( this.trackerAccessManager )
             .programsMap( programMap )
             .organisationUnitMap( loadOrganisationUnits( events ) )
             .trackedEntityInstanceMap( loadTrackedEntityInstances( events ) )
-            .programInstanceMap( loadProgramInstances( events, programMap ))
+            .programInstanceMap( loadProgramInstances( events, programMap ) )
+            .programStageInstanceMap( loadProgramStageInstances( events ) )
+            .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
             .build();
         // @formatter:on
     }
 
-    private Map<String, ProgramInstance> loadProgramInstances(List<Event> events, Map<String, Program> programMap )
+    private Map<String, CategoryOptionCombo> loadCategoryOptionCombos( List<Event> events,
+        Map<String, Program> programMap, ImportOptions importOptions )
+    {
+        IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
+        Map<String, CategoryOptionCombo> eventToCocMap = new HashMap<>();
+        for ( Event event : events )
+        {
+            Program program = programMap.get( event.getProgram() );
+
+            // if event has "attribute option combo" set only, fetch the aoc directly
+            if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
+                && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) )
+            {
+                eventToCocMap.put( event.getEvent(),
+                    attributeOptionComboLoader.getCategoryOptionCombo( idScheme, event.getAttributeOptionCombo() ) );
+            }
+            // if event has no "attribute option combo", fetch the default aoc
+            else if ( StringUtils.isEmpty( event.getAttributeOptionCombo() )
+                && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
+            {
+                eventToCocMap.put( event.getEvent(), attributeOptionComboLoader.getDefault() );
+            }
+            else if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
+                && StringUtils.isNotEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
+            {
+                eventToCocMap.put( event.getEvent(),
+                    attributeOptionComboLoader.getAttributeOptionCombo( program.getCategoryCombo(),
+                        event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme ) );
+            }
+
+        }
+
+        return eventToCocMap;
+    }
+
+    private Map<String, ProgramStageInstance> loadProgramStageInstances( List<Event> events )
+    {
+        Set<String> psiUid = events.stream().map( Event::getEnrollment ).collect( Collectors.toSet() );
+
+        final String sql = "select psi.programinstanceid, psi.uid, psi.status, psi.deleted from programstageinstance psi where psi.uid in (:ids)";
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue( "ids", psiUid );
+
+        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+            Map<String, ProgramStageInstance> results = new HashMap<>();
+
+            while ( rs.next() )
+            {
+                ProgramStageInstance psi = new ProgramStageInstance();
+                psi.setId( rs.getLong( "programinstanceid" ) );
+                psi.setUid( rs.getString( "uid" ) );
+                psi.setStatus( EventStatus.valueOf( rs.getString( "status" ) ) );
+                psi.setDeleted( rs.getBoolean( "deleted" ) );
+                results.put( psi.getUid(), psi );
+
+            }
+            return results;
+        } );
+    }
+
+    private Map<String, ProgramInstance> loadProgramInstances( List<Event> events, Map<String, Program> programMap )
     {
         // @formatter:off
         // Collect all the org unit uids to pass as SQL query argument
@@ -136,7 +221,6 @@ public class ValidationContextLoader
         }
         return null;
     }
-
 
     private Map<String, TrackedEntityInstance> loadTrackedEntityInstances( List<Event> events )
     {
@@ -220,15 +304,13 @@ public class ValidationContextLoader
 
     private Map<String, Program> loadPrograms()
     {
-        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n" +
-                "from program p\n" +
-                "         LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid\n" +
-                "        LEFT JOIN programstage ps on p.programid = ps.programid\n" +
-                "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid\n" +
-                "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid\n" +
-                "\n" +
-                "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid , ps.featuretype, ps.sort_order\n" +
-                "order by p.programid, ps.sort_order;";
+        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
+            + "from program p\n" + "         LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid\n"
+            + "        LEFT JOIN programstage ps on p.programid = ps.programid\n"
+            + "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid\n"
+            + "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid\n" + "\n"
+            + "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid , ps.featuretype, ps.sort_order\n"
+            + "order by p.programid, ps.sort_order;";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();
@@ -246,7 +328,7 @@ public class ValidationContextLoader
 
                     ProgramStage programStage = new ProgramStage();
                     programStage.setUid( rs.getString( "ps_uid" ) );
-                    programStage.setFeatureType( FeatureType.getTypeFromName( rs.getString( "ps_feature_type")));
+                    programStage.setFeatureType( FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) ) );
                     programStage.setSortOrder( rs.getInt( "ps_sort_order" ) );
                     programStages.add( programStage );
 

@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -81,7 +82,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.dxf2.events.event.EventService" )
+//@Service( "org.hisp.dhis.dxf2.events.event.EventService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 public class JacksonEventService extends AbstractEventService
 {
@@ -206,6 +207,11 @@ public class JacksonEventService extends AbstractEventService
         String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
 
         return parseJsonEvents( input );
+    }
+
+    @Override
+    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, ValidationContext validationContext) {
+        return null;
     }
 
     @Override
