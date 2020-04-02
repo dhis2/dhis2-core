@@ -36,8 +36,7 @@ import com.google.common.collect.Sets;
  */
 @Service( "org.hisp.dhis.fileresource.FileResourceService" )
 public class DefaultFileResourceService
-    implements
-    FileResourceService
+    implements FileResourceService
 {
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
