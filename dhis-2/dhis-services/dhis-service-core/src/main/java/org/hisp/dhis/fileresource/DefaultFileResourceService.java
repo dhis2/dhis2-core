@@ -122,7 +122,8 @@ public class DefaultFileResourceService
     @Transactional( readOnly = true )
     public List<FileResource> getFileResources( List<String> uids )
     {
-        return fileResourceStore.getByUid( uids ).stream().map( this::checkStorageStatus )
+        return fileResourceStore.getByUid( uids ).stream()
+            .map( this::checkStorageStatus )
             .collect( Collectors.toList() );
     }
 
@@ -131,7 +132,8 @@ public class DefaultFileResourceService
     public List<FileResource> getOrphanedFileResources()
     {
         return fileResourceStore.getAllLeCreated( new DateTime().minus( IS_ORPHAN_TIME_DELTA ).toDate() ).stream()
-            .filter( IS_ORPHAN_PREDICATE ).collect( Collectors.toList() );
+            .filter( IS_ORPHAN_PREDICATE )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -212,8 +214,7 @@ public class DefaultFileResourceService
     @Override
     @Transactional( readOnly = true )
     public long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException,
-        NoSuchElementException
+        throws IOException, NoSuchElementException
     {
         return fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }

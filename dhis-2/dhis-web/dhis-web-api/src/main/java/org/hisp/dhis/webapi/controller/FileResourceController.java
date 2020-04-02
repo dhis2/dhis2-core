@@ -160,7 +160,7 @@ public class FileResourceController
 
         long contentLength = file.getSize();
 
-        log.info( "Filename: '{}', original filename: '{}', content type: '{}', content length: {}",
+        log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
             filename, file.getOriginalFilename(), file.getContentType(), contentLength );
 
         if ( contentLength <= 0 )
