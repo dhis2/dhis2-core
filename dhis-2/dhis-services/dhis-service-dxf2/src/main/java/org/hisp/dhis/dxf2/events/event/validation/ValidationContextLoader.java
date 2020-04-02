@@ -58,6 +58,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -112,6 +113,7 @@ public class ValidationContextLoader
             .programInstanceMap( loadProgramInstances( events, programMap ) )
             .programStageInstanceMap( loadProgramStageInstances( events ) )
             .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
+            .assignedUserMap( loadAssignedUsers( events ) )
             .build();
         // @formatter:on
     }
@@ -296,6 +298,48 @@ public class ValidationContextLoader
 
                 results.put( orgUnitToEvent.get( ou.getUid() ), ou );
 
+            }
+            return results;
+        } );
+
+    }
+
+    /**
+     *
+     *
+     * @param events
+     * @return
+     */
+    private Map<String, User> loadAssignedUsers( List<Event> events )
+    {
+        // @formatter:off
+        // Collect all the org unit uids to pass as SQL query argument
+        Set<String> userUids = events.stream()
+            .filter( e -> StringUtils.isNotEmpty(e.getAssignedUser()))
+            .map( Event::getAssignedUser )
+            .collect( Collectors.toSet() );
+
+        // Create a map user -> event
+        Map<String, String> userToEvent = events.stream()
+                .filter( e -> e.getTrackedEntityInstance() != null )
+                .collect( Collectors.toMap( Event::getAssignedUser, Event::getEvent  ) );
+        // @formatter:on
+
+        final String sql = "select u.userid, u.uid, u.disabled from users u where u.uid in (:ids);";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue( "ids", userUids );
+
+        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+            Map<String, User> results = new HashMap<>();
+
+            while ( rs.next() )
+            {
+                User user = new User();
+                user.setId( rs.getLong( "organisationunitid" ) );
+                user.setUid( rs.getString( "uid" ) );
+
+                results.put( userToEvent.get( user.getUid() ), user );
             }
             return results;
         } );
