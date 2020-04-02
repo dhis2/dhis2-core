@@ -1,5 +1,8 @@
 package org.hisp.dhis.common;
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -34,13 +37,42 @@ package org.hisp.dhis.common;
 public class IllegalQueryException
     extends RuntimeException
 {
+    private ErrorCode errorCode;
+
     public IllegalQueryException( String message )
     {
         super( message );
     }
-    
-    public IllegalQueryException( String message, Throwable throwable ) 
+
+    /**
+     * Constructor. Sets the message based on the error code message.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     */
+    public IllegalQueryException( ErrorCode errorCode )
     {
-        super( message, throwable );
+        super( errorCode.getMessage() );
+        this.errorCode = errorCode;
+    }
+
+    /**
+     * Constructor. Sets the message and error code based on the error message.
+     *
+     * @param errorMessage the {@link ErrorMessage}.
+     */
+    public IllegalQueryException( ErrorMessage errorMessage )
+    {
+        super( errorMessage.getMessage() );
+        this.errorCode = errorMessage.getErrorCode();
+    }
+
+    /**
+     * Returns the {@link ErrorCode} of the exception.
+     *
+     * @return the {@link ErrorCode} of the exception.
+     */
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
     }
 }
