@@ -37,8 +37,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
  * @author Lars Helge Overland
  */
 public class IllegalQueryException
-    extends
-    RuntimeException
+    extends RuntimeException
 {
     private ErrorCode errorCode;
 
