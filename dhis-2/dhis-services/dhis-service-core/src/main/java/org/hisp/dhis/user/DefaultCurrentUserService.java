@@ -182,12 +182,18 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();
 
         return user != null && user.getUserCredentials().isAuthorized( auth );
+    }
+
+    @Override
+    public UserCredentials getCurrentUserCredentials()
+    {
+        return currentUserStore.getUserCredentialsByUsername( getCurrentUsername() );
     }
 
     @Override

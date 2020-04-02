@@ -31,46 +31,63 @@ package org.hisp.dhis.deletedobject.hibernate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.StatelessSession;
-import org.hibernate.event.spi.PostCommitDeleteEventListener;
-import org.hibernate.event.spi.PostDeleteEvent;
+import org.hibernate.event.spi.PostCommitInsertEventListener;
+import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @Component
-public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEventListener
+public class DeletedObjectPostInsertEventListener
+    implements PostCommitInsertEventListener
 {
-    private static final Log log = LogFactory.getLog( DeletedObjectPostDeleteEventListener.class );
+    private static final Log log = LogFactory.getLog( DeletedObjectPostInsertEventListener.class );
+
+    private final DeletedObjectService deletedObjectService;
+
+    public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService )
+    {
+        checkNotNull( deletedObjectService );
+        this.deletedObjectService = deletedObjectService;
+    }
 
     @Override
-    public void onPostDelete( PostDeleteEvent event )
+    public boolean requiresPostCommitHanding( EntityPersister persister )
+    {
+        return true;
+    }
+
+    @Override
+    public void onPostInsert( PostInsertEvent event )
     {
         if ( IdentifiableObject.class.isInstance( event.getEntity() )
             && MetadataObject.class.isInstance( event.getEntity() )
             && !EmbeddedObject.class.isInstance( event.getEntity() ) )
         {
-            IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
-            DeletedObject deletedObject = new DeletedObject( identifiableObject );
-            deletedObject.setDeletedBy( getUsername() );
-
             StatelessSession session = event.getPersister().getFactory().openStatelessSession();
             session.beginTransaction();
 
             try
             {
-                session.insert( deletedObject );
+                List<DeletedObject> deletedObjects = deletedObjectService
+                    .getDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) event.getEntity() ) );
+
+                deletedObjects.forEach( deletedObject -> session.delete( deletedObject ) );
+
                 session.getTransaction().commit();
             }
             catch ( Exception ex )
             {
-                log.error( "Failed to save DeletedObject: "+ deletedObject );
+                log.error( "Failed to delete DeletedObject for:" + event.getEntity() );
                 session.getTransaction().rollback();
             }
             finally
@@ -81,19 +98,8 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
     }
 
     @Override
-    public boolean requiresPostCommitHanding( EntityPersister persister )
+    public void onPostInsertCommitFailed( PostInsertEvent event )
     {
-        return true;
-    }
-
-    private String getUsername()
-    {
-        return UserContext.haveUser() ? UserContext.getUser().getUsername() : "system-process";
-    }
-
-    @Override
-    public void onPostDeleteCommitFailed( PostDeleteEvent event )
-    {
-        log.debug( "onPostDeleteCommitFailed: " + event );
+        log.debug( "onPostInsertCommitFailed: " + event );
     }
 }

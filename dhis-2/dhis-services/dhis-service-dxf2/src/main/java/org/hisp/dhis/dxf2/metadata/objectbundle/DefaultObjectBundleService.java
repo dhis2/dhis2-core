@@ -28,6 +28,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -197,7 +204,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             objectBundleHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
 
-            if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
+            if ( FlushMode.AUTO == bundle.getFlushMode() )
+            {
+                session.flush();
+            }
         }
 
         if ( !bundle.getImportMode().isDelete() )
@@ -268,7 +278,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -342,7 +354,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         session.flush();
@@ -385,11 +399,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
 
-            if ( object instanceof MetadataObject )
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
-
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 
             if ( log.isDebugEnabled() )
@@ -400,7 +409,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
+            {
                 session.flush();
+            }
         }
 
         return typeReport;

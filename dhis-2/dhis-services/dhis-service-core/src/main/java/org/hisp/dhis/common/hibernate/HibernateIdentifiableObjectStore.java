@@ -61,6 +61,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.context.ApplicationEventPublisher;
@@ -208,7 +209,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void save( T object, boolean clearSharing )
     {
-        User user = currentUserService.getCurrentUser();
+        User user = getCurrentUser();
 
         String username = user != null ? user.getUsername() : "system-process";
 
@@ -270,11 +271,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
 
         getSession().save( object );
-
-        if (object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-        }
     }
 
     @Override
@@ -314,17 +310,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             getSession().update( object );
         }
-
-        if ( object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-        }
     }
 
     @Override
     public void delete( T object )
     {
-        this.delete( object, currentUserService.getCurrentUser() );
+        this.delete( object, getCurrentUser() );
     }
 
     @Override
@@ -351,7 +342,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         T object = getSession().get( getClazz(), id );
 
-        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
+        if ( !isReadAllowed( object, getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( object.toString() );
@@ -1371,5 +1362,17 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void flush()
     {
         getSession().flush();
+    }
+
+    private User getCurrentUser()
+    {
+        UserCredentials userCredentials = currentUserService.getCurrentUserCredentials();
+
+        if ( userCredentials != null )
+        {
+            return userCredentials.getUser();
+        }
+
+        return null;
     }
 }

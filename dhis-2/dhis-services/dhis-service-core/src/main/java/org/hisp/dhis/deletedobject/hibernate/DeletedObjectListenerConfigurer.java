@@ -1,7 +1,7 @@
 package org.hisp.dhis.deletedobject.hibernate;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +28,41 @@ package org.hisp.dhis.deletedobject.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.boot.Metadata;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
-import org.hibernate.integrator.spi.Integrator;
-import org.hibernate.service.spi.SessionFactoryServiceRegistry;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class DeletedObjectIntegrator implements Integrator
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
+@Component
+public class DeletedObjectListenerConfigurer
 {
-    @Override
-    public void integrate( Metadata metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
-    {
-        final EventListenerRegistry registry = serviceRegistry.getService( EventListenerRegistry.class );
+    @PersistenceUnit
+    private EntityManagerFactory emf;
 
-        DeletedObjectPostDeleteEventListener listener = new DeletedObjectPostDeleteEventListener();
-        registry.appendListeners( EventType.POST_DELETE, listener );
+    private final DeletedObjectPostInsertEventListener insertEventListener;
+
+    private final DeletedObjectPostDeleteEventListener deleteEventListener;
+
+    public DeletedObjectListenerConfigurer( DeletedObjectPostInsertEventListener insertEventListener,
+        DeletedObjectPostDeleteEventListener deleteEventListener )
+    {
+        this.deleteEventListener = deleteEventListener;
+        this.insertEventListener = insertEventListener;
     }
 
-    @Override
-    public void disintegrate( SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
+    @PostConstruct
+    protected void init()
     {
+        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
 
+        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
+
+        registry.getEventListenerGroup( EventType.POST_COMMIT_INSERT ).appendListener( insertEventListener );
+
+        registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( deleteEventListener );
     }
 }
