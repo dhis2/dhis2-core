@@ -1956,6 +1956,7 @@ public abstract class AbstractEventService
 
         programStageInstance.setStatus( EventStatus.fromInt( status ) );
 
+        // TODO: luciano handle saving notes
         saveTrackedEntityComment( programStageInstance, event, storedBy );
 
         if ( programStageInstance.isCompleted() )
@@ -2023,6 +2024,7 @@ public abstract class AbstractEventService
         {
             if ( importSummary != null )
             {
+                // TODO: luciano this should be moved to the new logic
                 importSummary.getConflicts().add( new ImportConflict( "Username",
                     userName + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }

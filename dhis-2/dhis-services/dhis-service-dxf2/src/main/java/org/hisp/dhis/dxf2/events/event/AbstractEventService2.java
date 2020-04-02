@@ -40,6 +40,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
