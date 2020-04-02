@@ -49,7 +49,7 @@ public class EventAclCheck
     {
         ImportOptions importOptions = ctx.getImportOptions();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getEvent() ) );
+        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
         programStageInstance.setStatus( event.getStatus() );
 
         List<String> errors = ctx.getTrackerAccessManager().canCreate( importOptions.getUser(),  programStageInstance, false);

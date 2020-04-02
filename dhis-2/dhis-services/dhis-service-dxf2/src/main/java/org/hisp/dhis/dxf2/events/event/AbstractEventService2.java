@@ -111,6 +111,7 @@ public abstract class AbstractEventService2
             // importOptions, false, true ) );
             // importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(),
             // true ) );
+
         }
 
         if ( jobId != null )
@@ -152,6 +153,7 @@ public abstract class AbstractEventService2
         // collect the UIDs of events that did not pass validation
         List<String> failedUids = importSummaries.getImportSummaries().stream()
             .filter( i -> i.isStatus( ImportStatus.ERROR ) ).map( ImportSummary::getReference )
+
             .collect( Collectors.toList() );
 
         if ( failedUids.isEmpty() )
