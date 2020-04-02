@@ -39,8 +39,7 @@ import org.junit.Test;
 import java.util.Date;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -93,7 +92,12 @@ public class JacksonObjectMapperConfigTest
         String payload = jsonMapper.writeValueAsString( user );
         User testUser = jsonMapper.readValue( payload, User.class );
 
+        assertNotNull( user.getUser() );
+        assertNotNull( user.getLastUpdatedBy() );
+
         assertEquals( user.getUid(), testUser.getUid() );
+        assertEquals( user.getUid(), user.getUser().getUid() );
+        assertEquals( user.getUid(), user.getLastUpdatedBy().getUid() );
     }
 
     private String createDateTest( String str )
