@@ -1,4 +1,4 @@
-package org.hisp.dhis.db.migration.v34;
+package org.hisp.dhis.db.migration.v35;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -57,15 +57,15 @@ import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public class V2_34_19__Update_data_sync_job_parameters_with_system_setting_value extends BaseJavaMigration
+public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_34_19__Update_data_sync_job_parameters_with_system_setting_value.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_35_2__Update_data_sync_job_parameters_with_system_setting_value.class );
     private static final String DATA_VALUES_SYNC_PAGE_SIZE_KEY = "syncDataValuesPageSize";
 
     private final ObjectReader reader;
     private final ObjectWriter writer;
 
-    public V2_34_19__Update_data_sync_job_parameters_with_system_setting_value()
+    public V2_35_2__Update_data_sync_job_parameters_with_system_setting_value()
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
