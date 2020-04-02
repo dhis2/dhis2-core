@@ -513,7 +513,10 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @PostMapping( consumes = { "application/xml", "application/json" } )
-    public void postEvent(ImportStrategy strategy, ImportOptions importOptions, @RequestHeader("Accept") MediaType accept, HttpServletRequest request,
+    public void postEvent(@RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+                          ImportOptions importOptions,
+                          @RequestHeader("Accept") MediaType accept,
+                          HttpServletRequest request,
                           HttpServletResponse response )
         throws Exception
     {
@@ -524,10 +527,10 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = accept.isCompatibleWith( MediaType.APPLICATION_XML )
-                ? eventService.addEventsXml( inputStream, importOptions )
-                : eventService.addEventsJson( inputStream, importOptions );
-
+//            ImportSummaries importSummaries = accept.isCompatibleWith( Me )
+//                ? eventService.addEventsXml( inputStream, importOptions )
+//                : eventService.addEventsJson( inputStream, importOptions );
+            ImportSummaries importSummaries = eventService.addEventsJson(inputStream, importOptions);
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream().filter( importSummary -> !importOptions.isDryRun()
