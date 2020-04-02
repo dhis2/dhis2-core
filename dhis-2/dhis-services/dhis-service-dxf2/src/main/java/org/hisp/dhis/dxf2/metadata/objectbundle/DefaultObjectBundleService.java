@@ -381,11 +381,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
 
-            if (object instanceof MetadataObject)
-            {
-                deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-            }
-
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 
             if ( log.isDebugEnabled() )

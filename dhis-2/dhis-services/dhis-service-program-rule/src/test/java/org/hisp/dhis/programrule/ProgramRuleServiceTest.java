@@ -29,13 +29,18 @@ package org.hisp.dhis.programrule;
  */
 
 import com.google.common.collect.Sets;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.HashSet;
 import java.util.List;
@@ -72,6 +77,12 @@ public class ProgramRuleServiceTest
 
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
+
+    @Autowired
+    private DeletedObjectStore deletedObjectStore;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -421,6 +432,41 @@ public class ProgramRuleServiceTest
 
         assertNull( programRuleService.getProgramRule( idI ) );
         assertNull( programRuleService.getProgramRule( idJ ) );
+    }
+
+    @Test
+    public void testDeleteDeletedObjectWithCascade()
+    {
+        ProgramRule programRule = createProgramRule( 'A', programA );
+
+        ProgramRuleAction programRuleAction = createProgramRuleAction( 'D' );
+        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleAction.setProgramRule( programRule );
+
+        programRule.setProgramRuleActions( Sets.newHashSet(programRuleAction) );
+
+        programRuleService.addProgramRule( programRule );
+
+        String programRuleUID = programRule.getUid();
+        String programRuleActionUID = programRuleAction.getUid();
+
+        programRuleService.deleteProgramRule( programRule );
+
+        ProgramRule programRule1 = createProgramRule( 'A', programA );
+        programRule1.setUid( programRuleUID );
+
+        ProgramRuleAction programRuleAction1 = createProgramRuleAction( 'D' );
+        programRuleAction1.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleAction1.setProgramRule( programRule1 );
+        programRuleAction1.setUid( programRuleActionUID );
+
+        programRule1.setProgramRuleActions( Sets.newHashSet( programRuleAction1 ) );
+
+        programRuleService.addProgramRule( programRule1 );
+
+        programRuleService.deleteProgramRule( programRule1 );
+
+        assertNotNull( deletedObjectStore.query( new DeletedObjectQuery( programRule1 ) ) );
     }
 
     /*TODO: Fix the functionality for 2 level cascading deletes.

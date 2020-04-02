@@ -75,8 +75,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.ValidationResult;
+import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationRuleStore;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -107,7 +109,6 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Henning Haakonsen
  */
-@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends IntegrationTestBase
 {
@@ -153,10 +154,10 @@ public class AnalyticsServiceTest
     private ExpressionService expressionService;
 
     @Autowired
-    private ValidationRuleStore validationRuleStore;
+    private ValidationRuleService validationRuleService;
 
     @Autowired
-    private ValidationResultStore validationResultStore;
+    private ValidationResultService validationResultService;
 
     @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
@@ -410,8 +411,8 @@ public class AnalyticsServiceTest
 
         ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRC, expressionVRD, periodType );
         validationRuleB.setUid( "a234567vruB" );
-        validationRuleStore.save( validationRuleA );
-        validationRuleStore.save( validationRuleB );
+        validationRuleService.saveValidationRule( validationRuleA );
+        validationRuleService.saveValidationRule( validationRuleB );
 
         Date today = new Date();
         ValidationResult validationResultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0, 2.0, 3 );
@@ -429,13 +430,7 @@ public class AnalyticsServiceTest
         validationResultBBB.setCreated( today );
         ValidationResult validationResultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0, 2.0, 3 );
 
-        validationResultStore.save( validationResultAA );
-        validationResultStore.save( validationResultAB );
-        validationResultStore.save( validationResultBB );
-        validationResultStore.save( validationResultBA );
-        validationResultStore.save( validationResultBAB );
-        validationResultStore.save( validationResultBBB );
-        validationResultStore.save( validationResultBBA );
+        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA, validationResultAB, validationResultBB, validationResultBA, validationResultBAB, validationResultBBB,validationResultBBA ) );
 
         Thread.sleep( 1000 ); //to ensure that Hibernate has flushed validation results before generating tables.
 
