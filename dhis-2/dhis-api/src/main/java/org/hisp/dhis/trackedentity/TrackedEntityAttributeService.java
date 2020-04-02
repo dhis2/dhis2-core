@@ -43,6 +43,12 @@ public interface TrackedEntityAttributeService
     String ID = TrackedEntityAttributeService.class.getName();
 
     /**
+     * The max length of a value. This is also naturally constrained by the database table, due to the
+     * data type: varchar(1200).
+     */
+    int TEA_VALUE_MAX_LENGTH = 1200;
+
+    /**
      * Adds an {@link TrackedEntityAttribute}
      *
      * @param attribute The to TrackedEntityAttribute add.
