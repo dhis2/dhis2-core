@@ -32,12 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -61,15 +56,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.query.Query;
@@ -107,9 +94,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-
+import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -1214,6 +1201,12 @@ public abstract class AbstractEnrollmentService
                 importConflicts.add( new ImportConflict( "Attribute.attribute", "Missing mandatory attribute "
                     + trackedEntityAttribute.getUid() ) );
                 continue;
+            }
+
+            if ( attributeValueMap.get( trackedEntityAttribute.getUid() ).length() > TEA_VALUE_MAX_LENGTH )
+            {
+                // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
+                importConflicts.add( new ImportConflict( "Attribute.value", String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH, attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) ) ) );
             }
 
             if ( trackedEntityAttribute.isUnique() )
