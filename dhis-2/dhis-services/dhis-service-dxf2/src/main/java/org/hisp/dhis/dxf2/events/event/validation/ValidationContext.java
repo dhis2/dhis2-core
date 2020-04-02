@@ -31,16 +31,19 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 
 /**
  * @author Luciano Fiandesio
@@ -77,7 +80,13 @@ public class ValidationContext
      */
     private Map<String, ProgramInstance> programInstanceMap;
 
+    private Map<String, ProgramStageInstance> programStageInstanceMap;
+
+    private Map<String, CategoryOptionCombo> categoryOptionComboMap;
+
     private ProgramInstanceStore programInstanceStore;
+
+    private TrackerAccessManager trackerAccessManager;
 
     /**
      * Checks within all the cached program for a ProgramStage having the

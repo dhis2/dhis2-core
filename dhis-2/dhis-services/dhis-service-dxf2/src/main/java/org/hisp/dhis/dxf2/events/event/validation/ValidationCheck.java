@@ -51,9 +51,4 @@ public interface ValidationCheck
 
         return new ImportSummary();
     }
-
-    default ValidationContext.EventReferenceHolder get( ValidationContext ctx, Event event )
-    {
-        return ctx.getReferenceHolderMap().get( event.getUid() );
-    }
 }

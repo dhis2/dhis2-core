@@ -589,7 +589,7 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
+            ImportSummaries importSummaries = null; // eventService.addEvents( events.getEvents(), importOptions, null );
             importSummaries.setImportOptions( importOptions );
             webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }

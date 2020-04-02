@@ -36,11 +36,27 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.util.DateUtils.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -55,6 +71,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
@@ -64,6 +81,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
@@ -110,6 +128,8 @@ public class JdbcEventStore
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager manager;
+
+    private final int INSERT_BATCH_SIZE = 100;
 
     public JdbcEventStore( StatementBuilder statementBuilder, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager )
@@ -309,6 +329,87 @@ public class JdbcEventStore
 
         return events;
     }
+
+    public void saveEvents( List<ProgramStageInstance> events )
+    {
+        final String SQL_INSERT = "insert into programstageinstance (" +
+                "programstageinstanceid, " +    // 1
+                "programinstanceid, " +         // 2
+                "programstageid, " +            // 3
+                "duedate, " +                   // 4
+                "executiondate, " +             // 5
+                "organisationunitid, " +        // 6
+                "status, " +                    // 7
+                "completeddate, " +             // 8
+                "uid, " +                       // 9
+                "created, " +                   // 10
+                "lastupdated, " +               // 11
+                "attributeoptioncomboid, " +    // 12
+                "storedby, " +                  // 13
+                "completedby, " +               // 14
+                "deleted, " +                   // 15
+                "code, " +                      // 16
+                "createdatclient, " +           // 17
+                "lastupdatedatclient, " +       // 18
+                "geometry, " +                  // 19
+                "assigneduserid) " +            // 20
+                "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );";
+
+        for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
+        {
+            final List<ProgramStageInstance> batchList = events.subList( i, Math.min( i + INSERT_BATCH_SIZE, events.size() ) );
+
+            jdbcTemplate.batchUpdate( SQL_INSERT, new BatchPreparedStatementSetter()
+            {
+                @Override
+                public void setValues( PreparedStatement pStmt, int j )
+                    throws SQLException
+                {
+                    ProgramStageInstance event = batchList.get( j );
+                    pStmt.setLong( 1, 0L ); // TODO how to PK
+                    pStmt.setLong( 2, event.getProgramInstance().getId() ); // program instance id
+                    pStmt.setLong( 3, event.getProgramStage().getId() ); // program stage id
+                    pStmt.setTimestamp( 4, new Timestamp( event.getDueDate().getTime() ) );
+                    pStmt.setTimestamp( 5, new Timestamp( event.getExecutionDate().getTime() ) );
+                    pStmt.setLong( 6, event.getOrganisationUnit().getId() ); // org unit id
+                    pStmt.setString( 7, event.getStatus().toString() );
+                    pStmt.setTimestamp( 8, null ); // completed date -> see handle completed date
+                    pStmt.setString( 9, event.getUid() );
+                    pStmt.setTimestamp( 10, null ); // event.getCreated -> who set this?
+                    pStmt.setTimestamp( 11, null ); // event.getLastUpdated() -> who set this?
+                    pStmt.setLong( 12, 0L ); // event.getAttributeOptionCombo() -> get id
+                    pStmt.setString( 13, event.getStoredBy() );
+                    pStmt.setString( 14, event.getCompletedBy() );
+                    pStmt.setBoolean( 15, false ); // TODO: deleted set to false not sure it's correct
+                    pStmt.setString( 16, "" ); // TODO: code should be pre-generated
+                    pStmt.setTimestamp( 17,  new Timestamp(event.getCreatedAtClient().getTime()) );
+                    pStmt.setTimestamp( 18,  new Timestamp(event.getLastUpdatedAtClient().getTime())  );
+                    pStmt.setObject( 19,  event.getGeometry() ); // TODO this will not work, figure out how to handle that
+                    pStmt.setLong( 20,  event.getAssignedUser().getId() );
+
+                }
+
+                @Override
+                public int getBatchSize()
+                {
+                    return batchList.size();
+                }
+            } );
+        }
+
+    }
+
+    // handle completed date ...
+//    if ( programStageInstance.isCompleted() )
+//    {
+//        Date completedDate = new Date();
+//        if ( event.getCompletedDate() != null )
+//        {
+//            completedDate = DateUtils.parseDate( event.getCompletedDate() );
+//        }
+//        programStageInstance.setCompletedBy( completedBy );
+//        programStageInstance.setCompletedDate( completedDate );
+//    }
 
     private void validateIdentifiersPresence( SqlRowSet rowSet, IdSchemes idSchemes,
         boolean validateCategoryOptionCombo )
