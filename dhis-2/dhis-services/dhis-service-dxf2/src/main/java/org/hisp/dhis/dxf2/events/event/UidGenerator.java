@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,43 +28,27 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AttributeOptionComboCheck
-    implements
-    ValidationCheck
+public class UidGenerator
 {
-
-    @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public List<Event> assignUidToEvents( List<Event> events )
     {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getEvent() );
-
-        if ( coc != null && coc.isDefault() && program.getCategoryCombo() != null
-            && !program.getCategoryCombo().isDefault() )
-        {
-            ImportSummary importSummary = new ImportSummary( event.getEvent() );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo",
-                "Default attribute option combo is not allowed since program has non-default category combo" ) );
-            importSummary.setStatus( ImportStatus.ERROR );
-            return importSummary.incrementIgnored();
-        }
-
-        return new ImportSummary();
+        return events.stream().peek( e -> {
+            if ( StringUtils.isEmpty( e.getEvent() ) )
+            {
+                final String uid = CodeGenerator.generateUid();
+                e.setEvent( uid );
+                e.setUid( uid); // TODO is it correct to assign event uid here?
+            }
+        } ).collect( Collectors.toList() );
     }
 
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
 }

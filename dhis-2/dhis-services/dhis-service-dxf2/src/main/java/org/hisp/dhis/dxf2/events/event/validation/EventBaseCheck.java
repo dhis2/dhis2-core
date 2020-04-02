@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.util.DateUtils;
@@ -76,11 +77,10 @@ public class EventBaseCheck
 
     private List<String> validate( Event event, ValidationContext ctx )
     {
-        List<String> errors = new ArrayList<>();
-
-        String programInstanceStatus = get( ctx, event ).getProgramInstanceStatus();
-        Date programInstanceEndDate = get( ctx, event ).getProgramInstanceEndDate();
+        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getEvent() );
         ImportOptions importOptions = ctx.getImportOptions();
+
+        List<String> errors = new ArrayList<>();
 
         if ( event.getDueDate() != null && !DateUtils.dateIsValid( event.getDueDate() ) )
         {
@@ -102,7 +102,7 @@ public class EventBaseCheck
             errors.add( "Invalid event last updated at client date: " + event.getLastUpdatedAtClient() );
         }
 
-        if ( programInstanceStatus.equals( ProgramStatus.COMPLETED.name() ) )
+        if ( programInstance.getStatus().equals( ProgramStatus.COMPLETED ) )
         {
             if ( importOptions == null || importOptions.getUser() == null
                 || importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
@@ -119,13 +119,14 @@ public class EventBaseCheck
 
             referenceDate = DateUtils.removeTimeStamp( referenceDate );
 
-            if ( referenceDate.after( DateUtils.removeTimeStamp( programInstanceEndDate ) ) )
+            if ( referenceDate.after( DateUtils.removeTimeStamp( programInstance.getEndDate() ) ) )
             {
                 errors.add( "Not possible to add event to a completed enrollment. Event created date ( " + referenceDate
-                    + " ) is after enrollment completed date ( " + DateUtils.removeTimeStamp( programInstanceEndDate )
-                    + " )." );
+                    + " ) is after enrollment completed date ( "
+                    + DateUtils.removeTimeStamp( programInstance.getEndDate() ) + " )." );
             }
         }
+
         return errors;
     }
 }

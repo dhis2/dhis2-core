@@ -1,4 +1,15 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,43 +39,45 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
-
 /**
  * @author Luciano Fiandesio
  */
-public class AttributeOptionComboCheck
-    implements
-    ValidationCheck
+public class UidGeneratorTest
 {
+    private UidGenerator subject;
 
-    @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    @Before
+    public void setUp()
     {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getEvent() );
-
-        if ( coc != null && coc.isDefault() && program.getCategoryCombo() != null
-            && !program.getCategoryCombo().isDefault() )
-        {
-            ImportSummary importSummary = new ImportSummary( event.getEvent() );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo",
-                "Default attribute option combo is not allowed since program has non-default category combo" ) );
-            importSummary.setStatus( ImportStatus.ERROR );
-            return importSummary.incrementIgnored();
-        }
-
-        return new ImportSummary();
+        subject = new UidGenerator();
     }
 
-    @Override
-    public boolean isFinal()
+    @Test
+    public void verifyEventsGetUidAssigned()
     {
-        return true;
+        Event event1 = new Event();
+        Event event2 = new Event();
+        Event event3 = new Event();
+        Event event4 = new Event();
+        event4.setEvent( "aaaaaaa");
+
+        List<Event> events = subject.assignUidToEvents( Lists.newArrayList( event1, event2, event3, event4 ) );
+
+        assertThat( events, hasSize( 4 ) );
+        event1 = events.get( 0 );
+        event2 = events.get( 1 );
+        event3 = events.get( 2 );
+        event4 = events.get( 3 );
+
+        assertNotNull( event1.getUid() );
+        assertNotNull( event1.getEvent() );
+        assertNotNull( event2.getEvent() );
+        assertNotNull( event2.getEvent() );
+        assertNotNull( event3.getEvent() );
+        assertNotNull( event3.getEvent() );
+
+        assertThat( event4.getEvent(), is("aaaaaaa") );
+        assertThat( event4.getUid(), is(nullValue()) );
     }
+
 }

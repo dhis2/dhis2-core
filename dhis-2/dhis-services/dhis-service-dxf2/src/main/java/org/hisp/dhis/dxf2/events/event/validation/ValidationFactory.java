@@ -28,29 +28,81 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
  */
+@Component
+@Slf4j
 public class ValidationFactory
 {
+    private final ValidationContextLoader validationContextLoader;
 
-    ImportSummary validateEvent()
+    private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap;
+
+    public ValidationFactory( ValidationContextLoader validationContextLoader,
+        @Qualifier( "eventValidatorMap" ) Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap )
     {
-
-        return null;
+        checkNotNull( validationContextLoader );
+        this.validationContextLoader = validationContextLoader;
+        this.validatorMap = validatorMap;
     }
 
-    ImportSummary validateEvents()
+    public List<ImportSummary> validateEvents( ValidationContext ctx, List<Event> events )
     {
-
-        return null;
+        List<ImportSummary> importSummaries = new ArrayList<>();
+        ValidationRunner validationRunner = new ValidationRunner(
+            validatorMap.get( ctx.getImportOptions().getImportStrategy() ) );
+        for ( Event event : events )
+        {
+            importSummaries.add( validationRunner.executeValidationChain( event, ctx ) );
+        }
+        return importSummaries;
     }
 
-    private ValidationContext getContext() {
+    public ValidationContext getContext( ImportOptions importOptions, List<Event> events )
+    {
+        return this.validationContextLoader.load( importOptions, events );
+    }
 
-        return null;
+    static class ValidationRunner
+    {
+        private List<Class<? extends ValidationCheck>> validators;
 
+        public ValidationRunner( List<Class<? extends ValidationCheck>> validators )
+        {
+            this.validators = validators;
+        }
+
+        public ImportSummary executeValidationChain( Event event, ValidationContext ctx )
+        {
+            for ( Class<? extends ValidationCheck> validator : validators )
+            {
+                try
+                {
+                    ValidationCheck validationCheck = validator.newInstance();
+                    return validationCheck.check( event, ctx );
+                }
+                catch ( InstantiationException | IllegalAccessException e )
+                {
+                    log.error( "An error occurred during Event import validation", e );
+                }
+            }
+            return new ImportSummary();
+        }
     }
 }
