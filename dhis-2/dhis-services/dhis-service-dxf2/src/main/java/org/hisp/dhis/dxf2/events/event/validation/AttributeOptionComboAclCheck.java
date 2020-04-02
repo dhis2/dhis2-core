@@ -28,17 +28,21 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AttributeOptionComboCheck
+public class AttributeOptionComboAclCheck
     implements
     ValidationCheck
 {
@@ -46,20 +50,20 @@ public class AttributeOptionComboCheck
     @Override
     public ImportSummary check( Event event, ValidationContext ctx )
     {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getEvent() );
+        ImportSummary importSummary = new ImportSummary();
+        TrackerAccessManager trackerAccessManager = ctx.getTrackerAccessManager();
+        ImportOptions importOptions = ctx.getImportOptions();
+        CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get( event.getEvent() );
 
-        if ( coc != null && coc.isDefault() && program.getCategoryCombo() != null
-            && !program.getCategoryCombo().isDefault() )
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), categoryOptionCombo );
+        if ( !errors.isEmpty() )
         {
-            ImportSummary importSummary = new ImportSummary( event.getEvent() );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo",
-                "Default attribute option combo is not allowed since program has non-default category combo" ) );
             importSummary.setStatus( ImportStatus.ERROR );
-            return importSummary.incrementIgnored();
+            importSummary.getConflicts().addAll( errors.stream()
+                .map( s -> new ImportConflict( "CategoryOptionCombo", s ) ).collect( Collectors.toList() ) );
+            importSummary.incrementIgnored();
         }
-
-        return new ImportSummary();
+        return importSummary;
     }
 
     @Override

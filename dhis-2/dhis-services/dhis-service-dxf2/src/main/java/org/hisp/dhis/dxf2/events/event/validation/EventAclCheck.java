@@ -28,17 +28,18 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AttributeOptionComboCheck
+public class EventAclCheck
     implements
     ValidationCheck
 {
@@ -46,19 +47,20 @@ public class AttributeOptionComboCheck
     @Override
     public ImportSummary check( Event event, ValidationContext ctx )
     {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getEvent() );
+        ImportOptions importOptions = ctx.getImportOptions();
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getEvent() ) );
+        programStageInstance.setStatus( event.getStatus() );
 
-        if ( coc != null && coc.isDefault() && program.getCategoryCombo() != null
-            && !program.getCategoryCombo().isDefault() )
+        List<String> errors = ctx.getTrackerAccessManager().canCreate( importOptions.getUser(),  programStageInstance, false);
+
+        if ( !errors.isEmpty() )
         {
-            ImportSummary importSummary = new ImportSummary( event.getEvent() );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo",
-                "Default attribute option combo is not allowed since program has non-default category combo" ) );
-            importSummary.setStatus( ImportStatus.ERROR );
-            return importSummary.incrementIgnored();
-        }
+            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            importSummary.incrementIgnored();
 
+            return importSummary;
+        }
         return new ImportSummary();
     }
 

@@ -360,7 +360,7 @@ public abstract class AbstractEventService
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-        // TODO luciano can this be removed and replaced with assertions ?
+        // TODO: luciano question -> can this be removed and replaced with assertions ?
         importOptions = updateImportOptions( importOptions );
 
         List<Event> validEvents = resolveImportableEvents( events, importSummaries );
@@ -639,17 +639,17 @@ public abstract class AbstractEventService
 //            }
         }
 
-        // TODO: luciano -> start access control  block
-        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
-            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
-
-        if ( !errors.isEmpty() )
-        {
-            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
-            importSummary.incrementIgnored();
-
-            return importSummary;
-        }
+        // FIXME: luciano to-rule -> EventAclCheck
+//        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
+//            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
+//
+//        if ( !errors.isEmpty() )
+//        {
+//            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
+//            importSummary.incrementIgnored();
+//
+//            return importSummary;
+//        }
 
         return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, assignedUser, importOptions, bulkImport );
     }
@@ -1746,8 +1746,7 @@ public abstract class AbstractEventService
 
         boolean dryRun = importOptions.isDryRun();
 
-        // TODO luciano { start validation block
-        // TODO luciano -> EventBaseCheck
+//        FIXME: luciano to-rule -> EventBaseCheck
         List<String> errors = new ArrayList<>();
 //        List<String> errors = validateEvent( event, programInstance, importOptions );
 
@@ -1759,7 +1758,6 @@ public abstract class AbstractEventService
 //
 //            return importSummary;
 //        }
-        // TODO luciano end validation block
 
         Date executionDate = null;
 
@@ -1776,61 +1774,65 @@ public abstract class AbstractEventService
         }
 
         User user = importOptions.getUser();
+        // TODO: luciano ->  move at the beginning of the process - no need to repeat it for each event
 
         String storedBy = getValidUsername( event.getStoredBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
         String completedBy = getValidUsername( event.getCompletedBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
 
-        CategoryOptionCombo aoc;
+        // FIXME: luciano -> this block has been moved to the context loading
+//        CategoryOptionCombo aoc;
+//
+//
+//        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
+//            || event.getAttributeOptionCombo() != null )
+//        {
+//            // TODO: luciano question -> do we still need to support this?
+//            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
+//
+//            try
+//            {
+//                // TODO: luciano -> AttributeOptionComboCheck
+//                aoc = getAttributeOptionCombo( program.getCategoryCombo(), event.getAttributeCategoryOptions(),
+//                    event.getAttributeOptionCombo(), idScheme );
+//            }
+//            catch ( IllegalQueryException ex )
+//            {
+//                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
+//                importSummary.setStatus( ImportStatus.ERROR );
+//                return importSummary.incrementIgnored();
+//            }
+//        }
+//        else
+//        {
+//            aoc = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
+//        }
+//        FIXME: luciano to-rule -> AttributeOptionComboCheck
+//        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+//        {
+//            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            return importSummary.incrementIgnored();
+//        }
 
-        // TODO luciano { start validation block
-        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
-            || event.getAttributeOptionCombo() != null )
-        {
-            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
-
-            try
-            {
-                // TODO luciano -> AttributeOptionComboCheck
-                aoc = getAttributeOptionCombo( program.getCategoryCombo(), event.getAttributeCategoryOptions(),
-                    event.getAttributeOptionCombo(), idScheme );
-            }
-            catch ( IllegalQueryException ex )
-            {
-                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
-                importSummary.setStatus( ImportStatus.ERROR );
-                return importSummary.incrementIgnored();
-            }
-        }
-        else
-        {
-            aoc = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
-        }
-
-        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
-        {
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
-            importSummary.setStatus( ImportStatus.ERROR );
-            return importSummary.incrementIgnored();
-        }
-        // TODO luciano end validation block
+        CategoryOptionCombo aoc = null; // TODO just here for compilation...
 
         Date eventDate = executionDate != null ? executionDate : dueDate;
 
-        // TODO luciano { start validation block
+        // TODO: luciano question -> here we throw an exception, rather than using ImportSummary, why?
         validateAttributeOptionComboDate( aoc, eventDate );
-        // TODO luciano end validation block
 
+        // FIXME: luciano to-rule -> AttributeOptionComboAclCheck
         errors = trackerAccessManager.canWrite( user, aoc );
         // TODO end access control block
 
-        if ( !errors.isEmpty() )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "CategoryOptionCombo", s ) ).collect( Collectors.toList() ) );
-            importSummary.incrementIgnored();
-
-            return importSummary;
-        }
+//        if ( !errors.isEmpty() )
+//        {
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "CategoryOptionCombo", s ) ).collect( Collectors.toList() ) );
+//            importSummary.incrementIgnored();
+//
+//            return importSummary;
+//        }
 
         if ( !dryRun )
         {
@@ -1982,6 +1984,10 @@ public abstract class AbstractEventService
             eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
+        // TODO: luciano question -> what is this ???
+        eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+        // TODO: luciano question -> why are we calling update after an insert???
+        programStageInstanceService.updateProgramStageInstance( programStageInstance );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, String storedBy )
