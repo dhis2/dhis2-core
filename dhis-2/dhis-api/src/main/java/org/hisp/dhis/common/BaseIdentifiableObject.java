@@ -28,16 +28,18 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.common.adapter.UidJsonSerializer;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -51,19 +53,22 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Bob Jolliffe
  */
 @JacksonXmlRootElement( localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0 )
 public class BaseIdentifiableObject
-    extends BaseLinkableObject implements IdentifiableObject
+    extends
+    BaseLinkableObject
+    implements
+    IdentifiableObject
 {
     /**
      * The database internal identifier for this Object.
@@ -111,8 +116,8 @@ public class BaseIdentifiableObject
     protected Set<Translation> translations = new HashSet<>();
 
     /**
-     * Cache for object translations, where the cache key is a combination of
-     * locale and translation property, and value is the translated value.
+     * Cache for object translations, where the cache key is a combination of locale
+     * and translation property, and value is the translated value.
      */
     protected Map<String, String> translationCache = new HashMap<>();
 
@@ -197,8 +202,8 @@ public class BaseIdentifiableObject
     // -------------------------------------------------------------------------
 
     /**
-     * Compares objects based on display name. A null display name is ordered
-     * after a non-null display name.
+     * Compares objects based on display name. A null display name is ordered after
+     * a non-null display name.
      */
     @Override
     public int compareTo( IdentifiableObject object )
@@ -208,8 +213,8 @@ public class BaseIdentifiableObject
             return object.getDisplayName() == null ? 0 : 1;
         }
 
-        return object.getDisplayName() == null ? -1 :
-            this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
+        return object.getDisplayName() == null ? -1
+            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 
     // -------------------------------------------------------------------------
@@ -306,7 +311,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getLastUpdatedBy()
     {
@@ -382,7 +387,7 @@ public class BaseIdentifiableObject
      * Returns a translated value for this object for the given property. The
      * current locale is read from the user context.
      *
-     * @param property     the translation property.
+     * @param property the translation property.
      * @param defaultValue the value to use if there are no translations.
      * @return a translated value.
      */
@@ -413,7 +418,8 @@ public class BaseIdentifiableObject
         {
             for ( Translation translation : translations )
             {
-                if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
+                if ( translation.getLocale() != null && translation.getProperty() != null
+                    && !StringUtils.isEmpty( translation.getValue() ) )
                 {
                     String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
@@ -432,7 +438,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {
@@ -615,8 +621,8 @@ public class BaseIdentifiableObject
 
     /**
      * Equality check against typed identifiable object. This method is not
-     * vulnerable to proxy issues, where an uninitialized object class type
-     * fails comparison to a real class.
+     * vulnerable to proxy issues, where an uninitialized object class type fails
+     * comparison to a real class.
      *
      * @param other the identifiable object to compare this object against.
      * @return true if equal.
@@ -712,14 +718,8 @@ public class BaseIdentifiableObject
     @Override
     public String toString()
     {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + getId() + "\", " +
-            "\"uid\":\"" + getUid() + "\", " +
-            "\"code\":\"" + getCode() + "\", " +
-            "\"name\":\"" + getName() + "\", " +
-            "\"created\":\"" + getCreated() + "\", " +
-            "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
-            "}";
+        return "{" + "\"class\":\"" + getClass() + "\", " + "\"id\":\"" + getId() + "\", " + "\"uid\":\"" + getUid()
+            + "\", " + "\"code\":\"" + getCode() + "\", " + "\"name\":\"" + getName() + "\", " + "\"created\":\""
+            + getCreated() + "\", " + "\"lastUpdated\":\"" + getLastUpdated() + "\" " + "}";
     }
 }

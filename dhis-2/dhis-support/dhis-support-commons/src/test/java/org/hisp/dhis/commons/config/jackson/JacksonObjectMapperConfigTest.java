@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Test;
 
@@ -79,6 +80,18 @@ public class JacksonObjectMapperConfigTest
     {
         Map<String, Date> yearTest = jsonMapper.readValue( createDateTest( null ), new DateMapTypeReference() );
         assertNull( yearTest.get( "date" ) );
+    }
+
+    @Test // DHIS2-8582
+    public void testSerializerUserWithUser()
+        throws JsonProcessingException
+    {
+        User user = new User();
+        user.setAutoFields();
+        user.setUser( user );
+        user.setLastUpdatedBy( user );
+
+        jsonMapper.writeValueAsString( user );
     }
 
     private String createDateTest( String str )
