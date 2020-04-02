@@ -28,19 +28,18 @@ package org.hisp.dhis.commons.config.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
+import org.junit.Test;
 
 import java.util.Date;
 import java.util.Map;
 
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.util.DateUtils;
-import org.junit.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,6 +78,26 @@ public class JacksonObjectMapperConfigTest
     {
         Map<String, Date> yearTest = jsonMapper.readValue( createDateTest( null ), new DateMapTypeReference() );
         assertNull( yearTest.get( "date" ) );
+    }
+
+    @Test // DHIS2-8582
+    public void testSerializerUserWithUser()
+        throws JsonProcessingException
+    {
+        User user = new User();
+        user.setAutoFields();
+        user.setUser( user );
+        user.setLastUpdatedBy( user );
+
+        String payload = jsonMapper.writeValueAsString( user );
+        User testUser = jsonMapper.readValue( payload, User.class );
+
+        assertNotNull( user.getUser() );
+        assertNotNull( user.getLastUpdatedBy() );
+
+        assertEquals( user.getUid(), testUser.getUid() );
+        assertEquals( user.getUid(), user.getUser().getUid() );
+        assertEquals( user.getUid(), user.getLastUpdatedBy().getUid() );
     }
 
     private String createDateTest( String str )
