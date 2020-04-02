@@ -139,8 +139,8 @@ public class FileResourceServiceTest
     @Test( expected = IllegalQueryException.class )
     public void verifySaveIllegalFileTypeResourceB()
     {
-        FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 1024, "md5",
-            FileResourceDomain.USER_AVATAR );
+        FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 2048, "md5",
+            FileResourceDomain.MESSAGE_ATTACHMENT );
 
         File file = new File( "suspicious_program.rpm" );
 
