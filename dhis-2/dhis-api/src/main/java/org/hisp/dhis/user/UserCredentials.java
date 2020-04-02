@@ -389,7 +389,7 @@ public class UserCredentials
     @Override
     public String getName()
     {
-        return userInfo!= null ? userInfo.getName() : username;
+        return userInfo != null ? userInfo.getName() : username;
     }
 
     /**
@@ -529,7 +529,7 @@ public class UserCredentials
     }
 
     @Override
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
     @PropertyRange( min = 8, max = 60 )
