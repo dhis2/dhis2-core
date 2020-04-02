@@ -44,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Luciano Fiandesio
@@ -83,6 +84,8 @@ public class ValidationContext
     private Map<String, ProgramStageInstance> programStageInstanceMap;
 
     private Map<String, CategoryOptionCombo> categoryOptionComboMap;
+
+    private Map<String, User> assignedUserMap;
 
     private ProgramInstanceStore programInstanceStore;
 

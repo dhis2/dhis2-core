@@ -64,20 +64,7 @@ public class UidGeneratorTest
         List<Event> events = subject.assignUidToEvents( Lists.newArrayList( event1, event2, event3, event4 ) );
 
         assertThat( events, hasSize( 4 ) );
-        event1 = events.get( 0 );
-        event2 = events.get( 1 );
-        event3 = events.get( 2 );
-        event4 = events.get( 3 );
-
-        assertNotNull( event1.getUid() );
-        assertNotNull( event1.getEvent() );
-        assertNotNull( event2.getEvent() );
-        assertNotNull( event2.getEvent() );
-        assertNotNull( event3.getEvent() );
-        assertNotNull( event3.getEvent() );
-
-        assertThat( event4.getEvent(), is("aaaaaaa") );
-        assertThat( event4.getUid(), is(nullValue()) );
+        events.forEach(e -> assertNotNull( e.getUid() ));
     }
 
 }

@@ -31,24 +31,25 @@ package org.hisp.dhis.dxf2.events.event;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
+ * UID generator for Tracker entities.
+ *
+ *
  * @author Luciano Fiandesio
  */
 public class UidGenerator
 {
+    /**
+     * Generate a valid uid and assign it to the uid field of each event
+     * 
+     * @param events a List of {@see Events}
+     * @return a List of {@see Events} with the uid field populated
+     */
     public List<Event> assignUidToEvents( List<Event> events )
     {
-        return events.stream().peek( e -> {
-            if ( StringUtils.isEmpty( e.getEvent() ) )
-            {
-                final String uid = CodeGenerator.generateUid();
-                e.setEvent( uid );
-                e.setUid( uid); // TODO is it correct to assign event uid here?
-            }
-        } ).collect( Collectors.toList() );
+        return events.stream().peek( e -> e.setUid( CodeGenerator.generateUid() ) ).collect( Collectors.toList() );
     }
 
 }
