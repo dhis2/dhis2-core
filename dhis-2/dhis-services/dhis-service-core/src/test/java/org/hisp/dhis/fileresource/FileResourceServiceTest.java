@@ -126,12 +126,23 @@ public class FileResourceServiceTest
     }
 
     @Test( expected = IllegalQueryException.class )
-    public void verifySaveInvalidFileResource()
+    public void verifySaveIllegalFileTypeResource()
     {
         FileResource fileResource = new FileResource( "very_evil_script.html", "text/html", 1024, "md5",
             FileResourceDomain.USER_AVATAR );
 
         File file = new File( "very_evil_script.html" );
+
+        subject.saveFileResource( fileResource, file );
+    }
+
+    @Test
+    public void verifySaveValidFileTypeResource()
+    {
+        FileResource fileResource = new FileResource( "friendly_image.png", "image/png", 1024, "md5",
+            FileResourceDomain.USER_AVATAR );
+
+        File file = new File( "friendly_image.png.html" );
 
         subject.saveFileResource( fileResource, file );
     }
