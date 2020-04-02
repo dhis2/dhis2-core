@@ -458,6 +458,7 @@ public class ValidationContextLoader
         return new HashMap<>();
 
     }
+
     private Map<String, Program> loadPrograms()
     {
         final String sql = "select p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
