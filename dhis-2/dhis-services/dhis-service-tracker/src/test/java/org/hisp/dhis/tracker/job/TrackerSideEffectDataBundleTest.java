@@ -28,16 +28,20 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -50,10 +54,15 @@ public class TrackerSideEffectDataBundleTest
     public void testSideEffectDataBundleForEnrollment()
     {
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( "test-enrollment" );
+
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+        enrollmentRuleEffects.put( enrollment.getEnrollment(), Lists.newArrayList() );
+
         ProgramInstance programInstance = new ProgramInstance();
 
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .enrollmentRuleEffect( enrollment, Arrays.asList() )
+            .enrollmentRuleEffects( enrollmentRuleEffects )
             .accessedBy( "testUser" )
             .importStrategy( TrackerImportStrategy.CREATE )
             .object( programInstance )
@@ -62,7 +71,7 @@ public class TrackerSideEffectDataBundleTest
 
         assertEquals( programInstance, bundle.getObject() );
         assertEquals( ProgramInstance.class, bundle.getKlass() );
-        assertTrue( bundle.getEnrollmentRuleEffects().containsKey( enrollment ) );
+        assertTrue( bundle.getEnrollmentRuleEffects().containsKey( "test-enrollment" ) );
         assertTrue( bundle.getEventRuleEffects().isEmpty() );
         assertEquals( TrackerImportStrategy.CREATE, bundle.getImportStrategy() );
         assertEquals( MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType() );
@@ -72,17 +81,22 @@ public class TrackerSideEffectDataBundleTest
     public void testSideEffectDataBundleForEvent()
     {
         Event event = new Event();
+        event.setEvent( "test-event" );
+
+        Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+        eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
+
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
 
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .eventRuleEffect( event, Arrays.asList() )
+            .eventRuleEffects( eventRuleEffects )
             .object( programStageInstance )
             .klass( ProgramStageInstance.class )
             .build();
 
         assertEquals( programStageInstance, bundle.getObject() );
         assertEquals( ProgramStageInstance.class, bundle.getKlass() );
-        assertTrue( bundle.getEventRuleEffects().containsKey( event ) );
+        assertTrue( bundle.getEventRuleEffects().containsKey( "test-event" ) );
         assertTrue( bundle.getEnrollmentRuleEffects().isEmpty() );
     }
 }

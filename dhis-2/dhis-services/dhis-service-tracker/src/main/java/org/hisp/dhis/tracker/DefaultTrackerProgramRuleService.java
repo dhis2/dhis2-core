@@ -55,25 +55,25 @@ public class DefaultTrackerProgramRuleService
     }
 
     @Override
-    public Map<Enrollment, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle )
+    public Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( TrackerBundle trackerBundle )
     {
         return trackerBundle.getEnrollments()
             .stream()
             .collect( Collectors
                 .toMap(
-                    Function.identity(),
+                    Enrollment::getEnrollment,
                     e -> programRuleEngineService
                         .evaluateEnrollment( e.getEnrollment() ) ) );
     }
 
     @Override
-    public Map<Event, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle )
+    public Map<String, List<RuleEffect>> calculateEventRuleEffects( TrackerBundle trackerBundle )
     {
         return trackerBundle.getEvents()
             .stream()
             .collect( Collectors
                 .toMap(
-                    Function.identity(),
+                    Event::getEvent,
                     e -> programRuleEngineService.evaluateEvent( e.getEvent() ) ) );
     }
 }

@@ -80,6 +80,8 @@ public enum JobType
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false ),
     TRACKER_IMPORT_JOB( "trackerImportJob", false ),
+    TRACKER_IMPORT_NOTIFICATION_JOB( "trackerImportNotificationJob", false ),
+    TRACKER_IMPORT_RULE_ENGINE_JOB( "trackerImportRuleEngineJob", false ),
 
     // Testing purposes
     MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),
