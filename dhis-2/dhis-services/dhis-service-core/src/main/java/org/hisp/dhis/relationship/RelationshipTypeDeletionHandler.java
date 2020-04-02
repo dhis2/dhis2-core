@@ -1,5 +1,3 @@
-package org.hisp.dhis.organisationunit;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,27 +25,31 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Objects;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" )
-public class OrganisationUnitGroupSetDeletionHandler
+@Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
+public class RelationshipTypeDeletionHandler
     extends
     DeletionHandler
 {
-    private final IdentifiableObjectManager idObjectManager;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    public OrganisationUnitGroupSetDeletionHandler( IdentifiableObjectManager idObjectManager )
+    private final RelationshipTypeService relationshipTypeService;
+
+    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
     {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
+        this.relationshipTypeService = relationshipTypeService;
     }
 
     // -------------------------------------------------------------------------
@@ -57,16 +59,15 @@ public class OrganisationUnitGroupSetDeletionHandler
     @Override
     public String getClassName()
     {
-        return OrganisationUnitGroupSet.class.getSimpleName();
+        return RelationshipType.class.getSimpleName();
     }
 
     @Override
-    public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
+    public void deleteProgram( Program program )
     {
-        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
-        {
-            groupSet.removeOrganisationUnitGroup( group );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
     }
 }
