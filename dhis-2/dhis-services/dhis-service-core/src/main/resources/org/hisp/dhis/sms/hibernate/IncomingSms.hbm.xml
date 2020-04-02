@@ -22,7 +22,7 @@
 
     <property name="receivedDate" not-null="true" />
 
-    <property name="text" />
+    <property name="text" type="text" />
 
     <property name="gatewayId" not-null="true" />
 
