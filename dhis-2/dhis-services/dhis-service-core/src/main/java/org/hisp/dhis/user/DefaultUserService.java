@@ -547,6 +547,20 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
+
+        if ( userCredentials != null )
+        {
+            userCredentials.getAllAuthorities();
+        }
+
+        return userCredentials;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
