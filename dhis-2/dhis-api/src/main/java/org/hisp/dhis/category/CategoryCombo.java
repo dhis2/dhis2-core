@@ -162,8 +162,11 @@ public class CategoryCombo
 
         for ( Category category : categories )
         {
-            arrays[i++] = new ArrayList<>(
-                category.getCategoryOptions() ).toArray( new CategoryOption[0] );
+            if ( !category.getCategoryOptions().isEmpty() )
+            {
+                arrays[i++] = new ArrayList<>(
+                    category.getCategoryOptions() ).toArray( new CategoryOption[0] );
+            }
         }
 
         return arrays;
