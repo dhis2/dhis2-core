@@ -32,58 +32,61 @@ import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
 import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_TTL_CACHE_FACTOR;
+import static org.springframework.util.Assert.isTrue;
 import static org.springframework.util.Assert.notNull;
 
 import java.time.Instant;
+import java.util.Date;
 
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.setting.SystemSettingManager;
-
+/**
+ * This class is responsible for computing a time to live value based on the
+ * given date before today and a TTL factor. The calculation of the TTL will be
+ * done by the method compute() - check this method for the calculation details.
+ */
 public class TimeToLive
-    implements Computable
+    implements
+    Computable
 {
 
     static final long DEFAULT_MULTIPLIER = 1;
 
-    private final DataQueryParams params;
+    private final Date dateBeforeToday;
 
-    private SystemSettingManager systemSettingManager;
+    private final int ttlFactor;
 
-    public TimeToLive( final DataQueryParams params, final SystemSettingManager systemSettingManager )
+    public TimeToLive( final Date dateBeforeToday, final int ttlFactor )
     {
-        notNull( params, "Object params must not be null" );
-        notNull( params.getLatestEndDate(), "Object params.getLatestEndDate() must not be null" );
-        notNull( systemSettingManager, "Object systemSettingManager must not be null" );
-        this.params = params;
-        this.systemSettingManager = systemSettingManager;
+        notNull( dateBeforeToday, "Param dateBeforeToday must not be null" );
+        isTrue( ttlFactor > 0, "Param ttlFactor must be greater than zero" );
+
+        this.dateBeforeToday = dateBeforeToday;
+        this.ttlFactor = ttlFactor;
     }
 
     /**
      * Execute the internal rules in order to calculate a TTL for the given
-     * parameters. The current rules are based on a configurable timeout
-     * "factor" (through SettingKey) which will be used in the calculation
-     * of this time to live. Given the "factor" described above:
+     * parameters. The current rules are based on a configurable timeout "ttlFactor"
+     * (through SettingKey) which will be used in the calculation of this time to
+     * live. Basically:
      *
-     * Older the "endingDate", higher the "factor", longer the TTL.
-     * The formula is basically: TTL = "factor" * (diff between now and endingDate)
+     * Older the "dateBeforeToday", higher the "ttlFactor", longer the TTL. The
+     * formula is basically: TTL = "ttlFactor" * (diff between now and the
+     * "dateBeforeToday")
      *
-     * @return the computed TTL value in SECONDS.
+     * @return the computed TTL value.
      */
     @Override
     public long compute()
     {
-        final Instant endingDate = params.getLatestEndDate().toInstant();
-
         /*
          * If the difference between the most recent date and NOW is 0 (zero) it means
          * the current day, so set the days multiplier to 1 (one) avoiding multiplying
          * by 0 (zero).
          */
-        final long daysDiff = daysBetweenDateAndNow( endingDate );
+        final long daysDiff = daysBetweenDateBeforeTodayAndNow( dateBeforeToday.toInstant() );
         final long daysMultiplier = daysDiff > 0 ? daysDiff : DEFAULT_MULTIPLIER;
 
-        return ttlFactorOrDefault() * daysMultiplier;
+        return ttlFactor * daysMultiplier;
     }
 
     /**
@@ -91,28 +94,12 @@ public class TimeToLive
      * particularity of returning ZERO (0) if the diff is negative (because it means
      * that the input date is ahead of now).
      *
-     * @param date the date to subtract from now
+     * @param dateBeforeToday the date to subtract from now
      * @return the difference of days
      */
-    private long daysBetweenDateAndNow( final Instant date )
+    private long daysBetweenDateBeforeTodayAndNow( final Instant dateBeforeToday )
     {
-        final long diff = DAYS.between( ofInstant( date, systemDefault() ), now() );
+        final long diff = DAYS.between( ofInstant( dateBeforeToday, systemDefault() ), now() );
         return diff >= 0 ? diff : 0;
-    }
-
-    /**
-     * Returns the TTL factor set in system settings or the default value if nothing
-     * is set.
-     *
-     * If a negative TTL factor was set, the default value will be returned.
-     *
-     * @return the ttl factor
-     */
-    private int ttlFactorOrDefault()
-    {
-        final Integer ttlFactor = (Integer) systemSettingManager.getSystemSetting( ANALYTICS_TTL_CACHE_FACTOR );
-        final boolean ttlNotNullAndPositive = ttlFactor != null && ttlFactor > 0;
-
-        return ttlNotNullAndPositive ? ttlFactor : (Integer) ANALYTICS_TTL_CACHE_FACTOR.getDefaultValue();
     }
 }

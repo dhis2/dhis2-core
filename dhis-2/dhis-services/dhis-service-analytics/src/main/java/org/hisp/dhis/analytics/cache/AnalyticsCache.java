@@ -32,9 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.logging.LogFactory.getLog;
-import static org.hisp.dhis.analytics.AnalyticsCacheMode.PROGRESSIVE;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_MODE;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -46,8 +44,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -67,24 +63,21 @@ public class AnalyticsCache
 
     private final Environment environment;
 
-    private final DhisConfigurationProvider dhisConfig;
-
-    private final SystemSettingManager systemSettingManager;
+    private final AnalyticsCacheSettings analyticsCacheSettings;
 
     private static final int MAX_CACHE_ENTRIES = 20000;
 
-    private static final String CACHE_REGION = "analyticsQueryResponse";
+    private static final String CACHE_REGION = "analyticsResponse";
 
     public AnalyticsCache( final CacheProvider cacheProvider, final Environment environment,
-        final DhisConfigurationProvider dhisConfig, final SystemSettingManager systemSettingManager )
+        final AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( cacheProvider );
         checkNotNull( environment );
-        checkNotNull( systemSettingManager );
+        checkNotNull( analyticsCacheSettings );
         this.cacheProvider = cacheProvider;
         this.environment = environment;
-        this.dhisConfig = dhisConfig;
-        this.systemSettingManager = systemSettingManager;
+        this.analyticsCacheSettings = analyticsCacheSettings;
     }
 
     public Optional<Grid> get( final String key )
@@ -92,6 +85,19 @@ public class AnalyticsCache
         return queryCache.get( key );
     }
 
+    /**
+     * This method tries to retrieve, from the cache, the Grid related to the given
+     * DataQueryParams. If the Grid is not found in the cache, the Grid will be
+     * fetched by the function provided. In this case, the fetched Grid will be
+     * cached, so the next consumers can hit the cache only.
+     * 
+     * The TTL of the cached object will be set accordingly to the cache settings
+     * available at {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
+     * 
+     * @param params the current DataQueryParams.
+     * @param function that fetches a grid based on the given DataQueryParams.
+     * @return the cached or fetched Grid.
+     */
     public Grid getOrFetch( final DataQueryParams params, final Function<DataQueryParams, Grid> function )
     {
         final Optional<Grid> cachedGrid = get( params.getKey() );
@@ -104,51 +110,77 @@ public class AnalyticsCache
         {
             final Grid grid = function.apply( params );
 
-            if ( progressiveCachingEnabled() )
-            {
-                // Defines a custom TTL
-                final long ttlInSeconds = new TimeToLive( params, systemSettingManager ).compute();
-                put( params.getKey(), grid, ttlInSeconds );
-            }
-            else
-            {
-                // Respects the default caching definitions
-                put( params.getKey(), grid );
-            }
+            put( params, grid );
+
             return grid;
         }
     }
 
+    /**
+     * This method will cache the given Grid associated with the given
+     * DataQueryParams.
+     * 
+     * The TTL of the cached object will be set accordingly to the cache settings
+     * available at {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
+     * 
+     * @param params the DataQueryParams.
+     * @param grid the associated Grid.
+     */
+    public void put( final DataQueryParams params, final Grid grid )
+    {
+        if ( analyticsCacheSettings.isProgressiveCachingEnabled() )
+        {
+            // Uses the progressive TTL
+            put( params.getKey(), grid, analyticsCacheSettings.progressiveExpirationTimeOrDefault( params.getLatestEndDate() ) );
+        }
+        else
+        {
+            // Respects the fixed (predefined) caching TTL
+            put( params.getKey(), grid, analyticsCacheSettings.fixedExpirationTimeOrDefault() );
+        }
+    }
+
+    /**
+     * Will cache the given key/Grid pair respecting the TTL provided through the
+     * parameter "ttlInSeconds".
+     * 
+     * @param key the cache key associate with the Grid.
+     * @param grid the Grid object to be cached.
+     * @param ttlInSeconds the custom time to live (expiration time).
+     */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
         queryCache.put( key, grid, ttlInSeconds );
     }
 
-    public void put( final String key, final Grid grid )
-    {
-        queryCache.put( key, grid );
-    }
-
+    /**
+     * Clean the current cache by removing all existing entries.
+     */
     public void invalidateAll()
     {
         queryCache.invalidateAll();
         log.info( "Analytics cache cleared" );
     }
 
-    private boolean progressiveCachingEnabled()
+    public boolean isEnabled()
     {
-        return PROGRESSIVE == systemSettingManager.getSystemSetting( ANALYTICS_CACHE_MODE );
+        return analyticsCacheSettings.isCachingEnabled();
     }
 
     @PostConstruct
     public void init()
     {
-        final long expiration = dhisConfig.getAnalyticsCacheExpiration();
-        final boolean enabled = expiration > 0 && !isTestRun( this.environment.getActiveProfiles() );
+        // Set a default expiration time to always expire, as the TTL will be
+        // always overwritten during "put" operations.
+        final long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
+
+        final boolean nonTestEnv = !isTestRun( this.environment.getActiveProfiles() );
 
         queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
-            .expireAfterWrite( expiration, SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
+            .expireAfterWrite( initialExpirationTime, SECONDS ).withMaximumSize( nonTestEnv ? MAX_CACHE_ENTRIES : 0 )
+            .build();
 
-        log.info( format( "Analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
+        log.info( format( "Analytics server-side cache is enabled with expiration time (in seconds): %d",
+            initialExpirationTime ) );
     }
 }
