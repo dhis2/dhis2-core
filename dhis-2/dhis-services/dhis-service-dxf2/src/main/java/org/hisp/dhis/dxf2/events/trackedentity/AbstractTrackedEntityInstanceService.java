@@ -1248,7 +1248,7 @@ public abstract class AbstractTrackedEntityInstanceService
                     continue;
                 }
 
-                if ( attribute.getValue().length() > TEA_VALUE_MAX_LENGTH )
+                if ( attribute.getValue() != null && attribute.getValue().length() > TEA_VALUE_MAX_LENGTH )
                 {
                     // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
                     importConflicts.add( new ImportConflict( "Attribute.value", String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
