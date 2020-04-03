@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,9 +39,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
@@ -83,6 +87,15 @@ public class ValidationContextLoader
 
     private final AttributeOptionComboLoader attributeOptionComboLoader;
 
+    private final static String PROGRAM_CACHE_KEY = "0";
+
+    Cache<String,Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
+            .expireAfterWrite(30, TimeUnit.MINUTES)    // expire/refresh after 5 minutes
+            .resilienceDuration(30, TimeUnit.SECONDS) // cope with at most 30 seconds
+            .refreshAhead(true)                       // keep fresh when expiring
+            .loader(this::loadPrograms)         // auto populating function
+            .build();
+
     public ValidationContextLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         ProgramInstanceStore programInstanceStore, TrackerAccessManager trackerAccessManager,
         AttributeOptionComboLoader attributeOptionComboLoader )
@@ -96,12 +109,11 @@ public class ValidationContextLoader
         this.programInstanceStore = programInstanceStore;
         this.trackerAccessManager = trackerAccessManager;
         this.attributeOptionComboLoader = attributeOptionComboLoader;
-
     }
 
     public ValidationContext load( ImportOptions importOptions, List<Event> events )
     {
-        Map<String, Program> programMap = loadPrograms();
+        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
         // @formatter:off
         return ValidationContext.builder()
             .importOptions( importOptions )
@@ -309,7 +321,6 @@ public class ValidationContextLoader
             }
             return results;
         } );
-
     }
 
     /**
@@ -358,7 +369,7 @@ public class ValidationContextLoader
 
     }
 
-    private Map<String, Program> loadPrograms()
+    private Map<String, Program> loadPrograms(String key)
     {
         final String sql = "select p.programid, p.uid, p.name, p.type, c.uid as catcombo_uid, c.name as catcombo_name, " +
                 "ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
@@ -383,12 +394,7 @@ public class ValidationContextLoader
                     program.setName( rs.getString( "name" ) );
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
 
-                    ProgramStage programStage = new ProgramStage();
-                    programStage.setId( rs.getLong( "ps_id"));
-                    programStage.setUid( rs.getString( "ps_uid" ) );
-                    programStage.setFeatureType( FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) ) );
-                    programStage.setSortOrder( rs.getInt( "sort_order" ) );
-                    programStages.add( programStage );
+                    programStages.add( toProgramStage( rs ) );
 
                     CategoryCombo categoryCombo = new CategoryCombo();
                     categoryCombo.setUid( rs.getString( "catcombo_uid" ) );
@@ -411,14 +417,22 @@ public class ValidationContextLoader
                 }
                 else
                 {
-                    ProgramStage programStage = new ProgramStage();
-                    programStage.setUid( rs.getString( "ps_uid" ) );
-                    programStage.setSortOrder( rs.getInt( "sort_order" ) );
-                    results.get( rs.getString( "uid" ) ).getProgramStages().add( programStage );
+                    results.get( rs.getString( "uid" ) ).getProgramStages().add( toProgramStage( rs ) );
                 }
             }
             return results;
         } );
     }
+    
+    private ProgramStage toProgramStage( ResultSet rs )
+        throws SQLException
+    {
+        ProgramStage programStage = new ProgramStage();
+        programStage.setId( rs.getLong( "ps_id" ) );
+        programStage.setUid( rs.getString( "ps_uid" ) );
+        programStage.setSortOrder( rs.getInt( "sort_order" ) );
+        programStage.setFeatureType( FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) ) );
 
+        return programStage;
+    }
 }

@@ -97,7 +97,9 @@ public class ValidationFactory
                 {
                     ValidationCheck validationCheck = validator.newInstance();
                     ImportSummary importSummary = validationCheck.check( event, ctx );
-                    //System.out.println( validationCheck.getClass().getName());
+
+
+                    System.out.println( validationCheck.getClass().getName() + " - program stage id: "  + event.getProgramStage());
                     if ( importSummary.isStatus( ImportStatus.ERROR ) )
                     {
                         return importSummary;
