@@ -550,7 +550,7 @@ public abstract class AbstractEventService
                 pi.setStatus( ProgramStatus.ACTIVE );
                 pi.setStoredBy( storedBy );
 
-                programInstanceService.addProgramInstance( pi );
+                programInstanceService.addProgramInstance( pi, importOptions.getUser() );
 
                 programInstances.add( pi );
             }
