@@ -192,6 +192,7 @@ public class DefaultInterpretationService
     {
         Set<User> users = MentionUtils.getMentionedUsers( comment.getText(), userService );
         comment.setMentionsFromUsers( users );
+        comment.setLastUpdated( new Date() );
         updateSharingForMentions( interpretation, users );
         interpretationStore.update( interpretation );
         notifySubscribers( interpretation, comment, NotificationType.COMMENT_UPDATE );
