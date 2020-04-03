@@ -106,8 +106,10 @@ public abstract class AbstractEventService2
             importSummaries
                 .addImportSummaries( addEvents( accumulator.getCreate(), importOptions, validationContext ) );
             // -- old code -- : -- please refactor --
-//            importSummaries.addImportSummaries( updateEvents( accumulator.getUpdate(), importOptions, false, true ) );
-//            importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(), true ) );
+            // importSummaries.addImportSummaries( updateEvents( accumulator.getUpdate(),
+            // importOptions, false, true ) );
+            // importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(),
+            // true ) );
         }
 
         if ( jobId != null )
@@ -145,19 +147,25 @@ public abstract class AbstractEventService2
 
         // collect the UIDs of events that did not pass validation
         List<String> failedUids = importSummaries.getImportSummaries().stream()
-            .filter( i -> i.isStatus( ImportStatus.ERROR ) )
-            .map( ImportSummary::getReference )
+            .filter( i -> i.isStatus( ImportStatus.ERROR ) ).map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
         ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( ctx );
 
-        // collect the events that passed validation and can be persisted
-        // @formatter:off
-        List<ProgramStageInstance> eventsToPersist = validEvents.stream()
-            .filter( e -> !failedUids.contains( e.getEvent() ) )
-            .map( mapper::convert )
-            .collect( Collectors.toList() );
-        // @formatter:on
+        List<ProgramStageInstance> eventsToPersist;
+        if ( failedUids.isEmpty() )
+        {
+            eventsToPersist = convertToProgramStageInstances( mapper, validEvents );
+        }
+        else
+        {
+            // collect the events that passed validation and can be persisted
+            // @formatter:off
+            eventsToPersist = convertToProgramStageInstances( mapper, validEvents.stream()
+                .filter( e -> !failedUids.contains( e.getEvent() ) )
+                .collect( Collectors.toList() ) );
+            // @formatter:on
+        }
 
         if ( !eventsToPersist.isEmpty() )
         {
@@ -165,6 +173,12 @@ public abstract class AbstractEventService2
         }
 
         return importSummaries;
+    }
+
+    private List<ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
+        List<Event> events )
+    {
+        return events.stream().map( mapper::convert ).collect( Collectors.toList() );
     }
 
     @Override
