@@ -112,6 +112,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.collection.ListUtils.getArray;
 
@@ -817,7 +819,7 @@ public class DefaultChartService
         valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         List<NameableObject> seriez = new ArrayList<>( chart.series() );
-        List<NameableObject> categories = new ArrayList<>( chart.category() );
+        List<NameableObject> categories = new ArrayList<>( defaultIfNull( chart.category(), emptyList() ) );
 
         if ( chart.hasSortOrder() )
         {
