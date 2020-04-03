@@ -455,7 +455,7 @@ public class ValidationContextLoader
 
     }
 
-    private Map<String, Program> loadPrograms()
+    private Map<String, Program> loadPrograms(String key)
     {
         final String sql = "select p.programid, p.uid, p.name, p.type, c.uid as catcombo_uid, c.name as catcombo_name, " +
                 "ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
@@ -504,7 +504,6 @@ public class ValidationContextLoader
                 else
                 {
                     results.get( rs.getString( "uid" ) ).getProgramStages().add( toProgramStage( rs ) );
-
                 }
             }
             return results;
