@@ -47,7 +47,7 @@ public interface IdentifiableObjectStore<T>
      * Saves the given object instance.
      *
      * @param object the object instance.
-     * @param clearSharing indicates weather to clear all sharing related properties.
+     * @param clearSharing indicates whether to clear all sharing related properties.
      */
     void save( T object, boolean clearSharing );
 
