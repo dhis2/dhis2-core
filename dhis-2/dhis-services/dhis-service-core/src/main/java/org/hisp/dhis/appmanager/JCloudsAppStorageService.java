@@ -30,9 +30,8 @@ package org.hisp.dhis.appmanager;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -67,7 +66,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -80,12 +85,11 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 /**
  * @author Stian Sandvold
  */
+@Slf4j
 @Service( "org.hisp.dhis.appmanager.JCloudsAppStorageService" )
 public class JCloudsAppStorageService
     implements AppStorageService
 {
-    private static final Log log = LogFactory.getLog( JCloudsAppStorageService.class );
-
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
 
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
@@ -97,8 +101,6 @@ public class JCloudsAppStorageService
     private BlobStoreContext blobStoreContext;
 
     private BlobStoreProperties config;
-    
-    private ObjectMapper mapper;
 
     // -------------------------------------------------------------------------
     // Providers
@@ -118,16 +120,23 @@ public class JCloudsAppStorageService
     // -------------------------------------------------------------------------
 
     private final LocationManager locationManager;
-    
+
     private final DhisConfigurationProvider configurationProvider;
 
-    public JCloudsAppStorageService( LocationManager locationManager, DhisConfigurationProvider configurationProvider )
+    private final ObjectMapper jsonMapper;
+
+    public JCloudsAppStorageService(
+        LocationManager locationManager,
+        DhisConfigurationProvider configurationProvider,
+        ObjectMapper jsonMapper )
     {
         checkNotNull( locationManager );
         checkNotNull( configurationProvider );
+        checkNotNull( jsonMapper );
 
         this.locationManager = locationManager;
         this.configurationProvider = configurationProvider;
+        this.jsonMapper = jsonMapper;
     }
 
     @PostConstruct
@@ -166,9 +175,6 @@ public class JCloudsAppStorageService
             .description( config.provider )
             .build();
 
-        mapper = new ObjectMapper();
-        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        
         try
         {
             blobStore.createContainerInLocation( createRegionLocation( config, provider ), config.container );
@@ -269,7 +275,7 @@ public class JCloudsAppStorageService
         App app = new App();
         log.info( "Installing new app: " + filename );
 
-        try( ZipFile zip = new ZipFile( file ) )
+        try ( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
             // Parse ZIP file and it's manifest.webapp file.
@@ -288,11 +294,11 @@ public class JCloudsAppStorageService
 
             InputStream inputStream = zip.getInputStream( entry );
 
-            app = mapper.readValue( inputStream, App.class );
+            app = jsonMapper.readValue( inputStream, App.class );
 
             app.setFolderName( APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) ) );
             app.setAppStorageSource( AppStorageSource.JCLOUDS );
-            
+
             // -----------------------------------------------------------------
             // Check if app with same key is currently being deleted (deletion_in_progress)
             // -----------------------------------------------------------------
@@ -415,7 +421,7 @@ public class JCloudsAppStorageService
             return null;
         }
 
-        String key = ( app.getFolderName() + ("/" + pageName) ).replaceAll( "//", "/" );
+        String key = (app.getFolderName() + ("/" + pageName)).replaceAll( "//", "/" );
         URI uri = getSignedGetContentUri( key );
 
         if ( uri == null )

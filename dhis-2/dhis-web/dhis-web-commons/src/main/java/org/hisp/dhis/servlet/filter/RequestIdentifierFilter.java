@@ -40,8 +40,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
@@ -54,14 +54,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class RequestIdentifierFilter
     extends
     OncePerRequestFilter
 {
     private final static String SESSION_ID_KEY = "sessionId";
-
-    private static final Log log = LogFactory.getLog( RequestIdentifierFilter.class );
 
     /**
      * The hash algorithm to use (default is SHA-256)

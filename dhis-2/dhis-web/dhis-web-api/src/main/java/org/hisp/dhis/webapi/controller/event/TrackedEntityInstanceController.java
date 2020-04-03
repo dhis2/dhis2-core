@@ -47,7 +47,7 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;

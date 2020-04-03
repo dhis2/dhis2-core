@@ -28,19 +28,10 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -77,7 +68,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -90,22 +80,28 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-
-import com.google.common.collect.ImmutableSet;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Nonnull;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService" )
 public class DefaultCompleteDataSetRegistrationExchangeService
     implements
     CompleteDataSetRegistrationExchangeService
 {
-    private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
-
     private static final int CACHE_MISS_THRESHOLD = 500;
 
     private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
@@ -144,13 +140,25 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     private final MessageService messageService;
 
-    public DefaultCompleteDataSetRegistrationExchangeService( CompleteDataSetRegistrationExchangeStore cdsrStore,
-        IdentifiableObjectManager idObjManager, OrganisationUnitService orgUnitService, Notifier notifier,
-        I18nManager i18nManager, BatchHandlerFactory batchHandlerFactory, SystemSettingManager systemSettingManager,
-        CategoryService categoryService, PeriodService periodService, CurrentUserService currentUserService,
-        CompleteDataSetRegistrationService registrationService, InputUtils inputUtils,
-        AggregateAccessManager accessManager, DataSetNotificationEventPublisher notificationPublisher,
-        MessageService messageService )
+    private final ObjectMapper jsonMapper;
+
+    public DefaultCompleteDataSetRegistrationExchangeService(
+        CompleteDataSetRegistrationExchangeStore cdsrStore,
+        IdentifiableObjectManager idObjManager,
+        OrganisationUnitService orgUnitService,
+        Notifier notifier,
+        I18nManager i18nManager,
+        BatchHandlerFactory batchHandlerFactory,
+        SystemSettingManager systemSettingManager,
+        CategoryService categoryService,
+        PeriodService periodService,
+        CurrentUserService currentUserService,
+        CompleteDataSetRegistrationService registrationService,
+        InputUtils inputUtils,
+        AggregateAccessManager accessManager,
+        DataSetNotificationEventPublisher notificationPublisher,
+        MessageService messageService,
+        ObjectMapper jsonMapper )
     {
         checkNotNull( cdsrStore );
         checkNotNull( idObjManager );
@@ -168,7 +176,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         checkNotNull( accessManager );
         checkNotNull( notificationPublisher );
         checkNotNull( messageService );
-        
+        checkNotNull( jsonMapper );
+
         this.cdsrStore = cdsrStore;
         this.idObjManager = idObjManager;
         this.orgUnitService = orgUnitService;
@@ -184,6 +193,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         this.accessManager = accessManager;
         this.notificationPublisher = notificationPublisher;
         this.messageService = messageService;
+        this.jsonMapper = jsonMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -289,8 +299,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            CompleteDataSetRegistrations completeDataSetRegistrations = DefaultRenderService.getJsonMapper()
-                .readValue( in, CompleteDataSetRegistrations.class );
+
+            CompleteDataSetRegistrations completeDataSetRegistrations = jsonMapper.readValue( in, CompleteDataSetRegistrations.class );
 
             return saveCompleteDataSetRegistrations( importOptions, jobId, completeDataSetRegistrations );
         }
@@ -479,8 +489,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     /**
      * @return total number of processed CompleteDataSetRegistration objects
      */
-    private int batchImport(CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
-                            ImportSummary summary, MetadataCallables mdCallables, MetadataCaches mdCaches )
+    private int batchImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
+        ImportSummary summary, MetadataCallables mdCallables, MetadataCaches mdCaches )
     {
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
@@ -554,7 +564,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                 boolean DEFAULT_COMPLETENESS_STATUS = true;
                 isCompleted = cdsr.getCompleted();
-                isCompleted = ( isCompleted == null ) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
+                isCompleted = (isCompleted == null) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
                 cdsr.setCompleted( isCompleted );
 
                 // TODO Check if Period is within range of data set?
@@ -573,7 +583,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
                 mdProps.orgUnit, mdProps.attrOptCombo );
 
-            if( !missingDataElementOperands.isEmpty() )
+            if ( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
@@ -598,7 +608,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
                 continue;
             }
-            
+
             // -----------------------------------------------------------------
             // Create complete data set registration
             // -----------------------------------------------------------------
@@ -608,7 +618,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
             CompleteDataSetRegistration existingCdsr = config.isSkipExistingCheck() ? null
                 : batchHandler.findObject( internalCdsr );
-            
+
             ImportStrategy strategy = config.getStrategy();
 
             boolean isDryRun = config.isDryRun();
@@ -702,8 +712,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private static CompleteDataSetRegistration createCompleteDataSetRegistration(
-            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataProperties mdProps, Date now,
-            String storedBy )
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataProperties mdProps, Date now,
+        String storedBy )
     {
         Date date = cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now;
 
@@ -713,7 +723,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     /**
      * Check write permission for {@see DataSet} and {@see CategoryOptionCombo}
-     * @param user currently logged-in user
+     *
+     * @param user               currently logged-in user
      * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
      */
     private List<String> validateDataAccess( User user, MetadataProperties metaDataProperties )
@@ -723,8 +734,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         return errors;
     }
 
-    private static void validateOrgUnitInUserHierarchy(MetadataCaches mdCaches, MetadataProperties mdProps,
-                                                       final Set<OrganisationUnit> userOrgUnits, String currentUsername )
+    private static void validateOrgUnitInUserHierarchy( MetadataCaches mdCaches, MetadataProperties mdProps,
+        final Set<OrganisationUnit> userOrgUnits, String currentUsername )
         throws ImportConflictException
     {
         boolean inUserHierarchy = mdCaches.getOrgUnitInHierarchyMap().get( mdProps.orgUnit.getUid(),
@@ -741,7 +752,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     {
         if ( !config.isSkipNotifications() )
         {
-            if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
+            if ( registration.getDataSet() != null && registration.getDataSet().isNotifyCompletingUser() )
             {
                 messageService.sendCompletenessMessage( registration );
             }
@@ -750,7 +761,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private void validateAttrOptCombo(MetadataProperties mdProps, MetadataCaches mdCaches, ImportConfig config )
+    private void validateAttrOptCombo( MetadataProperties mdProps, MetadataCaches mdCaches, ImportConfig config )
         throws ImportConflictException
     {
         final Period pe = mdProps.period;
@@ -846,7 +857,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private void heatCaches(MetadataCaches caches, ImportConfig config )
+    private void heatCaches( MetadataCaches caches, ImportConfig config )
     {
         if ( !caches.getDataSets().isCacheLoaded() && exceedsThreshold( caches.getDataSets() ) )
         {
@@ -880,7 +891,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private MetadataProperties initMetaDataProperties(
-            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataCallables callables, MetadataCaches cache)
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataCallables callables, MetadataCaches cache )
     {
         String ds = StringUtils.trimToNull( cdsr.getDataSet() );
         String pe = StringUtils.trimToNull( cdsr.getPeriod() );

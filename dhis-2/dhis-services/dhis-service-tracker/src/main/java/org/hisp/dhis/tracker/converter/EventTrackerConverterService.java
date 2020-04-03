@@ -38,7 +38,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
@@ -97,7 +97,7 @@ public class EventTrackerConverterService
 
             if ( psi.getProgramInstance().getEntityInstance() != null )
             {
-                event.setTrackedEntityInstance( psi.getProgramInstance().getEntityInstance().getUid() );
+                event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
             }
 
             event.setFollowup( psi.getProgramInstance().getFollowup() );
@@ -192,9 +192,9 @@ public class EventTrackerConverterService
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
         events.forEach( e -> {
-            ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdentifier.UID, e.getEvent() );
-            ProgramStage programStage = preheat.get( TrackerIdentifier.UID, ProgramStage.class, e.getProgramStage() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, e.getOrgUnit() );
+            ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, e.getEvent() );
+            ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, e.getProgramStage() );
+            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
 
             if ( programStageInstance == null )
             {
@@ -208,7 +208,7 @@ public class EventTrackerConverterService
                 programStageInstance.setLastUpdatedAtClient( now );
 
                 programStageInstance.setProgramInstance(
-                    getProgramInstance( preheat, TrackerIdentifier.UID, e.getEnrollment(), programStage.getProgram() ) );
+                    getProgramInstance( preheat, TrackerIdScheme.UID, e.getEnrollment(), programStage.getProgram() ) );
             }
 
             if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
@@ -221,7 +221,7 @@ public class EventTrackerConverterService
             programStageInstance.setExecutionDate( DateUtils.parseDate( e.getEventDate() ) );
             programStageInstance.setDueDate( DateUtils.parseDate( e.getDueDate() ) );
             programStageInstance.setAttributeOptionCombo(
-                preheat.get( TrackerIdentifier.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
+                preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
             programStageInstance.setGeometry( e.getGeometry() );
             programStageInstance.setStatus( e.getStatus() );
             programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getCreatedAtClient() ) );
@@ -260,7 +260,7 @@ public class EventTrackerConverterService
         return programStageInstances;
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdentifier identifier, String enrollment, Program program )
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment, Program program )
     {
         if ( !StringUtils.isEmpty( enrollment ) )
         {

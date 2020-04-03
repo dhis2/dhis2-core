@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -41,10 +42,10 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
@@ -76,6 +77,10 @@ public class DefaultExportServiceTest
 
     @Autowired
     private SchemaService schemaService;
+
+    @Autowired
+    @Qualifier( "xmlMapper" )
+    private ObjectMapper xmlMapper;
 
     private DataElement deA;
 
@@ -143,7 +148,7 @@ public class DefaultExportServiceTest
         metadata.setDataElements( (List<DataElement>) metadataMap.get( DataElement.class ) );
         metadata.setOrganisationUnits( (List<OrganisationUnit>) metadataMap.get( OrganisationUnit.class ) );
 
-        String metaDataXml = DefaultRenderService.getXmlMapper().writeValueAsString( metadata );
+        String metaDataXml = xmlMapper.writeValueAsString( metadata );
 
         assertEquals( "1", xpathTest( "count(//d:organisationUnits)", metaDataXml ) );
         assertEquals( "2", xpathTest( "count(//d:organisationUnit)", metaDataXml ) );

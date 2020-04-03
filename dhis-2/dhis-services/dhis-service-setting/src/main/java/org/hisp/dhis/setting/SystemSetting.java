@@ -28,30 +28,27 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-
-
 /**
  * @author Stian Strandli
  */
+@Slf4j
 public class SystemSetting
     implements Serializable
 {
-    private static final Logger log = LoggerFactory.getLogger( SystemSetting.class );
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     private long id;
 
@@ -96,13 +93,17 @@ public class SystemSetting
         this.name = name;
     }
 
-    //Should be used only by Spring/Hibernate
+    /**
+     * Should be used only by Spring/Hibernate.
+     */
     public void setValue( String value )
     {
         this.value = value;
     }
 
-    //Should be used only by Spring/Hibernate
+    /**
+     * Should be used only by Spring/Hibernate.
+     */
     public String getValue()
     {
         return value;
@@ -117,7 +118,7 @@ public class SystemSetting
         }
         catch ( JsonProcessingException e )
         {
-            log.error( "An error occurred while serializing SystemSetting '" + name + "'", e );
+            log.error( String.format( "An error occurred while serializing system setting: '%s'", name ), e );
         }
     }
 
@@ -150,14 +151,14 @@ public class SystemSetting
                     valueAsSerializable = StringEscapeUtils.unescapeJava( value );
                 }
             }
-            catch ( MismatchedInputException e )
+            catch ( MismatchedInputException ex )
             {
-                log.warn( "Content could not be de-serialized by Jackson", e );
+                log.warn( "Content could not be de-serialized by Jackson", ex );
                 valueAsSerializable = StringEscapeUtils.unescapeJava( value );
             }
-            catch ( JsonProcessingException e )
+            catch ( JsonProcessingException ex )
             {
-                log.error( "An error occurred while de-serializing SystemSetting '" + name + "'", e );
+                log.error( String.format( "An error occurred while de-serializing system setting: '%s'", name ), ex );
             }
         }
 
@@ -181,7 +182,8 @@ public class SystemSetting
         }
     }
 
-    public Optional<String> getTranslation( String locale ) {
+    public Optional<String> getTranslation( String locale )
+    {
         return Optional.ofNullable( translations.get( locale ) );
     }
 

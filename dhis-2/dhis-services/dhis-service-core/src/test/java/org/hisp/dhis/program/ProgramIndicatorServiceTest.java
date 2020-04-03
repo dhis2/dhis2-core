@@ -484,20 +484,6 @@ public class ProgramIndicatorServiceTest
     }
 
     @Test
-    public void testFilterIsValid()
-    {
-        String filterA = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}  - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
-        String filterB = KEY_ATTRIBUTE + "{" + atA.getUid() + "} == " + KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} - 5";
-        String filterC = KEY_ATTRIBUTE + "{invaliduid} == 100";
-        String filterD = KEY_ATTRIBUTE + "{" + atA.getUid() + "} + 200";
-
-        assertTrue( programIndicatorService.filterIsValid( filterA ) );
-        assertTrue( programIndicatorService.filterIsValid( filterB ) );
-        assertFalse( programIndicatorService.filterIsValid( filterC ) );
-        assertFalse( programIndicatorService.filterIsValid( filterD ) );
-    }
-
-    @Test
     public void testValueCount()
     {
         String expected = "coalesce(\"DataElmentA\"::numeric,0)" +

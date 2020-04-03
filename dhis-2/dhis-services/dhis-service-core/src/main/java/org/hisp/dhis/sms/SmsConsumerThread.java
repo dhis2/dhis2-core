@@ -28,10 +28,10 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
@@ -41,13 +41,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component( "org.hisp.dhis.sms.SmsConsumerThread")
 public class SmsConsumerThread
 {
-    private static final Log log = LogFactory.getLog( SmsConsumerThread.class );
-
     private List<IncomingSmsListener> listeners;
 
     private final MessageQueue messageQueue;
@@ -118,6 +117,6 @@ public class SmsConsumerThread
     {
         this.listeners = listeners;
 
-        log.info( "Following listners are registered: " + listeners );
+        log.info( "Following listeners are registered: " + listeners );
     }
 }

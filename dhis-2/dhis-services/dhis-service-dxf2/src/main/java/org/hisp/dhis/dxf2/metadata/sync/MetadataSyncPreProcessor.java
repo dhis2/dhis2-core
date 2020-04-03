@@ -28,8 +28,13 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -45,12 +50,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Performs the tasks before metadata sync happens
@@ -58,19 +58,18 @@ import java.util.List;
  * @author aamerm
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "metadataSyncPreProcessor" )
 @Scope("prototype")
 public class MetadataSyncPreProcessor
 {
-    private static final Log log = LogFactory.getLog( MetadataSyncPreProcessor.class );
-
     private final SystemSettingManager systemSettingManager;
     private final MetadataVersionService metadataVersionService;
     private final MetadataVersionDelegate metadataVersionDelegate;
-    private final DataSynchronization trackerSync;
-    private final DataSynchronization eventSync;
-    private final DataSynchronization dataValueSync;
-    private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
+    private final DataSynchronizationWithPaging trackerSync;
+    private final DataSynchronizationWithPaging eventSync;
+    private final DataSynchronizationWithPaging dataValueSync;
+    private final DataSynchronizationWithoutPaging completeDataSetRegistrationSync;
 
     public MetadataSyncPreProcessor(
         SystemSettingManager systemSettingManager,
@@ -257,7 +256,8 @@ public class MetadataSyncPreProcessor
     }
 
     public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context ) {
-        SynchronizationResult completenessSynchronizationResult = completeDataSetRegistrationSync.syncCompleteDataSetRegistrationData();
+        SynchronizationResult completenessSynchronizationResult =
+            completeDataSetRegistrationSync.synchronizeData();
 
         if ( completenessSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {

@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.converter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -75,13 +76,12 @@ public class TrackedEntityTrackerConverterService
     @Transactional( readOnly = true )
     public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
-        List<TrackedEntity> trackedEntities = new ArrayList<>();
+        return trackedEntityInstances.stream().map( tei -> {
+            TrackedEntity trackedEntity = new TrackedEntity();
+            trackedEntity.setTrackedEntity( tei.getUid() );
 
-        trackedEntityInstances.forEach( tei -> {
-
-        } );
-
-        return trackedEntities;
+            return trackedEntity;
+        } ).collect( Collectors.toList() );
     }
 
     @Override
@@ -125,9 +125,9 @@ public class TrackedEntityTrackerConverterService
 
         trackedEntityInstances.forEach( te -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity = preheat.getTrackedEntity(
-                TrackerIdentifier.UID, te.getTrackedEntity() );
-            OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, te.getOrgUnit() );
-            TrackedEntityType trackedEntityType = preheat.get( TrackerIdentifier.UID, TrackedEntityType.class, te.getTrackedEntityType() );
+                TrackerIdScheme.UID, te.getTrackedEntity() );
+            OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, te.getOrgUnit() );
+            TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class, te.getTrackedEntityType() );
 
             if ( trackedEntity == null )
             {

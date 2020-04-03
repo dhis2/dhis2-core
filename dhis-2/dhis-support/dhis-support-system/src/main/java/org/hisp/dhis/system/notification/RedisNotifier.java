@@ -28,20 +28,9 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonGenerator.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -66,11 +55,10 @@ import java.util.Set;
  *
  * @author Ameen Mohamed
  */
+@Slf4j
 public class RedisNotifier implements Notifier
 {
     private static final String NOTIFIER_ERROR = "Redis Notifier error:%s";
-
-    private static final Log log = LogFactory.getLog( RedisNotifier.class );
 
     private RedisTemplate<String, String> redisTemplate;
 
@@ -88,36 +76,14 @@ public class RedisNotifier implements Notifier
 
     private final static int MAX_POOL_TYPE_SIZE = 100;
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper jsonMapper;
 
-    public RedisNotifier( RedisTemplate<String, String> redisTemplate )
+    public RedisNotifier(
+        RedisTemplate<String, String> redisTemplate,
+        ObjectMapper jsonMapper )
     {
         this.redisTemplate = redisTemplate;
-        objectMapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        objectMapper.registerModules( module, new JtsModule() );
-
-        objectMapper.setSerializationInclusion( Include.NON_NULL );
-        objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
-        objectMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
-        objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
-        objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
-
-        objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        objectMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
-        objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
-
-        objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        objectMapper.getFactory().enable( Feature.QUOTE_FIELD_NAMES );
+        this.jsonMapper = jsonMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -168,7 +134,7 @@ public class RedisNotifier implements Notifier
                     redisTemplate.boundZSetOps( notificationOrderKey ).removeRange( 0, 0 );
                 }
 
-                redisTemplate.boundZSetOps( notificationKey ).add( objectMapper.writeValueAsString( notification ),
+                redisTemplate.boundZSetOps( notificationKey ).add( jsonMapper.writeValueAsString( notification ),
                     now.getTime() );
                 redisTemplate.boundZSetOps( notificationOrderKey ).add( id.getUid(), now.getTime() );
             }
@@ -177,7 +143,7 @@ public class RedisNotifier implements Notifier
                 log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
             }
 
-            log.info( notification );
+            log.info( notification.toString() );
         }
         return this;
     }
@@ -216,7 +182,7 @@ public class RedisNotifier implements Notifier
             return list;
         }
 
-        String lastJobUid = (String) lastJobUidSet.iterator().next();
+        String lastJobUid = lastJobUidSet.iterator().next();
 
         for ( Notification notification : getNotificationsByJobId( jobType, lastJobUid ) )
         {
@@ -250,7 +216,7 @@ public class RedisNotifier implements Notifier
         redisTemplate.boundZSetOps( generateNotificationKey( jobType, jobId ) ).range( 0, -1 ).forEach( x -> {
             try
             {
-                notifications.add( objectMapper.readValue( x, Notification.class ) );
+                notifications.add( jsonMapper.readValue( x, Notification.class ) );
             }
             catch ( IOException ex )
             {
@@ -324,7 +290,7 @@ public class RedisNotifier implements Notifier
                     summaryKeyToBeDeleted.forEach( d -> redisTemplate.boundHashOps( summaryKey ).delete( d ) );
                 }
                 redisTemplate.boundHashOps( summaryKey ).put( id.getUid(),
-                    objectMapper.writeValueAsString( jobSummary ) );
+                    jsonMapper.writeValueAsString( jobSummary ) );
                 Date now = new Date();
 
                 redisTemplate.boundZSetOps( summaryOrderKey ).add( id.getUid(), now.getTime() );
@@ -357,7 +323,7 @@ public class RedisNotifier implements Notifier
             serializedSummaryMap.forEach( ( k, v ) -> {
                 try
                 {
-                    jobSummariesForType.put( (String) k, objectMapper.readValue( (String) v, existingSummaryType ) );
+                    jobSummariesForType.put( (String) k, jsonMapper.readValue( (String) v, existingSummaryType ) );
                 }
                 catch ( IOException e )
                 {
@@ -396,7 +362,7 @@ public class RedisNotifier implements Notifier
             String lastJobUid = (String) lastJobUidSet.iterator().next();
             Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( lastJobUid );
 
-            return serializedSummary != null ? objectMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
+            return serializedSummary != null ? jsonMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
         }
         catch ( IOException | ClassNotFoundException ex )
         {
@@ -418,7 +384,7 @@ public class RedisNotifier implements Notifier
             Class<?> existingSummaryType = Class.forName( existingSummaryTypeStr );
             Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( jobId );
 
-            return serializedSummary != null ? objectMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
+            return serializedSummary != null ? jsonMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
         }
         catch ( IOException | ClassNotFoundException ex )
         {

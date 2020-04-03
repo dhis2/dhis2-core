@@ -47,12 +47,6 @@ public class VectorCount
     }
 
     @Override
-    public Object vectorHandleNulls( Object value, CommonExpressionVisitor visitor )
-    {
-        return value;
-    }
-
-    @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return "count(" + visitor.visit( ctx.expr( 0 ) ) + ")";

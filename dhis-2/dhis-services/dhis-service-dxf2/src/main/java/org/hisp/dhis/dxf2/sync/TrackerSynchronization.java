@@ -28,8 +28,12 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -45,26 +49,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component
-public class TrackerSynchronization extends DataSynchronization
+public class TrackerSynchronization extends DataSynchronizationWithPaging
 {
-    private static final Log log = LogFactory.getLog( TrackerSynchronization.class );
-
     private final TrackedEntityInstanceService teiService;
     private final SystemSettingManager systemSettingManager;
     private final RestTemplate restTemplate;
     private final RenderService renderService;
-
-    private TrackedEntityInstanceQueryParams queryParams;
 
     public TrackerSynchronization( TrackedEntityInstanceService teiService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService )
     {
@@ -79,6 +76,7 @@ public class TrackerSynchronization extends DataSynchronization
         this.renderService = renderService;
     }
 
+    @Override
     public SynchronizationResult synchronizeData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
@@ -86,7 +84,8 @@ public class TrackerSynchronization extends DataSynchronization
             return SynchronizationResult.newFailureResultWithMessage( "Tracker programs data synchronization failed. Remote server is unavailable." );
         }
 
-        initializeSyncVariables( pageSize );
+        TrackedEntityInstanceQueryParams queryParams = initializeQueryParams();
+        initializeSyncVariables( queryParams, pageSize );
 
         if ( objectsToSynchronize == 0 )
         {
@@ -94,7 +93,7 @@ public class TrackerSynchronization extends DataSynchronization
             return SynchronizationResult.newSuccessResultWithMessage( "Tracker programs data synchronization skipped. No new or updated TEIs found." );
         }
 
-        runSyncWithPaging( pageSize );
+        runSyncWithPaging( queryParams, pageSize );
 
         if ( syncResult )
         {
@@ -105,11 +104,11 @@ public class TrackerSynchronization extends DataSynchronization
         return SynchronizationResult.newFailureResultWithMessage( "Tracker programs data synchronization failed." );
     }
 
-    private void initializeSyncVariables( final int pageSize )
+    private void initializeSyncVariables( TrackedEntityInstanceQueryParams queryParams, final int pageSize )
     {
         clock = new Clock( log ).startClock().logTime( "Starting Tracker programs data synchronization job." );
         final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        prepareQueryParams( skipChangedBefore );
+        queryParams.setSkipChangedBefore( skipChangedBefore );
         objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 
         log.info( "TrackedEntityInstances last changed before " + skipChangedBefore + " will not be synchronized." );
@@ -129,15 +128,26 @@ public class TrackerSynchronization extends DataSynchronization
         }
     }
 
-    private void prepareQueryParams( Date skipChangedBefore )
+    private TrackedEntityInstanceQueryParams initializeQueryParams()
     {
-        queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
-        queryParams.setSkipChangedBefore( skipChangedBefore );
+
+        return queryParams;
     }
 
-    protected void synchronizePage( int page, int pageSize )
+    private void runSyncWithPaging( TrackedEntityInstanceQueryParams queryParams, int pageSize )
+    {
+        syncResult = true;
+
+        for ( int page = 1; page <= pages; page++ )
+        {
+            synchronizePage( queryParams, page, pageSize );
+        }
+    }
+
+    private void synchronizePage( TrackedEntityInstanceQueryParams queryParams, int page, int pageSize )
     {
         queryParams.setPage( page );
 
@@ -177,5 +187,17 @@ public class TrackerSynchronization extends DataSynchronization
         };
 
         return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.TRACKED_ENTITY_INSTANCES );
+    }
+
+    @Override
+    protected void runSyncWithPaging( int pageSize )
+    {
+        throw new IllegalStateException( "Method runSyncWithPaging(int pageSize) is not supported by TrackerSynchronization" );
+    }
+
+    @Override
+    protected void synchronizePage( int page, int pageSize )
+    {
+        throw new IllegalStateException( "Method synchronizePage(int page, int pageSize) is not supported by TrackerSynchronization" );
     }
 }

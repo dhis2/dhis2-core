@@ -39,16 +39,22 @@ public class SystemUtils
 
     /**
      * Indicates whether the current thread is running for testing.
+     *
      * @return true if test run.
      */
-    public static boolean isTestRun(String[] profiles)
+    public static boolean isTestRun( String[] profiles )
     {
-        return Arrays.asList(profiles).contains("test");
+        return Arrays.asList( profiles ).contains( "test" );
     }
 
-    public static boolean isH2(String[] profiles)
+    public static boolean isAuditTest( String[] profiles )
     {
-        return Arrays.asList(profiles).contains("test-h2");
+        return Arrays.asList( profiles ).contains( "test-audit" );
+    }
+
+    public static boolean isH2( String[] profiles )
+    {
+        return Arrays.asList( profiles ).contains( "test-h2" );
     }
 
     /**

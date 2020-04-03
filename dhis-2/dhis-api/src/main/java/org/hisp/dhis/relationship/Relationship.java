@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
@@ -54,6 +55,7 @@ public class Relationship
 
     private RelationshipType relationshipType;
 
+    @AuditAttribute
     private RelationshipItem from;
 
     private RelationshipItem to;

@@ -28,9 +28,10 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -75,11 +76,10 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.*;
  */
 @Controller
 @RequestMapping( value = DataValueSetController.RESOURCE_PATH )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
-    private static final Log log = LogFactory.getLog( DataValueSetController.class );
-
     public static final String RESOURCE_PATH = "/dataValueSets";
 
     @Autowired
@@ -129,7 +129,7 @@ public class DataValueSetController
         setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         OutputStream outputStream = compress( response, Compression.fromValue( compression ), "xml" );
@@ -345,7 +345,6 @@ public class DataValueSetController
      * @param format        the resource representation format.
      * @param request       the HttpRequest.
      * @param response      the HttpResponse.
-     * @throws IOException
      */
     private void startAsyncImport( ImportOptions importOptions, String format, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -367,7 +366,6 @@ public class DataValueSetController
      *
      * @param in the InputStream.
      * @return an InputStream.
-     * @throws IOException
      */
     private InputStream saveTmp( InputStream in )
         throws IOException
@@ -385,13 +383,13 @@ public class DataValueSetController
     }
 
     /**
+     * Returns an output stream with the appropriate compression based on the
+     * given {@link Compression} argument.
      *
-     * @param response HttpServletResponse
-     * @param compression Compression {@link Compression}
-     * @param format File format, can be json, xml or csv
+     * @param response the {@link HttpServletResponse}.
+     * @param compression the Compression {@link Compression}
+     * @param format the file format, can be json, xml or csv.
      * @return Compressed OutputStream if given compression is given, otherwise just return uncompressed outputStream
-     * @throws IOException
-     * @throws HttpMessageNotWritableException
      */
     private OutputStream compress( HttpServletResponse response, Compression compression, String format )
         throws IOException,

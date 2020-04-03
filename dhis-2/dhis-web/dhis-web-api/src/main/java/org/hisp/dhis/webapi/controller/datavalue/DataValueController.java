@@ -28,17 +28,6 @@ package org.hisp.dhis.webapi.controller.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -76,6 +65,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Lars Helge Overland
@@ -139,7 +137,7 @@ public class DataValueController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
-        @RequestParam( required = false ) boolean followUp,
+        @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
@@ -233,11 +231,11 @@ public class DataValueController
 
         Date now = new Date();
 
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
+        DataValue persistedDataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
 
         FileResource fileResource = null;
 
-        if ( dataValue == null )
+        if ( persistedDataValue == null )
         {
             // ---------------------------------------------------------------------
             // Deal with file resource
@@ -248,24 +246,18 @@ public class DataValueController
                 fileResource = dataValueValidation.validateAndSetAssigned( value );
             }
 
-            dataValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo,
+            DataValue newValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
+                attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
 
-            dataValueService.addDataValue( dataValue );
+            dataValueService.addDataValue( newValue );
         }
         else
         {
-            if ( value == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
+            if ( value == null && comment == null && followUp == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
-                if ( comment == null )
-                {
-                    dataValueService.deleteDataValue( dataValue );
-                    return;
-                }
-                else
-                {
-                    value = DataValue.FALSE;
-                }
+                dataValueService.deleteDataValue( persistedDataValue );
+                return;
             }
 
             // ---------------------------------------------------------------------
@@ -281,15 +273,15 @@ public class DataValueController
             {
                 try
                 {
-                    fileResourceService.deleteFileResource( dataValue.getValue() );
+                    fileResourceService.deleteFileResource( persistedDataValue.getValue() );
                 }
                 catch ( AuthorizationException exception )
                 {
                     // If we fail to delete the fileResource now, mark it as unassigned for removal later
-                    fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
+                    fileResourceService.getFileResource( persistedDataValue.getValue() ).setAssigned( false );
                 }
 
-                dataValue.setValue( StringUtils.EMPTY );
+                persistedDataValue.setValue( StringUtils.EMPTY );
             }
 
             // -----------------------------------------------------------------
@@ -299,23 +291,23 @@ public class DataValueController
 
             if ( value != null )
             {
-                dataValue.setValue( StringUtils.trimToNull( value ) );
+                persistedDataValue.setValue( StringUtils.trimToNull( value ) );
             }
 
             if ( comment != null )
             {
-                dataValue.setComment( StringUtils.trimToNull( comment ) );
+                persistedDataValue.setComment( StringUtils.trimToNull( comment ) );
             }
 
-            if ( followUp )
+            if ( followUp != null )
             {
-                dataValue.toggleFollowUp();
+                persistedDataValue.toggleFollowUp();
             }
 
-            dataValue.setLastUpdated( now );
-            dataValue.setStoredBy( storedBy );
+            persistedDataValue.setLastUpdated( now );
+            persistedDataValue.setStoredBy( storedBy );
 
-            dataValueService.updateDataValue( dataValue );
+            dataValueService.updateDataValue( persistedDataValue );
         }
 
         if ( fileResource != null )
@@ -531,13 +523,11 @@ public class DataValueController
         }
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
         setNoStore( response );
-
         try
         {
-            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
+            response.setContentLengthLong( fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() ) );
         }
         catch ( IOException e )
         {

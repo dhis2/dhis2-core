@@ -50,7 +50,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.visualization.VisualizationStore;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,6 +89,7 @@ public class DefaultVisualizationService
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()
     {
         return (AnalyticalObjectStore<Visualization>) visualizationStore;

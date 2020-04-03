@@ -29,32 +29,29 @@ package org.hisp.dhis.dxf2.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
+@Slf4j
 @Component( "eventProgramsDataSyncJob" )
-public class EventProgramsDataSynchronizationJob extends AbstractJob
+public class EventProgramsDataSynchronizationJob extends SynchronizationJob
 {
-    private static final Log log = LogFactory.getLog( EventProgramsDataSynchronizationJob.class );
-
     private final Notifier notifier;
     private final MessageService messageService;
-    private final DataSynchronization eventSync;
+    private final DataSynchronizationWithPaging eventSync;
     private final SynchronizationManager synchronizationManager;
 
     public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
@@ -97,13 +94,9 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
     @Override
     public ErrorReport validate()
     {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
+            EventProgramsDataSynchronizationJob.class );
 
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return new ErrorReport( MetadataSyncJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
-        }
-
-        return super.validate();
+        return errorReport.orElse( super.validate() );
     }
 }

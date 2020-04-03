@@ -30,11 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
@@ -44,13 +40,13 @@ import java.util.List;
 import javax.persistence.QueryTimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -75,13 +71,14 @@ import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Markus Bekken
  */
+@Slf4j
 public abstract class AbstractJdbcEventAnalyticsManager
 {
-    private static final Log log = LogFactory.getLog( AbstractJdbcEventAnalyticsManager.class );
-
     private static final String ITEM_NAME_SEP = ": ";
     private static final String NA = "[N/A]";
     protected static final String COL_COUNT = "count";
@@ -145,19 +142,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isSorting() )
         {
-            sql += "order by ";
-
-            for ( DimensionalItemObject item : params.getAsc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " asc,";
-            }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " desc,";
-            }
+            sql += "order by " + getSortColumns( params, SortOrder.ASC ) + getSortColumns( params, SortOrder.DESC );
 
             sql = TextUtils.removeLastComma( sql ) + " ";
+        }
+
+        return sql;
+    }
+
+    private String getSortColumns(EventQueryParams params , SortOrder order) {
+
+        String sql = "";
+
+        for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
+        {
+            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() ) )
+            {
+                sql += quote( item.getUid() );
+            }
+            else
+            {
+                sql += quoteAlias( item.getUid() );
+            }
+            sql += order.equals( SortOrder.ASC ) ? " asc," : " desc,";
         }
 
         return sql;

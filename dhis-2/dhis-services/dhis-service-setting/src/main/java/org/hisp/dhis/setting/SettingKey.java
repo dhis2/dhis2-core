@@ -31,10 +31,15 @@ package org.hisp.dhis.setting;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
@@ -78,9 +83,9 @@ public enum SettingKey
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     SMS_CONFIG( "keySmsSetting", new SmsConfiguration(), SmsConfiguration.class ),
-    CACHE_STRATEGY( "keyCacheStrategy", CacheStrategy.CACHE_6AM_TOMORROW, CacheStrategy.class ),
+    CACHE_STRATEGY( "keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
-    CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
+    //CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
     ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
@@ -145,6 +150,7 @@ public enum SettingKey
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true, false ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
     GOOGLE_CLOUD_API_KEY( "keyGoogleCloudApiKey", "AIzaSyDWyCSemDgAxocSL7j9Dy4mi93xTTcPEek", String.class ),
+    BING_MAPS_API_KEY( "keyBingMapsApiKey", "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
     METADATAVERSION_ENABLED( "keyVersionEnabled", Boolean.FALSE, Boolean.class ),
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
@@ -162,7 +168,20 @@ public enum SettingKey
     ANALYTICS_HIDE_DAILY_PERIODS( "keyHideDailyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
-    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class );
+    ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
+
+    /**
+     * Progressive caching factor definition for Analytics. In order to enable it,
+     * the {@link #ANALYTICS_CACHE_TTL_MODE} has to be set to PROGRESSIVE.
+     * 
+     * @see AnalyticsCacheTtlMode
+     */
+    ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR( "keyAnalyticsCacheProgressiveTtlFactor", 160, Integer.class ),
+
+    /**
+     * The caching strategy enabled
+     */
+    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class );
 
     private final String name;
 
@@ -285,7 +304,7 @@ public enum SettingKey
             }
             else if ( Date.class.isAssignableFrom( settingClazz ) )
             {
-                //Accepts String with date in ISO_LOCAL_DATE_TIME format
+                // Accepts String with date in ISO_LOCAL_DATE_TIME format
                 LocalDateTime dateTime = LocalDateTime.parse( value );
 
                 return Date.from( dateTime.atZone( ZoneId.systemDefault() ).toInstant() );

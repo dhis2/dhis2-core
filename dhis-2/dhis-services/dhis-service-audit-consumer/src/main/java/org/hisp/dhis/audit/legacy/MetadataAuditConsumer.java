@@ -28,9 +28,11 @@ package org.hisp.dhis.audit.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.IOException;
+import java.util.Objects;
+
+import javax.jms.TextMessage;
+
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
@@ -40,20 +42,19 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import javax.jms.TextMessage;
-import java.io.IOException;
-import java.util.Objects;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A MetadataAudit object consumer.
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class MetadataAuditConsumer implements AuditConsumer
 {
-    private static final Log log = LogFactory.getLog( MetadataAuditConsumer.class );
-
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private final boolean metadataAuditLog;
@@ -74,6 +75,7 @@ public class MetadataAuditConsumer implements AuditConsumer
     {
         try
         {
+            log.debug( "[MetadataAuditConsumer] Receiving message: "+ message  );
             String payload = message.getText();
 
             Audit auditMessage = objectMapper.readValue( payload, Audit.class );

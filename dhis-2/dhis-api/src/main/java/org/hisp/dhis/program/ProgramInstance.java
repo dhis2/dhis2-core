@@ -28,12 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.vividsolutions.jts.geom.Geometry;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
@@ -43,15 +46,17 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Abyot Asalefew
  */
+@Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramInstance
     extends BaseIdentifiableObject
@@ -62,6 +67,7 @@ public class ProgramInstance
 
     private ProgramStatus status = ProgramStatus.ACTIVE;
 
+    @AuditAttribute
     private OrganisationUnit organisationUnit;
 
     private Date incidentDate;
@@ -70,8 +76,10 @@ public class ProgramInstance
 
     private Date endDate;
 
+    @AuditAttribute
     private TrackedEntityInstance entityInstance;
 
+    @AuditAttribute
     private Program program;
 
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
@@ -88,6 +96,7 @@ public class ProgramInstance
 
     private Geometry geometry;
 
+    @AuditAttribute
     private Boolean deleted = false;
 
     private String storedBy;
@@ -542,10 +551,10 @@ public class ProgramInstance
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             ", status=" + status +
-            ", organisationUnit=" + organisationUnit.getUid() +
+            ", organisationUnit=" + ( organisationUnit != null ? organisationUnit.getUid() : "null" ) +
             ", incidentDate=" + incidentDate +
             ", enrollmentDate=" + enrollmentDate +
-            ", entityInstance=" + entityInstance.getUid() +
+            ", entityInstance=" + ( entityInstance != null ? entityInstance.getUid() : "null" ) +
             ", program=" + program +
             ", deleted=" + deleted +
             ", storedBy='" + storedBy + '\'' +

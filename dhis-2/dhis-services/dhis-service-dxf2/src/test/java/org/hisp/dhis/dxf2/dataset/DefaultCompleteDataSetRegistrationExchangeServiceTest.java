@@ -49,6 +49,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -95,10 +96,10 @@ import com.google.common.collect.Sets;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( DefaultCompleteDataSetRegistrationExchangeService.class )
-@PowerMockIgnore({ "javax.management.*","javax.xml.*", "org.apache.logging.*", "org.apache.xerces.*", "org.cache2k.*" })
+@PowerMockIgnore( { "javax.management.*", "javax.xml.*", "org.apache.logging.*", "org.apache.xerces.*",
+    "org.cache2k.*", "org.slf4j.*" } )
 public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
-
     @Mock
     private CompleteDataSetRegistrationExchangeStore cdsrStore;
 
@@ -201,7 +202,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         subject = new DefaultCompleteDataSetRegistrationExchangeService( cdsrStore, idObjManager, orgUnitService,
             notifier, i18nManager, batchHandlerFactory, systemSettingManager, categoryService, periodService,
             currentUserService, registrationService, inputUtils, aggregateAccessManager, notificationPublisher,
-            messageService );
+            messageService, JacksonObjectMapperConfig.staticJsonMapper() );
 
         DEFAULT_COC = new CategoryOptionCombo();
 

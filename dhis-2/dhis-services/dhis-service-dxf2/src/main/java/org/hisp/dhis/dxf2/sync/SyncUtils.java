@@ -54,9 +54,13 @@ package org.hisp.dhis.dxf2.sync;/*
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+import java.util.Date;
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
+import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -68,32 +72,18 @@ import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+import org.springframework.web.client.*;
 
-import java.util.Date;
-import java.util.Optional;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 
+@Slf4j
 public class SyncUtils
 {
-
-    private static final Log log = LogFactory.getLog( SyncUtils.class );
-
     static final String HEADER_AUTHORIZATION = "Authorization";
     static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
     private static final String PING_PATH = "/api/system/ping";
@@ -132,14 +122,14 @@ public class SyncUtils
         return false;
     }
 
-    private static Optional<AbstractWebMessageResponse> runSyncRequest( RestTemplate restTemplate,
+    public static Optional<AbstractWebMessageResponse> runSyncRequest( RestTemplate restTemplate,
         RequestCallback requestCallback, Class<? extends AbstractWebMessageResponse> klass, String syncUrl,
         int maxSyncAttempts )
     {
         boolean networkErrorOccurred = true;
         int syncAttemptsDone = 0;
 
-        ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
+        ResponseExtractor<? extends AbstractWebMessageResponse> responseExtractor = getResponseExtractor( klass );
         AbstractWebMessageResponse responseSummary = null;
 
         while ( networkErrorOccurred )
@@ -186,6 +176,22 @@ public class SyncUtils
 
         log.info( "Sync summary: " + responseSummary );
         return Optional.ofNullable( responseSummary );
+    }
+
+    private static ResponseExtractor<? extends AbstractWebMessageResponse> getResponseExtractor( Class<? extends AbstractWebMessageResponse> klass )
+    {
+        if ( ImportSummaries.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummariesResponseExtractor();
+        }
+        else if ( ImportSummary.class.isAssignableFrom( klass ) )
+        {
+            return new ImportSummaryResponseExtractor();
+        }
+        else
+        {
+            throw new IllegalStateException( "ResponseExtractor for given class '" + klass + "' is not supported." );
+        }
     }
 
     /**

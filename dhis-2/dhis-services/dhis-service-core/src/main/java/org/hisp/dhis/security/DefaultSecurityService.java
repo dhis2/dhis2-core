@@ -28,20 +28,9 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
@@ -55,7 +44,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -72,17 +60,27 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.security.SecurityService" )
 public class DefaultSecurityService
     implements SecurityService
 {
-    private static final Log log = LogFactory.getLog( DefaultSecurityService.class );
-
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
     private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
     private static final String TBD_NAME = "(TBD)";
@@ -125,10 +123,20 @@ public class DefaultSecurityService
 
     private final I18nManager i18nManager;
 
-    public DefaultSecurityService( CurrentUserService currentUserService, UserSettingService userSettingService,
-        AclService aclService, RestTemplate restTemplate, CacheProvider cacheProvider, @Lazy PasswordManager passwordManager,
-        MessageSender emailMessageSender, UserService userService, SystemSettingManager systemSettingManager,
-        I18nManager i18nManager )
+    private final ObjectMapper jsonMapper;
+
+    public DefaultSecurityService(
+        CurrentUserService currentUserService,
+        UserSettingService userSettingService,
+        AclService aclService,
+        RestTemplate restTemplate,
+        CacheProvider cacheProvider,
+        @Lazy PasswordManager passwordManager,
+        MessageSender emailMessageSender,
+        UserService userService,
+        SystemSettingManager systemSettingManager,
+        I18nManager i18nManager,
+        ObjectMapper jsonMapper )
     {
         checkNotNull( currentUserService );
         checkNotNull( userSettingService );
@@ -140,6 +148,7 @@ public class DefaultSecurityService
         checkNotNull( userService );
         checkNotNull( systemSettingManager );
         checkNotNull( i18nManager );
+        checkNotNull( jsonMapper );
 
         this.currentUserService = currentUserService;
         this.userSettingService = userSettingService;
@@ -151,6 +160,7 @@ public class DefaultSecurityService
         this.userService = userService;
         this.systemSettingManager = systemSettingManager;
         this.i18nManager = i18nManager;
+        this.jsonMapper = jsonMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -321,6 +331,9 @@ public class DefaultSecurityService
 
         if ( isRecoveryLocked( credentials.getUsername() ) )
         {
+            log.warn( "The account recovery operation for the given user is temporarily locked due to too " +
+                "many calls to this endpoint in the last '" + RECOVERY_LOCKOUT_MINS + "' minutes. Credentials:" +
+                credentials );
             return false;
         }
         else
@@ -658,7 +671,7 @@ public class DefaultSecurityService
 
         log.info( "Recaptcha result: " + result );
 
-        return JacksonUtils.fromJson( result, RecaptchaResponse.class );
+        return result != null ? jsonMapper.readValue( result, RecaptchaResponse.class ) : null;
     }
 
     @Override

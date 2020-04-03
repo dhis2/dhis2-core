@@ -28,8 +28,7 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
@@ -40,6 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Component
 public class AuditManager
 {
@@ -49,8 +49,6 @@ public class AuditManager
     private final AuditMatrix auditMatrix;
 
     private final AuditObjectFactory objectFactory;
-
-    private static final Log log = LogFactory.getLog( AuditManager.class );
 
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
@@ -73,15 +71,20 @@ public class AuditManager
 
     public void send( Audit audit )
     {
-        if ( !auditMatrix.isEnabled( audit ) )
+        if ( !auditMatrix.isEnabled( audit ) || audit.getAuditableEntity() == null )
         {
             log.debug( "Audit message ignored:\n" + audit.toLog() );
             return;
         }
 
-        audit.setData( (audit.getAuditableEntity().getEntity() instanceof String ? audit.getAuditableEntity()
-            : this.objectFactory.create( audit.getAuditScope(), audit.getAuditType(), audit.getAuditableEntity().getEntity(),
-            audit.getCreatedBy() )) );
+        if ( audit.getData() == null )
+        {
+            audit.setData( this.objectFactory.create(
+                audit.getAuditScope(),
+                audit.getAuditType(),
+                audit.getAuditableEntity().getEntity(),
+                audit.getCreatedBy() ) );
+        }
 
         audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
 
@@ -94,4 +97,5 @@ public class AuditManager
             auditProducerSupplier.publish( audit );
         }
     }
+
 }

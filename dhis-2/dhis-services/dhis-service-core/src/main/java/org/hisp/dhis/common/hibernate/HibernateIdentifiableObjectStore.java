@@ -28,22 +28,22 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaQuery;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
+import org.hibernate.criterion.*;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.AuditLogUtil;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -57,42 +57,20 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.user.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author bobj
  */
+@Slf4j
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
 {
-    private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
-
     protected CurrentUserService currentUserService;
 
     private DeletedObjectService deletedObjectService;
@@ -255,11 +233,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
 
         getSession().save( object );
-
-        if (object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-        }
     }
 
     @Override
@@ -298,11 +271,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( object != null )
         {
             getSession().update( object );
-        }
-
-        if ( object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
     }
 
@@ -591,10 +559,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     public List<T> getAllLikeNameAndEqualsAttribute( Set<String> nameWords, String attribute, String attributeValue, int first, int max )
     {
-
         if ( StringUtils.isEmpty( attribute ) || StringUtils.isEmpty( attributeValue ) )
         {
-            return Collections.EMPTY_LIST;
+            return new ArrayList<>();
         }
 
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -942,7 +909,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder, AclService.LIKE_READ_DATA ) );
+            .addPredicates( getDataSharingPredicates( builder ) );
 
         return getList( builder, parameters );
     }
@@ -953,7 +920,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder, user, AclService.LIKE_READ_DATA ) );
+            .addPredicates( getDataSharingPredicates( builder, user ) );
 
         return getList( builder, parameters );
     }
@@ -986,7 +953,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder, AclService.LIKE_READ_DATA ) )
+            .addPredicates( getDataSharingPredicates( builder ) )
             .setFirstResult( first )
             .setMaxResults( max );
 
@@ -1011,11 +978,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Creates a detached criteria with data sharing restrictions relative to the
      * given user and access string.
      *
-     * @param user   the user.
+     * @param user the user.
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    private DetachedCriteria getDataSharingDetachedCriteria(UserInfo user, String access)
+    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -1069,7 +1036,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    private DetachedCriteria getSharingDetachedCriteria(UserInfo user, String access)
+    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -1312,11 +1279,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     /**
      * Checks whether the given user has public access to the given identifiable object.
      *
-     * @param user               the user.
+     * @param user the user.
      * @param identifiableObject the identifiable object.
      * @return true or false.
      */
-    private boolean checkPublicAccess(User user, IdentifiableObject identifiableObject)
+    private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
     {
         return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
             (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
@@ -1328,22 +1295,22 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return Dashboard.class.isAssignableFrom( clazz );
     }
 
-    private boolean sharingEnabled(User user)
+    private boolean sharingEnabled( User user )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
     }
 
-    private boolean sharingEnabled(UserInfo userInfo)
+    private boolean sharingEnabled( UserInfo userInfo )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
     }
 
-    private boolean dataSharingEnabled(UserInfo userInfo)
+    private boolean dataSharingEnabled( UserInfo userInfo )
     {
         return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
     }
 
-    private boolean isReadAllowed(T object, User user)
+    private boolean isReadAllowed( T object, User user )
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1358,7 +1325,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    private boolean isUpdateAllowed(T object, User user)
+    private boolean isUpdateAllowed( T object, User user )
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1373,7 +1340,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    private boolean isDeleteAllowed(T object, User user)
+    private boolean isDeleteAllowed( T object, User user )
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {

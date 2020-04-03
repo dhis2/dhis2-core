@@ -134,6 +134,7 @@ public class HibernateProgramRuleStore
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
         ProgramRuleActionEvaluationEnvironment environment )
     {

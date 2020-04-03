@@ -28,9 +28,11 @@ package org.hisp.dhis.dxf2.monitoring;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SettingKey;
@@ -51,18 +53,16 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service( "org.hisp.dhis.dxf2.monitoring.MonitoringService" )
 public class DefaultMonitoringService
     implements MonitoringService
 {
-    private static final Log log = LogFactory.getLog( DefaultMonitoringService.class );
-    
     private static final int PUSH_INTERVAL = DateTimeConstants.MILLIS_PER_MINUTE * 5;
     private static final int PUSH_INITIAL_DELAY = DateTimeConstants.MILLIS_PER_SECOND * 30;
     

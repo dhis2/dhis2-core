@@ -28,22 +28,28 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import org.apache.commons.lang3.StringUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobRequestSigner;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.ContainerNotFoundException;
-import org.jclouds.blobstore.LocalBlobRequestSigner;
+import org.jclouds.blobstore.*;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
 import org.jclouds.domain.Credentials;
@@ -58,32 +64,19 @@ import org.jclouds.s3.reference.S3Constants;
 import org.joda.time.Minutes;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Properties;
-import java.util.regex.Pattern;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 @Service( "org.hisp.dhis.fileresource.FileResourceContentStore" )
 public class JCloudsFileResourceContentStore
     implements FileResourceContentStore
 {
-    private static final Log log = LogFactory.getLog( JCloudsFileResourceContentStore.class );
-
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern
         .compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
 
@@ -363,7 +356,7 @@ public class JCloudsFileResourceContentStore
     }
 
     @Override
-    public void copyContent( String key, OutputStream output )
+    public long copyContent( String key, OutputStream output )
         throws IOException, NoSuchElementException
     {
         if ( !blobExists( key ) )
@@ -371,11 +364,14 @@ public class JCloudsFileResourceContentStore
             throw new NoSuchElementException( "key '" + key + "' not found." );
         }
 
-        try ( InputStream in = getBlob( key ).getPayload().openStream() )
+        Blob blob = getBlob( key );
+
+        try ( InputStream in = blob.getPayload().openStream() )
         {
             IOUtils.copy( in, output );
         }
 
+        return blob.getMetadata().getContentMetadata().getContentLength();
     }
 
     // -------------------------------------------------------------------------

@@ -30,27 +30,19 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.http.util.TextUtils.isEmpty;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -93,16 +85,17 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Jim Grace
  */
+@Slf4j
 @Service( "org.hisp.dhis.predictor.PredictionService" )
 @Transactional
 public class DefaultPredictionService
     implements PredictionService
 {
-    private static final Log log = LogFactory.getLog( DefaultPredictionService.class );
-
     private final PredictorService predictorService;
 
     private final ConstantService constantService;
@@ -172,7 +165,8 @@ public class DefaultPredictionService
      * Used only for testing, remove when test is refactored
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService(CurrentUserService currentUserService)
+    {
         this.currentUserService = currentUserService;
     }
 
@@ -466,7 +460,7 @@ public class DefaultPredictionService
         MapMap<Period, DimensionalItemObject, Double> sampleMap2,
         Expression skipTest, Map<String, Constant> constantMap )
     {
-        if ( skipTest == null || isEmpty( skipTest.getExpression() ) )
+        if ( skipTest == null || StringUtils.isEmpty( skipTest.getExpression() ) )
         {
             return sampleMap2;
         }

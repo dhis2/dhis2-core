@@ -31,7 +31,7 @@ package org.hisp.dhis.program.notification.event;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class ProgramRuleEnrollmentEvent extends ApplicationEvent
 {

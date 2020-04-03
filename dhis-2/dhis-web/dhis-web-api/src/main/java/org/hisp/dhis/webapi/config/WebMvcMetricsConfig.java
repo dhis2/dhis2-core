@@ -45,7 +45,6 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
@@ -68,11 +67,11 @@ public class WebMvcMetricsConfig
     }
 
     @Bean
-    @SuppressWarnings("deprecation")
     public WebMvcMetricsFilter webMetricsFilter( MeterRegistry registry, WebMvcTagsProvider tagsProvider,
-        WebApplicationContext ctx )
+        HandlerMappingIntrospector handlerMappingIntrospector )
     {
-        return new WebMvcMetricsFilter( registry, tagsProvider, "http_server_requests", true, new HandlerMappingIntrospector(ctx) );
+        return new WebMvcMetricsFilter( registry, tagsProvider, "http_server_requests", true,
+            handlerMappingIntrospector );
     }
 
     @Configuration

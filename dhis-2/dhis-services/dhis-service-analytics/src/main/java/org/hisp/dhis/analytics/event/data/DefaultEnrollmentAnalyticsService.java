@@ -105,7 +105,7 @@ public class DefaultEnrollmentAnalyticsService
     }
 
     @Override
-    protected long addData(Grid grid, EventQueryParams params )
+    protected long addEventData(Grid grid, EventQueryParams params )
     {
         Timer timer = new Timer().start().disablePrint();
 

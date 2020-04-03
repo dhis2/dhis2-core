@@ -48,7 +48,7 @@ public class ProgramOwner
     private String ownerOrgUnit;
 
     @JsonProperty
-    private String trackedEntityInstance;
+    private String trackedEntity;
 
     @JsonProperty
     private String program;
@@ -57,6 +57,6 @@ public class ProgramOwner
     {
         this.ownerOrgUnit = programOwner.getOrganisationUnit().getUid();
         this.program = programOwner.getProgram().getUid();
-        this.trackedEntityInstance = programOwner.getEntityInstance().getUid();
+        this.trackedEntity = programOwner.getEntityInstance().getUid();
     }
 }

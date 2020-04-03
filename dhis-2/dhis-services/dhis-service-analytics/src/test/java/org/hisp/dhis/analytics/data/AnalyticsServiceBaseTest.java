@@ -29,9 +29,10 @@ package org.hisp.dhis.analytics.data;
  */
 
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -43,7 +44,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.env.Environment;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,7 +53,8 @@ import static org.mockito.Mockito.*;
  * @author Luciano Fiandesio
  */
 @RunWith( MockitoJUnitRunner.Silent.class )
-public abstract class AnalyticsServiceBaseTest {
+public abstract class AnalyticsServiceBaseTest
+{
 
     @Mock
     protected AnalyticsManager analyticsManager;
@@ -89,16 +90,17 @@ public abstract class AnalyticsServiceBaseTest {
     private DhisConfigurationProvider dhisConfig;
 
     @Mock
-    private CacheProvider cacheProvider;
+    private AnalyticsCache analyticsCache;
 
     @Mock
-    private Environment environment;
+    private AnalyticsCacheSettings analyticsCacheSettings;
 
     @Mock
     private ExpressionResolver resolver;
 
     @Mock
     private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
+
     AnalyticsService target;
 
     @Before
@@ -108,17 +110,17 @@ public abstract class AnalyticsServiceBaseTest {
 
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, resolver, dhisConfig, cacheProvider, environment );
+            eventAnalyticsService, dataQueryService, resolver, analyticsCache );
 
         when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
-        when( dhisConfig.getAnalyticsCacheExpiration() ).thenReturn( 0L );
+        when( analyticsCacheSettings.fixedExpirationTimeOrDefault() ).thenReturn( 0L );
     }
 
-    void initMock(DataQueryParams params)
+    void initMock( DataQueryParams params )
     {
         when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) )
                 .thenReturn( params );
-        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( securityManager.withUserConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
                 DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
     }

@@ -28,16 +28,10 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
-import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -49,58 +43,72 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.*;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Component( "org.hisp.dhis.dxf2.synch.SynchronizationManager" )
 public class DefaultSynchronizationManager
     implements SynchronizationManager
 {
-    private static final Log log = LogFactory.getLog( DefaultSynchronizationManager.class );
-
     private static final String HEADER_AUTHORIZATION = "Authorization";
 
-    @Autowired
-    private DataValueSetService dataValueSetService;
+    private final DataValueSetService dataValueSetService;
+    private final DataValueService dataValueService;
+    private final MetadataImportService importService;
+    private final SchemaService schemaService;
+    private final CurrentUserService currentUserService;
+    private final SystemSettingManager systemSettingManager;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper jsonMapper;
 
-    @Autowired
-    private DataValueService dataValueService;
+    public DefaultSynchronizationManager(
+        DataValueSetService dataValueSetService,
+        DataValueService dataValueService,
+        MetadataImportService importService,
+        SchemaService schemaService,
+        CurrentUserService currentUserService,
+        SystemSettingManager systemSettingManager,
+        RestTemplate restTemplate,
+        ObjectMapper jsonMapper )
+    {
+        checkNotNull( dataValueSetService );
+        checkNotNull( dataValueService );
+        checkNotNull( importService );
+        checkNotNull( schemaService );
+        checkNotNull( currentUserService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( restTemplate );
+        checkNotNull( jsonMapper );
 
-    @Autowired
-    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
-
-    @Autowired
-    private MetadataImportService importService;
-
-    @Autowired
-    private SchemaService schemaService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Autowired
-    private CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
+        this.dataValueSetService = dataValueSetService;
+        this.dataValueService = dataValueService;
+        this.importService = importService;
+        this.schemaService = schemaService;
+        this.currentUserService = currentUserService;
+        this.systemSettingManager = systemSettingManager;
+        this.restTemplate = restTemplate;
+        this.jsonMapper = jsonMapper;
+    }
 
     // -------------------------------------------------------------------------
     // SynchronizationManager implementation
@@ -110,109 +118,6 @@ public class DefaultSynchronizationManager
     public AvailabilityStatus isRemoteServerAvailable()
     {
         return SyncUtils.isRemoteServerAvailable( systemSettingManager, restTemplate );
-    }
-
-    @Override
-    public ImportSummary executeCompleteDataSetRegistrationPush()
-        throws WebMessageParseException
-    {
-        AvailabilityStatus availability = isRemoteServerAvailable();
-
-        if ( !availability.isAvailable() )
-        {
-            log.info( "Aborting complete data set registration push, server not available" );
-            return null;
-        }
-
-        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL )
-            + SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS.getPath();
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-
-        SystemInstance instance = new SystemInstance( url, username, password );
-
-        return executeCompleteDataSetRegistrationPush( instance );
-    }
-
-    private ImportSummary executeCompleteDataSetRegistrationPush( SystemInstance instance )
-        throws WebMessageParseException
-    {
-        final Date startTime = new Date();
-
-        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
-            SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
-        final Date skipChangedBefore = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
-        final int lastUpdatedCount = completeDataSetRegistrationService
-            .getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
-
-        log.info(
-            "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
-
-        if ( lastUpdatedCount == 0 )
-        {
-            SyncUtils.setLastSyncSuccess( systemSettingManager,
-                SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, startTime );
-            log.debug( "Skipping complete data set registration push, no new or updated data" );
-
-            ImportCount importCount = new ImportCount( 0, 0, 0, 0 );
-            return new ImportSummary( ImportStatus.SUCCESS,
-                "No new or updated complete data set registrations to push.", importCount );
-        }
-
-        log.info( "Complete data set registrations: " + lastUpdatedCount + " to push since last push success: "
-            + lastSuccessTime );
-        log.info( "Remote server POST URL: " + instance.getUrl() );
-
-        final RequestCallback requestCallback = request -> {
-            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-            request.getHeaders().add( HEADER_AUTHORIZATION,
-                CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
-
-            completeDataSetRegistrationExchangeService
-                .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
-        };
-
-        ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
-        ImportSummary summary = null;
-
-        try
-        {
-            summary = restTemplate.execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
-        }
-
-        catch ( HttpClientErrorException ex )
-        {
-            String responseBody = ex.getResponseBodyAsString();
-            summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
-        }
-        catch ( HttpServerErrorException ex )
-        {
-            String responseBody = ex.getResponseBodyAsString();
-            log.error( "Internal error happened during complete data set registration push: " + responseBody, ex );
-            throw ex;
-        }
-        catch ( ResourceAccessException ex )
-        {
-            log.error( "Exception during complete data set registration data push: " + ex.getMessage(), ex );
-            throw ex;
-        }
-
-        log.info( "Synch summary: " + summary );
-
-        if ( summary != null && ImportStatus.SUCCESS.equals( summary.getStatus() ) )
-        {
-            SyncUtils.setLastSyncSuccess( systemSettingManager,
-                SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, startTime );
-            log.info( "Complete data set registration push successful, setting last success time: " + startTime );
-        }
-        else
-        {
-            log.warn( "Complete data set registration push failed: " + summary );
-        }
-
-        return summary;
     }
 
     @Override
@@ -283,38 +188,29 @@ public class DefaultSynchronizationManager
                 .writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
-        ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
+        final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
+
+        Optional<AbstractWebMessageResponse> responseSummary =
+            SyncUtils.runSyncRequest(
+                restTemplate,
+                requestCallback,
+                SyncEndpoint.DATA_VALUE_SETS.getKlass(),
+                instance.getUrl(),
+                maxSyncAttempts );
+
         ImportSummary summary = null;
-        try
+        if ( responseSummary.isPresent() )
         {
-            summary = restTemplate.execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
-        }
-        catch ( HttpClientErrorException ex )
-        {
-            String responseBody = ex.getResponseBodyAsString();
-            summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
-        }
-        catch ( HttpServerErrorException ex )
-        {
-            String responseBody = ex.getResponseBodyAsString();
-            log.error( "Internal error happened during data value push: " + responseBody, ex );
-            throw ex;
-        }
-        catch ( ResourceAccessException ex )
-        {
-            log.error( "Exception during data value push: " + ex.getMessage(), ex );
-            throw ex;
-        }
+            summary = (ImportSummary) responseSummary.get();
 
-        log.info( "Push summary: " + summary );
-
-        if ( summary != null && ImportStatus.SUCCESS.equals( summary.getStatus() ) )
-        {
-            log.info( "Push successful" );
-        }
-        else
-        {
-            log.warn( "Push failed: " + summary );
+            if ( ImportStatus.SUCCESS.equals( summary.getStatus() ) )
+            {
+                log.info( "Push successful: " + summary );
+            }
+            else
+            {
+                log.warn( "Push failed: " + summary );
+            }
         }
 
         return summary;
@@ -335,7 +231,7 @@ public class DefaultSynchronizationManager
 
         try
         {
-            metadata = DefaultRenderService.getJsonMapper().readValue( json, Metadata.class );
+            metadata = jsonMapper.readValue( json, Metadata.class );
         }
         catch ( IOException ex )
         {

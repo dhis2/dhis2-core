@@ -28,9 +28,17 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -44,25 +52,19 @@ import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
+@Slf4j
 @Transactional( readOnly = true )
 @Component( "org.hisp.dhis.programrule.engine.ProgramRuleEngine" )
 public class ProgramRuleEngine
 {
-    private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
-
     private static final String USER = "USER";
 
     private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +

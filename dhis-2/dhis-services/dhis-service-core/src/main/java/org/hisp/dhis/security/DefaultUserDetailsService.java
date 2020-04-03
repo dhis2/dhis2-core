@@ -28,8 +28,7 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.system.util.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
@@ -43,20 +42,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 @Service( "userDetailsService" )
 public class DefaultUserDetailsService
     implements UserDetailsService
 {
     public static final String ID = UserDetailsService.class.getName();
     
-    private static final Log log = LogFactory.getLog( DefaultUserDetailsService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

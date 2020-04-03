@@ -82,6 +82,13 @@ public class TestCache<V>
     }
 
     @Override
+    public void put( String key, V value, long ttlInSeconds)
+    {
+        // Ignoring ttl for this testing cache
+        mapCache.put( key, value );
+    }
+
+    @Override
     public void invalidate( String key )
     {
         mapCache.remove( key );

@@ -32,8 +32,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.vividsolutions.jts.geom.Geometry;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -137,6 +137,8 @@ import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,7 +184,7 @@ import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 @ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
-    protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
+    protected static final Logger log = LoggerFactory.getLogger( DhisConvenienceTest.class );
 
     protected static final String BASE_UID = "abcdefghij";
     protected static final String BASE_IN_UID = "inabcdefgh";
@@ -1457,6 +1459,18 @@ public abstract class DhisConvenienceTest
         return programRuleAction;
     }
 
+    public static ProgramRuleVariable createConstantProgramRuleVariable( char uniqueCharacter, Program parentProgram )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( uniqueCharacter + "1234567890" );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+
+        return programRuleVariable;
+    }
+
     public static ProgramRuleVariable createProgramRuleVariable( char uniqueCharacter, Program parentProgram )
     {
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
@@ -1618,7 +1632,7 @@ public abstract class DhisConvenienceTest
         teiConstraintB.setTrackedEntityType( trackedEntityType );
         teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
-        relationshipType.setName( "Person to person" );
+        relationshipType.setName( "Person_to_person_" + uniqueCharacter );
         relationshipType.setBidirectional( isBidirectional );
         relationshipType.setFromConstraint( teiConstraintA );
         relationshipType.setToConstraint( teiConstraintB );
@@ -1950,7 +1964,7 @@ public abstract class DhisConvenienceTest
         }
         catch ( IOException ex )
         {
-            log.error( ex );
+            log.error( "An error occurred when deserializing from Json", ex );
         }
 
         return null;
@@ -2057,7 +2071,7 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      *
      * @param allAuth whether to grant ALL authority to user.
-     * @param auths   authorities to grant to user.
+     * @param auths authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( boolean allAuth, String... auths )
@@ -2071,8 +2085,8 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      *
      * @param organisationUnits the organisation units of the user.
-     * @param allAuth           whether to grant the ALL authority to user.
-     * @param auths             authorities to grant to user.
+     * @param allAuth whether to grant the ALL authority to user.
+     * @param auths authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits, boolean allAuth, String... auths )
@@ -2085,14 +2099,32 @@ public abstract class DhisConvenienceTest
      * "username". Requires <code>identifiableObjectManager</code> and
      * <code>userService</code> to be injected into the test.
      *
-     * @param organisationUnits         the organisation units of the user.
-     * @param dataViewOrganisationUnits user's data view organisation units.
-     * @param allAuth                   whether to grant the ALL authority.
-     * @param auths                     authorities to grant to user.
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, boolean allAuth, String... auths )
+    {
+        return createUserAndInjectSecurityContext( organisationUnits, dataViewOrganisationUnits, null, allAuth, auths );
+    }
+
+    /**
+     * Creates a user and injects into the security context with username
+     * "username". Requires <code>identifiableObjectManager</code> and
+     * <code>userService</code> to be injected into the test.
+     *
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the user.
+     * @param catDimensionConstraints the category dimension constraints of the user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
+     * @return the user.
+     */
+    protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, Set<Category> catDimensionConstraints, boolean allAuth, String... auths )
     {
         Assert.notNull( userService, "UserService must be injected in test" );
 
@@ -2124,6 +2156,11 @@ public abstract class DhisConvenienceTest
         if ( dataViewOrganisationUnits != null )
         {
             user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
+        }
+
+        if ( catDimensionConstraints != null )
+        {
+            user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
         }
 
         user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );

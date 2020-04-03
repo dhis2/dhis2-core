@@ -28,31 +28,26 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Component( "org.hisp.dhis.query.QueryService" )
 public class DefaultQueryService
     implements QueryService
 {
-    private static final Log log = LogFactory.getLog( DefaultQueryService.class );
-
     private final QueryParser queryParser;
 
     private final QueryPlanner queryPlanner;
@@ -61,7 +56,8 @@ public class DefaultQueryService
 
     private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
-    @Autowired
+    private final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
+
     public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
         CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
         InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
@@ -107,18 +103,29 @@ public class DefaultQueryService
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination) throws QueryParserException
     {
-        return getQueryFromUrl( klass, filters, orders, Junction.Type.AND );
+        return getQueryFromUrl( klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE );
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Junction.Type rootJunction ) throws QueryParserException
+    public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction ) throws QueryParserException
     {
         Query query = queryParser.parse( klass, filters, rootJunction );
         query.addOrders( orders );
-
+        if ( pagination.hasPagination() )
+        {
+            query.setFirstResult( pagination.getFirstResult() );
+            query.setMaxResults( pagination.getSize() );
+        }
+        
         return query;
+    }
+
+    @Override
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
+    {
+        return getQueryFromUrl( klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE );
     }
 
     //---------------------------------------------------------------------------------------------

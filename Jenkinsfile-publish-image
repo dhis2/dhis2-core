@@ -83,32 +83,55 @@ pipeline {
             }
         }
 
-        stage('Start instance') {
-            steps {
-                dir("dhis-2/dhis-e2e-test") {
-                    sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
-                }
-            }
-        }
-
         stage('Run api tests') {
-            steps {
-                script {
-                    TESTS_IMAGE_FULL_NAME = "core-api-tests:${DOCKER_IMAGE_TAG}"
-
-                    dir("dhis-2/dhis-e2e-test") {
-                        sh "docker build -t ${TESTS_IMAGE_FULL_NAME} ."
-                        sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} -f docker-compose.e2e.yml up --exit-code-from e2e-test"
+            matrix {
+                axes {
+                    axis {
+                        name 'DOCKER_VARIANT'
+                        values '-tomcat-8.5-jdk8-openjdk-slim', '-tomcat-9.0.27-jdk11-openjdk-slim'
                     }
                 }
-            }
+                stages {
+                    stage('Start instance') {
+                         steps {
+                            script {
+                                dir("dhis-2/dhis-e2e-test") {
+                                    sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME}${DOCKER_VARIANT} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} up -d"
+                                }
+                            }
+                         }
+                    }
+                    stage('Run api tests') {
+                        steps {
+                            script {
+                                TESTS_IMAGE_FULL_NAME = "core-api-tests:${DOCKER_IMAGE_TAG}${DOCKER_VARIANT}"
 
-            post {
-                failure {
-                    script {
-                        dir("dhis-2/dhis-e2e-test") {
-                            sh "docker-compose -p ${COMPOSE_PARAMETER} logs web > logs.txt"
-                            archiveArtifacts artifacts: 'logs.txt'
+                                dir("dhis-2/dhis-e2e-test") {
+                                    sh "docker build -t ${TESTS_IMAGE_FULL_NAME} ."
+                                    sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} -f docker-compose.e2e.yml up --exit-code-from e2e-test"
+                                }
+                            }
+                        }
+
+
+                        post {
+                            failure {
+                                script {
+                                    dir("dhis-2/dhis-e2e-test") {
+                                        sh "docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} logs web > ${DOCKER_VARIANT}logs.txt"
+                                        archiveArtifacts artifacts: "${DOCKER_VARIANT}logs.txt"
+                                    }
+                                }
+                            }
+                            always {
+                                script {
+                                    dir("dhis-2/dhis-e2e-test") {
+                                        sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} down --rmi all -v --remove-orphans"
+                                        sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} down --rmi all -v --remove-orphans"
+                                     }
+                                }
+
+                            }
                         }
                     }
                 }
@@ -127,11 +150,6 @@ pipeline {
 
     post {
         always {
-            dir("dhis-2/dhis-e2e-test") {
-                sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} down --rmi all -v --remove-orphans"
-                sh "IMAGE_NAME=${TESTS_IMAGE_FULL_NAME} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down --rmi all -v --remove-orphans"
-            }
-
             sh "docker image rm -f ${DOCKER_BASE_IMAGE_FULL_NAME}"
             sh "./docker/cleanup-images.sh ${DOCKER_CORE_IMAGE_FULL_NAME}"
 

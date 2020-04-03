@@ -29,9 +29,8 @@ package org.hisp.dhis.user;
  */
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -64,13 +63,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Chau Thu Tran
  */
+@Slf4j
 @Lazy
 @Service( "org.hisp.dhis.user.UserService" )
 public class DefaultUserService
     implements UserService
 {
-    private static final Log log = LogFactory.getLog( DefaultUserService.class );
-
     private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
@@ -544,6 +542,20 @@ public class DefaultUserService
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         return userCredentialsStore.getUserCredentialsByUsername( username );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
+
+        if ( userCredentials != null )
+        {
+            userCredentials.getAllAuthorities();
+        }
+
+        return userCredentials;
     }
 
     @Override

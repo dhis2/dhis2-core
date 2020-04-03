@@ -1,13 +1,21 @@
-name: Run tests
+name: Test
 
 on: [pull_request]
 
 jobs:
+  cleanup-runs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+      
   unit-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up java
+    - uses: actions/checkout@v2
+    - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
         java-version: '11.0.x'

@@ -38,6 +38,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
 
@@ -72,11 +73,11 @@ public class TrackerImportParams
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
-     * What identifiers to match on.
+     * Identifiers to match metadata
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
+    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     /**
      * Sets import strategy (create, update, etc).
@@ -145,6 +146,13 @@ public class TrackerImportParams
     @Builder.Default
     private List<Event> events = new ArrayList<>();
 
+    /**
+     * Relationships to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private List<Relationship> relationships = new ArrayList<>();
+
     public TrackerImportParams setUser( User user )
     {
         this.user = user;
@@ -174,6 +182,7 @@ public class TrackerImportParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+            .identifiers( identifiers )
             .atomicMode( atomicMode )
             .flushMode( flushMode )
             .validationMode( validationMode )
@@ -181,6 +190,7 @@ public class TrackerImportParams
             .trackedEntities( trackedEntities )
             .enrollments( enrollments )
             .events( events )
+            .relationships( relationships )
             .build();
     }
 }

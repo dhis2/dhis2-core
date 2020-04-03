@@ -37,6 +37,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.common.adapter.UidJsonSerializer;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -72,11 +74,13 @@ public class BaseIdentifiableObject
     /**
      * The Unique Identifier for this Object.
      */
+    @AuditAttribute
     protected String uid;
 
     /**
      * The unique code for this Object.
      */
+    @AuditAttribute
     protected String code;
 
     /**
@@ -97,6 +101,7 @@ public class BaseIdentifiableObject
     /**
      * Set of the dynamic attributes values that belong to this data element.
      */
+    @AuditAttribute
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
     protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
@@ -302,7 +307,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getLastUpdatedBy()
     {
@@ -428,7 +433,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JsonSerialize( using = UidJsonSerializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {

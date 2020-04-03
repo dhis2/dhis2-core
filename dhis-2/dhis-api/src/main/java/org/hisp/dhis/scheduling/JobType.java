@@ -28,25 +28,18 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
-import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
-import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
-import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
-import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
-
 import java.util.Map;
 
+import org.hisp.dhis.scheduling.parameters.*;
+
+import com.google.common.collect.ImmutableMap;
+
 /**
- * Enum describing the different jobs in the system.
- * Each job has a key, class, configurable status and possibly a map containing relative endpoints for possible parameters.
+ * Enum describing the different jobs in the system. Each job has a key, class, configurable
+ * status and possibly a map containing relative endpoints for possible parameters.
  * <p>
- * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch the correct job
+ * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch
+ * the correct job
  *
  * @author Henning Håkonsen
  */
@@ -59,7 +52,7 @@ public enum JobType
         "skipTableTypes", "/api/analytics/tableTypes" ) ),
     CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY, ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes" ) ),
-    DATA_SYNC( "dataSyncJob", true ),
+    DATA_SYNC( "dataSyncJob", true, SchedulingType.CRON, DataSynchronizationJobParameters.class, null ),
     TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, SchedulingType.CRON, TrackerProgramsDataSynchronizationJobParameters.class, null ),
     EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, SchedulingType.CRON, EventProgramsDataSynchronizationJobParameters.class, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false ),
@@ -79,22 +72,27 @@ public enum JobType
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false ),
     TRACKER_IMPORT_JOB( "trackerImportJob", false ),
+    TRACKER_IMPORT_NOTIFICATION_JOB( "trackerImportNotificationJob", false ),
+    TRACKER_IMPORT_RULE_ENGINE_JOB( "trackerImportRuleEngineJob", false ),
+
+    // Internal jobs
+    LEADER_ELECTION( "leaderElectionJob", false ),
+    LEADER_RENEWAL( "leaderRenewalJob", false ),
+    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false ),
+    DATAVALUE_IMPORT_INTERNAL( null, false ),
+    METADATA_IMPORT( null, false ),
+    DATAVALUE_IMPORT( null, false ),
+    EVENT_IMPORT( null, false ),
+    ENROLLMENT_IMPORT( null, false ),
+    TEI_IMPORT( null, false ),
 
     // Testing purposes
     MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),
 
     // Deprecated, present to satisfy code using the old enumeration TaskCategory
-    DATAVALUE_IMPORT( null, false ),
-    ANALYTICSTABLE_UPDATE( null, false ),
-    METADATA_IMPORT( null, false ),
-    GML_IMPORT( null, false ),
-    DATAVALUE_IMPORT_INTERNAL( null, false ),
-    EVENT_IMPORT( null, false ),
-    ENROLLMENT_IMPORT( null, false ),
-    TEI_IMPORT( null, false ),
-    LEADER_ELECTION( "leaderElectionJob", false ),
-    LEADER_RENEWAL( "leaderRenewalJob", false ),
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false );
+    @Deprecated GML_IMPORT( null, false ),
+    @Deprecated ANALYTICSTABLE_UPDATE( null, false ),
+    @Deprecated PROGRAM_DATA_SYNC( null, false );
 
     private final String key;
 
