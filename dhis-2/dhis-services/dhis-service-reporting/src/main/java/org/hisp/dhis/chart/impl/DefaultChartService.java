@@ -28,6 +28,21 @@ package org.hisp.dhis.chart.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.commons.collection.ListUtils.getArray;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
@@ -35,13 +50,20 @@ import org.apache.commons.math3.exception.MathRuntimeException;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.chart.BaseChart;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObjectStore;
+import org.hisp.dhis.common.AnalyticsType;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.GenericAnalyticalObjectService;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.NumericSortWrapper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -65,8 +87,24 @@ import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.category.*;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.DialShape;
+import org.jfree.chart.plot.Marker;
+import org.jfree.chart.plot.MeterInterval;
+import org.jfree.chart.plot.MeterPlot;
+import org.jfree.chart.plot.MultiplePiePlot;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.SpiderWebPlot;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.renderer.category.AreaRenderer;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.category.StackedAreaRenderer;
+import org.jfree.chart.renderer.category.StackedBarRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
@@ -78,15 +116,6 @@ import org.jfree.util.TableOrder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.Map.Entry;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.commons.collection.ListUtils.getArray;
 
 /**
  * @author Lars Helge Overland
@@ -790,7 +819,7 @@ public class DefaultChartService
         valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         List<NameableObject> seriez = new ArrayList<>( chart.series() );
-        List<NameableObject> categories = new ArrayList<>( chart.category() );
+        List<NameableObject> categories = new ArrayList<>( defaultIfNull( chart.category(), emptyList() ) );
 
         if ( chart.hasSortOrder() )
         {
