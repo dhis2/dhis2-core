@@ -550,7 +550,7 @@ public abstract class AbstractEventService
                 pi.setStatus( ProgramStatus.ACTIVE );
                 pi.setStoredBy( storedBy );
 
-                programInstanceService.addProgramInstance( pi );
+                programInstanceService.addProgramInstance( pi, importOptions.getUser() );
 
                 programInstances.add( pi );
             }
@@ -1927,15 +1927,15 @@ public abstract class AbstractEventService
         if ( programStageInstance.getId() == 0 )
         {
             programStageInstance.setAutoFields();
-            programStageInstanceService.addProgramStageInstance( programStageInstance );
+            programStageInstanceService.addProgramStageInstance( programStageInstance, importOptions.getUser() );
 
             eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
-            programStageInstanceService.updateProgramStageInstance( programStageInstance );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
         else
         {
             eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
-            programStageInstanceService.updateProgramStageInstance( programStageInstance );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
     }
 
