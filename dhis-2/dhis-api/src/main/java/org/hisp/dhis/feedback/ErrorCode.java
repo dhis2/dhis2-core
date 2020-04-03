@@ -95,6 +95,10 @@ public enum ErrorCode
     /* Program Errors */
     E6000( "Program `{0}` has more than one Program Instances"),
 
+    /* File resource */
+    E6100( "Filename not present" ),
+    E6101( "File type not allowed" ),
+
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
     E7001( "Failed to add/update job configuration - Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
