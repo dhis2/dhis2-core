@@ -1,3 +1,5 @@
+package org.hisp.dhis.helpers;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -26,7 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

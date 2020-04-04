@@ -1,3 +1,5 @@
+package org.hisp.dhis.tracker.teis;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.tracker.teis;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

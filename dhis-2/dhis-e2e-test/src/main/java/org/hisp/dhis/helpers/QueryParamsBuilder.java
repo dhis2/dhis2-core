@@ -1,3 +1,5 @@
+package org.hisp.dhis.helpers;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,7 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 

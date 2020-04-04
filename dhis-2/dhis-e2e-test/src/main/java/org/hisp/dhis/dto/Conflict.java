@@ -1,3 +1,5 @@
+package org.hisp.dhis.dto;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,7 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dto;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
