@@ -230,9 +230,11 @@ public class EnrollmentSMSListener
         // Update existing and add new values
         for ( TrackedEntityAttributeValue attributeValue : attributeValues )
         {
-            if ( containsAttributeValue( attributeValue, oldAttributeValues ) )
+            TrackedEntityAttributeValue oldAttributeValue = findAttributeValue( attributeValue, oldAttributeValues );
+            if ( oldAttributeValue != null )
             {
-                attributeValueService.updateTrackedEntityAttributeValue( attributeValue );
+                oldAttributeValue.setValue( attributeValue.getValue() );
+                attributeValueService.updateTrackedEntityAttributeValue( oldAttributeValue );
             }
             else
             {
@@ -243,18 +245,19 @@ public class EnrollmentSMSListener
         // Delete any that don't exist anymore
         for ( TrackedEntityAttributeValue oldAttributeValue : oldAttributeValues )
         {
-            if ( !containsAttributeValue( oldAttributeValue, attributeValues ) )
+            if ( findAttributeValue( oldAttributeValue, attributeValues ) == null )
             {
                 attributeValueService.deleteTrackedEntityAttributeValue( oldAttributeValue );
             }
         }
     }
 
-    private boolean containsAttributeValue( TrackedEntityAttributeValue attributeValue,
+    private TrackedEntityAttributeValue findAttributeValue( TrackedEntityAttributeValue attributeValue,
         Set<TrackedEntityAttributeValue> attributeValues )
     {
         return attributeValues.stream()
-            .anyMatch( v -> v.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) );
+            .filter( v -> v.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) ).findAny()
+            .orElse( null );
     }
 
     @Override
