@@ -152,7 +152,7 @@ public class TrackerPreheat
         this.user = user;
     }
 
-        public <T extends IdentifiableObject> T get( TrackerIdentifier identifier, Class<? extends IdentifiableObject> klass, IdentifiableObject object )
+    public <T extends IdentifiableObject> T get( TrackerIdentifier identifier, Class<? extends IdentifiableObject> klass, IdentifiableObject object )
     {
         return get( identifier.getIdScheme(), klass, identifier.getIdentifier( object ) );
     }

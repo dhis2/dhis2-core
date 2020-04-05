@@ -149,7 +149,7 @@ public class EnrollmentTrackerConverterService
                 programInstance.setUid( CodeGenerator.generateUid() );
             }
 
-            programInstance.setEnrollmentDate( DateUtils.parseDate(enrollment.getEnrollmentDate()) );
+            programInstance.setEnrollmentDate( DateUtils.parseDate( enrollment.getEnrollmentDate() ) );
             programInstance.setIncidentDate( DateUtils.parseDate( enrollment.getIncidentDate() ) );
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
