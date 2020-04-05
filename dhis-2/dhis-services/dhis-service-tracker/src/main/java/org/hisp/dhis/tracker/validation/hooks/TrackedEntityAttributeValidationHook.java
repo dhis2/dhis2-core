@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -58,6 +59,8 @@ import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 /**
@@ -75,6 +78,9 @@ public class TrackedEntityAttributeValidationHook
 
     @Autowired
     protected ReservedValueService reservedValueService;
+
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
 
     @Override
     public int getOrder()
@@ -167,7 +173,7 @@ public class TrackedEntityAttributeValidationHook
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         Attribute attr, TrackedEntityInstance tei, Map<String, TrackedEntityAttributeValue> valueMap )
     {
-        Objects.requireNonNull( attr, "Attribute can't be null" );
+        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
 
         boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
 
@@ -198,7 +204,7 @@ public class TrackedEntityAttributeValidationHook
 
     protected boolean validateReservedValues( TrackedEntityAttribute attribute, String value, String oldValue )
     {
-        Objects.requireNonNull( attribute, "TrackedEntityAttribute can't be null" );
+        Objects.requireNonNull( attribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         // So that we don't block existing reserved values (on UPDATE) with an incompatible pattern,
         // we have this check Objects.equals( value, oldValue )
@@ -210,13 +216,17 @@ public class TrackedEntityAttributeValidationHook
     protected void validateTextPattern( ValidationErrorReporter errorReporter, TrackerBundle bundle,
         Attribute attr, TrackedEntityAttribute teAttr, TrackedEntityAttributeValue teiAttributeValue )
     {
-        Objects.requireNonNull( attr, "Attribute can't be null" );
-        Objects.requireNonNull( teAttr, "TrackedEntityAttribute can't be null" );
+        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
+        Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         // TODO: Should we check the text pattern even if its not generated?
         // TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
 
-        // Should we fail of there is no pattern and its generated?
+        if ( teAttr.getTextPattern() == null && teAttr.isGenerated() && !bundle.isSkipTextPatternValidation() )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1111 )
+                .addArg( attr ) );
+        }
 
         if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipTextPatternValidation() )
         {
@@ -241,15 +251,12 @@ public class TrackedEntityAttributeValidationHook
                 .addArg( attributeValue.getAttribute().getValueType() ) );
         }
 
-        boolean confidentialBool = attributeValue.getAttribute().isConfidentialBool();
-
-//        if ( attributeValue.getAttribute().isConfidentialBool() &&
-//            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
-//        {
-        //
-        //TODO: This is straightforward just check config....
-//            throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
-//        }
+        if ( attributeValue.getAttribute().isConfidentialBool() &&
+            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1112 )
+                .addArg( attributeValue ) );
+        }
 
         String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
         if ( result != null )

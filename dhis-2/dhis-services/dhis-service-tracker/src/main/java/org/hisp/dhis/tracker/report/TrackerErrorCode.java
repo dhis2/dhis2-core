@@ -93,8 +93,6 @@ public enum TrackerErrorCode
     E1021( "Incident date: `{0}`, can`t be future date." ),
     E1023( "DisplayIncidentDate is true but IncidentDate is null or invalid formatted: `{0}`." ),
     E1025( "Invalid enrollment date: `{0}`." ),
-    E1026( "Invalid enrollment created at client date: `{0}`." ),
-    E1027( "Invalid enrollment last updated at client date: `{0}`." ),
     E1041( "Enrollment organization unit: `{0}`, and program: `{1}`, organization unit: `{2}`,  don't match." ),
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to enrollment." ),
     E1069( "Could not find Program: `{0}`, linked to enrollment." ),
@@ -121,10 +119,11 @@ public enum TrackerErrorCode
     E1093( "User: `{0}`, has no search access to organisation unit: `{1}`." ),
     E1094( "Not allowed to update enrollment: `{0}`, existing program `{1}`." ),
     E1110( "Not allowed to update event: `{0}`, existing program `{1}`." ),
+    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
 
+    E1112( "Attribute value: `{0}`, is set to confidential but system is not properly configured to encrypt data." ),
 
     E9999( "N/A" );
-
 
     private String message;
 

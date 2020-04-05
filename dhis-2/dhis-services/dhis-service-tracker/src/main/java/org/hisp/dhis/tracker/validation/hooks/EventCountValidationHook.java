@@ -30,10 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -69,46 +66,38 @@ public class EventCountValidationHook
         {
             reporter.increment( event );
 
-            ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
-            ProgramStageInstance programStageInstance = PreheatHelper
-                .getProgramStageInstance( bundle, event.getEvent() );
             Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
-
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTei( bundle, event.getTrackedEntity() );
+            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, event.getTrackedEntity() );
 
             if ( program.isRegistration() )
             {
                 ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
                 params.setProgram( program );
-                params.setTrackedEntityInstance( trackedEntityInstance );
+                params.setTrackedEntityInstance( tei );
                 params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
                 params.setUser( bundle.getUser() );
 
-                //TODO: I can't provoke this state where programInstance == NULL && program.isRegistration(),
-                // the meta check will complain about that "is a registration but its program stage is not valid or missing." (E1086)
-                if ( programInstance == null && trackedEntityInstance != null )
-                {
-                    int count = programInstanceService.countProgramInstances( params );
+                int count = programInstanceService.countProgramInstances( params );
 
-                    if ( count == 0 )
-                    {
-                        reporter.addError( newReport( TrackerErrorCode.E1037 )
-                            .addArg( trackedEntityInstance )
-                            .addArg( program ) );
-                    }
-                    else if ( count > 1 )
-                    {
-                        reporter.addError( newReport( TrackerErrorCode.E1038 )
-                            .addArg( trackedEntityInstance )
-                            .addArg( program ) );
-                    }
+                if ( count == 0 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1037 )
+                        .addArg( tei )
+                        .addArg( program ) );
+                }
+                else if ( count > 1 )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1038 )
+                        .addArg( tei )
+                        .addArg( program ) );
                 }
             }
             else
             {
                 //TODO: I don't understand the purpose of this here. This could be moved to preheater?
+                // possibly...(Stian-1.4.20)
+                // For isRegistraion=false, there can only exist a single tei and program instance across the entire program.
+                // Both these counts could potentially be preheated, and then just make sure we just have 1 program instance.?
                 ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
                 params.setProgram( program );
                 params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -122,7 +111,6 @@ public class EventCountValidationHook
                         .addArg( program ) );
                 }
             }
-
         }
 
         return reporter.getReportList();

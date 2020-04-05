@@ -84,11 +84,12 @@ public class EventGeoValidationHook
                 programStage = programStageInstance.getProgramStage();
             }
 
-            validateGeo( reporter,
-                event.getGeometry(),
-                event.getCoordinate() != null ? event.getCoordinate().getCoordinateString() : null,
-                programStage.getFeatureType() );
-
+            if ( event.getGeometry() != null )
+            {
+                validateGeo( reporter,
+                    event.getGeometry(),
+                    programStage.getFeatureType() );
+            }
         }
 
         return reporter.getReportList();

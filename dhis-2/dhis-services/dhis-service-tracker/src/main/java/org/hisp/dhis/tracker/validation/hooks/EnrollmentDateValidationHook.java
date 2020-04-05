@@ -96,18 +96,6 @@ public class EnrollmentDateValidationHook
     {
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
-        // NOTE: getCreatedAtClient is always mandatory?
-        if ( !isValidDateStringAndNotNull( enrollment.getCreatedAtClient() ) )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1026 )
-                .addArg( enrollment.getCreatedAtClient() ) );
-        }
-        // NOTE: getLastUpdatedAtClient is always mandatory?
-        if ( !isValidDateStringAndNotNull( enrollment.getLastUpdatedAtClient() ) )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1027 )
-                .addArg( enrollment.getLastUpdatedAtClient() ) );
-        }
         // NOTE: getEnrollmentDate is always mandatory?
         if ( !isValidDateStringAndNotNull( enrollment.getEnrollmentDate() ) )
         {

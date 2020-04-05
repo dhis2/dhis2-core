@@ -173,13 +173,7 @@ public class EnrollmentImportValidationTest
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
 
-        assertEquals( 4, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1026 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1027 ) ) ) );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1025 ) ) ) );

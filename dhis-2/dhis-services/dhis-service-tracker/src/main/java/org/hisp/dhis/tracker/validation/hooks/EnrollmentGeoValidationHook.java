@@ -71,11 +71,12 @@ public class EnrollmentGeoValidationHook
 
             Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
-            // TODO: Which's feature type should we investigate here?
-            validateGeo( reporter,
-                enrollment.getGeometry(),
-                enrollment.getCoordinate() != null ? enrollment.getCoordinate().getCoordinateString() : null,
-                program.getFeatureType() );
+            if ( enrollment.getGeometry() != null )
+            {
+                validateGeo( reporter,
+                    enrollment.getGeometry(),
+                    program.getFeatureType() );
+            }
         }
 
         return reporter.getReportList();

@@ -49,7 +49,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
@@ -76,15 +75,14 @@ public class DefaultTrackerImportAccessManager
     public DefaultTrackerImportAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager,
         OrganisationUnitService organisationUnitService )
     {
-        checkNotNull( aclService );
-        checkNotNull( ownershipAccessManager );
-        checkNotNull( organisationUnitService );
+        Objects.requireNonNull( aclService );
+        Objects.requireNonNull( ownershipAccessManager );
+        Objects.requireNonNull( organisationUnitService );
 
         this.aclService = aclService;
         this.ownershipAccessManager = ownershipAccessManager;
         this.organisationUnitService = organisationUnitService;
     }
-
 
     public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerBundle bundle,
         OrganisationUnit orgUnit )
@@ -117,6 +115,7 @@ public class DefaultTrackerImportAccessManager
     public void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,
         TrackedEntityType trackedEntityType )
     {
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
@@ -244,6 +243,9 @@ public class DefaultTrackerImportAccessManager
     protected void checkProgramReadAccess( ValidationErrorReporter reporter, User user,
         Program program )
     {
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+
         if ( !aclService.canDataRead( user, program ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1096 )
@@ -255,6 +257,9 @@ public class DefaultTrackerImportAccessManager
     protected void checkProgramStageWriteAccess( ValidationErrorReporter reporter, User user,
         ProgramStage programStage )
     {
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
+        Objects.requireNonNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
+
         if ( !aclService.canDataWrite( user, programStage ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1095 )
@@ -266,6 +271,9 @@ public class DefaultTrackerImportAccessManager
     protected void checkProgramWriteAccess( ValidationErrorReporter reporter, User user,
         Program program )
     {
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
+        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
+
         if ( !aclService.canDataWrite( user, program ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1091 )

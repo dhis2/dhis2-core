@@ -100,41 +100,40 @@ public class EnrollmentInExistingValidationHook
         {
             reporter.increment( enrollment );
 
+            // TODO: check existing on update...
             if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
             {
                 continue;
             }
 
             Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTei( bundle, enrollment.getTrackedEntity() );
 
-            // NOTE: maybe this should qualify as a hard break, on the prev hook (required properties).
-            if ( (program == null || trackedEntityInstance == null)
-                || (EnrollmentStatus.COMPLETED == enrollment.getStatus()
+            if ( (EnrollmentStatus.COMPLETED == enrollment.getStatus()
                 && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
             {
                 continue;
             }
 
-            validateTeiNotEnrolledAlready( reporter, actingUser, enrollment, program, trackedEntityInstance );
+            validateTeiNotEnrolledAlready( reporter, bundle, enrollment, program );
         }
 
         return reporter.getReportList();
     }
 
-    protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter, User actingUser,
-        Enrollment enrollment, Program program, TrackedEntityInstance tei )
+    protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Enrollment enrollment, Program program )
     {
-        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        Objects.requireNonNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+
+        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
 
         // TODO: SQLOPT Sort out only the programs the importing user has access too...
         //   create a dedicated sql query....?
         // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
         // should import still be possible?
-        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, actingUser, program, tei )
+        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, bundle.getUser(), program, tei )
             .stream()
             .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
                 || EnrollmentStatus.COMPLETED == programEnrollment.getStatus() )

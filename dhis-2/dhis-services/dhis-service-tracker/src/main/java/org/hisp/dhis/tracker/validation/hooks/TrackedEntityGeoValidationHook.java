@@ -72,7 +72,10 @@ public class TrackedEntityGeoValidationHook
                 trackedEntityType.getFeatureType() :
                 trackedEntity.getFeatureType();
 
-            validateGeo( reporter, trackedEntity.getGeometry(), trackedEntity.getCoordinates(), featureType );
+            if ( trackedEntity.getGeometry() != null )
+            {
+                validateGeo( reporter, trackedEntity.getGeometry(), featureType );
+            }
         }
 
         return reporter.getReportList();

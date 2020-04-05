@@ -193,25 +193,25 @@ public class EventDateValidationHook
     {
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
-        if ( event.getDueDate() != null && !isValidDateString( event.getDueDate() ) )
+        if ( event.getDueDate() != null && isNotValidDateString( event.getDueDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1051 )
                 .addArg( event.getDueDate() ) );
         }
 
-        if ( event.getEventDate() != null && !isValidDateString( event.getEventDate() ) )
+        if ( event.getEventDate() != null && isNotValidDateString( event.getEventDate() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1052 )
                 .addArg( event.getEventDate() ) );
         }
 
-        if ( event.getCreatedAtClient() != null && !isValidDateString( event.getCreatedAtClient() ) )
+        if ( event.getCreatedAtClient() != null && isNotValidDateString( event.getCreatedAtClient() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1053 )
                 .addArg( event.getCreatedAtClient() ) );
         }
 
-        if ( event.getLastUpdatedAtClient() != null && !isValidDateString( event.getLastUpdatedAtClient() ) )
+        if ( event.getLastUpdatedAtClient() != null && isNotValidDateString( event.getLastUpdatedAtClient() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1054 )
                 .addArg( event.getLastUpdatedAtClient() ) );

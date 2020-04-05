@@ -342,27 +342,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    public void testGeoFailParseCoordinates()
-        throws IOException
-    {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/te-data_error_geo-unparsable.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1013 ) ) ) );
-
-        printErrors( report );
-    }
-
-    @Test
     public void testGeoOk()
         throws IOException
     {

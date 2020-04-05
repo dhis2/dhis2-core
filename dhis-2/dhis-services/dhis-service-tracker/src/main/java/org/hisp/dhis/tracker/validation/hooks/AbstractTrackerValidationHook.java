@@ -33,7 +33,6 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -48,10 +47,12 @@ import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.DATE_STRING_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.GEOMETRY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CANT_BE_NULL;
@@ -62,6 +63,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CA
 public abstract class AbstractTrackerValidationHook
     implements TrackerValidationHook
 {
+
     @Autowired
     protected TrackedEntityAttributeService teAttrService;
 
@@ -71,32 +73,10 @@ public abstract class AbstractTrackerValidationHook
     @Autowired
     protected ProgramInstanceService programInstanceService;
 
-    protected void validateGeometryFromCoordinates( ValidationErrorReporter errorReporter, String coordinates,
-        FeatureType featureType )
-    {
-        Objects.requireNonNull( featureType, "FeatureType can't be null" );
-
-        if ( coordinates == null || FeatureType.NONE == featureType )
-        {
-            return;
-        }
-
-        try
-        {
-            GeoUtils.getGeometryFromCoordinatesAndType( featureType, coordinates );
-        }
-        catch ( IOException e )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1013 )
-                .addArg( coordinates )
-                .addArg( e.getMessage() ) );
-        }
-    }
-
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
-        Objects.requireNonNull( attr, Constants.ATTRIBUTE_CANT_BE_NULL );
+        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
         Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         String error = teAttrService.validateValueType( teAttr, attr.getValue() );
@@ -133,18 +113,9 @@ public abstract class AbstractTrackerValidationHook
         }
     }
 
-    protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry,
-        String coordinates, FeatureType featureType )
+    protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry, FeatureType featureType )
     {
-        if ( coordinates != null )
-        {
-            validateGeometryFromCoordinates( errorReporter, coordinates, featureType );
-        }
-
-        if ( geometry == null )
-        {
-            return;
-        }
+        Objects.requireNonNull( geometry, GEOMETRY_CANT_BE_NULL );
 
         if ( featureType == null )
         {
@@ -193,11 +164,11 @@ public abstract class AbstractTrackerValidationHook
             : trackedEntityType;
     }
 
-    public boolean isValidDateString( String dateString )
+    public boolean isNotValidDateString( String dateString )
     {
-        Objects.requireNonNull( dateString, "Date string can not be null" );
+        Objects.requireNonNull( dateString, DATE_STRING_CANT_BE_NULL );
 
-        return DateUtils.dateIsValid( dateString );
+        return !DateUtils.dateIsValid( dateString );
     }
 
     public boolean isValidDateStringAndNotNull( String dateString )
