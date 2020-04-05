@@ -47,6 +47,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,7 +104,15 @@ public class DefaultProgramStageInstanceService
     {
         programStageInstance.setAutoFields();
         programStageInstanceStore.save( programStageInstance );
+        return programStageInstance.getId();
+    }
 
+    @Override
+    @Transactional
+    public long addProgramStageInstance( ProgramStageInstance programStageInstance, User user )
+    {
+        programStageInstance.setAutoFields();
+        programStageInstanceStore.save( programStageInstance, user );
         return programStageInstance.getId();
     }
 
@@ -128,7 +137,6 @@ public class DefaultProgramStageInstanceService
             programStageInstance.setDeleted( true );
             programStageInstanceStore.save( programStageInstance );
         }
-
     }
 
     @Override
@@ -158,6 +166,14 @@ public class DefaultProgramStageInstanceService
     {
         programStageInstance.setAutoFields();
         programStageInstanceStore.update( programStageInstance );
+    }
+
+    @Override
+    @Transactional
+    public void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user )
+    {
+        programStageInstance.setAutoFields();
+        programStageInstanceStore.update( programStageInstance, user );
     }
 
     @Override

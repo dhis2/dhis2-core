@@ -1,3 +1,5 @@
+package org.hisp.dhis.deletedobject.hibernate;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,60 +28,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.common;
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.springframework.stereotype.Component;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 
-/**
- * Exception representing an illegal query.
- *
- * @author Lars Helge Overland
- */
-public class IllegalQueryException
-    extends RuntimeException
+@Component
+public class DeletedObjectListenerConfigurer
 {
-    private ErrorCode errorCode;
+    @PersistenceUnit
+    private EntityManagerFactory emf;
 
-    /**
-     * Constructor.
-     *
-     * @param message the exception message.
-     */
-    public IllegalQueryException( String message )
+    private final DeletedObjectPostInsertEventListener insertEventListener;
+
+    private final DeletedObjectPostDeleteEventListener deleteEventListener;
+
+    public DeletedObjectListenerConfigurer( DeletedObjectPostInsertEventListener insertEventListener,
+        DeletedObjectPostDeleteEventListener deleteEventListener )
     {
-        super( message );
+        this.deleteEventListener = deleteEventListener;
+        this.insertEventListener = insertEventListener;
     }
 
-    /**
-     * Constructor. Sets the message based on the error code message.
-     *
-     * @param errorCode the {@link ErrorCode}.
-     */
-    public IllegalQueryException( ErrorCode errorCode )
+    @PostConstruct
+    protected void init()
     {
-        super( errorCode.getMessage() );
-        this.errorCode = errorCode;
-    }
+        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
 
-    /**
-     * Constructor. Sets the message and error code based on the error message.
-     *
-     * @param errorMessage the {@link ErrorMessage}.
-     */
-    public IllegalQueryException( ErrorMessage errorMessage )
-    {
-        super( errorMessage.getMessage() );
-        this.errorCode = errorMessage.getErrorCode();
-    }
+        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
 
-    /**
-     * Returns the {@link ErrorCode} of the exception.
-     *
-     * @return the {@link ErrorCode} of the exception.
-     */
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
+        registry.getEventListenerGroup( EventType.POST_COMMIT_INSERT ).appendListener( insertEventListener );
+
+        registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( deleteEventListener );
     }
 }

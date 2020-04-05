@@ -1,3 +1,5 @@
+package org.hisp.dhis.common.adapter;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,12 +28,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import org.hisp.dhis.common.IdentifiableObject;
+
+import java.io.IOException;
 
 /**
- * The cache mode to be used when caching Analytics queries.
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AnalyticsCacheMode
+public class UidJsonSerializer
+    extends JsonSerializer<IdentifiableObject>
 {
-    FIXED, PROGRESSIVE
+    @Override
+    public void serialize( IdentifiableObject value, JsonGenerator gen, SerializerProvider serializers )
+        throws IOException
+    {
+        gen.writeStartObject();
+        gen.writeObjectField( "id", value.getUid() );
+        gen.writeEndObject();
+    }
 }
