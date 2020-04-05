@@ -86,12 +86,12 @@ public class EventCountValidationHook
                 params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
                 params.setUser( bundle.getUser() );
 
-                int count = programInstanceService.countProgramInstances( params );
-
                 //TODO: I can't provoke this state where programInstance == NULL && program.isRegistration(),
                 // the meta check will complain about that "is a registration but its program stage is not valid or missing." (E1086)
                 if ( programInstance == null && trackedEntityInstance != null )
                 {
+                    int count = programInstanceService.countProgramInstances( params );
+
                     if ( count == 0 )
                     {
                         reporter.addError( newReport( TrackerErrorCode.E1037 )

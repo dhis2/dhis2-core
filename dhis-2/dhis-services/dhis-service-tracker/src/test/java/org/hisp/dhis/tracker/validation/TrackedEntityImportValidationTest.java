@@ -257,48 +257,6 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
-    public void testNoTeType()
-        throws IOException
-    {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/te-data_error_teType-null.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1004 ) ) ) );
-
-        printErrors( report );
-    }
-
-    @Test
-    public void testEmptyOrgUnit()
-        throws IOException
-    {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/te-data_error_orgunit-empty.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
-        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1010 ) ) ) );
-
-        printErrors( report );
-    }
-
-    @Test
     public void testNoOrgUnit()
         throws IOException
     {
@@ -312,9 +270,10 @@ public class TrackedEntityImportValidationTest
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1010 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1011 ) ) ) );
 
         printErrors( report );
     }

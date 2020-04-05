@@ -55,6 +55,7 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -266,6 +267,9 @@ public class EventSecurityImportValidationTest
 
         programA.getProgramStages().add( programStageA );
         programA.getProgramStages().add( programStageB );
+
+        programA.setTrackedEntityType( trackedEntityType );
+        trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programStageA );
         manager.update( programStageB );

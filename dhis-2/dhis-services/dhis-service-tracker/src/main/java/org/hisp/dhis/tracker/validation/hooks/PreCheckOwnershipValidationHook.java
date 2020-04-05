@@ -60,7 +60,6 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NUL
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
@@ -75,7 +74,7 @@ public class PreCheckOwnershipValidationHook
     @Override
     public int getOrder()
     {
-        return 4;
+        return 5;
     }
 
     @Autowired
@@ -85,16 +84,17 @@ public class PreCheckOwnershipValidationHook
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
-
-        if ( trackedEntityInstance != null && bundle.getImportStrategy().isDelete() )
+        if ( bundle.getImportStrategy().isDelete() )
         {
-            Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );
-            Objects.requireNonNull( trackedEntityInstance, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
 
-            Set<ProgramInstance> programInstances = trackedEntityInstance.getProgramInstances().stream()
+            // This is checked in existence check, but lets be very double sure this is true for now.
+            Objects.requireNonNull( tei, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+
+            Set<ProgramInstance> programInstances = tei.getProgramInstances().stream()
                 .filter( pi -> !pi.isDeleted() )
                 .collect( Collectors.toSet() );
 
@@ -103,17 +103,26 @@ public class PreCheckOwnershipValidationHook
             {
                 reporter.addError( newReport( TrackerErrorCode.E1100 )
                     .addArg( bundle.getUser() )
-                    .addArg( trackedEntityInstance ) );
+                    .addArg( tei ) );
             }
         }
 
-        TrackedEntityType entityType = getTrackedEntityType( bundle, trackedEntity );
-        trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), entityType );
+        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        {
+            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
+            TrackedEntityType trackedEntityType = tei.getTrackedEntityType();
+            trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), trackedEntityType );
+        }
+
+        TrackedEntityType trackedEntityType = PreheatHelper
+            .getTrackedEntityType( bundle, trackedEntity.getTrackedEntityType() );
+        trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), trackedEntityType );
     }
 
     @Override
     public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
@@ -126,20 +135,10 @@ public class PreCheckOwnershipValidationHook
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        ProgramInstance programInstance;
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            programInstance = new ProgramInstance( program, tei, organisationUnit );
-        }
-        else
-        {
-            programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
-        }
-
-        Objects.requireNonNull( programInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
-
         if ( bundle.getImportStrategy().isDelete() )
         {
+            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+
             Set<ProgramStageInstance> notDeletedProgramStageInstances = programInstance.getProgramStageInstances()
                 .stream()
                 .filter( psi -> !psi.isDeleted() )
@@ -154,48 +153,53 @@ public class PreCheckOwnershipValidationHook
             }
         }
 
-        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, bundle.getUser(), program, programInstance );
+        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        {
+            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+            trackerImportAccessManager
+                .checkWriteEnrollmentAccess( reporter, bundle.getUser(), programInstance.getProgram(),
+                    programInstance );
+        }
+
+        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, bundle.getUser(), program,
+            new ProgramInstance( program, tei, organisationUnit ) );
     }
 
     @Override
     public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-        ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
         ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
         ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
 
-        CategoryOptionCombo categoryOptionCombo = null;
+        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        {
+            ProgramStageInstance programStageInstance = PreheatHelper
+                .getProgramStageInstance( bundle, event.getEvent() );
+            validateUpdateAndDeleteEvent( bundle, reporter, event, programStageInstance );
+        }
 
+        CategoryOptionCombo categoryOptionCombo = null;
         // TODO: how do we do this? i.e. how/where do we look up the CategoryOptionCombo, is they always in default map?
         categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults().get( CategoryOptionCombo.class );
         String attributeOptionCombo = event.getAttributeOptionCombo();
         // TODO: What about         String attributeCategoryOptions = event.getAttributeCategoryOptions(); ?
         // TODO: Fix this hack?
 
-        Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        Objects.requireNonNull( programStage, Constants.PROGRAM_STAGE_CANT_BE_NULL );
-
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            validateCreateEvent( reporter, bundle.getUser(), categoryOptionCombo, programStage, programInstance,
-                organisationUnit,
-                program );
-        }
-        else
-        {
-            validateUpdateAndDeleteEvent( bundle, reporter, event, programStageInstance );
-        }
+        validateCreateEvent( reporter, bundle.getUser(), categoryOptionCombo, programStage, programInstance,
+            organisationUnit,
+            program );
     }
 
     protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Program program )
     {
+        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
 
@@ -213,6 +217,7 @@ public class PreCheckOwnershipValidationHook
     protected void validateUpdateAndDeleteEvent( TrackerBundle bundle, ValidationErrorReporter reporter,
         Event event, ProgramStageInstance programStageInstance )
     {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );

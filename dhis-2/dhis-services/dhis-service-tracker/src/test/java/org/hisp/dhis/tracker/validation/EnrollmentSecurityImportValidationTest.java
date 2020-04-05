@@ -46,6 +46,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -117,6 +118,9 @@ public class EnrollmentSecurityImportValidationTest
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
+    private ProgramService programService;
 
     @Autowired
     private EnrollmentService enrollmentService;
@@ -318,6 +322,8 @@ public class EnrollmentSecurityImportValidationTest
         setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
+        programA.setTrackedEntityType( bPJ0FMtcnEh );
         manager.update( programA );
 
         User user = createUser( "user1" )
@@ -336,10 +342,13 @@ public class EnrollmentSecurityImportValidationTest
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
 
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 2, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1102 ) ) ) );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
 
     }
 
@@ -350,6 +359,8 @@ public class EnrollmentSecurityImportValidationTest
         setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
 
         User user = createUser( "user1" )
@@ -381,6 +392,8 @@ public class EnrollmentSecurityImportValidationTest
         setupMetaData();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
 
         User user = createUser( "user1" )
@@ -434,6 +447,6 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1092 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
     }
 }

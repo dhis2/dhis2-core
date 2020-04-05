@@ -317,15 +317,13 @@ public class EnrollmentImportValidationTest
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
-        // Validate first time, should contain no errors.
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
 
-        // Commit the validated bundle...
         trackerBundleService.commit( trackerBundle );
 
-        // Re-validate, should now contain 13 errors...
         report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
 
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
@@ -353,13 +351,10 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
     }
 
     @Test
@@ -378,13 +373,10 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
     }
 
     @Test

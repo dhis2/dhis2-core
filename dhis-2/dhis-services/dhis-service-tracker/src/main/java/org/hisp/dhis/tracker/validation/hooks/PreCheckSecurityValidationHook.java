@@ -28,22 +28,26 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -55,62 +59,68 @@ public class PreCheckSecurityValidationHook
     @Override
     public int getOrder()
     {
-        return 2;
+        return 3;
     }
+
+    @Autowired
+    private TrackerImportAccessManager accessManager;
 
     @Override
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
+        TrackedEntity tei )
     {
-        Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( tei, TRACKED_ENTITY_CANT_BE_NULL );
+        Objects.requireNonNull( tei.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
-        Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        {
+            TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTei( bundle, tei.getTrackedEntity() );
+            accessManager.checkOrgUnitInCaptureScope( reporter, bundle, trackedEntityInstance.getOrganisationUnit() );
+        }
 
         // TODO: Added comment to make sure the reason for this not so intuitive reason,
         // This should be better commented and documented somewhere
         // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to tei in search scope 48a82e5f
-        if ( !organisationUnitService.isInUserSearchHierarchyCached( bundle.getUser(), orgUnit ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1000 )
-                .addArg( bundle.getUser() )
-                .addArg( orgUnit ) );
-        }
+        // Why should we use search?
+        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, tei.getOrgUnit() );
+        accessManager.checkOrgUnitInCaptureScope( reporter, bundle, incomingOrgUnit );
     }
 
     @Override
     public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-
-        if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
+        if ( bundle.getImportStrategy().isUpdateOrDelete() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1000 )
-                .addArg( organisationUnit )
-                .addArg( bundle.getUser() ) );
+            ProgramInstance pi = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+            accessManager.checkOrgUnitInCaptureScope( reporter, bundle, pi.getOrganisationUnit() );
         }
+
+        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
+        accessManager.checkOrgUnitInCaptureScope( reporter, bundle, incomingOrgUnit );
     }
 
     @Override
     public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
+        Objects.requireNonNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
-        Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        {
+            ProgramStageInstance psi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+            accessManager.checkOrgUnitInCaptureScope( reporter, bundle, psi.getOrganisationUnit() );
+        }
 
         // TODO: this check is also done in DefaultTrackerImportAccessManager,
         //  one case is laxer and this check will possibly overrule in that case when programStageInstance.isCreatableInSearchScope == TRUE
         //  Investigate....
-        if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), organisationUnit ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1000 )
-                .addArg( bundle.getUser() )
-                .addArg( organisationUnit ) );
-        }
+        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
+        accessManager.checkOrgUnitInCaptureScope( reporter, bundle, incomingOrgUnit );
     }
 }

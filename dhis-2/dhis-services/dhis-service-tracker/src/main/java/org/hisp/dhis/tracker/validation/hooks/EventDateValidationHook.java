@@ -104,8 +104,7 @@ public class EventDateValidationHook
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
-        if ( program.getCompleteEventsExpiryDays() > 0
-            && EventStatus.COMPLETED == event.getStatus()
+        if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())
             || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
         {
             if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
@@ -148,42 +147,44 @@ public class EventDateValidationHook
 
         PeriodType periodType = program.getExpiryPeriodType();
 
-        if ( periodType != null && program.getExpiryDays() > 0 )
+        if ( periodType == null || program.getExpiryDays() == 0)
         {
-            if ( programStageInstance != null )
+            return;
+        }
+
+        if ( programStageInstance != null )
+        {
+            Date today = new Date();
+
+            if ( programStageInstance.getExecutionDate() == null )
             {
-                Date today = new Date();
-
-                if ( programStageInstance.getExecutionDate() == null )
-                {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1044 )
-                        .addArg( event ) );
-                }
-
-                Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
-
-                if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
-                {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1045 )
-                        .addArg( event ) );
-                }
+                errorReporter.addError( newReport( TrackerErrorCode.E1044 )
+                    .addArg( event ) );
             }
-            else
+
+            Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
+
+            if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
             {
-                String referenceDate = event.getEventDate() != null ? event.getEventDate() : event.getDueDate();
-                if ( referenceDate == null )
-                {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1046 )
-                        .addArg( event ) );
-                }
+                errorReporter.addError( newReport( TrackerErrorCode.E1045 )
+                    .addArg( program ) );
+            }
+        }
+        else
+        {
+            String referenceDate = event.getEventDate() != null ? event.getEventDate() : event.getDueDate();
+            if ( referenceDate == null )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1046 )
+                    .addArg( event ) );
+            }
 
-                Period period = periodType.createPeriod( new Date() );
+            Period period = periodType.createPeriod( new Date() );
 
-                if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
-                {
-                    errorReporter.addError( newReport( TrackerErrorCode.E1047 )
-                        .addArg( event ) );
-                }
+            if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
+            {
+                errorReporter.addError( newReport( TrackerErrorCode.E1047 )
+                    .addArg( event ) );
             }
         }
     }

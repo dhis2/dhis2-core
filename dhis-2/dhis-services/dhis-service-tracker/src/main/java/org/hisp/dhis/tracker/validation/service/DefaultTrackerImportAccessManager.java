@@ -40,6 +40,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.Constants;
@@ -84,6 +85,35 @@ public class DefaultTrackerImportAccessManager
         this.organisationUnitService = organisationUnitService;
     }
 
+
+    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerBundle bundle,
+        OrganisationUnit orgUnit )
+    {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+
+        if ( !organisationUnitService.isInUserSearchHierarchyCached( bundle.getUser(), orgUnit ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1093 )
+                .addArg( bundle.getUser() )
+                .addArg( orgUnit ) );
+        }
+    }
+
+    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle,
+        OrganisationUnit orgUnit )
+    {
+        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+
+        if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), orgUnit ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1000 )
+                .addArg( bundle.getUser() )
+                .addArg( orgUnit ) );
+        }
+    }
+
     public void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,
         TrackedEntityType trackedEntityType )
     {
@@ -91,7 +121,7 @@ public class DefaultTrackerImportAccessManager
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1095 )
+            reporter.addError( newReport( TrackerErrorCode.E1001 )
                 .addArg( user )
                 .addArg( trackedEntityType ) );
         }
@@ -135,9 +165,10 @@ public class DefaultTrackerImportAccessManager
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1092 )
+            reporter.addError( newReport( TrackerErrorCode.E1104 )
                 .addArg( user )
-                .addArg( program ) );
+                .addArg( program )
+                .addArg( program.getTrackedEntityType() ) );
         }
 
         if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )

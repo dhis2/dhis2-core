@@ -28,10 +28,11 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -42,8 +43,6 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -57,28 +56,40 @@ public class PreCheckMetaValidationHook
     @Override
     public int getOrder()
     {
-        return 1;
+        return 2;
     }
 
     public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
-        validateOrganisationUnit( reporter, bundle, tei.getOrgUnit() );
-        validateTrackedEntityType( reporter, bundle, tei );
+        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, tei.getOrgUnit() );
+
+        if ( organisationUnit == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1011 )
+                .addArg( reporter ) );
+        }
+
+        TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, tei.getTrackedEntityType() );
+        if ( entityType == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1005 )
+                .addArg( tei.getTrackedEntityType() ) );
+        }
     }
 
     public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-        if ( program == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1069 )
-                .addArg( enrollment.getTrackedEntity() ) );
-        }
-
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
         if ( organisationUnit == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1070 )
+                .addArg( enrollment.getTrackedEntity() ) );
+        }
+
+        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        if ( program == null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1069 )
                 .addArg( enrollment.getTrackedEntity() ) );
         }
 
@@ -89,19 +100,33 @@ public class PreCheckMetaValidationHook
                 .addArg( program )
                 .addArg( program.getOrganisationUnits() ) );
         }
+
+        //TODO: Change program is not allowed?
+        if ( bundle.getImportStrategy().isUpdate() )
+        {
+            ProgramInstance pi = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+            Program existingProgram = pi.getProgram();
+            if ( !existingProgram.equals( program ) )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1094 )
+                    .addArg( pi )
+                    .addArg( existingProgram ) );
+            }
+        }
     }
 
     public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
-        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
 
         if ( organisationUnit == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1011 )
                 .addArg( event.getOrgUnit() ) );
         }
+
+        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
 
         if ( program == null && programStage == null )
         {
@@ -126,7 +151,6 @@ public class PreCheckMetaValidationHook
                 .addArg( program ) );
         }
 
-        // TODO: Should this be placed before the check above?
         if ( program != null )
         {
             programStage = (programStage == null && program.isWithoutRegistration()) ?
@@ -146,49 +170,18 @@ public class PreCheckMetaValidationHook
                 .addArg( program )
                 .addArg( programStage ) );
         }
-    }
 
-    private void validateOrganisationUnit( ValidationErrorReporter errorReporter,
-        TrackerBundle bundle, String organisationUnitID )
-    {
-        if ( bundle.getImportStrategy().isCreate() )
+
+        //TODO: Change program is not allowed?
+        if ( bundle.getImportStrategy().isUpdate() )
         {
-            if ( StringUtils.isEmpty( organisationUnitID ) )
+            ProgramStageInstance psi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+            Program existingProgram = psi.getProgramStage().getProgram();
+            if ( !existingProgram.equals( program ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1010 ) );
-                return;
-            }
-
-            OrganisationUnit organisationUnit = PreheatHelper
-                .getOrganisationUnit( bundle, organisationUnitID );
-
-            if ( organisationUnit == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1011 )
-                    .addArg( organisationUnitID ) );
-            }
-        }
-    }
-
-    private void validateTrackedEntityType( ValidationErrorReporter errorReporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
-    {
-        Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
-
-        if ( bundle.getImportStrategy().isCreate() )
-        {
-            if ( trackedEntity.getTrackedEntityType() == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1004 ) );
-                return;
-            }
-
-            TrackedEntityType entityType = PreheatHelper
-                .getTrackedEntityType( bundle, trackedEntity.getTrackedEntityType() );
-            if ( entityType == null )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1005 )
-                    .addArg( trackedEntity.getTrackedEntityType() ) );
+                reporter.addError( newReport( TrackerErrorCode.E1110 )
+                    .addArg( psi )
+                    .addArg( existingProgram ) );
             }
         }
     }
