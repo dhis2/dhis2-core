@@ -50,7 +50,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 @Slf4j
 @Component
 public class PreCheckExistenceValidationHook
-    extends AbstractPreCheckValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -59,7 +59,7 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
         TrackedEntityInstance tei = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
@@ -77,7 +77,7 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
 
@@ -95,7 +95,7 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStageInstance psi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
 

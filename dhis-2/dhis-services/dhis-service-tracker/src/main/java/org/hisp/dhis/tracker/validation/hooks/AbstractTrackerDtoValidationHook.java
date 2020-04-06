@@ -31,22 +31,27 @@ package org.hisp.dhis.tracker.validation.hooks;
 import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -60,18 +65,103 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CA
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class AbstractTrackerValidationHook
+abstract public class AbstractTrackerDtoValidationHook
     implements TrackerValidationHook
 {
-
     @Autowired
     protected TrackedEntityAttributeService teAttrService;
 
-    @Autowired
-    protected OrganisationUnitService organisationUnitService;
+    private final TrackerImportStrategy strategy;
 
-    @Autowired
-    protected ProgramInstanceService programInstanceService;
+    private final boolean removeOnError;
+
+    public AbstractTrackerDtoValidationHook()
+    {
+        this.removeOnError = true;
+        this.dtoTypeClass = null;
+        this.strategy = null;
+    }
+
+    public <T extends TrackerDto> AbstractTrackerDtoValidationHook( Class<T> dtoClass, TrackerImportStrategy strategy )
+    {
+        this.removeOnError = false;
+        this.dtoTypeClass = dtoClass;
+        this.strategy = strategy;
+    }
+
+    private final Class<?> dtoTypeClass;
+
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+        throw new IllegalStateException( "Implementing class fail to override this method!" );
+    }
+
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        throw new IllegalStateException( "Implementing class fail to override this method!" );
+    }
+
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    {
+        throw new IllegalStateException( "Implementing class fail to override this method!" );
+    }
+
+    @Override
+    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    {
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
+
+        if ( this.strategy != null )
+        {
+            TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+            if ( importStrategy.isDelete() && this.strategy.isUpdate() )
+            {
+                return reporter.getReportList();
+            }
+        }
+
+        if ( dtoTypeClass == null || dtoTypeClass.equals( Event.class ) )
+        {
+            validateTrackerDTOs( reporter, ( o, r ) -> validateEvent( r, bundle, o ), bundle.getEvents() );
+        }
+
+        if ( dtoTypeClass == null || dtoTypeClass.equals( Enrollment.class ) )
+        {
+            validateTrackerDTOs( reporter, ( o, r ) -> validateEnrollment( r, bundle, o ), bundle.getEnrollments() );
+        }
+
+        if ( dtoTypeClass == null || dtoTypeClass.equals( TrackedEntity.class ) )
+        {
+            validateTrackerDTOs( reporter, ( o, r ) -> validateTrackedEntity( r, bundle, o ),
+                bundle.getTrackedEntities() );
+        }
+
+        return reporter.getReportList();
+    }
+
+    public <T extends TrackerDto> void validateTrackerDTOs( ValidationErrorReporter reporter,
+        ValidationFunction<T> function, List<T> dtoInstances )
+    {
+        Iterator<T> iterator = dtoInstances.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            T dto = iterator.next();
+
+            // Fork the report in order to be thread-safe so we can support multi-threaded validation in future.
+            // Iterator needs to be changed to split variant also...
+            ValidationErrorReporter reportFork = reporter.fork( dto );
+
+            function.validateTrackerDto( dto, reportFork );
+
+            if ( this.removeOnError && reportFork.hasErrors() )
+            {
+                iterator.remove();
+            }
+
+            reporter.merge( reportFork );
+        }
+    }
 
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
         TrackedEntityAttribute teAttr )
@@ -175,4 +265,5 @@ public abstract class AbstractTrackerValidationHook
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
     }
+
 }

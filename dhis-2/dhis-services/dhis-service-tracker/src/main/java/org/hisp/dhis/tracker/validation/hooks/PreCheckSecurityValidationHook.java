@@ -54,7 +54,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.USER_CANT_BE_NULL
  */
 @Component
 public class PreCheckSecurityValidationHook
-    extends AbstractPreCheckValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -66,7 +66,7 @@ public class PreCheckSecurityValidationHook
     private TrackerImportAccessManager accessManager;
 
     @Override
-    public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity tei )
     {
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
@@ -88,7 +88,7 @@ public class PreCheckSecurityValidationHook
     }
 
     @Override
-    public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
@@ -105,7 +105,7 @@ public class PreCheckSecurityValidationHook
     }
 
     @Override
-    public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );

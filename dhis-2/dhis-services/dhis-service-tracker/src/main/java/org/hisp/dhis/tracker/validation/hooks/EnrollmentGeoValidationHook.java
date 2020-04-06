@@ -29,15 +29,13 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -45,7 +43,7 @@ import java.util.Objects;
  */
 @Component
 public class EnrollmentGeoValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -53,32 +51,24 @@ public class EnrollmentGeoValidationHook
         return 108;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EnrollmentGeoValidationHook()
     {
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            return Collections.emptyList();
-        }
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-
-        for ( Enrollment enrollment : bundle.getEnrollments() )
-        {
-            reporter.increment( enrollment );
-
-            Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-
-            Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
-
-            if ( enrollment.getGeometry() != null )
-            {
-                validateGeo( reporter,
-                    enrollment.getGeometry(),
-                    program.getFeatureType() );
-            }
-        }
-
-        return reporter.getReportList();
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
     }
+
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+
+        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
+
+        if ( enrollment.getGeometry() != null )
+        {
+            validateGeo( reporter,
+                enrollment.getGeometry(),
+                program.getFeatureType() );
+        }
+    }
+
 }

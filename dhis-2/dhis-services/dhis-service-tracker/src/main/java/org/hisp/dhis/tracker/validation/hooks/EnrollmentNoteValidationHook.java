@@ -28,22 +28,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 public class EnrollmentNoteValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -51,23 +48,17 @@ public class EnrollmentNoteValidationHook
         return 106;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EnrollmentNoteValidationHook()
     {
-        if ( bundle.getImportStrategy().isDelete() )
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
+
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        for ( Note note : enrollment.getNotes() )
         {
-            return Collections.emptyList();
-        }
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-
-        for ( Enrollment enrollment : bundle.getEnrollments() )
-        {
-            reporter.increment( enrollment );
-
-            for ( Note note : enrollment.getNotes() )
-            {
-                //TODO: This looks like a potential performance killer, existence check on every note...
+            //TODO: This looks like a potential performance killer, existence check on every note...
 
 //                if ( CodeGenerator.isValidUid( note.getNote() )
 //                    && commentService.trackedEntityCommentExists( note.getNote() )
@@ -75,9 +66,7 @@ public class EnrollmentNoteValidationHook
 //                {
 //
 //                }
-            }
         }
-
-        return reporter.getReportList();
     }
+
 }

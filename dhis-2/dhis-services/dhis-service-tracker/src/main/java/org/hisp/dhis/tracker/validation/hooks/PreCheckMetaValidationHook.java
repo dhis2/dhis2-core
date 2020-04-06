@@ -51,7 +51,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
  */
 @Component
 public class PreCheckMetaValidationHook
-    extends AbstractPreCheckValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -59,7 +59,8 @@ public class PreCheckMetaValidationHook
         return 2;
     }
 
-    public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    @Override
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, tei.getOrgUnit() );
 
@@ -77,7 +78,8 @@ public class PreCheckMetaValidationHook
         }
     }
 
-    public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
         if ( organisationUnit == null )
@@ -115,7 +117,8 @@ public class PreCheckMetaValidationHook
         }
     }
 
-    public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    @Override
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
 
@@ -170,7 +173,6 @@ public class PreCheckMetaValidationHook
                 .addArg( program )
                 .addArg( programStage ) );
         }
-
 
         //TODO: Change program is not allowed?
         if ( bundle.getImportStrategy().isUpdate() )

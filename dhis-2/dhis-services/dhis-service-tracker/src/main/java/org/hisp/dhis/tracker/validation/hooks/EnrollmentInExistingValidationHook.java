@@ -33,9 +33,11 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Coordinate;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -43,7 +45,6 @@ import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
@@ -52,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -70,10 +70,13 @@ import static org.hisp.dhis.util.DateUtils.getIso8601;
  */
 @Component
 public class EnrollmentInExistingValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Autowired
     protected TrackerOwnershipManager trackerOwnershipManager;
+
+    @Autowired
+    protected ProgramInstanceService programInstanceService;
 
     @Autowired
     private TrackerImportAccessManager trackerImportAccessManager;
@@ -84,40 +87,29 @@ public class EnrollmentInExistingValidationHook
         return 104;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EnrollmentInExistingValidationHook()
     {
-        if ( bundle.getImportStrategy().isDelete() )
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
+
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        // TODO: check existing on update...
+        if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
         {
-            return Collections.emptyList();
+            return;
         }
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
+        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
 
-        User actingUser = bundle.getPreheat().getUser();
-
-        for ( Enrollment enrollment : bundle.getEnrollments() )
+        if ( (EnrollmentStatus.COMPLETED == enrollment.getStatus()
+            && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
         {
-            reporter.increment( enrollment );
-
-            // TODO: check existing on update...
-            if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
-            {
-                continue;
-            }
-
-            Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-
-            if ( (EnrollmentStatus.COMPLETED == enrollment.getStatus()
-                && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
-            {
-                continue;
-            }
-
-            validateTeiNotEnrolledAlready( reporter, bundle, enrollment, program );
+            return;
         }
 
-        return reporter.getReportList();
+        validateTeiNotEnrolledAlready( reporter, bundle, enrollment, program );
     }
 
     protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter, TrackerBundle bundle,

@@ -40,11 +40,11 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
@@ -66,7 +66,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
  */
 @Component
 public class EventCategoryOptValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Autowired
     protected I18nManager i18nManager;
@@ -80,33 +80,28 @@ public class EventCategoryOptValidationHook
         return 303;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EventCategoryOptValidationHook()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-        User actingUser = bundle.getPreheat().getUser();
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
 
-        for ( Event event : bundle.getEvents() )
+    @Override
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
+        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+
+        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
+
+        programStage = (programStage == null && program.isWithoutRegistration())
+            ? program.getProgramStageByStage( 1 ) : programStage;
+
+        if ( programStage == null )
         {
-            reporter.increment( event );
-
-            ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
-            Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-
-            Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
-
-            programStage = (programStage == null && program.isWithoutRegistration())
-                ? program.getProgramStageByStage( 1 ) : programStage;
-
-            if ( programStage == null )
-            {
-                continue;
-            }
-
-            validateCategoryOptionCombo( bundle, reporter, actingUser, event, program );
+            return;
         }
 
-        return reporter.getReportList();
+        validateCategoryOptionCombo( bundle, reporter, bundle.getPreheat().getUser(), event, program );
     }
 
     private void validateCategoryOptionCombo( TrackerBundle bundle, ValidationErrorReporter errorReporter

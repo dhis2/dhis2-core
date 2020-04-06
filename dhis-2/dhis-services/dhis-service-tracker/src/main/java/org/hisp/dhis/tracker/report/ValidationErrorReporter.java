@@ -107,34 +107,34 @@ public class ValidationErrorReporter
             throw new ValidationFailFastException( getReportList() );
         }
     }
-
-    public void increment( Enrollment enrollment )
-    {
-        listIndex.incrementAndGet();
-        this.mainId = (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
-    }
-
-    public void increment( Event enrollment )
-    {
-        listIndex.incrementAndGet();
-        this.mainId = (enrollment.getEvent() + " (" + enrollment.getClass().getSimpleName() + ")");
-    }
-
-    public void increment( TrackedEntity te )
-    {
-        listIndex.incrementAndGet();
-        this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
-    }
-
-    public <T extends TrackerDto> void increment( T tei )
-    {
-        listIndex.incrementAndGet();
-        if ( tei instanceof TrackedEntity )
-        {
-            TrackedEntity te = (TrackedEntity) tei;
-            this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
-        }
-    }
+//
+//    public void increment( Enrollment enrollment )
+//    {
+//        listIndex.incrementAndGet();
+//        this.mainId = (enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")");
+//    }
+//
+//    public void increment( Event event )
+//    {
+//        listIndex.incrementAndGet();
+//        this.mainId = (event.getClass().getSimpleName() + " (" + event.getEvent() + ")");
+//    }
+//
+//    public void increment( TrackedEntity te )
+//    {
+//        listIndex.incrementAndGet();
+//        this.mainId = (te.getClass().getSimpleName() + " (" + te.getTrackedEntity() + ")");
+//    }
+//
+//    public <T extends TrackerDto> void increment( T tei )
+//    {
+//        listIndex.incrementAndGet();
+//        if ( tei instanceof TrackedEntity )
+//        {
+//            TrackedEntity te = (TrackedEntity) tei;
+//            this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
+//        }
+//    }
 
     public <T extends TrackerDto> ValidationErrorReporter fork( T dto )
     {
@@ -151,17 +151,17 @@ public class ValidationErrorReporter
         if ( dto instanceof TrackedEntity )
         {
             TrackedEntity te = (TrackedEntity) dto;
-            fork.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
+            fork.mainId = (te.getClass().getSimpleName() + " (" + te.getTrackedEntity() + ")");
         }
         else if ( dto instanceof Enrollment )
         {
             Enrollment enrollment = (Enrollment) dto;
-            fork.mainId = (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
+            fork.mainId = (enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")");
         }
         else if ( dto instanceof Event )
         {
             Event event = (Event) dto;
-            fork.mainId = (event.getEvent() + " (" + event.getClass().getSimpleName() + ")");
+            fork.mainId = (event.getClass().getSimpleName() + " (" + event.getEvent() + ")");
         }
 
         return fork;

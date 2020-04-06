@@ -47,9 +47,7 @@ import org.hisp.dhis.util.ObjectUtils;
 public class TrackerIdentifier
 {
     public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
-
     public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
-
     public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
     @Builder.Default

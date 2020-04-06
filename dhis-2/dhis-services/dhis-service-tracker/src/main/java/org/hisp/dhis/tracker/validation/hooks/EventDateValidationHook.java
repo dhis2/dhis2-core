@@ -34,18 +34,17 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -55,7 +54,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
  */
 @Component
 public class EventDateValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -63,38 +62,33 @@ public class EventDateValidationHook
         return 302;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EventDateValidationHook()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-        User actingUser = bundle.getPreheat().getUser();
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
 
-        for ( Event event : bundle.getEvents() )
+    @Override
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+        ProgramStageInstance programStageInstance = PreheatHelper
+            .getProgramStageInstance( bundle, event.getEvent() );
+        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+
+        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
         {
-            reporter.increment( event );
-
-            ProgramStageInstance programStageInstance = PreheatHelper
-                .getProgramStageInstance( bundle, event.getEvent() );
-            Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-
-            if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1031 )
-                    .addArg( event ) );
-                continue;
-            }
-
-            if ( program == null )
-            {
-                continue;
-            }
-
-            validateDateFormat( reporter, event );
-            validateExpiryDays( reporter, event, program, programStageInstance, actingUser );
-            validatePeriodType( reporter, event, program, programStageInstance );
+            reporter.addError( newReport( TrackerErrorCode.E1031 )
+                .addArg( event ) );
+            return;
         }
 
-        return reporter.getReportList();
+        if ( program == null )
+        {
+            return;
+        }
+
+        validateDateFormat( reporter, event );
+        validateExpiryDays( reporter, event, program, programStageInstance, bundle.getPreheat().getUser() );
+        validatePeriodType( reporter, event, program, programStageInstance );
     }
 
     private void validateExpiryDays( ValidationErrorReporter errorReporter, Event event, Program program,
@@ -147,7 +141,7 @@ public class EventDateValidationHook
 
         PeriodType periodType = program.getExpiryPeriodType();
 
-        if ( periodType == null || program.getExpiryDays() == 0)
+        if ( periodType == null || program.getExpiryDays() == 0 )
         {
             return;
         }

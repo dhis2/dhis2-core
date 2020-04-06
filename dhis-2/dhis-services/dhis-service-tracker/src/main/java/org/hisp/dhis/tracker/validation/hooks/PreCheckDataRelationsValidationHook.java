@@ -34,7 +34,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
@@ -49,7 +48,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
  */
 @Component
 public class PreCheckDataRelationsValidationHook
-    extends AbstractPreCheckValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -58,14 +57,14 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public void validateTrackedEntities( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity )
     {
         // NOTHING TO DO HERE
     }
 
     @Override
-    public void validateEnrollments( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
 
@@ -102,7 +101,7 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public void validateEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 

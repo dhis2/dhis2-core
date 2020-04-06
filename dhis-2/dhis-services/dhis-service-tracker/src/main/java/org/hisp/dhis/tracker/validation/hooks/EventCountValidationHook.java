@@ -31,16 +31,16 @@ package org.hisp.dhis.tracker.validation.hooks;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -49,70 +49,69 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
  */
 @Component
 public class EventCountValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
+    @Autowired
+    protected ProgramInstanceService programInstanceService;
+
     @Override
     public int getOrder()
     {
         return 305;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EventCountValidationHook()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
+        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
 
-        for ( Event event : bundle.getEvents() )
+    @Override
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, event.getTrackedEntity() );
+
+        if ( program.isRegistration() )
         {
-            reporter.increment( event );
+            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+            params.setProgram( program );
+            params.setTrackedEntityInstance( tei );
+            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+            params.setUser( bundle.getUser() );
 
-            Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, event.getTrackedEntity() );
+            int count = programInstanceService.countProgramInstances( params );
 
-            if ( program.isRegistration() )
+            if ( count == 0 )
             {
-                ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-                params.setProgram( program );
-                params.setTrackedEntityInstance( tei );
-                params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-                params.setUser( bundle.getUser() );
-
-                int count = programInstanceService.countProgramInstances( params );
-
-                if ( count == 0 )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1037 )
-                        .addArg( tei )
-                        .addArg( program ) );
-                }
-                else if ( count > 1 )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1038 )
-                        .addArg( tei )
-                        .addArg( program ) );
-                }
+                reporter.addError( newReport( TrackerErrorCode.E1037 )
+                    .addArg( tei )
+                    .addArg( program ) );
             }
-            else
+            else if ( count > 1 )
             {
-                //TODO: I don't understand the purpose of this here. This could be moved to preheater?
-                // possibly...(Stian-1.4.20)
-                // For isRegistraion=false, there can only exist a single tei and program instance across the entire program.
-                // Both these counts could potentially be preheated, and then just make sure we just have 1 program instance.?
-                ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-                params.setProgram( program );
-                params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-                params.setUser( bundle.getUser() );
-
-                int count = programInstanceService.countProgramInstances( params );
-
-                if ( count > 1 )
-                {
-                    reporter.addError( newReport( TrackerErrorCode.E1040 )
-                        .addArg( program ) );
-                }
+                reporter.addError( newReport( TrackerErrorCode.E1038 )
+                    .addArg( tei )
+                    .addArg( program ) );
             }
         }
+        else
+        {
+            //TODO: I don't understand the purpose of this here. This could be moved to preheater?
+            // possibly...(Stian-1.4.20)
+            // For isRegistraion=false, there can only exist a single tei and program instance across the entire program.
+            // Both these counts could potentially be preheated, and then just make sure we just have 1 program instance.?
+            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+            params.setProgram( program );
+            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+            params.setUser( bundle.getUser() );
 
-        return reporter.getReportList();
+            int count = programInstanceService.countProgramInstances( params );
+
+            if ( count > 1 )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1040 )
+                    .addArg( program ) );
+            }
+        }
     }
 }

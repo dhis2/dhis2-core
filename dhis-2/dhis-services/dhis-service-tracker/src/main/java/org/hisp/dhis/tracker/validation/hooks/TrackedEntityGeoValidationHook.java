@@ -30,21 +30,18 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 public class TrackedEntityGeoValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -52,32 +49,23 @@ public class TrackedEntityGeoValidationHook
         return 54;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public TrackedEntityGeoValidationHook()
     {
-        if ( bundle.getImportStrategy().isDelete() )
+        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
+
+    @Override
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    {
+        TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, tei );
+
+        FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
+            trackedEntityType.getFeatureType() :
+            tei.getFeatureType();
+
+        if ( tei.getGeometry() != null )
         {
-            return Collections.emptyList();
+            validateGeo( reporter, tei.getGeometry(), featureType );
         }
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-
-        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
-        {
-            reporter.increment( trackedEntity );
-
-            TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, trackedEntity );
-
-            FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
-                trackedEntityType.getFeatureType() :
-                trackedEntity.getFeatureType();
-
-            if ( trackedEntity.getGeometry() != null )
-            {
-                validateGeo( reporter, trackedEntity.getGeometry(), featureType );
-            }
-        }
-
-        return reporter.getReportList();
     }
 }

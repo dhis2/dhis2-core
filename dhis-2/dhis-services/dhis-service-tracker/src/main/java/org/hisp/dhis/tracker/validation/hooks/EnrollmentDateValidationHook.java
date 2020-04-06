@@ -29,18 +29,16 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -52,7 +50,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.PROGRAM_CANT_BE_N
  */
 @Component
 public class EnrollmentDateValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -60,36 +58,27 @@ public class EnrollmentDateValidationHook
         return 107;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EnrollmentDateValidationHook()
     {
-        if ( bundle.getImportStrategy().isDelete() )
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
+
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        validateMandatoryDates( reporter, enrollment );
+
+        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+
+        validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
+
+        // TODO: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
+        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
+            && !isValidDateStringAndNotNull( enrollment.getIncidentDate() ) )
         {
-            return Collections.emptyList();
+            reporter.addError( newReport( TrackerErrorCode.E1023 )
+                .addArg( enrollment.getIncidentDate() ) );
         }
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-
-        for ( Enrollment enrollment : bundle.getEnrollments() )
-        {
-            reporter.increment( enrollment );
-
-            validateMandatoryDates( reporter, enrollment );
-
-            Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-
-            validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
-
-            // TODO: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
-            if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
-                && !isValidDateStringAndNotNull( enrollment.getIncidentDate() ) )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1023 )
-                    .addArg( enrollment.getIncidentDate() ) );
-            }
-        }
-
-        return reporter.getReportList();
     }
 
     private void validateMandatoryDates( ValidationErrorReporter errorReporter, Enrollment enrollment )

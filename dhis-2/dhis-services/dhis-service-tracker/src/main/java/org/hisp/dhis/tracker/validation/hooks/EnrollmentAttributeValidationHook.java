@@ -35,17 +35,15 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -60,7 +58,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_IN
  */
 @Component
 public class EnrollmentAttributeValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public int getOrder()
@@ -68,62 +66,53 @@ public class EnrollmentAttributeValidationHook
         return 105;
     }
 
-    @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public EnrollmentAttributeValidationHook()
     {
-        if ( bundle.getImportStrategy().isDelete() )
+        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
+
+    @Override
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
+
+        Map<String, String> attributeValueMap = Maps.newHashMap();
+        for ( Attribute attribute : enrollment.getAttributes() )
         {
-            return Collections.emptyList();
-        }
+            validateRequiredProperties( reporter, bundle, attribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
-
-        for ( Enrollment enrollment : bundle.getEnrollments() )
-        {
-            reporter.increment( enrollment );
-
-            Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
-
-            Map<String, String> attributeValueMap = Maps.newHashMap();
-            for ( Attribute attribute : enrollment.getAttributes() )
-            {
-                validateRequiredProperties( reporter, bundle, attribute );
-
-                if ( attribute.getAttribute() == null || attribute.getValue() == null )
-                {
-                    continue;
-                }
-
-                TrackedEntityAttribute teAttribute = PreheatHelper.getTrackedEntityAttribute( bundle,
-                    attribute.getAttribute() );
-
-                if ( teAttribute == null )
-                {
-                    continue;
-                }
-
-                attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-
-                validateAttrValueType( reporter, attribute, teAttribute );
-
-                //NOTE: this is perf killing
-                validateAttributeUniqueness( reporter,
-                    attribute.getValue(),
-                    teAttribute,
-                    tei,
-                    tei.getOrganisationUnit() );
-            }
-
-            if ( program == null || tei == null )
+            if ( attribute.getAttribute() == null || attribute.getValue() == null )
             {
                 continue;
             }
 
-            validateMandatoryAttributes( bundle, reporter, program, tei, attributeValueMap );
+            TrackedEntityAttribute teAttribute = PreheatHelper.getTrackedEntityAttribute( bundle,
+                attribute.getAttribute() );
+
+            if ( teAttribute == null )
+            {
+                continue;
+            }
+
+            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+
+            validateAttrValueType( reporter, attribute, teAttribute );
+
+            //NOTE: this is perf killing
+            validateAttributeUniqueness( reporter,
+                attribute.getValue(),
+                teAttribute,
+                tei,
+                tei.getOrganisationUnit() );
         }
 
-        return reporter.getReportList();
+        if ( program == null || tei == null )
+        {
+            return;
+        }
+
+        validateMandatoryAttributes( bundle, reporter, program, tei, attributeValueMap );
     }
 
     protected void validateRequiredProperties( ValidationErrorReporter reporter, TrackerBundle bundle,

@@ -40,19 +40,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -68,8 +66,13 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_AT
  */
 @Component
 public class TrackedEntityAttributeValidationHook
-    extends AbstractTrackerValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
+    public TrackedEntityAttributeValidationHook()
+    {
+        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE );
+    }
+
     @Autowired
     protected FileResourceService fileResourceService;
 
@@ -89,28 +92,14 @@ public class TrackedEntityAttributeValidationHook
     }
 
     @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            return Collections.emptyList();
-        }
+        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+            .getTei( bundle, tei.getTrackedEntity() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
+        OrganisationUnit orgUnit = getOrganisationUnit( bundle, tei );
 
-        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
-        {
-            reporter.increment( trackedEntity );
-
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTei( bundle, trackedEntity.getTrackedEntity() );
-
-            OrganisationUnit orgUnit = getOrganisationUnit( bundle, trackedEntity );
-
-            validateAttributes( reporter, bundle, trackedEntity, trackedEntityInstance, orgUnit );
-        }
-
-        return reporter.getReportList();
+        validateAttributes( reporter, bundle, tei, trackedEntityInstance, orgUnit );
     }
 
     protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
@@ -130,6 +119,7 @@ public class TrackedEntityAttributeValidationHook
         {
             TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
                 .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
+
             if ( trackedEntityAttribute == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1006 )
