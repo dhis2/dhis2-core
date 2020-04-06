@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +28,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
 
 import java.io.File;
 import java.util.List;
@@ -53,9 +56,6 @@ import org.hisp.dhis.dto.ObjectReport;
 
 import java.io.File;
 import java.util.List;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.oneOf;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -147,8 +147,6 @@ public class RestApiActions
      */
     public ApiResponse get()
     {
-<<<<<<< HEAD
-=======
         return get( "" );
     }
 
@@ -162,7 +160,6 @@ public class RestApiActions
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
->>>>>>> e9c8211bea... fix: calculate metadata pagination total pages (#5324)
         Response response = this.given()
             .contentType( ContentType.TEXT )
             .when()
@@ -174,16 +171,9 @@ public class RestApiActions
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-<<<<<<< HEAD
      * @param path        Id of resource
      * @param queryParams Query params to append to url
      * @return
-=======
-     * @param resourceId            Id of resource
-     * @param contentType           Content type of the request
-     * @param accept                Accepted response Content type
-     * @param queryParamsBuilder    Query params to append to url
->>>>>>> e9c8211bea... fix: calculate metadata pagination total pages (#5324)
      */
     public ApiResponse get( String path, String queryParams )
     {
@@ -199,8 +189,6 @@ public class RestApiActions
      * Sends delete request to specified resource.
      * If delete request successful, removes entity from TestRunStorage.
      *
-<<<<<<< HEAD
-=======
      * @param resourceId            Id of resource
      * @param queryParamsBuilder    Query params to append to url
      */
@@ -235,14 +223,9 @@ public class RestApiActions
     /**
      * Sends PUT request to specified resource.
      *
-<<<<<<< HEAD
      * @param path   Id of resource
      * @param object Body of request
      * @return
-=======
-     * @param resourceId Id of resource
-     * @param object     Body of request
->>>>>>> e9c8211bea... fix: calculate metadata pagination total pages (#5324)
      */
     public ApiResponse update( String path, Object object )
     {
@@ -272,7 +255,8 @@ public class RestApiActions
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
-            importSummaries.forEach( importSummary -> TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() ));
+            importSummaries
+                .forEach( importSummary -> TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() ) );
             return;
         }
 
@@ -280,7 +264,8 @@ public class RestApiActions
         {
             SchemasActions schemasActions = new SchemasActions();
             response.getTypeReports().stream()
-                .filter( typeReport -> typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0)
+                .filter(
+                    typeReport -> typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0 )
                 .forEach( tr -> {
                     List<ObjectReport> objectReports = tr.getObjectReports();
 
@@ -302,7 +287,6 @@ public class RestApiActions
         {
             TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
         }
-
     }
 }
 
