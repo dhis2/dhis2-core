@@ -28,40 +28,25 @@
 
 package org.hisp.dhis.dxf2.events.event.validation.update;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
 
-public class ProgramStageInstanceCheck
+public class EventBasicCheck
     implements
     ValidationCheck
 {
     @Override
     public ImportSummary check( final ImmutableEvent event, final ValidationContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
-
-        if ( programStageInstance == null )
+        if ( event == null || isEmpty( event.getEvent() ) )
         {
-            final ImportSummary error = error( "ID " + event.getEvent() + " doesn't point to valid event",
-                event.getEvent() );
-            error.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
-
-            return error.incrementIgnored();
-        }
-
-        if ( programStageInstance != null
-            && (programStageInstance.isDeleted() || ctx.getImportOptions().getImportStrategy().isCreate()) )
-        {
-            return error(
-                "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                    .setReference( event.getEvent() ).incrementIgnored();
+            return error( "No event or event ID was supplied" ).incrementIgnored();
         }
 
         return success();

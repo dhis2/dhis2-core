@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.validation;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,25 +26,44 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+package org.hisp.dhis.dxf2.events.event.validation.update;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import static org.hisp.dhis.event.EventStatus.COMPLETED;
+
+import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 
-/**
- * @author Luciano Fiandesio
- */
-public class EventUpdateAclCheck
-    extends BaseEventAclCheck
+public class ProgramStageInstanceAuthCheck
+    implements
+    ValidationCheck
 {
     @Override
-    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-                                  ProgramStageInstance programStageInstance )
+    public ImportSummary check( final ImmutableEvent event, final ValidationContext ctx )
     {
-        return trackerAccessManager.canUpdate( user, programStageInstance, false );
+        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+
+        if ( event.getStatus() != programStageInstance.getStatus() && programStageInstance.getStatus() == COMPLETED )
+        {
+            final UserCredentials userCredentials = ctx.getImportOptions().getUser().getUserCredentials();
+
+            if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
+            {
+                return error( "User is not authorized to uncomplete events" );
+            }
+        }
+
+        return success();
+    }
+
+    @Override
+    public boolean isFinal()
+    {
+        return false;
     }
 }

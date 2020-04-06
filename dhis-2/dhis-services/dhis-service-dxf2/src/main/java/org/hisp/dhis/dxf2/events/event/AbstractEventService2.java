@@ -286,14 +286,14 @@ public abstract class AbstractEventService2
     {
         importOptions = updateImportOptions( importOptions );
 
-// FIXME: Respective checker is ==> update.EventBaseCheck
+// FIXME: Respective checker is ==> update.EventBasicCheck
 //
 //        if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
 //        {
 //            return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
 //        }
 
-// FIXME: Respective checker is ==> update.ProgramStageInstanceCheck
+// FIXME: Respective checker is ==> update.ProgramStageInstanceBasicCheck
 //
 //        ImportSummary importSummary = new ImportSummary( event.getEvent() );
 //        ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
@@ -339,16 +339,18 @@ public abstract class AbstractEventService2
 //            return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
 //        }
 
-        errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
-
-        if ( !errors.isEmpty() )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
-            importSummary.incrementIgnored();
-
-            return importSummary;
-        }
+// FIXME: Respective checker is ==> root.EventBaseCheck
+//
+//        errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
+//
+//        if ( !errors.isEmpty() )
+//        {
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
+//            importSummary.incrementIgnored();
+//
+//            return importSummary;
+//        }
 
         if ( event.getEventDate() != null )
         {
@@ -368,19 +370,21 @@ public abstract class AbstractEventService2
 
         String completedBy = getValidUsername( event.getCompletedBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
-        if ( event.getStatus() != programStageInstance.getStatus()
-            && programStageInstance.getStatus() == EventStatus.COMPLETED )
-        {
-            UserCredentials userCredentials = importOptions.getUser().getUserCredentials();
-
-            if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
-            {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setDescription( "User is not authorized to uncomplete events" );
-
-                return importSummary;
-            }
-        }
+// FIXME: Respective checker is ==> update.ProgramStageInstanceAuthCheck
+//
+//        if ( event.getStatus() != programStageInstance.getStatus()
+//            && programStageInstance.getStatus() == EventStatus.COMPLETED )
+//        {
+//            UserCredentials userCredentials = importOptions.getUser().getUserCredentials();
+//
+//            if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
+//            {
+//                importSummary.setStatus( ImportStatus.ERROR );
+//                importSummary.setDescription( "User is not authorized to uncomplete events" );
+//
+//                return importSummary;
+//            }
+//        }
 
         if ( event.getStatus() == EventStatus.ACTIVE )
         {
@@ -423,25 +427,29 @@ public abstract class AbstractEventService2
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
-            try
-            {
-                aoc = getAttributeOptionCombo( program.getCategoryCombo(),
-                    event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
-            }
-            catch ( IllegalQueryException ex )
-            {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
-                return importSummary.incrementIgnored();
-            }
+// TODO: How to validate this piece? Is it being ignored in eventAdd?
+//
+//            try
+//            {
+//                aoc = getAttributeOptionCombo( program.getCategoryCombo(),
+//                    event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
+//            }
+//            catch ( IllegalQueryException ex )
+//            {
+//                importSummary.setStatus( ImportStatus.ERROR );
+//                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
+//                return importSummary.incrementIgnored();
+//            }
         }
 
-        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
-            return importSummary.incrementIgnored();
-        }
+// FIXME: Respective checker is ==> root.AttributeOptionComboCheck
+//
+//        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+//        {
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+//            return importSummary.incrementIgnored();
+//        }
 
         if ( aoc != null )
         {
@@ -450,35 +458,37 @@ public abstract class AbstractEventService2
 
         Date eventDate = programStageInstance.getExecutionDate() != null ? programStageInstance.getExecutionDate() : programStageInstance.getDueDate();
 
+// TODO: Maikel, should it become a Checker? At the moment it only throws Exception
         validateAttributeOptionComboDate( aoc, eventDate );
 
-        if ( event.getGeometry() != null )
-        {
-            if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
-                !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                return new ImportSummary( ImportStatus.ERROR, String.format(
-                    "Geometry '%s' does not conform to the feature type '%s' specified for the program stage: '%s'",
-                    programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) )
-                    .setReference( event.getEvent() ).incrementIgnored();
-            }
+//        if ( event.getGeometry() != null )
+//        {
+//            if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
+//                !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, String.format(
+//                    "Geometry '%s' does not conform to the feature type '%s' specified for the program stage: '%s'",
+//                    programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) )
+//                    .setReference( event.getEvent() ).incrementIgnored();
+//            }
 
+// TODO: luciano -> this is a side effect and should take place after validation
             event.getGeometry().setSRID( GeoUtils.SRID );
-        }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            Coordinate coordinate = event.getCoordinate();
-
-            try
-            {
-                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Invalid longitude or latitude for property 'coordinates'." );
-            }
-        }
+//        }
+//        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+//        {
+//            Coordinate coordinate = event.getCoordinate();
+//
+//            try
+//            {
+//                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+//            }
+//            catch ( IOException e )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR,
+//                    "Invalid longitude or latitude for property 'coordinates'." );
+//            }
+//        }
 
         programStageInstance.setGeometry( event.getGeometry() );
 
