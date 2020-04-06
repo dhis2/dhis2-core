@@ -143,8 +143,8 @@ public class MetadataPaginationActions
         int expectedPage )
     {
         response.validate().statusCode( 200 ).rootPath( "pager" )
-            .body( "pageCount", greaterThan( expectedPageCount ) )
-            .body( "total", greaterThan( expectedTotal ) )
+            .body( "pageCount", greaterThanOrEqualTo( expectedPageCount ) )
+            .body( "total", greaterThanOrEqualTo( expectedTotal ) )
             .body( "pageSize", is( expectedPageSize ) )
             .body( "page", is( expectedPage ) )
             .body( "nextPage", startsWith( TestConfiguration.get().baseUrl() + endpoint ) )
