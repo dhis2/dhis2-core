@@ -1,0 +1,96 @@
+{
+  "organisationUnits": [
+    {
+      "level": 2,
+      "created": "2020-04-06T08:48:09.324",
+      "lastUpdated": "2020-04-06T08:48:09.478",
+      "name": "TA OU_DELETION_TESTS_OU",
+      "id": "PIBHO8qBw9o",
+      "shortName": "TA OU_DELETION_TESTS_OU",
+      "path": "/PIBHO8qBw9o",
+      "openingDate": "2020-04-05T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "translations": []
+    },
+    {
+      "level": 3,
+      "name": "TA OU_DELETION_TESTS_OU_CHILD",
+      "id": "LlabdFE9f05",
+      "shortName": "TA OU_DELETION_TESTS_OU_CHILD",
+      "openingDate": "2020-04-05T00:00:00.000",
+      "parent": {
+        "id": "PIBHO8qBw9o"
+      },
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "translations": []
+    }
+  ],
+  "organisationUnitGroups": [
+    {
+      "name": "TA OU_DELETION_TESTS_GROUP",
+      "id": "IViMsXfUyWn",
+      "shortName": "TA OU_DELETION_TESTS_GROUP",
+      "publicAccess": "rw------",
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "translations": [],
+      "userAccesses": [],
+      "organisationUnits": [
+        {
+          "id": "LlabdFE9f05"
+        },
+        {
+          "id": "PIBHO8qBw9o"
+        }
+      ]
+    }
+  ],
+  "organisationUnitGroupSets": [
+    {
+      "name": "TA OU_DELETION_TESTS_GROUP_SET",
+      "id": "XcKGktFuGFj",
+      "publicAccess": "rw------",
+      "compulsory": false,
+      "includeSubhierarchyInAnalytics": false,
+      "dataDimension": true,
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "translations": [],
+      "userAccesses": [],
+      "organisationUnitGroups": [
+        {
+          "id": "IViMsXfUyWn"
+        }
+      ]
+    }
+  ]
+}
