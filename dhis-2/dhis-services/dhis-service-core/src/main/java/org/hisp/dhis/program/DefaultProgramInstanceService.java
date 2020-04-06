@@ -120,23 +120,9 @@ public class DefaultProgramInstanceService
     @Transactional
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        deleteProgramInstance( programInstance, false );
-    }
-
-    @Override
-    @Transactional
-    public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
-    {
-        if ( forceDelete )
-        {
-            programInstanceStore.delete( programInstance );
-        }
-        else
-        {
-            programInstance.setDeleted( true );
-            programInstance.setStatus( ProgramStatus.CANCELLED );
-            programInstanceStore.update( programInstance );
-        }
+        programInstance.setStatus( ProgramStatus.CANCELLED );
+        programInstanceStore.update( programInstance );
+        programInstanceStore.delete( programInstance );
     }
 
     @Override
