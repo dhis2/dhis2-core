@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event.preProcess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,45 +28,13 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventAclCheck
-    implements
-    ValidationCheck
+public interface PreProcessor
 {
-
-    @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
-    {
-        ImportOptions importOptions = ctx.getImportOptions();
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
-        programStageInstance.setStatus( event.getStatus() );
-
-        List<String> errors = ctx.getTrackerAccessManager().canCreate( importOptions.getUser(),  programStageInstance, false);
-
-        if ( !errors.isEmpty() )
-        {
-            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
-            importSummary.incrementIgnored();
-
-            return importSummary;
-        }
-        return new ImportSummary();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
-    }
+    void process( Event event, ValidationContext ctx );
 }

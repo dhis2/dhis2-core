@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event.preProcess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,45 +28,32 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventAclCheck
+public class ProgramStagePreProcessor
     implements
-    ValidationCheck
+    PreProcessor
 {
-
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public void process( Event event, ValidationContext ctx )
     {
-        ImportOptions importOptions = ctx.getImportOptions();
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
-        programStageInstance.setStatus( event.getStatus() );
+        Program program = ctx.getProgramsMap().get( event.getProgram() );
 
-        List<String> errors = ctx.getTrackerAccessManager().canCreate( importOptions.getUser(),  programStageInstance, false);
+        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
 
-        if ( !errors.isEmpty() )
+        if ( programStage == null && program.isWithoutRegistration() )
         {
-            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
-            importSummary.incrementIgnored();
-
-            return importSummary;
+            programStage = program.getProgramStageByStage( 1 );
         }
-        return new ImportSummary();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
+        if ( programStage != null )
+        {
+            event.setProgramStage( programStage.getUid() );
+        }
     }
 }
