@@ -102,11 +102,20 @@ public class SimplisticHttpGetGateWay
 
         try
         {
-            URI url = uriBuilder.build().encode().toUri();
+            if ( genericConfig.isSendUrlParameters() )
+            {
+                URI uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
 
-            HttpEntity<String> requestEntity = getRequestEntity( genericConfig, text, recipients );
+                responseEntity = restTemplate.getForEntity( uri, String.class );
+            }
+            else
+            {
+                URI url = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+                HttpEntity<String> requestEntity = getRequestEntity( genericConfig, text, recipients );
+
+                responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+            }
         }
         catch ( HttpClientErrorException ex )
         {
@@ -129,6 +138,33 @@ public class SimplisticHttpGetGateWay
     // -------------------------------------------------------------------------
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    {
+        Map<String, String> valueStore = getValueStore( config, text, recipients );
+
+        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
+
+        String data = substitutor.replace( config.getConfigurationTemplate() );
+
+        return new HttpEntity<>( data, getHeaderParameters( config ) );
+    }
+
+    private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
+    {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : config.getParameters() )
+        {
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
+            }
+        }
+
+        return httpHeaders;
+    }
+
+    private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         List<GenericGatewayParameter> parameters = config.getParameters();
 
@@ -157,11 +193,7 @@ public class SimplisticHttpGetGateWay
         valueStore.put( KEY_TEXT, text );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
-        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
-
-        String data = substitutor.replace( config.getConfigurationTemplate() );
-
-        return new HttpEntity<>( data, httpHeaders );
+        return valueStore;
     }
 
     private String encodeUrl( String value )
