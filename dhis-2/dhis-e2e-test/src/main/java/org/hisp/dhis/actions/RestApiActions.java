@@ -28,6 +28,9 @@
 
 package org.hisp.dhis.actions;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
+
 import java.io.File;
 import java.util.List;
 
@@ -44,9 +47,6 @@ import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.oneOf;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -169,10 +169,7 @@ public class RestApiActions
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
-        Response response = this.given()
-            .contentType( ContentType.TEXT )
-            .when()
-            .get( resourceId + path );
+        Response response = this.given().contentType( ContentType.TEXT ).when().get( resourceId + path );
 
         return new ApiResponse( response );
     }
@@ -277,7 +274,8 @@ public class RestApiActions
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
-            importSummaries.forEach( importSummary -> TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() ));
+            importSummaries
+                .forEach( importSummary -> TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() ) );
             return;
         }
 
@@ -285,7 +283,8 @@ public class RestApiActions
         {
             SchemasActions schemasActions = new SchemasActions();
             response.getTypeReports().stream()
-                .filter( typeReport -> typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0)
+                .filter(
+                    typeReport -> typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0 )
                 .forEach( tr -> {
                     List<ObjectReport> objectReports = tr.getObjectReports();
 
@@ -307,7 +306,6 @@ public class RestApiActions
         {
             TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
         }
-
     }
 }
 
