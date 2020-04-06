@@ -41,6 +41,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -73,6 +74,7 @@ public abstract class AbstractEventService2
     protected Notifier notifier;
 
     protected ValidationFactory validationFactory;
+    protected PreProcessorFactory preProcessorFactory;
 
     protected JdbcEventStore jdbcEventStore;
 
@@ -138,6 +140,9 @@ public abstract class AbstractEventService2
         // filter out events which are already in the database
         List<Event> validEvents = resolveImportableEvents( events, importSummaries, ctx );
 
+        // pre-process events
+        preProcessorFactory.preProcessEvents( ctx, events );
+        
         // @formatter:off
         importSummaries.addImportSummaries(
             // Run validation against the remaining "insertable" events //

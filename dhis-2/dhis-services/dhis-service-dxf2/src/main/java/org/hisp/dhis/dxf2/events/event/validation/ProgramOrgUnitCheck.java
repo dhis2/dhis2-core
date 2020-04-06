@@ -44,7 +44,7 @@ public class ProgramOrgUnitCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         if ( programInstance != null ) // TODO shall we handle this case: this should really never happen..

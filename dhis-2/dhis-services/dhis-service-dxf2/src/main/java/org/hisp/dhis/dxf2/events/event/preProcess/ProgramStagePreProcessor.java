@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event.preProcess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,37 +29,31 @@ package org.hisp.dhis.dxf2.events.event.validation;
  */
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceCheck
+public class ProgramStagePreProcessor
     implements
-    ValidationCheck
+    PreProcessor
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public void process( Event event, ValidationContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = ctx.trackedEntityInstanceMap.get( event.getUid() );
 
-        if ( program.isRegistration() && tei == null )
+        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+
+        if ( programStage == null && program.isWithoutRegistration() )
         {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                    + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
+            programStage = program.getProgramStageByStage( 1 );
         }
-
-        return new ImportSummary();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return false;
+        if ( programStage != null )
+        {
+            event.setProgramStage( programStage.getUid() );
+        }
     }
 }

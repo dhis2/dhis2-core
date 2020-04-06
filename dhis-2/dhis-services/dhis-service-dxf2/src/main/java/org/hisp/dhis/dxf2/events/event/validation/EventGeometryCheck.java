@@ -46,7 +46,7 @@ public class EventGeometryCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         ProgramStage programStage = ctx.getProgramStage( event.getEnrollment() );
 

@@ -44,7 +44,7 @@ public class AttributeOptionComboCheck
 {
 
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getUid() );
