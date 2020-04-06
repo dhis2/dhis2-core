@@ -28,12 +28,10 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
 
 /**
  * @author Luciano Fiandesio
@@ -44,27 +42,12 @@ public class ProgramStageCheck
 {
 
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         // TODO luciano shouldn't we also check if program stage belongs to program? -> asked Morten, said probably yes!
 
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
+        return checkNull( event.getUid(), "Event.programStage does not point to a valid programStage: " + event.getProgramStage(), event);
 
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
-
-        if ( programStage == null && program.isWithoutRegistration())
-        {
-            programStage = program.getProgramStageByStage( 1 );
-        }
-
-        if ( programStage == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );
-        }
-
-        event.setProgramStage( programStage.getUid() );
-
-        return new ImportSummary();
     }
 
     @Override

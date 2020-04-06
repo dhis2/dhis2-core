@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event.preProcess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,37 +29,12 @@ package org.hisp.dhis.dxf2.events.event.validation;
  */
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceCheck
-    implements
-    ValidationCheck
+public interface PreProcessor
 {
-    @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
-    {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = ctx.trackedEntityInstanceMap.get( event.getUid() );
-
-        if ( program.isRegistration() && tei == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                    + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
-        }
-
-        return new ImportSummary();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return false;
-    }
+    void process( Event event, ValidationContext ctx );
 }

@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
@@ -37,16 +36,16 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
  */
 public interface ValidationCheck
 {
-    ImportSummary check( Event event, ValidationContext ctx );
+    ImportSummary check( ImmutableEvent event, ValidationContext ctx );
 
     boolean isFinal();
 
-    default ImportSummary checkNull(Object object, String message, Event event) {
+    default ImportSummary checkNull( Object object, String message, ImmutableEvent event )
+    {
 
         if ( object == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, message)
-                    .setReference( event.getEvent() ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, message ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         return new ImportSummary();
