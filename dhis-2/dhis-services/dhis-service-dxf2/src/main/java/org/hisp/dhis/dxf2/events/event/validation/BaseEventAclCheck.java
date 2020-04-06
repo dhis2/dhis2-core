@@ -45,15 +45,14 @@ public abstract class BaseEventAclCheck
     ValidationCheck
 {
 
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         ImportOptions importOptions = ctx.getImportOptions();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
         programStageInstance.setStatus( event.getStatus() );
 
-        List<String> errors = checkAcl( ctx.getServiceDelegator().getTrackerAccessManager(), importOptions.getUser(),
-            programStageInstance );
+        List<String> errors = checkAcl( ctx.getTrackerAccessManager(), importOptions.getUser(), programStageInstance );
 
         if ( !errors.isEmpty() )
         {

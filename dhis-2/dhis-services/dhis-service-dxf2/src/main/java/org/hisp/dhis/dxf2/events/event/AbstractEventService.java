@@ -2033,7 +2033,7 @@ public abstract class AbstractEventService
             //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
-        // TODO: luciano question -> what is this ???
+        // TODO: luciano question
         eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
         // TODO: luciano question -> why are we calling update after an insert???
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
