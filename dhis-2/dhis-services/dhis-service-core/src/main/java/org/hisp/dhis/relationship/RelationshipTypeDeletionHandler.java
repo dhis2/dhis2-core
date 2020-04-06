@@ -1,5 +1,3 @@
-package org.hisp.dhis.deletedobject.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,31 +25,49 @@ package org.hisp.dhis.deletedobject.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
-import org.hibernate.boot.Metadata;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.integrator.spi.Integrator;
-import org.hibernate.service.spi.SessionFactoryServiceRegistry;
+import java.util.Objects;
+
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-public class DeletedObjectIntegrator implements Integrator
+@Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
+public class RelationshipTypeDeletionHandler
+    extends
+    DeletionHandler
 {
-    @Override
-    public void integrate( Metadata metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
-    {
-        final EventListenerRegistry registry = serviceRegistry.getService( EventListenerRegistry.class );
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-        DeletedObjectPostDeleteEventListener listener = new DeletedObjectPostDeleteEventListener();
-        registry.appendListeners( EventType.POST_DELETE, listener );
+    private final RelationshipTypeService relationshipTypeService;
+
+    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
+    {
+        this.relationshipTypeService = relationshipTypeService;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return RelationshipType.class.getSimpleName();
     }
 
     @Override
-    public void disintegrate( SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
+    public void deleteProgram( Program program )
     {
-
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
     }
 }

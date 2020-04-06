@@ -1,4 +1,4 @@
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.deletedobject.hibernate;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,45 +28,41 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Lars Helge Overland
- */
-@Component( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" )
-public class OrganisationUnitGroupSetDeletionHandler
-    extends
-    DeletionHandler
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
+@Component
+public class DeletedObjectListenerConfigurer
 {
-    private final IdentifiableObjectManager idObjectManager;
+    @PersistenceUnit
+    private EntityManagerFactory emf;
 
-    public OrganisationUnitGroupSetDeletionHandler( IdentifiableObjectManager idObjectManager )
+    private final DeletedObjectPostInsertEventListener insertEventListener;
+
+    private final DeletedObjectPostDeleteEventListener deleteEventListener;
+
+    public DeletedObjectListenerConfigurer( DeletedObjectPostInsertEventListener insertEventListener,
+        DeletedObjectPostDeleteEventListener deleteEventListener )
     {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
+        this.deleteEventListener = deleteEventListener;
+        this.insertEventListener = insertEventListener;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getClassName()
+    @PostConstruct
+    protected void init()
     {
-        return OrganisationUnitGroupSet.class.getSimpleName();
-    }
+        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
 
-    @Override
-    public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
-    {
-        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
-        {
-            groupSet.removeOrganisationUnitGroup( group );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
+
+        registry.getEventListenerGroup( EventType.POST_COMMIT_INSERT ).appendListener( insertEventListener );
+
+        registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( deleteEventListener );
     }
 }

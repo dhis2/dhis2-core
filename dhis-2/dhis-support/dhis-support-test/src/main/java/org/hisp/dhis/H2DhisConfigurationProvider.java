@@ -126,19 +126,6 @@ public class H2DhisConfigurationProvider
         return false;
     }
 
-
-    @Override
-    public long getAnalyticsCacheExpiration()
-    {
-        return 0;
-    }
-
-    @Override
-    public boolean isAnalyticsCacheEnabled()
-    {
-        return false;
-    }
-
     @Override
     public boolean isClusterEnabled()
     {
