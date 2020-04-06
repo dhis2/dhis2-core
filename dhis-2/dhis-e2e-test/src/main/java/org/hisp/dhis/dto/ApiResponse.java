@@ -113,7 +113,7 @@ public class ApiResponse
 
     public boolean containsImportSummaries()
     {
-        return getContentType().contains("json") && !CollectionUtils.isEmpty(getImportSummaries());
+        return getContentType().contains( "json" ) && !CollectionUtils.isEmpty( getImportSummaries() );
     }
 
     public List<ImportSummary> getImportSummaries()

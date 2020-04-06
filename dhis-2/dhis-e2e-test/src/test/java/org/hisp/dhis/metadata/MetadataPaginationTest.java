@@ -118,6 +118,7 @@ public class MetadataPaginationTest
         paginationActions = new MetadataPaginationActions( "/optionSets" );
         loginActions.loginAsSuperUser();
 
+        // Creates 100 Option Sets
         for ( int i = 0; i < 100; i++ )
         {
             optionActions.createOptionSet( RandomStringUtils.randomAlphabetic( 10 ), "INTEGER", (String[]) null );

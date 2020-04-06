@@ -64,7 +64,8 @@ public class MetadataPaginationActions
     /**
      * Executes a metadata request using pagination directives
      *
-     * @param filter a List of String, containing the expressions to filter metadata on
+     * @param filter a List of String, containing the expressions to filter metadata
+     *        on
      * @param fields a List of String, containing the name of the fields to return
      * @param sort a List of String, containing the sort expressions
      * @param page the page to return
@@ -77,20 +78,17 @@ public class MetadataPaginationActions
         assert filter != null;
         assert fields != null && !fields.isEmpty();
         assert sort != null && !sort.isEmpty();
-        QueryParamsBuilder params = new QueryParamsBuilder()
-            .add( "filter=" + String.join( ",", filter ) )
-            .add( "fields=" + String.join( ",", fields ) )
-            .add( "order=" + String.join( ",", sort ) )
-            .add( "page=" + page )
-            .add( "pageSize=" + pageSize );
+        QueryParamsBuilder params = new QueryParamsBuilder().add( "filter=" + String.join( ",", filter ) )
+            .add( "fields=" + String.join( ",", fields ) ).add( "order=" + String.join( ",", sort ) )
+            .add( "page=" + page ).add( "pageSize=" + pageSize );
 
         return get( "", params );
 
     }
 
     /**
-     * Executes a metadata request using pagination directives.
-     * Uses a default filter expression
+     * Executes a metadata request using pagination directives. Uses a default
+     * filter expression
      *
      * @param fields a List of String, containing the name of the fields to return
      * @param sort a List of String, containing the sort expressions
@@ -104,8 +102,8 @@ public class MetadataPaginationActions
     }
 
     /**
-     * Executes a metadata request using pagination directives.
-     * Uses a default filter and sort expression
+     * Executes a metadata request using pagination directives. Uses a default
+     * filter and sort expression
      *
      * @param fields a List of String, containing the name of the fields to return
      * @param page the page to return
@@ -119,8 +117,8 @@ public class MetadataPaginationActions
     }
 
     /**
-     * Executes a metadata request using pagination directives.
-     * Uses a default filter, fields and sort expression
+     * Executes a metadata request using pagination directives. Uses a default
+     * filter, fields and sort expression
      *
      * @param page the page to return
      * @param pageSize the number of elements to return for each page
@@ -144,18 +142,15 @@ public class MetadataPaginationActions
     public void assertPagination( ApiResponse response, int expectedTotal, int expectedPageCount, int expectedPageSize,
         int expectedPage )
     {
-        JsonObject pager = response.extractJsonObject( "pager" );
-        assertThat( pager, is( notNullValue() ) );
-        assertThat( Integer.parseInt( pager.get( "pageCount" ).getAsString() ), greaterThan( expectedPageCount ) );
-        assertThat( Integer.parseInt( pager.get( "total" ).getAsString() ), greaterThanOrEqualTo( expectedTotal ) );
+        response.validate().statusCode( 200 ).rootPath( "pager" )
+            .body( "pageCount", greaterThan( expectedPageCount ) )
+            .body( "total", greaterThan( expectedTotal ) )
+            .body( "pageSize", is( expectedPageSize ) )
+            .body( "page", is( expectedPage ) )
+            .body( "nextPage", startsWith( TestConfiguration.get().baseUrl() + endpoint ) )
+            .body( "nextPage", containsString( "pageSize=" + expectedPageSize ) )
+            .body( "nextPage", containsString( "page=" + (expectedPage + 1) ) );
 
-        String nextPage = pager.get( "nextPage" ).getAsString();
-        assertThat( nextPage, startsWith( TestConfiguration.get().baseUrl() + endpoint ) );
-        assertThat( nextPage, containsString( "pageSize=" + expectedPageSize ) );
-        assertThat( nextPage, containsString( "page=" + (expectedPage + 1) ) );
-
-        assertThat( Integer.parseInt( pager.get( "pageSize" ).getAsString() ), Matchers.is( expectedPageSize ) );
-        assertThat( Integer.parseInt( pager.get( "page" ).getAsString() ), Matchers.is( expectedPage ) );
     }
 
     private List<String> toParamList( String string )
