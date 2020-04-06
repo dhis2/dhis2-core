@@ -45,6 +45,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -86,6 +87,7 @@ public abstract class AbstractEventService2
     protected Notifier notifier;
 
     protected ValidationFactory validationFactory;
+    protected PreProcessorFactory preProcessorFactory;
 
     protected JdbcEventStore jdbcEventStore;
 
@@ -119,8 +121,10 @@ public abstract class AbstractEventService2
             importSummaries
                 .addImportSummaries( addEvents( accumulator.getCreate(), importOptions, validationContext ) );
             // -- old code -- : -- please refactor --
-//            importSummaries.addImportSummaries( updateEvents( accumulator.getUpdate(), importOptions, false, true ) );
-//            importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(), true ) );
+            // importSummaries.addImportSummaries( updateEvents( accumulator.getUpdate(),
+            // importOptions, false, true ) );
+            // importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(),
+            // true ) );
         }
 
         if ( jobId != null )
@@ -149,6 +153,9 @@ public abstract class AbstractEventService2
         // filter out events which are already in the database
         List<Event> validEvents = resolveImportableEvents( events, importSummaries, ctx );
 
+        // pre-process events
+        preProcessorFactory.preProcessEvents( ctx, events );
+        
         // @formatter:off
         importSummaries.addImportSummaries(
             // Run validation against the remaining "insertable" events //
@@ -158,19 +165,25 @@ public abstract class AbstractEventService2
 
         // collect the UIDs of events that did not pass validation
         List<String> failedUids = importSummaries.getImportSummaries().stream()
-            .filter( i -> i.isStatus( ImportStatus.ERROR ) )
-            .map( ImportSummary::getReference )
+            .filter( i -> i.isStatus( ImportStatus.ERROR ) ).map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
         ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( ctx );
 
-        // collect the events that passed validation and can be persisted
-        // @formatter:off
-        List<ProgramStageInstance> eventsToPersist = validEvents.stream()
-            .filter( e -> !failedUids.contains( e.getEvent() ) )
-            .map( mapper::convert )
-            .collect( Collectors.toList() );
-        // @formatter:on
+        List<ProgramStageInstance> eventsToPersist;
+        if ( failedUids.isEmpty() )
+        {
+            eventsToPersist = convertToProgramStageInstances( mapper, validEvents );
+        }
+        else
+        {
+            // collect the events that passed validation and can be persisted
+            // @formatter:off
+            eventsToPersist = convertToProgramStageInstances( mapper, validEvents.stream()
+                .filter( e -> !failedUids.contains( e.getEvent() ) )
+                .collect( Collectors.toList() ) );
+            // @formatter:on
+        }
 
         if ( !eventsToPersist.isEmpty() )
         {
@@ -178,6 +191,12 @@ public abstract class AbstractEventService2
         }
 
         return importSummaries;
+    }
+
+    private List<ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
+        List<Event> events )
+    {
+        return events.stream().map( mapper::convert ).collect( Collectors.toList() );
     }
 
     @Override

@@ -48,7 +48,7 @@ public class AttributeOptionComboAclCheck
 {
 
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         ImportSummary importSummary = new ImportSummary();
         TrackerAccessManager trackerAccessManager = ctx.getTrackerAccessManager();
