@@ -32,6 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessor;
+import org.hisp.dhis.dxf2.events.event.preProcess.ProgramInstancePreProcessor;
+import org.hisp.dhis.dxf2.events.event.preProcess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventAclCheck;
@@ -201,5 +204,14 @@ public class ServiceConfig
             ImportStrategy.CREATE, CREATE_EVENTS_CHECKS,
             ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_CHECKS,
             ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
+    }
+
+    private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists
+        .newArrayList( ProgramInstancePreProcessor.class, ProgramStagePreProcessor.class );
+
+    @Bean( "eventValidatorMap" )
+    public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()
+    {
+        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS );
     }
 }

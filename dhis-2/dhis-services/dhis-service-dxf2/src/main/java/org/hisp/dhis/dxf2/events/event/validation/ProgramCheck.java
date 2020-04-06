@@ -39,7 +39,7 @@ public class ProgramCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
             "Event.program does not point to a valid program: " + event.getProgram(), event );

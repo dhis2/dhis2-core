@@ -52,7 +52,7 @@ public class EventBaseCheck
 {
 
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         ImportSummary importSummary = new ImportSummary();
         List<String> errors = validate( event, ctx );
@@ -75,7 +75,7 @@ public class EventBaseCheck
         return false;
     }
 
-    private List<String> validate( Event event, ValidationContext ctx )
+    private List<String> validate( ImmutableEvent event, ValidationContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         ImportOptions importOptions = ctx.getImportOptions();
