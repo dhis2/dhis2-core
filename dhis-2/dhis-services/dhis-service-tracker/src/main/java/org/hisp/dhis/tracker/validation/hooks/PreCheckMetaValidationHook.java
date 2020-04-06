@@ -85,14 +85,14 @@ public class PreCheckMetaValidationHook
         if ( organisationUnit == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1070 )
-                .addArg( enrollment.getTrackedEntity() ) );
+                .addArg( enrollment.getOrgUnit() ) );
         }
 
         Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
         if ( program == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1069 )
-                .addArg( enrollment.getTrackedEntity() ) );
+                .addArg( enrollment.getProgram() ) );
         }
 
         if ( (program != null && organisationUnit != null) && !program.hasOrganisationUnit( organisationUnit ) )

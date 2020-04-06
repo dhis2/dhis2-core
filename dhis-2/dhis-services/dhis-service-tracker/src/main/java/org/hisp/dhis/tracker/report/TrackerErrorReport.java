@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -50,6 +51,7 @@ import java.util.List;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
+@Builder
 public class TrackerErrorReport
 {
     private final TrackerErrorMessage message;
@@ -68,6 +70,14 @@ public class TrackerErrorReport
 
     @JsonProperty
     private Object value;
+
+    private TrackerErrorCode errorCode;
+
+    private List<Object> arguments;
+
+    private Object mainObject;
+
+    protected int listIndex;
 
     private final int lineNumber;
 
@@ -95,55 +105,16 @@ public class TrackerErrorReport
         return message.getMessage();
     }
 
-    public static class Builder
+    public static class TrackerErrorReportBuilder
     {
-        protected TrackerErrorMessage message;
-
-        protected Class<?> mainKlass;
-
-        protected String mainId;
-
-        protected Class<?> errorKlass;
-
-        protected String[] errorProperties = new String[0];
-
-        protected Object value;
-
-        protected int listIndex;
-
-        private TrackerErrorCode errorCode;
-
-        private Object mainObject;
-
-        private final List<Object> arguments = new ArrayList<>();
-
-        public Builder withErrorCode( TrackerErrorCode errorCode )
+        public TrackerErrorReportBuilder addArg( Object arg )
         {
-            this.errorCode = errorCode;
-            return this;
-        }
+            if ( this.arguments == null )
+            {
+                this.arguments = new ArrayList<>();
+            }
 
-        public Builder addArg( Object arg )
-        {
             this.arguments.add( arg );
-            return this;
-        }
-
-        protected Builder withMainKlass( Class<?> mainKlass )
-        {
-            this.mainKlass = mainKlass;
-            return this;
-        }
-
-        protected Builder withListIndex( int listIndex )
-        {
-            this.listIndex = listIndex;
-            return this;
-        }
-
-        public Builder setMainId( String mainId )
-        {
-            this.mainId = mainId;
             return this;
         }
 
@@ -172,11 +143,11 @@ public class TrackerErrorReport
         {
             if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
             {
-                return (ObjectUtils.firstNonNull( argument, "NULL" ).toString());
+                return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
             }
             else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
             {
-                return (identifier.getIdAndName( (IdentifiableObject) argument ));
+                return identifier.getIdAndName( (IdentifiableObject) argument );
             }
             else if ( Date.class.isAssignableFrom( argument.getClass() ) )
             {
@@ -185,17 +156,17 @@ public class TrackerErrorReport
             else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
             {
                 Enrollment enrollment = (Enrollment) argument;
-                return (enrollment.getEnrollment() + " (" + enrollment.getClass().getSimpleName() + ")");
+                return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
             }
             else if ( Event.class.isAssignableFrom( argument.getClass() ) )
             {
                 Event event = (Event) argument;
-                return (event.getEvent() + " (" + event.getClass().getSimpleName() + ")");
+                return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
             }
             else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
             {
                 TrackedEntity entity = (TrackedEntity) argument;
-                return (entity.getTrackedEntity() + " (" + entity.getClass().getSimpleName() + ")");
+                return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
             }
 
             return "";
@@ -209,11 +180,11 @@ public class TrackerErrorReport
             "message=" + message.getMessage() +
             ", errorCode=" + message.getErrorCode() +
             ", mainId='" + mainId + '\'' +
-            ", mainKlass=" + mainKlass +
-            ", errorKlass=" + errorKlass +
+            ", mainClass=" + mainKlass +
+            ", errorClass=" + errorKlass +
             ", errorProperties=" + Arrays.toString( errorProperties ) +
             ", value=" + value +
-            ", lineNumber=" + lineNumber +
+            ", objectIndex=" + lineNumber +
             '}';
     }
 }

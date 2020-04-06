@@ -180,7 +180,7 @@ public class EnrollmentInExistingValidationHook
             {
                 // Always create a fork of the reporter when used for checking/counting errors,
                 // this is needed for thread safety in parallel mode.
-                ValidationErrorReporter reporterFork = reporter.fork( null );
+                ValidationErrorReporter reporterFork = reporter.fork();
 
                 trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, actingUser, programInstance );
 

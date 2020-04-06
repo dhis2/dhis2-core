@@ -49,11 +49,11 @@ public class ValidationErrorReporter
 
     private final boolean isFailFast;
 
-    private TrackerBundle bundle;
+    private final TrackerBundle bundle;
 
-    private Class<?> mainKlass;
+    private final Class<?> mainKlass;
 
-    private AtomicInteger listIndex = new AtomicInteger( 0 );
+    private final AtomicInteger listIndex = new AtomicInteger( 0 );
 
     private String mainId;
 
@@ -84,20 +84,20 @@ public class ValidationErrorReporter
         return isFailFast;
     }
 
-    public static TrackerErrorReport.Builder newReport( TrackerErrorCode errorCode )
+    public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
     {
-        TrackerErrorReport.Builder builder = new TrackerErrorReport.Builder();
-        builder.withErrorCode( errorCode );
+        TrackerErrorReport.TrackerErrorReportBuilder builder = new TrackerErrorReport.TrackerErrorReportBuilder();
+        builder.errorCode( errorCode );
         return builder;
     }
 
-    public void addError( TrackerErrorReport.Builder builder )
+    public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
     {
-        builder.withMainKlass( this.mainKlass );
-        builder.withListIndex( this.listIndex.get() );
+        builder.mainKlass( this.mainKlass );
+        builder.listIndex( this.listIndex.get() );
         if ( this.mainId != null )
         {
-            builder.setMainId( this.mainId );
+            builder.mainId( this.mainId );
         }
 
         getReportList().add( builder.build( this.bundle ) );
@@ -106,6 +106,11 @@ public class ValidationErrorReporter
         {
             throw new ValidationFailFastException( getReportList() );
         }
+    }
+
+    public <T extends TrackerDto> ValidationErrorReporter fork()
+    {
+        return fork( null );
     }
 
     public <T extends TrackerDto> ValidationErrorReporter fork( T dto )
@@ -122,8 +127,8 @@ public class ValidationErrorReporter
         // TODO: Use interface method to build name?
         if ( dto instanceof TrackedEntity )
         {
-            TrackedEntity te = (TrackedEntity) dto;
-            fork.mainId = (te.getClass().getSimpleName() + " (" + te.getTrackedEntity() + ")");
+            TrackedEntity trackedEntity = (TrackedEntity) dto;
+            fork.mainId = (trackedEntity.getClass().getSimpleName() + " (" + trackedEntity.getTrackedEntity() + ")");
         }
         else if ( dto instanceof Enrollment )
         {
