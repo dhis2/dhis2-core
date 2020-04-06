@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -87,7 +88,10 @@ public class ProgramStageSectionIntegrationTest
         sectionA = createProgramStageSection( 'A', 1 );
         programStageSectionService.saveProgramStageSection( sectionA );
 
-        DataElement dataElementA = createDataElement( 'A' );
+        CategoryCombo categoryCombo = createCategoryCombo( 'A' );
+        categoryService.addCategoryCombo( categoryCombo );
+
+        DataElement dataElementA = createDataElement( 'A', categoryCombo );
         dataElementService.addDataElement( dataElementA );
         programStageDataElementA = createProgramStageDataElement( stageA, dataElementA, 1 );
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.common.adapter;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,45 +28,25 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import org.hisp.dhis.common.IdentifiableObject;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import java.io.IOException;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" )
-public class OrganisationUnitGroupSetDeletionHandler
-    extends
-    DeletionHandler
+public class UidJsonSerializer
+    extends JsonSerializer<IdentifiableObject>
 {
-    private final IdentifiableObjectManager idObjectManager;
-
-    public OrganisationUnitGroupSetDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
-    }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    public void serialize( IdentifiableObject value, JsonGenerator gen, SerializerProvider serializers )
+        throws IOException
     {
-        return OrganisationUnitGroupSet.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
-    {
-        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
-        {
-            groupSet.removeOrganisationUnitGroup( group );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+        gen.writeStartObject();
+        gen.writeObjectField( "id", value.getUid() );
+        gen.writeEndObject();
     }
 }

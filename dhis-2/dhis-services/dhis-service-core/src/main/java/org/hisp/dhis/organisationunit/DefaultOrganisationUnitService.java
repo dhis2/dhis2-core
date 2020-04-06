@@ -69,12 +69,13 @@ import com.google.common.collect.Sets;
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
 public class DefaultOrganisationUnitService
-    implements OrganisationUnitService
+    implements
+    OrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
     private static Cache<Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
-    
+
     private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
 
     // -------------------------------------------------------------------------
@@ -94,13 +95,13 @@ public class DefaultOrganisationUnitService
     private final ConfigurationService configurationService;
 
     private final UserSettingService userSettingService;
-    
+
     private final CacheProvider cacheProvider;
 
     public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
-        CurrentUserService currentUserService, ConfigurationService configurationService,  UserSettingService userSettingService,
-        CacheProvider cacheProvider )
+        CurrentUserService currentUserService, ConfigurationService configurationService,
+        UserSettingService userSettingService, CacheProvider cacheProvider )
     {
         checkNotNull( env );
         checkNotNull( organisationUnitStore );
@@ -133,18 +134,12 @@ public class DefaultOrganisationUnitService
     public void init()
     {
         IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserOuHierarchy" )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
-            .withInitialCapacity( 1000 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
-        
+            .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+
         IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserSearchOuHierarchy" )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
-            .withInitialCapacity( 1000 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -186,98 +181,83 @@ public class DefaultOrganisationUnitService
     public void deleteOrganisationUnit( OrganisationUnit organisationUnit )
         throws HierarchyViolationException
     {
-        organisationUnit = getOrganisationUnit( organisationUnit.getId() );
-
-        if ( !organisationUnit.getChildren().isEmpty() )
-        {
-            throw new HierarchyViolationException( "Cannot delete an OrganisationUnit with children" );
-        }
-
-        OrganisationUnit parent = organisationUnit.getParent();
-
-        if ( parent != null )
-        {
-            parent.getChildren().remove( organisationUnit );
-
-            organisationUnitStore.update( parent );
-        }
-
         organisationUnitStore.delete( organisationUnit );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnit getOrganisationUnit( long id )
     {
         return organisationUnitStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getAllOrganisationUnits()
     {
         return organisationUnitStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getAllOrganisationUnitsByLastUpdated( Date lastUpdated )
     {
         return organisationUnitStore.getAllOrganisationUnitsByLastUpdated( lastUpdated );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnits( Collection<Long> identifiers )
     {
         return organisationUnitStore.getById( identifiers );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsByUid( Collection<String> uids )
     {
         return organisationUnitStore.getByUid( uids );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsByQuery( OrganisationUnitQueryParams params )
     {
         return organisationUnitStore.getOrganisationUnits( params );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnit getOrganisationUnit( String uid )
     {
         return organisationUnitStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitByName( String name )
     {
         return new ArrayList<>( organisationUnitStore.getAllEqName( name ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnit getOrganisationUnitByCode( String code )
     {
         return organisationUnitStore.getByCode( code );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getRootOrganisationUnits()
     {
         return organisationUnitStore.getRootOrganisationUnits();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<OrganisationUnit> getOrganisationUnits( Collection<OrganisationUnitGroup> groups, Collection<OrganisationUnit> parents )
+    @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnits( Collection<OrganisationUnitGroup> groups,
+        Collection<OrganisationUnit> parents )
     {
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( parents ) );
@@ -287,14 +267,14 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsWithChildren( Collection<String> parentUids )
     {
         return getOrganisationUnitsWithChildren( parentUids, null );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsWithChildren( Collection<String> parentUids, Integer maxLevels )
     {
         List<OrganisationUnit> units = new ArrayList<>();
@@ -308,14 +288,14 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitWithChildren( String uid )
     {
         return getOrganisationUnitWithChildren( uid, null );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitWithChildren( String uid, Integer maxLevels )
     {
         OrganisationUnit unit = getOrganisationUnit( uid );
@@ -326,14 +306,14 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitWithChildren( long id )
     {
         return getOrganisationUnitWithChildren( id, null );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitWithChildren( long id, Integer maxLevels )
     {
         OrganisationUnit organisationUnit = getOrganisationUnit( id );
@@ -351,8 +331,8 @@ public class DefaultOrganisationUnitService
         int rootLevel = organisationUnit.getLevel();
 
         Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
-        SortProperty orderBy = SortProperty.fromValue(
-            userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
+        SortProperty orderBy = SortProperty
+            .fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( organisationUnit ) );
@@ -364,7 +344,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsAtLevel( int level )
     {
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
@@ -374,7 +354,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsAtLevel( int level, OrganisationUnit parent )
     {
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
@@ -389,15 +369,18 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels, Collection<OrganisationUnit> parents )
+    @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels,
+        Collection<OrganisationUnit> parents )
     {
-        return getOrganisationUnitsAtLevels( levels.stream().map( l -> l.getLevel() ).collect( Collectors.toList() ), parents );
+        return getOrganisationUnitsAtLevels( levels.stream().map( l -> l.getLevel() ).collect( Collectors.toList() ),
+            parents );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<OrganisationUnit> getOrganisationUnitsAtLevels( Collection<Integer> levels, Collection<OrganisationUnit> parents )
+    @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnitsAtLevels( Collection<Integer> levels,
+        Collection<OrganisationUnit> parents )
     {
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setLevels( Sets.newHashSet( levels ) );
@@ -407,36 +390,37 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getNumberOfOrganisationalLevels()
     {
         return organisationUnitStore.getMaxLevel();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
         return organisationUnitStore.getOrganisationUnitsWithoutGroups();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
         return organisationUnitStore.getOrganisationUnitHierarchyMemberCount( parent, member, collectionName );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxLevels )
     {
         User user = currentUserService.getCurrentUser();
 
         Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
-        List<DataSet> dataSets = ( user != null && user.isSuper() ) ? null : dataSetService.getUserDataWrite( user );
+        List<DataSet> dataSets = (user != null && user.isSuper()) ? null : dataSetService.getUserDataWrite( user );
 
-        Map<String, Set<String>> associationSet = organisationUnitStore.getOrganisationUnitDataSetAssocationMap( organisationUnits, dataSets );
+        Map<String, Set<String>> associationSet = organisationUnitStore
+            .getOrganisationUnitDataSetAssocationMap( organisationUnits, dataSets );
 
         OrganisationUnitDataSetAssociationSet set = new OrganisationUnitDataSetAssociationSet();
 
@@ -458,37 +442,38 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max )
     {
         return organisationUnitStore.getAllLikeName( name, first, max );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
         return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
     {
         return isInUserHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserHierarchyCached( User user, OrganisationUnit organisationUnit )
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) ).get();
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
+            .orElse( false );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit )
     {
         if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
@@ -498,35 +483,37 @@ public class DefaultOrganisationUnitService
 
         return organisationUnit.isDescendant( user.getOrganisationUnits() );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserSearchHierarchy( OrganisationUnit organisationUnit )
     {
         return isInUserSearchHierarchy( currentUserService.getCurrentUser(), organisationUnit );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserSearchHierarchyCached( OrganisationUnit organisationUnit )
     {
         return isInUserSearchHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserSearchHierarchyCached( User user, OrganisationUnit organisationUnit )
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).get();
+        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE
+            .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).orElse( false );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getTeiSearchOrganisationUnitsWithFallback() == null || user.getTeiSearchOrganisationUnitsWithFallback().isEmpty() )
+        if ( user == null || user.getTeiSearchOrganisationUnitsWithFallback() == null
+            || user.getTeiSearchOrganisationUnitsWithFallback().isEmpty() )
         {
             return false;
         }
@@ -535,12 +522,12 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isInUserHierarchy( String uid, Set<OrganisationUnit> organisationUnits )
     {
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
-        return organisationUnit != null && organisationUnit.isDescendant(organisationUnits);
+        return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
     }
 
     // -------------------------------------------------------------------------
@@ -548,7 +535,7 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnitHierarchy getOrganisationUnitHierarchy()
     {
         return organisationUnitStore.getOrganisationUnitHierarchy();
@@ -613,14 +600,14 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnitLevel getOrganisationUnitLevel( long id )
     {
         return organisationUnitLevelStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnitLevel getOrganisationUnitLevel( String uid )
     {
         return organisationUnitLevelStore.getByUid( uid );
@@ -641,29 +628,28 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnitLevel> getOrganisationUnitLevels()
     {
-        return ListUtils.sort( organisationUnitLevelStore.getAll(),
-            OrganisationUnitLevelComparator.INSTANCE );
+        return ListUtils.sort( organisationUnitLevelStore.getAll(), OrganisationUnitLevelComparator.INSTANCE );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OrganisationUnitLevel getOrganisationUnitLevelByLevel( int level )
     {
         return organisationUnitLevelStore.getByLevel( level );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnitLevel> getOrganisationUnitLevelByName( String name )
     {
         return new ArrayList<>( organisationUnitLevelStore.getAllEqName( name ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnitLevel> getFilledOrganisationUnitLevels()
     {
         Map<Integer, OrganisationUnitLevel> levelMap = getOrganisationUnitLevelMap();
@@ -676,8 +662,8 @@ public class DefaultOrganisationUnitService
         {
             int level = i + 1;
 
-            OrganisationUnitLevel filledLevel = ObjectUtils.firstNonNull(
-                levelMap.get( level ), new OrganisationUnitLevel( level, LEVEL_PREFIX + level ) );
+            OrganisationUnitLevel filledLevel = ObjectUtils.firstNonNull( levelMap.get( level ),
+                new OrganisationUnitLevel( level, LEVEL_PREFIX + level ) );
 
             levels.add( filledLevel );
         }
@@ -686,7 +672,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Map<Integer, OrganisationUnitLevel> getOrganisationUnitLevelMap()
     {
         Map<Integer, OrganisationUnitLevel> levelMap = new HashMap<>();
@@ -702,14 +688,14 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getNumberOfOrganisationUnits()
     {
         return organisationUnitStore.getCount();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getOfflineOrganisationUnitLevels()
     {
         // ---------------------------------------------------------------------
@@ -778,7 +764,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Integer getOrganisationUnitLevelByLevelOrUid( String level )
     {
         if ( level.matches( ExpressionService.INT_EXPRESSION ) )
@@ -801,12 +787,12 @@ public class DefaultOrganisationUnitService
      * Get all the Organisation Units within the distance of a coordinate.
      */
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitWithinDistance( double longitude, double latitude,
         double distance )
     {
-        List<OrganisationUnit> objects = organisationUnitStore.getWithinCoordinateArea( GeoUtils.getBoxShape(
-            longitude, latitude, distance ) );
+        List<OrganisationUnit> objects = organisationUnitStore
+            .getWithinCoordinateArea( GeoUtils.getBoxShape( longitude, latitude, distance ) );
 
         // Go through the list and remove the ones located outside radius
 
@@ -820,8 +806,8 @@ public class DefaultOrganisationUnitService
             {
                 OrganisationUnit orgunit = iter.next();
 
-                double distancebetween = GeoUtils.getDistanceBetweenTwoPoints( centerPoint,
-                    ValidationUtils.getCoordinatePoint2D( GeoUtils.getCoordinatesFromGeometry( orgunit.getGeometry()) ) );
+                double distancebetween = GeoUtils.getDistanceBetweenTwoPoints( centerPoint, ValidationUtils
+                    .getCoordinatePoint2D( GeoUtils.getCoordinatesFromGeometry( orgunit.getGeometry() ) ) );
 
                 if ( distancebetween > distance )
                 {
@@ -834,10 +820,11 @@ public class DefaultOrganisationUnitService
     }
 
     /**
-     * Get lowest level/target level Organisation Units that includes the coordinates.
+     * Get lowest level/target level Organisation Units that includes the
+     * coordinates.
      */
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitByCoordinate( double longitude, double latitude,
         String topOrgUnitUid, Integer targetLevel )
     {
@@ -864,7 +851,8 @@ public class DefaultOrganisationUnitService
                 }
             }
 
-            // Search children org units to get the lowest level org unit that contains coordinate
+            // Search children org units to get the lowest level org unit that contains
+            // coordinate
 
             if ( topOrgUnit != null )
             {
@@ -879,7 +867,8 @@ public class DefaultOrganisationUnitService
                     orgUnitChildren = getOrganisationUnitWithChildren( topOrgUnit.getId() );
                 }
 
-                FilterUtils.filter( orgUnitChildren, new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
+                FilterUtils.filter( orgUnitChildren,
+                    new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
 
                 // Get org units with lowest level
 
@@ -913,13 +902,14 @@ public class DefaultOrganisationUnitService
     /**
      * Searches organisation units until finding one with polygon containing point.
      */
-    private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude,
-        int searchLevel, int stopLevel )
+    private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude, int searchLevel,
+        int stopLevel )
     {
         for ( int i = searchLevel; i <= stopLevel; i++ )
         {
             List<OrganisationUnit> unitsAtLevel = new ArrayList<>( getOrganisationUnitsAtLevel( i ) );
-            FilterUtils.filter( unitsAtLevel, new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
+            FilterUtils.filter( unitsAtLevel,
+                new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
 
             if ( unitsAtLevel.size() > 0 )
             {
