@@ -42,7 +42,7 @@ public class EventDateCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
         {

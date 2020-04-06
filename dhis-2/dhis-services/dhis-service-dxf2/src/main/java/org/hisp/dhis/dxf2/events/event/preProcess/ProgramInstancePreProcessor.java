@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event.preProcess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -32,8 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
@@ -42,43 +41,43 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceCheck
+public class ProgramInstancePreProcessor
     implements
-    ValidationCheck
+    PreProcessor
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public void process( Event event, ValidationContext ctx )
     {
+        // TODO can we skip this if enrollment property is not null? Can the enrollment property be set by the client?
+
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
 
-        if ( programInstance == null )
+        if ( program.isRegistration() && programInstance == null )
         {
             List<ProgramInstance> programInstances = new ArrayList<>(
-                ctx.getProgramInstanceStore().get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
+                    ctx.getProgramInstanceStore().get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
 
-            if ( programInstances.isEmpty() )
+//            if ( programInstances.isEmpty() )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: "
+//                        + trackedEntityInstance.getUid() + " is not enrolled in program: " + program.getUid() )
+//                        .setReference( event.getEvent() ).incrementIgnored();
+//            }
+//            else if ( programInstances.size() > 1 )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR,
+//                        "Tracked entity instance: " + trackedEntityInstance.getUid()
+//                                + " has multiple active enrollments in program: " + program.getUid() )
+//                        .setReference( event.getEvent() ).incrementIgnored();
+//            }
+
+            if ( programInstances.size() == 1 )
             {
-                return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: "
-                    + trackedEntityInstance.getUid() + " is not enrolled in program: " + program.getUid() )
-                        .setReference( event.getEvent() ).incrementIgnored();
-            }
-            else if ( programInstances.size() > 1 )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Tracked entity instance: " + trackedEntityInstance.getUid()
-                        + " has multiple active enrollments in program: " + program.getUid() )
-                            .setReference( event.getEvent() ).incrementIgnored();
+                event.setEnrollment( programInstances.get( 0 ).getUid() );
+                ctx.getProgramInstanceMap().put( event.getUid(), programInstances.get( 0 ) );
             }
         }
-
-        return new ImportSummary();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return false;
     }
 }

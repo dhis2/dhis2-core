@@ -45,7 +45,7 @@ public class EventAclCheck
 {
 
     @Override
-    public ImportSummary check( Event event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
     {
         ImportOptions importOptions = ctx.getImportOptions();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
