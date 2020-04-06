@@ -107,34 +107,6 @@ public class ValidationErrorReporter
             throw new ValidationFailFastException( getReportList() );
         }
     }
-//
-//    public void increment( Enrollment enrollment )
-//    {
-//        listIndex.incrementAndGet();
-//        this.mainId = (enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")");
-//    }
-//
-//    public void increment( Event event )
-//    {
-//        listIndex.incrementAndGet();
-//        this.mainId = (event.getClass().getSimpleName() + " (" + event.getEvent() + ")");
-//    }
-//
-//    public void increment( TrackedEntity te )
-//    {
-//        listIndex.incrementAndGet();
-//        this.mainId = (te.getClass().getSimpleName() + " (" + te.getTrackedEntity() + ")");
-//    }
-//
-//    public <T extends TrackerDto> void increment( T tei )
-//    {
-//        listIndex.incrementAndGet();
-//        if ( tei instanceof TrackedEntity )
-//        {
-//            TrackedEntity te = (TrackedEntity) tei;
-//            this.mainId = (te.getTrackedEntity() + " (" + te.getClass().getSimpleName() + ")");
-//        }
-//    }
 
     public <T extends TrackerDto> ValidationErrorReporter fork( T dto )
     {
@@ -169,7 +141,7 @@ public class ValidationErrorReporter
 
     public boolean hasErrors()
     {
-        return this.reportList.size() > 0;
+        return !this.reportList.isEmpty();
     }
 
     public void merge( ValidationErrorReporter reporter )

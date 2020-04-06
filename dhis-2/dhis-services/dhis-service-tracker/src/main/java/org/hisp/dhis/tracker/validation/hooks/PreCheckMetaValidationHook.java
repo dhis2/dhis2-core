@@ -156,9 +156,9 @@ public class PreCheckMetaValidationHook
 
         if ( program != null )
         {
-            programStage = (programStage == null && program.isWithoutRegistration()) ?
-                program.getProgramStageByStage( 1 ) :
-                programStage;
+            programStage = (programStage == null && program.isWithoutRegistration())
+                ? program.getProgramStageByStage( 1 )
+                : programStage;
         }
 
         if ( programStage == null )

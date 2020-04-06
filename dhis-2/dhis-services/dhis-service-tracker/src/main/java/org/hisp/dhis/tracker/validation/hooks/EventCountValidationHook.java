@@ -69,10 +69,10 @@ public class EventCountValidationHook
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, event.getTrackedEntity() );
 
         if ( program.isRegistration() )
         {
+            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, event.getTrackedEntity() );
             ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
             params.setProgram( program );
             params.setTrackedEntityInstance( tei );

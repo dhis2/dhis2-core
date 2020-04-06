@@ -30,6 +30,11 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 public class Constants
 {
+    private Constants()
+    {
+        throw new IllegalArgumentException( "Don't make an instance of me!" );
+    }
+
     public static final String TRACKED_ENTITY_CANT_BE_NULL = "TrackedEntity can't be null";
 
     public static final String TRACKED_ENTITY_TYPE_CANT_BE_NULL = "TrackedEntityType can't be null";

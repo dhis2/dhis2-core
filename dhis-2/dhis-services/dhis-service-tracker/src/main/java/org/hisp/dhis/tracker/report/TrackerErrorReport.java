@@ -47,6 +47,7 @@ import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 public class TrackerErrorReport

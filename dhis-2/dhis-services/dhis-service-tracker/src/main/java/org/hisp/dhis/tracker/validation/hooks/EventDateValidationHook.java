@@ -70,10 +70,6 @@ public class EventDateValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramStageInstance programStageInstance = PreheatHelper
-            .getProgramStageInstance( bundle, event.getEvent() );
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-
         if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1031 )
@@ -81,10 +77,8 @@ public class EventDateValidationHook
             return;
         }
 
-        if ( program == null )
-        {
-            return;
-        }
+        ProgramStageInstance programStageInstance = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
         validateDateFormat( reporter, event );
         validateExpiryDays( reporter, event, program, programStageInstance, bundle.getPreheat().getUser() );

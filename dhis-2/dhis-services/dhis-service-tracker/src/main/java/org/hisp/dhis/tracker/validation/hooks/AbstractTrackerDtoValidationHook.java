@@ -65,9 +65,11 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKER_BUNDLE_CA
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-abstract public class AbstractTrackerDtoValidationHook
+public abstract class AbstractTrackerDtoValidationHook
     implements TrackerValidationHook
 {
+    public static final String IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD = "Implementing class fail to override this method!";
+
     @Autowired
     protected TrackedEntityAttributeService teAttrService;
 
@@ -93,17 +95,17 @@ abstract public class AbstractTrackerDtoValidationHook
 
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        throw new IllegalStateException( "Implementing class fail to override this method!" );
+        throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        throw new IllegalStateException( "Implementing class fail to override this method!" );
+        throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
-        throw new IllegalStateException( "Implementing class fail to override this method!" );
+        throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD     );
     }
 
     @Override
