@@ -30,16 +30,12 @@ package org.hisp.dhis.sms.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
@@ -170,45 +166,18 @@ public class SimplisticHttpGetGateWay
 
         Map<String, String> valueStore = new HashMap<>();
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
-
         for ( GenericGatewayParameter parameter : parameters )
         {
-            if ( parameter.isHeader() )
+            if ( !parameter.isHeader() )
             {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
-                continue;
+                valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
             }
-
-            if ( parameter.isEncode() )
-            {
-                valueStore.put( parameter.getKey(), encodeUrl( parameter.getDisplayValue() ) );
-                continue;
-            }
-
-            valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
         }
 
         valueStore.put( KEY_TEXT, text );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         return valueStore;
-    }
-
-    private String encodeUrl( String value )
-    {
-        String v = "";
-        try
-        {
-            v = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
-        }
-        catch( UnsupportedEncodingException e )
-        {
-            DebugUtils.getStackTrace( e );
-        }
-
-        return v;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
