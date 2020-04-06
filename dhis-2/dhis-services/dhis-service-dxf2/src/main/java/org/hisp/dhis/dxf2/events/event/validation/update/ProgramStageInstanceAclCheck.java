@@ -31,37 +31,26 @@ package org.hisp.dhis.dxf2.events.event.validation.update;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import java.util.List;
+
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
 
-public class ProgramStageInstanceCheck
+public class ProgramStageInstanceAclCheck
     implements
     ValidationCheck
 {
     @Override
     public ImportSummary check( final ImmutableEvent event, final ValidationContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        final List<String> errors = ctx.getTrackerAccessManager().canUpdate( ctx.getImportOptions().getUser(),
+            ctx.getProgramStageInstanceMap().get( event.getEvent() ), false );
 
-        if ( programStageInstance == null )
+        if ( !errors.isEmpty() )
         {
-            final ImportSummary error = error( "ID " + event.getEvent() + " doesn't point to valid event",
-                event.getEvent() );
-            error.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
-
-            return error.incrementIgnored();
-        }
-
-        if ( programStageInstance != null
-            && (programStageInstance.isDeleted() || ctx.getImportOptions().getImportStrategy().isCreate()) )
-        {
-            return error(
-                "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                    .setReference( event.getEvent() ).incrementIgnored();
+            return error( errors.toString() ).incrementIgnored();
         }
 
         return success();

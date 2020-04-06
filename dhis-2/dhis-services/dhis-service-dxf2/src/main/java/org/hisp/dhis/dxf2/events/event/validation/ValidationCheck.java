@@ -31,6 +31,10 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -40,14 +44,13 @@ public interface ValidationCheck
 
     boolean isFinal();
 
-    default ImportSummary checkNull( Object object, String message, ImmutableEvent event )
+    default ImportSummary checkNull( Object object, String description, ImmutableEvent event )
     {
-
         if ( object == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, message ).setReference( event.getEvent() ).incrementIgnored();
+            return error( description, event.getEvent() ).incrementIgnored();
         }
 
-        return new ImportSummary();
+        return success();
     }
 }

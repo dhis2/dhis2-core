@@ -293,7 +293,8 @@ public abstract class AbstractEventService2
 //            return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
 //        }
 
-// FIXME: Respective chcker is ==> update.ProgramStageInstanceCheck
+// FIXME: Respective checker is ==> update.ProgramStageInstanceCheck
+//
 //        ImportSummary importSummary = new ImportSummary( event.getEvent() );
 //        ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 //
@@ -312,12 +313,14 @@ public abstract class AbstractEventService2
 //                .setReference( event.getEvent() ).incrementIgnored();
 //        }
 
-        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
-
-        if ( !errors.isEmpty() )
-        {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
-        }
+// FIXME: Respective checker is ==> update.ProgramStageInstanceAclCheck
+//
+//        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
+//
+//        if ( !errors.isEmpty() )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
+//        }
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
 
@@ -326,12 +329,15 @@ public abstract class AbstractEventService2
             organisationUnit = programStageInstance.getOrganisationUnit();
         }
 
-        Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
-
-        if ( program == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
-        }
+// FIXME: Respective checker is ==> update.ProgramCheck
+// TODO: Check the error message with Luciano, maybe the root ProgramCheck can be reused.
+//
+//        Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
+//
+//        if ( program == null )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
+//        }
 
         errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
 

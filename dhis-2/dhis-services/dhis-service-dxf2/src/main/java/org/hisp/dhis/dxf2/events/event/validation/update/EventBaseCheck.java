@@ -32,7 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
-import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -42,7 +42,7 @@ public class EventBaseCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( final Event event, final ValidationContext ctx )
+    public ImportSummary check( final ImmutableEvent event, final ValidationContext ctx )
     {
         if ( event == null || isEmpty( event.getEvent() ) )
         {
