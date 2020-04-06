@@ -1220,12 +1220,15 @@ public abstract class AbstractEventService
     {
         importOptions = updateImportOptions( importOptions );
 
+        // TODO: luciano -> move to rule
         if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
         {
             return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
         }
 
         ImportSummary importSummary = new ImportSummary( event.getEvent() );
+
+        // TODO: luciano -> move to rule
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
         if ( programStageInstance == null )
@@ -1243,12 +1246,14 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
-        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
-
-        if ( !errors.isEmpty() )
-        {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
-        }
+        List<String> errors = new ArrayList<>();
+//        FIXME: luciano to-rule -> EventUpdateAclCheck
+//        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
+//
+//        if ( !errors.isEmpty() )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
+//        }
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
 
@@ -1264,8 +1269,8 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
         }
 
-        errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
-
+        //errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
+//        FIXME: luciano to-rule -> EventBaseCheck
         if ( !errors.isEmpty() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -1293,6 +1298,7 @@ public abstract class AbstractEventService
 
         String completedBy = getValidUsername( event.getCompletedBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
+        // TODO this is a "special" ACL check ? perhaps should be moved to the acl service?
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
         {
@@ -1973,7 +1979,7 @@ public abstract class AbstractEventService
             programStageInstance.setAutoFields();
             programStageInstanceService.addProgramStageInstance( programStageInstance );
         }
-        // TODO: luciano question -> what is this ???
+        // TODO: luciano question
         eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
         // TODO: luciano question -> why are we calling update after an insert???
         programStageInstanceService.updateProgramStageInstance( programStageInstance );

@@ -31,42 +31,22 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventAclCheck
-    implements
-    ValidationCheck
+public class EventUpdateAclCheck
+    extends BaseEventAclCheck
 {
-
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
+                                  ProgramStageInstance programStageInstance )
     {
-        ImportOptions importOptions = ctx.getImportOptions();
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
-        programStageInstance.setStatus( event.getStatus() );
-
-        List<String> errors = ctx.getTrackerAccessManager().canCreate( importOptions.getUser(),  programStageInstance, false);
-
-        if ( !errors.isEmpty() )
-        {
-            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
-            importSummary.incrementIgnored();
-
-            return importSummary;
-        }
-        return new ImportSummary();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return true;
+        return trackerAccessManager.canUpdate( user, programStageInstance, false );
     }
 }
