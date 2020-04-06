@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -49,8 +50,13 @@ import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.primitives.Booleans;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 
 /**
  * Class representing query parameters for retrieving event data from the
@@ -417,7 +423,9 @@ public class EventQueryParams
      */
     public List<QueryItem> getItemsAndItemFilters()
     {
-        return ListUtils.union( items, itemFilters );
+        return ListUtils.union( items, itemFilters ).stream()
+            .filter( i -> i != null )
+            .collect( toList() );
     }
 
     /**
@@ -444,6 +452,7 @@ public class EventQueryParams
             .filter( QueryItem::hasLegendSet )
             .map( i -> i.getLegendSet().getLegends() )
             .flatMap( i -> i.stream() )
+            .filter( i -> i != null )
             .collect( Collectors.toSet() );
     }
 
@@ -456,6 +465,7 @@ public class EventQueryParams
             .filter( QueryItem::hasOptionSet )
             .map( q -> q.getOptionSet().getOptions() )
             .flatMap( q -> q.stream() )
+            .filter( q -> q != null )
             .collect( Collectors.toSet() );
     }
 
@@ -511,7 +521,7 @@ public class EventQueryParams
         if ( !itemProgramIndicators.isEmpty() )
         {
             // Fail validation if at least one program indicator is invalid
-            
+
             return !itemProgramIndicators.stream().anyMatch( pi -> !validateProgramHasOrgUnitField( pi.getProgram() ) );
         }
 
@@ -535,7 +545,7 @@ public class EventQueryParams
 
         return false;
     }
-    
+
     /**
      * Gets program status
      */
@@ -552,8 +562,8 @@ public class EventQueryParams
      */
     public EventQueryParams removeProgramIndicatorItems()
     {
-        items = items.stream().filter( item -> !item.isProgramIndicator() ).collect( Collectors.toList() );
-        itemFilters = itemFilters.stream().filter( item -> !item.isProgramIndicator() ).collect( Collectors.toList() );
+        items = items.stream().filter( item -> !item.isProgramIndicator() ).collect( toList() );
+        itemFilters = itemFilters.stream().filter( item -> !item.isProgramIndicator() ).collect( toList() );
         return this;
     }
 
