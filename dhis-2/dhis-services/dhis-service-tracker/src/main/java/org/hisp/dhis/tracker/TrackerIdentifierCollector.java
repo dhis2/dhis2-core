@@ -115,7 +115,8 @@ public class TrackerIdentifierCollector
                 addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
                     event.getProgramStage() );
                 addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
-                addIdentifier( map, CategoryOptionCombo.class, TrackerIdScheme.UID, event.getAttributeOptionCombo() );
+                addIdentifier( map, CategoryOptionCombo.class,
+                    params.getCategoryOptionComboIdScheme().getIdScheme(), event.getAttributeOptionCombo() );
 
                 event.getDataValues().forEach( dv -> {
                     addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), dv.getDataElement() );

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -70,7 +71,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackerPreheatServiceTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -94,11 +95,11 @@ public class TrackerPreheatServiceTest
         userService = _userService;
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+//    @Override
+//    public boolean emptyDatabaseAfterTest()
+//    {
+//        return true;
+//    }
 
     @Test
     public void testEventMetadata() throws IOException
@@ -160,6 +161,7 @@ public class TrackerPreheatServiceTest
         assertTrue( dataElements.contains( "JXF90RhgNiI" ) );
         assertTrue( dataElements.contains( "gfEoDU4GtXK" ) );
         assertTrue( dataElements.contains( "qw67QlOlzdp" ) );
+        assertTrue( dataElements.contains( "HllvX50cXC0" ) );
 
         assertTrue( collectedMap.containsKey( Program.class ) );
         assertTrue( collectedMap.containsKey( ProgramStage.class ) );

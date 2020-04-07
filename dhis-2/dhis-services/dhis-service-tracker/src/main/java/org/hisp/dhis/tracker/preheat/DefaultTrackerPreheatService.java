@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.preheat;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -73,7 +74,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -82,6 +82,9 @@ import java.util.Set;
 public class DefaultTrackerPreheatService
     implements TrackerPreheatService
 {
+
+    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
+
     private final SchemaService schemaService;
 
     private final QueryService queryService;
@@ -144,6 +147,9 @@ public class DefaultTrackerPreheatService
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
 
+        // TODO: Morten/Stian could this be done earlier, and rather not allow user to be set to NULL above, ?
+        //  since this has big security implication it would be nicer to separate out this to
+        //  a dedicated security controller/place...?
         if ( preheat.getUser() == null )
         {
             preheat.setUser( currentUserService.getCurrentUser() );
@@ -153,9 +159,10 @@ public class DefaultTrackerPreheatService
 
         for ( Class<?> klass : identifierMap.keySet() )
         {
-            Set<String> identifiers = identifierMap
-                .get( klass ); // assume UID for now, will be done according to IdSchemes
-            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), 20000 );
+            // TODO: Assume UID for now, will be done according to IdSchemes
+            Set<String> identifiers = identifierMap.get( klass );
+
+            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), SPLIT_LIST_PARTITION_SIZE );
 
             if ( klass.isAssignableFrom( TrackedEntity.class ) )
             {
@@ -211,6 +218,13 @@ public class DefaultTrackerPreheatService
 
                 queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
+            else if ( klass.isAssignableFrom( CategoryOptionCombo.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( CategoryOptionCombo.class );
+                TrackerIdentifier identifier = params.getIdentifiers().getCategoryOptionComboIdScheme();
+
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
+            }
             else if ( klass.isAssignableFrom( Relationship.class ) )
             {
                 for ( List<String> ids : splitList )
@@ -230,12 +244,12 @@ public class DefaultTrackerPreheatService
 
         // since TrackedEntityTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
+
         // since RelationshipTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
-        periodStore.getAllPeriodTypes()
-            .forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
+        periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
 
         List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
         programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );
@@ -265,7 +279,7 @@ public class DefaultTrackerPreheatService
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
         List<List<String>> splitList )
     {
