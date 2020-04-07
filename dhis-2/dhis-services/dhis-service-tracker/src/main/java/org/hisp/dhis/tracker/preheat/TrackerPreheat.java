@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import javassist.util.proxy.ProxyFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -61,6 +62,7 @@ import java.util.StringJoiner;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public class TrackerPreheat
 {
     /**
@@ -312,7 +314,13 @@ public class TrackerPreheat
     {
         for ( T object : objects )
         {
-            if ( isDefault( object ) ) continue;
+            boolean isDefault = isDefault( object );
+            if ( isDefault )
+            {
+                log.error( "whats error?" );
+                String whats = "the problem?";
+            }
+            //if ( isDefault ) continue;
             put( identifier, object );
         }
 

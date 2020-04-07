@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.Program;
@@ -301,6 +302,7 @@ public class DefaultTrackerPreheatService
                 Query query = Query.from( schema );
                 query.setUser( preheat.getUser() );
                 query.add( generateRestrictionFromIdentifiers( idScheme, ids ) );
+                query.setDefaults( Defaults.INCLUDE );
                 objects = queryService.query( query );
             }
 
