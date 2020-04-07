@@ -66,6 +66,7 @@ item // (alphabtical)
 programVariable // (alphabtical)
     :   'V{' var='analytics_period_end' '}'
     |   'V{' var='analytics_period_start' '}'
+    |   'V{' var='completed_date' '}'
     |   'V{' var='creation_date' '}'
     |   'V{' var='current_date' '}'
     |   'V{' var='due_date' '}'
@@ -201,6 +202,7 @@ DAYS        : '[days]';
 
 V_ANALYTICS_PERIOD_END  : 'analytics_period_end';
 V_ANALYTICS_PERIOD_START: 'analytics_period_start';
+V_COMPLETED_DATE        : 'completed_date';
 V_CREATION_DATE         : 'creation_date';
 V_CURRENT_DATE          : 'current_date';
 V_DUE_DATE              : 'due_date';

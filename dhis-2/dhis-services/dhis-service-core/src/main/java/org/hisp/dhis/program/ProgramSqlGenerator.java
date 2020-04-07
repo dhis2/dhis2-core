@@ -204,6 +204,9 @@ public class ProgramSqlGenerator
                 return statementBuilder.getProgramIndicatorEventColumnSql( null, "created", reportingStartDate,
                     reportingStartDate, programIndicator );
 
+            case V_COMPLETED_DATE:
+                return getCompletedDate( reportingStartDate, reportingEndDate, programIndicator );
+
             case V_CURRENT_DATE:
                 return statementBuilder.encode( DateUtils.getLongDateString() );
 
@@ -351,6 +354,18 @@ public class ProgramSqlGenerator
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private String getCompletedDate( Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        if ( AnalyticsType.EVENT == programIndicator.getAnalyticsType() )
+        {
+            return "completeddate";
+        }
+
+        return statementBuilder.getProgramIndicatorEventColumnSql(
+            null, "completeddate", reportingStartDate, reportingEndDate,
+            programIndicator );
+    }
 
     private String getStringLiteralSql( ProgramFunctionContext ctx )
     {
