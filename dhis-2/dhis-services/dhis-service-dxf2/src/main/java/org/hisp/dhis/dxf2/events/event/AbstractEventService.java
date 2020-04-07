@@ -1421,7 +1421,7 @@ public abstract class AbstractEventService
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event, importOptions );
 
-        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
+        //eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -1980,12 +1980,12 @@ public abstract class AbstractEventService
             programStageInstance.setAutoFields();
             programStageInstanceService.addProgramStageInstance( programStageInstance, importOptions.getUser() );
 
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
         else
         {
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
     }
