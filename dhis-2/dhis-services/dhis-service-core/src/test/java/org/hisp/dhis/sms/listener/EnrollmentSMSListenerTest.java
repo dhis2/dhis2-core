@@ -64,6 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
@@ -140,6 +141,9 @@ public class EnrollmentSMSListenerTest
     private ProgramInstanceService programInstanceService;
 
     @Mock
+    private TrackedEntityAttributeValueService attributeValueService;
+
+    @Mock
     private IdentifiableObjectManager identifiableObjectManager;
 
     EnrollmentSMSListener subject;
@@ -198,7 +202,7 @@ public class EnrollmentSMSListenerTest
     {
         subject = new EnrollmentSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, programStageInstanceService, teiService, programInstanceService,
+            programStageService, programStageInstanceService, attributeValueService, teiService, programInstanceService,
             identifiableObjectManager );
 
         setUpInstances();
