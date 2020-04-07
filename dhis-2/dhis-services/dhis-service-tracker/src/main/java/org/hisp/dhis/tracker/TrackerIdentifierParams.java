@@ -81,4 +81,10 @@ public class TrackerIdentifierParams
     @Builder.Default
     private TrackerIdentifier idScheme = TrackerIdentifier.UID;
 
+    /**
+     * Specific identifier to match category option combo on.
+     */
+    @JsonProperty
+    @Builder.Default
+    private TrackerIdentifier categoryOptionComboIdScheme = TrackerIdentifier.UID;
 }
