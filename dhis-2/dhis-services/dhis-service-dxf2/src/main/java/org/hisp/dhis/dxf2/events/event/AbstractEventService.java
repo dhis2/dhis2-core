@@ -1838,6 +1838,7 @@ public abstract class AbstractEventService
 
         if ( !dryRun )
         {
+            // TODO why are we checking if PSI is null -> shouldn't be always NOT NULL at this point?
             if ( programStageInstance == null )
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
@@ -1987,10 +1988,6 @@ public abstract class AbstractEventService
             eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
-        // TODO: luciano question
-        eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
-        // TODO: luciano question -> why are we calling update after an insert???
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, String storedBy )
