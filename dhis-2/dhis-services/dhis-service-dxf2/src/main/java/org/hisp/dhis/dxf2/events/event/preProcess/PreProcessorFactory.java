@@ -66,12 +66,12 @@ public class PreProcessorFactory
     {
         private List<Class<? extends PreProcessor>> preprocessors;
 
-        public PreProcessorRunner(List<Class<? extends PreProcessor>> preprocessors )
+        public PreProcessorRunner( List<Class<? extends PreProcessor>> preprocessors )
         {
             this.preprocessors = preprocessors;
         }
 
-        public void executePreProcessingChain(Event event, ValidationContext ctx )
+        public void executePreProcessingChain( Event event, ValidationContext ctx )
         {
             for ( Class<? extends PreProcessor> preprocessor : preprocessors )
             {

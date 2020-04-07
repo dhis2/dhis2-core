@@ -63,6 +63,10 @@ public class ProgramStageInstanceMapper
         {
             psi.setCode( event.getUid() );
         }
+        else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( IdScheme.UID ))
+        {
+            psi.setUid( event.getUid() );
+        } // TODO what about other schemes, like id?
 
         // FKs
         psi.setProgramInstance( this.validationContext.getProgramInstanceMap().get( event.getUid() ) );
