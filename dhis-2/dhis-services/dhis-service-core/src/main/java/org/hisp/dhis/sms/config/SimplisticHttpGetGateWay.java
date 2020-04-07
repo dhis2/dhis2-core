@@ -96,22 +96,24 @@ public class SimplisticHttpGetGateWay
 
         ResponseEntity<String> responseEntity = null;
 
+        HttpEntity<String> requestEntity = null;
+
+        URI uri;
+
         try
         {
             if ( genericConfig.isSendUrlParameters() )
             {
-                URI uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
-
-                responseEntity = restTemplate.getForEntity( uri, String.class );
+                uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
             }
             else
             {
-                URI url = uriBuilder.build().encode().toUri();
+                uri = uriBuilder.build().encode().toUri();
 
-                HttpEntity<String> requestEntity = getRequestEntity( genericConfig, text, recipients );
-
-                responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+                requestEntity = getRequestEntity( genericConfig, text, recipients );
             }
+
+            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
