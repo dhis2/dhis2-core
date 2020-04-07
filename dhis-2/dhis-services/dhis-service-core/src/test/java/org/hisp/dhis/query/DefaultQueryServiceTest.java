@@ -77,7 +77,7 @@ public class DefaultQueryServiceTest
     @Before
     public void setUp()
     {
-        QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService);
+        QueryPlanner queryPlanner = new DefaultQueryPlanner( schemaService );
         subject = new DefaultQueryService( queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine );
     }
 
