@@ -1,5 +1,7 @@
+package org.hisp.dhis.actions;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +28,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
+
+import java.io.File;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.TestRunStorage;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
+import org.hisp.dhis.dto.ObjectReport;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
@@ -98,7 +111,7 @@ public class RestApiActions
      * Shortcut used in preconditions only.
      * Sends post request to specified endpoint and verifies that request was successful
      *
-     * @param object Body of reqeuest
+     * @param object Body of request
      * @return ID of generated entity.
      */
     public String create( Object object )
@@ -106,7 +119,7 @@ public class RestApiActions
         ApiResponse response = post( object );
 
         response.validate()
-            .statusCode( Matchers.isOneOf( 200, 201 ) );
+            .statusCode(  is(oneOf( 200, 201 ) ) );
 
         return response.extractUid();
     }
@@ -134,6 +147,19 @@ public class RestApiActions
      */
     public ApiResponse get()
     {
+        return get( "" );
+    }
+
+    /**
+     * Sends get request with provided path and queryParams appended to URL.
+     *
+     * @param resourceId         Id of resource
+     * @param queryParamsBuilder Query params to append to url
+     */
+    public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
+    {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
         Response response = this.given()
             .contentType( ContentType.TEXT )
             .when()
@@ -163,8 +189,22 @@ public class RestApiActions
      * Sends delete request to specified resource.
      * If delete request successful, removes entity from TestRunStorage.
      *
+     * @param resourceId            Id of resource
+     * @param queryParamsBuilder    Query params to append to url
+     */
+    public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
+    {
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+        return delete( resourceId + path );
+    }
+
+    /**
+     * Sends delete request to specified resource.
+     * If delete request successful, removes entity from TestRunStorage.
+     *
+>>>>>>> e9c8211bea... fix: calculate metadata pagination total pages (#5324)
      * @param path Id of resource
-     * @return
      */
     public ApiResponse delete( String path )
     {
@@ -215,9 +255,8 @@ public class RestApiActions
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
-            importSummaries.forEach( importSummary -> {
-                TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() );
-            } );
+            importSummaries
+                .forEach( importSummary -> TestRunStorage.addCreatedEntity( endpoint, importSummary.getReference() ) );
             return;
         }
 
@@ -225,9 +264,8 @@ public class RestApiActions
         {
             SchemasActions schemasActions = new SchemasActions();
             response.getTypeReports().stream()
-                .filter( typeReport -> {
-                    return typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0;
-                } )
+                .filter(
+                    typeReport -> typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0 )
                 .forEach( tr -> {
                     List<ObjectReport> objectReports = tr.getObjectReports();
 
@@ -249,7 +287,6 @@ public class RestApiActions
         {
             TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
         }
-
     }
 }
 
