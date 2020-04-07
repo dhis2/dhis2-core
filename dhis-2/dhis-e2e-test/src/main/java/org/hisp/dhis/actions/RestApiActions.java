@@ -39,7 +39,6 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
@@ -47,15 +46,6 @@ import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import org.apache.commons.collections.CollectionUtils;
-import org.hamcrest.Matchers;
-import org.hisp.dhis.TestRunStorage;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
-import org.hisp.dhis.dto.ObjectReport;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -153,24 +143,6 @@ public class RestApiActions
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param resourceId         Id of resource
-     * @param queryParamsBuilder Query params to append to url
-     */
-    public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
-    {
-        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
-
-        Response response = this.given()
-            .contentType( ContentType.TEXT )
-            .when()
-            .get();
-
-        return new ApiResponse( response );
-    }
-
-    /**
-     * Sends get request with provided path and queryParams appended to URL.
-     *
      * @param path        Id of resource
      * @param queryParams Query params to append to url
      * @return
@@ -185,25 +157,12 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
-    /**
-     * Sends delete request to specified resource.
-     * If delete request successful, removes entity from TestRunStorage.
-     *
-     * @param resourceId            Id of resource
-     * @param queryParamsBuilder    Query params to append to url
-     */
-    public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
-    {
-        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
-        return delete( resourceId + path );
-    }
 
     /**
      * Sends delete request to specified resource.
      * If delete request successful, removes entity from TestRunStorage.
      *
->>>>>>> e9c8211bea... fix: calculate metadata pagination total pages (#5324)
      * @param path Id of resource
      */
     public ApiResponse delete( String path )
