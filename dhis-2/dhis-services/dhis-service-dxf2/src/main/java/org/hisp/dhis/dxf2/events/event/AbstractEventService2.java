@@ -43,7 +43,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
-import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -169,14 +168,7 @@ public abstract class AbstractEventService2
             // @formatter:on
         }
 
-
         return importSummaries;
-    }
-
-    private List<ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
-        List<Event> events )
-    {
-        return events.stream().map( mapper::convert ).collect( Collectors.toList() );
     }
 
     @Override

@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -84,6 +85,11 @@ public class ValidationContext
     private Map<String, ProgramStageInstance> programStageInstanceMap;
 
     private Map<String, CategoryOptionCombo> categoryOptionComboMap;
+
+    /**
+     * Map key is DataElement uid, value is {@see DataElement}
+     */
+    private Map<String, DataElement> dataElementMap;
 
     private Map<String, User> assignedUserMap;
 

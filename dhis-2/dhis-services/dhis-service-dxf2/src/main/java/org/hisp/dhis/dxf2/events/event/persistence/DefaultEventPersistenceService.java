@@ -48,12 +48,14 @@ import org.hisp.dhis.dxf2.events.event.JdbcEventStore;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+
 import org.springframework.stereotype.Service;
 
 /**
@@ -158,6 +160,7 @@ public class DefaultEventPersistenceService
         }
 
         return null;
+
     }
 
     private Event getEvent( String uid, List<Event> events )

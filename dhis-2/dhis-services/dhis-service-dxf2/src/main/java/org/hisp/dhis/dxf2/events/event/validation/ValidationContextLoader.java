@@ -123,6 +123,7 @@ public class ValidationContextLoader
                                     AttributeOptionComboLoader attributeOptionComboLoader, IdentifiableObjectManager manager,
                                     ProgramRuleVariableService programRuleVariableService, ApplicationEventPublisher applicationEventPublisher )
 
+
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( programInstanceStore );

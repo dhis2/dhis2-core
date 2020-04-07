@@ -231,6 +231,7 @@ public class ServiceConfig
             ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS,
             ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_PREPROCESS,
             ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
+<<<<<<< master
     }
 
     /**
@@ -265,5 +266,7 @@ public class ServiceConfig
     {
         return ImmutableMap.of( UPDATE, UPDATE_EVENTS_PREPROCESSORS );
 
+=======
+>>>>>>> HEAD~26
     }
 }
