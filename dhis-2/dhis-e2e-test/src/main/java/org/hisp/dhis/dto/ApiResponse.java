@@ -136,8 +136,7 @@ public class ApiResponse
             case "ImportSummaries":
                 return this.extractList( pathToImportSummaries + "importSummaries", ImportSummary.class );
             case "ImportSummary":
-                return Collections
-                    .singletonList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
+                return Arrays.asList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
             }
 
         }
