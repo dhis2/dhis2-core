@@ -275,159 +275,38 @@ public abstract class AbstractEventService2
     }
 
     @Override
-    public ImportSummary updateEvent( Event event, boolean singleValue, boolean bulkUpdate )
+    public ImportSummary updateEvent( final Event event, final boolean singleValue, final boolean bulkUpdate )
     {
         return null;
     }
 
     @Override
-    public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions,
-        boolean bulkUpdate )
+    public ImportSummary updateEvent( final Event event, final boolean singleValue, ImportOptions importOptions,
+        final boolean bulkUpdate )
     {
         importOptions = updateImportOptions( importOptions );
 
 // FIXME: Respective checker is ==> update.EventBasicCheck
-//
-//        if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
-//        {
-//            return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
-//        }
 
 // FIXME: Respective checker is ==> update.ProgramStageInstanceBasicCheck
 //
-//        ImportSummary importSummary = new ImportSummary( event.getEvent() );
-//        ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
-//
-//        if ( programStageInstance == null )
-//        {
-//            importSummary.setStatus( ImportStatus.ERROR );
-//            importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
-//            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
-//
-//            return importSummary.incrementIgnored();
-//        }
-//
-//        if ( programStageInstance != null && (programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate()) )
-//        {
-//            return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-//                .setReference( event.getEvent() ).incrementIgnored();
-//        }
 
 // FIXME: Respective checker is ==> update.ProgramStageInstanceAclCheck
-//
-//        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
-//
-//        if ( !errors.isEmpty() )
-//        {
-//            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
-//        }
-
-        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
-
-        if ( organisationUnit == null )
-        {
-            organisationUnit = programStageInstance.getOrganisationUnit();
-        }
 
 // FIXME: Respective checker is ==> update.ProgramCheck
 // TODO: Check the error message with Luciano, maybe the root ProgramCheck can be reused.
-//
-//        Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
-//
-//        if ( program == null )
-//        {
-//            return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
-//        }
 
 // FIXME: Respective checker is ==> root.EventBaseCheck
-//
-//        errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
-//
-//        if ( !errors.isEmpty() )
-//        {
-//            importSummary.setStatus( ImportStatus.ERROR );
-//            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
-//            importSummary.incrementIgnored();
-//
-//            return importSummary;
-//        }
-
-        if ( event.getEventDate() != null )
-        {
-            Date executionDate = DateUtils.parseDate( event.getEventDate() );
-            programStageInstance.setExecutionDate( executionDate );
-        }
-
-        Date dueDate = new Date();
-
-        if ( event.getDueDate() != null )
-        {
-            dueDate = DateUtils.parseDate( event.getDueDate() );
-        }
-
-        String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
-        programStageInstance.setStoredBy( storedBy );
-
-        String completedBy = getValidUsername( event.getCompletedBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
 // FIXME: Respective checker is ==> update.ProgramStageInstanceAuthCheck
-//
-//        if ( event.getStatus() != programStageInstance.getStatus()
-//            && programStageInstance.getStatus() == EventStatus.COMPLETED )
+
+
+//        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
+//            || event.getAttributeOptionCombo() != null )
 //        {
-//            UserCredentials userCredentials = importOptions.getUser().getUserCredentials();
-//
-//            if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
-//            {
-//                importSummary.setStatus( ImportStatus.ERROR );
-//                importSummary.setDescription( "User is not authorized to uncomplete events" );
-//
-//                return importSummary;
-//            }
-//        }
+//            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
-        if ( event.getStatus() == EventStatus.ACTIVE )
-        {
-            programStageInstance.setStatus( EventStatus.ACTIVE );
-            programStageInstance.setCompletedBy( null );
-            programStageInstance.setCompletedDate( null );
-        }
-        else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == EventStatus.COMPLETED )
-        {
-            programStageInstance.setCompletedBy( completedBy );
-
-            Date completedDate = new Date();
-
-            if ( event.getCompletedDate() != null )
-            {
-                completedDate = DateUtils.parseDate( event.getCompletedDate() );
-            }
-            programStageInstance.setCompletedDate( completedDate );
-            programStageInstance.setStatus( EventStatus.COMPLETED );
-        }
-        else if ( event.getStatus() == EventStatus.SKIPPED )
-        {
-            programStageInstance.setStatus( EventStatus.SKIPPED );
-        }
-
-        else if ( event.getStatus() == EventStatus.SCHEDULE )
-        {
-            programStageInstance.setStatus( EventStatus.SCHEDULE );
-        }
-
-        programStageInstance.setDueDate( dueDate );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-
-        validateExpiryDays( importOptions, event, program, programStageInstance );
-
-        CategoryOptionCombo aoc = programStageInstance.getAttributeOptionCombo();
-
-        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
-            || event.getAttributeOptionCombo() != null )
-        {
-            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
-
-// TODO: How to validate this piece? Is it being ignored in eventAdd?
+// TODO: How to validate this piece? Is "getAttributeOptionCombo" IllegalQueryException being ignored?
 //
 //            try
 //            {
@@ -440,115 +319,74 @@ public abstract class AbstractEventService2
 //                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
 //                return importSummary.incrementIgnored();
 //            }
-        }
+//        }
 
 // FIXME: Respective checker is ==> root.AttributeOptionComboCheck
+//        validateAttributeOptionComboDate( aoc, eventDate );
+
+// FIXME: Respective checker is ==> root.EventGeometryCheck
+
+
+// FIXME: Side effect extracted to ==> ProgramInstancePostProcessor
+//            event.getGeometry().setSRID( GeoUtils.SRID );
 //
-//        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+
+// TODO: Where all the logic below should be handled?
+//
+//        saveTrackedEntityComment( programStageInstance, event, storedBy );
+//        preheatDataElementsCache( event, importOptions );
+//
+//        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
+//
+//        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+//
+//        // Trigger rule engine:
+//        // 1. only once for whole event
+//        // 2. only if data value is associated with any ProgramRuleVariable
+//
+//        boolean isLinkedWithRuleVariable = false;
+//
+//        for ( DataValue dv : event.getDataValues() )
+//        {
+//            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
+//
+//            if ( dataElement != null )
+//            {
+//                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+//
+//                if ( isLinkedWithRuleVariable )
+//                {
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
+//        {
+//            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
+//        }
+//
+//        sendProgramNotification( programStageInstance, importOptions );
+//
+//        if ( !importOptions.isSkipLastUpdated() )
+//        {
+//            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+//        }
+//
+//        if ( importSummary.getConflicts().isEmpty() )
+//        {
+//            importSummary.setStatus( ImportStatus.SUCCESS );
+//            importSummary.incrementUpdated();
+//        }
+//        else
 //        {
 //            importSummary.setStatus( ImportStatus.ERROR );
-//            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
-//            return importSummary.incrementIgnored();
+//            importSummary.incrementIgnored();
 //        }
 
-        if ( aoc != null )
-        {
-            programStageInstance.setAttributeOptionCombo( aoc );
-        }
+        //return importSummary;
 
-        Date eventDate = programStageInstance.getExecutionDate() != null ? programStageInstance.getExecutionDate() : programStageInstance.getDueDate();
-
-// TODO: Maikel, should it become a Checker? At the moment it only throws Exception
-        validateAttributeOptionComboDate( aoc, eventDate );
-
-//        if ( event.getGeometry() != null )
-//        {
-//            if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
-//                !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-//            {
-//                return new ImportSummary( ImportStatus.ERROR, String.format(
-//                    "Geometry '%s' does not conform to the feature type '%s' specified for the program stage: '%s'",
-//                    programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) )
-//                    .setReference( event.getEvent() ).incrementIgnored();
-//            }
-
-// TODO: luciano -> this is a side effect and should take place after validation
-            event.getGeometry().setSRID( GeoUtils.SRID );
-//        }
-//        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-//        {
-//            Coordinate coordinate = event.getCoordinate();
-//
-//            try
-//            {
-//                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-//            }
-//            catch ( IOException e )
-//            {
-//                return new ImportSummary( ImportStatus.ERROR,
-//                    "Invalid longitude or latitude for property 'coordinates'." );
-//            }
-//        }
-
-        programStageInstance.setGeometry( event.getGeometry() );
-
-        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
-        {
-            programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
-        }
-
-        saveTrackedEntityComment( programStageInstance, event, storedBy );
-        preheatDataElementsCache( event, importOptions );
-
-        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
-
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );
-
-        // Trigger rule engine:
-        // 1. only once for whole event
-        // 2. only if data value is associated with any ProgramRuleVariable
-
-        boolean isLinkedWithRuleVariable = false;
-
-        for ( DataValue dv : event.getDataValues() )
-        {
-            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
-
-            if ( dataElement != null )
-            {
-                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
-
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
-        }
-
-        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
-        {
-            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
-        }
-
-        sendProgramNotification( programStageInstance, importOptions );
-
-        if ( !importOptions.isSkipLastUpdated() )
-        {
-            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
-        }
-
-        if ( importSummary.getConflicts().isEmpty() )
-        {
-            importSummary.setStatus( ImportStatus.SUCCESS );
-            importSummary.incrementUpdated();
-        }
-        else
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.incrementIgnored();
-        }
-
-        return importSummary;
+        return null;
     }
 
     @Override

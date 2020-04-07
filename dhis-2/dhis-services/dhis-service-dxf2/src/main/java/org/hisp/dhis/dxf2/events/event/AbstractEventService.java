@@ -65,6 +65,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -1186,6 +1187,8 @@ public abstract class AbstractEventService
         importOptions = updateImportOptions( importOptions );
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
+        // TODO: Maikel: integrate with the pre and post processors as well the checks.
+
         for ( List<Event> _events : partitions )
         {
             reloadUser( importOptions );
@@ -1220,7 +1223,7 @@ public abstract class AbstractEventService
     {
         importOptions = updateImportOptions( importOptions );
 
-        // TODO: luciano -> move to rule
+        // FIXME: Respective checker is ==> update.EventBasicCheck
         if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
         {
             return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
@@ -1228,7 +1231,7 @@ public abstract class AbstractEventService
 
         ImportSummary importSummary = new ImportSummary( event.getEvent() );
 
-        // TODO: luciano -> move to rule
+        // FIXME: Respective checker is ==> update.ProgramStageInstanceBasicCheck
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
         if ( programStageInstance == null )
@@ -1246,8 +1249,8 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
+        // FIXME: Respective checker is ==> update.ProgramStageInstanceAclCheck
         List<String> errors = new ArrayList<>();
-//        FIXME: luciano to-rule -> EventUpdateAclCheck
 //        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
 //
 //        if ( !errors.isEmpty() )
@@ -1262,6 +1265,8 @@ public abstract class AbstractEventService
             organisationUnit = programStageInstance.getOrganisationUnit();
         }
 
+        // FIXME: Respective checker is ==> update.ProgramCheck
+        // TODO: Check the error message with Luciano, maybe the root ProgramCheck can be reused.
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
 
         if ( program == null )
@@ -1270,7 +1275,7 @@ public abstract class AbstractEventService
         }
 
         //errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
-//        FIXME: luciano to-rule -> EventBaseCheck
+        // FIXME: Respective checker is ==> root.EventBaseCheck
         if ( !errors.isEmpty() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -1298,6 +1303,7 @@ public abstract class AbstractEventService
 
         String completedBy = getValidUsername( event.getCompletedBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
+        // FIXME: Respective checker is ==> update.ProgramStageInstanceAuthCheck
         // TODO this is a "special" ACL check ? perhaps should be moved to the acl service?
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
@@ -1345,6 +1351,7 @@ public abstract class AbstractEventService
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
 
+        // TODO: How to validate this piece?
         validateExpiryDays( importOptions, event, program, programStageInstance );
 
         CategoryOptionCombo aoc = programStageInstance.getAttributeOptionCombo();
@@ -1354,6 +1361,7 @@ public abstract class AbstractEventService
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
+            // TODO: Maikel: How to validate this piece? Is it being ignored in eventAdd? Should it become a Checker? At the moment it only throws Exception
             try
             {
                 aoc = getAttributeOptionCombo( program.getCategoryCombo(),
@@ -1367,6 +1375,7 @@ public abstract class AbstractEventService
             }
         }
 
+        // FIXME: Respective checker is ==> root.AttributeOptionComboCheck
         if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -1381,6 +1390,7 @@ public abstract class AbstractEventService
 
         Date eventDate = programStageInstance.getExecutionDate() != null ? programStageInstance.getExecutionDate() : programStageInstance.getDueDate();
 
+        // FIXME: Respective checker is ==> update.AttributeOptionComboDateCheck
         validateAttributeOptionComboDate( aoc, eventDate );
 
         if ( event.getGeometry() != null )
@@ -1393,7 +1403,7 @@ public abstract class AbstractEventService
                     programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) )
                     .setReference( event.getEvent() ).incrementIgnored();
             }
-
+            // FIXME: Side effect extracted to ==> ProgramInstancePostProcessor
             event.getGeometry().setSRID( GeoUtils.SRID );
         }
         else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
