@@ -209,9 +209,12 @@ public class ServiceConfig
     private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists
         .newArrayList( ProgramInstancePreProcessor.class, ProgramStagePreProcessor.class );
 
-    @Bean( "eventValidatorMap" )
+    @Bean( "eventPreProcessorsMap" )
     public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()
     {
-        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS );
+        return ImmutableMap.of(
+            ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS,
+            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_PREPROCESS,
+            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
     }
 }

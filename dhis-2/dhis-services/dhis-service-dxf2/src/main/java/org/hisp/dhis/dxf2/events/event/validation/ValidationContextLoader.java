@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -48,8 +49,12 @@ import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.AttributeOptionComboLoader;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -87,6 +92,8 @@ public class ValidationContextLoader
 
     private final AttributeOptionComboLoader attributeOptionComboLoader;
 
+    private final IdentifiableObjectManager manager;
+
     private final static String PROGRAM_CACHE_KEY = "0";
 
     Cache<String,Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
@@ -98,16 +105,18 @@ public class ValidationContextLoader
 
     public ValidationContextLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         ProgramInstanceStore programInstanceStore, TrackerAccessManager trackerAccessManager,
-        AttributeOptionComboLoader attributeOptionComboLoader )
+        AttributeOptionComboLoader attributeOptionComboLoader, IdentifiableObjectManager manager )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( programInstanceStore );
         checkNotNull( trackerAccessManager );
         checkNotNull( attributeOptionComboLoader );
+        checkNotNull( manager );
 
         this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
         this.programInstanceStore = programInstanceStore;
         this.trackerAccessManager = trackerAccessManager;
+        this.manager = manager;
         this.attributeOptionComboLoader = attributeOptionComboLoader;
     }
 
@@ -125,9 +134,46 @@ public class ValidationContextLoader
             .programInstanceMap( loadProgramInstances( events, programMap ) )
             .programStageInstanceMap( loadProgramStageInstances( events ) )
             .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
+            .dataElementMap( loadDateElements( events, importOptions) )
             .assignedUserMap( loadAssignedUsers( events ) )
             .build();
         // @formatter:on
+    }
+
+    /**
+     *
+     * @param events
+     * @param importOptions
+     * @return
+     */
+    private Map<String, DataElement> loadDateElements( List<Event> events, ImportOptions importOptions )
+    {
+        Map<String, DataElement> dataElementsMap = new HashMap<>();
+        
+        IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
+
+        Set<String> allDataElements = events.stream()
+            .map( Event::getDataValues )
+            .flatMap( Collection::stream )
+            .map( DataValue::getDataElement )
+            .collect( Collectors.toSet() );
+
+        if ( dataElementIdScheme.isNull() || dataElementIdScheme.is( IdentifiableProperty.UID ) )
+        {
+
+            dataElementsMap = manager.getObjects( DataElement.class, IdentifiableProperty.UID, allDataElements )
+                .stream().collect( Collectors.toMap( DataElement::getUid, d -> d ) );
+        }
+        else
+        {
+            // Slower, but shouldn't happen so often
+            dataElementsMap = allDataElements.stream()
+                .map( deId -> manager.getObject( DataElement.class, dataElementIdScheme, deId ) )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toMap( DataElement::getUid, d -> d ) );
+        }
+       
+        return dataElementsMap;
     }
 
     private Map<String, CategoryOptionCombo> loadCategoryOptionCombos( List<Event> events,

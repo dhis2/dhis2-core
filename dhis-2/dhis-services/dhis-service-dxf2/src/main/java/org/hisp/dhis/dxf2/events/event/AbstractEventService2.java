@@ -41,9 +41,11 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
+import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -75,8 +77,7 @@ public abstract class AbstractEventService2
 
     protected ValidationFactory validationFactory;
     protected PreProcessorFactory preProcessorFactory;
-
-    protected JdbcEventStore jdbcEventStore;
+    protected EventPersistenceService eventPersistenceService;
 
     private static final int BATCH_SIZE = 100;
 
@@ -155,35 +156,21 @@ public abstract class AbstractEventService2
             .filter( i -> i.isStatus( ImportStatus.ERROR ) ).map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
-        ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( ctx );
-
-        List<ProgramStageInstance> eventsToPersist;
         if ( failedUids.isEmpty() )
         {
-            eventsToPersist = convertToProgramStageInstances( mapper, validEvents );
+            eventPersistenceService.save( ctx, validEvents );
         }
         else
         {
             // collect the events that passed validation and can be persisted
             // @formatter:off
-            eventsToPersist = convertToProgramStageInstances( mapper, validEvents.stream()
+            eventPersistenceService.save( ctx, validEvents.stream()
                 .filter( e -> !failedUids.contains( e.getEvent() ) )
                 .collect( Collectors.toList() ) );
             // @formatter:on
         }
 
-        if ( !eventsToPersist.isEmpty() )
-        {
-            jdbcEventStore.saveEvents( eventsToPersist );
-        }
-
         return importSummaries;
-    }
-
-    private List<ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
-        List<Event> events )
-    {
-        return events.stream().map( mapper::convert ).collect( Collectors.toList() );
     }
 
     @Override

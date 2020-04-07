@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -75,7 +74,6 @@ public interface ProgramStageInstanceService
     /**
      * Soft deletes a {@link ProgramStageInstance}.
      *
-     * @param programStageInstance
      */
     void deleteProgramStageInstance( ProgramStageInstance programStageInstance );
 
@@ -198,7 +196,7 @@ public interface ProgramStageInstanceService
      */
     void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Cache<DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
 
     /**
      * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.
