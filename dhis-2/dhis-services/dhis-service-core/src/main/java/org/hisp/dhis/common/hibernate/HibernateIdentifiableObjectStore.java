@@ -169,10 +169,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public void save( T object, User user )
+    {
+        save( object, user, true );
+    }
+
+    @Override
     public void save( T object, boolean clearSharing )
     {
-        User user = getCurrentUser();
+        save( object, getCurrentUser(), clearSharing );
+    }
 
+    private void save( T object, User user, boolean clearSharing )
+    {
         String username = user != null ? user.getUsername() : "system-process";
 
         if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )

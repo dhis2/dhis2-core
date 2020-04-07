@@ -110,6 +110,14 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
+    public long addProgramInstance( ProgramInstance programInstance, User user )
+    {
+        programInstanceStore.save( programInstance, user );
+        return programInstance.getId();
+    }
+
+    @Override
+    @Transactional
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
         deleteProgramInstance( programInstance, false );

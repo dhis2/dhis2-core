@@ -65,7 +65,6 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -572,7 +571,7 @@ public abstract class AbstractEventService
                 pi.setStatus( ProgramStatus.ACTIVE );
                 pi.setStoredBy( storedBy );
 
-                programInstanceService.addProgramInstance( pi );
+                programInstanceService.addProgramInstance( pi, importOptions.getUser() );
 
                 programInstances.add( pi );
             }
@@ -1431,7 +1430,7 @@ public abstract class AbstractEventService
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event, importOptions );
 
-        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
+        //eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -1848,6 +1847,7 @@ public abstract class AbstractEventService
 
         if ( !dryRun )
         {
+            // TODO why are we checking if PSI is null -> shouldn't be always NOT NULL at this point?
             if ( programStageInstance == null )
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
@@ -1987,12 +1987,16 @@ public abstract class AbstractEventService
         if ( programStageInstance.getId() == 0 )
         {
             programStageInstance.setAutoFields();
-            programStageInstanceService.addProgramStageInstance( programStageInstance );
+            programStageInstanceService.addProgramStageInstance( programStageInstance, importOptions.getUser() );
+
+            //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
-        // TODO: luciano question
-        eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
-        // TODO: luciano question -> why are we calling update after an insert???
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        else
+        {
+            //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
+        }
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, String storedBy )

@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,39 +37,27 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Lists;
 
@@ -88,8 +75,7 @@ public abstract class AbstractEventService2
 
     protected ValidationFactory validationFactory;
     protected PreProcessorFactory preProcessorFactory;
-
-    protected JdbcEventStore jdbcEventStore;
+    protected EventPersistenceService eventPersistenceService;
 
     private static final int BATCH_SIZE = 100;
 
@@ -155,7 +141,7 @@ public abstract class AbstractEventService2
 
         // pre-process events
         preProcessorFactory.preProcessEvents( ctx, events );
-        
+
         // @formatter:off
         importSummaries.addImportSummaries(
             // Run validation against the remaining "insertable" events //
@@ -168,35 +154,21 @@ public abstract class AbstractEventService2
             .filter( i -> i.isStatus( ImportStatus.ERROR ) ).map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
-        ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( ctx );
-
-        List<ProgramStageInstance> eventsToPersist;
         if ( failedUids.isEmpty() )
         {
-            eventsToPersist = convertToProgramStageInstances( mapper, validEvents );
+            eventPersistenceService.save( ctx, validEvents );
         }
         else
         {
             // collect the events that passed validation and can be persisted
             // @formatter:off
-            eventsToPersist = convertToProgramStageInstances( mapper, validEvents.stream()
+            eventPersistenceService.save( ctx, validEvents.stream()
                 .filter( e -> !failedUids.contains( e.getEvent() ) )
                 .collect( Collectors.toList() ) );
             // @formatter:on
         }
 
-        if ( !eventsToPersist.isEmpty() )
-        {
-            jdbcEventStore.saveEvents( eventsToPersist );
-        }
-
         return importSummaries;
-    }
-
-    private List<ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
-        List<Event> events )
-    {
-        return events.stream().map( mapper::convert ).collect( Collectors.toList() );
     }
 
     @Override

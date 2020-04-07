@@ -37,11 +37,10 @@ import java.util.Map;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramStagePreProcessor;
-import org.hisp.dhis.dxf2.events.event.preProcess.update.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboCheck;
-import org.hisp.dhis.dxf2.events.event.validation.EventBaseCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventCreationAclCheck;
+import org.hisp.dhis.dxf2.events.event.validation.EventBaseCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventDateCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.event.validation.OrgUnitCheck;
@@ -50,6 +49,7 @@ import org.hisp.dhis.dxf2.events.event.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.event.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.event.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.event.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.events.event.preProcess.update.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.update.EventBasicCheck;
 import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAuthCheck;
@@ -175,7 +175,7 @@ public class ServiceConfig
         return ImmutableMap.of(
             ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
             ImportStrategy.CREATE, CREATE_CHECKS,
-            UPDATE, UPDATE_CHECKS,
+            ImportStrategy.UPDATE, UPDATE_CHECKS,
             ImportStrategy.DELETE, DELETE_CHECKS );
         // @formatter:on
     }
@@ -185,6 +185,7 @@ public class ServiceConfig
      * Default validation chains for each Tracker Import Strategy
      *
      */
+
     private final static List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>> CREATE_EVENTS_CHECKS = Lists
         .newArrayList(
         // @formatter:off
@@ -211,16 +212,18 @@ public class ServiceConfig
             ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_CHECKS,
             ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
     }
-    
+
     private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists
         .newArrayList( ProgramInstancePreProcessor.class, ProgramStagePreProcessor.class );
 
-    @Bean( "eventValidatorMap" )
+    @Bean( "eventPreProcessorsMap" )
     public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()
     {
-        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS );
+        return ImmutableMap.of(
+            ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS,
+            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_PREPROCESS,
+            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
     }
-
 
     /**
      * Default validation chains for Tracker Import (update) events process.

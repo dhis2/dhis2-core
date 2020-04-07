@@ -43,7 +43,7 @@ public class UidGenerator
 {
     /**
      * Generate a valid uid and assign it to the uid field of each event
-     * 
+     *
      * @param events a List of {@see Events}
      * @return a List of {@see Events} with the uid field populated
      */

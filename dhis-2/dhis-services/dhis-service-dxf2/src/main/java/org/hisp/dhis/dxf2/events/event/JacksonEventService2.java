@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -73,21 +74,22 @@ public class JacksonEventService2
 
     private final ObjectMapper xmlMapper;
 
-    public JacksonEventService2(Notifier notifier, ValidationFactory validationFactory, PreProcessorFactory preProcessorFactory, JdbcEventStore jdbcEventStore,
-                                ObjectMapper jsonMapper, @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+    public JacksonEventService2( Notifier notifier, ValidationFactory validationFactory,
+        PreProcessorFactory preProcessorFactory, EventPersistenceService eventPersistenceService,
+        ObjectMapper jsonMapper, @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
 
         checkNotNull( notifier );
         checkNotNull( validationFactory );
         checkNotNull( preProcessorFactory );
-        checkNotNull( jdbcEventStore );
+        checkNotNull( eventPersistenceService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
         this.notifier = notifier;
         this.validationFactory = validationFactory;
         this.preProcessorFactory = preProcessorFactory;
-        this.jdbcEventStore = jdbcEventStore;
+        this.eventPersistenceService = eventPersistenceService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
     }

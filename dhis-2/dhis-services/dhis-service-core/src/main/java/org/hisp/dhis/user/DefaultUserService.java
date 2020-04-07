@@ -550,7 +550,10 @@ public class DefaultUserService
     {
         UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
 
-        userCredentials.getAllAuthorities();
+        if ( userCredentials != null )
+        {
+            userCredentials.getAllAuthorities();
+        }
 
         return userCredentials;
     }
