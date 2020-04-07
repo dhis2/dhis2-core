@@ -77,6 +77,8 @@ public abstract class AbstractTrackerDtoValidationHook
 
     private final boolean removeOnError;
 
+    private final Class<?> dtoTypeClass;
+
     public AbstractTrackerDtoValidationHook()
     {
         this.removeOnError = true;
@@ -91,8 +93,6 @@ public abstract class AbstractTrackerDtoValidationHook
         this.strategy = strategy;
     }
 
-    private final Class<?> dtoTypeClass;
-
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
@@ -105,7 +105,7 @@ public abstract class AbstractTrackerDtoValidationHook
 
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
-        throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD     );
+        throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
     @Override
@@ -267,5 +267,4 @@ public abstract class AbstractTrackerDtoValidationHook
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
     }
-
 }
