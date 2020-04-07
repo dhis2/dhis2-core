@@ -60,6 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -84,6 +85,8 @@ public class EnrollmentSMSListener
 
     private final ProgramInstanceService programInstanceService;
 
+    private final TrackedEntityAttributeValueService attributeValueService;
+
     private final ProgramStageService programStageService;
 
     private final UserService userService;
@@ -93,7 +96,8 @@ public class EnrollmentSMSListener
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageService programStageService,
-        ProgramStageInstanceService programStageInstanceService, TrackedEntityInstanceService teiService,
+        ProgramStageInstanceService programStageInstanceService,
+        TrackedEntityAttributeValueService attributeValueService, TrackedEntityInstanceService teiService,
         ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
@@ -103,6 +107,7 @@ public class EnrollmentSMSListener
         this.teiService = teiService;
         this.programStageService = programStageService;
         this.programInstanceService = programInstanceService;
+        this.attributeValueService = attributeValueService;
         this.userService = userService;
     }
 
@@ -159,6 +164,7 @@ public class EnrollmentSMSListener
 
         if ( teiExists )
         {
+            updateAttributeValues( attributeValues, entityInstance.getTrackedEntityAttributeValues() );
             entityInstance.setTrackedEntityAttributeValues( attributeValues );
             teiService.updateTrackedEntityInstance( entityInstance );
         }
@@ -216,6 +222,42 @@ public class EnrollmentSMSListener
         }
 
         return SMSResponse.SUCCESS;
+    }
+
+    private void updateAttributeValues( Set<TrackedEntityAttributeValue> attributeValues,
+        Set<TrackedEntityAttributeValue> oldAttributeValues )
+    {
+        // Update existing and add new values
+        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
+        {
+            TrackedEntityAttributeValue oldAttributeValue = findAttributeValue( attributeValue, oldAttributeValues );
+            if ( oldAttributeValue != null )
+            {
+                oldAttributeValue.setValue( attributeValue.getValue() );
+                attributeValueService.updateTrackedEntityAttributeValue( oldAttributeValue );
+            }
+            else
+            {
+                attributeValueService.addTrackedEntityAttributeValue( attributeValue );
+            }
+        }
+
+        // Delete any that don't exist anymore
+        for ( TrackedEntityAttributeValue oldAttributeValue : oldAttributeValues )
+        {
+            if ( findAttributeValue( oldAttributeValue, attributeValues ) == null )
+            {
+                attributeValueService.deleteTrackedEntityAttributeValue( oldAttributeValue );
+            }
+        }
+    }
+
+    private TrackedEntityAttributeValue findAttributeValue( TrackedEntityAttributeValue attributeValue,
+        Set<TrackedEntityAttributeValue> attributeValues )
+    {
+        return attributeValues.stream()
+            .filter( v -> v.getAttribute().getUid().equals( attributeValue.getAttribute().getUid() ) ).findAny()
+            .orElse( null );
     }
 
     @Override

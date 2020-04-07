@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
@@ -49,6 +50,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SMSEnrollmentStatus;
@@ -65,6 +68,7 @@ import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -245,6 +249,13 @@ public abstract class CompressionSMSListener
         meta.trackedEntityAttributes = getTypeUidsBefore( TrackedEntityAttribute.class, lastSyncDate );
         meta.programs = getTypeUidsBefore( Program.class, lastSyncDate );
         meta.organisationUnits = getTypeUidsBefore( OrganisationUnit.class, lastSyncDate );
+        meta.programStages = getTypeUidsBefore( ProgramStage.class, lastSyncDate );
+        meta.relationshipTypes = getTypeUidsBefore( RelationshipType.class, lastSyncDate );
+        meta.relationships = getTypeUidsBefore( Relationship.class, lastSyncDate );
+        meta.trackedEntityInstances = getTypeUidsBefore( TrackedEntityInstance.class, lastSyncDate );
+        meta.dataSets = getTypeUidsBefore( DataSet.class, lastSyncDate );
+        meta.enrollments = getTypeUidsBefore( ProgramInstance.class, lastSyncDate );
+        meta.events = getTypeUidsBefore( ProgramStageInstance.class, lastSyncDate );
 
         return meta;
     }
