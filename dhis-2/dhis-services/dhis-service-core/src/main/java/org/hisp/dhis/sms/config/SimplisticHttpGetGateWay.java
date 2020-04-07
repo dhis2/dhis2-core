@@ -105,6 +105,8 @@ public class SimplisticHttpGetGateWay
             if ( genericConfig.isSendUrlParameters() )
             {
                 uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
+
+                requestEntity = new HttpEntity<>( null, getHeaderParameters( genericConfig ) );
             }
             else
             {
