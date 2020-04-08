@@ -554,34 +554,35 @@ public abstract class AbstractEventService
         }
         else
         {
-            // TODO: luciano -> this "side" effect should be handled elsewhere...
-            String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
-            List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
-
-            if ( programInstances.isEmpty() )
-            {
-                // Create PI if it doesn't exist (should only be one)
-
-                String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
-
-                ProgramInstance pi = new ProgramInstance();
-                pi.setEnrollmentDate( new Date() );
-                pi.setIncidentDate( new Date() );
-                pi.setProgram( program );
-                pi.setStatus( ProgramStatus.ACTIVE );
-                pi.setStoredBy( storedBy );
-
-                programInstanceService.addProgramInstance( pi, importOptions.getUser() );
-
-                programInstances.add( pi );
-            }
-            else if ( programInstances.size() > 1 )
-            {
-                return new ImportSummary( ImportStatus.ERROR, "Multiple active program instances exists for program: " + program.getUid() )
-                    .setReference( event.getEvent() ).incrementIgnored();
-            }
-            // TODO: luciano ->  handle this situation where we store the PI to use
-            programInstance = programInstances.get( 0 );
+            // FIXME: luciano -> pre-process ProgramInstancePreProcessor
+//            String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
+//            List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
+//
+//            if ( programInstances.isEmpty() )
+//            {
+//                // Create PI if it doesn't exist (should only be one)
+//
+//                String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+//
+//                ProgramInstance pi = new ProgramInstance();
+//                pi.setEnrollmentDate( new Date() );
+//                pi.setIncidentDate( new Date() );
+//                pi.setProgram( program );
+//                pi.setStatus( ProgramStatus.ACTIVE );
+//                pi.setStoredBy( storedBy );
+//
+//                programInstanceService.addProgramInstance( pi, importOptions.getUser() );
+//
+//                programInstances.add( pi );
+//            }
+            // FIXME: luciano rule -> ProgramInstanceCheck
+//            else if ( programInstances.size() > 1 )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, "Multiple active program instances exists for program: " + program.getUid() )
+//                    .setReference( event.getEvent() ).incrementIgnored();
+//            }
+//            // TODO: luciano ->  handle this situation where we store the PI to use
+//            programInstance = programInstances.get( 0 );
         }
 
         program = programInstance.getProgram();

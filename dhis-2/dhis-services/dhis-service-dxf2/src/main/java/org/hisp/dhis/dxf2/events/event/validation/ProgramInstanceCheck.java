@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
@@ -53,23 +52,37 @@ public class ProgramInstanceCheck
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
 
-        if ( programInstance == null )
+        List<ProgramInstance> programInstances;
+        if ( program.isRegistration() )
         {
-            List<ProgramInstance> programInstances = new ArrayList<>(
-                ctx.getProgramInstanceStore().get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
-
-            if ( programInstances.isEmpty() )
+            if ( programInstance == null ) // Program Instance should be NOT null, after the pre-processing stage
             {
-                return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: "
-                    + trackedEntityInstance.getUid() + " is not enrolled in program: " + program.getUid() )
-                        .setReference( event.getEvent() ).incrementIgnored();
+                programInstances = new ArrayList<>(
+                    ctx.getProgramInstanceStore().get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
+
+                if ( programInstances.isEmpty() )
+                {
+                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: "
+                        + trackedEntityInstance.getUid() + " is not enrolled in program: " + program.getUid() )
+                            .setReference( event.getEvent() ).incrementIgnored();
+                }
+                else if ( programInstances.size() > 1 )
+                {
+                    return new ImportSummary( ImportStatus.ERROR,
+                        "Tracked entity instance: " + trackedEntityInstance.getUid()
+                            + " has multiple active enrollments in program: " + program.getUid() )
+                                .setReference( event.getEvent() ).incrementIgnored();
+                }
             }
-            else if ( programInstances.size() > 1 )
+        }
+        else
+        {
+            programInstances = ctx.getProgramInstanceStore().get( program, ProgramStatus.ACTIVE );
+            if ( programInstances.size() > 1 )
             {
                 return new ImportSummary( ImportStatus.ERROR,
-                    "Tracked entity instance: " + trackedEntityInstance.getUid()
-                        + " has multiple active enrollments in program: " + program.getUid() )
-                            .setReference( event.getEvent() ).incrementIgnored();
+                    "Multiple active program instances exists for program: " + program.getUid() )
+                        .setReference( event.getEvent() ).incrementIgnored();
             }
         }
 
