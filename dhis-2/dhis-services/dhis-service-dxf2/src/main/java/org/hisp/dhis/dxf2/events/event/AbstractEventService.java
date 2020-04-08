@@ -1429,17 +1429,24 @@ public abstract class AbstractEventService
             programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
         }
 
+        // FIXME: Respective post processor ==> TrackerEntityCommentPostProcessor
         saveTrackedEntityComment( programStageInstance, event, storedBy );
+
+        // TODO: Why to we need a preheat at this stage. Really needed?
+        // FIXME: Respective post processor ==> PreheatDataElementsPostProcessor
         preheatDataElementsCache( event, importOptions );
 
+        // FIXME: Integrate it with Luciano's changes for processDataValues
         //eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
 
+        // FIXME: Respective post processor ==> ProgramStageInstancePostProcessor
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
         // Trigger rule engine:
         // 1. only once for whole event
         // 2. only if data value is associated with any ProgramRuleVariable
 
+        // Logic extracted to ==> PublishEventPostProcessor
         boolean isLinkedWithRuleVariable = false;
 
         for ( DataValue dv : event.getDataValues() )
@@ -1462,8 +1469,10 @@ public abstract class AbstractEventService
             eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
         }
 
+        // TODO: Extracted to ==> ProgramNotificationPostProcessor
         sendProgramNotification( programStageInstance, importOptions );
 
+        // TODO: Extracted to ==> TrackedEntityInstancePostProcessor
         if ( !importOptions.isSkipLastUpdated() )
         {
             updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );

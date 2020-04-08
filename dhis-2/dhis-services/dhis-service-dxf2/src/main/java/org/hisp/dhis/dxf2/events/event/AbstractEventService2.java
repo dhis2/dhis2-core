@@ -41,7 +41,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
-import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;

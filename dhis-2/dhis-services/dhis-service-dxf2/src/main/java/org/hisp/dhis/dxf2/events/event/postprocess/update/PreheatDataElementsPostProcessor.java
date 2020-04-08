@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.postprocess.update;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,19 +26,13 @@ package org.hisp.dhis.dxf2.events.event.postprocess.update;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.system.util.GeoUtils.SRID;
-import static org.hisp.dhis.system.util.GeoUtils.getGeoJsonPoint;
+package org.hisp.dhis.dxf2.events.event.postprocess.update;
 
-import java.io.IOException;
-
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
-import org.hisp.dhis.program.ProgramStageInstance;
 
-public class ProgramInstanceUpdatePostProcessor
+public class PreheatDataElementsPostProcessor
     implements
     PreProcessor
 {
@@ -48,29 +40,6 @@ public class ProgramInstanceUpdatePostProcessor
     @Override
     public void process( final Event event, final ValidationContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
-
-        if ( event.getGeometry() != null )
-        {
-            if ( !programStageInstance.getProgramStage().getFeatureType().equals( NONE ) || programStageInstance
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                event.getGeometry().setSRID( SRID );
-            }
-        }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            final Coordinate coordinate = event.getCoordinate();
-
-            try
-            {
-                event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                // Do nothing. The validation phase, before the post process phase, will catch
-                // it in advance. It should never happen at this stage.
-            }
-        }
+        // TODO: Is preheat really needed? I believe it was already done in the pre-processing?
     }
 }

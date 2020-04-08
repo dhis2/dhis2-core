@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.preProcess;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,32 +26,45 @@ package org.hisp.dhis.dxf2.events.event.preProcess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+package org.hisp.dhis.dxf2.events.event.postprocess.update;
 
-/**
- * @author Luciano Fiandesio
- */
-public class ProgramStagePreProcessor
+import static org.hisp.dhis.event.EventStatus.SCHEDULE;
+
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
+import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
+import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
+import org.springframework.context.ApplicationEventPublisher;
+
+public class ProgramNotificationPostProcessor
     implements
     PreProcessor
 {
+
     @Override
-    public void process( Event event, ValidationContext ctx )
+    public void process( final Event event, final ValidationContext ctx )
     {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
-
-        if ( programStage == null && program.isWithoutRegistration() )
+        if ( !ctx.getImportOptions().isSkipNotifications() )
         {
-            programStage = program.getProgramStageByStage( 1 );
-        }
-        if ( programStage != null )
-        {
-            event.setProgramStage( programStage.getUid() );
+            final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+            final ApplicationEventPublisher applicationEventPublisher = ctx.getApplicationEventPublisher();
+
+            if ( programStageInstance.isCompleted() )
+            {
+                applicationEventPublisher
+                    .publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
+                applicationEventPublisher
+                    .publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
+            }
+
+            if ( SCHEDULE.equals( programStageInstance.getStatus() ) )
+            {
+                applicationEventPublisher
+                    .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
+            }
         }
     }
 }

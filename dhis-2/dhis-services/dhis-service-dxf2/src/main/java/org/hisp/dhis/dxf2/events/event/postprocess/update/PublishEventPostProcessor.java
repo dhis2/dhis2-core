@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.postprocess.update;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,19 +26,16 @@ package org.hisp.dhis.dxf2.events.event.postprocess.update;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.system.util.GeoUtils.SRID;
-import static org.hisp.dhis.system.util.GeoUtils.getGeoJsonPoint;
+package org.hisp.dhis.dxf2.events.event.postprocess.update;
 
-import java.io.IOException;
-
-import org.hisp.dhis.dxf2.events.event.Coordinate;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 
-public class ProgramInstanceUpdatePostProcessor
+public class PublishEventPostProcessor
     implements
     PreProcessor
 {
@@ -48,29 +43,28 @@ public class ProgramInstanceUpdatePostProcessor
     @Override
     public void process( final Event event, final ValidationContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        boolean isLinkedWithRuleVariable = false;
 
-        if ( event.getGeometry() != null )
+        for ( final DataValue dv : event.getDataValues() )
         {
-            if ( !programStageInstance.getProgramStage().getFeatureType().equals( NONE ) || programStageInstance
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            final DataElement dataElement = ctx.getDataElementMap().get( dv.getDataElement() );
+
+            if ( dataElement != null )
             {
-                event.getGeometry().setSRID( SRID );
+                isLinkedWithRuleVariable = ctx.getProgramRuleVariableService()
+                    .isLinkedToProgramRuleVariable( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
+
+                if ( isLinkedWithRuleVariable )
+                {
+                    break;
+                }
             }
         }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            final Coordinate coordinate = event.getCoordinate();
 
-            try
-            {
-                event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                // Do nothing. The validation phase, before the post process phase, will catch
-                // it in advance. It should never happen at this stage.
-            }
+        if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
+        {
+            ctx.getApplicationEventPublisher().publishEvent(
+                new DataValueUpdatedEvent( this, ctx.getProgramStageInstanceMap().get( event.getEvent() ).getId() ) );
         }
     }
 }

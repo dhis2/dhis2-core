@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.postprocess.update;
+package org.hisp.dhis.dxf2.events.event.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,49 +28,32 @@ package org.hisp.dhis.dxf2.events.event.postprocess.update;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.system.util.GeoUtils.SRID;
-import static org.hisp.dhis.system.util.GeoUtils.getGeoJsonPoint;
-
-import java.io.IOException;
-
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
-public class ProgramInstanceUpdatePostProcessor
+/**
+ * @author Luciano Fiandesio
+ */
+public class ProgramStagePreProcessor
     implements
     PreProcessor
 {
-
     @Override
-    public void process( final Event event, final ValidationContext ctx )
+    public void process( Event event, ValidationContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        Program program = ctx.getProgramsMap().get( event.getProgram() );
 
-        if ( event.getGeometry() != null )
+        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+
+        if ( programStage == null && program.isWithoutRegistration() )
         {
-            if ( !programStageInstance.getProgramStage().getFeatureType().equals( NONE ) || programStageInstance
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                event.getGeometry().setSRID( SRID );
-            }
+            programStage = program.getProgramStageByStage( 1 );
         }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+        if ( programStage != null )
         {
-            final Coordinate coordinate = event.getCoordinate();
-
-            try
-            {
-                event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                // Do nothing. The validation phase, before the post process phase, will catch
-                // it in advance. It should never happen at this stage.
-            }
+            event.setProgramStage( programStage.getUid() );
         }
     }
 }

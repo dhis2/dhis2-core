@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,12 +41,16 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.user.User;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author Luciano Fiandesio
@@ -53,6 +58,9 @@ import org.hisp.dhis.user.User;
 @Getter
 @Builder
 public class ValidationContext
+// TODO: Maybe rename it to WorkContext, ObjectContext, etc.? So it makes more
+// sense in the post process classes? Because we wil not need "validation" in
+// the post processing phase.
 {
     private ImportOptions importOptions;
 
@@ -93,9 +101,23 @@ public class ValidationContext
 
     private Map<String, User> assignedUserMap;
 
+    /**
+     * Services / components
+     */
+     // TODO: Maybe encapsulate them into another class, so we don't mix data and services?
     private ProgramInstanceStore programInstanceStore;
 
     private TrackerAccessManager trackerAccessManager;
+
+    private TrackedEntityCommentService trackedEntityCommentService;
+
+    private ProgramStageInstanceService programStageInstanceService;
+
+    private ProgramRuleVariableService programRuleVariableService;
+
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    private IdentifiableObjectManager identifiableObjectManager;
 
     /**
      * Checks within all the cached program for a ProgramStage having the

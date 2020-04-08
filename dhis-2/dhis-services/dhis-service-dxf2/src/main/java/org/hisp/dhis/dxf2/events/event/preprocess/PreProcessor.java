@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.preProcess;
+package org.hisp.dhis.dxf2.events.event.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,19 +29,13 @@ package org.hisp.dhis.dxf2.events.event.preProcess;
  */
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventStoredByPreProcessor
-    implements
-    PreProcessor
+ // TODO: Maybe rename it to simply Processor? It could be used by pre and post processors.
+public interface PreProcessor
 {
-    @Override
-    public void process( Event event, ValidationContext ctx )
-    {
-        event.setStoredBy( EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() ) );
-    }
+    void process( Event event, ValidationContext ctx );
 }

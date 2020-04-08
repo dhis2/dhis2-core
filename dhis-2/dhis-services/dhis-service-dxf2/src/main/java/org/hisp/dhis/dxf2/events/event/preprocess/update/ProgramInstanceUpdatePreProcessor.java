@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.preProcess.update;
+package org.hisp.dhis.dxf2.events.event.preprocess.update;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -42,7 +42,7 @@ import java.util.Date;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessor;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;

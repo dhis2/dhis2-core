@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.preProcess;
+package org.hisp.dhis.dxf2.events.event.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
