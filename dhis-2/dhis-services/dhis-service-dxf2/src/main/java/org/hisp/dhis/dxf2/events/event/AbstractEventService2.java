@@ -40,12 +40,10 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
-import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -249,15 +247,117 @@ public abstract class AbstractEventService2
     }
 
     @Override
-    public ImportSummary updateEvent( Event event, boolean singleValue, boolean bulkUpdate )
+    public ImportSummary updateEvent( final Event event, final boolean singleValue, final boolean bulkUpdate )
     {
         return null;
     }
 
     @Override
-    public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions,
-        boolean bulkUpdate )
+    public ImportSummary updateEvent( final Event event, final boolean singleValue, ImportOptions importOptions,
+        final boolean bulkUpdate )
     {
+        importOptions = updateImportOptions( importOptions );
+
+// FIXME: Respective checker is ==> update.EventBasicCheck
+
+// FIXME: Respective checker is ==> update.ProgramStageInstanceBasicCheck
+//
+
+// FIXME: Respective checker is ==> update.ProgramStageInstanceAclCheck
+
+// FIXME: Respective checker is ==> update.ProgramCheck
+// TODO: Check the error message with Luciano, maybe the root ProgramCheck can be reused.
+
+// FIXME: Respective checker is ==> root.EventBaseCheck
+
+// FIXME: Respective checker is ==> update.ProgramStageInstanceAuthCheck
+
+
+//        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
+//            || event.getAttributeOptionCombo() != null )
+//        {
+//            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
+
+// TODO: How to validate this piece? Is "getAttributeOptionCombo" IllegalQueryException being ignored?
+//
+//            try
+//            {
+//                aoc = getAttributeOptionCombo( program.getCategoryCombo(),
+//                    event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
+//            }
+//            catch ( IllegalQueryException ex )
+//            {
+//                importSummary.setStatus( ImportStatus.ERROR );
+//                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
+//                return importSummary.incrementIgnored();
+//            }
+//        }
+
+// FIXME: Respective checker is ==> root.AttributeOptionComboCheck
+//        validateAttributeOptionComboDate( aoc, eventDate );
+
+// FIXME: Respective checker is ==> root.EventGeometryCheck
+
+
+// FIXME: Side effect extracted to ==> ProgramInstancePostProcessor
+//            event.getGeometry().setSRID( GeoUtils.SRID );
+//
+
+// TODO: Where all the logic below should be handled?
+//
+//        saveTrackedEntityComment( programStageInstance, event, storedBy );
+//        preheatDataElementsCache( event, importOptions );
+//
+//        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
+//
+//        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+//
+//        // Trigger rule engine:
+//        // 1. only once for whole event
+//        // 2. only if data value is associated with any ProgramRuleVariable
+//
+//        boolean isLinkedWithRuleVariable = false;
+//
+//        for ( DataValue dv : event.getDataValues() )
+//        {
+//            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
+//
+//            if ( dataElement != null )
+//            {
+//                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+//
+//                if ( isLinkedWithRuleVariable )
+//                {
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
+//        {
+//            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
+//        }
+//
+//        sendProgramNotification( programStageInstance, importOptions );
+//
+//        if ( !importOptions.isSkipLastUpdated() )
+//        {
+//            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+//        }
+//
+//        if ( importSummary.getConflicts().isEmpty() )
+//        {
+//            importSummary.setStatus( ImportStatus.SUCCESS );
+//            importSummary.incrementUpdated();
+//        }
+//        else
+//        {
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            importSummary.incrementIgnored();
+//        }
+
+        //return importSummary;
+
         return null;
     }
 

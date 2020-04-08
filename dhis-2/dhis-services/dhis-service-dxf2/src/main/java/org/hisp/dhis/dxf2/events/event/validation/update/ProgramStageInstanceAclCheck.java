@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.validation;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,27 +26,26 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+package org.hisp.dhis.dxf2.events.event.validation.update;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.events.event.validation.BaseEventAclCheck;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Luciano Fiandesio
  */
-public interface ValidationCheck
+public class ProgramStageInstanceAclCheck
+    extends
+    BaseEventAclCheck
 {
-    ImportSummary check( ImmutableEvent event, ValidationContext ctx );
-
-    boolean isFinal();
-
-    default ImportSummary checkNull( Object object, String description, ImmutableEvent event )
+    @Override
+    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
+        final ProgramStageInstance programStageInstance )
     {
-        if ( object == null )
-        {
-            return error( description, event.getEvent() ).incrementIgnored();
-        }
-
-        return success();
+        return trackerAccessManager.canUpdate( user, programStageInstance, false );
     }
 }
