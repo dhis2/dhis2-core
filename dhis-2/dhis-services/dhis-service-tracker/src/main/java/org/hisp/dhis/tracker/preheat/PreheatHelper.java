@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -86,5 +88,15 @@ public class PreheatHelper
     public static ProgramStageInstance getProgramStageInstance( TrackerBundle bundle, String event )
     {
         return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
+    }
+
+    public static CategoryOptionCombo getCategoryOptionCombo( TrackerBundle bundle, String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOptionCombo.class, id );
+    }
+
+    public static CategoryOption getCategoryOption( TrackerBundle bundle, String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
     }
 }

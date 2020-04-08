@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.preheat;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -227,6 +228,13 @@ public class DefaultTrackerPreheatService
 
                 queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
+            else if ( klass.isAssignableFrom( CategoryOption.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( CategoryOption.class );
+                TrackerIdentifier identifier = params.getIdentifiers().getCategoryOption();
+
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
+            }
             else if ( klass.isAssignableFrom( Relationship.class ) )
             {
                 for ( List<String> ids : splitList )
@@ -251,7 +259,8 @@ public class DefaultTrackerPreheatService
         preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
-        periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
+        periodStore.getAllPeriodTypes()
+            .forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
 
         List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
         programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );

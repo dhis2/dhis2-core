@@ -178,19 +178,14 @@ public class PreCheckOwnershipValidationHook
 
         if ( bundle.getImportStrategy().isUpdateOrDelete() )
         {
-            ProgramStageInstance programStageInstance = PreheatHelper
-                .getProgramStageInstance( bundle, event.getEvent() );
-            validateUpdateAndDeleteEvent( bundle, reporter, event, programStageInstance );
+            validateUpdateAndDeleteEvent( bundle, reporter, event,
+                PreheatHelper.getProgramStageInstance( bundle, event.getEvent() ) );
         }
 
-        CategoryOptionCombo categoryOptionCombo = null;
-        // TODO: how do we do this? i.e. how/where do we look up the CategoryOptionCombo, is they always in default map?
-        categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults().get( CategoryOptionCombo.class );
-        String attributeOptionCombo = event.getAttributeOptionCombo();
-        // TODO: What about         String attributeCategoryOptions = event.getAttributeCategoryOptions(); ?
-        // TODO: Fix this hack?
-
-        validateCreateEvent( reporter, bundle.getUser(), categoryOptionCombo, programStage, programInstance,
+        validateCreateEvent( reporter, bundle.getUser(),
+            PreheatHelper.getCategoryOptionCombo( bundle, event.getAttributeOptionCombo() ),
+            programStage,
+            programInstance,
             organisationUnit,
             program );
     }

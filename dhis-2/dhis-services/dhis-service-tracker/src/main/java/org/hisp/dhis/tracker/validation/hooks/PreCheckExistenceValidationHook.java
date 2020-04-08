@@ -69,7 +69,12 @@ public class PreCheckExistenceValidationHook
             reporter.addError( newReport( TrackerErrorCode.E1002 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
-        else if ( tei == null && (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
+        else if ( tei != null && tei.isDeleted() && bundle.getImportStrategy().isDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1114 )
+                .addArg( tei ) );
+        }
+        else if ( tei == null && bundle.getImportStrategy().isUpdateOrDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1063 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
@@ -79,15 +84,19 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+        ProgramInstance pi = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
 
-        if ( programInstance != null && bundle.getImportStrategy().isCreate() )
+        if ( pi != null && bundle.getImportStrategy().isCreate() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1080 )
                 .addArg( enrollment.getEnrollment() ) );
         }
-        else if ( programInstance == null &&
-            (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
+        else if ( pi != null && pi.isDeleted() && bundle.getImportStrategy().isDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1113 )
+                .addArg( pi ) );
+        }
+        else if ( pi == null && bundle.getImportStrategy().isUpdateOrDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1081 )
                 .addArg( enrollment.getEnrollment() ) );
@@ -104,14 +113,12 @@ public class PreCheckExistenceValidationHook
             reporter.addError( newReport( TrackerErrorCode.E1030 )
                 .addArg( event.getEvent() ) );
         }
-        else if ( psi != null && bundle.getImportStrategy().isDelete() &&
-            psi.isDeleted() )
+        else if ( psi != null && psi.isDeleted() && bundle.getImportStrategy().isDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1082 )
                 .addArg( event.getEvent() ) );
         }
-        else if ( psi == null &&
-            (bundle.getImportStrategy().isUpdate() || bundle.getImportStrategy().isDelete()) )
+        else if ( psi == null && bundle.getImportStrategy().isUpdateOrDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1032 )
                 .addArg( event.getEvent() ) );

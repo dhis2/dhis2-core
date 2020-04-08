@@ -55,7 +55,7 @@ public enum TrackerErrorCode
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
     E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption; `{2}`." ),
-    E1082( "Event: `{0}`, was already used and/or deleted. This event can not be modified." ),
+    E1082( "Event: `{0}`, is already deleted." ),
     E1051( "Invalid event due date: `{0}`." ),
     E1052( "Invalid event date: `{0}`." ),
     E1053( "Invalid event created at client date: `{0}`." ),
@@ -76,7 +76,6 @@ public enum TrackerErrorCode
     E1101( "User: `{0}`, has no read access to OrganisationUnit: `{1}`." ),
     E1009( "File resource: `{0}`, has already been assigned to a different object." ),
     E1084( "File resource: `{0}`, reference could not be found." ),
-
     E1002( "TrackedEntityInstance: `{0}`, already exists or was deleted earlier." ),
     E1015( "TrackedEntityInstance: `{0}`, already has an active Enrollment in Program `{1}`." ),
     E1022( "TrackedEntityInstance: `{0}`, must have same TrackedEntityType as Program `{1}`." ),
@@ -118,8 +117,9 @@ public enum TrackerErrorCode
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
     E1111( "We have a generated attribute: `{0}`, but no pattern." ),
-
     E1112( "Attribute value: `{0}`, is set to confidential but system is not properly configured to encrypt data." ),
+    E1113( "Enrollment: `{0}`, is already deleted." ),
+    E1114( "TrackedEntity: `{0}`, is already deleted." ),
 
     E9999( "N/A" );
 

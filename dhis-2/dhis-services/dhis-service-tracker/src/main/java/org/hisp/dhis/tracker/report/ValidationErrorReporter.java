@@ -84,6 +84,11 @@ public class ValidationErrorReporter
         return isFailFast;
     }
 
+    public boolean hasErrors()
+    {
+        return !this.reportList.isEmpty();
+    }
+
     public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
     {
         TrackerErrorReport.TrackerErrorReportBuilder builder = new TrackerErrorReport.TrackerErrorReportBuilder();
@@ -95,6 +100,7 @@ public class ValidationErrorReporter
     {
         builder.mainKlass( this.mainKlass );
         builder.listIndex( this.listIndex.get() );
+
         if ( this.mainId != null )
         {
             builder.mainId( this.mainId );
@@ -142,11 +148,6 @@ public class ValidationErrorReporter
         }
 
         return fork;
-    }
-
-    public boolean hasErrors()
-    {
-        return !this.reportList.isEmpty();
     }
 
     public void merge( ValidationErrorReporter reporter )
