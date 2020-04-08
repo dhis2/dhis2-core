@@ -34,9 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.event.preProcess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramStagePreProcessor;
+import org.hisp.dhis.dxf2.events.event.preProcess.update.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventCreationAclCheck;
@@ -49,7 +51,6 @@ import org.hisp.dhis.dxf2.events.event.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.event.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.event.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.event.validation.TrackedEntityInstanceCheck;
-import org.hisp.dhis.dxf2.events.event.preProcess.update.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.update.EventBasicCheck;
 import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAuthCheck;
@@ -214,7 +215,11 @@ public class ServiceConfig
     }
 
     private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists
-        .newArrayList( ProgramInstancePreProcessor.class, ProgramStagePreProcessor.class );
+        .newArrayList(
+            EventStoredByPreProcessor.class,
+            ProgramInstancePreProcessor.class,
+            ProgramStagePreProcessor.class
+        );
 
     @Bean( "eventPreProcessorsMap" )
     public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()

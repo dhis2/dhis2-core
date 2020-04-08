@@ -29,12 +29,16 @@ package org.hisp.dhis.dxf2.events.event.preProcess;
  */
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
@@ -49,6 +53,8 @@ public class ProgramInstancePreProcessor
     public void process( Event event, ValidationContext ctx )
     {
         // TODO can we skip this if enrollment property is not null? Can the enrollment property be set by the client?
+        ProgramInstanceStore programInstanceStore = ctx.getProgramInstanceStore();
+        ImportOptions importOptions = ctx.getImportOptions();
 
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
@@ -57,26 +63,36 @@ public class ProgramInstancePreProcessor
         if ( program.isRegistration() && programInstance == null )
         {
             List<ProgramInstance> programInstances = new ArrayList<>(
-                    ctx.getProgramInstanceStore().get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
-
-//            if ( programInstances.isEmpty() )
-//            {
-//                return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: "
-//                        + trackedEntityInstance.getUid() + " is not enrolled in program: " + program.getUid() )
-//                        .setReference( event.getEvent() ).incrementIgnored();
-//            }
-//            else if ( programInstances.size() > 1 )
-//            {
-//                return new ImportSummary( ImportStatus.ERROR,
-//                        "Tracked entity instance: " + trackedEntityInstance.getUid()
-//                                + " has multiple active enrollments in program: " + program.getUid() )
-//                        .setReference( event.getEvent() ).incrementIgnored();
-//            }
+                    programInstanceStore.get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
 
             if ( programInstances.size() == 1 )
             {
                 event.setEnrollment( programInstances.get( 0 ).getUid() );
                 ctx.getProgramInstanceMap().put( event.getUid(), programInstances.get( 0 ) );
+            }
+        } else {
+
+            List<ProgramInstance> programInstances = programInstanceStore.get( program, ProgramStatus.ACTIVE );
+
+            if ( programInstances.isEmpty() )
+            {
+                // Create PI if it doesn't exist (should only be one)
+                ProgramInstance pi = new ProgramInstance();
+                pi.setUid( CodeGenerator.generateUid() );
+                pi.setEnrollmentDate( new Date() );
+                pi.setIncidentDate( new Date() );
+                pi.setProgram( program );
+                pi.setStatus( ProgramStatus.ACTIVE );
+                pi.setStoredBy( event.getStoredBy() );
+
+                // Persist Program Instance
+                ctx.getProgramInstanceStore().save( pi, ctx.getImportOptions().getUser() );
+
+                programInstances.add( pi );
+
+                // Add PI to caches //
+                event.setEnrollment( pi.getUid() );
+                ctx.getProgramInstanceMap().put( event.getUid(), pi );
             }
         }
     }
