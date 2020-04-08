@@ -74,7 +74,7 @@ public class GmlImportServiceTest extends IntegrationTestBase
     @Override
     public boolean emptyDatabaseAfterTest()
     {
-        return false;
+        return true;
     }
 
     // -------------------------------------------------------------------------
