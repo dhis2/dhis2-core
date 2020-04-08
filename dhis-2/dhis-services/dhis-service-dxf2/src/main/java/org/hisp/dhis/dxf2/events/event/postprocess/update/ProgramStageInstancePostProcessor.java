@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.preProcess;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,20 +26,21 @@ package org.hisp.dhis.dxf2.events.event.preProcess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.dxf2.events.event.postprocess.update;
+
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventUtils;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 
-/**
- * @author Luciano Fiandesio
- */
-public class EventStoredByPreProcessor
+public class ProgramStageInstancePostProcessor
     implements
     PreProcessor
 {
+
     @Override
-    public void process( Event event, ValidationContext ctx )
+    public void process( final Event event, final ValidationContext ctx )
     {
-        event.setStoredBy( EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() ) );
+        ctx.getProgramStageInstanceService()
+            .updateProgramStageInstance( ctx.getProgramStageInstanceMap().get( event.getEvent() ) );
     }
 }

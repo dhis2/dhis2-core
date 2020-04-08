@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.postprocess.update;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,48 +26,49 @@ package org.hisp.dhis.dxf2.events.event.postprocess.update;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.system.util.GeoUtils.SRID;
-import static org.hisp.dhis.system.util.GeoUtils.getGeoJsonPoint;
+package org.hisp.dhis.dxf2.events.event.postprocess.update;
 
-import java.io.IOException;
-
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-public class ProgramInstanceUpdatePostProcessor
+public class TrackedEntityInstancePostProcessor
     implements
     PreProcessor
 {
-
     @Override
     public void process( final Event event, final ValidationContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
-
-        if ( event.getGeometry() != null )
+        if ( !ctx.getImportOptions().isSkipLastUpdated() )
         {
-            if ( !programStageInstance.getProgramStage().getFeatureType().equals( NONE ) || programStageInstance
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                event.getGeometry().setSRID( SRID );
-            }
-        }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            final Coordinate coordinate = event.getCoordinate();
+            final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
 
-            try
+            if ( programStageInstance.getProgramInstance() != null )
             {
-                event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                // Do nothing. The validation phase, before the post process phase, will catch
-                // it in advance. It should never happen at this stage.
+                // TODO: Should we handle it always as bulk update? Does it make sense to not execute bulk updatade?
+//                if ( !bulkUpdate )
+//                {
+//                    if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+//                    {
+//                        ctx.getIdentifiableObjectManager().update(
+//                            programStageInstance.getProgramInstance().getEntityInstance(),
+//                            ctx.getImportOptions().getUser() );
+//                    }
+//                }
+//                else
+//                {
+//                    if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+//                    {
+//                        trackedEntityInstancesToUpdate
+//                            .add( programStageInstance.getProgramInstance().getEntityInstance() );
+//                    }
+//                }
+
+                // TODO: I'm assuming we always do a bulk update. Also assuming that the TrackedEntityInstanceMap has not null elements,
+                // and they are all associated to the events being update.
+                ctx.getTrackedEntityInstanceMap().values().forEach(
+                    tei -> ctx.getIdentifiableObjectManager().update( tei, ctx.getImportOptions().getUser() ) );
             }
         }
     }
