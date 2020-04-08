@@ -81,9 +81,6 @@ public class ProgramInstanceUpdatePreProcessor
         final String storedBy = getValidUsername( event.getStoredBy(), null,
             importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
-        final String completedBy = getValidUsername( event.getCompletedBy(), null,
-            importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
-
         if ( event.getStatus() == ACTIVE )
         {
             programStageInstance.setStatus( ACTIVE );
@@ -92,6 +89,9 @@ public class ProgramInstanceUpdatePreProcessor
         }
         else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == COMPLETED )
         {
+            final String completedBy = getValidUsername( event.getCompletedBy(), null,
+                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+
             programStageInstance.setCompletedBy( completedBy );
 
             Date completedDate = new Date();
