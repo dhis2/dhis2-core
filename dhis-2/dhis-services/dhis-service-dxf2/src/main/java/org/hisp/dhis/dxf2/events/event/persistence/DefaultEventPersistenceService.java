@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  */
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -55,7 +56,8 @@ public class DefaultEventPersistenceService
 
     private final ProgramStageInstanceStore programStageInstanceStore;
 
-    public DefaultEventPersistenceService( JdbcEventStore jdbcEventStore, EventDataValueService eventDataValueService,  ProgramStageInstanceStore programStageInstanceStore )
+    public DefaultEventPersistenceService( JdbcEventStore jdbcEventStore, EventDataValueService eventDataValueService,
+        ProgramStageInstanceStore programStageInstanceStore )
     {
         // TODO add null check
         this.jdbcEventStore = jdbcEventStore;
@@ -75,16 +77,18 @@ public class DefaultEventPersistenceService
 
             // TODO save notes too
 
+            long now = System.nanoTime();
             // TODO this for loop slows down the process 5X
             for ( ProgramStageInstance programStageInstance : programStageInstances )
             {
                 ImportSummary importSummary = new ImportSummary( programStageInstance.getUid() );
                 eventDataValueService.processDataValues(
                     programStageInstanceStore.getByUid( programStageInstance.getUid() ),
-                    getEvent( programStageInstance.getUid(), events), false, context.getImportOptions(),
-                    importSummary, context.getDataElementMap() );
+                    getEvent( programStageInstance.getUid(), events ), false, context.getImportOptions(), importSummary,
+                    context.getDataElementMap() );
             }
-
+            System.out.println( "Processing Data Value for " + programStageInstances.size() + " PSI took : "
+                    + TimeUnit.SECONDS.convert( System.nanoTime() - now, TimeUnit.NANOSECONDS ) );
 
         }
         return null; // TODO

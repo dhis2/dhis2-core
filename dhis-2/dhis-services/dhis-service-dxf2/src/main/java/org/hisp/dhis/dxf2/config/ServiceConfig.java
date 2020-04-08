@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.event.preProcess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramStagePreProcessor;
@@ -207,7 +208,11 @@ public class ServiceConfig
     }
 
     private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists
-        .newArrayList( ProgramInstancePreProcessor.class, ProgramStagePreProcessor.class );
+        .newArrayList(
+            EventStoredByPreProcessor.class,
+            ProgramInstancePreProcessor.class,
+            ProgramStagePreProcessor.class
+        );
 
     @Bean( "eventPreProcessorsMap" )
     public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()

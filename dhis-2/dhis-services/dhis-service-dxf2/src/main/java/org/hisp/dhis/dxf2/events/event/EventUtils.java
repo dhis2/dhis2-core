@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,37 +28,32 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceCheck
-    implements
-    ValidationCheck
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
-    {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = ctx.trackedEntityInstanceMap.get( event.getUid() );
+public class EventUtils {
 
-        if ( program.isRegistration() && tei == null )
+    public final static String FALLBACK_USERNAME = "[Unknown]";
+
+    public static String getValidUsername( String userName, ImportOptions importOptions )
+    {
+        String validUsername = userName;
+        String fallBack = importOptions.getUser() != null ? importOptions.getUser().getUsername() : FALLBACK_USERNAME;
+
+        if ( StringUtils.isEmpty( validUsername ) )
         {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                    + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
+            validUsername = User.getSafeUsername( fallBack );
+        }
+        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        {
+            validUsername = User.getSafeUsername( fallBack );
         }
 
-        return new ImportSummary();
-    }
-
-    @Override
-    public boolean isFinal()
-    {
-        return false;
+        return validUsername;
     }
 }

@@ -36,10 +36,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -91,11 +88,8 @@ public class ProgramStageInstanceMapper
         psi.setDueDate( dueDate );
         psi.setExecutionDate( executionDate );
 
-        // STORED + COMPLETED BY + COMPLETED TIMESTAMP
-        String fallBackUserName = importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]";
-
-        psi.setStoredBy( getValidUsername( event.getStoredBy(), fallBackUserName ) );
-        psi.setCompletedBy( getValidUsername( event.getCompletedBy(), fallBackUserName ) );
+        psi.setStoredBy( event.getStoredBy() );
+        psi.setCompletedBy( event.getCompletedBy() );
 
         if ( psi.isCompleted() )
         {
@@ -132,22 +126,4 @@ public class ProgramStageInstanceMapper
         return psi;
 
     }
-
-    public static String getValidUsername( String userName, String fallbackUsername )
-    {
-        String validUsername = userName;
-
-        if ( StringUtils.isEmpty( validUsername ) )
-        {
-            validUsername = User.getSafeUsername( fallbackUsername );
-        }
-        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
-        {
-
-            validUsername = User.getSafeUsername( fallbackUsername );
-        }
-
-        return validUsername;
-    }
-
 }
