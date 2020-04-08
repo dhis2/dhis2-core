@@ -126,22 +126,4 @@ public class ProgramStageInstanceMapper
         return psi;
 
     }
-
-    public static String getValidUsername( String userName, String fallbackUsername )
-    {
-        String validUsername = userName;
-
-        if ( StringUtils.isEmpty( validUsername ) )
-        {
-            validUsername = User.getSafeUsername( fallbackUsername );
-        }
-        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
-        {
-
-            validUsername = User.getSafeUsername( fallbackUsername );
-        }
-
-        return validUsername;
-    }
-
 }

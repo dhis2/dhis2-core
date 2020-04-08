@@ -577,6 +577,7 @@ public abstract class AbstractEventService
 //
 //                programInstances.add( pi );
 //            }
+            // FIXME: luciano rule -> ProgramInstanceCheck
 //            else if ( programInstances.size() > 1 )
 //            {
 //                return new ImportSummary( ImportStatus.ERROR, "Multiple active program instances exists for program: " + program.getUid() )
@@ -584,7 +585,6 @@ public abstract class AbstractEventService
 //            }
 //            // TODO: luciano ->  handle this situation where we store the PI to use
 //            programInstance = programInstances.get( 0 );
-
         }
 
         program = programInstance.getProgram();
