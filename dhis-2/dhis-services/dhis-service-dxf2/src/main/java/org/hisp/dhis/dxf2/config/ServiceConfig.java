@@ -44,6 +44,7 @@ import org.hisp.dhis.dxf2.events.event.preProcess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preProcess.ProgramStagePreProcessor;
+import org.hisp.dhis.dxf2.events.event.preProcess.update.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventAclCheck;
@@ -268,6 +269,5 @@ public class ServiceConfig
     public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventUpdatePreProcessorMap()
     {
         return ImmutableMap.of( UPDATE, UPDATE_EVENTS_PREPROCESSORS );
-
     }
 }
