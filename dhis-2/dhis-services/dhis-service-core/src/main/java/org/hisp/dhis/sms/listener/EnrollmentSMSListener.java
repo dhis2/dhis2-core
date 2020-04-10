@@ -123,15 +123,15 @@ public class EnrollmentSMSListener
         UID tetid = subm.getTrackedEntityType();
         UID ouid = subm.getOrgUnit();
         UID enrollmentid = subm.getEnrollment();
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUID() );
 
-        Program program = programService.getProgram( progid.uid );
+        Program program = programService.getProgram( progid.getUID() );
         if ( program == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_PROGRAM.set( progid ) );
         }
 
-        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.uid );
+        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.getUID() );
         if ( entityType == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_TETYPE.set( tetid ) );
@@ -143,18 +143,18 @@ public class EnrollmentSMSListener
         }
 
         TrackedEntityInstance entityInstance;
-        boolean teiExists = teiService.trackedEntityInstanceExists( teiUID.uid );
+        boolean teiExists = teiService.trackedEntityInstanceExists( teiUID.getUID() );
 
         if ( teiExists )
         {
             log.info( String.format( "Given TEI [%s] exists. Updating...", teiUID ) );
-            entityInstance = teiService.getTrackedEntityInstance( teiUID.uid );
+            entityInstance = teiService.getTrackedEntityInstance( teiUID.getUID() );
         }
         else
         {
             log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUID ) );
             entityInstance = new TrackedEntityInstance();
-            entityInstance.setUid( teiUID.uid );
+            entityInstance.setUid( teiUID.getUID() );
             entityInstance.setOrganisationUnit( orgUnit );
             entityInstance.setTrackedEntityType( entityType );
         }
@@ -172,15 +172,15 @@ public class EnrollmentSMSListener
             teiService.createTrackedEntityInstance( entityInstance, attributeValues );
         }
 
-        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID.uid );
+        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID.getUID() );
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
         ProgramInstance enrollment;
-        boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.uid );
+        boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.getUID() );
         if ( enrollmentExists )
         {
-            enrollment = programInstanceService.getProgramInstance( enrollmentid.uid );
+            enrollment = programInstanceService.getProgramInstance( enrollmentid.getUID() );
             // Update these dates in case they've changed
             enrollment.setEnrollmentDate( enrollmentDate );
             enrollment.setIncidentDate( incidentDate );
@@ -188,7 +188,7 @@ public class EnrollmentSMSListener
         else
         {
             enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
-                orgUnit, enrollmentid.uid );
+                orgUnit, enrollmentid.getUID() );
         }
         if ( enrollment == null )
         {
@@ -199,7 +199,7 @@ public class EnrollmentSMSListener
         programInstanceService.updateProgramInstance( enrollment );
 
         // We now check if the enrollment has events to process
-        User user = userService.getUser( subm.getUserID().uid );
+        User user = userService.getUser( subm.getUserID().getUID() );
         List<Object> errorUIDs = new ArrayList<>();
         if ( subm.getEvents() != null )
         {
@@ -282,7 +282,8 @@ public class EnrollmentSMSListener
         UID attribUID = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();
 
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribUID.uid );
+        TrackedEntityAttribute attribute = trackedEntityAttributeService
+            .getTrackedEntityAttribute( attribUID.getUID() );
         if ( attribute == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_ATTRIB.set( attribUID ) );
@@ -305,26 +306,26 @@ public class EnrollmentSMSListener
         UID aocid = event.getAttributeOptionCombo();
         UID orgunitid = event.getOrgUnit();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.uid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.getUID() );
         if ( orgUnit == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_ORGUNIT.set( orgunitid ) );
         }
 
-        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
+        ProgramStage programStage = programStageService.getProgramStage( stageid.getUID() );
         if ( programStage == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUID() );
         if ( aoc == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( event.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
-            user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUID(), orgUnit, programStage, programInstance, sms,
+            aoc, user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
             event.getCoordinates() );
 
         return errorUIDs;

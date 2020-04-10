@@ -48,7 +48,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -66,7 +65,6 @@ import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -214,7 +212,7 @@ public abstract class CompressionSMSListener
     private void checkUser( SMSSubmission subm )
     {
         UID userid = subm.getUserID();
-        User user = userService.getUser( userid.uid );
+        User user = userService.getUser( userid.getUID() );
 
         if ( user == null )
         {
@@ -250,11 +248,7 @@ public abstract class CompressionSMSListener
         meta.organisationUnits = getTypeUidsBefore( OrganisationUnit.class, lastSyncDate );
         meta.programStages = getTypeUidsBefore( ProgramStage.class, lastSyncDate );
         meta.relationshipTypes = getTypeUidsBefore( RelationshipType.class, lastSyncDate );
-        meta.relationships = getTypeUidsBefore( Relationship.class, lastSyncDate );
-        meta.trackedEntityInstances = getTypeUidsBefore( TrackedEntityInstance.class, lastSyncDate );
         meta.dataSets = getTypeUidsBefore( DataSet.class, lastSyncDate );
-        meta.enrollments = getTypeUidsBefore( ProgramInstance.class, lastSyncDate );
-        meta.events = getTypeUidsBefore( ProgramStageInstance.class, lastSyncDate );
 
         return meta;
     }
@@ -306,7 +300,7 @@ public abstract class CompressionSMSListener
                 UID deid = dv.getDataElement();
                 String val = dv.getValue();
 
-                DataElement de = dataElementService.getDataElement( deid.uid );
+                DataElement de = dataElementService.getDataElement( deid.getUID() );
                 // TODO: Is this the correct way of handling errors here?
                 if ( de == null )
                 {
@@ -322,7 +316,7 @@ public abstract class CompressionSMSListener
                     continue;
                 }
 
-                EventDataValue eventDataValue = new EventDataValue( deid.uid, dv.getValue(), user.getUsername() );
+                EventDataValue eventDataValue = new EventDataValue( deid.getUID(), dv.getValue(), user.getUsername() );
                 eventDataValue.setAutoFields();
                 dataElementsAndEventDataValues.put( de, eventDataValue );
             }

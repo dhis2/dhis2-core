@@ -94,16 +94,16 @@ public class SimpleEventSMSListener
         UID aocid = subm.getAttributeOptionCombo();
         UID progid = subm.getEventProgram();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
-        User user = userService.getUser( subm.getUserID().uid );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUID() );
+        User user = userService.getUser( subm.getUserID().getUID() );
 
-        Program program = programService.getProgram( subm.getEventProgram().uid );
+        Program program = programService.getProgram( subm.getEventProgram().getUID() );
         if ( program == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_PROGRAM.set( progid ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUID() );
         if ( aoc == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
@@ -145,8 +145,8 @@ public class SimpleEventSMSListener
         }
         ProgramStage programStage = programStages.iterator().next();
 
-        List<Object> errorUIDs = saveNewEvent( subm.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
-            user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
+        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUID(), orgUnit, programStage, programInstance, sms,
+            aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
         if ( !errorUIDs.isEmpty() )
         {
