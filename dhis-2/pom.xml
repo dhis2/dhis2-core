@@ -440,14 +440,15 @@
                 <file>${rootDir}/DHISFormatter.xml</file>
                 <version>4.9.0</version>
               </eclipse>
-              <trimTrailingWhitespace />
-              <removeUnusedImports />
+              <trimTrailingWhitespace/>
+              <removeUnusedImports/>
               <importOrder>
                 <order>
                   java,javax,org,com
                 </order>
               </importOrder>
             </java>
+            <lineEndings>UNIX</lineEndings>
           </configuration>
         </plugin>
       </plugins>

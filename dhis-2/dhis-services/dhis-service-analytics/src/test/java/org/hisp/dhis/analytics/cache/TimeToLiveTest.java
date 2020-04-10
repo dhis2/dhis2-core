@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,14 @@ import static java.util.Calendar.DATE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_TTL_CACHE_FACTOR;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.setting.DefaultSystemSettingManager;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,58 +56,33 @@ public class TimeToLiveTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Test
-    public void testComputeForCurrentDayWhenCacheFactorIsNull()
-    {
-        // Given
-        final Integer aNullCachingFactor = null;
-        final Date endingDate = new Date();
-        final Date beginningDate = new Date();
-        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
-        final int expectedTtl = (Integer) ANALYTICS_TTL_CACHE_FACTOR.getDefaultValue();
-
-        // When
-        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
-            .thenReturn( aNullCachingFactor );
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
-
-        // Then
-        assertThat( actualTtl, is( equalTo( (long) expectedTtl ) ) );
-    }
-
-    @Test
+    @Test( expected = IllegalArgumentException.class )
     public void testComputeForCurrentDayWhenCacheFactorIsNegative()
     {
         // Given
         final Integer aNegativeCachingFactor = -1;
         final Date endingDate = new Date();
-        final Date beginningDate = new Date();
-        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
-        final int expectedTtl = (Integer) ANALYTICS_TTL_CACHE_FACTOR.getDefaultValue();
 
         // When
-        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
-            .thenReturn( aNegativeCachingFactor );
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
+        new TimeToLive( endingDate, aNegativeCachingFactor ).compute();
 
-        // Then
-        assertThat( actualTtl, is( equalTo( (long) expectedTtl ) ) );
+        // Fail
+        fail( "IllegalArgumentException was expected." );
     }
 
     @Test
     public void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
     {
         // Given
+
         final Integer aPositiveCachingFactor = 3;
         final Date endingDate = new Date();
-        final Date beginningDate = endingDate;
-        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
-        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
+        final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
@@ -119,15 +94,11 @@ public class TimeToLiveTest
         // Given
         final int oneDayDiff = 1;
         final Integer aPositiveCachingFactor = 2;
-        final Date endingDate = new Date();
-        final Date beginningDate = calculateDateFrom( endingDate, minus( oneDayDiff ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
+        final Date endingDate = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
         final long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
         // When
-        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
-            .thenReturn( aPositiveCachingFactor );
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
+        final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
@@ -141,13 +112,12 @@ public class TimeToLiveTest
         final Integer aPositiveCachingFactor = 1;
         final Date beginningDate = new Date();
         final Date endingDate = calculateDateFrom( beginningDate, plus( tenDaysAhead ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
-        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
+        final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
@@ -160,25 +130,16 @@ public class TimeToLiveTest
         final int tenDays = 10;
         final Integer aPositiveCachingFactor = 2;
         final Date now = new Date();
-        final Date beginningDate = calculateDateFrom( now, minus( tenDays ), DATE );
         final Date endingDate = calculateDateFrom( now, minus( tenDays ), DATE );
-        final DataQueryParams dataQueryParams = stubbedParams( beginningDate, endingDate );
         final long expectedTtl = aPositiveCachingFactor * tenDays;
 
         // When
-        when( systemSettingManager.getSystemSetting(ANALYTICS_TTL_CACHE_FACTOR) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
-        final long actualTtl = new TimeToLive( dataQueryParams, systemSettingManager ).compute();
+        final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
-    }
-
-    private DataQueryParams stubbedParams( final Date beginningDate, final Date endingDate )
-    {
-        final DataQueryParams dataQueryParams = DataQueryParams.newBuilder().withStartDate( beginningDate )
-            .withEndDate( endingDate ).withEarliestStartDateLatestEndDate().build();
-        return dataQueryParams;
     }
 
     private int minus( final int value )

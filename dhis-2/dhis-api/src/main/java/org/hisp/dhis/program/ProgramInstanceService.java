@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
@@ -52,6 +53,15 @@ public interface ProgramInstanceService
      * @return A generated unique id of the added {@link ProgramInstance}.
      */
     long addProgramInstance( ProgramInstance programInstance );
+
+    /**
+     * Adds an {@link ProgramInstance}
+     *
+     * @param programInstance The to ProgramInstance add.
+     * @param user the current user.
+     * @return A generated unique id of the added {@link ProgramInstance}.
+     */
+    long addProgramInstance( ProgramInstance programInstance, User user );
 
     /**
      * Soft deletes a {@link ProgramInstance}.

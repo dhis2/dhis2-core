@@ -346,8 +346,7 @@ public class JdbcEnrollmentAnalyticsManager
         }
         else
         {
-            colName = quoteAlias( colName );
-            return  item.isText() ? "lower(" + colName + ")" : colName;
+            return quoteAlias( colName );
         }
     }
 

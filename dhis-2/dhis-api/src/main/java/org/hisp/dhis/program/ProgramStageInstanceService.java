@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -53,6 +54,15 @@ public interface ProgramStageInstanceService
      * @return A generated unique id of the added {@link ProgramStageInstance}.
      */
     long addProgramStageInstance( ProgramStageInstance programStageInstance );
+
+    /**
+     * Adds a {@link ProgramStageInstance}
+     *
+     * @param programStageInstance The ProgramStageInstance to add.
+     * @param user the current user.
+     * @return A generated unique id of the added {@link ProgramStageInstance}.
+     */
+    long addProgramStageInstance( ProgramStageInstance programStageInstance, User user );
 
     /**
      * Deletes a {@link ProgramStageInstance}.
@@ -75,6 +85,14 @@ public interface ProgramStageInstanceService
      * @param programStageInstance the ProgramStageInstance to update.
      */
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
+
+    /**
+     * Updates a {@link ProgramStageInstance}.
+     *
+     * @param programStageInstance the ProgramStageInstance to update.
+     * @param user the current user.
+     */
+    void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user );
 
     /**
      * Updates a last sync timestamp on specified ProgramStageInstances

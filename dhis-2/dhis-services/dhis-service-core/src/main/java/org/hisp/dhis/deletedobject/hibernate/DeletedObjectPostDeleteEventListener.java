@@ -28,6 +28,9 @@ package org.hisp.dhis.deletedobject.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.StatelessSession;
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
@@ -36,33 +39,62 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DeletedObjectPostDeleteEventListener implements PostDeleteEventListener
+@Component
+@Slf4j
+public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEventListener
 {
     @Override
     public void onPostDelete( PostDeleteEvent event )
     {
-        if ( MetadataObject.class.isInstance( event.getEntity() ) && !EmbeddedObject.class.isInstance( event.getEntity() ) )
+        if ( IdentifiableObject.class.isInstance( event.getEntity() )
+            && MetadataObject.class.isInstance( event.getEntity() )
+            && !EmbeddedObject.class.isInstance( event.getEntity() ) )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) event.getEntity();
             DeletedObject deletedObject = new DeletedObject( identifiableObject );
             deletedObject.setDeletedBy( getUsername() );
 
-            event.getSession().persist( deletedObject );
+            StatelessSession session = event.getPersister().getFactory().openStatelessSession();
+            session.beginTransaction();
+
+            try
+            {
+                session.insert( deletedObject );
+                session.getTransaction().commit();
+            }
+            catch ( Exception ex )
+            {
+                log.error( "Failed to save DeletedObject: "+ deletedObject );
+                session.getTransaction().rollback();
+            }
+            finally
+            {
+                session.close();
+            }
         }
     }
 
     @Override
     public boolean requiresPostCommitHanding( EntityPersister persister )
     {
-        return false;
+        return true;
     }
 
     private String getUsername()
     {
         return UserContext.haveUser() ? UserContext.getUser().getUsername() : "system-process";
+    }
+
+    @Override
+    public void onPostDeleteCommitFailed( PostDeleteEvent event )
+    {
+        log.debug( "onPostDeleteCommitFailed: " + event );
     }
 }

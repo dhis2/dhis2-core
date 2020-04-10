@@ -46,10 +46,18 @@ public interface IdentifiableObjectStore<T>
     /**
      * Saves the given object instance.
      *
-     * @param object       the object instance.
-     * @param clearSharing Should we clear all sharing related properties?
+     * @param object the object instance.
+     * @param clearSharing indicates whether to clear all sharing related properties.
      */
     void save( T object, boolean clearSharing );
+
+    /**
+     * Saves the given object instance.
+     *
+     * @param object the object instance.
+     * @param user the user currently in the security context.
+     */
+    void save( T object, User user );
 
     /**
      * Updates the given object instance.

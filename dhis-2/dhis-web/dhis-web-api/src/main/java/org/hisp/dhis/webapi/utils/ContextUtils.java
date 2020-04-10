@@ -28,15 +28,30 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.common.cache.Cacheability;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.InvalidMediaTypeException;
@@ -44,23 +59,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.hisp.dhis.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
  * @author Lars Helge Overland
@@ -102,89 +100,61 @@ public class ContextUtils
      */
     private static final Pattern CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN = Pattern.compile( "attachment;\\s*filename=\"?([^;\"]+)\"?");
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final WebCache webCache;
+
+    public ContextUtils( final WebCache webCache )
+    {
+        checkNotNull( webCache );
+
+        this.webCache = webCache;
+    }
 
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy )
     {
         configureResponse( response, contentType, cacheStrategy, null, false );
     }
 
-    public void configureAnalyticsResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
+    public void configureAnalyticsResponse( HttpServletResponse response, String contentType,
+        CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
     {
-        int cacheThreshold = (int) systemSettingManager.getSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD );
-        Calendar threshold = Calendar.getInstance();
-        threshold.add( Calendar.YEAR, cacheThreshold * -1 );
-
-        if ( latestEndDate != null && cacheThreshold > 0 && threshold.getTime().before( latestEndDate ) )
+        // Progressive cache will always take priority.
+        if ( RESPECT_SYSTEM_SETTING == cacheStrategy
+            && webCache.isProgressiveCachingEnabled()
+            && latestEndDate != null )
         {
-            configureResponse( response, contentType, CacheStrategy.NO_CACHE, filename, attachment );
+            // Uses the progressive TTL
+            final CacheControl cacheControl = webCache.getCacheControlFor( latestEndDate );
+
+            configureResponse( response, contentType, filename, attachment, cacheControl );
         }
         else
         {
+            // Respects the fixed (predefined) settings.
             configureResponse( response, contentType, cacheStrategy, filename, attachment );
         }
     }
 
-    public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy,
-        String filename, boolean attachment )
+    public void configureResponse( final HttpServletResponse response, final String contentType,
+                                  final CacheStrategy cacheStrategy, final String filename, final boolean attachment )
     {
-        CacheControl cacheControl;
+        final CacheControl cacheControl = webCache.getCacheControlFor( cacheStrategy );
 
+        configureResponse( response, contentType, filename, attachment, cacheControl );
+    }
+
+    private void configureResponse( final HttpServletResponse response, final String contentType, final String filename,
+        final boolean attachment, final CacheControl cacheControl )
+    {
         if ( contentType != null )
         {
             response.setContentType( contentType );
-        }
-
-        if ( CacheStrategy.RESPECT_SYSTEM_SETTING.equals( cacheStrategy ) )
-        {
-            cacheStrategy = (CacheStrategy) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY );
-        }
-
-        if ( CacheStrategy.CACHE_15_MINUTES.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 15, TimeUnit.MINUTES );
-        }
-        else if ( CacheStrategy.CACHE_30_MINUTES.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 30, TimeUnit.MINUTES );
-        }
-        else if ( CacheStrategy.CACHE_1_HOUR.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 1, TimeUnit.HOURS );
-        }
-        else if ( CacheStrategy.CACHE_6AM_TOMORROW.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( getSecondsUntilTomorrow( 6 ), TimeUnit.SECONDS );
-        }
-        else if ( CacheStrategy.CACHE_TWO_WEEKS.equals( cacheStrategy ) )
-        {
-            cacheControl = CacheControl.maxAge( 14, TimeUnit.DAYS );
-        }
-        else
-        {
-            cacheControl = CacheControl.noCache();
-        }
-
-        if ( cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE )
-        {
-            Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY );
-
-            if ( cacheability.equals( Cacheability.PUBLIC ) )
-            {
-                cacheControl.cachePublic();
-            }
-            else if ( cacheability.equals( Cacheability.PRIVATE ) )
-            {
-                cacheControl.cachePrivate();
-            }
         }
 
         response.setHeader( HEADER_CACHE_CONTROL, cacheControl.getHeaderValue() );
 
         if ( filename != null )
         {
-            String type = attachment ? "attachment" : "inline";
+            final String type = attachment ? "attachment" : "inline";
 
             response.setHeader( HEADER_CONTENT_DISPOSITION, type + "; filename=\"" + filename + "\"" );
         }
@@ -281,7 +251,7 @@ public class ContextUtils
      * Indicates whether the media type (content type) of the
      * given HTTP request is compatible with the given media type.
      *
-     * @param request the HTTP response.
+     * @param response the HTTP response.
      * @param mediaType the media type.
      */
     public static boolean isCompatibleWith( HttpServletResponse response, MediaType mediaType )

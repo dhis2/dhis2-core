@@ -243,18 +243,6 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     }
 
     @Override
-    public long getAnalyticsCacheExpiration()
-    {
-        return Long.parseLong( getProperty( ConfigurationKey.ANALYTICS_CACHE_EXPIRATION ) );
-    }
-
-    @Override
-    public boolean isAnalyticsCacheEnabled()
-    {
-        return getAnalyticsCacheExpiration() > 0;
-    }
-
-    @Override
     public boolean isClusterEnabled()
     {
         return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) ) && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME) );
