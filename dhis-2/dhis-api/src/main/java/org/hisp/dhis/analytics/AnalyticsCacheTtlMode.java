@@ -1,5 +1,3 @@
-package org.hisp.dhis.deletedobject.hibernate;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,30 +26,12 @@ package org.hisp.dhis.deletedobject.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.boot.Metadata;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.integrator.spi.Integrator;
-import org.hibernate.service.spi.SessionFactoryServiceRegistry;
+package org.hisp.dhis.analytics;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * The possible caching TTL (expiration time) mode.
  */
-public class DeletedObjectIntegrator implements Integrator
+public enum AnalyticsCacheTtlMode
 {
-    @Override
-    public void integrate( Metadata metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
-    {
-        final EventListenerRegistry registry = serviceRegistry.getService( EventListenerRegistry.class );
-
-        DeletedObjectPostDeleteEventListener listener = new DeletedObjectPostDeleteEventListener();
-        registry.appendListeners( EventType.POST_DELETE, listener );
-    }
-
-    @Override
-    public void disintegrate( SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry )
-    {
-
-    }
+    FIXED, PROGRESSIVE
 }

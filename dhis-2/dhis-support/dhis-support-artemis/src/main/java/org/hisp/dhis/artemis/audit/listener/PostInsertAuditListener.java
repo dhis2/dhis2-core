@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -51,10 +50,12 @@ import java.time.LocalDateTime;
 public class PostInsertAuditListener
     extends AbstractHibernateListener implements PostCommitInsertEventListener
 {
-    public PostInsertAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, ObjectMapper objectMapper )
+    public PostInsertAuditListener(
+        AuditManager auditManager,
+        AuditObjectFactory auditObjectFactory,
+        UsernameSupplier userNameSupplier )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, objectMapper );
+        super( auditManager, auditObjectFactory, userNameSupplier );
     }
 
     @Override

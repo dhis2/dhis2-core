@@ -28,14 +28,11 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
@@ -85,15 +82,16 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.StringUtils;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import javax.transaction.Transactional;
+import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -102,68 +100,55 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractEnrollmentService
     implements EnrollmentService
 {
-    @Autowired
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
     protected ProgramInstanceService programInstanceService;
 
-    @Autowired
     protected ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
     protected ProgramService programService;
 
-    @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
     protected TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    @Autowired
     protected RelationshipService relationshipService;
 
-    @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
-    @Autowired
     protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
     protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
     protected CurrentUserService currentUserService;
 
-    @Autowired
     protected TrackedEntityCommentService commentService;
 
-    @Autowired
     protected IdentifiableObjectManager manager;
 
-    @Autowired
     protected I18nManager i18nManager;
 
-    @Autowired
     protected UserService userService;
 
-    @Autowired
     protected DbmsManager dbmsManager;
 
-    @Autowired
     protected EventService eventService;
 
-    @Autowired
     protected TrackerAccessManager trackerAccessManager;
 
-    @Autowired
     protected SchemaService schemaService;
 
-    @Autowired
     protected QueryService queryService;
 
-    @Autowired
     protected Notifier notifier;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    protected ApplicationEventPublisher eventPublisher;
+
+    protected ObjectMapper jsonMapper;
+
+    protected ObjectMapper xmlMapper;
 
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -1213,6 +1198,14 @@ public abstract class AbstractEnrollmentService
                 importConflicts.add( new ImportConflict( "Attribute.attribute", "Missing mandatory attribute "
                     + trackedEntityAttribute.getUid() ) );
                 continue;
+            }
+
+            String attributeValue = attributeValueMap.get( trackedEntityAttribute.getUid() );
+
+            if ( attributeValue != null && attributeValue.length() > TEA_VALUE_MAX_LENGTH )
+            {
+                // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
+                importConflicts.add( new ImportConflict( "Attribute.value", String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH, attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) ) ) );
             }
 
             if ( trackedEntityAttribute.isUnique() )

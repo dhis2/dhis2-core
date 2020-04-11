@@ -28,11 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import org.hisp.dhis.attribute.AttributeService;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -41,10 +36,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -52,7 +52,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -95,7 +94,6 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
@@ -116,6 +114,7 @@ import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -126,7 +125,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -137,6 +141,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
     protected static final String DEFAULTS = "INCLUDE";
+
+    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+        .expireAfterWrite( 1, TimeUnit.MINUTES )
+        .build();
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -196,6 +204,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Autowired
     protected AttributeService attributeService;
 
+    @Autowired
+    protected ObjectMapper jsonMapper;
+
+    @Autowired
+    @Qualifier( "xmlMapper" )
+    protected ObjectMapper xmlMapper;
+
     //--------------------------------------------------------------------------
     // GET
     //--------------------------------------------------------------------------
@@ -223,12 +238,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         List<T> entities = getEntityList( metadata, options, filters, orders );
+
         Pager pager = metadata.getPager();
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), entities.size(), options.getPageSize() );
-            entities = PagerUtils.pageCollection( entities, pager );
+            long count = paginationCountCache.computeIfAbsent( calculatePaginationCountKey(currentUser, filters, options), () -> count( metadata, options, filters, orders ) );
+            pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
         postProcessResponseEntities( entities, options, rpParameters );
@@ -422,13 +438,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( isJson( request ) )
         {
             patch = patchService.diff(
-                new PatchParams( DefaultRenderService.getJsonMapper().readTree( request.getInputStream() ) )
+                new PatchParams( jsonMapper.readTree( request.getInputStream() ) )
             );
         }
         else if ( isXml( request ) )
         {
             patch = patchService.diff(
-                new PatchParams( DefaultRenderService.getXmlMapper().readTree( request.getInputStream() ) )
+                new PatchParams( xmlMapper.readTree( request.getInputStream() ) )
             );
         }
 
@@ -679,7 +695,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -861,7 +877,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         if ( !getSchema().isSubscribable() )
@@ -917,7 +933,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node ->
                 {
                     node.getChildren().stream()
-                        .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !( (SimpleNode) child ).getValue().equals( pvItemId ) )
+                        .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !((SimpleNode) child).getValue().equals( pvItemId ) )
                         .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
                 } );
             }
@@ -1058,7 +1074,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return renderService.fromJson( request.getInputStream(), getEntityClass() );
     }
 
-    protected T deserializeXmlEntity( HttpServletRequest request) throws IOException
+    protected T deserializeXmlEntity( HttpServletRequest request ) throws IOException
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
     }
@@ -1133,11 +1149,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 
-    protected Pagination getPaginationData(WebOptions options )
+    protected Pagination getPaginationData( WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
-    } 
-    
+    }
+
     @SuppressWarnings( "unchecked" )
     protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException
@@ -1157,6 +1173,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         return entityList;
+    }
+
+    private int count( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    {
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+            options.getRootJunction() );
+        return queryService.count( query );
     }
 
     private List<T> getEntity( String uid )
@@ -1410,5 +1433,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         return entitySimpleName;
+    }
+
+    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    {
+        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
+            + options.getRootJunction().name();
     }
 }

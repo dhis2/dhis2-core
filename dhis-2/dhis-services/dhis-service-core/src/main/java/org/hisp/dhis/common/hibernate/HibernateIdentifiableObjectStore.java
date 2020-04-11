@@ -169,10 +169,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public void save( T object, User user )
+    {
+        save( object, user, true );
+    }
+
+    @Override
     public void save( T object, boolean clearSharing )
     {
-        User user = getCurrentUser();
+        save( object, getCurrentUser(), clearSharing );
+    }
 
+    private void save( T object, User user, boolean clearSharing )
+    {
         String username = user != null ? user.getUsername() : "system-process";
 
         if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )
@@ -233,11 +242,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
 
         getSession().save( object );
-
-        if (object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
-        }
     }
 
     @Override
@@ -276,11 +280,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( object != null )
         {
             getSession().update( object );
-        }
-
-        if ( object instanceof MetadataObject )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
     }
 

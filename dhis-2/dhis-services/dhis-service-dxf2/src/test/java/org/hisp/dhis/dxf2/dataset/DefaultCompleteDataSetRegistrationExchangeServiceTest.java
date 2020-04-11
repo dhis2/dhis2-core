@@ -49,6 +49,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -201,7 +202,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         subject = new DefaultCompleteDataSetRegistrationExchangeService( cdsrStore, idObjManager, orgUnitService,
             notifier, i18nManager, batchHandlerFactory, systemSettingManager, categoryService, periodService,
             currentUserService, registrationService, inputUtils, aggregateAccessManager, notificationPublisher,
-            messageService );
+            messageService, JacksonObjectMapperConfig.staticJsonMapper() );
 
         DEFAULT_COC = new CategoryOptionCombo();
 

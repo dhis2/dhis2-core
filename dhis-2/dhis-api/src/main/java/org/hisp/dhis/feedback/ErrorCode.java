@@ -107,6 +107,10 @@ public enum ErrorCode
     E6000( "Program `{0}` has more than one Program Instances"),
     E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
 
+    /* File resource */
+    E6100( "Filename not present" ),
+    E6101( "File type not allowed" ),
+
     /* Scheduling */
     E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
     E7002( "Failed to add/update job configuration, UID does not exist" ),

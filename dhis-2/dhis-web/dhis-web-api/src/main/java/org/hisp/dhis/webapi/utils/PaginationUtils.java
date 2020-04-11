@@ -42,7 +42,7 @@ public class PaginationUtils
      * Calculates the paging first result based on pagination data from
      * {@see WebOptions} if the WebOptions have pagination information
      * 
-     * The first result is simply calculated by multiplying page * page size
+     * The first result is simply calculated by multiplying page -1 * page size
      * 
      * @param options a {@see WebOptions} object
      * @return a {@see PaginationData} object either empty or containing pagination
@@ -50,9 +50,13 @@ public class PaginationUtils
      */
     public static Pagination getPaginationData( WebOptions options )
     {
-        return options.hasPaging()
-            ? new Pagination( options.getPage() == 1 ? 1 : (options.getPage() * options.getPageSize()),
-                options.getPageSize() )
-            : NO_PAGINATION;
+        if ( options.hasPaging() )
+        {
+            // ignore if page < 0
+            int page = Math.max( options.getPage(), 1 );
+            return new Pagination( (page - 1) * options.getPageSize(), options.getPageSize() );
+        }
+
+        return NO_PAGINATION;
     }
 }

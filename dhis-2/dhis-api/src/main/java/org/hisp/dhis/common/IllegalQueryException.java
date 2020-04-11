@@ -63,8 +63,7 @@ public class IllegalQueryException
     }
 
     /**
-     * Constructor. Sets the message and error code based
-     * on the error message.
+     * Constructor. Sets the message and error code based on the error message.
      *
      * @param errorMessage the {@link ErrorMessage}.
      */
@@ -74,6 +73,11 @@ public class IllegalQueryException
         this.errorCode = errorMessage.getErrorCode();
     }
 
+    /**
+     * Returns the {@link ErrorCode} of the exception.
+     *
+     * @return the {@link ErrorCode} of the exception.
+     */
     public ErrorCode getErrorCode()
     {
         return errorCode;

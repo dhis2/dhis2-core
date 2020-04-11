@@ -1,4 +1,4 @@
-package org.hisp.dhis.node.geometry;
+package org.hisp.dhis.program.variable;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,39 +28,24 @@ package org.hisp.dhis.node.geometry;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
-import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
- * @author Enrico Colasante
+ * @author Zubair Asghar
  */
-@Slf4j
-public class XmlGenericGeometryParser
-    extends BaseParser
-    implements GeometryParser<Geometry>
+public class vCompletedDate extends ProgramDateVariable
 {
-    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
+    @Override
+    public Object getSql( CommonExpressionVisitor visitor )
     {
-        super( geometryFactory );
-    }
+        if ( AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() )
+        {
+            return "completeddate";
+        }
 
-    public Geometry geometryFromJson( JsonNode node )
-    {
-        WKTReader wktR = new WKTReader();
-        try
-        {
-            return wktR.read( node.asText() );
-        }
-        catch ( ParseException e )
-        {
-            log.error( "Error reading WKT of geometry", e );
-            return null;
-        }
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+                null, "completeddate", visitor.getReportingStartDate(),
+                visitor.getReportingStartDate(), visitor.getProgramIndicator() );
     }
 }
