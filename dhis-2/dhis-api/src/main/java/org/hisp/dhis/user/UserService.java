@@ -205,7 +205,7 @@ public interface UserService
      * @param token the restore token of the User.
      * @return the UserCredentials.
      */
-    public UserCredentials getUserCredentialsByRestoreToken( String token );
+    public UserCredentials getUserCredentialsBySecret( String token );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given

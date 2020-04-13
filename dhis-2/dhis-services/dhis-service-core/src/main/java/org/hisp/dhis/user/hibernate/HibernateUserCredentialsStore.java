@@ -75,10 +75,10 @@ public class HibernateUserCredentialsStore
     }
 
     @Override
-    public UserCredentials getUserCredentialsByRestoreToken( String token )
+    public UserCredentials getUserCredentialsBySecret( String secret )
     {
-        Query query = getQuery( "from UserCredentials uc where uc.restoreToken = :token" );
-        query.setParameter( "token", token );
-        return ( UserCredentials ) query.uniqueResult();
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.secret = :secret" );
+        query.setParameter( "secret", secret );
+        return query.uniqueResult();
     }
 }

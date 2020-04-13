@@ -56,6 +56,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -350,7 +351,10 @@ public class DefaultSecurityService
             applicationTitle = DEFAULT_APPLICATION_TITLE;
         }
 
-        String[] result = initRestore( credentials, restoreOptions );
+        String restoreToken = initRestore( credentials, restoreOptions )[0];
+
+        String emailToken = Base64Utils
+            .encodeToUrlSafeString( (credentials.getSecret() + ":" + restoreToken).getBytes() );
 
         Set<User> users = new HashSet<>();
         users.add( credentials.getUserInfo() );
@@ -358,7 +362,7 @@ public class DefaultSecurityService
         Map<String, Object> vars = new HashMap<>();
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
-        vars.put( "token", result[0] );
+        vars.put( "token", emailToken );
         vars.put( "username", CodecUtils.utf8UrlEncode( credentials.getUsername() ) );
         vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
 
@@ -393,7 +397,9 @@ public class DefaultSecurityService
     @Override
     public String[] initRestore( UserCredentials credentials, RestoreOptions restoreOptions )
     {
-        String token = restoreOptions.getTokenPrefix() + CodeGenerator.generateCode( RESTORE_TOKEN_LENGTH );
+        String tokenPrefix = restoreOptions.getTokenPrefix();
+
+        String token = tokenPrefix + CodeGenerator.generateCode( RESTORE_TOKEN_LENGTH );
 
         String hashedToken = passwordManager.encode( token );
 
@@ -403,6 +409,7 @@ public class DefaultSecurityService
 
         credentials.setRestoreToken( hashedToken );
         credentials.setRestoreExpiry( expiry );
+        credentials.setSecret( null );
 
         userService.updateUserCredentials( credentials );
 

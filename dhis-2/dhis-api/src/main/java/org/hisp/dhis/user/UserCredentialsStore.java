@@ -72,5 +72,5 @@ public interface UserCredentialsStore
      * @param token the restore token of the User.
      * @return the UserCredentials.
      */
-    UserCredentials getUserCredentialsByRestoreToken( String token );
+    UserCredentials getUserCredentialsBySecret( String token );
 }

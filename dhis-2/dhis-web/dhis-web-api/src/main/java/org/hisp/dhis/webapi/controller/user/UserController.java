@@ -239,8 +239,7 @@ public class UserController
 
         response.setContentType( "application/json" );
 
-        ObjectReport report = inviteUser( user, currentUser, request );
-        renderService.toJson( response.getOutputStream(), report );
+        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )

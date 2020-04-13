@@ -13,7 +13,7 @@
         <Logger name="org.springframework.web" level="warn" additivity="true"/>
         <Logger name="org.springframework.test" level="warn" additivity="true"/>
 
-        <Root level="INFO">
+        <Root level="ERROR">
             <AppenderRef ref="console"/>
         </Root>
     </Loggers>

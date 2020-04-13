@@ -25,7 +25,7 @@
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="false"/>
         <Logger name="org.hibernate.orm.deprecation" level="error" additivity="false"/>
 
-        <Root level="INFO">
+        <Root level="warn">
             <AppenderRef ref="console"/>
         </Root>
     </Loggers>
