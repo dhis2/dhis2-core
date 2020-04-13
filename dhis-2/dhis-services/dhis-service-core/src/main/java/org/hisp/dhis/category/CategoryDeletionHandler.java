@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -68,7 +69,19 @@ public class CategoryDeletionHandler
 
         for ( Category category : categories )
         {
-            category.removeCategoryOption( categoryOption );
+            category.getCategoryOptions().remove( categoryOption );
+            idObjectManager.updateNoAcl( category );
+        }
+    }
+
+    @Override
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        List<Category> categories = categoryCombo.getCategories();
+
+        for ( Category category : categories )
+        {
+            category.getCategoryCombos().remove( categoryCombo );
             idObjectManager.updateNoAcl( category );
         }
     }
