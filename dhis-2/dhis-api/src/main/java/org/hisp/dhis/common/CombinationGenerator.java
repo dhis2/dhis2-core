@@ -75,7 +75,7 @@ public class CombinationGenerator<T>
     {
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects[i].length - 1 ) // Not at last position in array
+            if ( objects[i] != null && indexes[i] < objects[i].length - 1 ) // Not at last position in array
             {
                 return true;
             }
@@ -93,7 +93,7 @@ public class CombinationGenerator<T>
         
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects[i].length - 1 ) // Not at last position in array, increment index and break
+            if (  objects[i] != null && indexes[i] < objects[i].length - 1 ) // Not at last position in array, increment index and break
             {
                 indexes[i]++;
                 current = getCurrent();
@@ -120,6 +120,11 @@ public class CombinationGenerator<T>
         
         for ( int i = 0; i < no; i++ )
         {
+            if ( objects[i] == null )
+            {
+                continue;
+            }
+
             int index = indexes[i];
             
             T[] object = objects[i];
