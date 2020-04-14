@@ -530,7 +530,7 @@ public class DefaultAnalyticsService
 
                         grid.addRow()
                             .addValues( DimensionItem.getItemIdentifiers( row ) )
-                            .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                            .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ).doubleValue() );
 
                         if ( params.isIncludeNumDen() )
                         {
