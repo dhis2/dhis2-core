@@ -129,7 +129,7 @@ public class TrackerPreheatTest
         de2.setAutoFields();
         de3.setAutoFields();
 
-        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
+        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ), false );
 
         assertFalse( preheat.isEmpty() );
         assertFalse( preheat.isEmpty( TrackerIdScheme.UID ) );
@@ -157,7 +157,7 @@ public class TrackerPreheatTest
         de2.setAutoFields();
         de3.setAutoFields();
 
-        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
+        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ), false );
 
         assertFalse( preheat.isEmpty() );
         assertFalse( preheat.isEmpty( TrackerIdScheme.UID ) );
@@ -186,7 +186,7 @@ public class TrackerPreheatTest
         de2.setAutoFields();
         de3.setAutoFields();
 
-        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
+        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ), false );
 
         assertFalse( preheat.isEmpty() );
         assertFalse( preheat.isEmpty( TrackerIdScheme.UID ) );

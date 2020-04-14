@@ -31,12 +31,14 @@ package org.hisp.dhis.tracker.preheat;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.Program;
@@ -225,6 +227,13 @@ public class DefaultTrackerPreheatService
 
                 queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
+            else if ( klass.isAssignableFrom( CategoryOption.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( CategoryOption.class );
+                TrackerIdentifier identifier = params.getIdentifiers().getCategoryOption();
+
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
+            }
             else if ( klass.isAssignableFrom( Relationship.class ) )
             {
                 for ( List<String> ids : splitList )
@@ -243,10 +252,10 @@ public class DefaultTrackerPreheatService
         }
 
         // since TrackedEntityTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
-        preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
+        preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ), false );
 
         // since RelationshipTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
-        preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
+        preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ), false );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
@@ -300,10 +309,11 @@ public class DefaultTrackerPreheatService
                 Query query = Query.from( schema );
                 query.setUser( preheat.getUser() );
                 query.add( generateRestrictionFromIdentifiers( idScheme, ids ) );
+                query.setDefaults( Defaults.INCLUDE );
                 objects = queryService.query( query );
             }
 
-            preheat.put( identifier, objects );
+            preheat.put( identifier, objects, true );
         }
     }
 }

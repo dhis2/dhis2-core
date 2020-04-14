@@ -28,7 +28,10 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.repackaged.com.google.common.base.Objects;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -48,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -115,6 +119,11 @@ public class TrackerIdentifierCollector
                 addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
                     event.getProgramStage() );
                 addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
+
+                Stream.of( Objects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
+                .forEach(
+                    s -> addIdentifier( map, CategoryOption.class, params.getCategoryOption().getIdScheme(), s ) );
+
                 addIdentifier( map, CategoryOptionCombo.class,
                     params.getCategoryOptionComboIdScheme().getIdScheme(), event.getAttributeOptionCombo() );
 

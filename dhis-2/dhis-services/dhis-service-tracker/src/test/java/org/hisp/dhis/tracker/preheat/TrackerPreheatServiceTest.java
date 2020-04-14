@@ -30,7 +30,8 @@ package org.hisp.dhis.tracker.preheat;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -95,12 +96,6 @@ public class TrackerPreheatServiceTest
         userService = _userService;
     }
 
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
-
     @Test
     public void testEventMetadata() throws IOException
     {
@@ -140,6 +135,12 @@ public class TrackerPreheatServiceTest
         Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
+        assertTrue( collectedMap.containsKey( Program.class ) );
+        assertTrue( collectedMap.containsKey( ProgramStage.class ) );
+        assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
+        assertTrue( collectedMap.containsKey( CategoryOptionCombo.class ) );
+        assertTrue( collectedMap.containsKey( CategoryOption.class ) );
+
         Set<String> dataElements = collectedMap.get( DataElement.class );
 
         assertTrue( dataElements.contains( "DSKTW8qFP0z" ) );
@@ -161,11 +162,13 @@ public class TrackerPreheatServiceTest
         assertTrue( dataElements.contains( "JXF90RhgNiI" ) );
         assertTrue( dataElements.contains( "gfEoDU4GtXK" ) );
         assertTrue( dataElements.contains( "qw67QlOlzdp" ) );
-        assertTrue( dataElements.contains( "HllvX50cXC0" ) );
 
-        assertTrue( collectedMap.containsKey( Program.class ) );
-        assertTrue( collectedMap.containsKey( ProgramStage.class ) );
-        assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
+        Set<String> categoryCombos = collectedMap.get( CategoryOptionCombo.class );
+        assertTrue( categoryCombos.contains( "HllvX50cXC0" ) );
+
+        Set<String> categoryOptions = collectedMap.get( CategoryOption.class );
+        assertTrue( categoryOptions.contains( "xYerKDKCefk" ) );
+        assertTrue( categoryOptions.contains( "XXXrKDKCefk" ) );
     }
 
     @Test
@@ -255,5 +258,12 @@ public class TrackerPreheatServiceTest
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( OrganisationUnit.class ) );
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( Program.class ) );
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( ProgramStage.class ) );
+        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( CategoryOptionCombo.class ) );
+
+        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, "XXXvX50cXC0" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, "HllvX50cXC0" ) );
+
+        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOption.class, "xYerKDKCefk" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOption.class, "XXXrKDKCefk" ) );
     }
 }

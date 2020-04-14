@@ -302,11 +302,16 @@ public class TrackerPreheat
         return this;
     }
 
-    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdentifier identifier, Collection<T> objects )
+    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdentifier identifier, Collection<T> objects,
+        boolean addDefaults )
     {
         for ( T object : objects )
         {
-            if ( isDefault( object ) ) continue;
+            if ( !addDefaults && isDefault( object ) )
+            {
+                continue;
+            }
+
             put( identifier, object );
         }
 
