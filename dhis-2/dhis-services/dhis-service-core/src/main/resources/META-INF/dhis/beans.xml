@@ -943,6 +943,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="passwordManager" ref="org.hisp.dhis.security.PasswordManager" />
+    <property name="sessionRegistry" ref="sessionRegistry" />
   </bean>
 
   <bean id="org.hisp.dhis.user.UserGroupService" class="org.hisp.dhis.user.DefaultUserGroupService">
