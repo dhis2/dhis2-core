@@ -68,7 +68,7 @@ public class SchemaToDataFetcher
     /**
      * Executes a read-only query for the given Schema class and fetches only the fields
      * marked as "unique"
-     * 
+     *
      * @param schema a {@see Schema}
      * @return a List of objects corresponding to the "klass" of the given Schema
      */
@@ -125,7 +125,7 @@ public class SchemaToDataFetcher
 
         return resultsObjects;
     }
-    
+
     private List<IdentifiableObject> handleSingleColumn( List<Object> objects, List<Property> uniqueProperties,
         Schema schema )
     {
@@ -155,7 +155,7 @@ public class SchemaToDataFetcher
             log.error( "Error during dynamic population of object type: " + schema.getKlass().getSimpleName(), e );
         }
     }
-    
+
     private String extractUniqueFields( List<Property> uniqueProperties )
     {
         return uniqueProperties.stream().map( Property::getFieldName ).collect( Collectors.joining( "," ) );
