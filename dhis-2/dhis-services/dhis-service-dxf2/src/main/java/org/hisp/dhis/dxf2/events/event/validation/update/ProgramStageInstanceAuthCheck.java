@@ -34,7 +34,7 @@ import static org.hisp.dhis.event.EventStatus.COMPLETED;
 
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.UserCredentials;
@@ -44,7 +44,7 @@ public class ProgramStageInstanceAuthCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( final ImmutableEvent event, final ValidationContext ctx )
+    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
     {
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
 

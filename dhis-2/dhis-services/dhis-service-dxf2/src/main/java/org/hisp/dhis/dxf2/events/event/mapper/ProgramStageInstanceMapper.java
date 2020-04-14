@@ -33,7 +33,7 @@ import java.util.Date;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.util.DateUtils;
@@ -44,9 +44,9 @@ import org.hisp.dhis.util.DateUtils;
 public class ProgramStageInstanceMapper
 {
 
-    private ValidationContext validationContext;
+    private WorkContext validationContext;
 
-    public ProgramStageInstanceMapper( ValidationContext ctx )
+    public ProgramStageInstanceMapper( WorkContext ctx )
     {
         this.validationContext = ctx;
     }

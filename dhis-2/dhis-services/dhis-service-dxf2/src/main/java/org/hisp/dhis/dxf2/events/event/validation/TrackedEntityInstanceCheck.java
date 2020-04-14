@@ -41,7 +41,7 @@ public class TrackedEntityInstanceCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         TrackedEntityInstance tei = ctx.trackedEntityInstanceMap.get( event.getUid() );

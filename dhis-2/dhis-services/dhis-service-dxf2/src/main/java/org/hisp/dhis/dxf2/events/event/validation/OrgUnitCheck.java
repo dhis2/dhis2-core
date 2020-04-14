@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
@@ -40,7 +39,7 @@ public class OrgUnitCheck
 {
 
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         return checkNull( ctx.getOrganisationUnitMap().get( event.getUid() ),
             "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit(), event );

@@ -38,7 +38,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 
@@ -48,7 +48,7 @@ public class AttributeOptionComboDateCheck
 {
 
     @Override
-    public ImportSummary check( final ImmutableEvent event, final ValidationContext ctx )
+    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
     {
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
         final Date eventDate = programStageInstance.getExecutionDate() != null ? programStageInstance.getExecutionDate()

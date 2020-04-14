@@ -28,10 +28,7 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Luciano Fiandesio
@@ -42,7 +39,7 @@ public class ProgramStageCheck
 {
 
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         // TODO luciano shouldn't we also check if program stage belongs to program? -> asked Morten, said probably yes!
 

@@ -43,7 +43,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,7 +55,7 @@ public class ProgramInstanceUpdatePreProcessor
     PreProcessor
 {
     @Override
-    public void process( final Event event, final ValidationContext ctx )
+    public void process( final Event event, final WorkContext ctx )
     {
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
         final ImportOptions importOptions = ctx.getImportOptions();

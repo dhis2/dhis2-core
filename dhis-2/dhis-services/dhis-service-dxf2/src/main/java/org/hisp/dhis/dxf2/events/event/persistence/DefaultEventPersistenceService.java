@@ -47,7 +47,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.JdbcEventStore;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -92,7 +92,7 @@ public class DefaultEventPersistenceService
     }
 
     @Override
-    public List<ProgramStageInstance> save( ValidationContext context, List<Event> events )
+    public List<ProgramStageInstance> save(WorkContext context, List<Event> events )
     {
         List<ProgramStageInstance> programStageInstances = convertToProgramStageInstances(
             new ProgramStageInstanceMapper( context ), events );
@@ -122,7 +122,7 @@ public class DefaultEventPersistenceService
     }
 
     @Override
-    public List<ProgramStageInstance> update( final ValidationContext context, final List<Event> events )
+    public List<ProgramStageInstance> update(final WorkContext context, final List<Event> events )
     {
         if ( isNotEmpty( events ) )
         {

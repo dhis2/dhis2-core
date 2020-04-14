@@ -38,7 +38,7 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
  */
 public interface ValidationCheck
 {
-    ImportSummary check( ImmutableEvent event, ValidationContext ctx );
+    ImportSummary check( ImmutableEvent event, WorkContext ctx );
 
     boolean isFinal();
 

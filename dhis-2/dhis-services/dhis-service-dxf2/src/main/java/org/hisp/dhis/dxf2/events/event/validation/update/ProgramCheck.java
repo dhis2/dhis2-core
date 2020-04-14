@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.event.validation.update;
 
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
@@ -41,7 +41,7 @@ public class ProgramCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( final ImmutableEvent event, final ValidationContext ctx )
+    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
     {
         return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
             "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.", event );

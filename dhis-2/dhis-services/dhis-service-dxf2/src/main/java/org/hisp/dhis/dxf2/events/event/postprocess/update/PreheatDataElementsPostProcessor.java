@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.event.postprocess.update;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 
 public class PreheatDataElementsPostProcessor
     implements
@@ -38,7 +38,7 @@ public class PreheatDataElementsPostProcessor
 {
 
     @Override
-    public void process( final Event event, final ValidationContext ctx )
+    public void process( final Event event, final WorkContext ctx )
     {
         // TODO: Is preheat really needed? I believe it was already done in the pre-processing?
     }

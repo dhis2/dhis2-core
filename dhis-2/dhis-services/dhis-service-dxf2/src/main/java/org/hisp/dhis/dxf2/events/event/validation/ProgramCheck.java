@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
@@ -39,7 +38,7 @@ public class ProgramCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
             "Event.program does not point to a valid program: " + event.getProgram(), event );

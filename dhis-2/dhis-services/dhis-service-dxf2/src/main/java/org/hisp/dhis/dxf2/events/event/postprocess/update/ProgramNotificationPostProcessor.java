@@ -32,7 +32,7 @@ import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
@@ -45,12 +45,12 @@ public class ProgramNotificationPostProcessor
 {
 
     @Override
-    public void process( final Event event, final ValidationContext ctx )
+    public void process( final Event event, final WorkContext ctx )
     {
         if ( !ctx.getImportOptions().isSkipNotifications() )
         {
             final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
-            final ApplicationEventPublisher applicationEventPublisher = ctx.getApplicationEventPublisher();
+            final ApplicationEventPublisher applicationEventPublisher = ctx.getServiceDelegator().getApplicationEventPublisher();
 
             if ( programStageInstance.isCompleted() )
             {

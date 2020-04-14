@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events.event.validation;
  */
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -44,7 +43,7 @@ public class AttributeOptionComboCheck
 {
 
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         CategoryOptionCombo coc = ctx.getCategoryOptionComboMap().get( event.getUid() );

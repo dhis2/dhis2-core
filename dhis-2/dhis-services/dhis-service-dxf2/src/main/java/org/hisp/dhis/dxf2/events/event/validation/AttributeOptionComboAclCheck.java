@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -48,10 +47,10 @@ public class AttributeOptionComboAclCheck
 {
 
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ImportSummary importSummary = new ImportSummary();
-        TrackerAccessManager trackerAccessManager = ctx.getTrackerAccessManager();
+        TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
         ImportOptions importOptions = ctx.getImportOptions();
         CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
 

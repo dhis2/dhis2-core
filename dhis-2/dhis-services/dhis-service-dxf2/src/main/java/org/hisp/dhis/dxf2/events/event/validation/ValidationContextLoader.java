@@ -65,10 +65,12 @@ import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -94,6 +96,10 @@ public class ValidationContextLoader
 
     private final IdentifiableObjectManager manager;
 
+    private final ProgramRuleVariableService programRuleVariableService;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     private final static String PROGRAM_CACHE_KEY = "0";
 
     Cache<String,Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
@@ -105,30 +111,32 @@ public class ValidationContextLoader
 
     public ValidationContextLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         ProgramInstanceStore programInstanceStore, TrackerAccessManager trackerAccessManager,
-        AttributeOptionComboLoader attributeOptionComboLoader, IdentifiableObjectManager manager )
+        AttributeOptionComboLoader attributeOptionComboLoader, IdentifiableObjectManager manager,
+        ProgramRuleVariableService programRuleVariableService, ApplicationEventPublisher applicationEventPublisher )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( programInstanceStore );
         checkNotNull( trackerAccessManager );
         checkNotNull( attributeOptionComboLoader );
         checkNotNull( manager );
+        checkNotNull( programRuleVariableService );
+        checkNotNull( applicationEventPublisher );
 
         this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
         this.programInstanceStore = programInstanceStore;
         this.trackerAccessManager = trackerAccessManager;
         this.manager = manager;
         this.attributeOptionComboLoader = attributeOptionComboLoader;
+        this.programRuleVariableService = programRuleVariableService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
-// TODO: We get from the cache, but do we never put?
-    public ValidationContext load( ImportOptions importOptions, List<Event> events )
+    public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
         // @formatter:off
-        return ValidationContext.builder()
+        return WorkContext.builder()
             .importOptions( importOptions )
-            .programInstanceStore( this.programInstanceStore )
-            .trackerAccessManager( this.trackerAccessManager )
             .programsMap( programMap )
             .organisationUnitMap( loadOrganisationUnits( events ) )
             .trackedEntityInstanceMap( loadTrackedEntityInstances( events ) )
@@ -137,6 +145,19 @@ public class ValidationContextLoader
             .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
             .dataElementMap( loadDateElements( events, importOptions) )
             .assignedUserMap( loadAssignedUsers( events ) )
+            .serviceDelegator( loadServices() )
+            .build();
+        // @formatter:on
+    }
+
+    private ServiceDelegator loadServices()
+    {
+        // @formatter:off
+        return ServiceDelegator.builder()
+            .programInstanceStore( this.programInstanceStore )
+            .trackerAccessManager( this.trackerAccessManager )
+            .applicationEventPublisher( this.applicationEventPublisher )
+            .programRuleVariableService( this.programRuleVariableService )
             .build();
         // @formatter:on
     }

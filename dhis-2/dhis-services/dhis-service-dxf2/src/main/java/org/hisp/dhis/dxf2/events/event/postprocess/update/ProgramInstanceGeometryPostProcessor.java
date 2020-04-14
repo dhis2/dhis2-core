@@ -37,7 +37,7 @@ import java.io.IOException;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 public class ProgramInstanceGeometryPostProcessor
@@ -46,7 +46,7 @@ public class ProgramInstanceGeometryPostProcessor
 {
 
     @Override
-    public void process( final Event event, final ValidationContext ctx )
+    public void process( final Event event, final WorkContext ctx )
     {
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
 

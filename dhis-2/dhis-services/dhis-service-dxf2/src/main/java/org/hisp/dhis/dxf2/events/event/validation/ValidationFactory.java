@@ -63,7 +63,7 @@ public class ValidationFactory
         this.validatorMap = validatorMap;
     }
 
-    public List<ImportSummary> validateEvents( ValidationContext ctx, List<Event> events )
+    public List<ImportSummary> validateEvents(WorkContext ctx, List<Event> events )
     {
         List<ImportSummary> importSummaries = new ArrayList<>();
         ValidationRunner validationRunner = new ValidationRunner(
@@ -75,7 +75,7 @@ public class ValidationFactory
         return importSummaries;
     }
 
-    public ValidationContext getContext( ImportOptions importOptions, List<Event> events )
+    public WorkContext getContext(ImportOptions importOptions, List<Event> events )
     {
         return this.validationContextLoader.load( importOptions, events );
     }
@@ -89,7 +89,7 @@ public class ValidationFactory
             this.validators = validators;
         }
 
-        public ImportSummary executeValidationChain( Event event, ValidationContext ctx )
+        public ImportSummary executeValidationChain( Event event, WorkContext ctx )
         {
             for ( Class<? extends ValidationCheck> validator : validators )
             {

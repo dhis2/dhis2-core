@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.event.validation;
 
 import java.util.Optional;
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -44,7 +43,7 @@ public class ProgramOrgUnitCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         if ( programInstance != null ) // TODO shall we handle this case: this should really never happen..

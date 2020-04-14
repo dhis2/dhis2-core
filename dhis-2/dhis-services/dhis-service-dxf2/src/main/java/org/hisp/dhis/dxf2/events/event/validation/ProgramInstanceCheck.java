@@ -46,7 +46,7 @@ public class ProgramInstanceCheck
     ValidationCheck
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
@@ -57,8 +57,8 @@ public class ProgramInstanceCheck
         {
             if ( programInstance == null ) // Program Instance should be NOT null, after the pre-processing stage
             {
-                programInstances = new ArrayList<>(
-                    ctx.getProgramInstanceStore().get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
+                programInstances = new ArrayList<>( ctx.getServiceDelegator().getProgramInstanceStore()
+                    .get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
 
                 if ( programInstances.isEmpty() )
                 {
@@ -77,7 +77,7 @@ public class ProgramInstanceCheck
         }
         else
         {
-            programInstances = ctx.getProgramInstanceStore().get( program, ProgramStatus.ACTIVE );
+            programInstances = ctx.getServiceDelegator().getProgramInstanceStore().get( program, ProgramStatus.ACTIVE );
             if ( programInstances.size() > 1 )
             {
                 return new ImportSummary( ImportStatus.ERROR,

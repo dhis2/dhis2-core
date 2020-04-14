@@ -26,45 +26,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.event.postprocess.update;
+package org.hisp.dhis.dxf2.events.event.validation;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
-import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
+import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.springframework.context.ApplicationEventPublisher;
 
-public class PublishEventPostProcessor
-    implements
-    PreProcessor
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class ServiceDelegator
 {
 
-    @Override
-    public void process( final Event event, final WorkContext ctx )
-    {
-        boolean isLinkedWithRuleVariable = false;
+    private ProgramInstanceStore programInstanceStore;
 
-        for ( final DataValue dv : event.getDataValues() )
-        {
-            final DataElement dataElement = ctx.getDataElementMap().get( dv.getDataElement() );
+    private TrackerAccessManager trackerAccessManager;
 
-            if ( dataElement != null )
-            {
-                isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
-                    .isLinkedToProgramRuleVariable( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
+    private ProgramRuleVariableService programRuleVariableService;
 
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
-        }
-
-        if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
-        {
-            ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, ctx.getProgramStageInstanceMap().get( event.getEvent() ).getId() ) );
-        }
-    }
+    private ApplicationEventPublisher applicationEventPublisher;
 }

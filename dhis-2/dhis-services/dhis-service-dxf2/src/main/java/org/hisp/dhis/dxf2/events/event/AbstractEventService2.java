@@ -42,7 +42,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -94,7 +94,7 @@ public abstract class AbstractEventService2
         List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
 
         long now = System.nanoTime();
-        ValidationContext validationContext = validationFactory.getContext( importOptions, eventsWithUid );
+        WorkContext validationContext = validationFactory.getContext( importOptions, eventsWithUid );
         log.debug( "::: validation context load took : " + (System.nanoTime() - now) );
 
         List<List<Event>> partitions = Lists.partition( eventsWithUid, BATCH_SIZE );
@@ -132,7 +132,7 @@ public abstract class AbstractEventService2
     }
 
     @Override
-    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, ValidationContext ctx )
+    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, WorkContext ctx )
     {
         ImportSummaries importSummaries = new ImportSummaries();
 
@@ -415,7 +415,7 @@ public abstract class AbstractEventService2
      * @return Events that is possible to import (pass validation)
      */
     private List<Event> resolveImportableEvents( List<Event> events, ImportSummaries importSummaries,
-        ValidationContext ctx )
+        WorkContext ctx )
     {
         Map<String, ProgramStageInstance> programStageInstanceMap = ctx.getProgramStageInstanceMap();
         for ( String foundEventUid : programStageInstanceMap.keySet() )

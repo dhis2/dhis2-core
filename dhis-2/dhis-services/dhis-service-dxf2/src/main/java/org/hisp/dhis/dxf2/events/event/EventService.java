@@ -41,7 +41,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -109,7 +109,7 @@ public interface EventService
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, ValidationContext validationContext );
+    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, WorkContext validationContext );
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 

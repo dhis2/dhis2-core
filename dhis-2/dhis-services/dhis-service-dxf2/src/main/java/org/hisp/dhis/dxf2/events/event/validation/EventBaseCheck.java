@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -52,7 +51,7 @@ public class EventBaseCheck
 {
 
     @Override
-    public ImportSummary check( ImmutableEvent event, ValidationContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ImportSummary importSummary = new ImportSummary();
         List<String> errors = validate( event, ctx );
@@ -75,7 +74,7 @@ public class EventBaseCheck
         return false;
     }
 
-    private List<String> validate( ImmutableEvent event, ValidationContext ctx )
+    private List<String> validate( ImmutableEvent event, WorkContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         ImportOptions importOptions = ctx.getImportOptions();

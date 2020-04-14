@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +52,7 @@ public class PreProcessorFactory
         this.eventPreProcessorsMap = eventPreProcessorsMap;
     }
 
-    public void preProcessEvents( ValidationContext ctx, List<Event> events )
+    public void preProcessEvents(WorkContext ctx, List<Event> events )
     {
         PreProcessorRunner preProcessorRunner = new PreProcessorRunner(
             eventPreProcessorsMap.get( ctx.getImportOptions().getImportStrategy() ) );
@@ -71,7 +71,7 @@ public class PreProcessorFactory
             this.preprocessors = preprocessors;
         }
 
-        public void executePreProcessingChain( Event event, ValidationContext ctx )
+        public void executePreProcessingChain( Event event, WorkContext ctx )
         {
             for ( Class<? extends PreProcessor> preprocessor : preprocessors )
             {
