@@ -40,4 +40,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 public interface EventPersistenceService
 {
     List<ProgramStageInstance> save( ValidationContext context, List<Event> events );
+
+    List<ProgramStageInstance> update( ValidationContext context, List<Event> events );
 }

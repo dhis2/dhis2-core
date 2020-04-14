@@ -278,7 +278,7 @@ public abstract class AbstractEventService2
 //        {
 //            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
-// TODO: How to validate this piece? Is "getAttributeOptionCombo" IllegalQueryException being ignored?
+// TODO: Done through AttributeActionComboLoader
 //
 //            try
 //            {
@@ -311,7 +311,8 @@ public abstract class AbstractEventService2
 //        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
 //
 //        programStageInstanceService.updateProgramStageInstance( programStageInstance );
-//
+
+// FIXME: Respective post processor is ==> PublishEventPostProcessor
 //        // Trigger rule engine:
 //        // 1. only once for whole event
 //        // 2. only if data value is associated with any ProgramRuleVariable
@@ -333,6 +334,7 @@ public abstract class AbstractEventService2
 //            }
 //        }
 //
+// FIXME: Respective post processor is ==> PublishEventPostProcessor
 //        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
 //        {
 //            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
@@ -340,9 +342,9 @@ public abstract class AbstractEventService2
 //
 //        sendProgramNotification( programStageInstance, importOptions );
 //
+// FIXME: Extracted to ==> TrackedEntityInstancePostProcessor
 //        if ( !importOptions.isSkipLastUpdated() )
 //        {
-//            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
 //        }
 //
 //        if ( importSummary.getConflicts().isEmpty() )

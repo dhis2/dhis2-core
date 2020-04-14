@@ -420,6 +420,10 @@ public class JdbcEventStore
 
     }
 
+    public void updateEvents( final List<ProgramStageInstance> events ) {
+        // TODO: Implement it!
+    }
+
     private Timestamp toTimestamp( Date date )
     {
         if ( date == null )

@@ -40,7 +40,7 @@ import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-public class ProgramInstanceUpdatePostProcessor
+public class ProgramInstanceGeometryPostProcessor
     implements
     PreProcessor
 {

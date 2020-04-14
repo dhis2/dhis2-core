@@ -109,15 +109,9 @@ public class ValidationContext
 
     private TrackerAccessManager trackerAccessManager;
 
-    private TrackedEntityCommentService trackedEntityCommentService;
-
-    private ProgramStageInstanceService programStageInstanceService;
-
     private ProgramRuleVariableService programRuleVariableService;
 
     private ApplicationEventPublisher applicationEventPublisher;
-
-    private IdentifiableObjectManager identifiableObjectManager;
 
     /**
      * Checks within all the cached program for a ProgramStage having the

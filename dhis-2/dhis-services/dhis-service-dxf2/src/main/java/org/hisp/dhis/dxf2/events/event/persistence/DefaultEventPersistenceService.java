@@ -28,18 +28,32 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.getValidUsername;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.springframework.util.StringUtils.isEmpty;
+
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.JdbcEventStore;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -55,14 +69,26 @@ public class DefaultEventPersistenceService
     private final EventDataValueService eventDataValueService;
 
     private final ProgramStageInstanceStore programStageInstanceStore;
+    
+    private final IdentifiableObjectManager identifiableObjectManager;
+    
+    private final TrackedEntityCommentService trackedEntityCommentService;
 
     public DefaultEventPersistenceService( JdbcEventStore jdbcEventStore, EventDataValueService eventDataValueService,
-        ProgramStageInstanceStore programStageInstanceStore )
+        ProgramStageInstanceStore programStageInstanceStore, IdentifiableObjectManager identifiableObjectManager,
+        TrackedEntityCommentService trackedEntityCommentService )
     {
-        // TODO add null check
+        checkNotNull( jdbcEventStore );
+        checkNotNull( eventDataValueService );
+        checkNotNull( programStageInstanceStore );
+        checkNotNull( identifiableObjectManager );
+        checkNotNull( trackedEntityCommentService );
+
         this.jdbcEventStore = jdbcEventStore;
         this.eventDataValueService = eventDataValueService;
         this.programStageInstanceStore = programStageInstanceStore;
+        this.identifiableObjectManager = identifiableObjectManager;
+        this.trackedEntityCommentService = trackedEntityCommentService;
     }
 
     @Override
@@ -95,6 +121,45 @@ public class DefaultEventPersistenceService
 
     }
 
+    @Override
+    public List<ProgramStageInstance> update( final ValidationContext context, final List<Event> events )
+    {
+        if ( isNotEmpty( events ) )
+        {
+            // FIXME: Implement and add the correct mapper.
+            final List<ProgramStageInstance> programStageInstances = convertToProgramStageInstances(
+                new ProgramStageInstanceMapper( context ), events );
+
+            // TODO: Implement the jdbcEventStore.updateEvents method
+            jdbcEventStore.updateEvents( programStageInstances );
+
+            long now = System.nanoTime();
+
+            // TODO this for loop slows down the process...
+            for ( final ProgramStageInstance programStageInstance : programStageInstances )
+            {
+                final ImportSummary importSummary = new ImportSummary( programStageInstance.getUid() );
+                final Event event = getEvent( programStageInstance.getUid(), events );
+                final ImportOptions importOptions = context.getImportOptions();
+
+                saveTrackedEntityComment( programStageInstance, event, importOptions );
+
+                eventDataValueService.processDataValues(
+                    programStageInstanceStore.getByUid( programStageInstance.getUid() ),
+                    event, false, importOptions, importSummary,
+                    context.getDataElementMap() );
+
+                // TODO: Find how to bring this into the update transaction.
+                context.getTrackedEntityInstanceMap().values().forEach( tei -> identifiableObjectManager.update( tei, importOptions.getUser() ) );
+            }
+
+            System.out.println( "UPDATE: Processing Data Value for " + programStageInstances.size() + " PSI took : "
+                + TimeUnit.SECONDS.convert( System.nanoTime() - now, TimeUnit.NANOSECONDS ) );
+        }
+
+        return null;
+    }
+
     private Event getEvent( String uid, List<Event> events )
     {
         return events.stream().filter( event -> event.getUid().equals( uid ) ).findFirst().get();
@@ -104,5 +169,29 @@ public class DefaultEventPersistenceService
         List<Event> events )
     {
         return events.stream().map( mapper::convert ).collect( Collectors.toList() );
+    }
+
+    private void saveTrackedEntityComment( final ProgramStageInstance programStageInstance, final Event event,
+        final ImportOptions importOptions )
+    {
+        for ( final Note note : event.getNotes() )
+        {
+            final String noteUid = isValidUid( note.getNote() ) ? note.getNote() : generateUid();
+
+            if ( !trackedEntityCommentService.trackedEntityCommentExists( noteUid ) && !isEmpty( note.getValue() ) )
+            {
+                final TrackedEntityComment comment = new TrackedEntityComment();
+                comment.setUid( noteUid );
+                comment.setCommentText( note.getValue() );
+                comment.setCreator( getValidUsername( note.getStoredBy(), importOptions ) );
+
+                final Date created = parseDate( note.getStoredDate() );
+                comment.setCreated( created );
+
+                trackedEntityCommentService.addTrackedEntityComment( comment );
+
+                programStageInstance.getComments().add( comment );
+            }
+        }
     }
 }
