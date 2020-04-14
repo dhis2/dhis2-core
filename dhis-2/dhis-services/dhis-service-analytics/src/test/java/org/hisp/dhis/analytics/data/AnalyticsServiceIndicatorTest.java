@@ -29,6 +29,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -43,7 +44,10 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -599,6 +603,29 @@ public class AnalyticsServiceIndicatorTest
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA, indicatorB, indicatorC ) );
     }
 
+    @Test
+    public void verifyGridAlwaysContainValueOfDoubleType()
+    {
+        // Given
+        IndicatorType indicatorTypeAny = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeAny );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeAny );
+
+        indicatorA.setUid( "mindicatorA" );
+        indicatorA.setNumerator( "1" );
+        indicatorA.setDenominator( "1" );
+        indicatorA.setDecimals( 0 );
+
+        indicatorService.addIndicator( indicatorA );
+
+        // When
+        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorA ) );
+
+        // Then
+        assertThat( grid.getColumn( 2 ).get( 0 ), is( instanceOf( Double.class ) ) );
+    }
+
     private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator )
     {
         Indicator indicator = createIndicator( uniqueCharacter, type );
@@ -611,11 +638,15 @@ public class AnalyticsServiceIndicatorTest
         return indicator;
     }
 
-    private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator, String denominator)
+    private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator, String denominator )
     {
-        Indicator indicator = createIndicator(uniqueCharacter, type, numerator);
-        indicator.setDenominator(denominator);
+        Indicator indicator = createIndicator( uniqueCharacter, type );
 
+        indicator.setUid( "mindicator" + uniqueCharacter );
+        indicator.setNumerator( numerator );
+        indicator.setDenominator( denominator );
+
+        indicatorService.addIndicator( indicator );
         return indicator;
     }
 
