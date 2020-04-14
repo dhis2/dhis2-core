@@ -61,6 +61,11 @@ public class OptionSetObjectBundleHook
 
     private void updateOption( OptionSet optionSet )
     {
+        if ( optionSet.getOptions() != null && !optionSet.getOptions().isEmpty() )
+        {
+            return;
+        }
+
         optionSet.getOptions().forEach( option -> {
 
             if ( option.getOptionSet() == null )
