@@ -528,12 +528,12 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.program.EventSyncService"
     class="org.hisp.dhis.program.DefaultEventSyncService">
     <property name="eventSyncStore" ref="org.hisp.dhis.program.EventSyncStore" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.program.EventSyncStore"
     class="org.hisp.dhis.program.hibernate.HibernateEventSyncStore">
     <property name="sessionFactory" ref="sessionFactory" />
@@ -609,7 +609,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore"
     class="org.hisp.dhis.programstagefilter.hibernate.HibernateProgramStageInstanceFilterStore">
     <property name="clazz" value="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter" />
@@ -723,7 +723,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="readOnlyJdbcTemplate" ref="readOnlyJdbcTemplate" />
-    <property name="statementBuilder" ref="statementBuilder" />    
+    <property name="statementBuilder" ref="statementBuilder" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
 
@@ -1272,7 +1272,7 @@
     class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
   </bean>
-  
+
    <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService"
     class="org.hisp.dhis.programstagefilter.DefaultProgramStageInstanceFilterService">
   </bean>
@@ -1420,7 +1420,7 @@
   <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob" />
 
   <!-- Startup routine definitions -->
-  
+
   <bean id="org.hisp.dhis.period.PeriodTypePopulator" class="org.hisp.dhis.period.PeriodTypePopulator">
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="name" value="PeriodTypePopulator" />
@@ -1587,7 +1587,7 @@
 
   <bean id="org.hisp.dhis.predictor.PredictorDeletionHandler"
     class="org.hisp.dhis.predictor.PredictorDeletionHandler" />
-    
+
   <bean id="org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler"
     class="org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler" />
 
@@ -1635,25 +1635,29 @@
 
   <bean id="org.hisp.dhis.program.ProgramInstanceDeletionHandler"
     class="org.hisp.dhis.program.ProgramInstanceDeletionHandler">
-    <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+    <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService"/>
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler"
-    class="org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler">
+        class="org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler">
   </bean>
 
   <bean id="org.hisp.dhis.relationship.RelationshipDeletionHandler"
-    class="org.hisp.dhis.relationship.RelationshipDeletionHandler" />
+        class="org.hisp.dhis.relationship.RelationshipDeletionHandler"/>
+
+  <bean id="org.hisp.dhis.relationship.RelationshipTypeDeletionHandler"
+        class="org.hisp.dhis.relationship.RelationshipTypeDeletionHandler"/>
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler"
-    class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler">
-    <property name="attributeValueService" ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService" />
+        class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler">
+    <property name="attributeValueService"
+              ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"/>
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramDeletionHandler" class="org.hisp.dhis.program.ProgramDeletionHandler" />
+  <bean id="org.hisp.dhis.program.ProgramDeletionHandler" class="org.hisp.dhis.program.ProgramDeletionHandler"/>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler"
-    class="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler">
+        class="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
