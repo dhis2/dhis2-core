@@ -63,14 +63,14 @@ public class DataElementResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = "CREATE TABLE " + getTempTableName() + " (" +
-            "dataelementid INTEGER NOT NULL PRIMARY KEY, " +
+            "dataelementid BIGINT NOT NULL PRIMARY KEY, " +
             "dataelementuid CHARACTER(11), " +
             "dataelementname VARCHAR(230), " +
-            "datasetid INTEGER, " +
+            "datasetid BIGINT, " +
             "datasetuid CHARACTER(11), " +
             "datasetname VARCHAR(230), " +
             "datasetapprovallevel INTEGER, " +
-            "workflowid INTEGER, " +
+            "workflowid BIGINT, " +
             "periodtypeid INTEGER, " +
             "periodtypename VARCHAR(230))";
 
