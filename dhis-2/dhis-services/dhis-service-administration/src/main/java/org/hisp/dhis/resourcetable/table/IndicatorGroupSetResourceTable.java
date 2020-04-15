@@ -61,7 +61,7 @@ public class IndicatorGroupSetResourceTable
     public String getCreateTempTableStatement()
     {
         String statement = "create table " + getTempTableName() + " (" +
-            "indicatorid integer not null, " +
+            "indicatorid bigint not null, " +
             "indicatorname varchar(230), ";
 
         for ( IndicatorGroupSet groupSet : objects )
