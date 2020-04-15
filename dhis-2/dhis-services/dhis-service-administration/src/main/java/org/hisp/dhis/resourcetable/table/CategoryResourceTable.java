@@ -64,7 +64,7 @@ public class CategoryResourceTable
     public String getCreateTempTableStatement()
     {
         String statement = "create table " + getTempTableName() + " (" +
-            "categoryoptioncomboid integer not null, " +
+            "categoryoptioncomboid bigint not null, " +
             "categoryoptioncomboname varchar(255), ";
 
         for ( Category category : objects )
