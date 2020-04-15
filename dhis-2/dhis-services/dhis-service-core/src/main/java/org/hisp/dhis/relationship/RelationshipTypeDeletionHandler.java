@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
 /**
  * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
 public class RelationshipTypeDeletionHandler
     extends
     DeletionHandler
@@ -45,9 +44,9 @@ public class RelationshipTypeDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final RelationshipTypeService relationshipTypeService;
+    private RelationshipTypeService relationshipTypeService;
 
-    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
+    public void setRelationshipTypeSevice( RelationshipTypeService relationshipTypeService )
     {
         this.relationshipTypeService = relationshipTypeService;
     }
