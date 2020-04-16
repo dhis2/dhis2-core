@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.visualization;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,52 +28,49 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.option.OptionSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
+import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
+import org.hisp.dhis.legend.LegendSet;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OptionSetObjectBundleHook
-    extends AbstractObjectBundleHook
+public class VisualizationDeletionHandler
+    extends
+    GenericAnalyticalObjectDeletionHandler<Visualization>
 {
-    @Override
-    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
-    {
-        if ( !OptionSet.class.isInstance( persistedObject ) )
-        {
-            return;
-        }
+    private final VisualizationService visualizationService;
 
-        updateOption( (OptionSet) persistedObject );
+    public VisualizationDeletionHandler( final VisualizationService visualizationService )
+    {
+        checkNotNull( visualizationService );
+        this.visualizationService = visualizationService;
     }
 
     @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    protected AnalyticalObjectService<Visualization> getAnalyticalObjectService()
     {
-        if ( !OptionSet.class.isInstance( persistedObject ) )
-        {
-            return;
-        }
-
-        updateOption( (OptionSet) persistedObject );
+        return visualizationService;
     }
 
-    private void updateOption( OptionSet optionSet )
+    @Override
+    public String getClassName()
     {
-        if ( optionSet.getOptions() != null && !optionSet.getOptions().isEmpty() )
+        return Visualization.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteLegendSet( final LegendSet legendSet )
+    {
+        final List<Visualization> visualizations = visualizationService.getAnalyticalObjects( legendSet );
+
+        for ( final Visualization visualization : visualizations )
         {
-            return;
+            visualization.setLegendSet( null );
+            visualizationService.update( visualization );
         }
-
-        optionSet.getOptions().forEach( option -> {
-
-            if ( option.getOptionSet() == null )
-            {
-                option.setOptionSet( optionSet );
-            }
-        } );
-
-        sessionFactory.getCurrentSession().refresh( optionSet );
     }
 }

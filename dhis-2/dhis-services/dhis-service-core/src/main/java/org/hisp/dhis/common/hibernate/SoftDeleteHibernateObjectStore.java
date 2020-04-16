@@ -1,5 +1,3 @@
-package org.hisp.dhis.visualization;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,21 +26,40 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.common.hibernate;
 
-@Component( "org.hisp.dhis.visualization.VisualizationDeletionHandler" )
-public class VisualizationDeletionHandler
-    extends
-    DeletionHandler
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+/**
+ * @author Enrico Colasante
+ */
+@Slf4j
+public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
+    extends HibernateIdentifiableObjectStore<T>
 {
-    public VisualizationDeletionHandler()
+    public SoftDeleteHibernateObjectStore( SessionFactory sessionFactory,
+        JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService,
+        AclService aclService, boolean cacheable )
     {
+        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, deletedObjectService, aclService,
+            cacheable );
     }
 
     @Override
-    public String getClassName()
+    public void delete( SoftDeletableObject object )
     {
-        return Visualization.class.getSimpleName();
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        object.setDeleted( true );
+        getSession().update( object );
     }
 }
