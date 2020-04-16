@@ -123,7 +123,7 @@ pipeline {
                                     }
                                 }
                             }
-                            always {
+                            cleanup {
                                 script {
                                     dir("dhis-2/dhis-e2e-test") {
                                         sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} down -v --remove-orphans"
