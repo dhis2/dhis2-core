@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,52 +25,48 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
+import java.util.Objects;
+
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-public class IllegalQueryException
-    extends RuntimeException
+public class RelationshipTypeDeletionHandler
+    extends
+    DeletionHandler
 {
-    private ErrorCode errorCode;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    public IllegalQueryException( String message )
+    private final RelationshipTypeService relationshipTypeService;
+
+    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
     {
-        super( message );
+        this.relationshipTypeService = relationshipTypeService;
     }
 
-    /**
-     * Constructor. Sets the message based on the error code message.
-     *
-     * @param errorCode the {@link ErrorCode}.
-     */
-    public IllegalQueryException( ErrorCode errorCode )
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
     {
-        super( errorCode.getMessage() );
-        this.errorCode = errorCode;
+        return RelationshipType.class.getSimpleName();
     }
 
-    /**
-     * Constructor. Sets the message and error code based on the error message.
-     *
-     * @param errorMessage the {@link ErrorMessage}.
-     */
-    public IllegalQueryException( ErrorMessage errorMessage )
+    @Override
+    public void deleteProgram( Program program )
     {
-        super( errorMessage.getMessage() );
-        this.errorCode = errorMessage.getErrorCode();
-    }
-
-    /**
-     * Returns the {@link ErrorCode} of the exception.
-     *
-     * @return the {@link ErrorCode} of the exception.
-     */
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
     }
 }

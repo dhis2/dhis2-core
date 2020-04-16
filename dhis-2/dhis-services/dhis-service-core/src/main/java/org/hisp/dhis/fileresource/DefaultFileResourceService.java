@@ -1,5 +1,7 @@
 package org.hisp.dhis.fileresource;
 
+import org.apache.commons.io.FilenameUtils;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,6 +32,8 @@ package org.hisp.dhis.fileresource;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -38,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import com.google.common.collect.Sets;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +51,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -59,6 +66,12 @@ public class DefaultFileResourceService
 
     private static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
         ( fr -> !fr.isAssigned() );
+
+    private static final Set<String> CONTENT_TYPE_BLACKLIST = Sets.newHashSet( "text/html",
+        "application/vnd.debian.binary-package", "application/x-rpm", "application/x-ms-dos-executable",
+        "application/vnd.microsoft.portable-executable" );
+
+    private static final Set<String> FILE_EXTENSION_BLACKLIST = Sets.newHashSet( "html", "deb", "rpm", "exe" );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -127,6 +140,8 @@ public class DefaultFileResourceService
     @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
+        validateFileResource( fileResource );
+
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
     }
 
@@ -210,6 +225,29 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Validates the given {@link FileResource}. Throws an exception if not.
+     *
+     * @param fileResource the file resource.
+     * @throws IllegalQueryException if the given file resource is invalid.
+     */
+    private void validateFileResource( FileResource fileResource )
+        throws IllegalQueryException
+    {
+        String filename = fileResource.getName();
+
+        if ( filename == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E6100 );
+        }
+
+        if ( CONTENT_TYPE_BLACKLIST.contains( fileResource.getContentType() )
+            || FILE_EXTENSION_BLACKLIST.contains( FilenameUtils.getExtension( filename ) ) )
+        {
+            throw new IllegalQueryException( ErrorCode.E6101 );
+        }
+    }
 
     private String saveFileResourceInternal( FileResource fileResource, Callable<String> saveCallable )
     {

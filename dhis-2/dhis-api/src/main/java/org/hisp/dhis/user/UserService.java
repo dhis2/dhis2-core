@@ -208,6 +208,8 @@ public interface UserService
      */
     UserCredentials getUserCredentialsByUsername( String username );
 
+    UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username );
+
     /**
      * Retrieves the UserCredentials associated with the User with the given
      * OpenID.

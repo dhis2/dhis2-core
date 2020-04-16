@@ -61,7 +61,7 @@ public class DataElementGroupSetResourceTable
     public String getCreateTempTableStatement()
     {
         String statement = "create table " + getTempTableName() + " (" +
-            "dataelementid integer not null, " +
+            "dataelementid bigint not null, " +
             "dataelementname varchar(230), ";
 
         for ( DataElementGroupSet groupSet : objects )
