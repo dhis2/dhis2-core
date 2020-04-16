@@ -118,7 +118,7 @@ pipeline {
                             failure {
                                 script {
                                     dir("dhis-2/dhis-e2e-test") {
-                                        sh "docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} logs web > ${DOCKER_VARIANT}logs.txt"
+                                        sh "IMAGE_NAME=${DOCKER_CORE_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER}${DOCKER_VARIANT} logs web > ${DOCKER_VARIANT}logs.txt"
                                         archiveArtifacts artifacts: "${DOCKER_VARIANT}logs.txt"
                                     }
                                 }
