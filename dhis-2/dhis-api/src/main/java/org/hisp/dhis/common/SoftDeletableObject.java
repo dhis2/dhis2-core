@@ -1,4 +1,4 @@
-package org.hisp.dhis.category;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,48 +28,76 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.audit.AuditAttribute;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Objects;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.category.CategoryOptionGroupDeletionHandler" )
-public class CategoryOptionGroupDeletionHandler
-    extends DeletionHandler
+@JacksonXmlRootElement( localName = "softDeletableObject", namespace = DxfNamespaces.DXF_2_0 )
+public class SoftDeletableObject extends BaseIdentifiableObject
 {
+    /**
+     * Boolean to check if the object is soft deleted.
+     */
+    @AuditAttribute
+    private boolean deleted = false;
+
     // -------------------------------------------------------------------------
-    // Dependencies
+    // Constructors
     // -------------------------------------------------------------------------
 
-    private final CategoryService categoryService;
-
-    public CategoryOptionGroupDeletionHandler( CategoryService categoryService )
+    public SoftDeletableObject()
     {
-        checkNotNull( categoryService );
+    }
 
-        this.categoryService = categoryService;
+    public SoftDeletableObject( boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     // -------------------------------------------------------------------------
-    // DeletionHandler implementation
+    // Setters and getters
     // -------------------------------------------------------------------------
 
-    @Override
-    public String getClassName()
+    @JsonProperty
+    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDeleted()
     {
-        return CategoryOptionGroup.class.getName();
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     @Override
-    public void deleteCategoryOption( CategoryOption categoryOption )
+    public boolean equals( Object o )
     {
-        for ( CategoryOptionGroup group : categoryOption.getGroups() )
+        if ( this == o )
         {
-            group.getMembers().remove( categoryOption );
-            categoryService.updateCategoryOptionGroup( group );
+            return true;
         }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+        SoftDeletableObject that = (SoftDeletableObject) o;
+        return deleted == that.deleted;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), deleted );
     }
 }

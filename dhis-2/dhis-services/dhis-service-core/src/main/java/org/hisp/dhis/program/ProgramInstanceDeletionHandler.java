@@ -71,9 +71,9 @@ public class ProgramInstanceDeletionHandler
     {
         for ( ProgramInstance programInstance : trackedEntityInstance.getProgramInstances() )
         {
-            programInstanceService.deleteProgramInstance( programInstance, false );
+            programInstanceService.deleteProgramInstance( programInstance );
         }
-    }   
+    }
 
     @Override
     public void deleteProgram( Program program )
@@ -87,7 +87,7 @@ public class ProgramInstanceDeletionHandler
             {
                 ProgramInstance programInstance = iterator.next();
                 iterator.remove();
-                programInstanceService.deleteProgramInstance( programInstance, true );
+                programInstanceService.deleteProgramInstance( programInstance );
             }
         }
     }

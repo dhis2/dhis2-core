@@ -1,5 +1,3 @@
-package org.hisp.dhis.category;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,48 +26,40 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.common.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.category.CategoryOptionGroupDeletionHandler" )
-public class CategoryOptionGroupDeletionHandler
-    extends DeletionHandler
+@Slf4j
+public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
+    extends HibernateIdentifiableObjectStore<T>
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private final CategoryService categoryService;
-
-    public CategoryOptionGroupDeletionHandler( CategoryService categoryService )
+    public SoftDeleteHibernateObjectStore( SessionFactory sessionFactory,
+        JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService,
+        AclService aclService, boolean cacheable )
     {
-        checkNotNull( categoryService );
-
-        this.categoryService = categoryService;
-    }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getClassName()
-    {
-        return CategoryOptionGroup.class.getName();
+        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, deletedObjectService, aclService,
+            cacheable );
     }
 
     @Override
-    public void deleteCategoryOption( CategoryOption categoryOption )
+    public void delete( SoftDeletableObject object )
     {
-        for ( CategoryOptionGroup group : categoryOption.getGroups() )
-        {
-            group.getMembers().remove( categoryOption );
-            categoryService.updateCategoryOptionGroup( group );
-        }
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        object.setDeleted( true );
+        getSession().update( object );
     }
 }

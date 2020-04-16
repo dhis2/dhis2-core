@@ -935,8 +935,6 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
-            programInstance.getProgramStageInstances().stream()
-                .forEach( psi -> programStageInstanceService.deleteProgramStageInstance( psi ) );
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 

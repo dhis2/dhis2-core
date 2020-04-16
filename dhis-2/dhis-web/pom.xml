@@ -182,7 +182,7 @@
   <properties>
     <rootDir>../</rootDir>
     <useWarCompression>true</useWarCompression>
-    <maven-jetty-plugin.version>9.4.25.v20191220</maven-jetty-plugin.version>
+    <maven-jetty-plugin.version>9.4.27.v20200227</maven-jetty-plugin.version>
     <tomcat.version>8.5.47</tomcat.version>
   </properties>
 
