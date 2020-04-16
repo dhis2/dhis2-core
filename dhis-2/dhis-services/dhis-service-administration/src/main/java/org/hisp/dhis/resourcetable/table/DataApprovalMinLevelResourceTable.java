@@ -59,10 +59,10 @@ public class DataApprovalMinLevelResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = "create table " + getTempTableName() + "(" +
-            "workflowid integer not null, " +
-            "periodid integer not null, " +
-            "organisationunitid integer not null, " +
-            "attributeoptioncomboid integer not null, " +
+            "workflowid bigint not null, " +
+            "periodid bigint not null, " +
+            "organisationunitid bigint not null, " +
+            "attributeoptioncomboid bigint not null, " +
             "minlevel integer not null, " +
             "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
 
