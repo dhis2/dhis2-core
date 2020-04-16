@@ -28,17 +28,19 @@ package org.hisp.dhis.dto;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.gson.JsonObject;
+
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -55,7 +57,6 @@ public class ApiResponse
     /**
      * Extracts uid when only one object was created.
      *
-     * @return
      */
     public String extractUid()
     {
@@ -80,7 +81,6 @@ public class ApiResponse
      * Extracts uids from import summaries.
      * Use when more than one object was created.
      *
-     * @return
      */
     public List<String> extractUids()
     {
@@ -141,7 +141,7 @@ public class ApiResponse
 
     public boolean containsImportSummaries()
     {
-        return getContentType().contains( "json" ) ? !CollectionUtils.isEmpty( getImportSummaries() ) : false;
+        return getContentType().contains( "json" ) && !CollectionUtils.isEmpty( getImportSummaries() );
     }
 
     public List<ImportSummary> getImportSummaries()
@@ -160,7 +160,8 @@ public class ApiResponse
             case "ImportSummaries":
                 return this.extractList( pathToImportSummaries + "importSummaries", ImportSummary.class );
             case "ImportSummary":
-                return Arrays.asList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
+                return Collections
+                    .singletonList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
             }
 
         }
@@ -182,9 +183,7 @@ public class ApiResponse
     public List<ImportSummary> getSuccessfulImportSummaries()
     {
         return getImportSummaries().stream()
-            .filter( is -> {
-                return is.getStatus().equalsIgnoreCase( "SUCCESS" );
-            } )
+            .filter( is -> is.getStatus().equalsIgnoreCase( "SUCCESS" ) )
             .collect( Collectors.toList() );
     }
 

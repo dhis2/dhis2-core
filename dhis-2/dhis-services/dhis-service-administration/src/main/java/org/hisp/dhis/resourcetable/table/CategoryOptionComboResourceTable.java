@@ -57,9 +57,9 @@ public class CategoryOptionComboResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = "CREATE TABLE " + getTempTableName() + " (" +
-            "dataelementid INTEGER NOT NULL, " +
+            "dataelementid BIGINT NOT NULL, " +
             "dataelementuid VARCHAR(11) NOT NULL, " +
-            "categoryoptioncomboid INTEGER NOT NULL, " +
+            "categoryoptioncomboid BIGINT NOT NULL, " +
             "categoryoptioncombouid VARCHAR(11) NOT NULL)";
 
         return sql;
