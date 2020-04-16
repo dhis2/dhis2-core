@@ -268,7 +268,7 @@ public class SmsController
             }
 
             // current user does not belong to this number
-            throw new WebMessageException( WebMessageUtils.conflict( "originator's number does not match user's phone number" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
         }
 
         return users.iterator().next();
