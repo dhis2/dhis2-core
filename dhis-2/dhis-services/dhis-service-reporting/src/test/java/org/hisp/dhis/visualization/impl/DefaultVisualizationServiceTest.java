@@ -67,7 +67,7 @@ public class DefaultVisualizationServiceTest
 {
 
     @Mock
-    private VisualizationStore visualizationStore;
+    private AnalyticalObjectStore<Visualization> visualizationStore;
 
     @Mock
     private AnalyticsService analyticsService;
