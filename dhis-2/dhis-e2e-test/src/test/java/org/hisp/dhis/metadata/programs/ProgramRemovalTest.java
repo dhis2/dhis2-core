@@ -1,5 +1,3 @@
-package org.hisp.dhis.metadata.orgunits;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,74 +26,79 @@ package org.hisp.dhis.metadata.orgunits;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hamcrest.Matchers;
+package org.hisp.dhis.metadata.programs;
+
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.OrgUnitActions;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import java.io.File;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnitsParentAssignmentTests
+public class ProgramRemovalTest
     extends ApiTest
 {
-    private LoginActions loginActions;
+    private ProgramActions programActions;
 
-    private OrgUnitActions orgUnitActions;
+    private RestApiActions relationshipTypeActions;
+
+    private String programId;
+
+    private String relationshipTypeId;
 
     @BeforeEach
-    public void setUp()
+    public void beforeEach()
+        throws Exception
     {
-        loginActions = new LoginActions();
-        orgUnitActions = new OrgUnitActions();
+        programActions = new ProgramActions();
+        relationshipTypeActions = new RestApiActions( "/relationshipTypes" );
 
-        loginActions.loginAsSuperUser();
+        new LoginActions().loginAsSuperUser();
+        setupData();
     }
 
     @Test
-    public void shouldAssignReferenceToBoth()
+    public void shouldRemoveRelationshipTypesWhenProgramIsRemoved()
     {
-        String orgUnitId = orgUnitActions.createOrgUnit();
+        programActions.delete( programId )
+            .validate().statusCode( 200 );
 
-        assertNotNull( orgUnitId, "Parent org unit wasn't created" );
-        String childId = orgUnitActions.createOrgUnitWithParent( orgUnitId );
-
-        assertNotNull( childId, "Child org unit wasn't created" );
-
-        ApiResponse response = orgUnitActions.get( childId );
-        response.validate()
-            .statusCode( 200 )
-            .body( "parent.id", Matchers.equalTo( orgUnitId ) );
-
-        response = orgUnitActions.get( orgUnitId );
-        response.validate()
-            .statusCode( 200 )
-            .body( "children", Matchers.not( Matchers.emptyArray() ) )
-            .body( "children.id", Matchers.not( Matchers.emptyArray() ) )
-            .body( "children.id[0]", Matchers.equalTo( childId ) );
+        relationshipTypeActions.get( relationshipTypeId )
+            .validate().statusCode( 404 );
     }
 
-    @Test
-    public void shouldAdjustTheOrgUnitTree()
+    private void setupData()
+        throws Exception
     {
-        String parentOrgUnitId = orgUnitActions.createOrgUnit( 1 );
-        String intOrgUnit = orgUnitActions.createOrgUnitWithParent( parentOrgUnitId, 1 );
-        String childOrgUnitId = orgUnitActions.createOrgUnitWithParent( intOrgUnit );
+        programId = programActions.createProgram( "WITH_REGISTRATION" ).extractUid();
+        assertNotNull( programId, "Failed to create program" );
 
-        orgUnitActions.get( intOrgUnit )
-            .validate()
-            .statusCode( 200 )
-            .body( "level", equalTo( 2 ) );
+        JsonObject relationshipType = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/relationshipTypes.json" ) )
+            .get( JsonObject.class ).getAsJsonArray( "relationshipTypes" ).get( 0 )
+            .getAsJsonObject();
 
-        orgUnitActions.get( childOrgUnitId )
-            .validate()
-            .statusCode( 200 )
-            .body( "level", equalTo( 3 ) );
+        JsonObject constraint = new JsonObject();
+
+        constraint.addProperty( "relationshipEntity", "PROGRAM_STAGE_INSTANCE" );
+
+        JsonObject program = new JsonObject();
+        program.addProperty( "id", programId );
+
+        constraint.add( "program", program );
+        relationshipType.add( "toConstraint", constraint );
+
+        relationshipTypeId = relationshipTypeActions.create( relationshipType );
+        assertNotNull( relationshipTypeId, "Failed to create relationshipType" );
+
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.helpers.config;
+package org.hisp.dhis.visualization;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,26 +28,49 @@ package org.hisp.dhis.helpers.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-@org.aeonbits.owner.Config.LoadPolicy( org.aeonbits.owner.Config.LoadType.MERGE )
-@Config.Sources( { "system:properties", "system:env", "classpath:config.properties" } )
-public interface Config
-    extends org.aeonbits.owner.Config
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
+import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
+import org.hisp.dhis.legend.LegendSet;
+import org.springframework.stereotype.Component;
+
+@Component
+public class VisualizationDeletionHandler
+    extends
+    GenericAnalyticalObjectDeletionHandler<Visualization>
 {
-    @Key( "instance.url" )
-    String baseUrl();
+    private final VisualizationService visualizationService;
 
-    @Key( "user.super.password" )
-    String superUserPassword();
+    public VisualizationDeletionHandler( final VisualizationService visualizationService )
+    {
+        checkNotNull( visualizationService );
+        this.visualizationService = visualizationService;
+    }
 
-    @Key( "user.super.username" )
-    String superUserUsername();
+    @Override
+    protected AnalyticalObjectService<Visualization> getAnalyticalObjectService()
+    {
+        return visualizationService;
+    }
 
-    @Key( "user.default.username" )
-    String defaultUserUsername();
+    @Override
+    public String getClassName()
+    {
+        return Visualization.class.getSimpleName();
+    }
 
-    @Key( "user.default.password" )
-    String defaultUSerPassword();
+    @Override
+    public void deleteLegendSet( final LegendSet legendSet )
+    {
+        final List<Visualization> visualizations = visualizationService.getAnalyticalObjects( legendSet );
+
+        for ( final Visualization visualization : visualizations )
+        {
+            visualization.setLegendSet( null );
+            visualizationService.update( visualization );
+        }
+    }
 }

@@ -120,23 +120,7 @@ public class DefaultProgramStageInstanceService
     @Transactional
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        deleteProgramStageInstance( programStageInstance, false );
-    }
-
-    @Override
-    @Transactional
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete )
-    {
-        if ( forceDelete )
-        {
-            programStageInstanceStore.delete( programStageInstance );
-        }
-        else
-        {
-            // Soft delete
-            programStageInstance.setDeleted( true );
-            programStageInstanceStore.save( programStageInstance );
-        }
+        programStageInstanceStore.delete( programStageInstance );
     }
 
     @Override
