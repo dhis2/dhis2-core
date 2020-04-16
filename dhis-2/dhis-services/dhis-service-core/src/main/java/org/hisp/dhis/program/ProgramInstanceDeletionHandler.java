@@ -87,7 +87,7 @@ public class ProgramInstanceDeletionHandler
             {
                 ProgramInstance programInstance = iterator.next();
                 iterator.remove();
-                programInstanceService.deleteProgramInstance( programInstance );
+                programInstanceService.hardDeleteProgramInstance( programInstance );
             }
         }
     }
