@@ -57,6 +57,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,6 +101,8 @@ public class DefaultTrackedEntityInstanceService
 
     private final RenderService renderService;
 
+    private final ApplicationEventPublisher publisher;
+
     // FIXME luciano using @Lazy here because we have circular dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -108,7 +111,8 @@ public class DefaultTrackedEntityInstanceService
         OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
         TrackedEntityAttributeValueAuditService attributeValueAuditService,
         TrackedEntityInstanceAuditService trackedEntityInstanceAuditService, AclService aclService,
-        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager, RenderService renderService )
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager, AuditManager auditManager,
+        RenderService renderService, ApplicationEventPublisher publisher )
     {
         checkNotNull( trackedEntityInstanceStore );
         checkNotNull( attributeValueService );
@@ -123,6 +127,7 @@ public class DefaultTrackedEntityInstanceService
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( auditManager );
         checkNotNull( renderService );
+        checkNotNull( publisher );
 
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.attributeValueService = attributeValueService;
@@ -137,6 +142,7 @@ public class DefaultTrackedEntityInstanceService
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.auditManager = auditManager;
         this.renderService = renderService;
+        this.publisher = publisher;
     }
 
     // -------------------------------------------------------------------------
@@ -907,6 +913,7 @@ public class DefaultTrackedEntityInstanceService
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         instance.setDeleted( true );
         trackedEntityInstanceStore.update( instance );
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( instance ) );
     }
 
     @Override
