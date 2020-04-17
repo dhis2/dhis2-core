@@ -40,12 +40,11 @@ import lombok.Getter;
 @Builder
 public class ServiceDelegator
 {
+    private final ProgramInstanceStore programInstanceStore;
 
-    private ProgramInstanceStore programInstanceStore;
+    private final TrackerAccessManager trackerAccessManager;
 
-    private TrackerAccessManager trackerAccessManager;
+    private final ProgramRuleVariableService programRuleVariableService;
 
-    private ProgramRuleVariableService programRuleVariableService;
-
-    private ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
 }

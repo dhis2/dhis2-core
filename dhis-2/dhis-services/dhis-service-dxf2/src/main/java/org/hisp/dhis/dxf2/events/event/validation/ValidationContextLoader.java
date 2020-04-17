@@ -29,9 +29,12 @@ package org.hisp.dhis.dxf2.events.event.validation;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +60,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.AttributeOptionComboLoader;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -163,6 +168,7 @@ public class ValidationContextLoader
                 .programStageInstanceMap( loadProgramStageInstances( events ) )
                 .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
                 .dataElementMap( loadDateElements( events, importOptions) )
+            .notesMap( loadNotes( events ) )
                 .assignedUserMap( loadAssignedUsers( events ) )
                 .serviceDelegator( loadServices() )
                 .build();
@@ -182,6 +188,64 @@ public class ValidationContextLoader
     }
 
     /**
+     * Loads a Map containing the Notes which are not present in the database and, therefore, have to
+     * be persisted.
+     *
+     * @param events a List of Events
+     * @return a Map, where the key is the Note UID and the value is the Note
+     */
+    private Map<String, Note> loadNotes( List<Event> events ) {
+
+        Map<String, Note> persistableNotes = new HashMap<>();
+        //
+        // Collects all the notes' UID
+        //
+        // @formatter:off
+        Set<String> notesUid = events.stream()
+            .map( Event::getNotes )
+            .flatMap( Collection::stream )
+            .map( Note::getNote )
+            .collect( Collectors.toSet() );
+        // @formatter:on
+        
+        if ( isNotEmpty( notesUid ) )
+        {
+            final String sql = "select uid from trackedentitycomment where uid in  (:ids)";
+
+            MapSqlParameterSource parameters = new MapSqlParameterSource();
+            parameters.addValue( "ids", notesUid );
+
+            List<String> foundNotes = new ArrayList<>();
+
+            //
+            // finds all the notes that EXIST in the DB (by uid)
+            //
+            jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+                while ( rs.next() )
+                {
+                    foundNotes.add( rs.getString( "uid" ) );
+                }
+
+            } );
+
+            for ( Event event : events )
+            {
+                // @formatter:off
+                List<Note> eventNotes = event.getNotes().stream()
+                        .filter(u -> !foundNotes.contains(u.getNote()))
+                        .collect(Collectors.toList());
+                // @formatter:on
+                if ( isNotEmpty( eventNotes ) )
+                {
+                    persistableNotes.putAll(
+                        eventNotes.stream().collect( Collectors.toMap( Note::getNote, Function.identity() ) ) );
+                }
+            }
+        }
+        return persistableNotes;
+    }
+
+    /**
      *
      * @param events
      * @param importOptions
@@ -189,7 +253,7 @@ public class ValidationContextLoader
      */
     private Map<String, DataElement> loadDateElements( List<Event> events, ImportOptions importOptions )
     {
-        Map<String, DataElement> dataElementsMap = new HashMap<>();
+        Map<String, DataElement> dataElementsMap;
         
         IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
 
@@ -339,6 +403,11 @@ public class ValidationContextLoader
             .filter( e -> e.getTrackedEntityInstance() != null )
             .map( Event::getTrackedEntityInstance ).collect( Collectors.toSet() );
 
+        if (isEmpty( teiUids ))
+        {
+            return new HashMap<>();
+        }
+         
         // Create a bi-directional map tei uid -> org unit id
         Map<String, String> teiToEvent = events.stream()
             .filter( e -> e.getTrackedEntityInstance() != null )

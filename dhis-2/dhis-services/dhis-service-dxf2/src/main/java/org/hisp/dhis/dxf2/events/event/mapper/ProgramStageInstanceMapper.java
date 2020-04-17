@@ -30,47 +30,50 @@ package org.hisp.dhis.dxf2.events.event.mapper;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Luciano Fiandesio
  */
 public class ProgramStageInstanceMapper
+    extends
+    AbstractMapper<Event, ProgramStageInstance>
 {
-
-    private WorkContext validationContext;
-
+    private final ProgramStageInstanceNoteMapper noteMapper;
+    
     public ProgramStageInstanceMapper( WorkContext ctx )
     {
-        this.validationContext = ctx;
+        super( ctx );
+        noteMapper = new ProgramStageInstanceNoteMapper( ctx );
     }
 
-    public ProgramStageInstance convert( Event event )
+    public ProgramStageInstance map( Event event )
     {
-        ImportOptions importOptions = validationContext.getImportOptions();
+        ImportOptions importOptions = workContext.getImportOptions();
         ProgramStageInstance psi = new ProgramStageInstance();
 
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ) )
         {
             psi.setCode( event.getUid() );
         }
-        else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( IdScheme.UID ))
+        else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( IdScheme.UID ) )
         {
             psi.setUid( event.getUid() );
         } // TODO what about other schemes, like id?
 
         // FKs
-        psi.setProgramInstance( this.validationContext.getProgramInstanceMap().get( event.getUid() ) );
-        psi.setProgramStage( this.validationContext.getProgramStage( event.getProgramStage() ) );
-        psi.setOrganisationUnit( this.validationContext.getOrganisationUnitMap().get( event.getUid() ) );
+        psi.setProgramInstance( this.workContext.getProgramInstanceMap().get( event.getUid() ) );
+        psi.setProgramStage( this.workContext.getProgramStage( event.getProgramStage() ) );
+        psi.setOrganisationUnit( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
 
         // EXECUTION + DUE DATE
         Date executionDate = null;
@@ -109,7 +112,7 @@ public class ProgramStageInstanceMapper
 
         // ATTRIBUTE OPTION COMBO
 
-        psi.setAttributeOptionCombo( this.validationContext.getCategoryOptionComboMap().get( event.getUid() ) );
+        psi.setAttributeOptionCombo( this.workContext.getCategoryOptionComboMap().get( event.getUid() ) );
 
         // GEOMETRY
 
@@ -122,10 +125,20 @@ public class ProgramStageInstanceMapper
 
         if ( psi.getProgramStage().isEnableUserAssignment() )
         {
-            psi.setAssignedUser( this.validationContext.getAssignedUserMap().get( event.getUid() ) );
+            psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
         }
 
+        psi.setComments( convertNotes( event, this.workContext ) );
+        
         return psi;
 
     }
+    
+    private List<TrackedEntityComment> convertNotes( Event event, WorkContext ctx )
+    {
+        return event.getNotes().stream()
+            .filter( note -> ctx.getNotesMap().containsKey( note.getNote() ))
+            .map( noteMapper::map )
+            .collect( Collectors.toList() );
+    }  
 }

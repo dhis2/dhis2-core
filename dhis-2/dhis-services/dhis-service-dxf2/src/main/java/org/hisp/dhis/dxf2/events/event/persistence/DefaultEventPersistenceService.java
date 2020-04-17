@@ -107,15 +107,14 @@ public class DefaultEventPersistenceService
 
         if ( isNotEmpty(events) )
         {
+            // ...
+            // save events and notes
+            // ...
             jdbcEventStore.saveEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
-
-            // TODO save notes too
 
             long now = System.nanoTime();
 
             ImportSummary importSummary = new ImportSummary();
-
-
 
             // ...
             // process data values
@@ -147,19 +146,22 @@ public class DefaultEventPersistenceService
 
             long now = System.nanoTime();
 
+            ImportSummary importSummary = new ImportSummary();
+
+            // ...
+            // process data values
+            // ...
+            eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(), importSummary,
+                    context.getDataElementMap() );
+
             // TODO this for loop slows down the process...
             for ( final ProgramStageInstance programStageInstance : eventProgramStageInstanceMap.values() )
             {
-                final ImportSummary importSummary = new ImportSummary( programStageInstance.getUid() );
+//                final ImportSummary importSummary1 = new ImportSummary( programStageInstance.getUid() );
                 final Event event = getEvent( programStageInstance.getUid(), events );
                 final ImportOptions importOptions = context.getImportOptions();
 
                 saveTrackedEntityComment( programStageInstance, event, importOptions );
-
-                eventDataValueService.processDataValues(
-                    programStageInstanceStore.getByUid( programStageInstance.getUid() ),
-                    event, false, importOptions, importSummary,
-                    context.getDataElementMap() );
 
                 // TODO: Find how to bring this into the update transaction.
                 context.getTrackedEntityInstanceMap().values().forEach( tei -> identifiableObjectManager.update( tei, importOptions.getUser() ) );
@@ -181,7 +183,7 @@ public class DefaultEventPersistenceService
     private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
         List<Event> events )
     {
-        return events.stream().collect( Collectors.toMap( Function.identity(), mapper::convert ) );
+        return events.stream().collect( Collectors.toMap( Function.identity(), mapper::map ) );
     }
 
     private void saveTrackedEntityComment( final ProgramStageInstance programStageInstance, final Event event,

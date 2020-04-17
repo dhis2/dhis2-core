@@ -99,7 +99,6 @@ public class DefaultEventDataValueService implements EventDataValueService
     {
         for ( Map.Entry<Event, ProgramStageInstance> entry : events.entrySet() )
         {
-
             processEvent( entry.getValue(), entry.getKey(), singleValue, importOptions, importSummary,
                 dataElementsCache );
         }

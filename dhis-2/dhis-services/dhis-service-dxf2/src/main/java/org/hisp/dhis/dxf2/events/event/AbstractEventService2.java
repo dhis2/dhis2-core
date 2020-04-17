@@ -34,25 +34,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -91,6 +84,7 @@ public abstract class AbstractEventService2
         notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
 
+        // TODO This should be probably moved to a PRE-PROCESSOR
         List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
 
         long now = System.nanoTime();
@@ -154,6 +148,11 @@ public abstract class AbstractEventService2
             .filter( i -> i.isStatus( ImportStatus.ERROR ) ).map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
+        if ( failedUids.size() == validEvents.size() )
+        {
+            return importSummaries;
+        }
+        
         if ( failedUids.isEmpty() )
         {
             eventPersistenceService.save( ctx, validEvents );

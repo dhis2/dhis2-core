@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.events.event.mapper;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,40 +28,36 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.getValidUsername;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
-import java.util.List;
+import java.util.Date;
 
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
 /**
- * UID generator for Tracker entities.
- *
- *
  * @author Luciano Fiandesio
  */
-public class UidGenerator
+public class ProgramStageInstanceNoteMapper
+    extends
+    AbstractMapper<Note, TrackedEntityComment>
 {
-    /**
-     * Generate a valid uid and assign it to the uid field of each event.
-     * Generate a valid uid and assign it to all the notes of each event (if the UID is missing)
-     *
-     * @param events a List of {@see Events}
-     * @return a List of {@see Events} with the uid field populated
-     */
-    public List<Event> assignUidToEvents( List<Event> events )
+    public ProgramStageInstanceNoteMapper( WorkContext ctx )
     {
-        for ( Event event : events )
-        {
-            event.setUid( CodeGenerator.generateUid() );
-            List<Note> notes = event.getNotes();
-            for ( Note note : notes )
-            {
-                note.setNote( isValidUid( note.getNote() ) ? note.getNote() : generateUid() );
-            }
-        }
-        return events;
+        super( ctx );
     }
 
+    @Override
+    public TrackedEntityComment map( Note note )
+    {
+        final TrackedEntityComment comment = new TrackedEntityComment();
+        comment.setUid( note.getNote() );
+        comment.setCommentText( note.getValue() );
+        comment.setCreator( getValidUsername( note.getStoredBy(), workContext.getImportOptions() ) );
+        comment.setCreated( note.getStoredDate() == null ? new Date() : parseDate( note.getStoredDate() ) );
+
+        return comment;
+    }
 }

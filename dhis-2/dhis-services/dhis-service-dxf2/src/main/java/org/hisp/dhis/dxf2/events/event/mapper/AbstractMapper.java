@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.events.event.mapper;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,40 +28,17 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-
-import java.util.List;
-
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 
 /**
- * UID generator for Tracker entities.
- *
- *
  * @author Luciano Fiandesio
  */
-public class UidGenerator
-{
-    /**
-     * Generate a valid uid and assign it to the uid field of each event.
-     * Generate a valid uid and assign it to all the notes of each event (if the UID is missing)
-     *
-     * @param events a List of {@see Events}
-     * @return a List of {@see Events} with the uid field populated
-     */
-    public List<Event> assignUidToEvents( List<Event> events )
-    {
-        for ( Event event : events )
-        {
-            event.setUid( CodeGenerator.generateUid() );
-            List<Note> notes = event.getNotes();
-            for ( Note note : notes )
-            {
-                note.setNote( isValidUid( note.getNote() ) ? note.getNote() : generateUid() );
-            }
-        }
-        return events;
-    }
+public abstract class AbstractMapper<T, E> implements Mapper<T, E> {
 
+    protected final WorkContext workContext;
+
+    public AbstractMapper( WorkContext ctx )
+    {
+        this.workContext = ctx;
+    }
 }

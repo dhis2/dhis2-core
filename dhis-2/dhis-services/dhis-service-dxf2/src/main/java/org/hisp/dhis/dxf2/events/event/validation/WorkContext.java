@@ -34,6 +34,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -52,21 +53,21 @@ import lombok.Getter;
 @Builder
 public class WorkContext
 {
-    private ImportOptions importOptions;
+    private final ImportOptions importOptions;
 
     /**
      * Holds a list of all programs in the system
      *
      * Map key is program uid
      */
-    private Map<String, Program> programsMap;
+    private final Map<String, Program> programsMap;
 
     /**
      * Holds a Map of OrganisationUnit associated to an Event
      *
      * Map key is Event uid, value is {@see OrganisationUnit}
      */
-    private Map<String, OrganisationUnit> organisationUnitMap;
+    private final Map<String, OrganisationUnit> organisationUnitMap;
 
     /**
      * Holds a Map of Tracked Entity Instances associated to an Event
@@ -78,23 +79,24 @@ public class WorkContext
     /**
      * Map key is Event uid, value is {@see ProgramInstance}
      */
-    private Map<String, ProgramInstance> programInstanceMap;
+    private final Map<String, ProgramInstance> programInstanceMap;
 
-    private Map<String, ProgramStageInstance> programStageInstanceMap;
+    private final Map<String, ProgramStageInstance> programStageInstanceMap;
 
-    private Map<String, CategoryOptionCombo> categoryOptionComboMap;
+    private final Map<String, CategoryOptionCombo> categoryOptionComboMap;
 
     /**
      * Map key is DataElement uid, value is {@see DataElement}
      */
-    private Map<String, DataElement> dataElementMap;
+    private final Map<String, DataElement> dataElementMap;
 
-    private Map<String, User> assignedUserMap;
+    private final Map<String, User> assignedUserMap;
 
+    private final Map<String, Note> notesMap;
     /**
      * Services / components
      */
-    private ServiceDelegator serviceDelegator;
+    private final ServiceDelegator serviceDelegator;
 
     /**
      * Checks within all the cached program for a ProgramStage having the

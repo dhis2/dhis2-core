@@ -36,8 +36,11 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.util.DateUtils.*;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,6 +79,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -340,74 +344,144 @@ public class JdbcEventStore
         return events;
     }
 
-    public void saveEvents( List<ProgramStageInstance> events )
-    {
-        final String SQL_INSERT = "insert into programstageinstance (" +
-        // @formatter:off
-            "programstageinstanceid, " +    // 0
-            "programinstanceid, " +         // 1
-            "programstageid, " +            // 2
-            "duedate, " +                   // 3
-            "executiondate, " +             // 4
-            "organisationunitid, " +        // 5
-            "status, " +                    // 6
-            "completeddate, " +             // 7
-            "uid, " +                       // 8
-            "created, " +                   // 9
-            "lastupdated, " +               // 10
-            "attributeoptioncomboid, " +    // 11
-            "storedby, " +                  // 12
-            "completedby, " +               // 13
-            "deleted, " +                   // 14
-            "code, " +                      // 15
-            "createdatclient, " +           // 16
-            "lastupdatedatclient, " +       // 17
-            //"geometry, " +                  // 19
-            "assigneduserid) " +            // 18
-            // @formatter:on
-            "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );";
+    private void saveNotes( List<ProgramStageInstance> events ) {
 
+        final String INSERT_NOTE = "INSERT INTO TRACKEDENTITYCOMMENT (" +
+                "trackedentitycommentid, " +    // 0
+                "uid, " +                       // 1
+                "code, " +                      // 2
+                "created, " +                   // 3
+                "lastupdated, " +               // 4
+                "lastupdatedby, " +             // 5
+                "commenttext, " +               // 6
+                "creator " +                    // 7
+                "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?)";
+
+        final String INSERT_PSI_LINK = "INSERT INTO programstageinstancecomments (" +
+                "programstageinstanceid, " +
+                "sort_order, " +
+                "trackedentitycommentid " +
+                "values (?, ? ?)";
+
+
+
+    }
+
+    public void saveEvents( List<ProgramStageInstance> events ) {
+
+        try {
+
+            Connection connection = jdbcTemplate.getDataSource().getConnection();
+
+            PreparedStatement insertEventPS = connection.prepareStatement(INSERT_EVENT_SQL, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement insertEventNotePS = connection.prepareStatement(INSERT_EVENT_NOTE_SQL, Statement.RETURN_GENERATED_KEYS);
+
+            /*
+             * - INSERT program stage instances
+             */
+            for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
+            {
+                final List<ProgramStageInstance> batchList = events.subList( i,
+                    Math.min( i + INSERT_BATCH_SIZE, events.size() ) );
+
+                for ( ProgramStageInstance psi : batchList )
+                {
+                    bindEventParams( insertEventPS, psi );
+                    insertEventPS.addBatch();
+                }
+                insertEventPS.executeBatch();
+
+                List<Integer> eventIds = new ArrayList<>( collectPrimaryKeys( insertEventPS ) );
+
+                /*
+                 * - INSERT notes
+                 */
+                for ( ProgramStageInstance psi : batchList )
+                {
+                    for ( TrackedEntityComment comment : psi.getComments() )
+                    {
+                        bindEventNoteParams( insertEventNotePS, comment );
+                        insertEventNotePS.addBatch();
+                    }
+
+                }
+                insertEventNotePS.executeBatch();
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    private void bindEventNoteParams( PreparedStatement ps, TrackedEntityComment comment ) throws SQLException
+    {
+        ps.setString(1, comment.getUid() );
+        ps.setString(2, comment.getCommentText() );
+        ps.setString(3, comment.getCreator() );
+        ps.setTimestamp(4, toTimestamp( comment.getCreated() ) );
+    }
+
+    private List<Integer> collectPrimaryKeys( PreparedStatement ps )
+        throws SQLException
+    {
+        List<Integer> pks = new ArrayList<>();
+        ResultSet primaryKeys = ps.getGeneratedKeys();
+
+        while ( primaryKeys.next() )
+        {
+            pks.add( primaryKeys.getInt( 1 ) );
+        }
+
+        return pks;
+    }
+    
+    private void bindEventParams( PreparedStatement ps, ProgramStageInstance event )
+        throws SQLException
+    {
+        ps.setLong( 1, event.getProgramInstance().getId() );
+        ps.setLong( 2, event.getProgramStage().getId() );
+        ps.setTimestamp( 3, new Timestamp( event.getDueDate().getTime() ) );
+        ps.setTimestamp( 4, new Timestamp( event.getExecutionDate().getTime() ) );
+        ps.setLong( 5, event.getOrganisationUnit().getId() );
+        ps.setString( 6, event.getStatus().toString() );
+        ps.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
+        ps.setString( 8, event.getUid() );
+        ps.setTimestamp( 9, null ); // TODO event.getCreated -> who set this?
+        ps.setTimestamp( 10, null ); // TODO event.getLastUpdated() -> who set this?
+        ps.setLong( 11, event.getAttributeOptionCombo().getId() );
+        ps.setString( 12, event.getStoredBy() );
+        ps.setString( 13, event.getCompletedBy() );
+        ps.setBoolean( 14, false ); // TODO: deleted set to false not sure it's correct
+        ps.setString( 15, event.getCode() );
+        ps.setTimestamp( 16, toTimestamp( event.getCreatedAtClient() ) );
+        ps.setTimestamp( 17, toTimestamp( event.getLastUpdatedAtClient() ) );
+        // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
+        // @formatter:on
+        if ( event.getAssignedUser() != null )
+        {
+            ps.setLong( 18, event.getAssignedUser().getId() );
+        }
+        else
+        {
+            ps.setObject( 18, null );
+        }
+    }
+
+    public void saveEvents2( List<ProgramStageInstance> events )
+    {
         for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
         {
             final List<ProgramStageInstance> batchList = events.subList( i,
                 Math.min( i + INSERT_BATCH_SIZE, events.size() ) );
 
-            jdbcTemplate.batchUpdate( SQL_INSERT, new BatchPreparedStatementSetter()
+            jdbcTemplate.batchUpdate( INSERT_EVENT_SQL, new BatchPreparedStatementSetter()
             {
                 @Override
-                public void setValues( PreparedStatement pStmt, int j )
+                public void setValues( PreparedStatement ps, int j )
                     throws SQLException
                 {
                     ProgramStageInstance event = batchList.get( j );
-                    // @formatter:off
-                    pStmt.setLong(      1,  event.getProgramInstance().getId() );
-                    pStmt.setLong(      2,  event.getProgramStage().getId() );
-                    pStmt.setTimestamp( 3,  new Timestamp( event.getDueDate().getTime() ) );
-                    pStmt.setTimestamp( 4,  new Timestamp( event.getExecutionDate().getTime() ) );
-                    pStmt.setLong(      5,  event.getOrganisationUnit().getId() );
-                    pStmt.setString(    6,  event.getStatus().toString() );
-                    pStmt.setTimestamp( 7,  toTimestamp(event.getCompletedDate() ) );
-                    pStmt.setString(    8,  event.getUid() );
-                    pStmt.setTimestamp( 9, null ); // TODO event.getCreated -> who set this?
-                    pStmt.setTimestamp( 10, null ); // TODO event.getLastUpdated() -> who set this?
-                    pStmt.setLong(      11, event.getAttributeOptionCombo().getId() );
-                    pStmt.setString(    12, event.getStoredBy() );
-                    pStmt.setString(    13, event.getCompletedBy() );
-                    pStmt.setBoolean(   14, false ); // TODO: deleted set to false not sure it's correct
-                    pStmt.setString(    15, event.getCode() );
-                    pStmt.setTimestamp( 16, toTimestamp( event.getCreatedAtClient() ) );
-                    pStmt.setTimestamp( 17, toTimestamp( event.getLastUpdatedAtClient() ) );
-                    //pStmt.setObject(    19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
-                    // @formatter:on
-                    if ( event.getAssignedUser() != null )
-                    {
-                        pStmt.setLong( 18, event.getAssignedUser().getId() );
-                    }
-                    else
-                    {
-                        pStmt.setObject( 18, null );
-                    }
-
+                    bindEventParams( ps, event);
                 }
 
                 @Override
