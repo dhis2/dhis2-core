@@ -101,6 +101,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -170,6 +171,8 @@ public class EventController
 
     private final SchemaService schemaService;
 
+    private final RequestToSearchParamsMapper requestToSearchParamsMapper;
+
     protected final TrackedEntityInstanceService entityInstanceService;
 
     private final ContextUtils contextUtils;
@@ -179,7 +182,8 @@ public class EventController
         DataElementService dataElementService, WebMessageService webMessageService, InputUtils inputUtils,
         RenderService renderService, ProgramStageInstanceService programStageInstanceService,
         FileResourceService fileResourceService, FieldFilterService fieldFilterService, ContextService contextService,
-        SchemaService schemaService, TrackedEntityInstanceService entityInstanceService, ContextUtils contextUtils )
+        SchemaService schemaService, TrackedEntityInstanceService entityInstanceService, ContextUtils contextUtils,
+        RequestToSearchParamsMapper requestToSearchParamsMapper )
     {
         this.currentUserService = currentUserService;
         this.schedulingManager = schedulingManager;
@@ -197,6 +201,7 @@ public class EventController
         this.schemaService = schemaService;
         this.entityInstanceService = entityInstanceService;
         this.contextUtils = contextUtils;
+        this.requestToSearchParamsMapper = requestToSearchParamsMapper;
     }
 
     private Schema schema;
@@ -262,12 +267,11 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody RootNode getEvents(
-            @Valid GetEventsCriteria requestParams,
-            @RequestParam Map<String, String> parameters,
-            IdSchemes idSchemes,
-            Model model, HttpServletRequest request,
-            HttpServletResponse response) throws WebMessageException {
+    public @ResponseBody RootNode getEvents( @Valid GetEventsCriteria requestParams,
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletRequest request,
+        HttpServletResponse response )
+        throws WebMessageException
+    {
 
         WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -288,7 +292,8 @@ public class EventController
 
         if ( hasHref( fields, requestParams.isSkipEventId() ) )
         {
-            events.getEvents().forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
+            events.getEvents()
+                .forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
         }
 
         if ( !requestParams.isSkipMeta() && params.getProgram() != null )
@@ -308,22 +313,21 @@ public class EventController
 
         if ( !StringUtils.isEmpty( requestParams.getAttachment() ) )
         {
-            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + requestParams.getAttachment() );
+            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                "attachment; filename=" + requestParams.getAttachment() );
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( Event.class, new FieldFilterParams( events.getEvents(), fields ) ) );
+        rootNode.addChild(
+            fieldFilterService.toCollectionNode( Event.class, new FieldFilterParams( events.getEvents(), fields ) ) );
 
         return rootNode;
 
     }
 
     @GetMapping( produces = { "application/xml", "application/xml+gzip", "text/xml" } )
-    public @ResponseBody
-    RootNode getXmlEvents(@Valid GetEventsCriteria requestParams,
-                          @RequestParam Map<String, String> parameters,
-                          IdSchemes idSchemes,
-                          Model model, HttpServletRequest request,
+    public @ResponseBody RootNode getXmlEvents( @Valid GetEventsCriteria requestParams,
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletRequest request,
                           HttpServletResponse response )
         throws WebMessageException
     {
@@ -339,10 +343,10 @@ public class EventController
     }
 
     @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
-    public void getCsvEvents(@Valid GetEventsCriteria requestParams,
-                             IdSchemes idSchemes,
-                             HttpServletRequest request,
-                             HttpServletResponse response ) throws IOException, WebMessageException
+    public void getCsvEvents( @Valid GetEventsCriteria requestParams, IdSchemes idSchemes, HttpServletRequest request,
+        HttpServletResponse response )
+        throws IOException,
+        WebMessageException
     {
         Map<String, String> dataElementOrders = getDataElementsFromOrder( requestParams.getOrder() );
 
@@ -376,42 +380,34 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/eventRows", method = RequestMethod.GET )
-    public @ResponseBody EventRows getEventRows(
-        @RequestParam( required = false ) String program,
+    public @ResponseBody EventRows getEventRows( @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) EventStatus eventStatus,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) String attributeCc,
-        @RequestParam( required = false ) String attributeCos,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false ) String order,
-        @RequestParam( required = false ) Boolean skipEventId,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
-        IdSchemes idSchemes)
+        @RequestParam( required = false ) EventStatus eventStatus, @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate, @RequestParam( required = false ) String attributeCc,
+        @RequestParam( required = false ) String attributeCos, @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize, @RequestParam( required = false ) boolean totalPages,
+        @RequestParam( required = false ) Boolean skipPaging, @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) String order, @RequestParam( required = false ) Boolean skipEventId,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted, IdSchemes idSchemes )
     {
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos,
+            true );
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
-            orgUnit, ouMode, null, startDate, endDate, null, null,
-            null, null, null, eventStatus, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
-            null, true, null, skipEventId, null, null, null,
+        EventSearchParams params = requestToSearchParamsMapper.map( program, null, programStatus, null, orgUnit, ouMode, null,
+            startDate, endDate, null, null, null, null, null, eventStatus, attributeOptionCombo, idSchemes, page,
+            pageSize, totalPages, skipPaging, getOrderParams( order ), null, true, null, skipEventId, null, null, null,
             null, false, includeDeleted );
 
         return eventRowService.getEventRows( params );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, HttpServletRequest request ) throws Exception
+    public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, HttpServletRequest request )
+        throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
 
@@ -426,8 +422,9 @@ public class EventController
     }
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
-    public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid, @RequestParam( required = false ) ImageFileDimension dimension,
-        HttpServletResponse response ) throws Exception
+    public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
+        @RequestParam( required = false ) ImageFileDimension dimension, HttpServletResponse response )
+        throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
 
@@ -440,7 +437,8 @@ public class EventController
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
         }
 
         if ( !dataElement.isFileType() )
@@ -468,12 +466,12 @@ public class EventController
             throw new WebMessageException( WebMessageUtils.conflict( "DataElement must be of type file" ) );
         }
 
-
         FileResource fileResource = fileResourceService.getFileResource( uid );
 
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
         }
 
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
@@ -483,7 +481,8 @@ public class EventController
             // underlying file content still not stored to external file store
             // -----------------------------------------------------------------
 
-            WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
+            WebMessage webMessage = WebMessageUtils.conflict(
+                "The content is being processed and is not available yet. Try again later.",
                 "The content requested is in transit to the file store and will be available at a later time." );
 
             webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
@@ -491,7 +490,8 @@ public class EventController
             throw new WebMessageException( webMessage );
         }
 
-        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
+        FileResourceUtils.setImageFileDimensions( fileResource,
+            MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
@@ -514,9 +514,7 @@ public class EventController
 
     @PostMapping( consumes = { "application/xml", "application/json" } )
     public void postEvent(@RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-                          ImportOptions importOptions,
-                          @RequestHeader("Accept") MediaType accept,
-                          HttpServletRequest request,
+        ImportOptions importOptions, @RequestHeader( "Accept" ) MediaType accept, HttpServletRequest request,
                           HttpServletResponse response )
         throws Exception
     {
@@ -562,8 +560,10 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}/note", method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
-        HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
+    public void postJsonEventForNote( @PathVariable( "uid" ) String uid, HttpServletResponse response,
+        HttpServletRequest request )
+        throws IOException,
+        WebMessageException
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
@@ -581,7 +581,8 @@ public class EventController
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
-        throws IOException, ParseException
+        throws IOException,
+        ParseException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
@@ -589,7 +590,7 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = null; // eventService.addEvents( events.getEvents(), importOptions, null );
+            ImportSummaries importSummaries = new ImportSummaries(); // eventService.addEvents( events.getEvents(), importOptions, null ); // FIXME luciano
             importSummaries.setImportOptions( importOptions );
             webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
@@ -605,7 +606,8 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions )
+        throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromXml( inputStream, Event.class );
@@ -616,7 +618,8 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions )
+        throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
@@ -625,7 +628,8 @@ public class EventController
         updateEvent( updatedEvent, false, importOptions, request, response );
     }
 
-    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions,
+        HttpServletRequest request, HttpServletResponse response )
     {
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions, false );
         importSummary.setImportOptions( importOptions );
@@ -634,7 +638,8 @@ public class EventController
 
     @RequestMapping( value = "/{uid}/{dataElementUid}", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid ) throws IOException
+        @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid )
+        throws IOException
     {
         DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
@@ -653,7 +658,9 @@ public class EventController
 
     @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEventForEventDate( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid ) throws IOException, WebMessageException
+        @PathVariable( "uid" ) String uid )
+        throws IOException,
+        WebMessageException
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
@@ -716,10 +723,11 @@ public class EventController
      * @param request       the HttpRequest.
      * @param response      the HttpResponse.
      */
-    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request, HttpServletResponse response )
+    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request,
+        HttpServletResponse response )
     {
-        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
-            EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport", EVENT_IMPORT,
+            currentUserService.getCurrentUser().getUid(), true );
         schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
@@ -819,8 +827,7 @@ public class EventController
     }
 
     private EventSearchParams toEventSearchParams( GetEventsCriteria criteria, IdSchemes idSchemes, List<Order> orders,
-                                                   List<String> getGridOrderParams, boolean skipEventId,
-                                                   Set<String> dateElements, boolean includeAllDataElements )
+        List<String> getGridOrderParams, boolean skipEventId, Set<String> dateElements, boolean includeAllDataElements )
             throws WebMessageException
     {
 
@@ -842,13 +849,13 @@ public class EventController
 
         boolean skipPaging = PagerUtils.isSkipPaging( criteria.getSkipPaging(), criteria.getPaging() );
 
-        return eventService.getFromUrl( criteria.getProgram(), criteria.getProgramStage(), criteria.getProgramStatus(),
+        return requestToSearchParamsMapper.map( criteria.getProgram(), criteria.getProgramStage(), criteria.getProgramStatus(),
                 criteria.getFollowUp(), criteria.getOrgUnit(), criteria.getOuMode(), criteria.getTrackedEntityInstance(),
                 criteria.getStartDate(), criteria.getEndDate(), criteria.getDueDateStart(), criteria.getDueDateEnd(),
-                lastUpdatedStartDate, criteria.getLastUpdatedEndDate(), criteria.getLastUpdatedDuration(), criteria.getStatus(),
-                attributeOptionCombo, idSchemes, criteria.getPage(), criteria.getPageSize(), criteria.isTotalPages(),
-                skipPaging, orders, getGridOrderParams, false, eventIds, skipEventId,
-                criteria.getAssignedUserMode(), assignedUserIds, criteria.getFilter(), dateElements,
-                includeAllDataElements, criteria.isIncludeDeleted() );
+            lastUpdatedStartDate, criteria.getLastUpdatedEndDate(), criteria.getLastUpdatedDuration(),
+            criteria.getStatus(), attributeOptionCombo, idSchemes, criteria.getPage(), criteria.getPageSize(),
+            criteria.isTotalPages(), skipPaging, orders, getGridOrderParams, false, eventIds, skipEventId,
+            criteria.getAssignedUserMode(), assignedUserIds, criteria.getFilter(), dateElements, includeAllDataElements,
+            criteria.isIncludeDeleted() );
     }
 }

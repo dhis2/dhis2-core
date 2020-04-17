@@ -95,7 +95,6 @@ public class JacksonEventService extends AbstractEventService
         ProgramInstanceService programInstanceService,
         ProgramStageInstanceService programStageInstanceService,
         OrganisationUnitService organisationUnitService,
-        DataElementService dataElementService,
         CurrentUserService currentUserService,
         EventDataValueService eventDataValueService,
         TrackedEntityInstanceService entityInstanceService,
@@ -111,7 +110,6 @@ public class JacksonEventService extends AbstractEventService
         QueryService queryService,
         TrackerAccessManager trackerAccessManager,
         TrackerOwnershipManager trackerOwnershipAccessManager,
-        AclService aclService,
         ApplicationEventPublisher eventPublisher,
         RelationshipService relationshipService,
         UserService userService,
@@ -125,7 +123,6 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
         checkNotNull( organisationUnitService );
-        checkNotNull( dataElementService );
         checkNotNull( currentUserService );
         checkNotNull( eventDataValueService );
         checkNotNull( entityInstanceService );
@@ -141,7 +138,6 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( queryService );
         checkNotNull( trackerAccessManager );
         checkNotNull( trackerOwnershipAccessManager );
-        checkNotNull( aclService );
         checkNotNull( eventPublisher );
         checkNotNull( userService );
         checkNotNull( eventSyncService );
@@ -154,7 +150,6 @@ public class JacksonEventService extends AbstractEventService
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
         this.organisationUnitService = organisationUnitService;
-        this.dataElementService = dataElementService;
         this.currentUserService = currentUserService;
         this.eventDataValueService = eventDataValueService;
         this.entityInstanceService = entityInstanceService;
@@ -170,7 +165,6 @@ public class JacksonEventService extends AbstractEventService
         this.queryService = queryService;
         this.trackerAccessManager = trackerAccessManager;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-        this.aclService = aclService;
         this.eventPublisher = eventPublisher;
         this.relationshipService = relationshipService;
         this.userService = userService;
