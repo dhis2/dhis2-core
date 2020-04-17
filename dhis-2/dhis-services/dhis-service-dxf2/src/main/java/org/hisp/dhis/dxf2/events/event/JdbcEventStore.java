@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.Math.min;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
@@ -136,7 +137,7 @@ public class JdbcEventStore
 
     private final IdentifiableObjectManager manager;
 
-    private final int INSERT_BATCH_SIZE = 100;
+    private final int BATCH_SIZE = 100;
 
     public JdbcEventStore( StatementBuilder statementBuilder,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, CurrentUserService currentUserService,
@@ -382,7 +383,7 @@ public class JdbcEventStore
             for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
             {
                 final List<ProgramStageInstance> batchList = events.subList( i,
-                    Math.min( i + INSERT_BATCH_SIZE, events.size() ) );
+                Math.min( i + BATCH_SIZE, events.size() ) );
 
                 for ( ProgramStageInstance psi : batchList )
                 {
@@ -495,7 +496,79 @@ public class JdbcEventStore
     }
 
     public void updateEvents( final List<ProgramStageInstance> events ) {
-        // TODO: Implement it!
+        final String SQL_UPDATE = "update programstageinstance set " +
+        // @formatter:off
+            "programinstanceid = ?, " +         // 1
+            "programstageid = ?, " +            // 2
+            "duedate = ?, " +                   // 3
+            "executiondate = ?, " +             // 4
+            "organisationunitid = ?, " +        // 5
+            "status = ?, " +                    // 6
+            "completeddate = ?, " +             // 7
+            "uid = ?, " +                       // 8
+            "created = ?, " +                   // 9
+            "lastupdated = ?, " +               // 10
+            "attributeoptioncomboid = ?, " +    // 11
+            "storedby = ?, " +                  // 12
+            "completedby = ?, " +               // 13
+            "deleted = ?, " +                   // 14
+            "code = ?, " +                      // 15
+            "createdatclient = ?, " +           // 16
+            "lastupdatedatclient = ?, " +       // 17
+            //"geometry = ?, " +                // 19
+            "assigneduserid = ? " +             // 18
+            "where programstageinstanceid = ?;";
+        // @formatter:on
+
+        for ( int i = 0; i < events.size(); i += BATCH_SIZE )
+        {
+            final List<ProgramStageInstance> batchList = events.subList( i,
+                min( i + BATCH_SIZE, events.size() ) );
+
+            jdbcTemplate.batchUpdate( SQL_UPDATE, new BatchPreparedStatementSetter()
+            {
+                @Override
+                public void setValues( final PreparedStatement pStmt, int j )
+                    throws SQLException
+                {
+                    final ProgramStageInstance event = batchList.get( j );
+                    // @formatter:off
+                    pStmt.setLong(      1,  event.getProgramStage().getId() );
+                    pStmt.setTimestamp( 2,  new Timestamp( event.getDueDate().getTime() ) );
+                    pStmt.setTimestamp( 3,  new Timestamp( event.getExecutionDate().getTime() ) );
+                    pStmt.setLong(      4,  event.getOrganisationUnit().getId() );
+                    pStmt.setString(    5,  event.getStatus().toString() );
+                    pStmt.setTimestamp( 6,  toTimestamp(event.getCompletedDate() ) );
+                    pStmt.setString(    7,  event.getUid() );
+                    pStmt.setTimestamp( 8, null ); // TODO event.getCreated -> who set this?
+                    pStmt.setTimestamp( 9, null ); // TODO event.getLastUpdated() -> who set this?
+                    pStmt.setLong(      10, event.getAttributeOptionCombo().getId() );
+                    pStmt.setString(    11, event.getStoredBy() );
+                    pStmt.setString(    12, event.getCompletedBy() );
+                    pStmt.setBoolean(   13, false ); // TODO: deleted set to false not sure it's correct
+                    pStmt.setString(    14, event.getCode() );
+                    pStmt.setTimestamp( 15, toTimestamp( event.getCreatedAtClient() ) );
+                    pStmt.setTimestamp( 16, toTimestamp( event.getLastUpdatedAtClient() ) );
+                    //pStmt.setObject(    19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
+                    // @formatter:on
+                    if ( event.getAssignedUser() != null )
+                    {
+                        pStmt.setLong( 17, event.getAssignedUser().getId() );
+                    }
+                    else
+                    {
+                        pStmt.setObject( 17, null );
+                    }
+                    pStmt.setLong( 18, event.getId() );
+                }
+
+                @Override
+                public int getBatchSize()
+                {
+                    return batchList.size();
+                }
+            } );
+        }
     }
 
     private Timestamp toTimestamp( Date date )
