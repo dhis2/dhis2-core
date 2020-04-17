@@ -53,4 +53,16 @@ public interface EventDataValueService
      */
     void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
         ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache );
+
+    /**
+     * Process the data values for the specified events: validates and then saves/updates/deletes data values.
+     *
+     * @param events a Map containing a ProgramStageInstance and associated Event
+     * @param singleValue Specifies whether request updates only a single value or not
+     * @param importOptions ImportOptions
+     * @param importSummary ImportSummary
+     * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
+     */
+    void processDataValues( Map<Event, ProgramStageInstance> events, boolean singleValue,
+                            ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache);
 }

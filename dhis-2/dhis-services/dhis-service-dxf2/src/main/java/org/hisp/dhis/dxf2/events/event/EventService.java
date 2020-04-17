@@ -64,15 +64,16 @@ public interface EventService
 
     EventRows getEventRows( EventSearchParams params );
 
+    Grid getEventsGrid( EventSearchParams params );
+
     Event getEvent( ProgramStageInstance programStageInstance );
 
     Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery, boolean skipOwnershipCheck );
 
+    // TODO remove these 2 methods and move the logic to the front-end
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
     List<Event> getEventsJson( InputStream inputStream ) throws IOException;
-
-    Grid getEventsGrid( EventSearchParams params );
 
     /**
      * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)

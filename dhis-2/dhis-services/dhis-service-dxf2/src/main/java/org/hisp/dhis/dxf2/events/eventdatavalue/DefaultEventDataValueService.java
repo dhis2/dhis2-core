@@ -29,14 +29,18 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.AbstractEventService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -51,6 +55,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +67,6 @@ import com.google.common.collect.Sets;
  * @author David Katuscak
  */
 @Service( "org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService" )
-@Transactional
 public class DefaultEventDataValueService implements EventDataValueService
 {
     private final ProgramStageInstanceService programStageInstanceService;
@@ -81,7 +85,28 @@ public class DefaultEventDataValueService implements EventDataValueService
     }
 
     @Override
+    @Transactional
     public void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
+        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache )
+    {
+        processEvent( programStageInstance, event, singleValue, importOptions, importSummary, dataElementsCache );
+    }
+
+    @Override
+    @Transactional
+    public void processDataValues( Map<Event, ProgramStageInstance> events, boolean singleValue,
+        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache )
+    {
+        for ( Map.Entry<Event, ProgramStageInstance> entry : events.entrySet() )
+        {
+
+            processEvent( entry.getValue(), entry.getKey(), singleValue, importOptions, importSummary,
+                dataElementsCache );
+        }
+    }
+
+
+    private void processEvent( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
                                   ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementCache ) {
 
         Map<String, EventDataValue> dataElementValueMap = getDataElementToEventDataValueMap( programStageInstance.getEventDataValues() );
@@ -124,7 +149,6 @@ public class DefaultEventDataValueService implements EventDataValueService
 
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementCache, programStageInstance, singleValue );
     }
-
 
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,

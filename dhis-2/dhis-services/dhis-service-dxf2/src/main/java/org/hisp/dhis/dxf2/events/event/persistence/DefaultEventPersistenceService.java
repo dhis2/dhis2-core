@@ -36,10 +36,15 @@ import static org.hisp.dhis.dxf2.events.event.EventUtils.getValidUsername;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.springframework.util.StringUtils.isEmpty;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.transaction.Transactional;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -94,29 +99,33 @@ public class DefaultEventPersistenceService
     }
 
     @Override
+    @Transactional
     public List<ProgramStageInstance> save(WorkContext context, List<Event> events )
     {
-        List<ProgramStageInstance> programStageInstances = convertToProgramStageInstances(
+        final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
             new ProgramStageInstanceMapper( context ), events );
 
-        if ( !events.isEmpty() )
+        if ( isNotEmpty(events) )
         {
-            jdbcEventStore.saveEvents( programStageInstances );
+            jdbcEventStore.saveEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
 
             // TODO save notes too
 
             long now = System.nanoTime();
-            // TODO this for loop slows down the process 5X
-            for ( ProgramStageInstance programStageInstance : programStageInstances )
-            {
-                ImportSummary importSummary = new ImportSummary( programStageInstance.getUid() );
-                eventDataValueService.processDataValues(
-                    programStageInstanceStore.getByUid( programStageInstance.getUid() ),
-                    getEvent( programStageInstance.getUid(), events ), false, context.getImportOptions(), importSummary,
+
+            ImportSummary importSummary = new ImportSummary();
+
+
+
+            // ...
+            // process data values
+            // ...
+            eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(), importSummary,
                     context.getDataElementMap() );
-            }
-            System.out.println( "Processing Data Value for " + programStageInstances.size() + " PSI took : "
+
+            System.out.println( "Processing Data Value for " + eventProgramStageInstanceMap.size() + " PSI took : "
                     + TimeUnit.SECONDS.convert( System.nanoTime() - now, TimeUnit.NANOSECONDS ) );
+
 
         }
         return null; // TODO
@@ -124,21 +133,22 @@ public class DefaultEventPersistenceService
     }
 
     @Override
+    @Transactional
     public List<ProgramStageInstance> update(final WorkContext context, final List<Event> events )
     {
         if ( isNotEmpty( events ) )
         {
             // FIXME: Implement and add the correct mapper.
-            final List<ProgramStageInstance> programStageInstances = convertToProgramStageInstances(
+            final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
                 new ProgramStageInstanceMapper( context ), events );
 
             // TODO: Implement the jdbcEventStore.updateEvents method
-            jdbcEventStore.updateEvents( programStageInstances );
+            jdbcEventStore.updateEvents( new ArrayList<>(  eventProgramStageInstanceMap.values() ) );
 
             long now = System.nanoTime();
 
             // TODO this for loop slows down the process...
-            for ( final ProgramStageInstance programStageInstance : programStageInstances )
+            for ( final ProgramStageInstance programStageInstance : eventProgramStageInstanceMap.values() )
             {
                 final ImportSummary importSummary = new ImportSummary( programStageInstance.getUid() );
                 final Event event = getEvent( programStageInstance.getUid(), events );
@@ -155,7 +165,7 @@ public class DefaultEventPersistenceService
                 context.getTrackedEntityInstanceMap().values().forEach( tei -> identifiableObjectManager.update( tei, importOptions.getUser() ) );
             }
 
-            System.out.println( "UPDATE: Processing Data Value for " + programStageInstances.size() + " PSI took : "
+            System.out.println( "UPDATE: Processing Data Value for " + eventProgramStageInstanceMap.size() + " PSI took : "
                 + TimeUnit.SECONDS.convert( System.nanoTime() - now, TimeUnit.NANOSECONDS ) );
         }
 
@@ -168,10 +178,10 @@ public class DefaultEventPersistenceService
         return events.stream().filter( event -> event.getUid().equals( uid ) ).findFirst().get();
     }
 
-    private List<ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
+    private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
         List<Event> events )
     {
-        return events.stream().map( mapper::convert ).collect( Collectors.toList() );
+        return events.stream().collect( Collectors.toMap( Function.identity(), mapper::convert ) );
     }
 
     private void saveTrackedEntityComment( final ProgramStageInstance programStageInstance, final Event event,
