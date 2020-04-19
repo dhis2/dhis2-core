@@ -28,8 +28,6 @@ package org.hisp.dhis.actions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions;
-
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
 
