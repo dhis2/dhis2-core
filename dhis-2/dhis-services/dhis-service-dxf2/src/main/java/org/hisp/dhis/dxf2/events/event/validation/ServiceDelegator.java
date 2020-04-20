@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 
 import lombok.Builder;
@@ -47,4 +48,6 @@ public class ServiceDelegator
     private final ProgramRuleVariableService programRuleVariableService;
 
     private final ApplicationEventPublisher applicationEventPublisher;
+
+    private final CurrentUserService currentUserService;
 }

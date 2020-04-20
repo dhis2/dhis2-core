@@ -64,17 +64,26 @@ public interface EventStore
         //"geometry, " +                  // 19
         "assigneduserid) " +            // 18
         // @formatter:on
-        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );";
+        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
     String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (" +
         "trackedentitycommentid, " +    // 0
         "uid, " +                       // 1
         "commenttext, " +               // 2
         "created, " +                   // 3
-        "creator " +                    // 4
-        "values ( nextval('trackedentitycomment_sequence'), ?, ?, ?, ?)";
+        "creator," +                    // 4
+        "lastUpdated" +                 // 5
+        ") " +
+        "values ( nextval('trackedentitycomment_sequence'), ?, ?, ?, ?, ?)";
 
-    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue );
+    String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (" +
+            "programstageinstanceid, " +
+            "sort_order, " +
+            "trackedentitycommentid) " +
+            "values (?, ?, ?)";
+
+    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
+        Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 

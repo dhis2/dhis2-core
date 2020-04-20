@@ -119,8 +119,8 @@ public class DefaultEventPersistenceService
             // ...
             // process data values
             // ...
-            eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(), importSummary,
-                    context.getDataElementMap() );
+//            eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(), importSummary,
+//                    context.getDataElementMap() );
 
             System.out.println( "Processing Data Value for " + eventProgramStageInstanceMap.size() + " PSI took : "
                     + TimeUnit.SECONDS.convert( System.nanoTime() - now, TimeUnit.NANOSECONDS ) );

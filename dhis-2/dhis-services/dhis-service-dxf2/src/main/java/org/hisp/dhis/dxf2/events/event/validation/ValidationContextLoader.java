@@ -183,6 +183,7 @@ public class ValidationContextLoader
             .trackerAccessManager( this.trackerAccessManager )
             .applicationEventPublisher( this.applicationEventPublisher )
             .programRuleVariableService( this.programRuleVariableService )
+            .currentUserService( this.currentUserService )
             .build();
         // @formatter:on
     }
