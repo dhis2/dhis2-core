@@ -34,25 +34,14 @@ import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -60,12 +49,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
+import org.hisp.dhis.dxf2.events.event.*;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -81,11 +65,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.fileresource.FileResourceStorageStatus;
-import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -109,18 +89,10 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
@@ -224,10 +196,41 @@ public class EventController
     // Query Read
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
-        ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    public @ResponseBody Grid getEventsJson( @Valid GetEventsCriteria requestParams, IdSchemes idSchemes,
-        HttpServletResponse response )
+    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
+    public @ResponseBody Grid queryEventsJson(
+            @RequestParam( required = false ) String program,
+            @RequestParam( required = false ) String programStage,
+            @RequestParam( required = false ) ProgramStatus programStatus,
+            @RequestParam( required = false ) Boolean followUp,
+            @RequestParam( required = false ) String trackedEntityInstance,
+            @RequestParam( required = false ) String orgUnit,
+            @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+            @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+            @RequestParam( required = false ) String assignedUser,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) Date dueDateStart,
+            @RequestParam( required = false ) Date dueDateEnd,
+            @RequestParam( required = false ) Date lastUpdated,
+            @RequestParam( required = false ) Date lastUpdatedStartDate,
+            @RequestParam( required = false ) Date lastUpdatedEndDate,
+            @RequestParam( required = false ) EventStatus status,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) boolean skipMeta,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) String attachment,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam( required = false ) String event,
+            @RequestParam( required = false ) Set<String> filter,
+            @RequestParam( required = false ) Set<String> dataElement,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
+            @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -237,42 +240,286 @@ public class EventController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        EventSearchParams params = toEventSearchParams( requestParams, idSchemes, null,
-            getGridOrderParams( requestParams.getOrder() ), false, requestParams.getDataElement(),
-            requestParams.isIncludeAllDataElements() );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+
+        if ( attributeOptionCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
+                orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+                lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
+                totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+                assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
 
         return eventService.getEventsGrid( params );
+
     }
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_XML )
-    public @ResponseBody void getEventsXml( @Valid GetEventsCriteria requestParams, IdSchemes idSchemes,
-        HttpServletResponse response )
+    public void queryEventsXml(
+            @RequestParam( required = false ) String program,
+            @RequestParam( required = false ) String programStage,
+            @RequestParam( required = false ) ProgramStatus programStatus,
+            @RequestParam( required = false ) Boolean followUp,
+            @RequestParam( required = false ) String trackedEntityInstance,
+            @RequestParam( required = false ) String orgUnit,
+            @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+            @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+            @RequestParam( required = false ) String assignedUser,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) Date dueDateStart,
+            @RequestParam( required = false ) Date dueDateEnd,
+            @RequestParam( required = false ) Date lastUpdated,
+            @RequestParam( required = false ) Date lastUpdatedStartDate,
+            @RequestParam( required = false ) Date lastUpdatedEndDate,
+            @RequestParam( required = false ) EventStatus status,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) boolean skipMeta,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) String attachment,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam( required = false ) String event,
+            @RequestParam( required = false ) Set<String> filter,
+            @RequestParam( required = false ) Set<String> dataElement,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
+            @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
-        GridUtils.toXml( getEventsJson( requestParams, idSchemes, response ), response.getOutputStream() );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+
+        if ( attributeOptionCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
+                orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+                lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
+                totalPages, skipPaging,null, getGridOrderParams( order ), false, eventIds, false,
+                assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
+        Grid grid = eventService.getEventsGrid( params );
+        GridUtils.toXml( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_EXCEL )
-    public void queryEventsXls( @Valid GetEventsCriteria requestParams, IdSchemes idSchemes,
-        HttpServletResponse response )
+    public void queryEventsXls(
+            @RequestParam( required = false ) String program,
+            @RequestParam( required = false ) String programStage,
+            @RequestParam( required = false ) ProgramStatus programStatus,
+            @RequestParam( required = false ) Boolean followUp,
+            @RequestParam( required = false ) String trackedEntityInstance,
+            @RequestParam( required = false ) String orgUnit,
+            @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+            @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+            @RequestParam( required = false ) String assignedUser,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) Date dueDateStart,
+            @RequestParam( required = false ) Date dueDateEnd,
+            @RequestParam( required = false ) Date lastUpdated,
+            @RequestParam( required = false ) Date lastUpdatedStartDate,
+            @RequestParam( required = false ) Date lastUpdatedEndDate,
+            @RequestParam( required = false ) EventStatus status,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) boolean skipMeta,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) String attachment,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam( required = false ) String event,
+            @RequestParam( required = false ) Set<String> filter,
+            @RequestParam( required = false ) Set<String> dataElement,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
+            @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
+            throws Exception
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+
+        if ( attributeOptionCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
+                orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+                lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
+                totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+                assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
+        Grid grid = eventService.getEventsGrid( params );
+        GridUtils.toXls( grid, response.getOutputStream() );
+
+    }
+
+    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_CSV )
+    public void queryEventsCsv(
+            @RequestParam( required = false ) String program,
+            @RequestParam( required = false ) String programStage,
+            @RequestParam( required = false ) ProgramStatus programStatus,
+            @RequestParam( required = false ) Boolean followUp,
+            @RequestParam( required = false ) String trackedEntityInstance,
+            @RequestParam( required = false ) String orgUnit,
+            @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+            @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+            @RequestParam( required = false ) String assignedUser,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) Date dueDateStart,
+            @RequestParam( required = false ) Date dueDateEnd,
+            @RequestParam( required = false ) Date lastUpdated,
+            @RequestParam( required = false ) Date lastUpdatedStartDate,
+            @RequestParam( required = false ) Date lastUpdatedEndDate,
+            @RequestParam( required = false ) EventStatus status,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) boolean skipMeta,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) String attachment,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam( required = false ) String event,
+            @RequestParam( required = false ) Set<String> filter,
+            @RequestParam( required = false ) Set<String> dataElement,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
+            @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
-        GridUtils.toXls( getEventsJson( requestParams, idSchemes, response ), response.getOutputStream() );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+
+        if ( attributeOptionCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
+                orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+                lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
+                totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+                assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
+        Grid grid = eventService.getEventsGrid( params );
+        GridUtils.toCsv( grid, response.getWriter() );
+
     }
 
     // -------------------------------------------------------------------------
     // Object Read
     // -------------------------------------------------------------------------
 
-    @GetMapping
-    public @ResponseBody RootNode getEvents( @Valid GetEventsCriteria requestParams,
-        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletRequest request,
-        HttpServletResponse response )
+    @RequestMapping( method = RequestMethod.GET )
+    public @ResponseBody RootNode getEvents(
+            @RequestParam( required = false ) String program,
+            @RequestParam( required = false ) String programStage,
+            @RequestParam( required = false ) ProgramStatus programStatus,
+            @RequestParam( required = false ) Boolean followUp,
+            @RequestParam( required = false ) String trackedEntityInstance,
+            @RequestParam( required = false ) String orgUnit,
+            @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+            @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+            @RequestParam( required = false ) String assignedUser,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) Date dueDateStart,
+            @RequestParam( required = false ) Date dueDateEnd,
+            @RequestParam( required = false ) Date lastUpdated,
+            @RequestParam( required = false ) Date lastUpdatedStartDate,
+            @RequestParam( required = false ) Date lastUpdatedEndDate,
+            @RequestParam( required = false ) String lastUpdatedDuration,
+            @RequestParam( required = false ) EventStatus status,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) boolean skipMeta,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) String attachment,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam( required = false ) String event,
+            @RequestParam( required = false ) Boolean skipEventId,
+            @RequestParam( required = false ) Set<String> filter,
+            @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
-
         WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -281,22 +528,33 @@ public class EventController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        Map<String, String> dataElementOrders = getDataElementsFromOrder( requestParams.getOrder() );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
-        EventSearchParams params = toEventSearchParams( requestParams, idSchemes,
-                getOrderParams( requestParams.getOrder() ),
-                getGridOrderParams( requestParams.getOrder(), dataElementOrders ), requestParams.isSkipEventId(),
-                dataElementOrders.keySet(), false );
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+
+        Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
+                orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+                lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
+                totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ),
+                false, eventIds, skipEventId, assignedUserMode, assignedUserIds, filter, dataElementOrders.keySet(),
+                false, includeDeleted );
 
         Events events = eventService.getEvents( params );
 
-        if ( hasHref( fields, requestParams.isSkipEventId() ) )
+        if ( hasHref( fields, skipEventId ) )
         {
-            events.getEvents()
-                .forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
+            events.getEvents().forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
         }
 
-        if ( !requestParams.isSkipMeta() && params.getProgram() != null )
+        if ( !skipMeta && params.getProgram() != null )
         {
             events.setMetaData( getMetaData( params.getProgram() ) );
         }
@@ -311,49 +569,176 @@ public class EventController
             rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
         }
 
-        if ( !StringUtils.isEmpty( requestParams.getAttachment() ) )
+        if ( !StringUtils.isEmpty( attachment ) )
         {
-            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                "attachment; filename=" + requestParams.getAttachment() );
+            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
-        rootNode.addChild(
-            fieldFilterService.toCollectionNode( Event.class, new FieldFilterParams( events.getEvents(), fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( Event.class, new FieldFilterParams( events.getEvents(), fields ) ) );
 
         return rootNode;
-
     }
 
-    @GetMapping( produces = { "application/xml", "application/xml+gzip", "text/xml" } )
-    public @ResponseBody RootNode getXmlEvents( @Valid GetEventsCriteria requestParams,
-        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletRequest request,
-                          HttpServletResponse response )
+    @RequestMapping( method = RequestMethod.GET, produces = { "application/xml", "application/xml+gzip", "text/xml" } )
+    public @ResponseBody
+    RootNode getXmlEvents(
+            @RequestParam( required = false ) String program,
+            @RequestParam( required = false ) String programStage,
+            @RequestParam( required = false ) ProgramStatus programStatus,
+            @RequestParam( required = false ) Boolean followUp,
+            @RequestParam( required = false ) String trackedEntityInstance,
+            @RequestParam( required = false ) String orgUnit,
+            @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+            @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+            @RequestParam( required = false ) String assignedUser,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) Date dueDateStart,
+            @RequestParam( required = false ) Date dueDateEnd,
+            @RequestParam( required = false ) Date lastUpdated,
+            @RequestParam( required = false ) Date lastUpdatedStartDate,
+            @RequestParam( required = false ) Date lastUpdatedEndDate,
+            @RequestParam( required = false ) String lastUpdatedDuration,
+            @RequestParam( required = false ) EventStatus status,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) boolean skipMeta,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) String attachment,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam( required = false ) String event,
+            @RequestParam( required = false ) Boolean skipEventId,
+            @RequestParam( required = false ) Set<String> filter,
+            @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response,
+            HttpServletRequest request )
         throws WebMessageException
     {
-       // TODO do we need this ?
-//        RootNode rootNode = NodeUtils.createEvents();
-//
-//        if ( events.getPager() != null )
-//        {
-//            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
-//        }
+        WebOptions options = new WebOptions( parameters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        return getEvents( requestParams, parameters, idSchemes, model, request, response);
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils
+                .getAttributeOptionCombo( attributeCc, attributeCos, true );
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+
+        Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
+                orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+                lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
+                totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ),
+                false, eventIds, skipEventId, assignedUserMode, assignedUserIds, filter, dataElementOrders.keySet(),
+                false, includeDeleted );
+
+        Events events = eventService.getEvents( params );
+
+        if ( hasHref( fields, skipEventId ) )
+        {
+            events.getEvents()
+                    .forEach( e -> e.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + e.getEvent() ) );
+        }
+
+        if ( !skipMeta && params.getProgram() != null )
+        {
+            events.setMetaData( getMetaData( params.getProgram() ) );
+        }
+
+        model.addAttribute( "model", events );
+        model.addAttribute( "viewClass", options.getViewClass( "detailed" ) );
+
+        RootNode rootNode = NodeUtils.createEvents();
+
+        if ( events.getPager() != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
     }
 
-    @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
-    public void getCsvEvents( @Valid GetEventsCriteria requestParams, IdSchemes idSchemes, HttpServletRequest request,
-        HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        if ( !StringUtils.isEmpty( attachment ) )
     {
-        Map<String, String> dataElementOrders = getDataElementsFromOrder( requestParams.getOrder() );
+            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+        }
 
-        EventSearchParams params = toEventSearchParams( requestParams, idSchemes,
-                getOrderParams( requestParams.getOrder() ),
-                getGridOrderParams( requestParams.getOrder(), dataElementOrders ), requestParams.isSkipEventId(),
-                dataElementOrders.keySet(), false );
+        rootNode.addChildren(
+                fieldFilterService.toCollectionNode( Event.class, new FieldFilterParams( events.getEvents(), fields ) )
+                        .getChildren() );
+
+        return rootNode;
+    }
+
+    @RequestMapping( method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
+    public void getCsvEvents(
+            @RequestParam( required = false ) String program,
+            @RequestParam( required = false ) String programStage,
+            @RequestParam( required = false ) ProgramStatus programStatus,
+            @RequestParam( required = false ) Boolean followUp,
+            @RequestParam( required = false ) String trackedEntityInstance,
+            @RequestParam( required = false ) String orgUnit,
+            @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+            @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+            @RequestParam( required = false ) String assignedUser,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) Date dueDateStart,
+            @RequestParam( required = false ) Date dueDateEnd,
+            @RequestParam( required = false ) Date lastUpdated,
+            @RequestParam( required = false ) Date lastUpdatedStartDate,
+            @RequestParam( required = false ) Date lastUpdatedEndDate,
+            @RequestParam( required = false ) String lastUpdatedDuration,
+            @RequestParam( required = false ) EventStatus status,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) String event,
+            @RequestParam( required = false ) Boolean skipEventId,
+            @RequestParam( required = false ) Set<String> filter,
+            @RequestParam( required = false ) String attachment,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
+            IdSchemes idSchemes, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
+    {
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+
+        List<Order> schemaOrders = getOrderParams( order );
+
+        Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
+                orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+                lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
+                totalPages, skipPaging, schemaOrders, getGridOrderParams( order, dataElementOrders ), false,
+                eventIds, skipEventId, assignedUserMode, assignedUserIds, filter, dataElementOrders.keySet(), false,
+                includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -367,12 +752,12 @@ public class EventController
             response.setContentType( "application/csv+gzip" );
         }
 
-        if ( !StringUtils.isEmpty( requestParams.getAttachment() ) )
+        if ( !StringUtils.isEmpty( attachment ) )
         {
-            response.addHeader( "Content-Disposition", "attachment; filename=" + requestParams.getAttachment() );
+            response.addHeader( "Content-Disposition", "attachment; filename=" + attachment );
         }
 
-        csvEventService.writeEvents( outputStream, events, !requestParams.isSkipHeader() );
+        csvEventService.writeEvents( outputStream, events, !skipHeader );
     }
 
     // -------------------------------------------------------------------------
@@ -380,34 +765,44 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/eventRows", method = RequestMethod.GET )
-    public @ResponseBody EventRows getEventRows( @RequestParam( required = false ) String program,
+    public @ResponseBody EventRows getEventRows(
+            @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) EventStatus eventStatus, @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate, @RequestParam( required = false ) String attributeCc,
-        @RequestParam( required = false ) String attributeCos, @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize, @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) Boolean skipPaging, @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false ) String order, @RequestParam( required = false ) Boolean skipEventId,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted, IdSchemes idSchemes )
+            @RequestParam( required = false ) EventStatus eventStatus,
+            @RequestParam( required = false ) Date startDate,
+            @RequestParam( required = false ) Date endDate,
+            @RequestParam( required = false ) String attributeCc,
+            @RequestParam( required = false ) String attributeCos,
+            @RequestParam( required = false ) Integer page,
+            @RequestParam( required = false ) Integer pageSize,
+            @RequestParam( required = false ) boolean totalPages,
+            @RequestParam( required = false ) Boolean skipPaging,
+            @RequestParam( required = false ) Boolean paging,
+            @RequestParam( required = false ) String order,
+            @RequestParam( required = false ) Boolean skipEventId,
+            @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+            @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model )
+            throws WebMessageException
     {
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos,
-            true );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( program, null, programStatus, null, orgUnit, ouMode, null,
-            startDate, endDate, null, null, null, null, null, eventStatus, attributeOptionCombo, idSchemes, page,
-            pageSize, totalPages, skipPaging, getOrderParams( order ), null, true, null, skipEventId, null, null, null,
+        EventSearchParams params = requestToSearchParamsMapper.map( program, null, programStatus, null,
+                orgUnit, ouMode, null, startDate, endDate, null, null,
+                null, null, null, eventStatus, attributeOptionCombo,
+                idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
+                null, true, null, skipEventId, null, null, null,
             null, false, includeDeleted );
 
         return eventRowService.getEventRows( params );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, HttpServletRequest request )
-        throws Exception
+    public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
+                                         Model model, HttpServletRequest request ) throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
 
@@ -422,9 +817,8 @@ public class EventController
     }
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
-    public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
-        @RequestParam( required = false ) ImageFileDimension dimension, HttpServletResponse response )
-        throws Exception
+    public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid, @RequestParam( required = false ) ImageFileDimension dimension,
+                                       HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
 
@@ -437,8 +831,7 @@ public class EventController
 
         if ( dataElement == null )
         {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
         }
 
         if ( !dataElement.isFileType() )
@@ -466,12 +859,12 @@ public class EventController
             throw new WebMessageException( WebMessageUtils.conflict( "DataElement must be of type file" ) );
         }
 
+
         FileResource fileResource = fileResourceService.getFileResource( uid );
 
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
         }
 
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
@@ -481,8 +874,7 @@ public class EventController
             // underlying file content still not stored to external file store
             // -----------------------------------------------------------------
 
-            WebMessage webMessage = WebMessageUtils.conflict(
-                "The content is being processed and is not available yet. Try again later.",
+            WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
                 "The content requested is in transit to the file store and will be available at a later time." );
 
             webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
@@ -490,8 +882,7 @@ public class EventController
             throw new WebMessageException( webMessage );
         }
 
-        FileResourceUtils.setImageFileDimensions( fileResource,
-            MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
+        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
@@ -512,26 +903,70 @@ public class EventController
     // Create
     // -------------------------------------------------------------------------
 
-    @PostMapping( consumes = { "application/xml", "application/json" } )
-    public void postEvent(@RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, @RequestHeader( "Accept" ) MediaType accept, HttpServletRequest request,
-                          HttpServletResponse response )
-        throws Exception
+    @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
+    public void postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+                              HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        importOptions.setIdSchemes(
-            getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+
+        if ( !importOptions.isAsync() )
+        {
+            ImportSummaries importSummaries = eventService.addEventsXml( inputStream, importOptions );
+            importSummaries.setImportOptions( importOptions );
+
+            importSummaries.getImportSummaries().stream()
+                    .filter(
+                            importSummary -> !importOptions.isDryRun() &&
+                                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                                    !importOptions.getImportStrategy().isDelete() &&
+                                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+                    .forEach( importSummary -> importSummary.setHref(
+                            ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
+
+            if ( importSummaries.getImportSummaries().size() == 1 )
+            {
+                ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
+
+                if ( !importOptions.isDryRun() )
+                {
+                    if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+                    {
+                        response.setHeader( "Location", ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() );
+                    }
+                }
+            }
+
+            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        }
+        else
+        {
+            List<Event> events = eventService.getEventsXml( inputStream );
+            startAsyncImport( importOptions, events, request, response );
+        }
+    }
+
+    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    public void postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+                               HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
+    {
+        importOptions.setImportStrategy( strategy );
+        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         if ( !importOptions.isAsync() )
         {
             ImportSummaries importSummaries = eventService.addEventsJson(inputStream, importOptions);
             importSummaries.setImportOptions( importOptions );
 
-            importSummaries.getImportSummaries().stream().filter( importSummary -> !importOptions.isDryRun()
-                && !importSummary.getStatus().equals( ImportStatus.ERROR )
-                && !importOptions.getImportStrategy().isDelete()
-                && (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+            importSummaries.getImportSummaries().stream()
+                    .filter(
+                            importSummary -> !importOptions.isDryRun() &&
+                                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                                    !importOptions.getImportStrategy().isDelete() &&
+                                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
                 .forEach( importSummary -> importSummary.setHref(
                     ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
@@ -544,26 +979,23 @@ public class EventController
                 {
                     if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                     {
-                        response.setHeader( "Location",
-                            ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() );
+                        response.setHeader( "Location", ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() );
                     }
                 }
             }
+
+            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
         else
         {
-            List<Event> events = accept.isCompatibleWith( MediaType.APPLICATION_XML )
-                ? eventService.getEventsXml( inputStream )
-                : eventService.getEventsJson( inputStream );
+            List<Event> events = eventService.getEventsJson( inputStream );
             startAsyncImport( importOptions, events, request, response );
         }
     }
 
     @RequestMapping( value = "/{uid}/note", method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonEventForNote( @PathVariable( "uid" ) String uid, HttpServletResponse response,
-        HttpServletRequest request )
-        throws IOException,
-        WebMessageException
+    public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
+                                      HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException, WebMessageException
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
@@ -581,8 +1013,7 @@ public class EventController
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
-        throws IOException,
-        ParseException
+            throws IOException, ParseException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
@@ -606,8 +1037,7 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions )
-        throws IOException
+                             @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromXml( inputStream, Event.class );
@@ -618,8 +1048,7 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions )
-        throws IOException
+                              @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
@@ -628,8 +1057,7 @@ public class EventController
         updateEvent( updatedEvent, false, importOptions, request, response );
     }
 
-    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
     {
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions, false );
         importSummary.setImportOptions( importOptions );
@@ -638,8 +1066,7 @@ public class EventController
 
     @RequestMapping( value = "/{uid}/{dataElementUid}", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid )
-        throws IOException
+                                         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid ) throws IOException, WebMessageException
     {
         DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
@@ -658,9 +1085,7 @@ public class EventController
 
     @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEventForEventDate( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid )
-        throws IOException,
-        WebMessageException
+                                          @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
@@ -723,21 +1148,33 @@ public class EventController
      * @param request       the HttpRequest.
      * @param response      the HttpResponse.
      */
-    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request,
-        HttpServletResponse response )
+    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request, HttpServletResponse response )
     {
-        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport", EVENT_IMPORT,
-            currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
         webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
+    private boolean fieldsContains( String match, List<String> fields )
+    {
+        for ( String field : fields )
+        {
+            // For now assume href/access if * or preset is requested
+            if ( field.contains( match ) || field.equals( "*" ) || field.startsWith( ":" ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected boolean hasHref( List<String> fields, Boolean skipEventId )
     {
-        return (skipEventId == null || !skipEventId)
-            && fields.stream().anyMatch( f -> f.contains( "href" ) || f.equals( "*" ) || f.startsWith( ":" ) );
+        return (skipEventId == null || !skipEventId) && fieldsContains( "href", fields );
     }
 
     private List<Order> getOrderParams( String order )
@@ -763,19 +1200,18 @@ public class EventController
 
     private List<String> getGridOrderParams( String order, Map<String, String> dataElementOrders )
     {
-        List<String> dataElementOrderList = new ArrayList<>();
+        List<String> dataElementOrderList = new ArrayList<String>();
 
         if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
         {
-            String[] orders = order.split( ";" );
+            List<String> orders = Arrays.asList( order.split( ";" ) );
 
             for ( String orderItem : orders )
             {
                 String dataElementCandidate = orderItem.split( ":" )[0];
-                if ( dataElementOrders.containsKey( dataElementCandidate ) )
+                if ( dataElementOrders.keySet().contains( dataElementCandidate ) )
                 {
-                    dataElementOrderList
-                        .add( dataElementCandidate + ":" + dataElementOrders.get( dataElementCandidate ) );
+                    dataElementOrderList.add( dataElementCandidate + ":" + dataElementOrders.get( dataElementCandidate ) );
                 }
             }
         }
@@ -824,38 +1260,5 @@ public class EventController
     private String getParamValue( Map<String, List<String>> params, String key )
     {
         return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
-    }
-
-    private EventSearchParams toEventSearchParams( GetEventsCriteria criteria, IdSchemes idSchemes, List<Order> orders,
-        List<String> getGridOrderParams, boolean skipEventId, Set<String> dateElements, boolean includeAllDataElements )
-            throws WebMessageException
-    {
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( criteria.getAttributeCc(),
-                criteria.getAttributeCos(), false );
-
-        if ( attributeOptionCombo == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: "
-                    + criteria.getAttributeCc() + " " + criteria.getAttributeCos() ) );
-        }
-
-        Set<String> eventIds = TextUtils.splitToArray( criteria.getEvent(), TextUtils.SEMICOLON );
-
-        Set<String> assignedUserIds = TextUtils.splitToArray( criteria.getAssignedUser(), TextUtils.SEMICOLON );
-
-        Date lastUpdatedStartDate = criteria.getLastUpdatedStartDate() != null ? criteria.getLastUpdatedStartDate()
-                : criteria.getLastUpdated();
-
-        boolean skipPaging = PagerUtils.isSkipPaging( criteria.getSkipPaging(), criteria.getPaging() );
-
-        return requestToSearchParamsMapper.map( criteria.getProgram(), criteria.getProgramStage(), criteria.getProgramStatus(),
-                criteria.getFollowUp(), criteria.getOrgUnit(), criteria.getOuMode(), criteria.getTrackedEntityInstance(),
-                criteria.getStartDate(), criteria.getEndDate(), criteria.getDueDateStart(), criteria.getDueDateEnd(),
-            lastUpdatedStartDate, criteria.getLastUpdatedEndDate(), criteria.getLastUpdatedDuration(),
-            criteria.getStatus(), attributeOptionCombo, idSchemes, criteria.getPage(), criteria.getPageSize(),
-            criteria.isTotalPages(), skipPaging, orders, getGridOrderParams, false, eventIds, skipEventId,
-            criteria.getAssignedUserMode(), assignedUserIds, criteria.getFilter(), dateElements, includeAllDataElements,
-            criteria.isIncludeDeleted() );
     }
 }
