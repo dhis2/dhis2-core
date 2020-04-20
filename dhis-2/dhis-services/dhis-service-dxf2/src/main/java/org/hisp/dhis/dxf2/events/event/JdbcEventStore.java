@@ -343,7 +343,7 @@ public class JdbcEventStore
 
         try {
             /*
-             * - INSERT program stage instances
+             * - INSERT: program stage instance batch
              */
             for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
             {
@@ -353,7 +353,7 @@ public class JdbcEventStore
                 saveEventsBatch( batchList );
 
                 /*
-                 * - INSERT All NOTES
+                 * - INSERT: all notes
                  */
                 saveAllComments( batchList );
             }

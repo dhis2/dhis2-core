@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -97,16 +98,27 @@ public class DefaultEventDataValueService implements EventDataValueService
     public void processDataValues( Map<Event, ProgramStageInstance> events, boolean singleValue,
         ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache )
     {
-        for ( Map.Entry<Event, ProgramStageInstance> entry : events.entrySet() )
+        // Fetch all PSI in one query: this is required because we want Hibernate
+        // managed objects
+        final List<ProgramStageInstance> programStageInstances = programStageInstanceService.getProgramStageInstances(
+            events.values().stream().map( BaseIdentifiableObject::getId ).collect( Collectors.toList() ) );
+
+        for ( ProgramStageInstance psi : programStageInstances )
         {
-            processEvent( entry.getValue(), entry.getKey(), singleValue, importOptions, importSummary,
-                dataElementsCache );
+            processEvent( psi, getEventFromMap( psi.getUid(), events.keySet() ), singleValue, importOptions,
+                importSummary, dataElementsCache );
         }
     }
 
+    private Event getEventFromMap( String uid, Set<Event> events )
+    {
+        return events.stream().filter( e -> e.getUid().equals( uid ) ).findFirst().get();
+    }
 
     private void processEvent( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
                                   ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementCache ) {
+
+        programStageInstance = programStageInstanceService.getProgramStageInstance( programStageInstance.getId() );
 
         Map<String, EventDataValue> dataElementValueMap = getDataElementToEventDataValueMap( programStageInstance.getEventDataValues() );
 
@@ -273,11 +285,11 @@ public class DefaultEventDataValueService implements EventDataValueService
 
         List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );
 
-        if ( !errors.isEmpty() )
-        {
-            errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
-            validationPassed = false;
-        }
+    //        if ( !errors.isEmpty() )
+    //        {
+    //            errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
+    //            validationPassed = false;
+    //        }
 
         return validationPassed;
     }

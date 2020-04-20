@@ -46,6 +46,8 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.google.common.base.Stopwatch;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -67,6 +69,7 @@ import org.springframework.stereotype.Service;
  * @author Luciano Fiandesio
  */
 @Service
+@Slf4j
 public class DefaultEventPersistenceService
     implements
     EventPersistenceService
@@ -112,18 +115,17 @@ public class DefaultEventPersistenceService
             // ...
             jdbcEventStore.saveEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
 
-            long now = System.nanoTime();
-
             ImportSummary importSummary = new ImportSummary();
 
             // ...
             // process data values
             // ...
-//            eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(), importSummary,
-//                    context.getDataElementMap() );
+            Stopwatch stopwatch = Stopwatch.createStarted();
 
-            System.out.println( "Processing Data Value for " + eventProgramStageInstanceMap.size() + " PSI took : "
-                    + TimeUnit.SECONDS.convert( System.nanoTime() - now, TimeUnit.NANOSECONDS ) );
+            eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(),
+                importSummary, context.getDataElementMap() );
+            log.debug( "Event save ::: Processing Data Value for {} PSIs took {}", eventProgramStageInstanceMap.size(),
+                stopwatch.stop().elapsed( TimeUnit.MILLISECONDS ) );
 
 
         }
