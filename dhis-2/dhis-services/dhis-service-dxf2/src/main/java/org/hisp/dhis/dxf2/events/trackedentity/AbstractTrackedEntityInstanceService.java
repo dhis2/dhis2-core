@@ -1316,7 +1316,7 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityCache.clear();
         trackedEntityAttributeCache.clear();
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
     }
 
     private void updateDateFields( TrackedEntityInstance dtoEntityInstance,
