@@ -28,19 +28,16 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
@@ -57,7 +54,12 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -197,7 +199,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.postCommit( bundle ) );
         }
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
         cacheManager.clearCache();
         bundle.setObjectBundleStatus( ObjectBundleStatus.COMMITTED );
 
@@ -226,7 +228,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle )) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) ) );
 
         session.flush();
 
@@ -267,7 +269,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle )) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) ) );
 
         return typeReport;
     }
@@ -318,7 +320,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             {
                 ((BaseIdentifiableObject) persistedObject).setUser( bundle.getOverrideUser() );
 
-                if (object instanceof User)
+                if ( object instanceof User )
                 {
                     ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
                 }
