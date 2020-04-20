@@ -188,7 +188,7 @@ public class RelationshipControllerTest
         mockMvc.perform( get( ENDPOINT + "/" + REL_ID ));
     }
 
-    @Test(expected = NestedServletException.class )
+    @Test
     public void testGetRelationship()
         throws Exception
     {
@@ -196,7 +196,7 @@ public class RelationshipControllerTest
         mockMvc.perform( get( ENDPOINT + "/" + REL_ID )).andExpect( status().isOk() );
     }
 
-    @Test
+    @Test( expected = NestedServletException.class )
     public void testDeleteRelationshipNotPresent()
         throws Exception
     {
