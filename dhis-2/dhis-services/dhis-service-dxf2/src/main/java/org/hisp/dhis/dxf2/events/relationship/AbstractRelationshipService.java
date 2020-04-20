@@ -829,7 +829,7 @@ public abstract class AbstractRelationshipService
         programInstanceCache.clear();
         programStageInstanceCache.clear();
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
     }
 
     protected ImportOptions updateImportOptions( ImportOptions importOptions )
