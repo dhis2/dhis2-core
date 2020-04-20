@@ -67,7 +67,7 @@ expr
     |   fun='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
     |   fun='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
     |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:hasValue(' item ')'
+    |   fun='d2:hasValue(' expr ')'
     |   fun='d2:maxValue(' ( item | compareDate ) ')'
     |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
     |   fun='d2:minValue(' ( item | compareDate ) ')'

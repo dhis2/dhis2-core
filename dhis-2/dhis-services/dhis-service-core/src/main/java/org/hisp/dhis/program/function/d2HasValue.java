@@ -44,7 +44,7 @@ public class d2HasValue
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.visit( ctx.item( 0 ) );
+        visitor.visit( ctx.expr( 0 ) );
 
         return true;
     }
@@ -52,6 +52,6 @@ public class d2HasValue
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return "(" + visitor.visitAllowingNulls( ctx.item( 0 ) ) + " is not null)";
+        return "(" + visitor.visitAllowingNulls( ctx.expr( 0 ) ) + " is not null)";
     }
 }
