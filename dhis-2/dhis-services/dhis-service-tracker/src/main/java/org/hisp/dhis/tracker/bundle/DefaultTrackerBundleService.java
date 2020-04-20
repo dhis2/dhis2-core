@@ -196,7 +196,7 @@ public class DefaultTrackerBundleService
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
         cacheManager.clearCache();
 
         return bundleReport;
