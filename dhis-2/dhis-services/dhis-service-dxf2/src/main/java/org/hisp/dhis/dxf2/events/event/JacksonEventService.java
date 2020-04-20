@@ -237,6 +237,11 @@ public class JacksonEventService extends AbstractEventService
         return processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
+    @Override
+    public ImportSummaries updateEvents(List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession, WorkContext ctx) {
+        return null;
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
