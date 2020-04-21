@@ -47,6 +47,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -526,7 +528,7 @@ public class ValidationContextLoader
 
     }
 
-    private Map<String, Program> loadPrograms(String key)
+    private Map<String, Program> loadPrograms()
     {
         final String sql = "select p.programid, p.uid, p.name, p.type, c.uid as catcombo_uid, c.name as catcombo_name, " +
                 "ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous\n"
@@ -588,7 +590,9 @@ public class ValidationContextLoader
         programStage.setId( rs.getLong( "ps_id" ) );
         programStage.setUid( rs.getString( "ps_uid" ) );
         programStage.setSortOrder( rs.getInt( "sort_order" ) );
-        programStage.setFeatureType( FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) ) );
+        programStage.setFeatureType( rs.getString( "ps_feature_type" ) != null
+            ? FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) )
+            : FeatureType.NONE );
 
         return programStage;
     }

@@ -125,6 +125,54 @@ public abstract class AbstractEventService2
         return importSummaries;
     }
 
+    @Transactional
+    @Override
+    public ImportSummaries processEventImportUpdate( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
+    {
+        assert importOptions != null;
+        assert importOptions.getUser() != null;
+
+        ImportSummaries importSummaries = new ImportSummaries();
+
+        notifier.clear( jobId ).notify( jobId, "UPDATE - Importing events" );
+        Clock clock = new Clock( log ).startClock();
+
+        // TODO This should be probably moved to a PRE-PROCESSOR
+        List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
+
+        long now = System.nanoTime();
+        WorkContext validationContext = validationFactory.getContext( importOptions, eventsWithUid );
+        log.debug( "::: UPDATE - validation context load took : " + (System.nanoTime() - now) );
+
+        List<List<Event>> partitions = Lists.partition( eventsWithUid, BATCH_SIZE );
+
+        for ( List<Event> batch : partitions )
+        {
+            ImportStrategyAccumulator accumulator = new ImportStrategyAccumulator().partitionEvents( batch,
+                importOptions.getImportStrategy(), validationContext.getProgramStageInstanceMap() );
+
+            importSummaries
+                .addImportSummaries( updateEvents( accumulator.getCreate(), importOptions, false, false, validationContext ) );
+        }
+
+        if ( jobId != null )
+        {
+            notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true )
+                .addJobSummary( jobId, importSummaries, ImportSummaries.class );
+        }
+        else
+        {
+            clock.logTime( "Import done" );
+        }
+
+        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+        {
+            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+        }
+
+        return importSummaries;
+    }
+
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, WorkContext ctx )
     {

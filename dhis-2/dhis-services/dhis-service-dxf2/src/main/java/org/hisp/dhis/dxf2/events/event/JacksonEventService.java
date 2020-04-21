@@ -28,9 +28,14 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -66,13 +71,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.util.StreamUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Implementation of EventService that uses Jackson for serialization and
@@ -238,7 +239,16 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries updateEvents(List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession, WorkContext ctx) {
+    public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
+        boolean clearSession, WorkContext ctx )
+    {
+        return null;
+    }
+
+    @Override
+    public ImportSummaries processEventImportUpdate( List<Event> events, ImportOptions importOptions,
+        JobConfiguration jobId )
+    {
         return null;
     }
 
