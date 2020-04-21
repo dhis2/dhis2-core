@@ -33,7 +33,6 @@ import java.util.Optional;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
@@ -44,7 +43,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
  * @author Lars Helge Overland
  */
 public class IndicatorGroupSetResourceTable
-    extends ResourceTable<IndicatorGroupSet>
+    extends AbstractNameUniquenessAwareResourceTable<IndicatorGroupSet>
 {
     public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects )
     {
@@ -66,7 +65,7 @@ public class IndicatorGroupSetResourceTable
 
         for ( IndicatorGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += ensureUniqueName( groupSet.getName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

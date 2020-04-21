@@ -33,7 +33,6 @@ import java.util.Optional;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
@@ -44,7 +43,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
  * @author Lars Helge Overland
  */
 public class DataElementGroupSetResourceTable
-    extends ResourceTable<DataElementGroupSet>
+    extends AbstractNameUniquenessAwareResourceTable<DataElementGroupSet>
 {
     public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects )
     {
@@ -66,7 +65,7 @@ public class DataElementGroupSetResourceTable
 
         for ( DataElementGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += ensureUniqueShortName( groupSet ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

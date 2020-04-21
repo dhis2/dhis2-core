@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import java.util.List;
@@ -44,7 +43,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
  * @author Lars Helge Overland
  */
 public class CategoryResourceTable
-    extends ResourceTable<Category>
+    extends AbstractNameUniquenessAwareResourceTable<Category>
 {
     private List<CategoryOptionGroupSet> groupSets;
 
@@ -69,14 +68,13 @@ public class CategoryResourceTable
 
         for ( Category category : objects )
         {
-            quote( category.getName() );
-            statement += quote( category.getShortName() ) + " varchar(230), ";
+            statement += ensureUniqueShortName( category ) + " varchar(230), ";
             statement += quote( category.getUid() ) + " character(11), ";
         }
-
+        
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += ensureUniqueShortName( groupSet ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 
