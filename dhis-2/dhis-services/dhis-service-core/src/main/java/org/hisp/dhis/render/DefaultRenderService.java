@@ -40,6 +40,7 @@ import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.hisp.dhis.node.geometry.JtsXmlModule;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
@@ -332,5 +333,6 @@ public class DefaultRenderService
 
         jsonMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
         xmlMapper.enable( ToXmlGenerator.Feature.WRITE_XML_DECLARATION );
+        xmlMapper.registerModule( new JtsXmlModule() );
     }
 }
