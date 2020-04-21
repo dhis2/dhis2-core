@@ -92,7 +92,7 @@ programFunction // (alphabetical)
     |   d2='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
     |   d2='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
     |   d2='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   d2='d2:hasValue(' item ')'
+    |   d2='d2:hasValue(' expr ')'
     |   d2='d2:minutesBetween(' compareDate ',' compareDate ')'
     |   d2='d2:monthsBetween(' compareDate ',' compareDate ')'
     |   d2='d2:oizp(' expr ')'

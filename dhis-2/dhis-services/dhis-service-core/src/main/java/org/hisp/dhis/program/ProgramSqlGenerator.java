@@ -298,7 +298,7 @@ public class ProgramSqlGenerator
                 return "(cast(" + dates.getEnd() + " as date) - cast(" + dates.getStart() + " as date))";
 
             case D2_HAS_VALUE:
-                return "(" + visitAllowingNulls( ctx.item( 0 ) ) + " is not null)";
+                return "(" + visitAllowingNulls( ctx.expr( 0 ) ) + " is not null)";
 
             case D2_MINUTES_BETWEEN:
                 return "(extract(epoch from (cast(" + dates.getEnd() + " as timestamp) - cast(" + dates.getStart() + " as timestamp))) / 60)";

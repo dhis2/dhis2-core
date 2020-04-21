@@ -257,6 +257,13 @@ public class ProgramSqlGeneratorFunctionsTest
     }
 
     @Test
+    public void testHasValueProgramVariable()
+    {
+        String sql = test( "d2:hasValue(V{creation_date})" );
+        assertThat( sql, is( "(created is not null)" ) );
+    }
+
+    @Test
     public void testMinutesBetween()
     {
         String sql = test( "d2:minutesBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" );
