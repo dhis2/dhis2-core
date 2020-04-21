@@ -160,7 +160,7 @@ public class BaseIdentifiableObject
     /**
      * Last user updated this object.
      */
-    private User lastUpdatedBy;
+    protected User lastUpdatedBy;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -343,6 +343,7 @@ public class BaseIdentifiableObject
         return attributeValues;
     }
 
+    @Override
     public void setAttributeValues( Set<AttributeValue> attributeValues )
     {
         cacheAttributeValues.clear();
