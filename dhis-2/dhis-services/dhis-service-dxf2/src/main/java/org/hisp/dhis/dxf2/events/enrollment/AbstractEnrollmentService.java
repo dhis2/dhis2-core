@@ -1385,7 +1385,7 @@ public abstract class AbstractEnrollmentService
         programCache.clear();
         trackedEntityAttributeCache.clear();
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
     }
 
     private void updateDateFields( Enrollment enrollment, ProgramInstance programInstance )
