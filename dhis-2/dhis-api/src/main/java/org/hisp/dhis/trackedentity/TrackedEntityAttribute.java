@@ -19,6 +19,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.translation.TranslationProperty;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -57,8 +58,6 @@ public class TrackedEntityAttribute
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
     private String description;
-
-    private String formName;
 
     private ValueType valueType;
 
