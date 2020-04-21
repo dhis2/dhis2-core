@@ -1599,6 +1599,27 @@ public class ObjectBundleServiceTest
         assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
     }
 
+    @Test
+    public void testCreateUpdateOrgUnitUsingCODE() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+    }
+
     private void defaultSetup()
     {
         DataElement de1 = createDataElement( 'A' );

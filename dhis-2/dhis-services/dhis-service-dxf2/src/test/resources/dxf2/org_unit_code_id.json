@@ -1,0 +1,10 @@
+{
+  "organisationUnits": [
+    {
+      "code": "org-unit-1",
+      "name": "OrgUnit1",
+      "shortName": "OrgUnit1",
+      "openingDate": "2020-01-01"
+    }
+  ]
+}
