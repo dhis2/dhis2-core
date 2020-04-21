@@ -145,6 +145,8 @@ public class DefaultSystemService
 
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
+        Date lastAnalyticsTablePartitionSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        String lastAnalyticsTablePartitionRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME );
         Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = dhisConfig.getServerBaseUrl();
@@ -154,10 +156,17 @@ public class DefaultSystemService
         info.setCalendar( calendarService.getSystemCalendar().name() );
         info.setDateFormat( calendarService.getSystemDateFormat().getJs() );
         info.setServerDate( new Date() );
+
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
-        info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
+
+        info.setLastAnalyticsTablePartitionSuccess( lastAnalyticsTablePartitionSuccess );
+        info.setIntervalSinceLastAnalyticsTablePartitionSuccess( DateUtils.getPrettyInterval( lastAnalyticsTablePartitionSuccess, now ) );
+        info.setLastAnalyticsTablePartitionRuntime( lastAnalyticsTablePartitionRuntime );
+
+        info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
+
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
         info.setEmailConfigured( systemSettingManager.emailConfigured() );
