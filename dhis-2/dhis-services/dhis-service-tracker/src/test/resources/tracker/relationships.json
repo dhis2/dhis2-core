@@ -1,8 +1,7 @@
-{ "relationships":
-  [
+{
+  "relationships": [
     {
       "relationshipType": "dDrh5UyCyvQ",
-      "relationshipName": "Mother-Child_a-to-b_(Person-Person)",
       "relationship": "Nva3Xj2j75W",
       "bidirectional": false,
       "from": {
@@ -115,12 +114,11 @@
           "featureType": "NONE"
         }
       },
-      "created": "2018-10-01T12:17:30.163",
-      "lastUpdated": "2018-10-01T12:17:30.163"
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163"
     },
     {
       "relationshipType": "tBeOL0DL026",
-      "relationshipName": "Mother-Child_b-to-a_(Person-Person)",
       "relationship": "HiXiipNGsxT",
       "bidirectional": false,
       "from": {
@@ -233,8 +231,8 @@
           "featureType": "NONE"
         }
       },
-      "created": "2018-10-01T12:17:30.163",
-      "lastUpdated": "2018-10-01T12:17:30.163"
+      "createdAt": "2018-10-01T12:17:30.163",
+      "updatedAt": "2018-10-01T12:17:30.163"
     }
   ]
 }
