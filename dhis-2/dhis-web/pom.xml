@@ -132,6 +132,15 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${maven-jetty-plugin.version}</version>
         <configuration>
+          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog">
+            <filename>target/yyyy_mm_dd.request.log</filename>
+            <retainDays>90</retainDays>
+            <append>true</append>
+            <extended>true</extended>
+            <logTimeZone>GMT</logTimeZone>
+          </requestLog>
+
+
           <systemProperties>
             <systemProperty>
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
@@ -142,6 +151,13 @@
             <contextPath>/</contextPath>
           </webAppConfig>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.13.1</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>

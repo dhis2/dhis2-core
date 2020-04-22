@@ -36,6 +36,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,16 +52,16 @@ public class Enrollment implements TrackerDto
     private String enrollment;
 
     @JsonProperty
-    private String created;
+    private String createdAt;
 
     @JsonProperty
-    private String lastUpdated;
+    private String updatedAt;
 
-    @JsonProperty
-    private String createdAtClient;
-
-    @JsonProperty
-    private String lastUpdatedAtClient;
+//    @JsonProperty
+//    private String clientCreatedAt;
+//
+//    @JsonProperty
+//    private String clientUpdatedAt;
 
     @JsonProperty
     private String trackedEntityType;
@@ -78,25 +79,19 @@ public class Enrollment implements TrackerDto
     private String orgUnit;
 
     @JsonProperty
-    private String orgUnitName;
+    private String enrolledAt;
 
     @JsonProperty
-    private String enrollmentDate;
+    private String occurredAt;
 
     @JsonProperty
-    private String incidentDate;
-
-    @JsonProperty
-    private boolean followup;
+    private boolean followUp;
 
     @JsonProperty
     private String completedBy;
 
     @JsonProperty
-    private String completedDate;
-
-    @JsonProperty
-    private Coordinate coordinate;
+    private String completedAt;
 
     @JsonProperty
     private boolean deleted;

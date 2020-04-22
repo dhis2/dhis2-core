@@ -223,7 +223,7 @@ public class EnrollmentImportValidationTest
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 2, trackerBundle.getEnrollments().size() );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+            TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printErrors( report );
 
         assertEquals( 2, report.getErrorReports().size() );

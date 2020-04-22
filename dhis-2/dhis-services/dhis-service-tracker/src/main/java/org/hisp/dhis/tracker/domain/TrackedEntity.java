@@ -34,7 +34,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.organisationunit.FeatureType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,38 +48,31 @@ import java.util.List;
 public class TrackedEntity implements TrackerDto
 {
     @JsonProperty
-    private String trackedEntityType;
-
-    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
+    private String trackedEntityType;
+
+    @JsonProperty
+    private String createdAt;
+
+    @JsonProperty
+    private String updatedAt;
+
+    @JsonProperty
+    private String clientCreatedAt;
+
+    @JsonProperty
+    private String clientUpdatedAt;
+
+    @JsonProperty
     private String orgUnit;
-
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
-
-    @JsonProperty
-    private String createdAtClient;
-
-    @JsonProperty
-    private String lastUpdatedAtClient;
 
     @JsonProperty
     private boolean inactive;
 
     @JsonProperty
     private boolean deleted;
-
-    @JsonProperty
-    @Builder.Default
-    private FeatureType featureType = FeatureType.NONE;
-
-    @JsonProperty
-    private String coordinates;
 
     @JsonProperty
     private Geometry geometry;

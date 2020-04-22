@@ -93,7 +93,7 @@ public class EventCategoryOptValidationHook
 
         // NOTE: How to best get current date into iso format?
         Date eventDate = DateUtils.parseDate( ObjectUtils
-            .firstNonNull( event.getEventDate(), event.getDueDate(), DateUtils.getIso8601( new Date() ) ) );
+            .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), DateUtils.getIso8601( new Date() ) ) );
 
         I18nFormat i18nFormat = i18nManager.getI18nFormat();
 
@@ -106,10 +106,13 @@ public class EventCategoryOptValidationHook
                     .addArg( i18nFormat.formatDate( option.getStartDate() ) )
                     .addArg( option.getName() ) );
             }
+
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1057 ).
-                    addArg( event.getLastUpdatedAtClient() ) );
+                    addArg( eventDate )
+                    .addArg( option.getEndDate() )
+                    .addArg( categoryOptionCombo ) );
             }
         }
     }

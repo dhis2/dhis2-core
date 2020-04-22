@@ -110,6 +110,16 @@ public class MetadataImportTest
     }
 
     @Test
+    public void shouldWort()
+        throws Exception{
+
+
+        assertEquals( true,true );
+
+    }
+
+
+    @Test
     public void shouldImportUniqueMetadataAndReturnObjectReports()
         throws Exception
     {

@@ -214,30 +214,30 @@ public class EnrollmentInExistingValidationHook
         if ( programInstance.getOrganisationUnit() != null )
         {
             enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
-            enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
+//            enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
         }
 
         if ( programInstance.getGeometry() != null )
         {
             enrollment.setGeometry( programInstance.getGeometry() );
 
-            if ( programInstance.getProgram().getFeatureType() == FeatureType.POINT )
-            {
-                com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
-                enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
-            }
+//            if ( programInstance.getProgram().getFeatureType() == FeatureType.POINT )
+//            {
+//                com.vividsolutions.jts.geom.Coordinate co = programInstance.getGeometry().getCoordinate();
+//                enrollment.setCoordinate( new Coordinate( co.x, co.y ) );
+//            }
         }
 
-        enrollment.setCreated( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
-        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
-        enrollment.setLastUpdated( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
-        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
+        enrollment.setCreatedAt( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
+//        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
+        enrollment.setUpdatedAt( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
+//        enrollment.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
         enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
-        enrollment.setEnrollmentDate( getIso8601( programInstance.getEnrollmentDate() ) );
-        enrollment.setIncidentDate( getIso8601( programInstance.getIncidentDate() ) );
-        enrollment.setFollowup( programInstance.getFollowup() );
-        enrollment.setCompletedDate( getIso8601( programInstance.getEndDate() ) );
+        enrollment.setEnrolledAt( getIso8601( programInstance.getEnrollmentDate() ) );
+        enrollment.setOccurredAt( getIso8601( programInstance.getIncidentDate() ) );
+        enrollment.setFollowUp( programInstance.getFollowup() );
+        enrollment.setCreatedAt( getIso8601( programInstance.getEndDate() ) );
         enrollment.setCompletedBy( programInstance.getCompletedBy() );
         enrollment.setStoredBy( programInstance.getStoredBy() );
         enrollment.setDeleted( programInstance.isDeleted() );
@@ -251,7 +251,7 @@ public class EnrollmentInExistingValidationHook
             note.setNote( comment.getUid() );
             note.setValue( comment.getCommentText() );
             note.setStoredBy( comment.getCreator() );
-            note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreated() ) );
+            note.setStoredAt( DateUtils.getIso8601NoTz( comment.getCreated() ) );
 
             enrollment.getNotes().add( note );
         }

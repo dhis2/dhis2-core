@@ -70,7 +70,7 @@ public class EventDateValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
+        if ( EventStatus.ACTIVE == event.getStatus() && event.getOccurredAt() == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1031 )
                 .addArg( event ) );
@@ -107,9 +107,9 @@ public class EventDateValidationHook
                 referenceDate = programStageInstance.getCompletedDate();
             }
 
-            else if ( event.getCompletedDate() != null )
+            else if ( event.getCompletedAt() != null )
             {
-                referenceDate = DateUtils.parseDate( event.getCompletedDate() );
+                referenceDate = DateUtils.parseDate( event.getCompletedAt() );
             }
 
             if ( referenceDate == null )
@@ -160,7 +160,7 @@ public class EventDateValidationHook
         }
         else
         {
-            String referenceDate = event.getEventDate() != null ? event.getEventDate() : event.getDueDate();
+            String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
             if ( referenceDate == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1046 )
@@ -181,28 +181,28 @@ public class EventDateValidationHook
     {
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
-        if ( event.getDueDate() != null && isNotValidDateString( event.getDueDate() ) )
+        if ( event.getScheduledAt() != null && isNotValidDateString( event.getScheduledAt() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1051 )
-                .addArg( event.getDueDate() ) );
+                .addArg( event.getScheduledAt() ) );
         }
 
-        if ( event.getEventDate() != null && isNotValidDateString( event.getEventDate() ) )
+        if ( event.getOccurredAt() != null && isNotValidDateString( event.getOccurredAt() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1052 )
-                .addArg( event.getEventDate() ) );
+                .addArg( event.getOccurredAt() ) );
         }
 
-        if ( event.getCreatedAtClient() != null && isNotValidDateString( event.getCreatedAtClient() ) )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1053 )
-                .addArg( event.getCreatedAtClient() ) );
-        }
-
-        if ( event.getLastUpdatedAtClient() != null && isNotValidDateString( event.getLastUpdatedAtClient() ) )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1054 )
-                .addArg( event.getLastUpdatedAtClient() ) );
-        }
+//        if ( event.getCreatedAtClient() != null && isNotValidDateString( event.getCreatedAtClient() ) )
+//        {
+//            errorReporter.addError( newReport( TrackerErrorCode.E1053 )
+//                .addArg( event.getCreatedAtClient() ) );
+//        }
+//
+//        if ( event.getLastUpdatedAtClient() != null && isNotValidDateString( event.getLastUpdatedAtClient() ) )
+//        {
+//            errorReporter.addError( newReport( TrackerErrorCode.E1054 )
+//                .addArg( event.getLastUpdatedAtClient() ) );
+//        }
     }
 }

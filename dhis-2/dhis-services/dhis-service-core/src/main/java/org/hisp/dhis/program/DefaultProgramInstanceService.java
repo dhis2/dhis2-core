@@ -126,6 +126,13 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
+    public void hardDeleteProgramInstance( ProgramInstance programInstance )
+    {
+        programInstanceStore.hardDelete( programInstance );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public ProgramInstance getProgramInstance( long id )
     {

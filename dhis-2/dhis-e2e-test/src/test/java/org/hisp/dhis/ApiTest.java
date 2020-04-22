@@ -48,6 +48,6 @@ public abstract class ApiTest
     public void afterAll()
     {
         new LoginActions().loginAsSuperUser();
-        new TestCleanUp().deleteCreatedEntities();
+        //new TestCleanUp().deleteCreatedEntities();
     }
 }

@@ -73,11 +73,11 @@ public class MetadataSetupExtension
 
             new LoginActions().loginAsDefaultUser();
 
-            String[] files = {
-                "src/test/resources/setup/userGroups.json",
-                "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/users.json"
+//            "src/test/resources/setup/users.json"
+//            "src/test/resources/setup/userGroups.json",
+//            "src/test/resources/setup/metadata.json",
+                String[] files = {
+                    "src/test/resources/setup/event_metadata.json",
             };
 
             String queryParams = "async=false";

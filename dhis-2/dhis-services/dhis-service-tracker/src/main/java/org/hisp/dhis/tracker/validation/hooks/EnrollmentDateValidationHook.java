@@ -74,10 +74,10 @@ public class EnrollmentDateValidationHook
 
         // TODO: getIncidentDate is only mandatory if getDisplayIncidentDate TRUE?
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() )
-            && !isValidDateStringAndNotNull( enrollment.getIncidentDate() ) )
+            && !isValidDateStringAndNotNull( enrollment.getOccurredAt() ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1023 )
-                .addArg( enrollment.getIncidentDate() ) );
+                .addArg( enrollment.getOccurredAt() ) );
         }
     }
 
@@ -86,10 +86,10 @@ public class EnrollmentDateValidationHook
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         // NOTE: getEnrollmentDate is always mandatory?
-        if ( !isValidDateStringAndNotNull( enrollment.getEnrollmentDate() ) )
+        if ( !isValidDateStringAndNotNull( enrollment.getEnrolledAt() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1025 )
-                .addArg( enrollment.getEnrollmentDate() ) );
+                .addArg( enrollment.getEnrolledAt() ) );
         }
     }
 
@@ -99,20 +99,20 @@ public class EnrollmentDateValidationHook
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
-        if ( isValidDateStringAndNotNull( enrollment.getEnrollmentDate() )
+        if ( isValidDateStringAndNotNull( enrollment.getEnrolledAt() )
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
-            && DateUtils.parseDate( enrollment.getEnrollmentDate() ).after( new Date() ) )
+            && DateUtils.parseDate( enrollment.getEnrolledAt() ).after( new Date() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1020 )
-                .addArg( enrollment.getEnrollmentDate() ) );
+                .addArg( enrollment.getEnrolledAt() ) );
         }
 
-        if ( isValidDateStringAndNotNull( enrollment.getIncidentDate() )
+        if ( isValidDateStringAndNotNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
-            && DateUtils.parseDate( enrollment.getIncidentDate() ).after( new Date() ) )
+            && DateUtils.parseDate( enrollment.getOccurredAt() ).after( new Date() ) )
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1021 )
-                .addArg( enrollment.getIncidentDate() ) );
+                .addArg( enrollment.getOccurredAt() ) );
         }
     }
 }

@@ -58,14 +58,14 @@ public class TrackedEntityGeoValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
         TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, tei );
-
-        FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
-            trackedEntityType.getFeatureType() :
-            tei.getFeatureType();
-
-        if ( tei.getGeometry() != null )
-        {
-            validateGeo( reporter, tei.getGeometry(), featureType );
-        }
+        // TODO: Check if this is still valid since tei.getFeatureType(); is removed...
+//        FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
+//            trackedEntityType.getFeatureType() :
+//            tei.getFeatureType();
+//
+//        if ( tei.getGeometry() != null )
+//        {
+//            validateGeo( reporter, tei.getGeometry(), featureType );
+//        }
     }
 }
