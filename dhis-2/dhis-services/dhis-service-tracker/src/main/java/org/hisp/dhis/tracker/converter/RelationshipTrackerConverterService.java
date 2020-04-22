@@ -51,9 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
 
 /**
  * @author Enrico Colasante
@@ -102,11 +100,12 @@ public class RelationshipTrackerConverterService
             Relationship toRelationship = new Relationship();
             toRelationship.setRelationship( fromRelationship.getUid() );
             toRelationship.setBidirectional( fromRelationship.getRelationshipType().isBidirectional() );
-            toRelationship.setCreated( fromRelationship.getCreated().toString() );
+            toRelationship.setCreatedAt( fromRelationship.getCreated().toString() );
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
-            toRelationship.setLastUpdated( fromRelationship.getLastUpdated().toString() );
-            toRelationship.setRelationshipName( fromRelationship.getName() );
+            toRelationship.setUpdatedAt( fromRelationship.getLastUpdated().toString() );
+            // TODO do we need this? this is not even the translated name..
+            // toRelationship.setRelationshipName( fromRelationship.getName() );
             toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
 
             return toRelationship;
@@ -184,7 +183,8 @@ public class RelationshipTrackerConverterService
                 toRelationship.setUid( CodeGenerator.generateUid() );
             }
 
-            toRelationship.setName( fromRelationship.getRelationshipName() );
+            // TODO do we need this? this is not even the translated name..
+            // toRelationship.setName( fromRelationship.getRelationshipName() );
             toRelationship.setRelationshipType( relationshipType );
 
             if ( fromRelationship.getRelationship() != null )

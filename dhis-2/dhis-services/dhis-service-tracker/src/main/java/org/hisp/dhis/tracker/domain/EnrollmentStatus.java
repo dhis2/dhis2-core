@@ -31,8 +31,6 @@ package org.hisp.dhis.tracker.domain;
 import org.hisp.dhis.program.ProgramStatus;
 
 /**
- * FIXME we should probably remove this, and replace it with program status
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum EnrollmentStatus
