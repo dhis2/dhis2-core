@@ -39,6 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -98,5 +99,15 @@ public class PreheatHelper
     public static CategoryOption getCategoryOption( TrackerBundle bundle, String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
+    }
+
+    public static void cacheEventCategoryOptionCombo( TrackerBundle bundle, Event event, CategoryOptionCombo coc )
+    {
+        bundle.getPreheat().cacheEventCoc( event.getEvent(), coc );
+    }
+
+    public static CategoryOptionCombo fetchCachedEventCategoryOptionCombo( TrackerBundle bundle, Event event )
+    {
+        return bundle.getPreheat().getCachedEventCoc( event.getEvent() );
     }
 }

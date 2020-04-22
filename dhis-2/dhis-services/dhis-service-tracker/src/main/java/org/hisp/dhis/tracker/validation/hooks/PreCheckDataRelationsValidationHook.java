@@ -28,6 +28,13 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -39,7 +46,13 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -50,6 +63,10 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
+
+    @Autowired
+    private CategoryService categoryService;
+
     @Override
     public int getOrder()
     {
@@ -123,5 +140,114 @@ public class PreCheckDataRelationsValidationHook
                 reporter.addError( newReport( TrackerErrorCode.E1039 ) );
             }
         }
+
+        boolean programHasCatCombo = program.getCategoryCombo() != null;
+
+        // if event has "attribute option combo" set only, fetch the aoc directly
+        boolean aocNotEmpty = StringUtils.isNotEmpty( event.getAttributeOptionCombo() );
+        boolean acoNotEmpty = StringUtils.isNotEmpty( event.getAttributeCategoryOptions() );
+
+        if ( aocNotEmpty && !acoNotEmpty )
+        {
+            CategoryOptionCombo coc = PreheatHelper.getCategoryOptionCombo( bundle, event.getAttributeOptionCombo() );
+            if ( coc == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1115 )
+                    .addArg( event.getAttributeOptionCombo() ) );
+            }
+            else
+            {
+                PreheatHelper.cacheEventCategoryOptionCombo( bundle, event, coc );
+            }
+        }
+        // if event has no "attribute option combo", fetch the default aoc
+        else if ( !aocNotEmpty && !acoNotEmpty && programHasCatCombo )
+        {
+            CategoryOptionCombo coc = (CategoryOptionCombo) bundle.getPreheat().getDefaults()
+                .get( CategoryOptionCombo.class );
+
+            if ( coc == null )
+            {
+                //TODO: is this possible? i.e no default COC?
+                reporter.addError( newReport( TrackerErrorCode.E1115 )
+                    .addArg( "<NO DEFAULT COC>" ) );
+            }
+            else
+            {
+                PreheatHelper.cacheEventCategoryOptionCombo( bundle, event, coc );
+            }
+        }
+        else if ( aocNotEmpty && acoNotEmpty && programHasCatCombo )
+        {
+            CategoryOptionCombo coc = resolveCategoryOptionCombo( reporter, bundle,
+                program.getCategoryCombo(), event.getAttributeCategoryOptions(),
+                event.getAttributeOptionCombo() );
+            if ( coc == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1115 )
+                    .addArg( event.getAttributeOptionCombo() ) );
+            }
+            else
+            {
+                PreheatHelper.cacheEventCategoryOptionCombo( bundle, event, coc );
+            }
+        }//TODO: What about if event.getAttributeCategoryOptions() != acoNotEmpty BUT event.getAttributeOptionCombo() IS?
+    }
+
+    private CategoryOptionCombo resolveCategoryOptionCombo( ValidationErrorReporter reporter, TrackerBundle bundle,
+        CategoryCombo categoryCombo, String attributeCategoryOptions, String attributeOptionCombo )
+    {
+        Set<String> opts = TextUtils.splitToArray( attributeCategoryOptions, TextUtils.SEMICOLON );
+
+        CategoryOptionCombo attrOptCombo = null;
+
+        if ( opts != null )
+        {
+            Set<CategoryOption> categoryOptions = new HashSet<>();
+
+            for ( String uid : opts )
+            {
+                CategoryOption categoryOption = PreheatHelper.getCategoryOption( bundle, uid );
+                if ( categoryOption == null )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1116 )
+                        .addArg( uid ) );
+                    return null;
+                }
+
+                categoryOptions.add( categoryOption );
+            }
+
+            List<String> options = Lists.newArrayList( opts );
+            Collections.sort( options );
+
+            attrOptCombo = categoryService.getCategoryOptionCombo( categoryCombo, categoryOptions );
+
+            if ( attrOptCombo == null )
+            {
+                reporter.addError( newReport( TrackerErrorCode.E1117 )
+                    .addArg( categoryCombo )
+                    .addArg( categoryOptions ) );
+                return null;
+            }
+        }
+        else if ( attributeOptionCombo != null )
+        {
+            attrOptCombo = PreheatHelper.getCategoryOptionCombo( bundle, attributeOptionCombo );
+        }
+
+        if ( attrOptCombo == null )
+        {
+            attrOptCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults().get( CategoryOptionCombo.class );
+        }
+
+        if ( attrOptCombo == null )
+        {
+            //TODO: is this possible? i.e no default COC?
+            reporter.addError( newReport( TrackerErrorCode.E1115 )
+                .addArg( "<NO DEFAULT COC>" ) );
+        }
+
+        return attrOptCombo;
     }
 }

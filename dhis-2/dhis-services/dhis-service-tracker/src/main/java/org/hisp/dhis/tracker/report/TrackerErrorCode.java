@@ -43,7 +43,7 @@ public enum TrackerErrorCode
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
     E1040( "Multiple active enrollments exists for Program: `{0}`." ),
     E1037( "TrackedEntityInstance: `{0}`, is not enrolled in Program `{1}`." ),
-    E1055( "Default attribute option combo is not allowed since program has non-default category combo." ),
+    E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
     E1064( "Error validating attribute, not unique; Error `{0}`" ),
     E1074( "FeatureType is missing." ),
     E1031( "Event date is required." ),
@@ -120,6 +120,10 @@ public enum TrackerErrorCode
     E1112( "Attribute value: `{0}`, is set to confidential but system is not properly configured to encrypt data." ),
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
+    E1115( "Could not find CategoryOptionCombo: `{0}`." ),
+    E1116( "Could not find CategoryOption: `{0}`." ),
+
+    E1117( "CategoryOptionCombo does not exist for given category combo and category options: `{0}`." ),
 
     E9999( "N/A" );
 

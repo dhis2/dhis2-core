@@ -80,6 +80,12 @@ public class TrackerPreheat
      */
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
+
+    /**
+     * All periods available.
+     */
+    private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
+
     /**
      * All periods available.
      */
@@ -269,6 +275,20 @@ public class TrackerPreheat
         }
 
         return this;
+    }
+
+    public TrackerPreheat cacheEventCoc( String key, CategoryOptionCombo coc )
+    {
+        if ( !StringUtils.isEmpty( key ) && !eventCocCacheMap.containsKey( key ) )
+        {
+            eventCocCacheMap.put( key, coc );
+        }
+        return this;
+    }
+
+    public CategoryOptionCombo getCachedEventCoc( String key )
+    {
+        return eventCocCacheMap.get( key );
     }
 
     @SuppressWarnings( "unchecked" )

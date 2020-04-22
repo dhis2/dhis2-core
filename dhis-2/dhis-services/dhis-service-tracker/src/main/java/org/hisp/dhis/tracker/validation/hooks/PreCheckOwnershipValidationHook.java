@@ -182,8 +182,11 @@ public class PreCheckOwnershipValidationHook
                 PreheatHelper.getProgramStageInstance( bundle, event.getEvent() ) );
         }
 
+        CategoryOptionCombo categoryOptionCombo = PreheatHelper
+            .getCategoryOptionCombo( bundle, event.getAttributeOptionCombo() );
+
         validateCreateEvent( reporter, bundle.getUser(),
-            PreheatHelper.getCategoryOptionCombo( bundle, event.getAttributeOptionCombo() ),
+            categoryOptionCombo,
             programStage,
             programInstance,
             organisationUnit,

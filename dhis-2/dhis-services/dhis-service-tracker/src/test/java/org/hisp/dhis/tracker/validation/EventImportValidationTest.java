@@ -199,6 +199,8 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
         assertEquals( 0, report.getErrorReports().size() );
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
@@ -220,6 +222,8 @@ public class EventImportValidationTest
         assertEquals( 8, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
         assertEquals( 0, report.getErrorReports().size() );
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
@@ -242,6 +246,8 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
+
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -365,6 +371,7 @@ public class EventImportValidationTest
 
         // Validate first time, should contain no errors.
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printErrors( report );
         assertEquals( 0, report.getErrorReports().size() );
 
         // Commit the validated bundle...

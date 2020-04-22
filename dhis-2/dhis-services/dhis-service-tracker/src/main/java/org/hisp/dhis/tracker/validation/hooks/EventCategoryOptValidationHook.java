@@ -28,36 +28,24 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
@@ -70,9 +58,6 @@ public class EventCategoryOptValidationHook
 {
     @Autowired
     protected I18nManager i18nManager;
-
-    @Autowired
-    private TrackerImportAccessManager trackerImportAccessManager;
 
     @Override
     public int getOrder()
@@ -88,69 +73,21 @@ public class EventCategoryOptValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
-
-        programStage = (programStage == null && program.isWithoutRegistration())
-            ? program.getProgramStageByStage( 1 ) : programStage;
-
-        if ( programStage == null )
-        {
-            return;
-        }
-
-        validateCategoryOptionCombo( bundle, reporter, bundle.getPreheat().getUser(), event, program );
-    }
-
-    private void validateCategoryOptionCombo( TrackerBundle bundle, ValidationErrorReporter errorReporter
-        , User actingUser, Event event, Program program )
-    {
-        Objects.requireNonNull( actingUser, Constants.USER_CANT_BE_NULL );
+        Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
-        // TODO: Morten H. & Stian. Abyot : How do we solve this in the new importer?
-//        CategoryOptionCombo categoryOptionCombo;
-//        if ( (event.getAttributeCategoryOptions() != null
-//            && program.getCategoryCombo() != null)
-//            || event.getAttributeOptionCombo() != null )
-//        {
-//            try
-//            {
-//                categoryOptionCombo = getAttributeOptionCombo( bundle,
-//                    program.getCategoryCombo(),
-//                    event.getAttributeCategoryOptions(),
-//                    event.getAttributeOptionCombo() );
-//            }
-//            catch ( IllegalQueryException e )
-//            {
-//                errorReporter.addError( newReport( TrackerErrorCode.E1072 )
-//                    .addArg( event.getAttributeCategoryOptions() )
-//                    .addArg( e.getMessage() ) );
-//                return;
-//            }
-//        }
-//        else
-//        {
-//            categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults()
-//                .get( CategoryOptionCombo.class );
-//        }
+        CategoryOptionCombo categoryOptionCombo = PreheatHelper.fetchCachedEventCategoryOptionCombo( bundle, event );
 
-        CategoryOptionCombo categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults()
-            .get( CategoryOptionCombo.class );
-        if ( categoryOptionCombo == null )
-        {
-            errorReporter.addError( newReport( TrackerErrorCode.E1055 ) );
-            return;
-        }
+        Objects.requireNonNull( categoryOptionCombo, Constants.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
         if ( categoryOptionCombo.isDefault()
             && program.getCategoryCombo() != null
             && !program.getCategoryCombo().isDefault() )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1055 ) );
+            reporter.addError( newReport( TrackerErrorCode.E1055 ) );
             return;
         }
 
@@ -164,87 +101,16 @@ public class EventCategoryOptValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1056 )
+                reporter.addError( newReport( TrackerErrorCode.E1056 )
                     .addArg( i18nFormat.formatDate( eventDate ) )
                     .addArg( i18nFormat.formatDate( option.getStartDate() ) )
                     .addArg( option.getName() ) );
-
-                return;
             }
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1057 ).
+                reporter.addError( newReport( TrackerErrorCode.E1057 ).
                     addArg( event.getLastUpdatedAtClient() ) );
-                return;
             }
         }
-
-        // TODO: Move to ownership/security pre check hook...
-        trackerImportAccessManager
-            .checkWriteCategoryOptionComboAccess( errorReporter, actingUser, categoryOptionCombo );
-    }
-
-    private CategoryOptionCombo getAttributeOptionCombo( TrackerBundle bundle, CategoryCombo categoryCombo,
-        String cp, String attributeOptionCombo )
-    {
-        Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
-
-        if ( categoryCombo == null )
-        {
-            throw new IllegalQueryException( "Illegal category combo" );
-        }
-
-        CategoryOptionCombo attrOptCombo = null;
-
-        if ( opts != null )
-        {
-            Set<CategoryOption> categoryOptions = new HashSet<>();
-
-            for ( String uid : opts )
-            {
-                CategoryOption categoryOption = bundle.getPreheat()
-                    .get( bundle.getIdentifier(), CategoryOption.class, uid );
-
-                if ( categoryOption == null )
-                {
-                    throw new IllegalQueryException( "Illegal category option identifier: " + uid );
-                }
-
-                categoryOptions.add( categoryOption );
-            }
-
-            List<String> options = Lists.newArrayList( opts );
-            Collections.sort( options );
-
-            String cacheKey = categoryCombo.getUid() + "-" + Joiner.on( "-" ).join( options );
-            attrOptCombo = bundle.getPreheat().get( bundle.getIdentifier(), CategoryOptionCombo.class, cacheKey );
-
-            if ( attrOptCombo == null )
-            {
-                throw new IllegalQueryException(
-                    "Attribute option combo does not exist for given category combo and category options" );
-            }
-        }
-        else if ( attributeOptionCombo != null )
-        {
-            attrOptCombo = bundle.getPreheat()
-                .get( bundle.getIdentifier(), CategoryOptionCombo.class, attributeOptionCombo );
-        }
-
-        // ---------------------------------------------------------------------
-        // Fall back to default category option combination
-        // ---------------------------------------------------------------------
-
-        if ( attrOptCombo == null )
-        {
-            attrOptCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults().get( CategoryOptionCombo.class );
-        }
-
-        if ( attrOptCombo == null )
-        {
-            throw new IllegalQueryException( "Default attribute option combo does not exist" );
-        }
-
-        return attrOptCombo;
     }
 }
