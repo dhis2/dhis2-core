@@ -44,23 +44,21 @@ import lombok.NoArgsConstructor;
 public class DataValue
 {
     @JsonProperty
-    private String created;
+    private String createdAt;
 
     @JsonProperty
-    private String lastUpdated;
+    private String updatedAt;
 
     @JsonProperty
-    private String value;
+    private String storedBy;
+
+    @JsonProperty
+    private boolean providedElsewhere;
 
     @JsonProperty
     @Builder.Default
     private String dataElement = "";
 
     @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    private String storedBy;
-
-    private boolean skipSynchronization;
+    private String value;
 }
