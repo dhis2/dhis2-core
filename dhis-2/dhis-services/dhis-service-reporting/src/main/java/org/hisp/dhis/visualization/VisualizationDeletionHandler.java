@@ -28,21 +28,49 @@ package org.hisp.dhis.visualization;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
+import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
+import org.hisp.dhis.legend.LegendSet;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.visualization.VisualizationDeletionHandler" )
+@Component
 public class VisualizationDeletionHandler
     extends
-    DeletionHandler
+    GenericAnalyticalObjectDeletionHandler<Visualization>
 {
-    public VisualizationDeletionHandler()
+    private final VisualizationService visualizationService;
+
+    public VisualizationDeletionHandler( final VisualizationService visualizationService )
     {
+        checkNotNull( visualizationService );
+        this.visualizationService = visualizationService;
+    }
+
+    @Override
+    protected AnalyticalObjectService<Visualization> getAnalyticalObjectService()
+    {
+        return visualizationService;
     }
 
     @Override
     public String getClassName()
     {
         return Visualization.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteLegendSet( final LegendSet legendSet )
+    {
+        final List<Visualization> visualizations = visualizationService.getAnalyticalObjects( legendSet );
+
+        for ( final Visualization visualization : visualizations )
+        {
+            visualization.setLegendSet( null );
+            visualizationService.update( visualization );
+        }
     }
 }

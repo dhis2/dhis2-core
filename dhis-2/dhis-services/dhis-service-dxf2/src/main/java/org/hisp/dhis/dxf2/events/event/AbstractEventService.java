@@ -2359,7 +2359,7 @@ public abstract class AbstractEventService
 
         updateEntities( user );
 
-        dbmsManager.clearSession();
+        dbmsManager.flushSession();
     }
 
     private void updateDateFields( Event event, ProgramStageInstance programStageInstance )
