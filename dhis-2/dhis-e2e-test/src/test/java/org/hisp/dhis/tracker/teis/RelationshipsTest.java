@@ -131,7 +131,7 @@ public class RelationshipsTest
         // create a second relationship
         response = relationshipActions.post( object );
 
-        response.validate().statusCode( 200 )
+        response.validate().statusCode( 409 )
             .body( "status", equalTo( "ERROR" ) )
             .body( "response.status", equalTo( "ERROR" ) )
             .body( "response.ignored", equalTo( 1 ) )
