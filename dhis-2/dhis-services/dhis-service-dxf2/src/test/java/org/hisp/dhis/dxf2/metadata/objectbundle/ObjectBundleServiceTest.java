@@ -1629,16 +1629,52 @@ public class ObjectBundleServiceTest
         params.setObjects( metadata );
 
         bundle = objectBundleService.create( params );
-        List<ErrorReport> errorReports = objectBundleValidationService.validate( bundle ).getErrorReports();
-        System.err.println( errorReports );
-        assertTrue( errorReports.isEmpty() );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
 
         organisationUnits = manager.getAll( OrganisationUnit.class );
         assertEquals( 1, organisationUnits.size() );
         assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
         assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
+    }
 
+    @Test
+    public void testCreateOrUpdateOrgUnitUsingCODE() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getName() );
+
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
     }
 
     private void defaultSetup()
