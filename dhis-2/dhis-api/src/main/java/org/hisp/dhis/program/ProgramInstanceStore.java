@@ -131,4 +131,11 @@ public interface ProgramInstanceStore
      * @return List of all PIs that matches the wanted type
      */
     List<ProgramInstance> getByType( ProgramType type );
+
+    /**
+     * Hard deletes a {@link ProgramInstance}.
+     *
+     * @param programInstance the ProgramInstance to delete.
+     */
+    void hardDelete( ProgramInstance programInstance );
 }

@@ -51,7 +51,6 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ClassUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,14 +100,6 @@ public class DefaultMessageService
         checkNotNull( systemSettingManager );
         checkNotNull( configurationProvider );
         checkNotNull( messageSenders );
-
-        StringBuilder sb = new StringBuilder( "Found the following message senders:\n" );
-
-        for ( MessageSender messageSender : messageSenders )
-        {
-            sb.append("- ").append( ClassUtils.getUserClass( messageSender.getClass() ).getSimpleName() ).append( "\n" );
-        }
-        log.info( sb.toString() );
 
         this.messageConversationStore = messageConversationStore;
         this.currentUserService = currentUserService;
