@@ -1619,6 +1619,9 @@ public class ObjectBundleServiceTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
         assertEquals( "org-unit-1", organisationUnits.get( 0 ).getName() );
+        assertNotNull( organisationUnits.get( 0 ).getUid() );
+
+        String objectUid = organisationUnits.get( 0 ).getUid();
 
         metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -1636,6 +1639,7 @@ public class ObjectBundleServiceTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
         assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
+        assertEquals( objectUid, organisationUnits.get( 0 ).getUid() );
     }
 
     @Test
@@ -1658,6 +1662,9 @@ public class ObjectBundleServiceTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
         assertEquals( "org-unit-1", organisationUnits.get( 0 ).getName() );
+        assertNotNull( organisationUnits.get( 0 ).getUid() );
+
+        String objectUid = organisationUnits.get( 0 ).getUid();
 
         metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -1675,6 +1682,7 @@ public class ObjectBundleServiceTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
         assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
+        assertEquals( objectUid, organisationUnits.get( 0 ).getUid() );
     }
 
     private void defaultSetup()

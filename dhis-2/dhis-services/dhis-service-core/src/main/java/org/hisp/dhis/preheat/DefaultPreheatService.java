@@ -153,14 +153,6 @@ public class DefaultPreheatService implements PreheatService
         preheat.put( PreheatIdentifier.UID, preheat.getUser() );
         preheat.put( PreheatIdentifier.CODE, preheat.getUser() );
 
-        // assign an uid to objects without an uid
-        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
-        {
-            params.getObjects().get( klass ).stream()
-                .filter( identifiableObject -> StringUtils.isEmpty( identifiableObject.getUid() ) )
-                .forEach( identifiableObject -> ((BaseIdentifiableObject) identifiableObject).setUid( CodeGenerator.generateUid() ) );
-        }
-
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> uniqueCollectionMap = new HashMap<>();
         Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>( params.getObjects().keySet() );
 
@@ -267,6 +259,24 @@ public class DefaultPreheatService implements PreheatService
             }
 
             uniqueCollectionMap.put( UserCredentials.class, userCredentials );
+        }
+
+        // assign an uid to objects without an UID, if they don't have UID but an existing object exists then reuse the UID
+        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
+        {
+            params.getObjects().get( klass ).forEach( o -> {
+                IdentifiableObject object = preheat.get( params.getPreheatIdentifier(), o );
+
+                if ( object != null )
+                {
+                    ((BaseIdentifiableObject) o).setUid( object.getUid() );
+                }
+
+                if ( StringUtils.isEmpty( o.getUid() ) )
+                {
+                    ((BaseIdentifiableObject) o).setUid( CodeGenerator.generateUid() );
+                }
+            } );
         }
 
         preheat.setUniquenessMap( collectUniqueness( params.getPreheatIdentifier(), uniqueCollectionMap ) );
