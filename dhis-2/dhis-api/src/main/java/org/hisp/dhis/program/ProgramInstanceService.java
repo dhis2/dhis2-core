@@ -61,6 +61,13 @@ public interface ProgramInstanceService
     void deleteProgramInstance( ProgramInstance programInstance );
 
     /**
+     * Hard deletes a {@link ProgramInstance}.
+     *
+     * @param programInstance the ProgramInstance to delete.
+     */
+    void hardDeleteProgramInstance( ProgramInstance programInstance );
+
+    /**
      * Updates an {@link ProgramInstance}.
      *
      * @param programInstance the ProgramInstance to update.

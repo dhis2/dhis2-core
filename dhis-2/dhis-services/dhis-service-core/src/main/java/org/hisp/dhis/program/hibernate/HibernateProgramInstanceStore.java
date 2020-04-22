@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -318,6 +319,13 @@ public class HibernateProgramInstanceStore
         query.setParameter( "type", type );
 
         return query.list();
+    }
+
+    @Override
+    public void hardDelete( ProgramInstance programInstance )
+    {
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( programInstance ) );
+        getSession().delete( programInstance );
     }
 
     private String toDateProperty( NotificationTrigger trigger )
