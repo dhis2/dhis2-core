@@ -29,7 +29,6 @@ package org.hisp.dhis.program.variable;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.program.AnalyticsType;
 
 /**
  * @author Zubair Asghar
