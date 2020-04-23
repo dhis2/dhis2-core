@@ -34,7 +34,6 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -53,8 +52,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -84,29 +81,6 @@ public class DefaultAnalyticsSecurityManager
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation
     // -------------------------------------------------------------------------
-
-    /**
-     * Will remove/exclude, from DataQueryParams, any category option that the
-     * current user is not allowed to read.
-     *
-     * @param programCategories the categories related to this program.
-     */
-    void excludeOnlyAuthorizedCategoryOptions( final List<Category> programCategories )
-    {
-        if ( isNotEmpty( programCategories ) )
-        {
-            for ( Category category : programCategories )
-            {
-              final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                if ( isNotEmpty( categoryOptions ) )
-                {
-                    category.getCategoryOptions()
-                        .removeIf( categoryOption -> hasDataReadPermissionFor( categoryOption ) );
-                }
-            }
-        }
-    }
 
     private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
     {
@@ -170,12 +144,6 @@ public class DefaultAnalyticsSecurityManager
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
-
-            if ( params.getProgram().hasCategoryCombo() )
-            {
-                final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-                excludeOnlyAuthorizedCategoryOptions( programCategories );
-            }
         }
 
         if ( params.hasProgramStage() )
