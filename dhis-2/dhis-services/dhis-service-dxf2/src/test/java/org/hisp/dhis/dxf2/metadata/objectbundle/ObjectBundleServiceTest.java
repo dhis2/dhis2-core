@@ -1599,6 +1599,92 @@ public class ObjectBundleServiceTest
         assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
     }
 
+    @Test
+    public void testCreateUpdateOrgUnitUsingCODE() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getName() );
+        assertNotNull( organisationUnits.get( 0 ).getUid() );
+
+        String objectUid = organisationUnits.get( 0 ).getUid();
+
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
+        assertEquals( objectUid, organisationUnits.get( 0 ).getUid() );
+    }
+
+    @Test
+    public void testCreateOrUpdateOrgUnitUsingCODE() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getName() );
+        assertNotNull( organisationUnits.get( 0 ).getUid() );
+
+        String objectUid = organisationUnits.get( 0 ).getUid();
+
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        objectBundleService.commit( bundle );
+
+        organisationUnits = manager.getAll( OrganisationUnit.class );
+        assertEquals( 1, organisationUnits.size() );
+        assertEquals( "org-unit-1", organisationUnits.get( 0 ).getCode() );
+        assertEquals( "org-unit-1-new-name", organisationUnits.get( 0 ).getName() );
+        assertEquals( objectUid, organisationUnits.get( 0 ).getUid() );
+    }
+
     private void defaultSetup()
     {
         DataElement de1 = createDataElement( 'A' );
