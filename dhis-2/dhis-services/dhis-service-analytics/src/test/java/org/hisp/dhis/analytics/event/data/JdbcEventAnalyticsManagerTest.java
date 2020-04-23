@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
@@ -133,56 +132,6 @@ public class JdbcEventAnalyticsManagerTest
 
         // Then
         assertThat( actualSql, containsString( theExpectedSql ) );
-    }
-
-    @Test
-    public void testFilterOutNotAuthorizedCategoryOptionEvents()
-    {
-        // Given
-        final CategoryOption aCategoryOptionA = stubCategoryOption( "cat-option-A", "uid-opt-A" );
-        final CategoryOption aCategoryOptionB = stubCategoryOption( "cat-option-B", "uid-opt-B" );
-
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
-            newArrayList( aCategoryOptionA, aCategoryOptionB ) );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B",
-            newArrayList( aCategoryOptionA, aCategoryOptionB ) );
-
-        final String theExpectedSql = " and ax.\"uid-cat-A\" not in ('uid-opt-A', 'uid-opt-B')  or ax.\"uid-cat-B\" not in ('uid-opt-A', 'uid-opt-B') ";
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager
-            .filterOutNotAuthorizedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
-
-        // Then
-        assertThat( actualSql, containsString( theExpectedSql ) );
-    }
-
-    @Test
-    public void testFilterOutNotAuthorizedCategoryOptionEventsWithNoCategories()
-    {
-        // Given
-        final List<Category> emptyCategoryList = newArrayList();
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager.filterOutNotAuthorizedCategoryOptionEvents( emptyCategoryList );
-
-        // Then
-        assertThat( actualSql, isEmptyString() );
-    }
-
-    @Test
-    public void testFilterOutNotAuthorizedCategoryOptionEventsWithNoCategoryOptions()
-    {
-        // Given
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A", newArrayList() );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B", newArrayList() );
-
-        // When
-        final String actualSql = jdbcEventAnalyticsManager
-            .filterOutNotAuthorizedCategoryOptionEvents( newArrayList( aCategoryA, aCategoryB ) );
-
-        // Then
-        assertThat( actualSql, isEmptyString() );
     }
 
     private Category stubCategory( final String name, final String uid, final List<CategoryOption> categoryOptions )

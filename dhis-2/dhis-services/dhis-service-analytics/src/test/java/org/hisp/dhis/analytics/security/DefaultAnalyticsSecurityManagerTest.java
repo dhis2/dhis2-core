@@ -29,13 +29,10 @@ package org.hisp.dhis.analytics.security;
  */
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -95,67 +92,6 @@ public class DefaultAnalyticsSecurityManagerTest
     {
         defaultAnalyticsSecurityManager = new DefaultAnalyticsSecurityManager( approvalLevelService,
             systemSettingManager, dimensionService, aclService, currentUserService );
-    }
-
-    @Test
-    public void testExcludeOnlyAuthorizedCategoryOptionsWhenOneCategoryOptionIsNotAllowed()
-    {
-        // Given
-        final CategoryOption aCategoryOptionNotAllowed = stubCategoryOption( "cat-option-A", "uid-opt-A" );
-        final CategoryOption aCategoryOptionAllowed = stubCategoryOption( "cat-option-B", "uid-opt-B" );
-
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
-            newArrayList( aCategoryOptionNotAllowed, aCategoryOptionAllowed ) );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B",
-            newArrayList( aCategoryOptionNotAllowed, aCategoryOptionAllowed ) );
-        final List<Category> categories = newArrayList( aCategoryA, aCategoryB );
-
-        final boolean canDataReadFalse = false;
-        final boolean canDataReadTrue = true;
-        final User stubUser = new User();
-
-        // When
-        when( currentUserService.getCurrentUser() ).thenReturn( stubUser );
-        when( aclService.canDataRead( currentUserService.getCurrentUser(), aCategoryOptionNotAllowed ) )
-            .thenReturn( canDataReadFalse );
-        when( aclService.canDataRead( currentUserService.getCurrentUser(), aCategoryOptionAllowed ) )
-            .thenReturn( canDataReadTrue );
-        defaultAnalyticsSecurityManager.excludeOnlyAuthorizedCategoryOptions( categories );
-
-        // Then
-        assertThat( aCategoryA.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed ) ) );
-        assertThat( aCategoryB.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed ) ) );
-        assertThat( aCategoryA.getCategoryOptions(), hasItems( aCategoryOptionNotAllowed ) );
-        assertThat( aCategoryB.getCategoryOptions(), hasItems( aCategoryOptionNotAllowed ) );
-    }
-
-    @Test
-    public void testExcludeOnlyAuthorizedCategoryOptionsWhenAllCategoryOptionsAreAllowed()
-    {
-        // Given
-        final CategoryOption aCategoryOptionAllowed = stubCategoryOption( "cat-option-A", "uid-opt-A" );
-        final CategoryOption anotherCategoryOptionAllowed = stubCategoryOption( "cat-option-B", "uid-opt-B" );
-
-        final Category aCategoryA = stubCategory( "cat-A", "uid-cat-A",
-            newArrayList( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) );
-        final Category aCategoryB = stubCategory( "cat-B", "uid-cat-B",
-            newArrayList( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) );
-        final List<Category> categories = newArrayList( aCategoryA, aCategoryB );
-
-        final boolean canDataReadTrue = true;
-        final User aStubUser = new User();
-
-        // When
-        when( currentUserService.getCurrentUser() ).thenReturn( aStubUser );
-        when( aclService.canDataRead( currentUserService.getCurrentUser(), aCategoryOptionAllowed ) )
-            .thenReturn( canDataReadTrue );
-        when( aclService.canDataRead( currentUserService.getCurrentUser(), anotherCategoryOptionAllowed ) )
-            .thenReturn( canDataReadTrue );
-        defaultAnalyticsSecurityManager.excludeOnlyAuthorizedCategoryOptions( categories );
-
-        // Then
-        assertThat( aCategoryA.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) ) );
-        assertThat( aCategoryB.getCategoryOptions(), not( hasItems( aCategoryOptionAllowed, anotherCategoryOptionAllowed ) ) );
     }
 
     @Test
