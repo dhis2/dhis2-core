@@ -340,7 +340,9 @@ public class DefaultAppManager
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
         appCache.invalidateAll();
-        log.info( "App cache cleared" );
+        reloadApps();
+        log.info( "App cache cleared and reloaded" );
+        
     }
 
     // -------------------------------------------------------------------------
