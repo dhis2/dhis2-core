@@ -28,14 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -48,6 +40,14 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
 
 /**
  * @author Luciano Fiandesio
@@ -128,20 +128,20 @@ public class UniquenessCheck
 
             if ( value != null )
             {
-                String persistedUid = uniquenessMap.get( property.getName() ).get( value );
+                String objectIdentifier = uniquenessMap.get( property.getName() ).get( value );
 
-                if ( persistedUid != null )
+                if ( objectIdentifier != null )
                 {
-                    if ( !object.getUid().equals( persistedUid ) )
+                    if ( !identifier.getIdentifier( object ).equals( objectIdentifier ) )
                     {
                         errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E5003, property.getName(),
-                            value, identifier.getIdentifiersWithName( object ), persistedUid ).setMainId( persistedUid )
-                                .setErrorProperty( property.getName() ) );
+                            value, identifier.getIdentifiersWithName( object ), objectIdentifier ).setMainId( objectIdentifier )
+                            .setErrorProperty( property.getName() ) );
                     }
                 }
                 else
                 {
-                    uniquenessMap.get( property.getName() ).put( value, object.getUid() );
+                    uniquenessMap.get( property.getName() ).put( value, identifier.getIdentifier( object ) );
                 }
             }
         } );
