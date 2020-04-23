@@ -40,9 +40,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  */
 public interface EventStore
 {
-
-    String INSERT_EVENT_SQL  = "insert into programstageinstance (" +
-        // @formatter:off
+    String INSERT_EVENT_SQL = "insert into programstageinstance (" +
+    // @formatter:off
         "programstageinstanceid, " +    // 0
         "programinstanceid, " +         // 1
         "programstageid, " +            // 2
@@ -66,21 +65,16 @@ public interface EventStore
         // @formatter:on
         "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
-    String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (" +
-        "trackedentitycommentid, " +    // 0
-        "uid, " +                       // 1
-        "commenttext, " +               // 2
-        "created, " +                   // 3
-        "creator," +                    // 4
-        "lastUpdated" +                 // 5
-        ") " +
-        "values ( nextval('trackedentitycomment_sequence'), ?, ?, ?, ?, ?)";
+    String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (" + "trackedentitycommentid, " + // 0
+        "uid, " + // 1
+        "commenttext, " + // 2
+        "created, " + // 3
+        "creator," + // 4
+        "lastUpdated" + // 5
+        ") " + "values ( nextval('trackedentitycomment_sequence'), ?, ?, ?, ?, ?)";
 
-    String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (" +
-            "programstageinstanceid, " +
-            "sort_order, " +
-            "trackedentitycommentid) " +
-            "values (?, ?, ?)";
+    String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (" + "programstageinstanceid, "
+        + "sort_order, " + "trackedentitycommentid) " + "values (?, ?, ?)";
 
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
         Map<String, Set<String>> psdesWithSkipSyncTrue );
@@ -90,4 +84,12 @@ public interface EventStore
     List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
+
+    /**
+     * Delete events matching the List of UIDs. This operation also remove comments
+     * connected to the Event.
+     *
+     * @param uid a List of Events UID
+     */
+    void delete( List<String> uid );
 }

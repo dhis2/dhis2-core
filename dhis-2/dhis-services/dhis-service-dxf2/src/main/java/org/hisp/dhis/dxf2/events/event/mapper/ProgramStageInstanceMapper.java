@@ -49,7 +49,7 @@ public class ProgramStageInstanceMapper
     AbstractMapper<Event, ProgramStageInstance>
 {
     private final ProgramStageInstanceNoteMapper noteMapper;
-    
+
     public ProgramStageInstanceMapper( WorkContext ctx )
     {
         super( ctx );
@@ -129,16 +129,14 @@ public class ProgramStageInstanceMapper
         }
 
         psi.setComments( convertNotes( event, this.workContext ) );
-        
+
         return psi;
 
     }
-    
+
     private List<TrackedEntityComment> convertNotes( Event event, WorkContext ctx )
     {
-        return event.getNotes().stream()
-            .filter( note -> ctx.getNotesMap().containsKey( note.getNote() ))
-            .map( noteMapper::map )
-            .collect( Collectors.toList() );
-    }  
+        return event.getNotes().stream().filter( note -> ctx.getNotesMap().containsKey( note.getNote() ) )
+            .map( noteMapper::map ).collect( Collectors.toList() );
+    }
 }
