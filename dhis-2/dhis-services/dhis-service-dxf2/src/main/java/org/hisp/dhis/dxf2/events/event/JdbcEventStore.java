@@ -350,6 +350,9 @@ public class JdbcEventStore
             for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
 
             {
+            /*
+             * split the event list into batches
+             */
             final List<ProgramStageInstance> batchList = events.subList( i, Math.min( i + BATCH_SIZE, events.size() ) );
 
                 /*

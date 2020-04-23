@@ -126,10 +126,15 @@ public class DefaultEventDataValueService
         ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementCache )
     {
 
+        // transform the datavalues **for the current PSI** into a map of k: datavalue
+        // uid - v: EventDataValue
         Map<String, EventDataValue> dataElementValueMap = getDataElementToEventDataValueMap(
             programStageInstance.getEventDataValues() );
 
+        // check if mandatory check validation is needed
         boolean validateMandatoryAttributes = doValidationOfMandatoryAttributes( importOptions.getUser() );
+
+        // validate mandatory attributes
         if ( validateMandatoryAttributes && !validatePresenceOfMandatoryDataElements( event, programStageInstance,
             dataElementCache, importOptions, importSummary, singleValue ) )
         {
@@ -143,6 +148,7 @@ public class DefaultEventDataValueService
         Set<EventDataValue> updatedDataValues = new HashSet<>();
         Set<EventDataValue> removedDataValuesDueToEmptyValue = new HashSet<>();
 
+        // get username
         String fallbackStoredBy = AbstractEventService.getValidUsername( event.getStoredBy(), importSummary,
             importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
@@ -150,6 +156,8 @@ public class DefaultEventDataValueService
         {
             String storedBy = !StringUtils.isEmpty( dataValue.getStoredBy() ) ? dataValue.getStoredBy()
                 : fallbackStoredBy;
+
+            // get data element for this data value
             DataElement dataElement = dataElementCache.getOrDefault( dataValue.getDataElement(), null );
 
             if ( dataElement == null )
@@ -161,6 +169,7 @@ public class DefaultEventDataValueService
             else if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement,
                 dataValue.getValue(), importSummary ) && !importOptions.isDryRun() )
             {
+                // if validation passes..
                 prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues,
                     updatedDataValues, removedDataValuesDueToEmptyValue, storedBy );
             }
