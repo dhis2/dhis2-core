@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.security;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryExWhenTrue;
 
 import java.util.ArrayList;
@@ -42,8 +41,6 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -105,32 +102,6 @@ public class DefaultAnalyticsSecurityManager
     // AnalyticsSecurityManager implementation
     // -------------------------------------------------------------------------
 
-    /**
-     * Will remove/exclude, from DataQueryParams, any category option that the
-     * current user is authorized to read, so we can filter out the category options
-     * not authorized later on (if any).
-     *
-     * @param programCategories the categories related to this program.
-     */
-    void excludeOnlyAuthorizedCategoryOptions( final List<Category> programCategories )
-    {
-        if ( isNotEmpty( programCategories ) )
-        {
-            User user = currentUserService.getCurrentUser();
-
-            for ( Category category : programCategories )
-            {
-                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                if ( isNotEmpty( categoryOptions ) )
-                {
-                    category.getCategoryOptions()
-                        .removeIf( categoryOption -> aclService.canDataRead( user, categoryOption ) );
-                }
-            }
-        }
-    }
-
     @Override
     public void decideAccess( DataQueryParams params )
     {
@@ -189,12 +160,6 @@ public class DefaultAnalyticsSecurityManager
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
-
-            if ( params.getProgram().hasCategoryCombo() )
-            {
-                final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-                excludeOnlyAuthorizedCategoryOptions( programCategories );
-            }
         }
 
         if ( params.hasProgramStage() )
