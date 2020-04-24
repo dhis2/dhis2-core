@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  */
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 import java.io.IOException;
 import java.util.ArrayList;
