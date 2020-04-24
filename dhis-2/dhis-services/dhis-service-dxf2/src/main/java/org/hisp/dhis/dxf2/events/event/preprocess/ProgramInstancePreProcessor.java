@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
 import org.hisp.dhis.program.Program;
