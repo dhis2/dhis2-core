@@ -39,7 +39,6 @@ import org.hisp.dhis.program.Program;
  */
 public class AttributeOptionComboCheck implements ValidationCheck
 {
-
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {

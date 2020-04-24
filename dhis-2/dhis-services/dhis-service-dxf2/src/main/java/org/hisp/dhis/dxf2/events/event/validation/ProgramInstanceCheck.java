@@ -51,9 +51,9 @@ public class ProgramInstanceCheck implements ValidationCheck
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
 
         List<ProgramInstance> programInstances;
-        if ( program.isRegistration() )
-        {
             if ( programInstance == null ) // Program Instance should be NOT null, after the pre-processing stage
+            {
+            if ( program.isRegistration() )
             {
                 programInstances = new ArrayList<>( ctx.getServiceDelegator().getProgramInstanceStore()
                     .get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
@@ -71,17 +71,19 @@ public class ProgramInstanceCheck implements ValidationCheck
                             + " has multiple active enrollments in program: " + program.getUid() )
                                 .setReference( event.getEvent() ).incrementIgnored();
                 }
-            }
+
         }
         else
         {
-            programInstances = ctx.getServiceDelegator().getProgramInstanceStore().get( program, ProgramStatus.ACTIVE );
+                programInstances = ctx.getServiceDelegator().getProgramInstanceStore().get( program,
+                    ProgramStatus.ACTIVE );
             if ( programInstances.size() > 1 )
             {
                 return new ImportSummary( ImportStatus.ERROR,
                     "Multiple active program instances exists for program: " + program.getUid() )
                         .setReference( event.getEvent() ).incrementIgnored();
             }
+        }
         }
 
         return new ImportSummary();

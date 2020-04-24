@@ -450,10 +450,11 @@ public class ValidationContextLoader
     }
 
     /**
-     * OrgUnit -> List of events
+     * Create a Map, where [key] -> Event UID, [value] -> Org Unit
      *
-     * @param events
-     * @return
+     * @param events a List of Events
+     *
+     * @return a Map, where [key] -> Event UID, [value] -> Org Unit
      */
     private Map<String, OrganisationUnit> loadOrganisationUnits( List<Event> events )
     {
@@ -463,10 +464,12 @@ public class ValidationContextLoader
             .filter( e -> e.getOrgUnit() != null ).map( Event::getOrgUnit )
             .collect( Collectors.toSet() );
 
-        // Create a bi-directional map event uid -> org unit uid
-        Map<String, String> orgUnitToEvent = events.stream()
-            .filter( e -> e.getOrgUnit() != null )
-            .collect( Collectors.toMap( Event::getOrgUnit, Event::getUid  ) );
+        // Create a map: org unit uid -> List [event uid]
+        Multimap<String, String> orgUnitToEvent = HashMultimap.create();
+        for ( Event event : events )
+        {
+            orgUnitToEvent.put( event.getOrgUnit(), event.getUid() );
+        }
         // @formatter:on
 
         final String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.path, ou.hierarchylevel from organisationunit ou where ou.uid in (:ids)";
@@ -485,8 +488,10 @@ public class ValidationContextLoader
                 ou.setCode( rs.getString( "code" ) );
                 ou.setPath( rs.getString( "path" ) );
                 ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
-
-                results.put( orgUnitToEvent.get( ou.getUid() ), ou );
+                for ( String event : orgUnitToEvent.get( ou.getUid() ) )
+                {
+                    results.put( event, ou );
+                }
 
             }
             return results;

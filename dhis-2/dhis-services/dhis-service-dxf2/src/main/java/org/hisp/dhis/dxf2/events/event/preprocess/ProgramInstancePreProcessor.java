@@ -42,6 +42,9 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
+ * The goal of this Pre-processor is to assign a Program Instance (Enrollment) to the Event getting processed.
+ * If the Program Instance can not be assigned, the Event will not pass validation.
+ *
  * @author Luciano Fiandesio
  */
 public class ProgramInstancePreProcessor
@@ -69,8 +72,9 @@ public class ProgramInstancePreProcessor
                 event.setEnrollment( programInstances.get( 0 ).getUid() );
                 ctx.getProgramInstanceMap().put( event.getUid(), programInstances.get( 0 ) );
             }
-        } else {
-
+        }
+        else if ( program.isWithoutRegistration() && programInstance == null )
+        {
             List<ProgramInstance> programInstances = programInstanceStore.get( program, ProgramStatus.ACTIVE );
 
             if ( programInstances.isEmpty() )
