@@ -40,7 +40,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
@@ -66,7 +65,7 @@ public class AttributeOptionComboLoader
 
     private CachingMap<String, CategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
 
-    private CachingMap<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectsCache = new CachingMap<>();
+    private CategoryOptionCombo DEFAULT_COC = null;
 
     public AttributeOptionComboLoader( IdentifiableObjectManager manager, CategoryService categoryService )
     {
@@ -92,7 +91,16 @@ public class AttributeOptionComboLoader
 
     public CategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
     {
-        return categoryOptionComboCache.get( id, () -> manager.getObject( CategoryOptionCombo.class, idScheme, id ) );
+        CategoryOptionCombo categoryOptionCombo = categoryOptionComboCache.get( id );
+        if ( categoryOptionCombo == null )
+        {
+            categoryOptionCombo = manager.getObject( CategoryOptionCombo.class, idScheme, id );
+            if ( categoryOptionCombo != null )
+            {
+                categoryOptionComboCache.put( id, categoryOptionCombo );
+            }
+        }
+        return categoryOptionCombo;
     }
 
     private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
@@ -168,7 +176,13 @@ public class AttributeOptionComboLoader
 
     public CategoryOptionCombo getDefault()
     {
-        return (CategoryOptionCombo) defaultObjectsCache.get( CategoryOptionCombo.class,
-            () -> manager.getByName( CategoryOptionCombo.class, "default" ) );
+        if ( DEFAULT_COC == null )
+        {
+            CategoryOptionCombo defaultCoc = manager.getByName( CategoryOptionCombo.class, "default" );
+            // Call is default to avoid Hibernate Session issues later
+            defaultCoc.isDefault();
+            this.DEFAULT_COC = defaultCoc;
+        }
+        return DEFAULT_COC;
     }
 }

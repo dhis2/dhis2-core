@@ -287,6 +287,7 @@ public class ValidationContextLoader
     private Map<String, CategoryOptionCombo> loadCategoryOptionCombos( List<Event> events,
         Map<String, Program> programMap, ImportOptions importOptions )
     {
+        // TODO this should be optimizid to execute less SQL queries
         IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
         Map<String, CategoryOptionCombo> eventToCocMap = new HashMap<>();
         for ( Event event : events )
@@ -297,27 +298,24 @@ public class ValidationContextLoader
             if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) )
             {
-                CategoryOptionCombo coc = attributeOptionComboLoader.getCategoryOptionCombo(idScheme, event.getAttributeOptionCombo());
-                coc.isDefault();
-                eventToCocMap.put( event.getUid(), coc );
+                eventToCocMap.put( event.getUid(), attributeOptionComboLoader.getCategoryOptionCombo(idScheme, event.getAttributeOptionCombo()) );
             }
             // if event has no "attribute option combo", fetch the default aoc
             else if ( StringUtils.isEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
             {
                 CategoryOptionCombo coc = attributeOptionComboLoader.getDefault();
-                coc.isDefault();
-                eventToCocMap.put( event.getUid(), coc );
+                eventToCocMap.put( event.getUid(), attributeOptionComboLoader.getDefault() );
             }
             else if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isNotEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
             {
-                CategoryOptionCombo coc = attributeOptionComboLoader.getAttributeOptionCombo(program.getCategoryCombo(),
-                        event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme);
-                coc.isDefault();
+                CategoryOptionCombo coc = attributeOptionComboLoader.getAttributeOptionCombo(
+                    program.getCategoryCombo(), event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(),
+                    idScheme );
+
                 eventToCocMap.put( event.getUid(), coc);
             }
-
         }
 
         return eventToCocMap;
