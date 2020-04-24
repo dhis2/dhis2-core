@@ -194,7 +194,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null )
         {
-            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+            possibleSearchOrgUnits = user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope();
         }
 
         if ( ou != null )
@@ -270,7 +270,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
+            params.setOrganisationUnits( user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope() );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
@@ -307,7 +307,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
+            params.setOrganisationUnits( user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope() );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )

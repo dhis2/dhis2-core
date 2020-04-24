@@ -512,13 +512,13 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getTeiSearchOrganisationUnitsWithFallback() == null
-            || user.getTeiSearchOrganisationUnitsWithFallback().isEmpty() )
+        if ( user == null || user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope() == null
+            || user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope().isEmpty() )
         {
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getTeiSearchOrganisationUnitsWithFallback() );
+        return organisationUnit.isDescendant( user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope() );
     }
 
     @Override

@@ -195,6 +195,11 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
+        // ACL check for TET
+        trackedEntityInstances = trackedEntityInstances.stream()
+            .filter( tei -> aclService.canDataRead( user, tei.getTrackedEntityType() ) )
+            .collect( Collectors.toList());
+
         //Avoiding NullPointerException
         String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
@@ -702,7 +707,7 @@ public class DefaultTrackedEntityInstanceService
 
         if ( user != null )
         {
-            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+            possibleSearchOrgUnits = user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope();
         }
 
         QueryFilter queryFilter = getQueryFilter( query );
@@ -994,7 +999,7 @@ public class DefaultTrackedEntityInstanceService
         }
         else
         {
-            searchOrgUnits.addAll( user.getTeiSearchOrganisationUnitsWithFallback() );
+            searchOrgUnits.addAll( user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope() );
         }
 
         for ( OrganisationUnit ou : searchOrgUnits )

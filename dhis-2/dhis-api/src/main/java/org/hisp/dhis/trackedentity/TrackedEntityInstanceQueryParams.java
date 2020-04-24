@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -331,7 +332,7 @@ public class TrackedEntityInstanceQueryParams
     {
         if ( user != null && isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
+            setOrganisationUnits( user.getAccessibleOrganisationUnitsFromSearchAndCaptureScope() );
             setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( user != null && isOrganisationUnitMode( OrganisationUnitSelectionMode.CAPTURE ) )
