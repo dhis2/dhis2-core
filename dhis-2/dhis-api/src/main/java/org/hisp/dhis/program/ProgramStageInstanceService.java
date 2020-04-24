@@ -133,6 +133,14 @@ public interface ProgramStageInstanceService
     List<ProgramStageInstance> getProgramStageInstances( List<Long> ids );
 
     /**
+     * Returns a List of {@link ProgramStageInstance}.
+     *
+     * @param uids a List of {@link ProgramStageInstance} uids
+     * @return  a List of {@link ProgramStageInstance} matching the provided uids
+     */
+    List<ProgramStageInstance> getProgramStageInstancesByUids( List<String> uids );
+
+    /**
      * Returns the {@link ProgramStageInstance} with the given UID.
      *
      * @param uid the UID.

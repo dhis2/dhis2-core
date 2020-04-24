@@ -118,7 +118,8 @@ public class ProgramInstanceUpdatePreProcessor
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setGeometry( event.getGeometry() );
 
-        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+        if ( programStageInstance.getProgramStage() != null
+            && programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
             programStageInstance.setAssignedUser( ctx.getAssignedUserMap().get( event.getUid() ) );
         }

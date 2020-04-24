@@ -152,7 +152,7 @@ public abstract class AbstractEventService2
                 importOptions.getImportStrategy(), validationContext.getProgramStageInstanceMap() );
 
             importSummaries
-                .addImportSummaries( updateEvents( accumulator.getCreate(), importOptions, false, false, validationContext ) );
+                .addImportSummaries( updateEvents( accumulator.getUpdate(), importOptions, false, false, validationContext ) );
         }
 
         if ( jobId != null )
@@ -405,6 +405,56 @@ public abstract class AbstractEventService2
     }
 
     @Override
+    public ImportSummaries updateEvents( final List<Event> events, final ImportOptions importOptions,
+        final boolean singleValue, final boolean clearSession, final WorkContext ctx )
+    {
+        ImportSummaries importSummaries = new ImportSummaries();
+
+        // filter out events which are already in the database
+        // TODO: Is it needed for Update? Removing for now: resolveImportableEvents( events, importSummaries, ctx );
+        List<Event> validEvents = events;
+
+        // pre-process events
+        preUpdateProcessorFactory.preProcessEvents( ctx, events );
+
+        // @formatter:off
+        importSummaries.addImportSummaries(
+            // Run validation against the remaining "insertable" events //
+            updateValidationFactory.validateEvents( ctx, validEvents )
+        );
+        // @formatter:on
+
+        // collect the UIDs of events that did not pass validation
+        List<String> failedUids = importSummaries.getImportSummaries().stream()
+            .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference )
+            .collect( Collectors.toList() );
+
+        // TODO: What if size is ZERO? Should we return error as well as nothing was actually imported?
+        // Currently it returns success.
+        if ( failedUids.size() == validEvents.size() )
+        {
+            return importSummaries;
+        }
+        
+        if ( failedUids.isEmpty() )
+        {
+            eventPersistenceService.update( ctx, validEvents );
+        }
+        else
+        {
+            // collect the events that passed validation and can be persisted
+            // @formatter:off
+            eventPersistenceService.update( ctx, validEvents.stream()
+                .filter( e -> !failedUids.contains( e.getEvent() ) )
+                .collect( Collectors.toList() ) );
+            // @formatter:on
+        }
+
+        return importSummaries;
+    }
+
+    @Override
+>>>>>>> HEAD~4
     public void updateEventForNote( Event event )
     {
 

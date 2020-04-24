@@ -136,6 +136,12 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    public List<ProgramStageInstance> getProgramStageInstancesByUids( List<String> uids )
+    {
+        return programStageInstanceStore.getByUid( uids );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public ProgramStageInstance getProgramStageInstance( String uid )
     {

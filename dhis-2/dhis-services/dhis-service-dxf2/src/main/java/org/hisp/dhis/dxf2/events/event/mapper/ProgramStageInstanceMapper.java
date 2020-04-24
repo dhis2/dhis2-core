@@ -63,11 +63,12 @@ public class ProgramStageInstanceMapper
 
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ) )
         {
+            // TODO: Is this really correct?
             psi.setCode( event.getUid() );
         }
         else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( IdScheme.UID ) )
         {
-            psi.setUid( event.getUid() );
+            psi.setUid( event.getEvent() );
         } // TODO what about other schemes, like id?
 
         // FKs

@@ -327,7 +327,7 @@ public class ValidationContextLoader
     {
         Set<String> psiUid = events.stream().map( Event::getEvent ).collect( Collectors.toSet() );
 
-        final String sql = "select psi.programinstanceid, psi.uid, psi.status, psi.deleted from programstageinstance psi where psi.uid in (:ids)";
+        final String sql = "select psi.programinstanceid, psi.programstageinstanceid, psi.uid, psi.status, psi.deleted from programstageinstance psi where psi.uid in (:ids)";
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", psiUid );
 
@@ -337,7 +337,7 @@ public class ValidationContextLoader
             while ( rs.next() )
             {
                 ProgramStageInstance psi = new ProgramStageInstance();
-                psi.setId( rs.getLong( "programinstanceid" ) );
+                psi.setId( rs.getLong( "programstageinstanceid" ) );
                 psi.setUid( rs.getString( "uid" ) );
                 psi.setStatus( EventStatus.valueOf( rs.getString( "status" ) ) );
                 psi.setDeleted( rs.getBoolean( "deleted" ) );

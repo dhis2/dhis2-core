@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.Collection;
 import java.util.Date;
@@ -104,8 +105,8 @@ public class DefaultEventDataValueService
 
         // Fetch all PSI in one query: this is required because we want Hibernate
         // managed objects
-        final List<ProgramStageInstance> programStageInstances = programStageInstanceService.getProgramStageInstances(
-            events.values().stream().map( BaseIdentifiableObject::getId ).collect( Collectors.toList() ) );
+        final List<ProgramStageInstance> programStageInstances = programStageInstanceService.getProgramStageInstancesByUids(
+            events.values().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
         for ( ProgramStageInstance psi : programStageInstances )
         {
@@ -119,7 +120,7 @@ public class DefaultEventDataValueService
 
     private Event getEventFromMap( String uid, Set<Event> events )
     {
-        return events.stream().filter( e -> e.getUid().equals( uid ) ).findFirst().get();
+        return events.stream().filter( event -> trimToEmpty( uid ).equals( event.getEvent() ) ).findFirst().get();
     }
 
     private void processEvent( ProgramStageInstance programStageInstance, Event event, boolean singleValue,

@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event.persistence;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.getValidUsername;
@@ -184,8 +185,9 @@ public class DefaultEventPersistenceService
                 saveTrackedEntityComment( programStageInstance, event, importOptions );
 
                 // TODO: Find how to bring this into the update transaction.
-                context.getTrackedEntityInstanceMap().values()
-                    .forEach( tei -> identifiableObjectManager.update( tei, importOptions.getUser() ) );
+                // TODO: Maikel, what exactly needs to be updated here? Commented out for now
+//                context.getTrackedEntityInstanceMap().values()
+//                    .forEach( tei -> identifiableObjectManager.update( tei, importOptions.getUser() ) );
             }
 
             System.out.println( "UPDATE: Processing Data Value for " + eventProgramStageInstanceMap.size()
@@ -198,7 +200,8 @@ public class DefaultEventPersistenceService
 
     private Event getEvent( String uid, List<Event> events )
     {
-        return events.stream().filter( event -> event.getUid().equals( uid ) ).findFirst().get();
+        return events.stream().filter( event -> trimToEmpty( uid ).equals( event.getEvent() ) ).findFirst()
+            .get();
     }
 
     private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,

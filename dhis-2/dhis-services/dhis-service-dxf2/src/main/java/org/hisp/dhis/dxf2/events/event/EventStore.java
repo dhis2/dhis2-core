@@ -76,6 +76,30 @@ public interface EventStore
     String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (" + "programstageinstanceid, "
         + "sort_order, " + "trackedentitycommentid) " + "values (?, ?, ?)";
 
+    String SQL_UPDATE = "update programstageinstance set " +
+        // @formatter:off
+            "programinstanceid = ?, " +         // 1
+            "programstageid = ?, " +            // 2
+            "duedate = ?, " +                   // 3
+            "executiondate = ?, " +             // 4
+            "organisationunitid = ?, " +        // 5
+            "status = ?, " +                    // 6
+            "completeddate = ?, " +             // 7
+            //"uid = ?, " +                     // 8
+            "created = ?, " +                   // 9
+            "lastupdated = ?, " +               // 10
+            "attributeoptioncomboid = ?, " +    // 11
+            "storedby = ?, " +                  // 12
+            "completedby = ?, " +               // 13
+            "deleted = ?, " +                   // 14
+            "code = ?, " +                      // 15
+            "createdatclient = ?, " +           // 16
+            "lastupdatedatclient = ?, " +       // 17
+            //"geometry = ?, " +                // 18
+            "assigneduserid = ? " +             // 19
+            "where uid = ?;";// 20
+        // @formatter:on
+
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
         Map<String, Set<String>> psdesWithSkipSyncTrue );
 

@@ -32,10 +32,31 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.min;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.util.DateUtils.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -351,7 +372,6 @@ public class JdbcEventStore
         return events;
     }
 
-<<<<<<< master
     public void saveEvents( List<ProgramStageInstance> events ) {
 
         try {
@@ -365,11 +385,6 @@ public class JdbcEventStore
              * split the event list into batches
              */
             final List<ProgramStageInstance> batchList = events.subList( i, Math.min( i + BATCH_SIZE, events.size() ) );
-=======
-    public List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> events )
-    {
-        List<ProgramStageInstance> savedPsi = new ArrayList<>();
->>>>>>> HEAD~8
 
         final List<List<ProgramStageInstance>> batches = Lists.partition( events, BATCH_SIZE);
         for (List<ProgramStageInstance> batch : batches) {
@@ -641,14 +656,15 @@ public class JdbcEventStore
                     throws SQLException
                 {
                     final ProgramStageInstance event = batchList.get( j );
-                    // @formatter:off
-                    pStmt.setLong(      1,  event.getProgramStage().getId() );
-                    pStmt.setTimestamp( 2,  new Timestamp( event.getDueDate().getTime() ) );
-                    pStmt.setTimestamp( 3,  new Timestamp( event.getExecutionDate().getTime() ) );
-                    pStmt.setLong(      4,  event.getOrganisationUnit().getId() );
-                    pStmt.setString(    5,  event.getStatus().toString() );
-                    pStmt.setTimestamp( 6,  toTimestamp(event.getCompletedDate() ) );
-                    pStmt.setString(    7,  event.getUid() );
+
+                    pStmt.setLong( 1, event.getProgramInstance().getId() );
+                    pStmt.setLong( 2, event.getProgramStage().getId() );
+                    pStmt.setTimestamp( 3, new Timestamp( event.getDueDate().getTime() ) );
+                    pStmt.setTimestamp( 4, new Timestamp( event.getExecutionDate().getTime() ) );
+                    pStmt.setLong( 5, event.getOrganisationUnit().getId() );
+                    pStmt.setString( 6, event.getStatus().toString() );
+                    pStmt.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
+                    //pStmt.setString( 8, event.getUid() );
                     pStmt.setTimestamp( 8, null ); // TODO event.getCreated -> who set this?
                     pStmt.setTimestamp( 9, null ); // TODO event.getLastUpdated() -> who set this?
                     pStmt.setLong(      10, event.getAttributeOptionCombo().getId() );
@@ -659,7 +675,7 @@ public class JdbcEventStore
                     pStmt.setTimestamp( 15, toTimestamp( event.getCreatedAtClient() ) );
                     pStmt.setTimestamp( 16, toTimestamp( event.getLastUpdatedAtClient() ) );
                     //pStmt.setObject(    19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
-                    // @formatter:on
+
                     if ( event.getAssignedUser() != null )
                     {
                         pStmt.setLong( 17, event.getAssignedUser().getId() );
@@ -668,7 +684,7 @@ public class JdbcEventStore
                     {
                         pStmt.setObject( 17, null );
                     }
-                    pStmt.setLong( 18, event.getId() );
+                    pStmt.setString( 18, event.getUid() );
                 }
 
                 @Override
