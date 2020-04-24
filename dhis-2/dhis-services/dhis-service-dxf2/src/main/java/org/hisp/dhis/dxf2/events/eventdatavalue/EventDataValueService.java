@@ -63,8 +63,7 @@ public interface EventDataValueService
      * saves/updates/deletes data values.
      *
      * @param events a Map containing a ProgramStageInstance and associated Event
-     * @param singleValue Specifies whether request updates only a single value or
-     *        not
+     * @param singleValue Specifies whether request updates only a single value or not
      * @param importOptions ImportOptions
      * @param dataElementsCache Cache with DataElements related to EventDataValues
      *        that are being updated

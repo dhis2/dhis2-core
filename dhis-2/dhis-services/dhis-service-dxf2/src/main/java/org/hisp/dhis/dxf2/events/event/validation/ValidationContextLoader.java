@@ -325,7 +325,7 @@ public class ValidationContextLoader
 
     private Map<String, ProgramStageInstance> loadProgramStageInstances( List<Event> events )
     {
-        Set<String> psiUid = events.stream().map( Event::getEnrollment ).collect( Collectors.toSet() );
+        Set<String> psiUid = events.stream().map( Event::getEvent ).collect( Collectors.toSet() );
 
         final String sql = "select psi.programinstanceid, psi.uid, psi.status, psi.deleted from programstageinstance psi where psi.uid in (:ids)";
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -398,6 +398,13 @@ public class ValidationContextLoader
         return null;
     }
 
+    /**
+     * Create a Map, where [key] -> Event UID, [value] -> Tracked Entity Instance
+     *
+     * @param events a List of Events
+     *
+     * @return a Map, where [key] -> Event UID, [value] -> Tracked Entity Instance
+     */
     private Map<String, TrackedEntityInstance> loadTrackedEntityInstances( List<Event> events )
     {
         // @formatter:off
@@ -405,17 +412,19 @@ public class ValidationContextLoader
         Set<String> teiUids = events.stream()
             .filter( e -> e.getTrackedEntityInstance() != null )
             .map( Event::getTrackedEntityInstance ).collect( Collectors.toSet() );
+        // @formatter:on
 
         if (isEmpty( teiUids ))
         {
             return new HashMap<>();
         }
          
-        // Create a bi-directional map tei uid -> org unit id
-        Map<String, String> teiToEvent = events.stream()
-            .filter( e -> e.getTrackedEntityInstance() != null )
-            .collect( Collectors.toMap( Event::getTrackedEntityInstance, Event::getUid  ) );
-        // @formatter:on
+        // Create a map: tei uid -> List [event uid]
+        Multimap<String, String> teiToEvent = HashMultimap.create();
+        for ( Event event : events )
+        {
+            teiToEvent.put( event.getTrackedEntityInstance(), event.getUid() );
+        }
 
         final String sql = "select tei.trackedentityinstanceid, tei.uid, tei.code from trackedentityinstance tei where tei.uid in (:ids)";
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -430,8 +439,10 @@ public class ValidationContextLoader
                 tei.setId( rs.getLong( "trackedentityinstanceid" ) );
                 tei.setUid( rs.getString( "uid" ) );
                 tei.setCode( rs.getString( "code" ) );
-
-                results.put( teiToEvent.get( tei.getUid() ), tei );
+                for ( String event : teiToEvent.get( tei.getUid() ) )
+                {
+                    results.put( event, tei );
+                }
 
             }
             return results;

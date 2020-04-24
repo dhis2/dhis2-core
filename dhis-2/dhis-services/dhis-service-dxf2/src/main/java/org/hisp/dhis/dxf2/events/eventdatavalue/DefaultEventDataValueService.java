@@ -175,8 +175,8 @@ public class DefaultEventDataValueService
             }
         }
 
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues,
-            removedDataValuesDueToEmptyValue, dataElementCache, programStageInstance, singleValue );
+//        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues,
+//            removedDataValuesDueToEmptyValue, dataElementCache, programStageInstance, singleValue );
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
