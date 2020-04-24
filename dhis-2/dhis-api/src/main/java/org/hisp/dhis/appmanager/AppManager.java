@@ -182,11 +182,5 @@ public interface AppManager
      * @return true if the status was changed in this method.
      */
     boolean markAppToDelete( App app );
-
-    /**
-     * Event handler for {@link ApplicationCacheClearedEvent}.
-     *
-     * @param event the {@link ApplicationCacheClearedEvent}.
-     */
-    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
+    
 }
