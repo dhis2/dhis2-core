@@ -293,7 +293,7 @@
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "completeEventsExpiryDays": 0,
+      "completeEventsExpiryDays": 10,
       "organisationUnits": [
         {
           "id": "QfUVllTs6cS"

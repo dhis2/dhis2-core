@@ -39,6 +39,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -46,6 +47,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -74,15 +76,19 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
     {
         // NOTHING TO DO HERE
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
+        TrackerBundle bundle = validationContext.getBundle();
+
         Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
 
         if ( !program.isRegistration() )
@@ -107,39 +113,52 @@ public class PreCheckDataRelationsValidationHook
                 .addArg( program ) );
         }
 
-        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
-
-        if ( !bundle.getImportStrategy().isCreate() && programInstance == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1015 )
-                .addArg( enrollment )
-                .addArg( enrollment.getEnrollment() ) );
-        }
+        //TODO: This dont make sense
+//        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+//        if ( !bundle.getImportStrategy().isCreateOrCreateAndUpdate() && programInstance == null )
+//        {
+//            reporter.addError( newReport( TrackerErrorCode.E1015 )
+//                .addArg( enrollment )
+//                .addArg( enrollment.getEnrollment() ) );
+//        }
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
+        TrackerBundle bundle = validationContext.getBundle();
+
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
 
         if ( program.isRegistration() )
         {
-            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, event.getTrackedEntity() );
-            if ( tei == null )
+            if ( PreheatHelper.getTei( bundle, event.getTrackedEntity() ) == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1036 )
                     .addArg( event ) );
             }
 
-            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
-            ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
-
-            if ( programStage != null && programInstance != null &&
-                !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
+            if ( strategy.isCreate() )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1039 ) );
+                ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
+                ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
+
+                if ( programStage != null && programInstance != null &&
+                    !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
+                {
+                    reporter.addError( newReport( TrackerErrorCode.E1039 ) );
+                }
             }
         }
+
+        checkCategoryCombo( reporter, bundle, event, program );
+    }
+
+    protected void checkCategoryCombo( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Event event, Program program )
+    {
 
         boolean programHasCatCombo = program.getCategoryCombo() != null;
 

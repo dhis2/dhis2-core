@@ -46,7 +46,7 @@ public interface TrackerValidationHook
         return true;
     }
 
-    List<TrackerErrorReport> validate( TrackerBundle bundle );
+    List<TrackerErrorReport> validate( TrackerImportValidationContext bundle );
 
     @Override
     default int getOrder()

@@ -171,7 +171,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
 
@@ -199,7 +199,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
 
@@ -224,7 +224,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 2, trackerBundle.getEnrollments().size() );
 
             TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
 
@@ -246,7 +246,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -268,7 +268,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -290,7 +290,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -317,7 +317,7 @@ public class EnrollmentImportValidationTest
         trackerBundleService.commit( trackerBundle );
 
         report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
@@ -326,7 +326,7 @@ public class EnrollmentImportValidationTest
         // All should be removed
         assertEquals( 0, trackerBundle.getEnrollments().size() );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -344,7 +344,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -366,7 +366,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -387,7 +387,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -408,7 +408,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -429,7 +429,7 @@ public class EnrollmentImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),

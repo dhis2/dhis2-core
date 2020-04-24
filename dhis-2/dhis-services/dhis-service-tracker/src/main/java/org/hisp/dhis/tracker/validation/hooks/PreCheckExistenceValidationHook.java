@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -40,6 +41,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -59,69 +61,126 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
     {
-        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-        if ( tei != null && bundle.getImportStrategy().isCreate() )
+        TrackedEntityInstance existingTe = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
+
+        if ( importStrategy.isCreateAndUpdate() )
+        {
+            if ( existingTe == null )
+            {
+                validationContext.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
+            }
+            else
+            {
+                validationContext.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
+            }
+        }
+        else if ( existingTe != null && importStrategy.isCreate() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1002 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
-        else if ( tei != null && tei.isDeleted() && bundle.getImportStrategy().isDelete() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1114 )
-                .addArg( tei ) );
-        }
-        else if ( tei == null && bundle.getImportStrategy().isUpdateOrDelete() )
+        else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1063 )
                 .addArg( trackedEntity.getTrackedEntity() ) );
         }
+        else if ( existingTe != null && existingTe.isDeleted() && importStrategy.isDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1114 )
+                .addArg( trackedEntity.getTrackedEntity() ) );
+        }
+        else
+        {
+            validationContext.setStrategy( trackedEntity, importStrategy );
+        }
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment event )
     {
-        ProgramInstance pi = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-        if ( pi != null && bundle.getImportStrategy().isCreate() )
+        ProgramInstance existingPi = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
+
+        if ( importStrategy.isCreateAndUpdate() )
+        {
+            if ( existingPi == null )
+            {
+                validationContext.setStrategy( event, TrackerImportStrategy.CREATE );
+            }
+            else
+            {
+                validationContext.setStrategy( event, TrackerImportStrategy.UPDATE );
+            }
+        }
+        else if ( existingPi != null && importStrategy.isCreate() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1080 )
-                .addArg( enrollment.getEnrollment() ) );
+                .addArg( event.getEnrollment() ) );
         }
-        else if ( pi != null && pi.isDeleted() && bundle.getImportStrategy().isDelete() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1113 )
-                .addArg( pi ) );
-        }
-        else if ( pi == null && bundle.getImportStrategy().isUpdateOrDelete() )
+        else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1081 )
-                .addArg( enrollment.getEnrollment() ) );
+                .addArg( event.getEnrollment() ) );
+        }
+        else if ( existingPi != null && existingPi.isDeleted() && importStrategy.isDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1113 )
+                .addArg( event.getEnrollment() ) );
+        }
+        else
+        {
+            validationContext.setStrategy( event, importStrategy );
         }
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        ProgramStageInstance psi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-        if ( psi != null && bundle.getImportStrategy().isCreate() )
+        ProgramStageInstance existingPsi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+
+        if ( importStrategy.isCreateAndUpdate() )
+        {
+            if ( existingPsi == null )
+            {
+                validationContext.setStrategy( event, TrackerImportStrategy.CREATE );
+            }
+            else
+            {
+                validationContext.setStrategy( event, TrackerImportStrategy.UPDATE );
+            }
+        }
+        else if ( existingPsi != null && importStrategy.isCreate() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1030 )
                 .addArg( event.getEvent() ) );
         }
-        else if ( psi != null && psi.isDeleted() && bundle.getImportStrategy().isDelete() )
+        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1032 )
+                .addArg( event.getEvent() ) );
+        }
+        else if ( existingPsi != null && existingPsi.isDeleted() && importStrategy.isDelete() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1082 )
                 .addArg( event.getEvent() ) );
         }
-        else if ( psi == null && bundle.getImportStrategy().isUpdateOrDelete() )
+        else
         {
-            reporter.addError( newReport( TrackerErrorCode.E1032 )
-                .addArg( event.getEvent() ) );
+            validationContext.setStrategy( event, importStrategy );
         }
     }
 }

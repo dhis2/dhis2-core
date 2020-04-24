@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -93,8 +94,12 @@ public class EnrollmentInExistingValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter , Enrollment enrollment )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
+        TrackerBundle bundle = validationContext.getBundle();
+
         // TODO: check existing on update...
         if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
         {

@@ -36,6 +36,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,8 +58,12 @@ public class EventGeoValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
+        TrackerBundle bundle = validationContext.getBundle();
+
         ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
         ProgramStageInstance programStageInstance = PreheatHelper
             .getProgramStageInstance( bundle, event.getEvent() );

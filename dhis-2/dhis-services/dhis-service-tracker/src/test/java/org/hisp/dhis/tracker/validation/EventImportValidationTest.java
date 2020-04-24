@@ -33,13 +33,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderFormat;
@@ -48,7 +45,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -80,18 +76,6 @@ public class EventImportValidationTest
 {
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private TrackerBundleService trackerBundleService;
-
-    @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private DefaultTrackerValidationService trackerValidationService;
 
     @Autowired
     private RenderService _renderService;
@@ -199,7 +183,7 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 0, report.getErrorReports().size() );
 
@@ -222,7 +206,7 @@ public class EventImportValidationTest
         assertEquals( 8, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 0, report.getErrorReports().size() );
 
@@ -246,7 +230,7 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -270,7 +254,7 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
 
@@ -297,7 +281,7 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
 
@@ -324,7 +308,7 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -347,7 +331,7 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -371,15 +355,17 @@ public class EventImportValidationTest
 
         // Validate first time, should contain no errors.
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
 
         // Commit the validated bundle...
         trackerBundleService.commit( trackerBundle );
 
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         // Re-validate, should now contain 13 errors...
         report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -405,7 +391,7 @@ public class EventImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -415,6 +401,135 @@ public class EventImportValidationTest
         // All should be removed
         assertEquals( 0, trackerBundle.getEnrollments().size() );
     }
+
+    @Test
+    public void testMissingDate()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-missing-date.json" );
+
+        User user = userService.getUser( ADMIN_USER );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1031 ) ) ) );
+    }
+
+    @Test
+    public void testMissingTei()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-missing-tei.json" );
+
+        User user = userService.getUser( ADMIN_USER );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1036 ) ) ) );
+    }
+
+    @Test
+    public void testMissingCompletedDate()
+        throws IOException
+    {
+        initMeta1();
+
+        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-no-completed-date.json" );
+
+        User user = userService.getUser( ADMIN_USER );
+        trackerBundleParams.setUser( user );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+        assertEquals( 1, trackerBundle.getEvents().size() );
+
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1042 ) ) ) );
+    }
+
+    //TODO: Delete not working yet
+//    @Test
+//    public void testEventAlreadyDeleted()
+//        throws IOException
+//    {
+//        initMeta1();
+//
+//        TrackerBundleParams params = createBundleFromJson( "tracker/validations/events-data.json" );
+//
+//        User user = userService.getUser( ADMIN_USER );
+//        params.setUser( user );
+//
+//        ValidateAndCommit createAndUpdate = doValidateAndCommit( params,
+//            TrackerImportStrategy.CREATE_AND_UPDATE );
+//        assertEquals( 0, createAndUpdate.getValidationReport().getErrorReports().size() );
+//
+//        ValidateAndCommit delete = doValidateAndCommit( params,
+//            TrackerImportStrategy.DELETE );
+//        assertEquals( 0, delete.getValidationReport().getErrorReports().size() );
+//
+//        ValidateAndCommit deleteAgain = doValidateAndCommit( params,
+//            TrackerImportStrategy.DELETE );
+//        assertEquals( 1, deleteAgain.getValidationReport().getErrorReports().size() );
+//
+//        assertThat( deleteAgain.getValidationReport().getErrorReports(),
+//            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1030 ) ) ) );
+//
+//        // All should be removed
+//        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+//    }
+
+
+
+    // TODO: See comments on error codes, seems to not be in use....
+//    @Test
+//    public void testPeriodTypes()
+//        throws IOException
+//    {
+//        initMeta1();
+//
+//        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events_error-periodtype.json" );
+//
+//        User user = userService.getUser( ADMIN_USER );
+//        trackerBundleParams.setUser( user );
+//
+//        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
+//        assertEquals( 1, trackerBundle.getEvents().size() );
+//
+//        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+//        printErrors( report );
+//
+//        assertEquals( 1, report.getErrorReports().size() );
+//
+//        assertThat( report.getErrorReports(),
+//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1042 ) ) ) );
+//    }
 
 //    //TODO: Needs clarification, can't test this error: E1082.
 //    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165

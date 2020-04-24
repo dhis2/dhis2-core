@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -92,14 +93,18 @@ public class TrackedEntityAttributeValidationHook
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
+        TrackerBundle bundle = validationContext.getBundle();
+
         TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTei( bundle, tei.getTrackedEntity() );
+            .getTei( bundle, trackedEntity.getTrackedEntity() );
 
-        OrganisationUnit orgUnit = getOrganisationUnit( bundle, tei );
+        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, trackedEntity.getOrgUnit() );
 
-        validateAttributes( reporter, bundle, tei, trackedEntityInstance, orgUnit );
+        validateAttributes( reporter, bundle, trackedEntity, trackedEntityInstance, organisationUnit );
     }
 
     protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,

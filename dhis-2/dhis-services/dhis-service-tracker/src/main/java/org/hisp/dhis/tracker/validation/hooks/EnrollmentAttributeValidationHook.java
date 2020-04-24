@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -72,8 +73,12 @@ public class EnrollmentAttributeValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
+        TrackerBundle bundle = validationContext.getBundle();
+
         Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
         TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
 

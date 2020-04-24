@@ -107,12 +107,6 @@ public class Event
     @JsonProperty
     private String updatedAt;
 
-//    @JsonProperty
-//    private String clientCreatedAt;
-//
-//    @JsonProperty
-//    private String clientUpdatedAt;
-
     @JsonProperty
     private String attributeOptionCombo;
 

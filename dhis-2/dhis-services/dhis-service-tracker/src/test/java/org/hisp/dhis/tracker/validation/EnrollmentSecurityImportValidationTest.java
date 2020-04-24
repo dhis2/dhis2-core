@@ -276,7 +276,7 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -307,7 +307,7 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -340,7 +340,7 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
 
@@ -377,7 +377,7 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -410,7 +410,7 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 0, report.getErrorReports().size() );
     }
@@ -442,7 +442,7 @@ public class EnrollmentSecurityImportValidationTest
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 

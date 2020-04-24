@@ -307,7 +307,7 @@ public class EventSecurityImportValidationTest
         assertEquals( 1, trackerBundle.getEvents().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
 

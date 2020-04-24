@@ -176,7 +176,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( TrackerErrorCode.E1000,
             report.getErrorReports().get( 0 ).getErrorCode() );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -196,7 +196,7 @@ public class TrackedEntityImportValidationTest
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -216,7 +216,7 @@ public class TrackedEntityImportValidationTest
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1001 ) ) ) );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -253,7 +253,7 @@ public class TrackedEntityImportValidationTest
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1005 ) ) ) );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -270,12 +270,12 @@ public class TrackedEntityImportValidationTest
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1011 ) ) ) );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -296,7 +296,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( TrackerErrorCode.E1011,
             report.getErrorReports().get( 0 ).getErrorCode() );
 
-        printErrors( report );
+        printReport( report );
     }
 
 //    @Test
@@ -386,7 +386,7 @@ public class TrackedEntityImportValidationTest
         // Tracker should now have 13 teis removed from the collection, since they all failed.
         assertEquals( 0, trackerBundle.getTrackedEntities().size() );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -407,7 +407,7 @@ public class TrackedEntityImportValidationTest
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
 
-        printErrors( report );
+        printReport( report );
     }
 
     @Test
@@ -488,7 +488,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
 
         TrackerValidationReport reportUpdate = trackerValidationService.validate( trackerBundleUpdate );
-        printErrors( reportUpdate );
+        printReport( reportUpdate );
 
         assertEquals( 0, reportUpdate.getErrorReports().size() );
 
@@ -516,7 +516,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -537,7 +537,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( 13, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
@@ -577,7 +577,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
 
         report = trackerValidationService.validate( trackerBundle );
-        printErrors( report );
+        printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),

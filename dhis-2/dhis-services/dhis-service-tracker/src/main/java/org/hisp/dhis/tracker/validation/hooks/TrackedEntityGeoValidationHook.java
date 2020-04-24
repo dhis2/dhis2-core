@@ -34,6 +34,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,9 +56,13 @@ public class TrackedEntityGeoValidationHook
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, tei );
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
+        TrackerBundle bundle = validationContext.getBundle();
+
+//        TrackedEntityType trackedEntityType = getTrackedEntityType( bundle, trackedEntity );
         // TODO: Check if this is still valid since tei.getFeatureType(); is removed...
 //        FeatureType featureType = bundle.getImportStrategy().isUpdate() ?
 //            trackedEntityType.getFeatureType() :

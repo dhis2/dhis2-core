@@ -35,6 +35,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -42,6 +43,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -60,8 +62,13 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
+
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( tei );
+        TrackerBundle bundle = validationContext.getBundle();
+
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, tei.getOrgUnit() );
 
         if ( organisationUnit == null )
@@ -79,8 +86,12 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
+        TrackerBundle bundle = validationContext.getBundle();
+
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
         if ( organisationUnit == null )
         {
@@ -118,8 +129,12 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
+        TrackerBundle bundle = validationContext.getBundle();
+
         OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
 
         if ( organisationUnit == null )

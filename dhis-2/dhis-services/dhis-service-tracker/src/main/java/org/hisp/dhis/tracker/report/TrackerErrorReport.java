@@ -71,15 +71,14 @@ public class TrackerErrorReport
     @JsonProperty
     private Object value;
 
-    private TrackerErrorCode errorCode;
+    private final int lineNumber;
 
-    private List<Object> arguments;
+    private TrackerErrorCode errorCode;
 
     private Object mainObject;
 
     protected int listIndex;
 
-    private final int lineNumber;
 
     public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message, int line, String mainId,
         Class<?> errorKlass, String[] errorProperties, Object value )
@@ -107,13 +106,10 @@ public class TrackerErrorReport
 
     public static class TrackerErrorReportBuilder
     {
+        private final List<Object> arguments = new ArrayList<>();
+
         public TrackerErrorReportBuilder addArg( Object arg )
         {
-            if ( this.arguments == null )
-            {
-                this.arguments = new ArrayList<>();
-            }
-
             this.arguments.add( arg );
             return this;
         }
@@ -124,7 +120,8 @@ public class TrackerErrorReport
             TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
 
             TrackerErrorMessage trackerErrorMessage = new TrackerErrorMessage( this.errorCode );
-            for ( Object argument : arguments )
+
+            for ( Object argument : this.arguments )
             {
                 String s = parseArgs( identifier, argument );
                 trackerErrorMessage.addArgument( s );

@@ -26,79 +26,70 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
-@Service
-public class DefaultTrackerValidationService
-    implements TrackerValidationService
+@Data
+public class TrackerImportValidationContext
 {
-    private List<TrackerValidationHook> validationHooks = new ArrayList<>();
 
-    @Autowired( required = false )
-    public void setValidationHooks( List<TrackerValidationHook> validationHooks )
+    private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
+
+    private TrackerBundle bundle;
+
+    public TrackerImportValidationContext( TrackerBundle bundle )
     {
-        this.validationHooks = validationHooks;
+        this.bundle = bundle;
+
+        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
+            .getResolvedStrategyMap();
+
+        resolvedMap.put( Event.class, new HashMap<String, TrackerImportStrategy>() );
+        resolvedMap.put( Enrollment.class, new HashMap<String, TrackerImportStrategy>() );
+        resolvedMap.put( TrackedEntity.class, new HashMap<String, TrackerImportStrategy>() );
     }
 
-    @Override
-    public TrackerValidationReport validate( TrackerBundle bundle )
+    public TrackerImportStrategy getStrategy( Enrollment enrollment )
     {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
+        return getResolvedStrategyMap().get( Enrollment.class ).get( enrollment.getEnrollment() );
+    }
 
-        User user = bundle.getUser();
-        if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
-        {
-            log.warn( "Skipping validation for metadata import by user '" +
-                bundle.getUsername() + "'. Not recommended." );
-            return validationReport;
-        }
+    public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
+    {
+        return getResolvedStrategyMap().get( Event.class ).put( enrollment.getEnrollment(), strategy );
+    }
 
-        TrackerImportValidationContext context = new TrackerImportValidationContext(bundle);
+    public TrackerImportStrategy getStrategy( Event event )
+    {
+        return getResolvedStrategyMap().get( Event.class ).get( event.getEvent() );
+    }
 
+    public TrackerImportStrategy setStrategy( Event event, TrackerImportStrategy strategy )
+    {
+        return getResolvedStrategyMap().get( Event.class ).put( event.getEvent(), strategy );
+    }
 
+    public TrackerImportStrategy getStrategy( TrackedEntity tei )
+    {
+        return getResolvedStrategyMap().get( Event.class ).get( tei.getTrackedEntity() );
+    }
 
-        try
-        {
-            for ( TrackerValidationHook hook : validationHooks )
-            {
-                if ( hook.isEnabled() )
-                {
-                    List<TrackerErrorReport> errors = hook.validate( context );
-                    if ( !errors.isEmpty() )
-                    {
-                        validationReport.add( errors );
-                    }
-                }
-            }
-        }
-        catch ( ValidationFailFastException e )
-        {
-            validationReport.add( e.getErrors() );
-        }
-
-        return validationReport;
+    public TrackerImportStrategy setStrategy( TrackedEntity trackedEntity, TrackerImportStrategy strategy )
+    {
+        return getResolvedStrategyMap().get( Event.class ).put( trackedEntity.getTrackedEntity(), strategy );
     }
 }

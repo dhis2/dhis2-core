@@ -33,13 +33,13 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -68,8 +68,12 @@ public class EventDateValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
+        TrackerBundle bundle = validationContext.getBundle();
+
         if ( EventStatus.ACTIVE == event.getStatus() && event.getOccurredAt() == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1031 )
@@ -92,38 +96,42 @@ public class EventDateValidationHook
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
+        // TODO: Check is completeEventsExpiryDays actually in use, can't find any code usage other than in import validation.
         if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())
             || (programStageInstance != null && EventStatus.COMPLETED == programStageInstance.getStatus()) )
         {
-            if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-            {
-                return;
-            }
+            //TODO: Should we make an error here? Feels like this is out of place, should be moved to the auth layer.
+//            if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+//            {
+//                return;
+//            }
 
-            Date referenceDate = null;
+            Date completedDate = null;
 
             if ( programStageInstance != null )
             {
-                referenceDate = programStageInstance.getCompletedDate();
+                completedDate = programStageInstance.getCompletedDate();
             }
 
             else if ( event.getCompletedAt() != null )
             {
-                referenceDate = DateUtils.parseDate( event.getCompletedAt() );
+                completedDate = DateUtils.parseDate( event.getCompletedAt() );
             }
 
-            if ( referenceDate == null )
+            if ( completedDate == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1042 )
                     .addArg( event ) );
             }
 
-            if ( (new Date()).after(
-                DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
-            {
-                errorReporter.addError( newReport( TrackerErrorCode.E1043 )
-                    .addArg( event ) );
-            }
+            //TODO: This is troublesome, according to the error text this actually an auth check...
+            // This should probably we moved and merged with the auth check on isAuthorized F_EDIT_EXPIRED above
+//            if ( completedDate != null && (new Date()).after(
+//                DateUtils.getDateAfterAddition( completedDate, program.getCompleteEventsExpiryDays() ) ) )
+//            {
+//                errorReporter.addError( newReport( TrackerErrorCode.E1043 )
+//                    .addArg( event ) );
+//            }
         }
     }
 
@@ -133,17 +141,18 @@ public class EventDateValidationHook
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 
+        //TODO: Cant find any reference outside validation code... is this still in use?
         PeriodType periodType = program.getExpiryPeriodType();
 
         if ( periodType == null || program.getExpiryDays() == 0 )
         {
+            // Nothing more to check here, return out
             return;
         }
 
+        // I.E update....
         if ( programStageInstance != null )
         {
-            Date today = new Date();
-
             if ( programStageInstance.getExecutionDate() == null )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1044 )
@@ -152,7 +161,8 @@ public class EventDateValidationHook
 
             Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
 
-            if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
+            if ( (new Date()).after(
+                DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
             {
                 errorReporter.addError( newReport( TrackerErrorCode.E1045 )
                     .addArg( program ) );

@@ -40,6 +40,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -71,8 +72,12 @@ public class EventCategoryOptValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
+        TrackerBundle bundle = validationContext.getBundle();
+
         Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );

@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,30 +94,33 @@ public abstract class AbstractTrackerDtoValidationHook
         this.strategy = strategy;
     }
 
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
         throw new IllegalStateException( IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD );
     }
 
     @Override
-    public List<TrackerErrorReport> validate( TrackerBundle bundle )
+    public List<TrackerErrorReport> validate( TrackerImportValidationContext context )
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle, this.getClass() );
+        TrackerBundle bundle = context.getBundle();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context, this.getClass() );
 
         if ( this.strategy != null )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-            if ( importStrategy.isDelete() && this.strategy.isUpdate() )
+
+            if ( importStrategy.isDelete() && !this.strategy.isDelete() )
             {
                 return reporter.getReportList();
             }
@@ -124,17 +128,17 @@ public abstract class AbstractTrackerDtoValidationHook
 
         if ( dtoTypeClass == null || dtoTypeClass.equals( Event.class ) )
         {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateEvent( r, bundle, o ), bundle.getEvents() );
+            validateTrackerDTOs( reporter, ( o, r ) -> validateEvent( r, o ), bundle.getEvents() );
         }
 
         if ( dtoTypeClass == null || dtoTypeClass.equals( Enrollment.class ) )
         {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateEnrollment( r, bundle, o ), bundle.getEnrollments() );
+            validateTrackerDTOs( reporter, ( o, r ) -> validateEnrollment( r, o ), bundle.getEnrollments() );
         }
 
         if ( dtoTypeClass == null || dtoTypeClass.equals( TrackedEntity.class ) )
         {
-            validateTrackerDTOs( reporter, ( o, r ) -> validateTrackedEntity( r, bundle, o ),
+            validateTrackerDTOs( reporter, ( o, r ) -> validateTrackedEntity( r, o ),
                 bundle.getTrackedEntities() );
         }
 
@@ -224,37 +228,37 @@ public abstract class AbstractTrackerDtoValidationHook
         }
     }
 
-    protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
-    {
-        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
-        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
-
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTei( bundle, te.getTrackedEntity() );
-
-        OrganisationUnit organisationUnit =
-            trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
-
-        return bundle.getImportStrategy().isCreate()
-            ? PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() )
-            : organisationUnit;
-    }
-
-    protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
-    {
-        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
-        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
-
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTei( bundle, te.getTrackedEntity() );
-
-        TrackedEntityType trackedEntityType =
-            trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;
-
-        return bundle.getImportStrategy().isCreate()
-            ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
-            : trackedEntityType;
-    }
+//    protected OrganisationUnit getOrganisationUnit( TrackerBundle bundle, TrackedEntity te )
+//    {
+//        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
+//        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
+//
+//        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+//            .getTei( bundle, te.getTrackedEntity() );
+//
+//        OrganisationUnit organisationUnit =
+//            trackedEntityInstance != null ? trackedEntityInstance.getOrganisationUnit() : null;
+//
+//        return bundle.getImportStrategy().isCreateOrCreateAndUpdate()
+//            ? PreheatHelper.getOrganisationUnit( bundle, te.getOrgUnit() )
+//            : organisationUnit;
+//    }
+//
+//    protected TrackedEntityType getTrackedEntityType( TrackerBundle bundle, TrackedEntity te )
+//    {
+//        Objects.requireNonNull( bundle, TRACKER_BUNDLE_CANT_BE_NULL );
+//        Objects.requireNonNull( te, TRACKED_ENTITY_CANT_BE_NULL );
+//
+//        TrackedEntityInstance trackedEntityInstance = PreheatHelper
+//            .getTei( bundle, te.getTrackedEntity() );
+//
+//        TrackedEntityType trackedEntityType =
+//            trackedEntityInstance != null ? trackedEntityInstance.getTrackedEntityType() : null;
+//
+//        return bundle.getImportStrategy().isCreateOrCreateAndUpdate()
+//            ? PreheatHelper.getTrackedEntityType( bundle, te.getTrackedEntityType() )
+//            : trackedEntityType;
+//    }
 
     public boolean isNotValidDateString( String dateString )
     {

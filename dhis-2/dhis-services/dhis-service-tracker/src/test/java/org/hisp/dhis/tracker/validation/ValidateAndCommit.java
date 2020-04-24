@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,54 +26,46 @@ package org.hisp.dhis.tracker.validation.hooks;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import org.hisp.dhis.program.Program;
+import lombok.Builder;
+import lombok.Data;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
-import java.util.Objects;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Component
-public class EnrollmentGeoValidationHook
-    extends AbstractTrackerDtoValidationHook
+@Data
+@Builder
+public  class ValidateAndCommit
 {
-    @Override
-    public int getOrder()
+    private TrackerValidationService trackerValidationService;
+    private TrackerBundleService trackerBundleService;
+    private TrackerBundle trackerBundle;
+
+    private TrackerValidationReport validationReport;
+
+    private TrackerBundleReport commitReport;
+
+    @Builder.Default
+    private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
+
+    private final TrackerBundleParams trackerBundleParams;
+
+    public ValidateAndCommit invoke()
     {
-        return 108;
-    }
+        trackerBundleParams.setImportStrategy( trackerImportStrategy );
 
-    public EnrollmentGeoValidationHook()
-    {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE );
-    }
+        trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
-    {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
+        validationReport = trackerValidationService.validate( trackerBundle );
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        commitReport = trackerBundleService.commit( trackerBundle );
 
-        Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
-
-        if ( enrollment.getGeometry() != null )
-        {
-            validateGeo( reporter,
-                enrollment.getGeometry(),
-                program.getFeatureType() );
-        }
+        return this;
     }
 
 }

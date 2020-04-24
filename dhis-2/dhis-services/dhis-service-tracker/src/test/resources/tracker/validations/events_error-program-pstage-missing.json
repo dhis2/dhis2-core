@@ -3,7 +3,6 @@
     {
       "storedBy": "admin",
       "scheduledAt": "2019-08-19T13:59:13.688",
-      "createdAtClient": "2019-08-19T13:58:26.964",
       "program": "XXXE8o1E9tAppy",
       "programStage": "XXXQmqxq907VNz",
       "event": "ZwwuwNp6gVd",
@@ -13,7 +12,6 @@
       "enrollmentStatus": "ACTIVE",
       "status": "ACTIVE",
       "orgUnitName": "TA org_unit lvl2",
-      "lastUpdatedAtClient": "2019-08-19T13:59:13.694",
       "occurredAt": "2019-08-01T00:00:00.000",
       "attributeCategoryOptions": "HllvX50cXC0",
       "updatedAt": "2019-08-19T13:59:13.694",

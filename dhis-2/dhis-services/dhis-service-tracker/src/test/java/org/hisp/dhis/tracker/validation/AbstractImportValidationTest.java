@@ -30,9 +30,14 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -43,6 +48,18 @@ import java.io.IOException;
 public abstract class AbstractImportValidationTest
     extends DhisSpringTest
 {
+    @Autowired
+    protected TrackerBundleService trackerBundleService;
+
+    @Autowired
+    protected ObjectBundleService objectBundleService;
+
+    @Autowired
+    protected ObjectBundleValidationService objectBundleValidationService;
+
+    @Autowired
+    protected DefaultTrackerValidationService trackerValidationService;
+
     public static final String ADMIN_USER = "M5zQapPyTZI";
 
     public static final String USER_1 = "---USER1---";
@@ -62,11 +79,27 @@ public abstract class AbstractImportValidationTest
                 TrackerBundleParams.class );
     }
 
-    protected void printErrors( TrackerValidationReport report )
+    protected void printReport( TrackerValidationReport report )
     {
         for ( TrackerErrorReport errorReport : report.getErrorReports() )
         {
             log.error( errorReport.toString() );
         }
+    }
+
+    protected ValidateAndCommit doValidateAndCommit( TrackerBundleParams params, TrackerImportStrategy strategy )
+    {
+        return ValidateAndCommit.builder()
+            .trackerBundleService( trackerBundleService )
+            .trackerValidationService( trackerValidationService )
+            .trackerBundleParams( params )
+            .trackerImportStrategy( strategy )
+            .build()
+            .invoke();
+    }
+
+    protected ValidateAndCommit doValidateAndCommit( TrackerBundleParams params )
+    {
+        return doValidateAndCommit( params, TrackerImportStrategy.CREATE_AND_UPDATE );
     }
 }

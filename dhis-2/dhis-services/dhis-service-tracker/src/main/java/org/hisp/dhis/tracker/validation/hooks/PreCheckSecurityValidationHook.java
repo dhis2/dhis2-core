@@ -31,12 +31,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -66,30 +68,39 @@ public class PreCheckSecurityValidationHook
     private TrackerImportAccessManager accessManager;
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
-        TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter,
+        TrackedEntity trackedEntity )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
+        TrackerBundle bundle = validationContext.getBundle();
+
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
-        Objects.requireNonNull( tei, TRACKED_ENTITY_CANT_BE_NULL );
-        Objects.requireNonNull( tei.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+        Objects.requireNonNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( bundle.getImportStrategy().isUpdateOrDelete() )
         {
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper.getTei( bundle, tei.getTrackedEntity() );
+            TrackedEntityInstance trackedEntityInstance = PreheatHelper
+                .getTei( bundle, trackedEntity.getTrackedEntity() );
             accessManager.checkOrgUnitInCaptureScope( reporter, bundle, trackedEntityInstance.getOrganisationUnit() );
         }
 
         // TODO: Added comment to make sure the reason for this not so intuitive reason,
         // This should be better commented and documented somewhere
-        // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to tei in search scope 48a82e5f
+        // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to trackedEntity in search scope 48a82e5f
         // Why should we use search?
-        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, tei.getOrgUnit() );
+        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, trackedEntity.getOrgUnit() );
         accessManager.checkOrgUnitInCaptureScope( reporter, bundle, incomingOrgUnit );
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
+        TrackerBundle bundle = validationContext.getBundle();
+
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
@@ -105,8 +116,12 @@ public class PreCheckSecurityValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
+        TrackerImportValidationContext validationContext = reporter.getValidationContext();
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
+        TrackerBundle bundle = validationContext.getBundle();
+
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
         Objects.requireNonNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );

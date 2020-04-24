@@ -28,12 +28,13 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.Data;
 import org.hisp.dhis.tracker.ValidationMode;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 import java.util.ArrayList;
@@ -43,13 +44,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Data
 public class ValidationErrorReporter
 {
     private final List<TrackerErrorReport> reportList;
 
     private final boolean isFailFast;
 
-    private final TrackerBundle bundle;
+    private final TrackerImportValidationContext validationContext;
 
     private final Class<?> mainKlass;
 
@@ -57,31 +59,22 @@ public class ValidationErrorReporter
 
     private String mainId;
 
-    public ValidationErrorReporter( TrackerBundle bundle, Class<?> mainKlass )
+    public ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass )
     {
-        this.bundle = bundle;
+        this.validationContext = context;
         this.reportList = new ArrayList<>();
-        this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
+        this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
         this.mainKlass = mainKlass;
     }
 
-    private ValidationErrorReporter( TrackerBundle bundle, Class<?> mainKlass, boolean isFailFast, int listIndex )
+    private ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass, boolean isFailFast,
+        int listIndex )
     {
-        this.bundle = bundle;
+        this.validationContext = context;
         this.reportList = new ArrayList<>();
         this.isFailFast = isFailFast;
         this.mainKlass = mainKlass;
         this.listIndex.set( listIndex );
-    }
-
-    public List<TrackerErrorReport> getReportList()
-    {
-        return reportList;
-    }
-
-    public boolean isFailFast()
-    {
-        return isFailFast;
     }
 
     public boolean hasErrors()
@@ -91,9 +84,7 @@ public class ValidationErrorReporter
 
     public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
     {
-        TrackerErrorReport.TrackerErrorReportBuilder builder = new TrackerErrorReport.TrackerErrorReportBuilder();
-        builder.errorCode( errorCode );
-        return builder;
+        return TrackerErrorReport.builder().errorCode( errorCode );
     }
 
     public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
@@ -106,7 +97,7 @@ public class ValidationErrorReporter
             builder.mainId( this.mainId );
         }
 
-        getReportList().add( builder.build( this.bundle ) );
+        getReportList().add( builder.build( this.validationContext.getBundle() ) );
 
         if ( isFailFast() )
         {
@@ -121,7 +112,8 @@ public class ValidationErrorReporter
 
     public <T extends TrackerDto> ValidationErrorReporter fork( T dto )
     {
-        ValidationErrorReporter fork = new ValidationErrorReporter( this.bundle, this.mainKlass, isFailFast(),
+        ValidationErrorReporter fork = new ValidationErrorReporter( this.validationContext, this.mainKlass,
+            isFailFast(),
             listIndex.incrementAndGet() );
 
         if ( dto == null )
