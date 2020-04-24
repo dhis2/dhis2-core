@@ -28,22 +28,43 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.apache.commons.lang.time.DateUtils.addYears;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryTimeoutException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -57,23 +78,8 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang.time.DateUtils.addYears;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * TODO could use row_number() and filtering for paging.
@@ -368,19 +374,12 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
-        if ( isNotEmpty( dynamicDimensions ) )
+        // Apply pre-authorized dimensions filtering
+        for ( DimensionalObject dim : dynamicDimensions )
         {
-            // Apply pre-authorized dimensions filtering
-            for ( DimensionalObject dim : dynamicDimensions )
-            {
-                String col = quoteAlias( dim.getDimensionName() );
-                sql += sqlHelper.whereAnd() + " " + col + " in ("
-                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
-            }
-        }
-        else if ( params.hasProgram() && params.getProgram().hasCategoryCombo() )
-        {
-            sql += filterOutNotAuthorizedCategoryOptionEvents( params.getProgram().getCategoryCombo().getCategories() );
+            String col = quoteAlias( dim.getDimensionName() );
+            sql += sqlHelper.whereAnd() + " " + col + " in ("
+                + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -493,62 +492,6 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
-    }
-
-    /**
-     * This method will generate a sql sentence responsible for filtering out all
-     * the category options (of this program categories). The list of category
-     * options within this list of categories should contains only not authorized
-     * category options (it means the category options that cannot be read by the
-     * current user based on the sharing settings defined for the category options.
-     * See
-     * @see org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#excludeOnlyAuthorizedCategoryOptions
-     * and
-     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)
-     * to check how the category options of these categories were set.
-     *
-     * @param programCategories the list of program categories containing the list
-     *        of authorized category options for the current user.
-     *        of category options not authorized for the current user.
-     * @return the sql statement in the format: "and ax."mEXqxV2KIUl" not in
-     *         ('qNqYLugIySD') or ax."r7NDRdgj5zs" not in ('qNqYLugIySD') "
-     */
-    String filterOutNotAuthorizedCategoryOptionEvents( final List<Category> programCategories )
-    {
-        boolean andFlag = true;
-        final StringBuilder query = new StringBuilder();
-
-        if ( isNotEmpty( programCategories ) )
-        {
-            for ( final Category category : programCategories )
-            {
-                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                if ( isNotEmpty( categoryOptions ) )
-                {
-                    query.append( andFlag ? " and " : " or " );
-                    andFlag = false;
-                    query.append( buildInFilterForCategory( category, categoryOptions ) );
-                }
-            }
-        }
-        return query.toString();
-    }
-
-    /**
-     * This method will generate a "in" sql statement for the given category and
-     * category options.
-     *
-     * @param category
-     * @param categoryOptions
-     * @return a sql statement in the format: "ax."mEXqxV2KIUl" in ('qNqYLugIySD') "
-     */
-    String buildInFilterForCategory(final Category category, final List<CategoryOption> categoryOptions )
-    {
-        final String categoryColumn = quoteAlias( category.getUid() );
-        final String inFilter = categoryColumn + " not in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
-            + ") ";
-        return inFilter;
     }
 
     /**
