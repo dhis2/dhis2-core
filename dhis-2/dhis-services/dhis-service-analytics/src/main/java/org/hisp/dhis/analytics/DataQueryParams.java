@@ -1768,9 +1768,9 @@ public class DataQueryParams
 
             String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
-            Double value = aggregatedDataMap.get( key );
+            Number number = aggregatedDataMap.get( key );
 
-            permutationMap.putEntry( permKey, dimItemObject, value );
+            permutationMap.putEntry( permKey, dimItemObject, number != null ? number.doubleValue() : null );
         }
 
         return permutationMap;
