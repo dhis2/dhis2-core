@@ -44,13 +44,16 @@ import lombok.NoArgsConstructor;
 public class Relationship
 {
     @JsonProperty
+    private String relationship;
+
+    @JsonProperty
     private String relationshipType;
 
     @JsonProperty
-    private String relationshipName;
+    private String createdAt;
 
     @JsonProperty
-    private String relationship;
+    private String updatedAt;
 
     @JsonProperty
     private boolean bidirectional;
@@ -60,10 +63,4 @@ public class Relationship
 
     @JsonProperty
     private RelationshipItem to;
-
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
 }

@@ -335,14 +335,6 @@ public class DefaultAppManager
         return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
     }
 
-    @Override
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        appCache.invalidateAll();
-        log.info( "App cache cleared" );
-    }
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
