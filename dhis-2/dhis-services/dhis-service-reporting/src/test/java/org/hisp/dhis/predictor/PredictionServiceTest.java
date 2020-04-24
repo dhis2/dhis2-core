@@ -1374,4 +1374,50 @@ public class PredictionServiceTest
 
         assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
     }
+
+    @Test
+    public void testPredictCarryingForwardPredictedDataElement()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 1 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "2 * sum(#{" + dataElementA.getUid() + "})",
+            "description", MissingValueStrategy.NEVER_SKIP );
+
+        Predictor predictor = createPredictor( dataElementA, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 9 ), monthStart( 2010, 12 ), summary );
+
+        assertEquals( "Pred 1 Ins 3 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "1", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        assertEquals( "2", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
+        assertEquals( "4", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 10 ) ) );
+        assertEquals( "8", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 11 ) ) );
+    }
+
+    @Test
+    public void testPredictCarryingForwardPredictedDataElementOperand()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 1 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "3 * sum(#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "})",
+            "description", MissingValueStrategy.NEVER_SKIP );
+
+        Predictor predictor = createPredictor( dataElementA, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 9 ), monthStart( 2010, 12 ), summary );
+
+        assertEquals( "Pred 1 Ins 3 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "1", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        assertEquals( "3", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
+        assertEquals( "9", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 10 ) ) );
+        assertEquals( "27", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2010, 11 ) ) );
+    }
 }
