@@ -113,6 +113,18 @@ public class ImportSummaries extends AbstractWebMessageResponse
         return st != null && st.equals( status );
     }
 
+    public boolean hasConflicts()
+    {
+        for ( ImportSummary importSummary : importSummaries )
+        {
+            if ( importSummary.getConflicts().size() > 0 )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     /**
      * Returns the {@link ImportStatus} with the highest order from the list
      * of import summaries, where {@link ImportStatus#ERROR} is the highest.

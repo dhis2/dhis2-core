@@ -38,15 +38,13 @@ import static org.springframework.util.StringUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -66,6 +64,8 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Stopwatch;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -134,7 +134,7 @@ public class DefaultEventPersistenceService
             ImportSummaries importSummaries = eventDataValueService.processDataValues( eventProgramStageInstanceMap,
                 false, context.getImportOptions(), context.getDataElementMap() );
 
-            if ( importSummaries.getImportSummaries().size() > 0 )
+            if ( importSummaries.hasConflicts() )
             {
                 rollbackOnException( importSummaries );
             }
@@ -204,7 +204,14 @@ public class DefaultEventPersistenceService
     private Map<Event, ProgramStageInstance> convertToProgramStageInstances( ProgramStageInstanceMapper mapper,
         List<Event> events )
     {
-        return events.stream().collect( Collectors.toMap( Function.identity(), mapper::map ) );
+        Map<Event, ProgramStageInstance> map = new HashMap<>();
+        for ( Event event : events )
+        {
+            ProgramStageInstance psi = mapper.map( event );
+            map.put( event, psi );
+        }
+
+        return map;
     }
 
     private void saveTrackedEntityComment( final ProgramStageInstance programStageInstance, final Event event,
