@@ -541,7 +541,7 @@ public abstract class AbstractEventService
             {
                 // Create PI if it doesn't exist (should only be one)
 
-                String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+                String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
 
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
@@ -1258,10 +1258,10 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
         programStageInstance.setStoredBy( storedBy );
 
-        String completedBy = getValidUsername( event.getCompletedBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        String completedBy = getValidUsername( event.getCompletedBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
 
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
@@ -1474,7 +1474,7 @@ public abstract class AbstractEventService
         User currentUser = currentUserService.getCurrentUser();
 
         saveTrackedEntityComment( programStageInstance, event,
-            getValidUsername( event.getStoredBy(), null, currentUser != null ? currentUser.getUsername() : "[Unknown]" ) );
+            getValidUsername( event.getStoredBy(), null, currentUser != null ? currentUser.getUsername() : User.DEFAULT_STORED_BY ) );
 
         updateTrackedEntityInstance( programStageInstance, currentUser, false );
     }
@@ -1739,8 +1739,8 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getValidUsername( event.getStoredBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
-        String completedBy = getValidUsername( event.getCompletedBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        String storedBy = getValidUsername( event.getStoredBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
+        String completedBy = getValidUsername( event.getCompletedBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
 
         CategoryOptionCombo aoc;
 

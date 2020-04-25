@@ -70,7 +70,13 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -81,7 +87,14 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
@@ -1055,7 +1068,7 @@ public abstract class AbstractTrackedEntityInstanceService
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
         {
             String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
-                user == null ? "[Unknown]" : user.getUsername() );
+                user == null ? User.DEFAULT_STORED_BY : user.getUsername() );
 
             TrackedEntityAttributeValue existingAttributeValue = teiAttributeToValueMap.get( dtoAttribute.getAttribute() );
 
@@ -1119,7 +1132,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 daoEntityInstance.addAttributeValue( daoAttributeValue );
 
                 String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
-                    user == null ? "[Unknown]" : user.getUsername() );
+                    user == null ? User.DEFAULT_STORED_BY : user.getUsername() );
                 daoAttributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
