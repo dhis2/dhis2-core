@@ -28,15 +28,16 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
-import org.hisp.dhis.common.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -59,7 +60,15 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.query.Query;
@@ -87,13 +96,18 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.GeometryFactory;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -359,7 +373,7 @@ public abstract class AbstractEnrollmentService
         catch ( RuntimeException ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
             return new ImportSummaries().addImportSummary( new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() ) );
         }
     }
@@ -1275,19 +1289,22 @@ public abstract class AbstractEnrollmentService
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.
             getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
-        Map<String, String> attributeValueMap = Maps.newHashMap();
+        Map<String, Attribute> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+            attributeValueMap.put( attribute.getAttribute(), attribute );
         }
 
         trackedEntityInstance.getTrackedEntityAttributeValues().stream().
             filter( value -> attributeValueMap.containsKey( value.getAttribute().getUid() ) ).
             forEach( value ->
             {
-                String newValue = attributeValueMap.get( value.getAttribute().getUid() );
+                Attribute enrollmentAttribute = attributeValueMap.get( value.getAttribute().getUid() );
+
+                String newValue = enrollmentAttribute.getValue();
                 value.setValue( newValue );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
 
                 trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( value );
 
@@ -1301,13 +1318,31 @@ public abstract class AbstractEnrollmentService
             if ( attribute != null )
             {
                 TrackedEntityAttributeValue value = new TrackedEntityAttributeValue();
-                value.setValue( attributeValueMap.get( key ) );
+                Attribute enrollmentAttribute = attributeValueMap.get( key );
+
+                value.setValue( enrollmentAttribute.getValue() );
                 value.setAttribute( attribute );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( value );
                 trackedEntityInstance.addAttributeValue( value );
             }
         }
+    }
+
+    private String getStoredBy( Attribute attribute, User user )
+    {
+        if ( !StringUtils.isEmpty( attribute.getStoredBy() ) )
+        {
+            return attribute.getStoredBy();
+        }
+
+        if ( user != null )
+        {
+            return User.getSafeUsername( user.getUsername() );
+        }
+
+        return "[Unknown]";
     }
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID )
