@@ -659,19 +659,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected abstract String getSelectClause( EventQueryParams params );
 
     /**
-     * Generate the SQL for the from-clause. Generally this means which analytics table to get data from.
+     * Generates the SQL for the from-clause. Generally this means which analytics table to get data from.
+     *
      * @param params the {@link EventQueryParams} that define what is going to be queried.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getFromClause( EventQueryParams params );
 
     /**
-     * Generate the SQL for the where-clause. Generally this means adding filters, grouping and ordering
+     * Generates the SQL for the where-clause. Generally this means adding filters, grouping and ordering
      * to the SQL.
+     *
      * @param params the {@link EventQueryParams} that defines the details of the filters, grouping and ordering.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getWhereClause( EventQueryParams params );
 
+    /**
+     * Returns the relevant {@link AnalyticsType}.
+     *
+     * @return the {@link AnalyticsType}.
+     */
     protected abstract AnalyticsType getAnalyticsType();
 }

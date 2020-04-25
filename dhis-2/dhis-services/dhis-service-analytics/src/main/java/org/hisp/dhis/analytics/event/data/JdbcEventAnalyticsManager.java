@@ -28,7 +28,6 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -51,14 +50,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -118,6 +114,13 @@ public class JdbcEventAnalyticsManager
         return grid;
     }
 
+    /**
+     * Adds event to the given grid based on the given parameters and SQL statement.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @param grid the {@link Grid}.
+     * @param sql the SQL statement used to retrieve events.
+     */
     private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
         log.debug( String.format( "Analytics event query SQL: %s", sql ) );
@@ -521,60 +524,6 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
-    }
-
-    /**
-     * This method will generate a sql sentence responsible for filtering out all
-     * the category options (of this program categories). The list of category
-     * options within this list of categories should contains only not authorized
-     * category options (it means the category options that cannot be read by the
-     * current user based on the sharing settings defined for the category options.
-     * See
-     * @see org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#excludeOnlyAuthorizedCategoryOptions
-     * and
-     * @see org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)
-     * to check how the category options of these categories were set.
-     *
-     * @param programCategories the list of program categories containing the list
-     *        of category options not authorized for the current user.
-     * @return the SQL statement in the format: "and ax."mEXqxV2KIUl" not in
-     *         ('qNqYLugIySD') or ax."r7NDRdgj5zs" not in ('qNqYLugIySD') "
-     */
-    private String filterOutNotAuthorizedCategoryOptionEvents( final List<Category> programCategories )
-    {
-        StringBuilder query = new StringBuilder();
-        SqlHelper sqlHelper = new SqlHelper( true );
-
-        if ( isNotEmpty( programCategories ) )
-        {
-            for ( final Category category : programCategories )
-            {
-                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                if ( isNotEmpty( categoryOptions ) )
-                {
-                    query.append( sqlHelper.andOr() );
-                    query.append( buildInFilterForCategory( category, categoryOptions ) );
-                }
-            }
-        }
-
-        return query.toString();
-    }
-
-    /**
-     * This method will generate a "in" SQL statement for the given category and
-     * category options.
-     *
-     * @param category the {@link Category}.
-     * @param categoryOptions the list of {@link CategoryOption}.
-     * @return a SQL statement on the format {@code ax."mEXqxV2KIUl" in ('qNqYLugIySD') }.
-     */
-    private String buildInFilterForCategory( Category category, List<CategoryOption> categoryOptions )
-    {
-        String categoryColumn = quoteAlias( category.getUid() );
-
-        return categoryColumn + " not in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) ) + ") ";
     }
 
     /**

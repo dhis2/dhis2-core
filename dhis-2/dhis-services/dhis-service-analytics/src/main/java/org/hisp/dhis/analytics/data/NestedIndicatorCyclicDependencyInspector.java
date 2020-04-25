@@ -96,16 +96,15 @@ public class NestedIndicatorCyclicDependencyInspector
     /**
      * Recursively add all the given Indicator's nested Indicators (if any) to the
      * tree
-     * 
+     *
      * @param indicator The Indicator to add to the main Indicators tree
      * @param tree the complete Indicator tree
      * @param parent the uid of the parent node to which the Indicator is added
      */
     private void addDescendants( Indicator indicator, TreeNode<String> tree, String parent )
     {
-        // get a list of indicators from the current Indicator
-        // (in case the current Indicator references other Indicators in the
-        // expressions)
+        // Get a list of indicators from the current Indicator
+
         List<Indicator> indicators = getDescendants( indicator );
 
         if ( !indicators.isEmpty() )
@@ -120,7 +119,7 @@ public class NestedIndicatorCyclicDependencyInspector
 
     /**
      * Add the List of Indicators as Nodes to the given Tree
-     * 
+     *
      * Fails if any of the Indicators UID is already present in the tree as **direct
      * ancestor**.
      *
@@ -132,7 +131,7 @@ public class NestedIndicatorCyclicDependencyInspector
     {
         for ( Indicator indicator : indicators )
         {
-            // find the parent node to which we attach the indicators
+            // Find the parent node to which we attach the indicators
             TreeNode<String> parentNode = tree.find( parent );
             if ( parentNode == null )
             {
@@ -141,7 +140,8 @@ public class NestedIndicatorCyclicDependencyInspector
             if ( !parentNode.isRoot() )
             {
                 TreeNode<String> mNode = parentNode;
-                // navigate backward from the parent node to verify that a direct ancestor
+
+                // Navigate backward from the parent node to verify that a direct ancestor
                 // doesn't have the same UID as the current indicator
                 do
                 {
@@ -154,8 +154,7 @@ public class NestedIndicatorCyclicDependencyInspector
                 while ( !mNode.isRoot() );
             }
 
-            // check that the node to add doesn't have the same value as the parent
-            // IndicatorA <--> IndicatorA
+            // Check that the node to add doesn't have the same value as the parent
             if ( parentNode.data().equals( indicator.getUid() ) )
             {
                 throw new CyclicReferenceException( format( ERROR_STRING, indicator.getUid() ) );
@@ -168,12 +167,12 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Fetch the Indicators referenced in the numerator and denominator expression
-     * for the given Indicator
-     * 
-     * @param indicator an Indicator
-     * @return a List of direct descendants Indicators of the current Indicator.
-     *         Empty List if the current Indicator has no descendants
+     * Fetch the indicators referenced in the numerator and denominator expression
+     * for the given indicator.
+     *
+     * @param indicator an {@link Indicator}.
+     * @return a List of direct descendants indicators of the current indicator, or
+     *         an empty List if the current indicator has no descendants.
      */
     private List<Indicator> getDescendants( Indicator indicator )
     {
