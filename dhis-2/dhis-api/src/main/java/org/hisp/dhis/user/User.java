@@ -60,7 +60,7 @@ import java.util.Set;
 public class User
     extends BaseIdentifiableObject implements MetadataObject
 {
-    public static String DEFAULT_STORED_BY = "[Unknown]";
+    public final static String DEFAULT_STORED_BY = "[Unknown]";
 
     /**
      * Required.
