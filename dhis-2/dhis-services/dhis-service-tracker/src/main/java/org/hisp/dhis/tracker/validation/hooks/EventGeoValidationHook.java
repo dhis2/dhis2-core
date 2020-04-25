@@ -88,7 +88,7 @@ public class EventGeoValidationHook
 
         if ( event.getGeometry() != null )
         {
-            validateGeo( reporter,
+            validateGeometry( reporter,
                 event.getGeometry(),
                 programStage.getFeatureType() );
         }

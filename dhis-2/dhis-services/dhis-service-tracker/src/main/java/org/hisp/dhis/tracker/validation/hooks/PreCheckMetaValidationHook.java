@@ -115,7 +115,7 @@ public class PreCheckMetaValidationHook
         }
 
         //TODO: Change program is not allowed?
-        if ( bundle.getImportStrategy().isUpdate() )
+        if ( strategy.isUpdate() )
         {
             ProgramInstance pi = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
             Program existingProgram = pi.getProgram();
@@ -190,7 +190,7 @@ public class PreCheckMetaValidationHook
         }
 
         //TODO: Change program is not allowed?
-        if ( bundle.getImportStrategy().isUpdate() )
+        if ( strategy.isUpdate() )
         {
             ProgramStageInstance psi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
             Program existingProgram = psi.getProgramStage().getProgram();

@@ -209,7 +209,7 @@ public abstract class AbstractTrackerDtoValidationHook
         }
     }
 
-    protected void validateGeo( ValidationErrorReporter errorReporter, Geometry geometry, FeatureType featureType )
+    protected void validateGeometry( ValidationErrorReporter errorReporter, Geometry geometry, FeatureType featureType )
     {
         Objects.requireNonNull( geometry, GEOMETRY_CANT_BE_NULL );
 

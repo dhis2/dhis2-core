@@ -60,9 +60,9 @@ public enum TrackerImportStrategy
      */
     DELETE;
 
-    public boolean isCreateOrCreateAndUpdateA()
+    public boolean isCreateAndUpdate()
     {
-        return CREATE == this || CREATE_AND_UPDATE == this;
+        return CREATE_AND_UPDATE == this;
     }
 
     public boolean isCreate()
@@ -73,11 +73,6 @@ public enum TrackerImportStrategy
     public boolean isUpdate()
     {
         return UPDATE == this;
-    }
-
-    public boolean isCreateAndUpdate()
-    {
-        return CREATE_AND_UPDATE == this;
     }
 
     public boolean isDelete()

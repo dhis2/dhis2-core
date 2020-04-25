@@ -84,7 +84,8 @@ public class EventCategoryOptValidationHook
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
-        CategoryOptionCombo categoryOptionCombo = PreheatHelper.fetchCachedEventCategoryOptionCombo( bundle, event );
+        CategoryOptionCombo categoryOptionCombo = PreheatHelper
+            .getCategoryOptionCombo( bundle, reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
 
         Objects.requireNonNull( categoryOptionCombo, Constants.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 

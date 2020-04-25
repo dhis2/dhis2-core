@@ -30,15 +30,18 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import lombok.Data;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -48,6 +51,10 @@ public class TrackerImportValidationContext
 {
 
     private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
+
+    private Map<String, String> eventCocCacheMap = new HashMap<>();
+
+    private Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
 
     private TrackerBundle bundle;
 
@@ -70,7 +77,7 @@ public class TrackerImportValidationContext
 
     public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
     {
-        return getResolvedStrategyMap().get( Event.class ).put( enrollment.getEnrollment(), strategy );
+        return getResolvedStrategyMap().get( Enrollment.class ).put( enrollment.getEnrollment(), strategy );
     }
 
     public TrackerImportStrategy getStrategy( Event event )
@@ -85,11 +92,39 @@ public class TrackerImportValidationContext
 
     public TrackerImportStrategy getStrategy( TrackedEntity tei )
     {
-        return getResolvedStrategyMap().get( Event.class ).get( tei.getTrackedEntity() );
+        return getResolvedStrategyMap().get( TrackedEntity.class ).get( tei.getTrackedEntity() );
     }
 
     public TrackerImportStrategy setStrategy( TrackedEntity trackedEntity, TrackerImportStrategy strategy )
     {
-        return getResolvedStrategyMap().get( Event.class ).put( trackedEntity.getTrackedEntity(), strategy );
+        return getResolvedStrategyMap().get( TrackedEntity.class ).put( trackedEntity.getTrackedEntity(), strategy );
+    }
+
+    public void cacheEventCategoryOptionCombo( String key, String cocUid )
+    {
+        if ( !StringUtils.isEmpty( key ) && !eventCocCacheMap.containsKey( key ) )
+        {
+            eventCocCacheMap.put( key, cocUid );
+        }
+    }
+
+    public String getCachedEventCategoryOptionCombo( String key )
+    {
+        return eventCocCacheMap.get( key );
+    }
+
+    public void putCachedEventAOCProgramCC( String cacheKey, String value )
+    {
+        cachedEventAOCProgramCC.put( cacheKey, value );
+    }
+
+    public Optional<String> getCachedEventAOCProgramCC( String cacheKey )
+    {
+        String cached = cachedEventAOCProgramCC.get( cacheKey );
+        if ( cached == null )
+        {
+            return Optional.empty();
+        }
+        return Optional.of( cached );
     }
 }

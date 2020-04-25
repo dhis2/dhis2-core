@@ -69,6 +69,8 @@ import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_AT
 public class TrackedEntityAttributeValidationHook
     extends AbstractTrackerDtoValidationHook
 {
+    private static final int MAX_ATTR_VALUE_LENGTH = 1200;
+
     public TrackedEntityAttributeValidationHook()
     {
         super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE );
@@ -244,6 +246,13 @@ public class TrackedEntityAttributeValidationHook
         {
             errorReporter.addError( newReport( TrackerErrorCode.E1078 )
                 .addArg( attributeValue.getAttribute().getValueType() ) );
+        }
+
+        if ( attributeValue.getValue().length() > MAX_ATTR_VALUE_LENGTH )
+        {
+            errorReporter.addError( newReport( TrackerErrorCode.E1078 )
+                .addArg( attributeValue )
+                .addArg( attributeValue.getValue().length() ) );
         }
 
         if ( attributeValue.getAttribute().isConfidentialBool() &&

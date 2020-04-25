@@ -101,13 +101,5 @@ public class PreheatHelper
         return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
     }
 
-    public static void cacheEventCategoryOptionCombo( TrackerBundle bundle, Event event, CategoryOptionCombo coc )
-    {
-        bundle.getPreheat().cacheEventCoc( event.getEvent(), coc );
-    }
 
-    public static CategoryOptionCombo fetchCachedEventCategoryOptionCombo( TrackerBundle bundle, Event event )
-    {
-        return bundle.getPreheat().getCachedEventCoc( event.getEvent() );
-    }
 }

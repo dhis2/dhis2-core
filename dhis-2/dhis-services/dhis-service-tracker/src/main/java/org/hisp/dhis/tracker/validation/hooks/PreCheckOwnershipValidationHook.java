@@ -237,7 +237,7 @@ public class PreCheckOwnershipValidationHook
         trackerImportAccessManager.checkEventWriteAccess( reporter, bundle.getUser(), programStageInstance );
 
         // TODO: Should it be possible to delete a completed event, but not update? with current check above it is...
-        if ( bundle.getImportStrategy().isUpdate()
+        if ( reporter.getValidationContext().getStrategy( event ).isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()
             && event.getStatus() != programStageInstance.getStatus()
             && (!bundle.getUser().isSuper()
