@@ -1292,19 +1292,22 @@ public abstract class AbstractEnrollmentService
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.
             getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
-        Map<String, String> attributeValueMap = Maps.newHashMap();
+        Map<String, Attribute> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+            attributeValueMap.put( attribute.getAttribute(), attribute );
         }
 
         trackedEntityInstance.getTrackedEntityAttributeValues().stream().
             filter( value -> attributeValueMap.containsKey( value.getAttribute().getUid() ) ).
             forEach( value ->
             {
-                String newValue = attributeValueMap.get( value.getAttribute().getUid() );
+                Attribute enrollmentAttribute = attributeValueMap.get( value.getAttribute().getUid() );
+
+                String newValue = enrollmentAttribute.getValue();
                 value.setValue( newValue );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
 
                 trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( value );
 
@@ -1318,13 +1321,31 @@ public abstract class AbstractEnrollmentService
             if ( attribute != null )
             {
                 TrackedEntityAttributeValue value = new TrackedEntityAttributeValue();
-                value.setValue( attributeValueMap.get( key ) );
+                Attribute enrollmentAttribute = attributeValueMap.get( key );
+
+                value.setValue( enrollmentAttribute.getValue() );
                 value.setAttribute( attribute );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( value );
                 trackedEntityInstance.addAttributeValue( value );
             }
         }
+    }
+
+    private String getStoredBy( Attribute attribute, User user )
+    {
+        if ( !StringUtils.isEmpty( attribute.getStoredBy() ) )
+        {
+            return attribute.getStoredBy();
+        }
+
+        if ( user != null )
+        {
+            return User.getSafeUsername( user.getUsername() );
+        }
+
+        return "[Unknown]";
     }
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID )
