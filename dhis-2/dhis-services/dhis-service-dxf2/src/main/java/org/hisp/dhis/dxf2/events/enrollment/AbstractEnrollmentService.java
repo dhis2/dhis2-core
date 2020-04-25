@@ -552,7 +552,7 @@ public abstract class AbstractEnrollmentService
 
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
 
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
@@ -877,7 +877,7 @@ public abstract class AbstractEnrollmentService
         programInstanceService.updateProgramInstance( programInstance );
         teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
 
         importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
@@ -1345,7 +1345,7 @@ public abstract class AbstractEnrollmentService
             return User.getSafeUsername( user.getUsername() );
         }
 
-        return "[Unknown]";
+        return User.DEFAULT_STORED_BY;
     }
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID )

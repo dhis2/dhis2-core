@@ -60,6 +60,8 @@ import java.util.Set;
 public class User
     extends BaseIdentifiableObject implements MetadataObject
 {
+    public static String DEFAULT_STORED_BY = "[Unknown]";
+
     /**
      * Required.
      */
@@ -427,7 +429,7 @@ public class User
 
     public static String getSafeUsername( String username )
     {
-        return StringUtils.isEmpty( username ) ? "[Unknown]" : username;
+        return StringUtils.isEmpty( username ) ? DEFAULT_STORED_BY : username;
     }
 
     public boolean hasEmail()
