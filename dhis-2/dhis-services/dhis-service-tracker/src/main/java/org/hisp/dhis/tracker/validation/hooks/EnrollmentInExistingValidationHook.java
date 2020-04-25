@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
@@ -39,11 +38,9 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Coordinate;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -94,7 +91,7 @@ public class EnrollmentInExistingValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter , Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
         TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
@@ -106,7 +103,7 @@ public class EnrollmentInExistingValidationHook
             return;
         }
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        Program program = validationContext.getProgram( enrollment.getProgram() );
 
         if ( (EnrollmentStatus.COMPLETED == enrollment.getStatus()
             && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
@@ -114,23 +111,25 @@ public class EnrollmentInExistingValidationHook
             return;
         }
 
-        validateTeiNotEnrolledAlready( reporter, bundle, enrollment, program );
+        validateTeiNotEnrolledAlready( reporter, enrollment, program );
     }
 
-    protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter, TrackerBundle bundle,
+    protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter,
         Enrollment enrollment, Program program )
     {
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        User user = reporter.getValidationContext().getBundle().getUser();
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = reporter.getValidationContext()
+            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         // TODO: SQLOPT Sort out only the programs the importing user has access too...
         //   create a dedicated sql query....?
         // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
         // should import still be possible?
-        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, bundle.getUser(), program, tei )
+        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, user, program, tei )
             .stream()
             .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
                 || EnrollmentStatus.COMPLETED == programEnrollment.getStatus() )

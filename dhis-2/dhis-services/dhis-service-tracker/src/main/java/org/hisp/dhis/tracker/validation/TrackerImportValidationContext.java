@@ -30,7 +30,16 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import lombok.Data;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -126,5 +135,55 @@ public class TrackerImportValidationContext
             return Optional.empty();
         }
         return Optional.of( cached );
+    }
+
+    public OrganisationUnit getOrganisationUnit( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), OrganisationUnit.class, id );
+    }
+
+    public TrackedEntityInstance getTrackedEntityInstance( String id )
+    {
+        return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), id );
+    }
+
+    public TrackedEntityAttribute getTrackedEntityAttribute( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityAttribute.class, id );
+    }
+
+    public TrackedEntityType getTrackedEntityType( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, id );
+    }
+
+    public Program getProgram( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), Program.class, id );
+    }
+
+    public ProgramInstance getProgramInstance( String id )
+    {
+        return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
+    }
+
+    public ProgramStage getProgramStage( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), ProgramStage.class, id );
+    }
+
+    public ProgramStageInstance getProgramStageInstance( String event )
+    {
+        return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
+    }
+
+    public CategoryOptionCombo getCategoryOptionCombo( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOptionCombo.class, id );
+    }
+
+    public CategoryOption getCategoryOption( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
     }
 }

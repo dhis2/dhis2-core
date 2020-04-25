@@ -84,30 +84,36 @@ public class DefaultTrackerImportAccessManager
         this.organisationUnitService = organisationUnitService;
     }
 
-    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, 
         OrganisationUnit orgUnit )
     {
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( !organisationUnitService.isInUserSearchHierarchyCached( bundle.getUser(), orgUnit ) )
+        if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1093 )
-                .addArg( bundle.getUser() )
+                .addArg( user )
                 .addArg( orgUnit ) );
         }
     }
 
-    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, 
         OrganisationUnit orgUnit )
     {
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( !organisationUnitService.isInUserHierarchyCached( bundle.getUser(), orgUnit ) )
+        if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )
-                .addArg( bundle.getUser() )
+                .addArg( user )
                 .addArg( orgUnit ) );
         }
     }

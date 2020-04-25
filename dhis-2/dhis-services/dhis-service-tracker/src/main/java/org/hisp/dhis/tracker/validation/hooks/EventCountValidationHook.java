@@ -36,7 +36,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -73,11 +72,11 @@ public class EventCountValidationHook
         TrackerImportStrategy strategy = validationContext.getStrategy( event );
         TrackerBundle bundle = validationContext.getBundle();
 
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+        Program program = validationContext.getProgram( event.getProgram() );
 
         if ( program.isRegistration() )
         {
-            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, event.getTrackedEntity() );
+            TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( event.getTrackedEntity() );
             ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
             params.setProgram( program );
             params.setTrackedEntityInstance( tei );

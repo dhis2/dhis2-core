@@ -43,7 +43,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -86,16 +85,16 @@ public class PreCheckOwnershipValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
+        TrackerBundle bundle = context.getBundle();
 
         Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
-        if ( bundle.getImportStrategy().isDelete() )
+        if ( strategy.isDelete() )
         {
-            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
+            TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
             // This is checked in existence check, but lets be very double sure this is true for now.
             Objects.requireNonNull( tei, Constants.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
@@ -113,41 +112,42 @@ public class PreCheckOwnershipValidationHook
             }
         }
 
-        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntityInstance tei = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
+            TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
             TrackedEntityType trackedEntityType = tei.getTrackedEntityType();
             trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), trackedEntityType );
         }
 
-        TrackedEntityType trackedEntityType = PreheatHelper
-            .getTrackedEntityType( bundle, trackedEntity.getTrackedEntityType() );
+        TrackedEntityType trackedEntityType = context
+            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
         trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, bundle.getUser(), trackedEntityType );
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( enrollment );
+        TrackerBundle bundle = context.getBundle();
+        User user = bundle.getUser();
 
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
-        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
+        Program program = context.getProgram( enrollment.getProgram() );
+        OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         Objects.requireNonNull( tei, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        if ( bundle.getImportStrategy().isDelete() )
+        if ( strategy.isDelete() )
         {
-            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+            ProgramInstance programInstance = context.getProgramInstance( enrollment.getEnrollment() );
 
             Set<ProgramStageInstance> notDeletedProgramStageInstances = programInstance.getProgramStageInstances()
                 .stream()
@@ -155,51 +155,52 @@ public class PreCheckOwnershipValidationHook
                 .collect( Collectors.toSet() );
 
             if ( !notDeletedProgramStageInstances.isEmpty()
-                && !bundle.getUser().isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+                && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1103 )
-                    .addArg( bundle.getUser() )
+                    .addArg( user )
                     .addArg( programInstance ) );
             }
         }
 
-        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        if ( strategy.isUpdateOrDelete() )
         {
-            ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+            ProgramInstance programInstance = context.getProgramInstance( enrollment.getEnrollment() );
             trackerImportAccessManager
-                .checkWriteEnrollmentAccess( reporter, bundle.getUser(), programInstance.getProgram(),
+                .checkWriteEnrollmentAccess( reporter, user, programInstance.getProgram(),
                     programInstance );
         }
 
-        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, bundle.getUser(), program,
+        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, user, program,
             new ProgramInstance( program, tei, organisationUnit ) );
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( event );
+        TrackerBundle bundle = context.getBundle();
+        User user = bundle.getUser();
 
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
-        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
+        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
+        Program program = context.getProgram( event.getProgram() );
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
-        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        if ( strategy.isUpdateOrDelete() )
         {
-            validateUpdateAndDeleteEvent( bundle, reporter, event,
-                PreheatHelper.getProgramStageInstance( bundle, event.getEvent() ) );
+            validateUpdateAndDeleteEvent( reporter, event,
+                context.getProgramStageInstance( event.getEvent() ) );
         }
 
-        CategoryOptionCombo categoryOptionCombo = PreheatHelper
-            .getCategoryOptionCombo( bundle, event.getAttributeOptionCombo() );
+        CategoryOptionCombo categoryOptionCombo = context
+            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
 
-        validateCreateEvent( reporter, bundle.getUser(),
+        validateCreateEvent( reporter, user,
             categoryOptionCombo,
             programStage,
             programInstance,
@@ -226,25 +227,27 @@ public class PreCheckOwnershipValidationHook
         trackerImportAccessManager.checkEventWriteAccess( reporter, actingUser, newProgramStageInstance );
     }
 
-    protected void validateUpdateAndDeleteEvent( TrackerBundle bundle, ValidationErrorReporter reporter,
+    protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter,
         Event event, ProgramStageInstance programStageInstance )
     {
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        User user = reporter.getValidationContext().getBundle().getUser();
+
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( user, USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
 
-        trackerImportAccessManager.checkEventWriteAccess( reporter, bundle.getUser(), programStageInstance );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, user, programStageInstance );
 
         // TODO: Should it be possible to delete a completed event, but not update? with current check above it is...
         if ( reporter.getValidationContext().getStrategy( event ).isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()
             && event.getStatus() != programStageInstance.getStatus()
-            && (!bundle.getUser().isSuper()
-            && !bundle.getUser().isAuthorized( "F_UNCOMPLETE_EVENT" )) )
+            && (!user.isSuper()
+            && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1083 )
-                .addArg( bundle.getUser() ) );
+                .addArg( user ) );
         }
     }
 }

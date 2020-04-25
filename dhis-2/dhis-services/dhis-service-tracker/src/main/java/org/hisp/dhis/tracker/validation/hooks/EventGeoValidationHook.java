@@ -32,9 +32,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -60,14 +58,12 @@ public class EventGeoValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
 
-        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
-        ProgramStageInstance programStageInstance = PreheatHelper
-            .getProgramStageInstance( bundle, event.getEvent() );
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramStageInstance programStageInstance = context
+            .getProgramStageInstance( event.getEvent() );
+        Program program = context.getProgram( event.getProgram() );
 
         if ( program == null )
         {

@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -60,11 +58,9 @@ public class EnrollmentGeoValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        Program program = context.getProgram( enrollment.getProgram() );
 
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
 

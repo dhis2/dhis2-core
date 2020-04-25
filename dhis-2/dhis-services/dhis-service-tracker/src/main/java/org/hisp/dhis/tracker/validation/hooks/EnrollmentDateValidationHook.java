@@ -32,7 +32,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -67,13 +66,13 @@ public class EnrollmentDateValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( enrollment );
+        TrackerBundle bundle = context.getBundle();
 
         validateMandatoryDates( reporter, enrollment );
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        Program program = context.getProgram( enrollment.getProgram() );
 
         validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
 

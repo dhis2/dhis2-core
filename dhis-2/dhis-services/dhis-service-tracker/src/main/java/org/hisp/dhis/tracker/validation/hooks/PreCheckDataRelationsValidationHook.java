@@ -44,7 +44,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -89,7 +88,7 @@ public class PreCheckDataRelationsValidationHook
         TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
         TrackerBundle bundle = validationContext.getBundle();
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        Program program = validationContext.getProgram( enrollment.getProgram() );
 
         if ( !program.isRegistration() )
         {
@@ -97,7 +96,7 @@ public class PreCheckDataRelationsValidationHook
                 .addArg( program ) );
         }
 
-        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         if ( tei == null )
         {
@@ -114,7 +113,7 @@ public class PreCheckDataRelationsValidationHook
         }
 
         //TODO: This dont make sense
-//        ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+//        ProgramInstance programInstance = validationContext.getProgramInstance(  enrollment.getEnrollment() );
 //        if ( !bundle.getImportStrategy().isCreateOrCreateAndUpdate() && programInstance == null )
 //        {
 //            reporter.addError( newReport( TrackerErrorCode.E1015 )
@@ -130,11 +129,11 @@ public class PreCheckDataRelationsValidationHook
         TrackerImportStrategy strategy = validationContext.getStrategy( event );
         TrackerBundle bundle = validationContext.getBundle();
 
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+        Program program = validationContext.getProgram( event.getProgram() );
 
         if ( program.isRegistration() )
         {
-            if ( PreheatHelper.getTei( bundle, event.getTrackedEntity() ) == null )
+            if ( validationContext.getTrackedEntityInstance( event.getTrackedEntity() ) == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1036 )
                     .addArg( event ) );
@@ -142,8 +141,8 @@ public class PreCheckDataRelationsValidationHook
 
             if ( strategy.isCreate() )
             {
-                ProgramInstance programInstance = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
-                ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
+                ProgramInstance programInstance = validationContext.getProgramInstance( event.getEnrollment() );
+                ProgramStage programStage = validationContext.getProgramStage( event.getProgramStage() );
 
                 if ( programStage != null && programInstance != null
                     && !programStage.getRepeatable()
@@ -160,6 +159,7 @@ public class PreCheckDataRelationsValidationHook
     protected void validateEventCategoryCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {
+        TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         // if event has "attribute option combo" set only, fetch the aoc directly
         boolean aocEmpty = StringUtils.isEmpty( event.getAttributeOptionCombo() );
@@ -170,7 +170,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !aocEmpty && acoEmpty )
         {
-            categoryOptionCombo = PreheatHelper.getCategoryOptionCombo( bundle, event.getAttributeOptionCombo() );
+            categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
         else if ( !aocEmpty && !acoEmpty && program.getCategoryCombo() != null )
         {
@@ -183,7 +183,7 @@ public class PreCheckDataRelationsValidationHook
 
             if ( cachedEventAOCProgramCC.isPresent() )
             {
-                categoryOptionCombo = PreheatHelper.getCategoryOptionCombo( bundle, cachedEventAOCProgramCC.get() );
+                categoryOptionCombo = context.getCategoryOptionCombo( cachedEventAOCProgramCC.get() );
             }
             else
             {
@@ -217,8 +217,7 @@ public class PreCheckDataRelationsValidationHook
 
         for ( String uid : attributeCategoryOptions )
         {
-            CategoryOption categoryOption = PreheatHelper
-                .getCategoryOption( reporter.getValidationContext().getBundle(), uid );
+            CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
             if ( categoryOption == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1116 )

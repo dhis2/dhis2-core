@@ -34,7 +34,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 
@@ -43,10 +42,10 @@ import org.hisp.dhis.user.User;
  */
 public interface TrackerImportAccessManager
 {
-    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter,
         OrganisationUnit orgUnit );
 
-    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter,
         OrganisationUnit orgUnit );
 
     void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, User user,

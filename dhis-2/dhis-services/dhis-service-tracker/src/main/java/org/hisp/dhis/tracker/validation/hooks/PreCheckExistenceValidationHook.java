@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -64,21 +63,22 @@ public class PreCheckExistenceValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerBundle bundle = context.getBundle();
         TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-        TrackedEntityInstance existingTe = PreheatHelper.getTei( bundle, trackedEntity.getTrackedEntity() );
+        TrackedEntityInstance existingTe = context
+            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingTe == null )
             {
-                validationContext.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
+                context.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
             }
             else
             {
-                validationContext.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
+                context.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
             }
         }
         else if ( existingTe != null && importStrategy.isCreate() )
@@ -98,28 +98,28 @@ public class PreCheckExistenceValidationHook
         }
         else
         {
-            validationContext.setStrategy( trackedEntity, importStrategy );
+            context.setStrategy( trackedEntity, importStrategy );
         }
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerBundle bundle = context.getBundle();
         TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-        ProgramInstance existingPi = PreheatHelper.getProgramInstance( bundle, event.getEnrollment() );
+        ProgramInstance existingPi = context.getProgramInstance( event.getEnrollment() );
 
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingPi == null )
             {
-                validationContext.setStrategy( event, TrackerImportStrategy.CREATE );
+                context.setStrategy( event, TrackerImportStrategy.CREATE );
             }
             else
             {
-                validationContext.setStrategy( event, TrackerImportStrategy.UPDATE );
+                context.setStrategy( event, TrackerImportStrategy.UPDATE );
             }
         }
         else if ( existingPi != null && importStrategy.isCreate() )
@@ -139,28 +139,28 @@ public class PreCheckExistenceValidationHook
         }
         else
         {
-            validationContext.setStrategy( event, importStrategy );
+            context.setStrategy( event, importStrategy );
         }
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerBundle bundle = context.getBundle();
         TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-        ProgramStageInstance existingPsi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+        ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
 
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingPsi == null )
             {
-                validationContext.setStrategy( event, TrackerImportStrategy.CREATE );
+                context.setStrategy( event, TrackerImportStrategy.CREATE );
             }
             else
             {
-                validationContext.setStrategy( event, TrackerImportStrategy.UPDATE );
+                context.setStrategy( event, TrackerImportStrategy.UPDATE );
             }
         }
         else if ( existingPsi != null && importStrategy.isCreate() )
@@ -180,7 +180,7 @@ public class PreCheckExistenceValidationHook
         }
         else
         {
-            validationContext.setStrategy( event, importStrategy );
+            context.setStrategy( event, importStrategy );
         }
     }
 }

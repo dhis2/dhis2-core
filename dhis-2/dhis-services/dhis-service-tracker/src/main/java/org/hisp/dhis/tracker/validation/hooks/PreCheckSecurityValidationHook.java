@@ -32,11 +32,9 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
@@ -71,27 +69,26 @@ public class PreCheckSecurityValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
 
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( context.getBundle().getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
         Objects.requireNonNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntityInstance trackedEntityInstance = PreheatHelper
-                .getTei( bundle, trackedEntity.getTrackedEntity() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, bundle, trackedEntityInstance.getOrganisationUnit() );
+            TrackedEntityInstance trackedEntityInstance = context
+                .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+            accessManager.checkOrgUnitInCaptureScope( reporter, trackedEntityInstance.getOrganisationUnit() );
         }
 
         // TODO: Added comment to make sure the reason for this not so intuitive reason,
         // This should be better commented and documented somewhere
         // Ameen 10.09.2019, 12:32 fix: relax restriction on writing to trackedEntity in search scope 48a82e5f
         // Why should we use search?
-        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, trackedEntity.getOrgUnit() );
-        accessManager.checkOrgUnitInCaptureScope( reporter, bundle, incomingOrgUnit );
+        OrganisationUnit incomingOrgUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
+        accessManager.checkOrgUnitInCaptureScope( reporter, incomingOrgUnit );
     }
 
     @Override
@@ -99,20 +96,19 @@ public class PreCheckSecurityValidationHook
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
         TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
 
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        if ( strategy.isUpdateOrDelete() )
         {
-            ProgramInstance pi = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, bundle, pi.getOrganisationUnit() );
+            ProgramInstance pi = validationContext.getProgramInstance( enrollment.getEnrollment() );
+            accessManager.checkOrgUnitInCaptureScope( reporter, pi.getOrganisationUnit() );
         }
 
-        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
-        accessManager.checkOrgUnitInCaptureScope( reporter, bundle, incomingOrgUnit );
+        OrganisationUnit incomingOrgUnit = validationContext.getOrganisationUnit( enrollment.getOrgUnit() );
+        accessManager.checkOrgUnitInCaptureScope( reporter, incomingOrgUnit );
     }
 
     @Override
@@ -120,22 +116,21 @@ public class PreCheckSecurityValidationHook
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
         TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
 
-        Objects.requireNonNull( bundle.getUser(), USER_CANT_BE_NULL );
+        Objects.requireNonNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
         Objects.requireNonNull( event, EVENT_CANT_BE_NULL );
         Objects.requireNonNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( bundle.getImportStrategy().isUpdateOrDelete() )
+        if ( strategy.isUpdateOrDelete() )
         {
-            ProgramStageInstance psi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, bundle, psi.getOrganisationUnit() );
+            ProgramStageInstance psi = validationContext.getProgramStageInstance( event.getEvent() );
+            accessManager.checkOrgUnitInCaptureScope( reporter, psi.getOrganisationUnit() );
         }
 
         // TODO: this check is also done in DefaultTrackerImportAccessManager,
         //  one case is laxer and this check will possibly overrule in that case when programStageInstance.isCreatableInSearchScope == TRUE
         //  Investigate....
-        OrganisationUnit incomingOrgUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
-        accessManager.checkOrgUnitInCaptureScope( reporter, bundle, incomingOrgUnit );
+        OrganisationUnit incomingOrgUnit = validationContext.getOrganisationUnit( event.getOrgUnit() );
+        accessManager.checkOrgUnitInCaptureScope( reporter, incomingOrgUnit );
     }
 }

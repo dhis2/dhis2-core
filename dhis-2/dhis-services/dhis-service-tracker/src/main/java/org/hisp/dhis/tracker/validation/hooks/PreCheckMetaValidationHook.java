@@ -40,7 +40,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -65,11 +64,11 @@ public class PreCheckMetaValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
 
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( tei );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( tei );
+        TrackerBundle bundle = context.getBundle();
 
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, tei.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
 
         if ( organisationUnit == null )
         {
@@ -77,7 +76,7 @@ public class PreCheckMetaValidationHook
                 .addArg( reporter ) );
         }
 
-        TrackedEntityType entityType = PreheatHelper.getTrackedEntityType( bundle, tei.getTrackedEntityType() );
+        TrackedEntityType entityType = context.getTrackedEntityType( tei.getTrackedEntityType() );
         if ( entityType == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1005 )
@@ -88,18 +87,18 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( enrollment );
+        TrackerBundle bundle = context.getBundle();
 
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, enrollment.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         if ( organisationUnit == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1070 )
                 .addArg( enrollment.getOrgUnit() ) );
         }
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
+        Program program = context.getProgram( enrollment.getProgram() );
         if ( program == null )
         {
             reporter.addError( newReport( TrackerErrorCode.E1069 )
@@ -117,7 +116,7 @@ public class PreCheckMetaValidationHook
         //TODO: Change program is not allowed?
         if ( strategy.isUpdate() )
         {
-            ProgramInstance pi = PreheatHelper.getProgramInstance( bundle, enrollment.getEnrollment() );
+            ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
             Program existingProgram = pi.getProgram();
             if ( !existingProgram.equals( program ) )
             {
@@ -131,11 +130,11 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( event );
+        TrackerBundle bundle = context.getBundle();
 
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, event.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
 
         if ( organisationUnit == null )
         {
@@ -143,8 +142,8 @@ public class PreCheckMetaValidationHook
                 .addArg( event.getOrgUnit() ) );
         }
 
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
-        ProgramStage programStage = PreheatHelper.getProgramStage( bundle, event.getProgramStage() );
+        Program program = context.getProgram( event.getProgram() );
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
         if ( program == null && programStage == null )
         {
@@ -192,7 +191,7 @@ public class PreCheckMetaValidationHook
         //TODO: Change program is not allowed?
         if ( strategy.isUpdate() )
         {
-            ProgramStageInstance psi = PreheatHelper.getProgramStageInstance( bundle, event.getEvent() );
+            ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
             Program existingProgram = psi.getProgramStage().getProgram();
             if ( !existingProgram.equals( program ) )
             {

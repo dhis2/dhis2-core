@@ -39,7 +39,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -75,14 +74,15 @@ public class EnrollmentAttributeValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( enrollment );
+        TrackerBundle bundle = context.getBundle();
 
-        Program program = PreheatHelper.getProgram( bundle, enrollment.getProgram() );
-        TrackedEntityInstance tei = PreheatHelper.getTei( bundle, enrollment.getTrackedEntity() );
+        Program program = context.getProgram( enrollment.getProgram() );
+        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         Map<String, String> attributeValueMap = Maps.newHashMap();
+
         for ( Attribute attribute : enrollment.getAttributes() )
         {
             validateRequiredProperties( reporter, bundle, attribute );
@@ -92,8 +92,7 @@ public class EnrollmentAttributeValidationHook
                 continue;
             }
 
-            TrackedEntityAttribute teAttribute = PreheatHelper.getTrackedEntityAttribute( bundle,
-                attribute.getAttribute() );
+            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( teAttribute == null )
             {
@@ -137,8 +136,8 @@ public class EnrollmentAttributeValidationHook
 
         if ( attribute.getAttribute() != null )
         {
-            TrackedEntityAttribute teAttribute = PreheatHelper
-                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
+            TrackedEntityAttribute teAttribute = reporter.getValidationContext()
+                .getTrackedEntityAttribute( attribute.getAttribute() );
             if ( teAttribute == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1017 )

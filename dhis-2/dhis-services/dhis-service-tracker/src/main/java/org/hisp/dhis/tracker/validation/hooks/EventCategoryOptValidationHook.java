@@ -37,7 +37,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -74,18 +73,19 @@ public class EventCategoryOptValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( event );
+        TrackerBundle bundle = context.getBundle();
 
-        Program program = PreheatHelper.getProgram( bundle, event.getProgram() );
+        Program program = context.getProgram( event.getProgram() );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
-        CategoryOptionCombo categoryOptionCombo = PreheatHelper
-            .getCategoryOptionCombo( bundle, reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        CategoryOptionCombo categoryOptionCombo = context
+            .getCategoryOptionCombo(
+                reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
 
         Objects.requireNonNull( categoryOptionCombo, Constants.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 

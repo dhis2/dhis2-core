@@ -44,7 +44,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.PreheatHelper;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -97,19 +96,17 @@ public class TrackedEntityAttributeValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( trackedEntity );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
 
-        TrackedEntityInstance trackedEntityInstance = PreheatHelper
-            .getTei( bundle, trackedEntity.getTrackedEntity() );
+        TrackedEntityInstance trackedEntityInstance = context
+            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
-        OrganisationUnit organisationUnit = PreheatHelper.getOrganisationUnit( bundle, trackedEntity.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
-        validateAttributes( reporter, bundle, trackedEntity, trackedEntityInstance, organisationUnit );
+        validateAttributes( reporter, trackedEntity, trackedEntityInstance, organisationUnit );
     }
 
-    protected void validateAttributes( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+    protected void validateAttributes( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity, TrackedEntityInstance trackedEntityInstance, OrganisationUnit orgUnit )
     {
         Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
@@ -124,12 +121,12 @@ public class TrackedEntityAttributeValidationHook
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            TrackedEntityAttribute trackedEntityAttribute = PreheatHelper
-                .getTrackedEntityAttribute( bundle, attribute.getAttribute() );
+            TrackedEntityAttribute trackedEntityAttribute = reporter.getValidationContext()
+                .getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( trackedEntityAttribute == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1006 )
+                reporter.addError( newReport( TrackerErrorCode.E1006 )
                     .addArg( attribute.getAttribute() ) );
                 continue;
             }
@@ -149,25 +146,25 @@ public class TrackedEntityAttributeValidationHook
                 trackedEntityAttributeValue.setValue( attribute.getValue() );
                 trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
             }
-            validateAttributeValue( errorReporter, trackedEntityAttributeValue );
+            validateAttributeValue( reporter, trackedEntityAttributeValue );
 
-            validateTextPattern( errorReporter, bundle, attribute, trackedEntityAttribute,
+            validateTextPattern( reporter, attribute, trackedEntityAttribute,
                 trackedEntityAttributeValue );
 
-            validateAttrValueType( errorReporter, attribute, trackedEntityAttribute );
+            validateAttrValueType( reporter, attribute, trackedEntityAttribute );
 
             // TODO: This is one "THE" potential performance killer...
-            validateAttributeUniqueness( errorReporter,
+            validateAttributeUniqueness( reporter,
                 attribute.getValue(),
                 trackedEntityAttribute,
                 trackedEntityInstance,
                 orgUnit );
 
-            validateFileNotAlreadyAssigned( errorReporter, bundle, attribute, trackedEntityInstance, valueMap );
+            validateFileNotAlreadyAssigned( reporter, attribute, trackedEntityInstance, valueMap );
         }
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
         Attribute attr, TrackedEntityInstance tei, Map<String, TrackedEntityAttributeValue> valueMap )
     {
         Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -183,17 +180,18 @@ public class TrackedEntityAttributeValidationHook
                 return;
             }
 
-            FileResource fileResource = bundle.getPreheat()
+            FileResource fileResource = reporter.getValidationContext().getBundle().getPreheat()
                 .get( TrackerIdScheme.UID, FileResource.class, attr.getValue() );
+
             if ( fileResource == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1084 )
+                reporter.addError( newReport( TrackerErrorCode.E1084 )
                     .addArg( attr.getValue() ) );
             }
 
             if ( fileResource != null && fileResource.isAssigned() )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1009 )
+                reporter.addError( newReport( TrackerErrorCode.E1009 )
                     .addArg( attr.getValue() ) );
             }
         }
@@ -210,9 +208,10 @@ public class TrackedEntityAttributeValidationHook
             reservedValueService.isReserved( attribute.getTextPattern(), value );
     }
 
-    protected void validateTextPattern( ValidationErrorReporter errorReporter, TrackerBundle bundle,
+    protected void validateTextPattern( ValidationErrorReporter reporter,
         Attribute attr, TrackedEntityAttribute teAttr, TrackedEntityAttributeValue teiAttributeValue )
     {
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
         Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
         Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
@@ -221,7 +220,7 @@ public class TrackedEntityAttributeValidationHook
 
         if ( teAttr.getTextPattern() == null && teAttr.isGenerated() && !bundle.isSkipTextPatternValidation() )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1111 )
+            reporter.addError( newReport( TrackerErrorCode.E1111 )
                 .addArg( attr ) );
         }
 
@@ -231,7 +230,7 @@ public class TrackedEntityAttributeValidationHook
 
             if ( !validateReservedValues( teAttr, attr.getValue(), oldValue ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1008 )
+                reporter.addError( newReport( TrackerErrorCode.E1008 )
                     .addArg( attr.getValue() ) );
             }
         }
