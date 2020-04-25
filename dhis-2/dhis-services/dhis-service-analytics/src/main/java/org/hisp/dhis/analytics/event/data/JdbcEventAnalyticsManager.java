@@ -55,7 +55,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -94,6 +94,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * TODO could use row_number() and filtering for paging.
+ * TODO introduce dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
@@ -103,14 +104,11 @@ public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EventAnalyticsManager
 {
-    public JdbcEventAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-                                     ProgramIndicatorService programIndicatorService,
-                                     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+        ProgramIndicatorService programIndicatorService, ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
-
-    //TODO introduce dedicated "year" partition column
 
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
@@ -261,6 +259,7 @@ public class JdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
+    @Override
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
@@ -538,13 +537,13 @@ public class JdbcEventAnalyticsManager
      *
      * @param programCategories the list of program categories containing the list
      *        of category options not authorized for the current user.
-     * @return the sql statement in the format: "and ax."mEXqxV2KIUl" not in
+     * @return the SQL statement in the format: "and ax."mEXqxV2KIUl" not in
      *         ('qNqYLugIySD') or ax."r7NDRdgj5zs" not in ('qNqYLugIySD') "
      */
-    String filterOutNotAuthorizedCategoryOptionEvents( final List<Category> programCategories )
+    private String filterOutNotAuthorizedCategoryOptionEvents( final List<Category> programCategories )
     {
-        final StringBuilder query = new StringBuilder();
-        final SqlHelper sqlHelper = new SqlHelper(true);
+        StringBuilder query = new StringBuilder();
+        SqlHelper sqlHelper = new SqlHelper( true );
 
         if ( isNotEmpty( programCategories ) )
         {
@@ -559,23 +558,23 @@ public class JdbcEventAnalyticsManager
                 }
             }
         }
+
         return query.toString();
     }
 
     /**
-     * This method will generate a "in" sql statement for the given category and
+     * This method will generate a "in" SQL statement for the given category and
      * category options.
      *
-     * @param category
-     * @param categoryOptions
-     * @return a sql statement in the format: "ax."mEXqxV2KIUl" in ('qNqYLugIySD') "
+     * @param category the {@link Category}.
+     * @param categoryOptions the list of {@link CategoryOption}.
+     * @return a SQL statement on the format {@code ax."mEXqxV2KIUl" in ('qNqYLugIySD') }.
      */
-    String buildInFilterForCategory(final Category category, final List<CategoryOption> categoryOptions )
+    private String buildInFilterForCategory( Category category, List<CategoryOption> categoryOptions )
     {
-        final String categoryColumn = quoteAlias( category.getUid() );
-        final String inFilter = categoryColumn + " not in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) )
-            + ") ";
-        return inFilter;
+        String categoryColumn = quoteAlias( category.getUid() );
+
+        return categoryColumn + " not in (" + getQuotedCommaDelimitedString( getUids( categoryOptions ) ) + ") ";
     }
 
     /**
@@ -583,8 +582,10 @@ public class JdbcEventAnalyticsManager
      * ranked by the execution date, latest first. The events are partitioned by
      * org unit and attribute option combo. A column {@code pe_rank} defines the rank.
      * Only data for the last 10 years relative to the period end date is included.
+     *
+     * @param the {@link EventQueryParams}.
      */
-    private String getFirstOrLastValueSubquerySql(EventQueryParams params )
+    private String getFirstOrLastValueSubquerySql( EventQueryParams params )
     {
         Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
 
@@ -619,8 +620,10 @@ public class JdbcEventAnalyticsManager
      * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
      * The period dimension is replaced by the name of the single period in the given
      * query.
+     *
+     * @param the {@link EventQueryParams}.
      */
-    private List<String> getFirstOrLastValueSubqueryQuotedColumns(EventQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
@@ -649,6 +652,7 @@ public class JdbcEventAnalyticsManager
         return cols;
     }
 
+    @Override
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.EVENT;

@@ -44,7 +44,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -92,12 +92,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final StatementBuilder statementBuilder;
 
     protected final ProgramIndicatorService programIndicatorService;
-    
-    protected final DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
-    
-    public AbstractJdbcEventAnalyticsManager(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-                                             StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-                                             DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+
+    protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
+
+    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
@@ -258,7 +258,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
                         getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
                 }
-                
+
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -471,7 +471,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
         }
     }
-    
+
     /**
      * Returns an item value for the given query, query item and value. Assumes that
      * data dimensions are collapsed for the given query. Returns the short name
