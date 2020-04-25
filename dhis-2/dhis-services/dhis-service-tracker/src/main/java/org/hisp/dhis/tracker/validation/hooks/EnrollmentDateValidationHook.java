@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -67,8 +66,6 @@ public class EnrollmentDateValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( enrollment );
-        TrackerBundle bundle = context.getBundle();
 
         validateMandatoryDates( reporter, enrollment );
 
@@ -85,19 +82,19 @@ public class EnrollmentDateValidationHook
         }
     }
 
-    private void validateMandatoryDates( ValidationErrorReporter errorReporter, Enrollment enrollment )
+    private void validateMandatoryDates( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         Objects.requireNonNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
         // NOTE: getEnrollmentDate is always mandatory?
         if ( !isValidDateStringAndNotNull( enrollment.getEnrolledAt() ) )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1025 )
+            reporter.addError( newReport( TrackerErrorCode.E1025 )
                 .addArg( enrollment.getEnrolledAt() ) );
         }
     }
 
-    private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter errorReporter, Program program,
+    private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter reporter, Program program,
         Enrollment enrollment )
     {
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
@@ -107,7 +104,7 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
             && DateUtils.parseDate( enrollment.getEnrolledAt() ).after( new Date() ) )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1020 )
+            reporter.addError( newReport( TrackerErrorCode.E1020 )
                 .addArg( enrollment.getEnrolledAt() ) );
         }
 
@@ -115,7 +112,7 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
             && DateUtils.parseDate( enrollment.getOccurredAt() ).after( new Date() ) )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1021 )
+            reporter.addError( newReport( TrackerErrorCode.E1021 )
                 .addArg( enrollment.getOccurredAt() ) );
         }
     }

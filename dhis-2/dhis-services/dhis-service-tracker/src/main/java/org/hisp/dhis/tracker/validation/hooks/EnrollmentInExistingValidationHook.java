@@ -37,7 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Note;
@@ -94,8 +93,6 @@ public class EnrollmentInExistingValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
 
         // TODO: check existing on update...
         if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
@@ -117,8 +114,9 @@ public class EnrollmentInExistingValidationHook
     protected void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter,
         Enrollment enrollment, Program program )
     {
-        User user = reporter.getValidationContext().getBundle().getUser();
-        Objects.requireNonNull( user, USER_CANT_BE_NULL );
+        User actingUser = reporter.getValidationContext().getBundle().getUser();
+
+        Objects.requireNonNull( actingUser, USER_CANT_BE_NULL );
         Objects.requireNonNull( program, PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
@@ -129,7 +127,7 @@ public class EnrollmentInExistingValidationHook
         //   create a dedicated sql query....?
         // Stian, Morten H.  NOTE: How will this affect validation? If there is a conflict here but importing user is not allowed to know,
         // should import still be possible?
-        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, user, program, tei )
+        Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, actingUser, program, tei )
             .stream()
             .filter( programEnrollment -> EnrollmentStatus.ACTIVE == programEnrollment.getStatus()
                 || EnrollmentStatus.COMPLETED == programEnrollment.getStatus() )

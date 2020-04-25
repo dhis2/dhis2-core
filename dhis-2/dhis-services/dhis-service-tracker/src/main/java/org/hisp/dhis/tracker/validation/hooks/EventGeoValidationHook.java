@@ -60,9 +60,6 @@ public class EventGeoValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        ProgramStageInstance programStageInstance = context
-            .getProgramStageInstance( event.getEvent() );
         Program program = context.getProgram( event.getProgram() );
 
         if ( program == null )
@@ -70,12 +67,17 @@ public class EventGeoValidationHook
             return;
         }
 
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+
         programStage = (programStage == null && program.isWithoutRegistration())
             ? program.getProgramStageByStage( 1 ) : programStage;
         if ( programStage == null )
         {
             return;
         }
+
+        ProgramStageInstance programStageInstance = context
+            .getProgramStageInstance( event.getEvent() );
 
         if ( programStageInstance != null )
         {

@@ -40,7 +40,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -84,11 +83,9 @@ public class PreCheckDataRelationsValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = validationContext.getProgram( enrollment.getProgram() );
+        Program program = context.getProgram( enrollment.getProgram() );
 
         if ( !program.isRegistration() )
         {
@@ -96,7 +93,7 @@ public class PreCheckDataRelationsValidationHook
                 .addArg( program ) );
         }
 
-        TrackedEntityInstance tei = validationContext.getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         if ( tei == null )
         {
@@ -113,7 +110,7 @@ public class PreCheckDataRelationsValidationHook
         }
 
         //TODO: This dont make sense
-//        ProgramInstance programInstance = validationContext.getProgramInstance(  enrollment.getEnrollment() );
+//        ProgramInstance programInstance = context.getProgramInstance(  enrollment.getEnrollment() );
 //        if ( !bundle.getImportStrategy().isCreateOrCreateAndUpdate() && programInstance == null )
 //        {
 //            reporter.addError( newReport( TrackerErrorCode.E1015 )
@@ -125,15 +122,14 @@ public class PreCheckDataRelationsValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerImportStrategy strategy = context.getStrategy( event );
 
-        Program program = validationContext.getProgram( event.getProgram() );
+        Program program = context.getProgram( event.getProgram() );
 
         if ( program.isRegistration() )
         {
-            if ( validationContext.getTrackedEntityInstance( event.getTrackedEntity() ) == null )
+            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1036 )
                     .addArg( event ) );
@@ -141,8 +137,8 @@ public class PreCheckDataRelationsValidationHook
 
             if ( strategy.isCreate() )
             {
-                ProgramInstance programInstance = validationContext.getProgramInstance( event.getEnrollment() );
-                ProgramStage programStage = validationContext.getProgramStage( event.getProgramStage() );
+                ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+                ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
                 if ( programStage != null && programInstance != null
                     && !programStage.getRepeatable()
@@ -160,13 +156,13 @@ public class PreCheckDataRelationsValidationHook
         Event event, Program program )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+
         // if event has "attribute option combo" set only, fetch the aoc directly
         boolean aocEmpty = StringUtils.isEmpty( event.getAttributeOptionCombo() );
         boolean acoEmpty = StringUtils.isEmpty( event.getAttributeCategoryOptions() );
 
-        CategoryOptionCombo categoryOptionCombo = (CategoryOptionCombo) bundle.getPreheat().getDefaults()
-            .get( CategoryOptionCombo.class );
+        CategoryOptionCombo categoryOptionCombo = (CategoryOptionCombo) reporter.getValidationContext().getBundle()
+            .getPreheat().getDefaults().get( CategoryOptionCombo.class );
 
         if ( !aocEmpty && acoEmpty )
         {

@@ -34,7 +34,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -69,9 +68,7 @@ public class EventDateValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
+        TrackerImportValidationContext context = reporter.getValidationContext();
 
         if ( EventStatus.ACTIVE == event.getStatus() && event.getOccurredAt() == null )
         {
@@ -80,15 +77,15 @@ public class EventDateValidationHook
             return;
         }
 
-        ProgramStageInstance programStageInstance = validationContext.getProgramStageInstance( event.getEvent() );
-        Program program = validationContext.getProgram( event.getProgram() );
+        ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
+        Program program = context.getProgram( event.getProgram() );
 
         validateDateFormat( reporter, event );
-        validateExpiryDays( reporter, event, program, programStageInstance, bundle.getPreheat().getUser() );
+        validateExpiryDays( reporter, event, program, programStageInstance, context.getBundle().getUser() );
         validatePeriodType( reporter, event, program, programStageInstance );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter errorReporter, Event event, Program program,
+    private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program,
         ProgramStageInstance programStageInstance, User actingUser )
     {
         Objects.requireNonNull( actingUser, Constants.USER_CANT_BE_NULL );
@@ -119,7 +116,7 @@ public class EventDateValidationHook
 
             if ( completedDate == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1042 )
+                reporter.addError( newReport( TrackerErrorCode.E1042 )
                     .addArg( event ) );
             }
 
@@ -134,7 +131,7 @@ public class EventDateValidationHook
         }
     }
 
-    private void validatePeriodType( ValidationErrorReporter errorReporter, Event event,
+    private void validatePeriodType( ValidationErrorReporter reporter, Event event,
         Program program, ProgramStageInstance programStageInstance )
     {
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
@@ -154,7 +151,7 @@ public class EventDateValidationHook
         {
             if ( programStageInstance.getExecutionDate() == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1044 )
+                reporter.addError( newReport( TrackerErrorCode.E1044 )
                     .addArg( event ) );
             }
 
@@ -163,7 +160,7 @@ public class EventDateValidationHook
             if ( (new Date()).after(
                 DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1045 )
+                reporter.addError( newReport( TrackerErrorCode.E1045 )
                     .addArg( program ) );
             }
         }
@@ -172,7 +169,7 @@ public class EventDateValidationHook
             String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
             if ( referenceDate == null )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1046 )
+                reporter.addError( newReport( TrackerErrorCode.E1046 )
                     .addArg( event ) );
             }
 
@@ -180,37 +177,37 @@ public class EventDateValidationHook
 
             if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1047 )
+                reporter.addError( newReport( TrackerErrorCode.E1047 )
                     .addArg( event ) );
             }
         }
     }
 
-    private void validateDateFormat( ValidationErrorReporter errorReporter, Event event )
+    private void validateDateFormat( ValidationErrorReporter reporter, Event event )
     {
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 
         if ( event.getScheduledAt() != null && isNotValidDateString( event.getScheduledAt() ) )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1051 )
+            reporter.addError( newReport( TrackerErrorCode.E1051 )
                 .addArg( event.getScheduledAt() ) );
         }
 
         if ( event.getOccurredAt() != null && isNotValidDateString( event.getOccurredAt() ) )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1052 )
+            reporter.addError( newReport( TrackerErrorCode.E1052 )
                 .addArg( event.getOccurredAt() ) );
         }
 
 //        if ( event.getCreatedAtClient() != null && isNotValidDateString( event.getCreatedAtClient() ) )
 //        {
-//            errorReporter.addError( newReport( TrackerErrorCode.E1053 )
+//            reporter.addError( newReport( TrackerErrorCode.E1053 )
 //                .addArg( event.getCreatedAtClient() ) );
 //        }
 //
 //        if ( event.getLastUpdatedAtClient() != null && isNotValidDateString( event.getLastUpdatedAtClient() ) )
 //        {
-//            errorReporter.addError( newReport( TrackerErrorCode.E1054 )
+//            reporter.addError( newReport( TrackerErrorCode.E1054 )
 //                .addArg( event.getLastUpdatedAtClient() ) );
 //        }
     }

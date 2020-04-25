@@ -82,8 +82,7 @@ public class PreCheckOwnershipValidationHook
     private TrackerImportAccessManager trackerImportAccessManager;
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( trackedEntity );

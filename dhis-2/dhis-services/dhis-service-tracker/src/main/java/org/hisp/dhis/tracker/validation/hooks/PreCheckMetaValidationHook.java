@@ -63,10 +63,7 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
-
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( tei );
-        TrackerBundle bundle = context.getBundle();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
 
@@ -89,7 +86,6 @@ public class PreCheckMetaValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( enrollment );
-        TrackerBundle bundle = context.getBundle();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         if ( organisationUnit == null )

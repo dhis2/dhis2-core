@@ -36,7 +36,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -75,8 +74,6 @@ public class EnrollmentAttributeValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( enrollment );
-        TrackerBundle bundle = context.getBundle();
 
         Program program = context.getProgram( enrollment.getProgram() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
@@ -85,7 +82,7 @@ public class EnrollmentAttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            validateRequiredProperties( reporter, bundle, attribute );
+            validateRequiredProperties( reporter, attribute );
 
             if ( attribute.getAttribute() == null || attribute.getValue() == null )
             {
@@ -116,11 +113,10 @@ public class EnrollmentAttributeValidationHook
             return;
         }
 
-        validateMandatoryAttributes( bundle, reporter, program, tei, attributeValueMap );
+        validateMandatoryAttributes( reporter, program, tei, attributeValueMap );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Attribute attribute )
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
     {
         if ( attribute.getAttribute() == null )
         {
@@ -146,7 +142,7 @@ public class EnrollmentAttributeValidationHook
         }
     }
 
-    private void validateMandatoryAttributes( TrackerBundle bundle, ValidationErrorReporter errorReporter,
+    private void validateMandatoryAttributes( ValidationErrorReporter reporter,
         Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
     {
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
@@ -172,7 +168,8 @@ public class EnrollmentAttributeValidationHook
             TrackedEntityAttribute attribute = entry.getKey();
             Boolean attributeIsMandatory = entry.getValue();
 
-            boolean userIsAuthorizedToIgnoreRequiredValueValidation = !bundle.getUser()
+            boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
+                .getUser()
                 .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
 
             boolean hasMissingAttribute = attributeIsMandatory
@@ -182,7 +179,7 @@ public class EnrollmentAttributeValidationHook
             if ( hasMissingAttribute )
             {
                 // Missing mandatory attribute
-                errorReporter.addError( newReport( TrackerErrorCode.E1018 )
+                reporter.addError( newReport( TrackerErrorCode.E1018 )
                     .addArg( attribute ) );
             }
 
@@ -193,7 +190,7 @@ public class EnrollmentAttributeValidationHook
         if ( !attributeValueMap.isEmpty() )
         {
             // Only program attributes is allowed for enrollment!
-            errorReporter.addError( newReport( TrackerErrorCode.E1019 )
+            reporter.addError( newReport( TrackerErrorCode.E1019 )
                 .addArg( attributeValueMap.keySet().stream()
                     .map( key -> key + "=" + attributeValueMap.get( key ) )
                     .collect( Collectors.joining( ", " ) ) ) );

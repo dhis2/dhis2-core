@@ -98,23 +98,21 @@ public class TrackedEntityAttributeValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        TrackedEntityInstance trackedEntityInstance = context
-            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-
+        TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
-        validateAttributes( reporter, trackedEntity, trackedEntityInstance, organisationUnit );
+        validateAttributes( reporter, trackedEntity, tei, organisationUnit );
     }
 
     protected void validateAttributes( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity, TrackedEntityInstance trackedEntityInstance, OrganisationUnit orgUnit )
+        TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit )
     {
         Objects.requireNonNull( trackedEntity, Constants.TRACKED_ENTITY_CANT_BE_NULL );
 
         Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
-        if ( trackedEntityInstance != null )
+        if ( tei != null )
         {
-            valueMap = trackedEntityInstance.getTrackedEntityAttributeValues()
+            valueMap = tei.getTrackedEntityAttributeValues()
                 .stream()
                 .collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
         }
@@ -142,7 +140,7 @@ public class TrackedEntityAttributeValidationHook
             if ( trackedEntityAttributeValue == null )
             {
                 trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-                trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
+                trackedEntityAttributeValue.setEntityInstance( tei );
                 trackedEntityAttributeValue.setValue( attribute.getValue() );
                 trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
             }
@@ -157,10 +155,10 @@ public class TrackedEntityAttributeValidationHook
             validateAttributeUniqueness( reporter,
                 attribute.getValue(),
                 trackedEntityAttribute,
-                trackedEntityInstance,
+                tei,
                 orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, attribute, trackedEntityInstance, valueMap );
+            validateFileNotAlreadyAssigned( reporter, attribute, tei, valueMap );
         }
     }
 

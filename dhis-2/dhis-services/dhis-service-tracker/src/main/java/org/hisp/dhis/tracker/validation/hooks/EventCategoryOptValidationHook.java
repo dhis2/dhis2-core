@@ -74,12 +74,10 @@ public class EventCategoryOptValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( event );
-        TrackerBundle bundle = context.getBundle();
 
         Program program = context.getProgram( event.getProgram() );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
-        Objects.requireNonNull( bundle.getUser(), Constants.USER_CANT_BE_NULL );
+        Objects.requireNonNull( context.getBundle().getUser(), Constants.USER_CANT_BE_NULL );
         Objects.requireNonNull( program, Constants.PROGRAM_CANT_BE_NULL );
         Objects.requireNonNull( event, Constants.EVENT_CANT_BE_NULL );
 

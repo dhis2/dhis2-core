@@ -34,11 +34,11 @@ import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -69,8 +69,7 @@ public class EventCountValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
-        TrackerBundle bundle = validationContext.getBundle();
+        User user = validationContext.getBundle().getUser();
 
         Program program = validationContext.getProgram( event.getProgram() );
 
@@ -81,7 +80,7 @@ public class EventCountValidationHook
             params.setProgram( program );
             params.setTrackedEntityInstance( tei );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-            params.setUser( bundle.getUser() );
+            params.setUser( user );
 
             int count = programInstanceService.countProgramInstances( params );
 
@@ -107,7 +106,7 @@ public class EventCountValidationHook
             ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
             params.setProgram( program );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-            params.setUser( bundle.getUser() );
+            params.setUser( user );
 
             int count = programInstanceService.countProgramInstances( params );
 
