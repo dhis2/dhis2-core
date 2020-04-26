@@ -59,6 +59,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
@@ -504,7 +505,8 @@ public abstract class AbstractEventService
             {
                 // Create PI if it doesn't exist (should only be one)
 
-                String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+                String storedBy = getValidUsername( event.getStoredBy(), null,
+                    User.username( importOptions.getUser(), Constants.UNKNOWN ) );
 
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
@@ -1198,10 +1200,10 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getValidUsername( event.getStoredBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
+        String storedBy = getValidUsername( event.getStoredBy(), null, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
         programStageInstance.setStoredBy( storedBy );
 
-        String completedBy = getValidUsername( event.getCompletedBy(), null, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
+        String completedBy = getValidUsername( event.getCompletedBy(), null, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
 
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
@@ -1412,7 +1414,7 @@ public abstract class AbstractEventService
         User currentUser = currentUserService.getCurrentUser();
 
         saveTrackedEntityComment( programStageInstance, event,
-            getValidUsername( event.getStoredBy(), null, currentUser != null ? currentUser.getUsername() : User.DEFAULT_STORED_BY ) );
+            getValidUsername( event.getStoredBy(), null, User.username( currentUser, Constants.UNKNOWN ) ) );
 
         updateTrackedEntityInstance( programStageInstance, currentUser, false );
     }
@@ -1670,8 +1672,10 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getValidUsername( event.getStoredBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
-        String completedBy = getValidUsername( event.getCompletedBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : User.DEFAULT_STORED_BY );
+        User user = importOptions.getUser();
+
+        String storedBy = getValidUsername( event.getStoredBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
+        String completedBy = getValidUsername( event.getCompletedBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
 
         CategoryOptionCombo aoc;
 
@@ -1708,7 +1712,7 @@ public abstract class AbstractEventService
 
         validateAttributeOptionComboDate( aoc, eventDate );
 
-        errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
+        errors = trackerAccessManager.canWrite( user, aoc );
 
         if ( !errors.isEmpty() )
         {
@@ -1741,7 +1745,7 @@ public abstract class AbstractEventService
 
             if ( !importOptions.isSkipLastUpdated() )
             {
-                updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
+                updateTrackedEntityInstance( programStageInstance, user, bulkSave );
             }
 
             importSummary.setReference( programStageInstance.getUid() );
@@ -1895,24 +1899,18 @@ public abstract class AbstractEventService
 
     public static String getValidUsername( String userName, ImportSummary importSummary, String fallbackUsername )
     {
-        String validUsername = userName;
-
-        if ( StringUtils.isEmpty( validUsername ) )
-        {
-            validUsername = User.getSafeUsername( fallbackUsername );
-        }
-        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        if ( userName.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
             if ( importSummary != null )
             {
                 importSummary.getConflicts().add( new ImportConflict( "Username",
-                    validUsername + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
+                    userName + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
-            validUsername = User.getSafeUsername( fallbackUsername );
+            return fallbackUsername;
         }
 
-        return validUsername;
+        return userName;
     }
 
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
