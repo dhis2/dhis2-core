@@ -43,6 +43,7 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -549,10 +550,8 @@ public abstract class AbstractEnrollmentService
         programInstance.setStoredBy( storedBy );
 
         programInstanceService.updateProgramInstance( programInstance );
-
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
-
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        saveTrackedEntityComment( programInstance, enrollment, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
 
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
@@ -877,7 +876,7 @@ public abstract class AbstractEnrollmentService
         programInstanceService.updateProgramInstance( programInstance );
         teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
-        saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+        saveTrackedEntityComment( programInstance, enrollment, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
 
         importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
@@ -1292,19 +1291,22 @@ public abstract class AbstractEnrollmentService
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.
             getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
-        Map<String, String> attributeValueMap = Maps.newHashMap();
+        Map<String, Attribute> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+            attributeValueMap.put( attribute.getAttribute(), attribute );
         }
 
         trackedEntityInstance.getTrackedEntityAttributeValues().stream().
             filter( value -> attributeValueMap.containsKey( value.getAttribute().getUid() ) ).
             forEach( value ->
             {
-                String newValue = attributeValueMap.get( value.getAttribute().getUid() );
+                Attribute enrollmentAttribute = attributeValueMap.get( value.getAttribute().getUid() );
+
+                String newValue = enrollmentAttribute.getValue();
                 value.setValue( newValue );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
 
                 trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( value );
 
@@ -1318,13 +1320,26 @@ public abstract class AbstractEnrollmentService
             if ( attribute != null )
             {
                 TrackedEntityAttributeValue value = new TrackedEntityAttributeValue();
-                value.setValue( attributeValueMap.get( key ) );
+                Attribute enrollmentAttribute = attributeValueMap.get( key );
+
+                value.setValue( enrollmentAttribute.getValue() );
                 value.setAttribute( attribute );
+                value.setStoredBy( getStoredBy( enrollmentAttribute, importOptions.getUser() ) );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( value );
                 trackedEntityInstance.addAttributeValue( value );
             }
         }
+    }
+
+    private String getStoredBy( Attribute attribute, User user )
+    {
+        if ( !StringUtils.isEmpty( attribute.getStoredBy() ) )
+        {
+            return attribute.getStoredBy();
+        }
+
+        return User.username( user, Constants.UNKNOWN );
     }
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID )
@@ -1369,7 +1384,7 @@ public abstract class AbstractEnrollmentService
                 TrackedEntityComment comment = new TrackedEntityComment();
                 comment.setUid( noteUid );
                 comment.setCommentText( note.getValue() );
-                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? User.getSafeUsername( storedBy ) : note.getStoredBy() );
+                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? Constants.UNKNOWN : note.getStoredBy() );
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
 
