@@ -1968,7 +1968,11 @@ public abstract class AbstractEventService
 
     public static String getValidUsername( String userName, ImportSummary importSummary, String fallbackUsername )
     {
-        if ( userName.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        if ( StringUtils.isEmpty( userName ) )
+        {
+            return fallbackUsername;
+        }
+        else if ( userName.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
             if ( importSummary != null )
             {
