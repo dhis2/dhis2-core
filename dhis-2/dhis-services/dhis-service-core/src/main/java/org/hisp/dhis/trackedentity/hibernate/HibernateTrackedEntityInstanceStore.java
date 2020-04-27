@@ -249,9 +249,10 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
+        params.handleOrganisationUnits();
+
         if ( params.hasOrganisationUnits() )
         {
-            params.handleOrganisationUnits();
 
             if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
             {
