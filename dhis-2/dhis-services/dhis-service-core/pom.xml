@@ -185,9 +185,9 @@
       <artifactId>commons-collections</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.JasperTimm</groupId>
+      <groupId>com.github.dhis2</groupId>
       <artifactId>sms-compression</artifactId>
-      <version>update-case</version>
+      <version>0.2.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
