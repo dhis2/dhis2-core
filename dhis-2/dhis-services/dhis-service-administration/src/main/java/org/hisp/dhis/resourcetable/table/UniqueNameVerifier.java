@@ -40,7 +40,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
  */
 public class UniqueNameVerifier {
 
-    protected List<String> uniqueColumnNames = new ArrayList<>();
+    protected List<String> columnNames = new ArrayList<>();
 
     /**
      * Returns the short name in quotes for the given {@see BaseDimensionalObject}, ensuring
@@ -53,9 +53,9 @@ public class UniqueNameVerifier {
     protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
     {
         String columnName = quote( baseDimensionalObject.getShortName()
-                + (uniqueColumnNames.contains( baseDimensionalObject.getShortName() ) ? uniqueColumnNames.size() : "") );
+                + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
 
-        this.uniqueColumnNames.add( baseDimensionalObject.getShortName() );
+        this.columnNames.add( baseDimensionalObject.getShortName() );
 
         return columnName;
     }
@@ -69,9 +69,9 @@ public class UniqueNameVerifier {
      */
     protected String ensureUniqueName( String name )
     {
-        String columnName = quote( name + (uniqueColumnNames.contains( name ) ? uniqueColumnNames.size() : "") );
+        String columnName = quote( name + (columnNames.contains( name ) ? columnNames.size() : "") );
 
-        this.uniqueColumnNames.add( name );
+        this.columnNames.add( name );
 
         return columnName;
     }
