@@ -250,6 +250,13 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Override
     @Transactional( readOnly = true )
+    public TrackedEntityInstance getTrackedEntityInstance( String uid, User user )
+    {
+        return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid, user ), TrackedEntityInstanceParams.TRUE, user );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params )
     {
         return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid ), params );
@@ -289,7 +296,7 @@ public abstract class AbstractTrackedEntityInstanceService
             throw new IllegalQueryException( errors.toString() );
         }
 
-        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes( user );
 
         return getTei( daoTrackedEntityInstance, readableAttributes, params, user );
     }
@@ -506,18 +513,14 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         importOptions = updateImportOptions( importOptions );
-
-        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
-
         dtoEntityInstance.trimValuesToNull();
 
-        Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
-        checkAttributes( dtoEntityInstance, importOptions, importConflicts, false );
+        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
+        importSummary.getConflicts().addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
+        checkAttributes( dtoEntityInstance, importOptions, importSummary.getConflicts(), false );
 
-        if ( !importConflicts.isEmpty() )
+        if ( !importSummary.getConflicts().isEmpty() )
         {
-            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
             return importSummary;
@@ -525,6 +528,13 @@ public abstract class AbstractTrackedEntityInstanceService
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = createDAOTrackedEntityInstance(
             dtoEntityInstance, importOptions, importSummary );
+
+        if ( !importSummary.getConflicts().isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getImportCount().incrementIgnored();
+            return importSummary;
+        }
 
         if ( daoEntityInstance == null )
         {
@@ -621,7 +631,7 @@ public abstract class AbstractTrackedEntityInstanceService
         checkAttributes( dtoEntityInstance, importOptions, importConflicts, true );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
-            .getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
+            .getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoEntityInstance );
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), dtoEntityInstance.getOrgUnit() );
         Program program = getProgram( importOptions.getIdSchemes(), programId );
@@ -1062,9 +1072,9 @@ public abstract class AbstractTrackedEntityInstanceService
     private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, Program program, User user )
     {
-        Map<String, TrackedEntityAttributeValue> teiAttributeToValueMap = getTeiAttributeValueMap( trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
-
         Set<String> incomingAttributes = new HashSet<>();
+        Map<String, TrackedEntityAttributeValue> teiAttributeToValueMap = getTeiAttributeValueMap(
+            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
 
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
         {
@@ -1080,7 +1090,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 {
                     existingAttributeValue.setStoredBy( storedBy );
                     existingAttributeValue.setValue( dtoAttribute.getValue() );
-                    trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( existingAttributeValue );
+                    trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( existingAttributeValue, user );
                 }
             }
             else // value is new, do add
@@ -1237,7 +1247,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( teiExistsInDatabase )
         {
-            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
+            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
 
             daoEntityInstance.getTrackedEntityAttributeValues().stream()
                 .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() ).forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
