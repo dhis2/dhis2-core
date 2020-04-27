@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,6 +56,8 @@ public interface TrackedEntityAttributeValueService
      * @param attributeValue the TrackedEntityAttribute to update.
      */
     void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
+
+    void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue existingAttributeValue, User user );
 
     /**
      * Deletes a {@link TrackedEntityAttribute}.
@@ -104,5 +107,4 @@ public interface TrackedEntityAttributeValueService
      */
     //TODO: This method is never used except of the Unit Test
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances );
-
 }
