@@ -195,6 +195,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         updateTrackedEntityAttributeValue( attributeValue, currentUserService.getCurrentUser() );
