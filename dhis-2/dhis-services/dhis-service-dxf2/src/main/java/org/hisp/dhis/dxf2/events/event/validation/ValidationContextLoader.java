@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -83,8 +85,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Responsible for loading the Validation Context cache with enough data to
@@ -304,7 +304,6 @@ public class ValidationContextLoader
             else if ( StringUtils.isEmpty( event.getAttributeOptionCombo() )
                 && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
             {
-                CategoryOptionCombo coc = attributeOptionComboLoader.getDefault();
                 eventToCocMap.put( event.getUid(), attributeOptionComboLoader.getDefault() );
             }
             else if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )

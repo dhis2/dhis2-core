@@ -35,20 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
@@ -126,6 +119,9 @@ public interface EventService
 
     ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
         boolean clearSession );
+
+    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
+        boolean clearSession, WorkContext ctx );
 
     void updateEventForNote( Event event );
 

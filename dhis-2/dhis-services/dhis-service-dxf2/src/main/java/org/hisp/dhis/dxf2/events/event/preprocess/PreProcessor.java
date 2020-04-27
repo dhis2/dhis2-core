@@ -29,13 +29,13 @@ package org.hisp.dhis.dxf2.events.event.preprocess;
  */
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 
 /**
  * @author Luciano Fiandesio
  */
- // TODO: Maybe rename it to simply Processor? It could be used by pre and post processors.
+// TODO: Maybe rename it to simply Processor? It could be used by pre and post processors.
 public interface PreProcessor
 {
-    void process( Event event, ValidationContext ctx );
+    void process( Event event, WorkContext ctx );
 }

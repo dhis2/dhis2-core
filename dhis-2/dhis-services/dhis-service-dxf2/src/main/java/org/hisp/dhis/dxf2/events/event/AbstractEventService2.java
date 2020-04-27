@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,11 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
+import org.hisp.dhis.dxf2.events.event.preprocess.update.PreUpdateProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.dxf2.events.event.validation.update.UpdateValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -61,13 +64,19 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public abstract class AbstractEventService2
-    implements
-    EventService
+        implements
+        EventService
 {
     protected Notifier notifier;
 
     protected ValidationFactory validationFactory;
+
+    protected UpdateValidationFactory updateValidationFactory;
+
     protected PreProcessorFactory preProcessorFactory;
+
+    protected PreUpdateProcessorFactory preUpdateProcessorFactory;
+
     protected EventPersistenceService eventPersistenceService;
 
     private static final int BATCH_SIZE = 100;
@@ -84,11 +93,14 @@ public abstract class AbstractEventService2
         notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
 
+        // TODO This should be probably moved to a PRE-PROCESSOR
+        List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
+
         long now = System.nanoTime();
-        WorkContext validationContext = validationFactory.getContext( importOptions, events );
+        WorkContext validationContext = validationFactory.getContext( importOptions, eventsWithUid );
         log.debug( "::: validation context load took : " + (System.nanoTime() - now) );
 
-        List<List<Event>> partitions = Lists.partition( events, BATCH_SIZE );
+        List<List<Event>> partitions = Lists.partition( eventsWithUid, BATCH_SIZE );
 
         for ( List<Event> batch : partitions )
         {
@@ -190,14 +202,14 @@ public abstract class AbstractEventService2
 
         // collect the UIDs of events that did not pass validation
         List<String> failedUids = importSummaries.getImportSummaries().stream()
-            .filter( i -> i.isStatus( ImportStatus.ERROR ) ).map( ImportSummary::getReference )
+            .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
         if ( failedUids.size() == validEvents.size() )
         {
             return importSummaries;
         }
-        
+
         if ( failedUids.isEmpty() )
         {
             eventPersistenceService.save( ctx, validEvents );
@@ -395,8 +407,8 @@ public abstract class AbstractEventService2
     }
 
     @Override
-    public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
-        boolean clearSession )
+    public ImportSummaries updateEvents( final List<Event> events, final ImportOptions importOptions,
+        final boolean singleValue, final boolean clearSession )
     {
         return null;
     }
@@ -432,7 +444,7 @@ public abstract class AbstractEventService2
         {
             return importSummaries;
         }
-        
+
         if ( failedUids.isEmpty() )
         {
             eventPersistenceService.update( ctx, validEvents );
@@ -451,7 +463,6 @@ public abstract class AbstractEventService2
     }
 
     @Override
->>>>>>> HEAD~4
     public void updateEventForNote( Event event )
     {
 
@@ -501,7 +512,7 @@ public abstract class AbstractEventService2
         Map<String, ProgramStageInstance> programStageInstanceMap = ctx.getProgramStageInstanceMap();
         for ( String foundEventUid : programStageInstanceMap.keySet() )
         {
-            ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+            ImportSummary is = new ImportSummary( ERROR,
                 "Event " + foundEventUid + " already exists or was deleted earlier" ).setReference( foundEventUid )
                     .incrementIgnored();
 

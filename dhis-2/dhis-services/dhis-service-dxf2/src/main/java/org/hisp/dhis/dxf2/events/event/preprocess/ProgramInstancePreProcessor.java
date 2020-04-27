@@ -34,7 +34,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
@@ -48,15 +48,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
  * @author Luciano Fiandesio
  */
 public class ProgramInstancePreProcessor
-    implements
-    PreProcessor
+        implements
+        PreProcessor
 {
     @Override
-    public void process( Event event, ValidationContext ctx )
+    public void process( Event event, WorkContext ctx )
     {
-        // TODO can we skip this if enrollment property is not null? Can the enrollment property be set by the client?
-        ProgramInstanceStore programInstanceStore = ctx.getProgramInstanceStore();
-        ImportOptions importOptions = ctx.getImportOptions();
+        ProgramInstanceStore programInstanceStore = ctx.getServiceDelegator().getProgramInstanceStore();
 
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
@@ -89,7 +87,7 @@ public class ProgramInstancePreProcessor
                 pi.setStoredBy( event.getStoredBy() );
 
                 // Persist Program Instance
-                ctx.getProgramInstanceStore().save( pi, ctx.getImportOptions().getUser() );
+                ctx.getServiceDelegator().getProgramInstanceStore().save( pi, ctx.getImportOptions().getUser() );
 
                 programInstances.add( pi );
 

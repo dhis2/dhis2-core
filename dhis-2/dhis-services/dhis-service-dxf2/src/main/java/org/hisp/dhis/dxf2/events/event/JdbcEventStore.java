@@ -373,19 +373,9 @@ public class JdbcEventStore
         return events;
     }
 
-    public void saveEvents( List<ProgramStageInstance> events ) {
-
-        try {
-            /*
-             * - INSERT: program stage instance batch
-             */
-            for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
-
-            {
-            /*
-             * split the event list into batches
-             */
-            final List<ProgramStageInstance> batchList = events.subList( i, Math.min( i + BATCH_SIZE, events.size() ) );
+    public List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> events )
+    {
+        List<ProgramStageInstance> savedPsi = new ArrayList<>();
 
         final List<List<ProgramStageInstance>> batches = Lists.partition( events, BATCH_SIZE);
         for (List<ProgramStageInstance> batch : batches) {
@@ -407,7 +397,7 @@ public class JdbcEventStore
      * Saves a list of {@see ProgramStageInstance} using JDBC batch update.
      *
      * PLEASE READ:
-     * 
+     *
      * When using JDBC `executeBatch()` statement, the data are auto-committed and
      * flushed, regardless of the transaction settings. This behaviour can be
      * changed by running the batch within a JDBC transaction:
@@ -429,7 +419,7 @@ public class JdbcEventStore
      * @param batch the list of {@see ProgramStageInstance}
      * @return the list of created {@see ProgramStageInstance} with primary keys
      *         assigned
-     * 
+     *
      * @throws SQLException when an error occurs
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
@@ -441,51 +431,51 @@ public class JdbcEventStore
             PreparedStatement insertEventPS = connection.prepareStatement( INSERT_EVENT_SQL,
                 Statement.RETURN_GENERATED_KEYS ))
         {
-        for ( ProgramStageInstance psi : batch )
-                {
-                    bindEventParams( insertEventPS, psi );
-                    insertEventPS.addBatch();
-                }
-                insertEventPS.executeBatch();
+            for ( ProgramStageInstance psi : batch )
+            {
+                bindEventParams( insertEventPS, psi );
+                insertEventPS.addBatch();
+            }
+            insertEventPS.executeBatch();
 
-                /*
-         * Assign the generated primary keys to the object
-                 */
-        List<Integer> eventIds = new ArrayList<>( collectPrimaryKeys( insertEventPS ) );
-        
-        /*
-         * Assign the generated event PKs to the batch.
-         *
-         * If the generate event PKs size doesn't match the batch size, one or more PSI
-         * were not persisted. Run an additional query to fetch the persisted PSI and
-         * return only the PSI from the batch which are persisted.
-         *
-         */
-        if ( eventIds.size() != batch.size() )
-        {
-            /* a Map where [key] -> PSI UID , [value] -> PSI ID */
+            /*
+             * Assign the generated primary keys to the object
+             */
+            List<Integer> eventIds = new ArrayList<>( collectPrimaryKeys( insertEventPS ) );
+
+            /*
+             * Assign the generated event PKs to the batch.
+             *
+             * If the generate event PKs size doesn't match the batch size, one or more PSI
+             * were not persisted. Run an additional query to fetch the persisted PSI and
+             * return only the PSI from the batch which are persisted.
+             *
+             */
+            if ( eventIds.size() != batch.size() )
+            {
+                /* a Map where [key] -> PSI UID , [value] -> PSI ID */
                 Map<String, Long> persisted = jdbcTemplate.queryForList(
                     "SELECT uid, programstageinstanceid from programstageinstance where programstageinstanceid in ( "
                         + Joiner.on( ";" ).join( eventIds ) + ")" )
                     .stream().collect( Collectors.toMap( s -> (String) s.get( "uid" ),
                         s -> (Long) s.get( "programstageinstanceid" ) ) );
-        
-            return batch.stream()
-            // @formatter:off
+
+                return batch.stream()
+                    // @formatter:off
                     .filter(psi -> persisted.containsKey(psi.getUid()))
                     .peek(psi -> psi.setId(persisted.get(psi.getUid())))
                     .collect(Collectors.toList());
-            // @formatter:on
-        }
-        else
-        {
-            for ( int i = 0; i < eventIds.size(); i++ )
-            {
-                batch.get( i ).setId( eventIds.get( i ) );
+                    // @formatter:on
             }
-            return batch;
+            else
+            {
+                for ( int i = 0; i < eventIds.size(); i++ )
+                {
+                    batch.get( i ).setId( eventIds.get( i ) );
+                }
+                return batch;
+            }
         }
-    }
     }
 
     private List<ProgramStageInstance> saveAllComments( List<ProgramStageInstance> batch )
@@ -496,39 +486,39 @@ public class JdbcEventStore
         DataSource dataSource = jdbcTemplate.getDataSource();
 
         try (Connection connection = dataSource.getConnection();
-        PreparedStatement insertEventNotePS = connection.prepareStatement( INSERT_EVENT_NOTE_SQL,
+             PreparedStatement insertEventNotePS = connection.prepareStatement(INSERT_EVENT_NOTE_SQL,
                 Statement.RETURN_GENERATED_KEYS); PreparedStatement insertEventNoteLinkPS = connection.prepareStatement(INSERT_EVENT_COMMENT_LINK)) {
 
             for (ProgramStageInstance psi : batch) {
-            List<TrackedEntityComment> comments = psi.getComments();
+                List<TrackedEntityComment> comments = psi.getComments();
                 if (comments.size() != 0) {
                     try {
                         for (TrackedEntityComment comment : comments) {
-                // SAVE THE COMMENTS
-                        bindEventNoteParams( insertEventNotePS, comment );
+                            // SAVE THE COMMENTS
+                            bindEventNoteParams(insertEventNotePS, comment);
                             insertEventNotePS.execute();
 
-                final ResultSet generatedKeys = insertEventNotePS.getGeneratedKeys();
+                            final ResultSet generatedKeys = insertEventNotePS.getGeneratedKeys();
 
-                // SAVE THE LINK BETWEEN COMMENT AND PSI
-                if ( generatedKeys != null && generatedKeys.next() )
-                {
-                    insertEventNoteLinkPS.setLong( 1, psi.getId() );
-                    insertEventNoteLinkPS.setInt( 2, 0 );
-                    insertEventNoteLinkPS.setLong( 3, generatedKeys.getInt( 1 ) );
+                            // SAVE THE LINK BETWEEN COMMENT AND PSI
+                            if ( generatedKeys != null && generatedKeys.next() )
+                            {
+                                insertEventNoteLinkPS.setLong( 1, psi.getId() );
+                                insertEventNoteLinkPS.setInt( 2, 0 );
+                                insertEventNoteLinkPS.setLong( 3, generatedKeys.getInt( 1 ) );
 
                                 insertEventNoteLinkPS.execute();
-                }
-                    else
-                    {
-                        failedUids.add( psi.getUid() );
-            }
-        }
+                            }
+                            else
+                            {
+                                failedUids.add( psi.getUid() );
+                            }
+                        }
                     } catch (SQLException sqlException) {
-                log.error( "An error occurred persisting a comment for PSI with uid: " + psi.getUid() );
-                failedUids.add( psi.getUid() );
-            }
-        }
+                        log.error("An error occurred persisting a comment for PSI with uid: " + psi.getUid());
+                        failedUids.add(psi.getUid());
+                    }
+                }
             }
         }
 
@@ -539,11 +529,11 @@ public class JdbcEventStore
     private void bindEventNoteParams( PreparedStatement ps, TrackedEntityComment comment )
         throws SQLException
     {
-        ps.setString(1, comment.getUid() );
-        ps.setString(2, comment.getCommentText() );
-        ps.setTimestamp(3, toTimestamp( comment.getCreated() ) );
-        ps.setString(4, comment.getCreator() );
-        ps.setTimestamp(5, toTimestamp ( comment.getLastUpdated() ) );
+        ps.setString( 1, comment.getUid() );
+        ps.setString( 2, comment.getCommentText() );
+        ps.setTimestamp( 3, toTimestamp( comment.getCreated() ) );
+        ps.setString( 4, comment.getCreator() );
+        ps.setTimestamp( 5, toTimestamp( comment.getLastUpdated() ) );
     }
 
     private List<Integer> collectPrimaryKeys( PreparedStatement ps )
@@ -559,7 +549,7 @@ public class JdbcEventStore
 
         return pks;
     }
-    
+
     private void bindEventParams( PreparedStatement ps, ProgramStageInstance event )
         throws SQLException
     {
@@ -593,59 +583,9 @@ public class JdbcEventStore
         }
     }
 
-    public void saveEvents2( List<ProgramStageInstance> events )
+    @Transactional
+    public void updateEvents( final List<ProgramStageInstance> events )
     {
-        for ( int i = 0; i < events.size(); i += INSERT_BATCH_SIZE )
-        {
-            final List<ProgramStageInstance> batchList = events.subList( i,
-                Math.min( i + INSERT_BATCH_SIZE, events.size() ) );
-
-            jdbcTemplate.batchUpdate( INSERT_EVENT_SQL, new BatchPreparedStatementSetter()
-            {
-                @Override
-                public void setValues( PreparedStatement ps, int j )
-                    throws SQLException
-                {
-                    ProgramStageInstance event = batchList.get( j );
-                    bindEventParams( ps, event);
-                }
-
-                @Override
-                public int getBatchSize()
-                {
-                    return batchList.size();
-                }
-            } );
-        }
-
-    }
-
-    public void updateEvents( final List<ProgramStageInstance> events ) {
-
-        final String SQL_UPDATE = "update programstageinstance set " +
-        // @formatter:off
-            "programinstanceid = ?, " +         // 1
-            "programstageid = ?, " +            // 2
-            "duedate = ?, " +                   // 3
-            "executiondate = ?, " +             // 4
-            "organisationunitid = ?, " +        // 5
-            "status = ?, " +                    // 6
-            "completeddate = ?, " +             // 7
-            "uid = ?, " +                       // 8
-            "created = ?, " +                   // 9
-            "lastupdated = ?, " +               // 10
-            "attributeoptioncomboid = ?, " +    // 11
-            "storedby = ?, " +                  // 12
-            "completedby = ?, " +               // 13
-            "deleted = ?, " +                   // 14
-            "code = ?, " +                      // 15
-            "createdatclient = ?, " +           // 16
-            "lastupdatedatclient = ?, " +       // 17
-            //"geometry = ?, " +                // 19
-            "assigneduserid = ? " +             // 18
-            "where programstageinstanceid = ?;";
-        // @formatter:on
-
         for ( int i = 0; i < events.size(); i += BATCH_SIZE )
         {
             final List<ProgramStageInstance> batchList = events.subList( i, min( i + BATCH_SIZE, events.size() ) );
@@ -668,14 +608,14 @@ public class JdbcEventStore
                     //pStmt.setString( 8, event.getUid() );
                     pStmt.setTimestamp( 8, null ); // TODO event.getCreated -> who set this?
                     pStmt.setTimestamp( 9, null ); // TODO event.getLastUpdated() -> who set this?
-                    pStmt.setLong(      10, event.getAttributeOptionCombo().getId() );
-                    pStmt.setString(    11, event.getStoredBy() );
-                    pStmt.setString(    12, event.getCompletedBy() );
-                    pStmt.setBoolean(   13, false ); // TODO: deleted set to false not sure it's correct
-                    pStmt.setString(    14, event.getCode() );
+                    pStmt.setLong( 10, event.getAttributeOptionCombo().getId() );
+                    pStmt.setString( 11, event.getStoredBy() );
+                    pStmt.setString( 12, event.getCompletedBy() );
+                    pStmt.setBoolean( 13, false ); // TODO: deleted set to false not sure it's correct
+                    pStmt.setString( 14, event.getCode() );
                     pStmt.setTimestamp( 15, toTimestamp( event.getCreatedAtClient() ) );
                     pStmt.setTimestamp( 16, toTimestamp( event.getLastUpdatedAtClient() ) );
-                    //pStmt.setObject(    19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
+                    //pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
 
                     if ( event.getAssignedUser() != null )
                     {

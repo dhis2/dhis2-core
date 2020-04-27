@@ -55,14 +55,12 @@ import org.hisp.dhis.dxf2.events.event.JdbcEventStore;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
-
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Stopwatch;
@@ -82,27 +80,23 @@ public class DefaultEventPersistenceService
 
     private final EventDataValueService eventDataValueService;
 
-    private final IdentifiableObjectManager identifiableObjectManager;
-    
     private final TrackedEntityCommentService trackedEntityCommentService;
 
     public DefaultEventPersistenceService( EventStore jdbcEventStore, EventDataValueService eventDataValueService,
-        IdentifiableObjectManager identifiableObjectManager, TrackedEntityCommentService trackedEntityCommentService )
+                                           TrackedEntityCommentService trackedEntityCommentService )
     {
         checkNotNull( jdbcEventStore );
         checkNotNull( eventDataValueService );
-        checkNotNull( identifiableObjectManager );
         checkNotNull( trackedEntityCommentService );
 
         this.jdbcEventStore = jdbcEventStore;
         this.eventDataValueService = eventDataValueService;
-        this.identifiableObjectManager = identifiableObjectManager;
         this.trackedEntityCommentService = trackedEntityCommentService;
     }
 
     @Override
     @Transactional
-    public List<ProgramStageInstance> save(WorkContext context, List<Event> events )
+    public List<ProgramStageInstance> save( WorkContext context, List<Event> events )
     {
         /*
          * Convert the list of Events into a map where [key] -> Event, [value] ->
@@ -112,14 +106,13 @@ public class DefaultEventPersistenceService
         final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
             new ProgramStageInstanceMapper( context ), events );
 
-        final List<ProgramStageInstance> programStageInstances = new ArrayList<>( eventProgramStageInstanceMap.values() );
-
-        if ( isNotEmpty(events) )
+        if ( isNotEmpty( events ) )
         {
-            // ...
-            // save events and notes
-            // ...
-            jdbcEventStore.saveEvents( programStageInstances );
+            /*
+             * save events and notes
+             */
+            final List<ProgramStageInstance> savedPsi = jdbcEventStore
+                .saveEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
 
             /*
              * Filter out from the original events list, all the PSI which were not
@@ -145,7 +138,8 @@ public class DefaultEventPersistenceService
                 stopwatch.stop().elapsed( TimeUnit.MILLISECONDS ) );
 
         }
-        return programStageInstances; // TODO
+        return null; // TODO
+    }
 
     private void rollbackOnException( ImportSummaries importSummaries )
     {
@@ -156,7 +150,7 @@ public class DefaultEventPersistenceService
 
     @Override
     @Transactional
-    public List<ProgramStageInstance> update(final WorkContext context, final List<Event> events )
+    public List<ProgramStageInstance> update( final WorkContext context, final List<Event> events )
     {
         if ( isNotEmpty( events ) )
         {
@@ -165,7 +159,7 @@ public class DefaultEventPersistenceService
                 new ProgramStageInstanceMapper( context ), events );
 
             // TODO: Implement the jdbcEventStore.updateEvents method
-            jdbcEventStore.updateEvents( new ArrayList<>(  eventProgramStageInstanceMap.values() ) );
+            jdbcEventStore.updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
 
             long now = System.nanoTime();
 
@@ -173,7 +167,7 @@ public class DefaultEventPersistenceService
             // process data values
             // ...
             eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(),
-                    context.getDataElementMap() );
+                context.getDataElementMap() );
 
             // TODO this for loop slows down the process...
             for ( final ProgramStageInstance programStageInstance : eventProgramStageInstanceMap.values() )
@@ -196,7 +190,6 @@ public class DefaultEventPersistenceService
         }
 
         return null;
-
     }
 
     private Event getEvent( String uid, List<Event> events )

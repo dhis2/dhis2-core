@@ -39,8 +39,9 @@ import java.util.List;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
-import org.hisp.dhis.dxf2.events.event.preProcess.PreProcessorFactory;
+import org.hisp.dhis.dxf2.events.event.preprocess.update.PreUpdateProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
+import org.hisp.dhis.dxf2.events.event.validation.update.UpdateValidationFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -77,20 +78,25 @@ public class JacksonEventService2
     private final ObjectMapper xmlMapper;
 
     public JacksonEventService2( Notifier notifier, ValidationFactory validationFactory,
-        PreProcessorFactory preProcessorFactory, EventPersistenceService eventPersistenceService,
+        UpdateValidationFactory updateValidationFactory, PreProcessorFactory preProcessorFactory,
+        PreUpdateProcessorFactory preUpdateProcessorFactory, EventPersistenceService eventPersistenceService,
         ObjectMapper jsonMapper, @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
 
         checkNotNull( notifier );
         checkNotNull( validationFactory );
+        checkNotNull( updateValidationFactory );
         checkNotNull( preProcessorFactory );
+        checkNotNull( preUpdateProcessorFactory );
         checkNotNull( eventPersistenceService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
         this.notifier = notifier;
         this.validationFactory = validationFactory;
+        this.updateValidationFactory = updateValidationFactory;
         this.preProcessorFactory = preProcessorFactory;
+        this.preUpdateProcessorFactory = preUpdateProcessorFactory;
         this.eventPersistenceService = eventPersistenceService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;

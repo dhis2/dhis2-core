@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
@@ -78,4 +79,5 @@ public class UidGenerator
                 note.setNote( isValidUid( note.getNote() ) ? note.getNote() : generateUid() );
             }
         }
+    }
 }

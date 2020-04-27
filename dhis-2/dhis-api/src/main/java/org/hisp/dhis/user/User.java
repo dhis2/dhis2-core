@@ -44,6 +44,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -412,6 +413,11 @@ public class User
         }
 
         return false;
+    }
+
+    public static String getSafeUsername( String username )
+    {
+        return StringUtils.isEmpty( username ) ? "[Unknown]" : username;
     }
 
     public boolean hasEmail()

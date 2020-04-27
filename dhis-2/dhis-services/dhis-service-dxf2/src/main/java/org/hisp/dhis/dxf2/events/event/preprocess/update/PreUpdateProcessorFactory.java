@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.preprocess;
+package org.hisp.dhis.dxf2.events.event.preprocess.update;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -32,31 +32,31 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * @author Luciano Fiandesio
- */
-@Component( "trackerEventsPreProcessorFactory" )
+@Component( "trackerEventsPreUpdateProcessorFactory" )
 @Slf4j
-public class PreProcessorFactory
+public class PreUpdateProcessorFactory
 {
-    private final Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap;
+    private final Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventUpdatePreProcessorMap;
 
-    public PreProcessorFactory( Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap )
+    public PreUpdateProcessorFactory(
+            final Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventUpdatePreProcessorMap )
     {
-        this.eventPreProcessorsMap = eventPreProcessorsMap;
+        this.eventUpdatePreProcessorMap = eventUpdatePreProcessorMap;
     }
 
-    public void preProcessEvents(WorkContext ctx, List<Event> events )
+    public void preProcessEvents( final WorkContext ctx, final List<Event> events )
     {
-        PreProcessorRunner preProcessorRunner = new PreProcessorRunner(
-            eventPreProcessorsMap.get( ctx.getImportOptions().getImportStrategy() ) );
-        for ( Event event : events )
+        final PreProcessorRunner preProcessorRunner = new PreProcessorRunner(
+                eventUpdatePreProcessorMap.get( ctx.getImportOptions().getImportStrategy() ) );
+
+        for ( final Event event : events )
         {
             preProcessorRunner.executePreProcessingChain( event, ctx );
         }
@@ -64,20 +64,20 @@ public class PreProcessorFactory
 
     static class PreProcessorRunner
     {
-        private List<Class<? extends PreProcessor>> preprocessors;
+        private final List<Class<? extends PreProcessor>> preprocessors;
 
-        public PreProcessorRunner( List<Class<? extends PreProcessor>> preprocessors )
+        public PreProcessorRunner( final List<Class<? extends PreProcessor>> preprocessors )
         {
             this.preprocessors = preprocessors;
         }
 
-        public void executePreProcessingChain( Event event, WorkContext ctx )
+        public void executePreProcessingChain( final Event event, final WorkContext ctx )
         {
             for ( Class<? extends PreProcessor> preprocessor : preprocessors )
             {
                 try
                 {
-                    PreProcessor pre = preprocessor.newInstance();
+                    final PreProcessor pre = preprocessor.newInstance();
                     pre.process( event, ctx );
                 }
                 catch ( InstantiationException | IllegalAccessException e )

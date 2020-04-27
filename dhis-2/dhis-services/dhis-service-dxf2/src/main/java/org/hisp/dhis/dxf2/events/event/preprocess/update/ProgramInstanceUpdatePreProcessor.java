@@ -43,7 +43,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,11 +51,11 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.util.DateUtils;
 
 public class ProgramInstanceUpdatePreProcessor
-    implements
-    PreProcessor
+        implements
+        PreProcessor
 {
     @Override
-    public void process( final Event event, final ValidationContext ctx )
+    public void process( final Event event, final WorkContext ctx )
     {
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
         final ImportOptions importOptions = ctx.getImportOptions();
@@ -79,7 +79,7 @@ public class ProgramInstanceUpdatePreProcessor
         }
 
         final String storedBy = getValidUsername( event.getStoredBy(), null,
-            importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
         if ( event.getStatus() == ACTIVE )
         {
@@ -90,7 +90,7 @@ public class ProgramInstanceUpdatePreProcessor
         else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == COMPLETED )
         {
             final String completedBy = getValidUsername( event.getCompletedBy(), null,
-                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+                    importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
             programStageInstance.setCompletedBy( completedBy );
 
@@ -119,14 +119,14 @@ public class ProgramInstanceUpdatePreProcessor
         programStageInstance.setGeometry( event.getGeometry() );
 
         if ( programStageInstance.getProgramStage() != null
-            && programStageInstance.getProgramStage().isEnableUserAssignment() )
+                && programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
             programStageInstance.setAssignedUser( ctx.getAssignedUserMap().get( event.getUid() ) );
         }
     }
 
     private String getValidUsername( final String userName, final ImportSummary importSummary,
-        final String fallbackUsername )
+                                     final String fallbackUsername )
     {
         String validUsername = userName;
 
@@ -140,7 +140,7 @@ public class ProgramInstanceUpdatePreProcessor
             {
                 // TODO: luciano this should be moved to the new logic
                 importSummary.getConflicts().add( new ImportConflict( "Username", validUsername + " is more than "
-                    + USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
+                        + USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
             validUsername = getSafeUsername( fallbackUsername );

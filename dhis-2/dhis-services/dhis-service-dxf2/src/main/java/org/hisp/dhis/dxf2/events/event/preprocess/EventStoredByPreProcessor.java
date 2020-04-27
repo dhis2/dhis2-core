@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.event.preprocess;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContext;
+import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 
 /**
  * @author Luciano Fiandesio
@@ -40,7 +40,7 @@ public class EventStoredByPreProcessor
     PreProcessor
 {
     @Override
-    public void process( Event event, ValidationContext ctx )
+    public void process( Event event, WorkContext ctx )
     {
         event.setStoredBy( EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() ) );
     }
