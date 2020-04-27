@@ -50,6 +50,7 @@ import javax.transaction.Transactional;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.event.JdbcEventStore;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
@@ -77,7 +78,7 @@ public class DefaultEventPersistenceService
     implements
     EventPersistenceService
 {
-    private final JdbcEventStore jdbcEventStore;
+    private final EventStore jdbcEventStore;
 
     private final EventDataValueService eventDataValueService;
 
@@ -85,7 +86,7 @@ public class DefaultEventPersistenceService
     
     private final TrackedEntityCommentService trackedEntityCommentService;
 
-    public DefaultEventPersistenceService( JdbcEventStore jdbcEventStore, EventDataValueService eventDataValueService,
+    public DefaultEventPersistenceService( EventStore jdbcEventStore, EventDataValueService eventDataValueService,
         IdentifiableObjectManager identifiableObjectManager, TrackedEntityCommentService trackedEntityCommentService )
     {
         checkNotNull( jdbcEventStore );

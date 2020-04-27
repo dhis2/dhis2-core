@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,6 +100,10 @@ public interface EventStore
             "assigneduserid = ? " +             // 19
             "where uid = ?;";// 20
         // @formatter:on
+
+    List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
+
+    void updateEvents( List<ProgramStageInstance> programStageInstances );
 
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
         Map<String, Set<String>> psdesWithSkipSyncTrue );
