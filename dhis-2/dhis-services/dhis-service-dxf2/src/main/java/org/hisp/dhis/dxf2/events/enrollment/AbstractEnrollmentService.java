@@ -1334,19 +1334,6 @@ public abstract class AbstractEnrollmentService
         return User.username( user, Constants.UNKNOWN );
     }
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID )
-    {
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.
-            getTrackedEntityInstance( teiUID );
-
-        if ( entityInstance == null )
-        {
-            throw new InvalidIdentifierReferenceException( "TrackedEntityInstance does not exist." );
-        }
-
-        return entityInstance;
-    }
-
     private org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( String teiUID, User user )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.
