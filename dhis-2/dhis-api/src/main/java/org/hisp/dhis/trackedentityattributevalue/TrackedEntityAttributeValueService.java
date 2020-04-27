@@ -57,6 +57,12 @@ public interface TrackedEntityAttributeValueService
      */
     void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
 
+    /**
+     * Updates an {@link TrackedEntityAttribute}.
+     *
+     * @param attributeValue the TrackedEntityAttribute to update.
+     * @param user           User for audits
+     */
     void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue, User user );
 
     /**
