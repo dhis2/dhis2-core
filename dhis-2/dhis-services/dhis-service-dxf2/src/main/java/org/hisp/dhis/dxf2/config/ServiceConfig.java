@@ -222,6 +222,7 @@ public class ServiceConfig
     private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists
         .newArrayList(
             ImportOptionsPreProcessor.class,
+            AssignUidPreProcessor.class,
             EventStoredByPreProcessor.class,
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class

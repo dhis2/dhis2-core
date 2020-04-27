@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.events.event.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,54 +28,52 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.Note;
+import org.junit.Test;
 
 /**
- * UID generator for Tracker entities.
- *
- *
  * @author Luciano Fiandesio
  */
-public class UidGenerator
+public class AssignUidPreProcessorTest
 {
-    /**
-     * Generate a valid uid and assign it to the uid field of each event. Generate a
-     * valid uid and assign it to all the notes of each event (if the UID is
-     * missing)
-     *
-     * @param events a List of {@see Events}
-     * @return a List of {@see Events} with the uid field populated
-     */
-    public List<Event> assignUidToEvents( List<Event> events )
+    @Test
+    public void verifyEventHasUidAssigned()
     {
-        for ( Event event : events )
-        {
-            doAssignUid( event );
-        }
-        return events;
+        Event event1 = new Event();
+        List<Note> notes = new ArrayList<>();
+        notes.add( new Note() );
+        event1.setNotes( notes );
+        AssignUidPreProcessor uidPreProcessor = new AssignUidPreProcessor();
+
+        uidPreProcessor.process( event1, null );
+
+        assertThat( event1.getUid(), is( notNullValue() ) );
+        assertThat( event1.getNotes().get( 0 ).getNote(), is( notNullValue() ) );
+
     }
 
-    public Event assignUidToEvent( Event event )
+    @Test
+    public void verifyEventHasNotUidAssigned()
     {
-        doAssignUid( event );
-        return event;
+        Event event1 = new Event();
+        String uid = CodeGenerator.generateUid();
+        event1.setUid( uid );
+
+        AssignUidPreProcessor uidPreProcessor = new AssignUidPreProcessor();
+
+        uidPreProcessor.process( event1, null );
+
+        assertThat( event1.getUid(), is( uid ) );
+
     }
 
-    private void doAssignUid( Event event )
-    {
-
-        if ( StringUtils.isEmpty( event.getUid() ) )
-        {
-            event.setUid( CodeGenerator.generateUid() );
-            List<Note> notes = event.getNotes();
-            for ( Note note : notes )
-            {
-                note.setNote( isValidUid( note.getNote() ) ? note.getNote() : generateUid() );
-            }
-        }
 }

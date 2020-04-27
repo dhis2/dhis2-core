@@ -84,14 +84,11 @@ public abstract class AbstractEventService2
         notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
 
-        // TODO This should be probably moved to a PRE-PROCESSOR
-        List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
-
         long now = System.nanoTime();
-        WorkContext validationContext = validationFactory.getContext( importOptions, eventsWithUid );
+        WorkContext validationContext = validationFactory.getContext( importOptions, events );
         log.debug( "::: validation context load took : " + (System.nanoTime() - now) );
 
-        List<List<Event>> partitions = Lists.partition( eventsWithUid, BATCH_SIZE );
+        List<List<Event>> partitions = Lists.partition( events, BATCH_SIZE );
 
         for ( List<Event> batch : partitions )
         {
