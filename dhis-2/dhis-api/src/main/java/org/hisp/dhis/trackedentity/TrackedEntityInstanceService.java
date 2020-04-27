@@ -223,6 +223,8 @@ public interface TrackedEntityInstanceService
      */
     void updateTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
+    void updateTrackedEntityInstance( TrackedEntityInstance instance, User user );
+
     /**
      * Updates a last sync timestamp on specified TrackedEntityInstances
      *
