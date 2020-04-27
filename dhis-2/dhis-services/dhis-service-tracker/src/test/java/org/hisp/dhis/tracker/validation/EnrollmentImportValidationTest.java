@@ -121,11 +121,10 @@ public class EnrollmentImportValidationTest
         List<ErrorReport> objectReport = commit.getErrorReports();
         assertTrue( objectReport.isEmpty() );
 
+        /////
+
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
@@ -144,9 +143,6 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
@@ -163,9 +159,6 @@ public class EnrollmentImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-dates-missing.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
@@ -192,9 +185,6 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-dates-future.json" );
 
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
@@ -217,13 +207,10 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-displayIncident.json" );
 
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 2, trackerBundle.getEnrollments().size() );
 
-            TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
+        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         printReport( report );
 
         assertEquals( 2, report.getErrorReports().size() );
@@ -239,7 +226,7 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-program-missing.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -260,9 +247,6 @@ public class EnrollmentImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-orgunit-missing.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
@@ -305,9 +289,6 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
@@ -336,9 +317,6 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
@@ -357,9 +335,6 @@ public class EnrollmentImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.DELETE );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -380,9 +355,6 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-nonreg-program.json" );
 
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
@@ -400,9 +372,6 @@ public class EnrollmentImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-nonexist-te.json" );
-
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
@@ -422,9 +391,6 @@ public class EnrollmentImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_error-program-tet-mismatch-te.json" );
 
-        User user = userService.getUser( ADMIN_USER );
-        trackerBundleParams.setUser( user );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
         assertEquals( 1, trackerBundle.getEnrollments().size() );
 
@@ -435,4 +401,41 @@ public class EnrollmentImportValidationTest
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1022 ) ) ) );
     }
+
+    @Test
+    public void testOnlyProgramAttributesAllowedOnEnrollments()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson( "tracker/validations/enrollments_error_non_program_attr.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 3, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
+    }
+
+    @Test
+    public void testAttributesOk()
+        throws IOException
+    {
+        TrackerBundleParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json" );
+
+        ValidateAndCommit createAndUpdate = doValidateAndCommit( params, TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
+        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
+        printReport( validationReport );
+
+        assertEquals( 0, validationReport.getErrorReports().size() );
+
+        assertThat( validationReport.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
+    }
+
 }

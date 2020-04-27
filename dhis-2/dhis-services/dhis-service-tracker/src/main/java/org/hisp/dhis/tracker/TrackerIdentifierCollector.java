@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -92,7 +93,7 @@ public class TrackerIdentifierCollector
                 trackedEntity.getOrgUnit() );
 
             collectEnrollments( map, params, trackedEntity.getEnrollments() );
-            collectAttributes( map, params, trackedEntity.getAttributes() );
+            collectTrackedEntityAttribute( map, params, trackedEntity.getAttributes() );
         } );
     }
 
@@ -107,7 +108,7 @@ public class TrackerIdentifierCollector
                 enrollment.getOrgUnit() );
 
             collectEvents( map, params, enrollment.getEvents() );
-            collectAttributes( map, params, enrollment.getAttributes() );
+            collectTrackedEntityAttribute( map, params, enrollment.getAttributes() );
         } );
     }
 
@@ -158,7 +159,7 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static void collectAttributes(
+    private static void collectTrackedEntityAttribute(
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Attribute> attributes )
     {
         if ( attributes.isEmpty() )

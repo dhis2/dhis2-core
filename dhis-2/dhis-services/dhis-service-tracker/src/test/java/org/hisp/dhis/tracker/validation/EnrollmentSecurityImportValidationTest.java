@@ -249,7 +249,7 @@ public class EnrollmentSecurityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );

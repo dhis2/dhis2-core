@@ -28,18 +28,28 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -189,9 +199,14 @@ public class ProgramObjectBundleHook
 
             if ( attribute == null || !aclService.canRead( bundle.getUser(), attribute ) )
             {
+                String uId = bundle.getUser() == null ? "null" : identifier.getIdentifiersWithName( bundle.getUser() );
+                String aId = attribute == null ? "null" : identifier.getIdentifiersWithName( attribute );
+
+                //TODO: Needs Np check here , if attribute1
+
                 errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012,
-                    identifier.getIdentifiersWithName( bundle.getUser() ),
-                    identifier.getIdentifiersWithName( programAttr.getAttribute() ) ) );
+                    uId,
+                    aId ) );
             }
         } );
 

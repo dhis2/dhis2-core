@@ -438,6 +438,7 @@ public class DefaultTrackerBundleService
             }
 
             TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, at.getAttribute() );
+            // TODO: What to do here? Should attribute == NULL this be allowed?
             TrackedEntityAttributeValue attributeValue = null;
 
             if ( attributeValueMap.containsKey( at.getAttribute() ) )
@@ -464,8 +465,11 @@ public class DefaultTrackerBundleService
                 attributeValues.add( attributeValue );
             }
 
+            // TODO: What to do here? Should this be allowed?
+            TrackedEntityAttribute attribute1 = attributeValue.getAttribute();
+
             if ( !attributeValuesForDeletion.contains( at.getAttribute() ) &&
-                attributeValue.getAttribute().getValueType().isFile() )
+                attribute1 != null && attribute1.getValueType().isFile() )
             {
                 assignedFileResources.add( at.getValue() );
             }
@@ -475,7 +479,15 @@ public class DefaultTrackerBundleService
         {
             // since TEAV is the owning side here, we don't bother updating the TE.teav collection
             // as it will be reloaded on session clear
-            if ( attributeValuesForDeletion.contains( attributeValue.getAttribute().getUid() ) )
+            TrackedEntityAttribute attribute = attributeValue.getAttribute();
+
+            // TODO: What to do here? Should this be allowed?
+            if ( attribute == null )
+            {
+                continue;
+            }
+
+            if ( attributeValuesForDeletion.contains( attribute.getUid() ) )
             {
                 session.remove( attributeValue );
             }

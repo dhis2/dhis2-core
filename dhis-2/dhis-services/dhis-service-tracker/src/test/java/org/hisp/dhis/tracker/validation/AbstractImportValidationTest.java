@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -60,7 +61,7 @@ public abstract class AbstractImportValidationTest
     @Autowired
     protected DefaultTrackerValidationService trackerValidationService;
 
-    public static final String ADMIN_USER = "M5zQapPyTZI";
+    public static final String ADMIN_USER_UID = "M5zQapPyTZI";
 
     public static final String USER_1 = "---USER1---";
 
@@ -73,10 +74,15 @@ public abstract class AbstractImportValidationTest
     protected TrackerBundleParams createBundleFromJson( String s )
         throws IOException
     {
-        return renderService
+        TrackerBundleParams params = renderService
             .fromJson(
                 new ClassPathResource( s ).getInputStream(),
                 TrackerBundleParams.class );
+
+        User user = userService.getUser( ADMIN_USER_UID );
+        params.setUser( user );
+
+        return params;
     }
 
     protected void printReport( TrackerValidationReport report )

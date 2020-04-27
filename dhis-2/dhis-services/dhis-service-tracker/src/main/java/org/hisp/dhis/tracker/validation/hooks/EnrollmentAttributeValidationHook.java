@@ -108,11 +108,6 @@ public class EnrollmentAttributeValidationHook
                 tei.getOrganisationUnit() );
         }
 
-        if ( program == null || tei == null )
-        {
-            return;
-        }
-
         validateMandatoryAttributes( reporter, program, tei, attributeValueMap );
     }
 
@@ -137,7 +132,7 @@ public class EnrollmentAttributeValidationHook
             if ( teAttribute == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1017 )
-                    .addArg( attribute ) );
+                    .addArg( attribute.getAttribute() ) );
             }
         }
     }
@@ -189,11 +184,12 @@ public class EnrollmentAttributeValidationHook
 
         if ( !attributeValueMap.isEmpty() )
         {
-            // Only program attributes is allowed for enrollment!
-            reporter.addError( newReport( TrackerErrorCode.E1019 )
-                .addArg( attributeValueMap.keySet().stream()
-                    .map( key -> key + "=" + attributeValueMap.get( key ) )
-                    .collect( Collectors.joining( ", " ) ) ) );
+            for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
+            {
+                //Only Program attributes is allowed for enrollment
+                reporter.addError( newReport( TrackerErrorCode.E1019 )
+                    .addArg( entry.getKey() + "=" + entry.getValue() ) );
+            }
         }
     }
 }

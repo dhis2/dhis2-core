@@ -131,7 +131,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/te-data_ok_no_uuids.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -148,7 +148,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -242,7 +242,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/te-data_error_teType-non-existing.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -263,7 +263,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/te-data_error_orgunit-null.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -285,7 +285,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/te-data_error_orgunit-non-existing.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -348,7 +348,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/te-data_error_geo-ok.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -364,7 +364,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -396,7 +396,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/te-data_error_attr-non-existing.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -416,7 +416,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -464,7 +464,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -508,7 +508,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
@@ -529,7 +529,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.DELETE );
@@ -551,7 +551,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -590,7 +590,7 @@ public class TrackedEntityImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );

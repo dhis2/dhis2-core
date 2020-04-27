@@ -115,7 +115,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -176,7 +176,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -199,7 +199,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/event_events.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -223,7 +223,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-orgunit-missing.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -247,7 +247,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-program-pstage-missing.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -274,7 +274,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-missing-isreg.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -301,7 +301,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-program-different.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -347,7 +347,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -383,7 +383,7 @@ public class EventImportValidationTest
 
         TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
@@ -411,7 +411,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-missing-date.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -435,7 +435,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-missing-tei.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );
@@ -459,7 +459,7 @@ public class EventImportValidationTest
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-completed-date.json" );
 
-        User user = userService.getUser( ADMIN_USER );
+        User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams ).get( 0 );

@@ -64,7 +64,7 @@ public enum TrackerErrorCode
     E1082( "Event: `{0}`, is already deleted." ),
     E1051( "Invalid event due date: `{0}`." ),
     E1052( "Invalid event date: `{0}`." ),
-    E1019( "Only Program attributes is allowed for enrollment; Non valid attributes: `{0}`." ),
+    E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
     E1008( "Value: `{0}`, does not match the attribute pattern." ),
     E1007( "Error validating attribute value type; Error `{0}`." ),
     E1018( "Missing mandatory attribute: `{0}`." ),
