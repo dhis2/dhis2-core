@@ -685,7 +685,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
+        Set<ImportConflict> importConflicts = checkAttributes( entityInstance, enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -768,7 +768,7 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
+        Set<ImportConflict> importConflicts = checkAttributes( programInstance.getEntityInstance(), enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -1176,16 +1176,14 @@ public abstract class AbstractEnrollmentService
         return user == null || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
     }
 
-    private Set<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
+    private Set<ImportConflict> checkAttributes( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
+        Enrollment enrollment, ImportOptions importOptions )
     {
         Set<ImportConflict> importConflicts = new HashSet<>();
-
-        Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
-        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.getTrackedEntityInstance(
-            enrollment.getTrackedEntityInstance(), importOptions.getUser() );
-
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
         Map<String, String> attributeValueMap = Maps.newHashMap();
+
+        Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
 
         for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : program.getProgramAttributes() )
         {
@@ -1203,7 +1201,8 @@ public abstract class AbstractEnrollmentService
             validateAttributeType( attribute, importOptions, importConflicts );
         }
 
-        TrackedEntityInstance instance = trackedEntityInstanceService.getTrackedEntityInstance( enrollment.getTrackedEntityInstance(), importOptions.getUser() );
+        TrackedEntityInstance instance = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance, TrackedEntityInstanceParams.TRUE,
+            importOptions.getUser() );
 
         for ( TrackedEntityAttribute trackedEntityAttribute : mandatoryMap.keySet() )
         {
