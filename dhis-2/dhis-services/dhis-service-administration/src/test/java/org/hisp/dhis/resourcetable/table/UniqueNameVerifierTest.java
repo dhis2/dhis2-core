@@ -43,7 +43,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.junit.Test;
 
-public class AbstractNameUniquenessAwareResourceTableTest
+public class UniqueNameVerifierTest
 {
     @Test
     public void verifyResourceTableColumnNameAreUniqueWhenComputingShortName()

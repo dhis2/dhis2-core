@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import java.util.List;
@@ -44,7 +45,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
  * @author Lars Helge Overland
  */
 public class OrganisationUnitGroupSetResourceTable
-    extends AbstractNameUniquenessAwareResourceTable<OrganisationUnitGroupSet>
+    extends ResourceTable<OrganisationUnitGroupSet>
 {
     private boolean supportsPartialIndexes;
 
@@ -67,6 +68,8 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
             "organisationunitid bigint not null, " +
             "organisationunitname varchar(230), " +
@@ -74,7 +77,7 @@ public class OrganisationUnitGroupSetResourceTable
 
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            statement += ensureUniqueShortName( groupSet ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueShortName( groupSet ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

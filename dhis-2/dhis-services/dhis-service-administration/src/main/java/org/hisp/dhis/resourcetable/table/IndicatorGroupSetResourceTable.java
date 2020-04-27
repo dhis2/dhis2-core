@@ -33,6 +33,7 @@ import java.util.Optional;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
@@ -43,7 +44,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
  * @author Lars Helge Overland
  */
 public class IndicatorGroupSetResourceTable
-    extends AbstractNameUniquenessAwareResourceTable<IndicatorGroupSet>
+    extends ResourceTable<IndicatorGroupSet>
 {
     public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects )
     {
@@ -59,13 +60,15 @@ public class IndicatorGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
             "indicatorid bigint not null, " +
             "indicatorname varchar(230), ";
 
         for ( IndicatorGroupSet groupSet : objects )
         {
-            statement += ensureUniqueName( groupSet.getName() ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueName( groupSet.getName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

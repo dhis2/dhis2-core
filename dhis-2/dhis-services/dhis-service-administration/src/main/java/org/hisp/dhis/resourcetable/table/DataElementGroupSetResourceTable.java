@@ -33,6 +33,7 @@ import java.util.Optional;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
@@ -43,7 +44,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
  * @author Lars Helge Overland
  */
 public class DataElementGroupSetResourceTable
-    extends AbstractNameUniquenessAwareResourceTable<DataElementGroupSet>
+    extends ResourceTable<DataElementGroupSet>
 {
     public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects )
     {
@@ -59,13 +60,15 @@ public class DataElementGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
             "dataelementid bigint not null, " +
             "dataelementname varchar(230), ";
 
         for ( DataElementGroupSet groupSet : objects )
         {
-            statement += ensureUniqueShortName( groupSet ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueShortName( groupSet ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

@@ -28,29 +28,19 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import org.hisp.dhis.common.BaseDimensionalObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.resourcetable.ResourceTable;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
- * This class can be extended by Resource Table generation classes that need to
- * generate unique colum names
- *
+ * @author Luciano Fiandesio
  */
-public abstract class AbstractNameUniquenessAwareResourceTable<T>
-    extends
-    ResourceTable<T>
-{
-    protected List<String> uniqueColumnNames = new ArrayList<>();
+public class UniqueNameVerifier {
 
-    public AbstractNameUniquenessAwareResourceTable( List<T> objects )
-    {
-        super( objects );
-    }
+    protected List<String> uniqueColumnNames = new ArrayList<>();
 
     /**
      * Returns the short name in quotes for the given {@see BaseDimensionalObject}, ensuring
@@ -63,7 +53,7 @@ public abstract class AbstractNameUniquenessAwareResourceTable<T>
     protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
     {
         String columnName = quote( baseDimensionalObject.getShortName()
-            + (uniqueColumnNames.contains( baseDimensionalObject.getShortName() ) ? uniqueColumnNames.size() : "") );
+                + (uniqueColumnNames.contains( baseDimensionalObject.getShortName() ) ? uniqueColumnNames.size() : "") );
 
         this.uniqueColumnNames.add( baseDimensionalObject.getShortName() );
 
