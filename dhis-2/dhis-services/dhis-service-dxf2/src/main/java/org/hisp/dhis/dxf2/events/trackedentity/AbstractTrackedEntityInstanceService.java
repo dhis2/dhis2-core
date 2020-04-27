@@ -513,17 +513,14 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         importOptions = updateImportOptions( importOptions );
-
-        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
-
         dtoEntityInstance.trimValuesToNull();
 
-        Set<ImportConflict> importConflicts = new HashSet<>( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
-        checkAttributes( dtoEntityInstance, importOptions, importConflicts, false );
+        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
+        importSummary.getConflicts().addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
+        checkAttributes( dtoEntityInstance, importOptions, importSummary.getConflicts(), false );
 
-        if ( !importConflicts.isEmpty() )
+        if ( !importSummary.getConflicts().isEmpty() )
         {
-            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
             return importSummary;
@@ -531,6 +528,13 @@ public abstract class AbstractTrackedEntityInstanceService
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = createDAOTrackedEntityInstance(
             dtoEntityInstance, importOptions, importSummary );
+
+        if ( !importSummary.getConflicts().isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getImportCount().incrementIgnored();
+            return importSummary;
+        }
 
         if ( daoEntityInstance == null )
         {
