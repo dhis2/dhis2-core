@@ -61,15 +61,6 @@ public interface ProgramInstanceService
     void deleteProgramInstance( ProgramInstance programInstance );
 
     /**
-     * Deletes a program instance. Based on the forceDelete parameter, the program instance is
-     * either soft deleted (false) or hard deleted (true)
-     *
-     * @param programInstance to delete
-     * @param forceDelete     soft delete or hard delete
-     */
-    void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
-
-    /**
      * Updates an {@link ProgramInstance}.
      *
      * @param programInstance the ProgramInstance to update.

@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -53,14 +54,6 @@ public interface ProgramStageInstanceService
      * @return A generated unique id of the added {@link ProgramStageInstance}.
      */
     long addProgramStageInstance( ProgramStageInstance programStageInstance );
-
-    /**
-     * Deletes a {@link ProgramStageInstance}.
-     *
-     * @param programStageInstance the ProgramStageInstance to delete.
-     * @param forceDelete          false if PSI should be soft deleted.
-     */
-    void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete );
 
     /**
      * Soft deletes a {@link ProgramStageInstance}.
