@@ -28,10 +28,6 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -40,6 +36,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <p>This interface is responsible for retrieving tracked entity instances (TEI).
@@ -183,7 +183,7 @@ public interface TrackedEntityInstanceService
      * considered valid if no exception are thrown and the method returns
      * normally.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params       the TrackedEntityInstanceQueryParams.
      * @param isGridSearch specifies whether search is made for a Grid response
      * @throws IllegalQueryException if the given params is invalid.
      */
@@ -249,6 +249,16 @@ public interface TrackedEntityInstanceService
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
     /**
+     * Returns the {@link TrackedEntityAttribute} with the given UID.
+     *
+     * @param uid  the UID.
+     * @param user User
+     * @return the TrackedEntityInstanceAttribute with the given UID, or null if
+     * no match.
+     */
+    TrackedEntityInstance getTrackedEntityInstance( String trackedEntityInstance, User user );
+
+    /**
      * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
      *
      * @param uid PSI UID to check for
@@ -275,8 +285,8 @@ public interface TrackedEntityInstanceService
     /**
      * Register a new entityInstance
      *
-     * @param entityInstance     TrackedEntityInstance
-     * @param attributeValues    Set of attribute values
+     * @param entityInstance  TrackedEntityInstance
+     * @param attributeValues Set of attribute values
      * @return The error code after registering entityInstance
      */
     long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
