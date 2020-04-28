@@ -150,7 +150,7 @@ public abstract class AbstractEventService2
         List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
 
         long now = System.nanoTime();
-        WorkContext validationContext = validationFactory.getContext( importOptions, eventsWithUid );
+        WorkContext validationContext = updateValidationFactory.getContext( importOptions, eventsWithUid );
         log.debug( "::: UPDATE - validation context load took : " + (System.nanoTime() - now) );
 
         List<List<Event>> partitions = Lists.partition( eventsWithUid, BATCH_SIZE );
