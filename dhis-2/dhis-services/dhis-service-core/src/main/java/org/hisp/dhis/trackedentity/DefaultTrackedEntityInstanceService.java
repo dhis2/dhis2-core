@@ -426,6 +426,13 @@ public class DefaultTrackedEntityInstanceService
         {
             throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
         }
+        else
+        {
+            params.setTrackedEntityTypes( trackedEntityTypeService.getAllTrackedEntityType().stream()
+                .filter( tet -> aclService.canDataRead( user, tet ) )
+                .collect( Collectors.toList() )
+            );
+        }
     }
 
     @Override
