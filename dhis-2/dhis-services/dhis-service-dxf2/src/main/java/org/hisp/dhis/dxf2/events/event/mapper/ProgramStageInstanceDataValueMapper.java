@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.preprocess;
+package org.hisp.dhis.dxf2.events.event.mapper;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,27 +28,29 @@ package org.hisp.dhis.dxf2.events.event.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventStoredByPreProcessor implements PreProcessor
+public class ProgramStageInstanceDataValueMapper extends AbstractMapper<DataValue, EventDataValue>
 {
-    @Override
-    public void process( Event event, WorkContext ctx )
+    public ProgramStageInstanceDataValueMapper( WorkContext ctx )
     {
-        String storedBy = EventUtils.getValidUsername( event.getStoredBy(), ctx.getImportOptions() );
-        event.setStoredBy( storedBy );
-        Set<DataValue> dataValues = event.getDataValues();
-        for ( DataValue dataValue : dataValues )
-        {
-            dataValue.setStoredBy( storedBy );
-        }
+        super( ctx );
+    }
+
+    @Override
+    public EventDataValue map( DataValue dataValue )
+    {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement( dataValue.getDataElement() );
+        eventDataValue.setValue( dataValue.getValue() );
+        eventDataValue.setStoredBy( eventDataValue.getStoredBy() );
+        eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+
+        return eventDataValue;
     }
 }

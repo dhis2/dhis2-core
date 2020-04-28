@@ -49,11 +49,13 @@ public class ProgramStageInstanceMapper
     AbstractMapper<Event, ProgramStageInstance>
 {
     private final ProgramStageInstanceNoteMapper noteMapper;
+    private final ProgramStageInstanceDataValueMapper dataValueMapper;
 
     public ProgramStageInstanceMapper( WorkContext ctx )
     {
         super( ctx );
         noteMapper = new ProgramStageInstanceNoteMapper( ctx );
+        dataValueMapper = new ProgramStageInstanceDataValueMapper( ctx );
     }
 
     public ProgramStageInstance map( Event event )
@@ -68,7 +70,7 @@ public class ProgramStageInstanceMapper
         }
         else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( IdScheme.UID ) )
         {
-            psi.setUid( event.getEvent() );
+            psi.setUid( event.getUid() );
         } // TODO what about other schemes, like id?
 
         // FKs
@@ -129,8 +131,14 @@ public class ProgramStageInstanceMapper
             psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
         }
 
+        // COMMENTS
         psi.setComments( convertNotes( event, this.workContext ) );
 
+        // DATA VALUES
+
+        psi.setEventDataValues(
+            event.getDataValues().stream().map( dataValueMapper::map ).collect( Collectors.toSet() ) );
+        
         return psi;
 
     }

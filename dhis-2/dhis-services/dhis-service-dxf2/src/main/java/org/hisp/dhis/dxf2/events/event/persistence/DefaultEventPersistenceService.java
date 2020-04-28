@@ -63,8 +63,6 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Stopwatch;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -99,48 +97,15 @@ public class DefaultEventPersistenceService
     public List<ProgramStageInstance> save( WorkContext context, List<Event> events )
     {
         /*
-         * Convert the list of Events into a map where [key] -> Event, [value] ->
-         * Program Stage Instance. This is required because the 'eventDataValueService'
-         * expects both the original Event and the associated Program Stage Instance
+         * save Events, Notes and Data Values
          */
-        final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
-            new ProgramStageInstanceMapper( context ), events );
-
-        if ( isNotEmpty( events ) )
-        {
-            /*
-             * save events and notes
-             */
-            final List<ProgramStageInstance> savedPsi = jdbcEventStore
-                .saveEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
-
-            /*
-             * Filter out from the original events list, all the PSI which were not
-             * persisted during the save
-             */
-            eventProgramStageInstanceMap.entrySet().removeIf( k -> !savedPsi.stream()
-                .map( ProgramStageInstance::getUid ).collect( Collectors.toList() ).contains( k.getValue().getUid() ) );
-
-            /*
-             * process data values
-             */
-            Stopwatch stopwatch = Stopwatch.createStarted();
-
-            ImportSummaries importSummaries = eventDataValueService.processDataValues( eventProgramStageInstanceMap,
-                false, context.getImportOptions(), context.getDataElementMap() );
-
-            if ( importSummaries.hasConflicts() )
-            {
-                rollbackOnException( importSummaries );
-            }
-
-            log.debug( "Event save ::: Processing Data Value for {} PSIs took {}", eventProgramStageInstanceMap.size(),
-                stopwatch.stop().elapsed( TimeUnit.MILLISECONDS ) );
-
-        }
-        return null; // TODO
+        ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
+        return isNotEmpty( events )
+            ? jdbcEventStore.saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) )
+            : new ArrayList<>();
     }
 
+    // TODO do we need this?
     private void rollbackOnException( ImportSummaries importSummaries )
     {
         this.jdbcEventStore
@@ -151,9 +116,8 @@ public class DefaultEventPersistenceService
     /**
      * Updates the list of given events using a single transaction.
      *
-     * @param context
-     * @param events
-     * @return
+     * @param context a {@see WorkContext}
+     * @param events a List of {@see Event}
      */
     @Override
     @Transactional

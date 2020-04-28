@@ -80,6 +80,10 @@ public class ValidationFactory
         return this.validationContextLoader.load( importOptions, events );
     }
 
+    /**
+     * Execute the Validation rules.
+     * This runner stops the validation chain as soon as an error is reported.
+     */
     static class ValidationRunner
     {
         private final List<Class<? extends ValidationCheck>> validators;
@@ -100,6 +104,7 @@ public class ValidationFactory
 
                     if ( importSummary.isStatus( ImportStatus.ERROR ) )
                     {
+                        importSummary.incrementIgnored();
                         return importSummary;
                     }
                 }
@@ -108,7 +113,7 @@ public class ValidationFactory
                     log.error( "An error occurred during Event import validation", e );
                 }
             }
-            return new ImportSummary();
+            return new ImportSummary( event.getUid() );
         }
     }
 }

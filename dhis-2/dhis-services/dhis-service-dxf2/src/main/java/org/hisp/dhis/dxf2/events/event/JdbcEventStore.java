@@ -32,31 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
+import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.util.DateUtils.*;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -115,11 +94,12 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
@@ -163,21 +143,26 @@ public class JdbcEventStore
 
     private final IdentifiableObjectManager manager;
 
+    private final ObjectMapper jsonMapper;
+
     private final int BATCH_SIZE = 100;
 
     public JdbcEventStore( StatementBuilder statementBuilder,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, CurrentUserService currentUserService,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, CurrentUserService currentUserService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
         checkNotNull( currentUserService );
         checkNotNull( identifiableObjectManager );
+        checkNotNull( jsonMapper );
 
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
         this.currentUserService = currentUserService;
         this.manager = identifiableObjectManager;
+        this.jsonMapper = jsonMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -373,22 +358,15 @@ public class JdbcEventStore
 
     public List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> events )
     {
-        List<ProgramStageInstance> savedPsi = new ArrayList<>();
-
-        final List<List<ProgramStageInstance>> batches = Lists.partition( events, BATCH_SIZE);
-        for (List<ProgramStageInstance> batch : batches) {
-
-            try
-            {
-                savedPsi.addAll( saveAllComments( saveAllEvents( batch ) ) );
-            }
-            catch ( SQLException sqlException )
-            {
-                log.error( "An error occurred saving a list of Events", sqlException );
-            }
+        try
+        {
+            return new ArrayList<>( saveAllComments( saveAllEvents( events ) ) );
         }
-
-        return savedPsi;
+        catch ( SQLException e )
+        {
+            log.error("An error occurred saving a batch", e);
+            return new ArrayList<>();
+        }
     }
 
     /**
@@ -431,13 +409,20 @@ public class JdbcEventStore
         {
             for ( ProgramStageInstance psi : batch )
             {
-                bindEventParams( insertEventPS, psi );
+                try
+                {
+                    bindEventParams( insertEventPS, psi );
+                }
+                catch ( Exception e )
+                {
+                    log.info( "PSI with UID: {} failed to persist. PSI will be ignored", psi.getUid() );
+                }
                 insertEventPS.addBatch();
             }
             insertEventPS.executeBatch();
 
             /*
-             * Assign the generated primary keys to the object
+             * Extract the primary keys from the created objects
              */
             List<Integer> eventIds = new ArrayList<>( collectPrimaryKeys( insertEventPS ) );
 
@@ -484,16 +469,22 @@ public class JdbcEventStore
         DataSource dataSource = jdbcTemplate.getDataSource();
 
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement insertEventNotePS = connection.prepareStatement(INSERT_EVENT_NOTE_SQL,
-                Statement.RETURN_GENERATED_KEYS); PreparedStatement insertEventNoteLinkPS = connection.prepareStatement(INSERT_EVENT_COMMENT_LINK)) {
+            PreparedStatement insertEventNotePS = connection.prepareStatement( INSERT_EVENT_NOTE_SQL,
+                Statement.RETURN_GENERATED_KEYS );
+            PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
+        {
 
-            for (ProgramStageInstance psi : batch) {
+            for ( ProgramStageInstance psi : batch )
+            {
                 List<TrackedEntityComment> comments = psi.getComments();
-                if (comments.size() != 0) {
-                    try {
-                        for (TrackedEntityComment comment : comments) {
+                if ( comments.size() != 0 )
+                {
+                    try
+                    {
+                        for ( TrackedEntityComment comment : comments )
+                        {
                             // SAVE THE COMMENTS
-                            bindEventNoteParams(insertEventNotePS, comment);
+                            bindEventNoteParams( insertEventNotePS, comment );
                             insertEventNotePS.execute();
 
                             final ResultSet generatedKeys = insertEventNotePS.getGeneratedKeys();
@@ -512,9 +503,11 @@ public class JdbcEventStore
                                 failedUids.add( psi.getUid() );
                             }
                         }
-                    } catch (SQLException sqlException) {
-                        log.error("An error occurred persisting a comment for PSI with uid: " + psi.getUid());
-                        failedUids.add(psi.getUid());
+                    }
+                    catch ( SQLException sqlException )
+                    {
+                        log.error( "An error occurred persisting a comment for PSI with uid: " + psi.getUid() );
+                        failedUids.add( psi.getUid() );
                     }
                 }
             }
@@ -549,8 +542,7 @@ public class JdbcEventStore
     }
 
     private void bindEventParams( PreparedStatement ps, ProgramStageInstance event )
-        throws SQLException
-    {
+            throws SQLException, JsonProcessingException {
         ps.setLong( 1, event.getProgramInstance().getId() );
         ps.setLong( 2, event.getProgramStage().getId() );
         ps.setTimestamp( 3, new Timestamp( event.getDueDate().getTime() ) );
@@ -559,18 +551,16 @@ public class JdbcEventStore
         ps.setString( 6, event.getStatus().toString() );
         ps.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
         ps.setString( 8, event.getUid() );
-        ps.setTimestamp( 9, toTimestamp(new Date() ) );
-        ps.setTimestamp( 10, toTimestamp(new Date() ) );
+        ps.setTimestamp( 9, toTimestamp( new Date() ) );
+        ps.setTimestamp( 10, toTimestamp( new Date() ) );
         ps.setLong( 11, event.getAttributeOptionCombo().getId() );
         ps.setString( 12, event.getStoredBy() );
         ps.setString( 13, event.getCompletedBy() );
-        ps.setBoolean( 14, false ); // TODO: deleted set to false not sure it's correct
+        ps.setBoolean( 14, false );
         ps.setString( 15, event.getCode() );
         ps.setTimestamp( 16, toTimestamp( event.getCreatedAtClient() ) );
         ps.setTimestamp( 17, toTimestamp( event.getLastUpdatedAtClient() ) );
-        // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work,
-        // figure out how to handle that
-        // @formatter:on
+        // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
         if ( event.getAssignedUser() != null )
         {
             ps.setLong( 18, event.getAssignedUser().getId() );
@@ -579,6 +569,8 @@ public class JdbcEventStore
         {
             ps.setObject( 18, null );
         }
+
+        ps.setString( 19, EventUtils.eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
     }
 
     public void updateEvent( final ProgramStageInstance programStageInstance )

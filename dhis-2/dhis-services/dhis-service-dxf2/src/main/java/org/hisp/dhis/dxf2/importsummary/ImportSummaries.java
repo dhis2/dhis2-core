@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.importsummary;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -123,6 +124,18 @@ public class ImportSummaries extends AbstractWebMessageResponse
             }
         }
         return false;
+    }
+    
+    public Optional<ImportSummary> getByReference( String reference )
+    {
+        for ( ImportSummary importSummary : importSummaries )
+        {
+            if ( importSummary.getReference().equals( reference ) )
+            {
+                return Optional.of( importSummary );
+            }
+        }
+        return Optional.empty();
     }
     
     /**

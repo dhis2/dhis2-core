@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -74,7 +75,8 @@ public class JdbcEventStoreTest
     @Before
     public void setUp()
     {
-        subject = new JdbcEventStore(new PostgreSQLStatementBuilder(), jdbcTemplate, currentUserService, manager );
+        ObjectMapper objectMapper = new ObjectMapper();
+        subject = new JdbcEventStore(new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService, manager );
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }
 

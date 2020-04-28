@@ -61,10 +61,11 @@ public interface EventStore
         "code, " +                      // 15
         "createdatclient, " +           // 16
         "lastupdatedatclient, " +       // 17
-        //"geometry, " +                  // 19
-        "assigneduserid) " +            // 18
+        //"geometry, " +
+        "assigneduserid, " +            // 18
+        "eventdatavalues) " +           // 19
         // @formatter:on
-        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::json )";
 
     String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (" + "trackedentitycommentid, " + // 0
         "uid, " + // 1
