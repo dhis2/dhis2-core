@@ -102,7 +102,7 @@ public interface EventStore
 
     List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
 
-    void updateEvents( List<ProgramStageInstance> programStageInstances );
+    void updateEvent( ProgramStageInstance programStageInstance );
 
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
         Map<String, Set<String>> psdesWithSkipSyncTrue );
