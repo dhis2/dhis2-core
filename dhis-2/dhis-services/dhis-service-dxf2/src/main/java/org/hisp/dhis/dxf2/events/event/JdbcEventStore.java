@@ -560,8 +560,8 @@ public class JdbcEventStore
         ps.setString( 6, event.getStatus().toString() );
         ps.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
         ps.setString( 8, event.getUid() );
-        ps.setTimestamp( 9, null ); // TODO event.getCreated -> who set this?
-        ps.setTimestamp( 10, null ); // TODO event.getLastUpdated() -> who set this?
+        ps.setTimestamp( 9, toTimestamp(new Date() ) );
+        ps.setTimestamp( 10, toTimestamp(new Date() ) );
         ps.setLong( 11, event.getAttributeOptionCombo().getId() );
         ps.setString( 12, event.getStoredBy() );
         ps.setString( 13, event.getCompletedBy() );
@@ -604,26 +604,25 @@ public class JdbcEventStore
                     pStmt.setString( 6, event.getStatus().toString() );
                     pStmt.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
                     //pStmt.setString( 8, event.getUid() );
-                    pStmt.setTimestamp( 8, null ); // TODO event.getCreated -> who set this?
-                    pStmt.setTimestamp( 9, null ); // TODO event.getLastUpdated() -> who set this?
-                    pStmt.setLong( 10, event.getAttributeOptionCombo().getId() );
-                    pStmt.setString( 11, event.getStoredBy() );
-                    pStmt.setString( 12, event.getCompletedBy() );
-                    pStmt.setBoolean( 13, false ); // TODO: deleted set to false not sure it's correct
-                    pStmt.setString( 14, event.getCode() );
-                    pStmt.setTimestamp( 15, toTimestamp( event.getCreatedAtClient() ) );
-                    pStmt.setTimestamp( 16, toTimestamp( event.getLastUpdatedAtClient() ) );
+                    pStmt.setTimestamp( 8, toTimestamp( new Date() ) );
+                    pStmt.setLong( 9, event.getAttributeOptionCombo().getId() );
+                    pStmt.setString( 10, event.getStoredBy() );
+                    pStmt.setString( 11, event.getCompletedBy() );
+                    pStmt.setBoolean( 12, event.isDeleted() );
+                    pStmt.setString( 13, event.getCode() );
+                    pStmt.setTimestamp( 14, toTimestamp( event.getCreatedAtClient() ) );
+                    pStmt.setTimestamp( 15, toTimestamp( event.getLastUpdatedAtClient() ) );
                     //pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
 
                     if ( event.getAssignedUser() != null )
                     {
-                        pStmt.setLong( 17, event.getAssignedUser().getId() );
+                        pStmt.setLong( 16, event.getAssignedUser().getId() );
                     }
                     else
                     {
-                        pStmt.setObject( 17, null );
+                        pStmt.setObject( 16, null );
                     }
-                    pStmt.setString( 18, event.getUid() );
+                    pStmt.setString( 17, event.getUid() );
                 }
 
                 @Override

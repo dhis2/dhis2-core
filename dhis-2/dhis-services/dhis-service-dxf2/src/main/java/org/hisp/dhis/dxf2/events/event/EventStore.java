@@ -86,19 +86,18 @@ public interface EventStore
             "organisationunitid = ?, " +        // 5
             "status = ?, " +                    // 6
             "completeddate = ?, " +             // 7
-            //"uid = ?, " +                     // 8
-            "created = ?, " +                   // 9
-            "lastupdated = ?, " +               // 10
-            "attributeoptioncomboid = ?, " +    // 11
-            "storedby = ?, " +                  // 12
-            "completedby = ?, " +               // 13
-            "deleted = ?, " +                   // 14
-            "code = ?, " +                      // 15
-            "createdatclient = ?, " +           // 16
-            "lastupdatedatclient = ?, " +       // 17
-            //"geometry = ?, " +                // 18
-            "assigneduserid = ? " +             // 19
-            "where uid = ?;";// 20
+            //"uid = ?, " +
+            "lastupdated = ?, " +               // 8
+            "attributeoptioncomboid = ?, " +    // 9
+            "storedby = ?, " +                  // 10
+            "completedby = ?, " +               // 11
+            "deleted = ?, " +                   // 12
+            "code = ?, " +                      // 13
+            "createdatclient = ?, " +           // 14
+            "lastupdatedatclient = ?, " +       // 15
+            //"geometry = ?, " +                //
+            "assigneduserid = ? " +             // 16
+            "where uid = ?;";                   // 17
         // @formatter:on
 
     List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
