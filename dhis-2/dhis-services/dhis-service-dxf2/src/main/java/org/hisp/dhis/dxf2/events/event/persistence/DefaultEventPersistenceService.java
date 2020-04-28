@@ -116,9 +116,8 @@ public class DefaultEventPersistenceService
     /**
      * Updates the list of given events using a single transaction.
      *
-     * @param context
-     * @param events
-     * @return
+     * @param context a {@see WorkContext}
+     * @param events a List of {@see Event}
      */
     @Override
     @Transactional

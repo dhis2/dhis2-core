@@ -28,12 +28,13 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
@@ -69,10 +70,16 @@ public class UidGenerator
 
     private void doAssignUid( Event event )
     {
-
-        if ( StringUtils.isEmpty( event.getUid() ) )
+        if ( isNotEmpty( event.getEvent() ) && CodeGenerator.isValidUid( event.getEvent() ) )
         {
-            event.setUid( CodeGenerator.generateUid() );
+            event.setUid( event.getEvent() );
+        }
+        
+        if ( isEmpty( event.getUid() ) )
+        {
+            final String uid = CodeGenerator.generateUid();
+            event.setUid( uid );
+            event.setEvent( uid );
             List<Note> notes = event.getNotes();
             for ( Note note : notes )
             {

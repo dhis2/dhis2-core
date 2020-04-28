@@ -80,6 +80,10 @@ public class ValidationFactory
         return this.validationContextLoader.load( importOptions, events );
     }
 
+    /**
+     * Execute the Validation rules.
+     * This runner stops the validation chain as soon as an error is reported.
+     */
     static class ValidationRunner
     {
         private final List<Class<? extends ValidationCheck>> validators;

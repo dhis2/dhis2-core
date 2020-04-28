@@ -212,7 +212,7 @@ public abstract class AbstractEventService2
             return importSummaries;
         }
 
-        List<ProgramStageInstance> persisted = null;
+        List<ProgramStageInstance> persisted;
         if ( invalidEvents.isEmpty() )
         {
             persisted = eventPersistenceService.save( ctx, validEvents );
