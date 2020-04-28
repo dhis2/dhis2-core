@@ -49,8 +49,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -85,6 +83,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Responsible for loading the Validation Context cache with enough data to
@@ -161,19 +162,18 @@ public class ValidationContextLoader
         }
         // @formatter:off
         return WorkContext.builder()
-                .importOptions( importOptions )
-
-                .programsMap( programMap )
-                .organisationUnitMap( loadOrganisationUnits( events ) )
-                .trackedEntityInstanceMap( loadTrackedEntityInstances( events ) )
-                .programInstanceMap( loadProgramInstances( events, programMap ) )
-                .programStageInstanceMap( loadProgramStageInstances( events ) )
-                .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
-                .dataElementMap( loadDateElements( events, importOptions) )
+            .importOptions( importOptions )
+            .programsMap( programMap )
+            .organisationUnitMap( loadOrganisationUnits( events ) )
+            .trackedEntityInstanceMap( loadTrackedEntityInstances( events ) )
+            .programInstanceMap( loadProgramInstances( events, programMap ) )
+            .programStageInstanceMap( loadProgramStageInstances( events ) )
+            .categoryOptionComboMap( loadCategoryOptionCombos( events, programMap, importOptions) )
+            .dataElementMap( loadDateElements( events, importOptions) )
             .notesMap( loadNotes( events ) )
-                .assignedUserMap( loadAssignedUsers( events ) )
-                .serviceDelegator( loadServices() )
-                .build();
+            .assignedUserMap( loadAssignedUsers( events ) )
+            .serviceDelegator( loadServices() )
+            .build();
         // @formatter:on
     }
 
@@ -361,7 +361,10 @@ public class ValidationContextLoader
 
         if ( !programInstanceUids.isEmpty() )
         {
-            final String sql = "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.uid in (:ids)";
+            final String sql = "select pi.programinstanceid, pi.programid, pi.uid, t.uid as tei_uid, ou.uid as tei_ou_uid "
+                + "from programinstance pi join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
+                + "join organisationunit ou on t.organisationunitid = ou.organisationunitid "
+                + "where pi.uid in (:ids)";
             MapSqlParameterSource parameters = new MapSqlParameterSource();
             parameters.addValue( "ids", programInstanceUids );
 
@@ -374,6 +377,13 @@ public class ValidationContextLoader
                     pi.setId( rs.getLong( "programinstanceid" ) );
                     pi.setUid( rs.getString( "uid" ) );
                     pi.setProgram( getProgramById( rs.getLong( "programid" ), programMap.values() ) );
+                    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+                    trackedEntityInstance.setUid( rs.getString("tei_uid"));
+                    OrganisationUnit organisationUnit = new OrganisationUnit();
+                    organisationUnit.setUid( rs.getString( "tei_ou_uid" ));
+                    trackedEntityInstance.setOrganisationUnit( organisationUnit );
+                    pi.setEntityInstance( trackedEntityInstance );
+
                     results.put( programInstanceToEvent.get( pi.getUid() ), pi );
 
                 }

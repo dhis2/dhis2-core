@@ -33,6 +33,8 @@ import java.util.List;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
@@ -48,9 +50,13 @@ public abstract class BaseEventAclCheck
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ImportOptions importOptions = ctx.getImportOptions();
+
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance.setProgramStage( ctx.getProgramStage( event.getProgramStage() ));
         programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
         programStageInstance.setStatus( event.getStatus() );
+        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
+        programStageInstance.setProgramInstance( programInstance );
 
         List<String> errors = checkAcl( ctx.getServiceDelegator().getTrackerAccessManager(), importOptions.getUser(),
             programStageInstance );
