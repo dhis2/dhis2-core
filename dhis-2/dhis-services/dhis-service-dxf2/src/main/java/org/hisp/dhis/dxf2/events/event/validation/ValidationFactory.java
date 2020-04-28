@@ -100,6 +100,7 @@ public class ValidationFactory
 
                     if ( importSummary.isStatus( ImportStatus.ERROR ) )
                     {
+                        importSummary.incrementIgnored();
                         return importSummary;
                     }
                 }
@@ -108,7 +109,7 @@ public class ValidationFactory
                     log.error( "An error occurred during Event import validation", e );
                 }
             }
-            return new ImportSummary();
+            return new ImportSummary( event.getUid() );
         }
     }
 }

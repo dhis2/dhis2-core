@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
 import org.hisp.dhis.dxf2.events.event.validation.update.UpdateValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -200,29 +201,38 @@ public abstract class AbstractEventService2
         // @formatter:on
 
         // collect the UIDs of events that did not pass validation
-        List<String> failedUids = importSummaries.getImportSummaries().stream()
+        List<String> invalidEvents = importSummaries.getImportSummaries().stream()
             .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference )
             .collect( Collectors.toList() );
 
-        if ( failedUids.size() == validEvents.size() )
+        if ( invalidEvents.size() == validEvents.size() )
         {
             return importSummaries;
         }
 
-        if ( failedUids.isEmpty() )
+        List<ProgramStageInstance> persisted = null;
+        if ( invalidEvents.isEmpty() )
         {
-            eventPersistenceService.save( ctx, validEvents );
+            persisted = eventPersistenceService.save( ctx, validEvents );
+
         }
         else
         {
             // collect the events that passed validation and can be persisted
             // @formatter:off
-            eventPersistenceService.save( ctx, validEvents.stream()
-                .filter( e -> !failedUids.contains( e.getEvent() ) )
+            persisted = eventPersistenceService.save( ctx, validEvents.stream()
+                .filter( e -> !invalidEvents.contains( e.getEvent() ) )
                 .collect( Collectors.toList() ) );
             // @formatter:on
         }
 
+        for ( ProgramStageInstance programStageInstance : persisted )
+        {
+            importSummaries.getByReference( programStageInstance.getUid() ).ifPresent( is -> {
+                is.setStatus( ImportStatus.SUCCESS );
+                is.incrementImported();
+            } );
+        }
         return importSummaries;
     }
 
