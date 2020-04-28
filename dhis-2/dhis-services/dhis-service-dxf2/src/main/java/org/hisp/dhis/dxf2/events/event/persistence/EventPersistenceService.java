@@ -41,5 +41,7 @@ public interface EventPersistenceService
 {
     List<ProgramStageInstance> save( WorkContext context, List<Event> events );
 
-    List<ProgramStageInstance> update( WorkContext context, List<Event> events );
+    void update( WorkContext context, Event event );
+
+    void update( WorkContext context, List<Event> events );
 }

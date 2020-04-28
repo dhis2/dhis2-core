@@ -28,13 +28,15 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -203,7 +205,7 @@ public abstract class AbstractEventService2
         // collect the UIDs of events that did not pass validation
         List<String> invalidEvents = importSummaries.getImportSummaries().stream()
             .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         if ( invalidEvents.size() == validEvents.size() )
         {
@@ -222,7 +224,7 @@ public abstract class AbstractEventService2
             // @formatter:off
             persisted = eventPersistenceService.save( ctx, validEvents.stream()
                 .filter( e -> !invalidEvents.contains( e.getEvent() ) )
-                .collect( Collectors.toList() ) );
+                .collect( toList() ) );
             // @formatter:on
         }
 
@@ -445,7 +447,7 @@ public abstract class AbstractEventService2
         // collect the UIDs of events that did not pass validation
         List<String> failedUids = importSummaries.getImportSummaries().stream()
             .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         // TODO: What if size is ZERO? Should we return error as well as nothing was actually imported?
         // Currently it returns success.
@@ -456,7 +458,18 @@ public abstract class AbstractEventService2
 
         if ( failedUids.isEmpty() )
         {
-            eventPersistenceService.update( ctx, validEvents );
+            try {
+                eventPersistenceService.update( ctx, validEvents );
+            }
+            catch ( Exception e )
+            {
+                final List<Event> failedEvents = retryEach( ctx, validEvents );
+                for ( final Event failedEvent : failedEvents )
+                {
+                    importSummaries.getImportSummaries()
+                        .add( error( "Invalid or conflicting data", failedEvent.getEvent() ) );
+                }
+            }
         }
         else
         {
@@ -464,11 +477,30 @@ public abstract class AbstractEventService2
             // @formatter:off
             eventPersistenceService.update( ctx, validEvents.stream()
                 .filter( e -> !failedUids.contains( e.getEvent() ) )
-                .collect( Collectors.toList() ) );
+                .collect( toList() ) );
             // @formatter:on
         }
 
         return importSummaries;
+    }
+
+    private List<Event> retryEach( final WorkContext context, final List<Event> validEvents )
+    {
+        final List<Event> failedEvents = new ArrayList<>( 0 );
+
+        for ( final Event event : validEvents )
+        {
+            try
+            {
+                eventPersistenceService.update( context, event );
+            }
+            catch ( Exception e )
+            {
+                failedEvents.add( event );
+            }
+        }
+
+        return failedEvents;
     }
 
     @Override
@@ -529,7 +561,7 @@ public abstract class AbstractEventService2
         }
 
         return events.stream().filter( e -> !programStageInstanceMap.containsKey( e.getEvent() ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     // FIXME: temporary - remove after refactoring ...

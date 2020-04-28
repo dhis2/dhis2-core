@@ -29,8 +29,8 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.Math.min;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -90,8 +89,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
@@ -574,54 +573,41 @@ public class JdbcEventStore
         ps.setString( 19, EventUtils.eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
     }
 
-    public void updateEvents( final List<ProgramStageInstance> events )
+    public void updateEvent( final ProgramStageInstance programStageInstance )
     {
-        for ( int i = 0; i < events.size(); i += BATCH_SIZE )
+        if ( programStageInstance != null )
         {
-            final List<ProgramStageInstance> batchList = events.subList( i, min( i + BATCH_SIZE, events.size() ) );
+            jdbcTemplate.execute( SQL_UPDATE, (PreparedStatementCallback<Boolean>) pStmt -> {
+                pStmt.setLong( 1, programStageInstance.getProgramInstance().getId() );
+                pStmt.setLong( 2, programStageInstance.getProgramStage().getId() );
+                pStmt.setTimestamp( 3, new Timestamp( programStageInstance.getDueDate().getTime() ) );
+                pStmt.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
+                pStmt.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
+                pStmt.setString( 6, programStageInstance.getStatus().toString() );
+                pStmt.setTimestamp( 7, toTimestamp( programStageInstance.getCompletedDate() ) );
+                // pStmt.setString( 8, event.getUid() );
+                pStmt.setTimestamp( 8, toTimestamp( new Date() ) );
+                pStmt.setLong( 9, programStageInstance.getAttributeOptionCombo().getId() );
+                pStmt.setString( 10, programStageInstance.getStoredBy() );
+                pStmt.setString( 11, programStageInstance.getCompletedBy() );
+                pStmt.setBoolean( 12, programStageInstance.isDeleted() );
+                pStmt.setString( 13, programStageInstance.getCode() );
+                pStmt.setTimestamp( 14, toTimestamp( programStageInstance.getCreatedAtClient() ) );
+                pStmt.setTimestamp( 15, toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
+                // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work,
+                // figure out how to handle that
 
-            jdbcTemplate.batchUpdate( SQL_UPDATE, new BatchPreparedStatementSetter()
-            {
-                @Override
-                public void setValues( final PreparedStatement pStmt, int j )
-                    throws SQLException
+                if ( programStageInstance.getAssignedUser() != null )
                 {
-                    final ProgramStageInstance event = batchList.get( j );
-
-                    pStmt.setLong( 1, event.getProgramInstance().getId() );
-                    pStmt.setLong( 2, event.getProgramStage().getId() );
-                    pStmt.setTimestamp( 3, new Timestamp( event.getDueDate().getTime() ) );
-                    pStmt.setTimestamp( 4, new Timestamp( event.getExecutionDate().getTime() ) );
-                    pStmt.setLong( 5, event.getOrganisationUnit().getId() );
-                    pStmt.setString( 6, event.getStatus().toString() );
-                    pStmt.setTimestamp( 7, toTimestamp( event.getCompletedDate() ) );
-                    //pStmt.setString( 8, event.getUid() );
-                    pStmt.setTimestamp( 8, toTimestamp( new Date() ) );
-                    pStmt.setLong( 9, event.getAttributeOptionCombo().getId() );
-                    pStmt.setString( 10, event.getStoredBy() );
-                    pStmt.setString( 11, event.getCompletedBy() );
-                    pStmt.setBoolean( 12, event.isDeleted() );
-                    pStmt.setString( 13, event.getCode() );
-                    pStmt.setTimestamp( 14, toTimestamp( event.getCreatedAtClient() ) );
-                    pStmt.setTimestamp( 15, toTimestamp( event.getLastUpdatedAtClient() ) );
-                    //pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
-
-                    if ( event.getAssignedUser() != null )
-                    {
-                        pStmt.setLong( 16, event.getAssignedUser().getId() );
-                    }
-                    else
-                    {
-                        pStmt.setObject( 16, null );
-                    }
-                    pStmt.setString( 17, event.getUid() );
+                    pStmt.setLong( 16, programStageInstance.getAssignedUser().getId() );
                 }
-
-                @Override
-                public int getBatchSize()
+                else
                 {
-                    return batchList.size();
+                    pStmt.setObject( 16, null );
                 }
+                pStmt.setString( 17, programStageInstance.getUid() );
+
+                return pStmt.execute();
             } );
         }
     }
@@ -1709,7 +1695,7 @@ public class JdbcEventStore
 
     public void delete( List<String> psiUid )
     {
-        if ( CollectionUtils.isNotEmpty( psiUid ) )
+        if ( isNotEmpty( psiUid ) )
         {
             final String uids = "'" + Joiner.on( "," ).join( psiUid ) + "'";
 

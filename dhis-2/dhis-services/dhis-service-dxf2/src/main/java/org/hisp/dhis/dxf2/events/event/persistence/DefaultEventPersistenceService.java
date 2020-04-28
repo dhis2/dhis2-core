@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.System.nanoTime;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
@@ -111,9 +113,16 @@ public class DefaultEventPersistenceService
                 .map( ImportSummary::getReference ).collect( Collectors.toList() ) );
     }
 
+    /**
+     * Updates the list of given events using a single transaction.
+     *
+     * @param context
+     * @param events
+     * @return
+     */
     @Override
     @Transactional
-    public List<ProgramStageInstance> update( final WorkContext context, final List<Event> events )
+    public void update( final WorkContext context, final List<Event> events )
     {
         if ( isNotEmpty( events ) )
         {
@@ -121,26 +130,19 @@ public class DefaultEventPersistenceService
             final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
                 new ProgramStageInstanceMapper( context ), events );
 
-            // TODO: Implement the jdbcEventStore.updateEvents method
-            jdbcEventStore.updateEvents( new ArrayList<>( eventProgramStageInstanceMap.values() ) );
+            long now = nanoTime();
 
-            long now = System.nanoTime();
-
-            // ...
-            // process data values
-            // ...
-            eventDataValueService.processDataValues( eventProgramStageInstanceMap, false, context.getImportOptions(),
-                context.getDataElementMap() );
 
             // TODO this for loop slows down the process...
             for ( final ProgramStageInstance programStageInstance : eventProgramStageInstanceMap.values() )
             {
-                // final ImportSummary importSummary1 = new ImportSummary(
-                // programStageInstance.getUid() );
                 final Event event = getEvent( programStageInstance.getUid(), events );
                 final ImportOptions importOptions = context.getImportOptions();
 
-                saveTrackedEntityComment( programStageInstance, event, importOptions );
+                if ( event != null )
+                {
+                    persistUpdateData( programStageInstance, event.getNotes(), importOptions );
+                }
 
                 // TODO: Find how to bring this into the update transaction.
                 // TODO: Maikel, what exactly needs to be updated here? Commented out for now
@@ -149,10 +151,59 @@ public class DefaultEventPersistenceService
             }
 
             System.out.println( "UPDATE: Processing Data Value for " + eventProgramStageInstanceMap.size()
-                + " PSI took : " + TimeUnit.SECONDS.convert( System.nanoTime() - now, TimeUnit.NANOSECONDS ) );
+                + " PSI took : " + TimeUnit.SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
         }
+    }
 
-        return null;
+    /**
+     * Updates the given event using a single transaction.
+     *
+     * @param context
+     * @param event
+     * @return
+     */
+    @Override
+    @Transactional
+    public void update( final WorkContext context, final Event event )
+    {
+        if ( event != null )
+        {
+            final ProgramStageInstance programStageInstance = new ProgramStageInstanceMapper( context ).map( event );
+            final ImportOptions importOptions = context.getImportOptions();
+
+            long now = nanoTime();
+
+            persistUpdateData( programStageInstance, event.getNotes(), importOptions );
+
+            // TODO: Find how to bring this into the update transaction.
+            // TODO: Maikel, what exactly needs to be updated here? Commented out for now
+            // context.getTrackedEntityInstanceMap().values()
+            // .forEach( tei -> identifiableObjectManager.update( tei,
+            // importOptions.getUser() ) );
+
+            System.out.println( "UPDATE: Processing Data Value for " + programStageInstance + " PSI took : "
+                + TimeUnit.SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
+        }
+    }
+
+    private void persistUpdateData(final ProgramStageInstance programStageInstance, final List<Note> notes,
+                                   final ImportOptions importOptions )
+    {
+        // TODO: Implement the jdbcEventStore.updateEvents method
+        jdbcEventStore.updateEvent( programStageInstance );
+
+        // ...
+        // FIXME: Uncomment after Luciano's solution
+        // process data values
+        // ...
+        // eventDataValueService.processDataValues( eventProgramStageInstanceMap, false,
+        // context.getImportOptions(),
+        // context.getDataElementMap() );
+
+        // final ImportSummary importSummary1 = new ImportSummary(
+        // programStageInstance.getUid() );
+
+        saveTrackedEntityComment( programStageInstance, notes, importOptions );
     }
 
     private Event getEvent( String uid, List<Event> events )
@@ -174,10 +225,10 @@ public class DefaultEventPersistenceService
         return map;
     }
 
-    private void saveTrackedEntityComment( final ProgramStageInstance programStageInstance, final Event event,
+    private void saveTrackedEntityComment( final ProgramStageInstance programStageInstance, final List<Note> notes,
         final ImportOptions importOptions )
     {
-        for ( final Note note : event.getNotes() )
+        for ( final Note note : notes )
         {
             final String noteUid = isValidUid( note.getNote() ) ? note.getNote() : generateUid();
 
