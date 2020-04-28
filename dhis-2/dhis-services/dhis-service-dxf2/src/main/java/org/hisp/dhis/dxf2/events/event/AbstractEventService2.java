@@ -454,11 +454,9 @@ public abstract class AbstractEventService2
             catch ( Exception e )
             {
                 final List<Event> failedEvents = retryEach( ctx, validEvents );
-                for ( final Event failedEvent : failedEvents )
-                {
-                    importSummaries.getImportSummaries()
-                        .add( error( "Invalid or conflicting data", failedEvent.getEvent() ) );
-                }
+
+                failedEvents.forEach( failedEvent -> importSummaries.getImportSummaries()
+                    .add( error( "Invalid or conflicting data", failedEvent.getEvent() ) ) );
             }
         }
         else
