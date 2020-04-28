@@ -37,6 +37,7 @@ import static org.hisp.dhis.util.DateUtils.*;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -61,6 +62,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -578,8 +580,15 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasTrackedEntityType() )
+        if ( !params.hasTrackedEntityType() )
         {
+            sql += hlp.whereAnd() + " tei.trackedentitytypeid in (" + params.getTrackedEntityTypes().stream()
+                .filter( Objects::nonNull )
+                .map( TrackedEntityType::getId )
+                .map( String::valueOf )
+                .collect( Collectors.joining(", ") ) + ") ";
+        }
+        else        {
             sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }
 
