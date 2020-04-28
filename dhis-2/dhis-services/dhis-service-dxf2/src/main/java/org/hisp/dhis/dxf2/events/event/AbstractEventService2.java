@@ -134,7 +134,6 @@ public abstract class AbstractEventService2
         return importSummaries;
     }
 
-    @Transactional
     @Override
     public ImportSummaries processEventImportUpdate( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {

@@ -126,7 +126,6 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -583,7 +582,6 @@ public class JdbcEventStore
         }
     }
 
-    @Transactional
     public void updateEvents( final List<ProgramStageInstance> events )
     {
         for ( int i = 0; i < events.size(); i += BATCH_SIZE )
