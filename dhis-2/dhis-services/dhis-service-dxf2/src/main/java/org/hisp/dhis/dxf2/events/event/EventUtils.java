@@ -28,16 +28,24 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author Luciano Fiandesio
  */
-public class EventUtils {
-
+public class EventUtils
+{
     public final static String FALLBACK_USERNAME = "[Unknown]";
 
     public static String getValidUsername( String userName, ImportOptions importOptions )
@@ -55,5 +63,23 @@ public class EventUtils {
         }
 
         return validUsername;
+    }
+
+    /**
+     * Converts a Set of {@see EventDataValue} into a JSON string using the provided
+     * Jackson {@see ObjectMapper} This method, before serializing to JSON, if first
+     * transforms the Set into a Map, where the Map key is the EventDataValue
+     * DataElement UID and the Map value is the actual {@see EventDataValue}.
+     * 
+     * @param dataValues a Set of {@see EventDataValue}
+     * @param mapper a configured Jackson {@see ObjectMapper}
+     * @return a String containing the serialized Set
+     * @throws JsonProcessingException if the JSON serialization fails
+     */
+    public static String eventDataValuesToJson( Set<EventDataValue> dataValues, ObjectMapper mapper )
+        throws JsonProcessingException
+    {
+        return mapper.writeValueAsString(
+            dataValues.stream().collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) );
     }
 }
