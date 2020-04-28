@@ -200,6 +200,10 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
+        trackedEntityInstances = trackedEntityInstances.stream()
+            .filter( (tei) -> aclService.canDataRead( user, tei.getTrackedEntityType() ) )
+            .collect( Collectors.toList() );
+
         String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
         for ( TrackedEntityInstance tei : trackedEntityInstances )
