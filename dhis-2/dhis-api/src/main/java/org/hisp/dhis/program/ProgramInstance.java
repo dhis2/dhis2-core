@@ -39,6 +39,7 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -59,7 +60,7 @@ import com.vividsolutions.jts.geom.Geometry;
 @Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramInstance
-    extends BaseIdentifiableObject
+    extends SoftDeletableObject
 {
     private Date createdAtClient;
 
@@ -95,9 +96,6 @@ public class ProgramInstance
     private String completedBy;
 
     private Geometry geometry;
-
-    @AuditAttribute
-    private Boolean deleted = false;
 
     private String storedBy;
 
@@ -505,18 +503,6 @@ public class ProgramInstance
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isDeleted()
-    {
-        return deleted;
-    }
-
-    public void setDeleted( Boolean deleted )
-    {
-        this.deleted = deleted;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getStoredBy()
     {
         return storedBy;
@@ -551,12 +537,12 @@ public class ProgramInstance
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             ", status=" + status +
-            ", organisationUnit=" + ( organisationUnit != null ? organisationUnit.getUid() : "null" ) +
+            ", organisationUnit=" + (organisationUnit != null ? organisationUnit.getUid() : "null") +
             ", incidentDate=" + incidentDate +
             ", enrollmentDate=" + enrollmentDate +
-            ", entityInstance=" + ( entityInstance != null ? entityInstance.getUid() : "null" ) +
+            ", entityInstance=" + (entityInstance != null ? entityInstance.getUid() : "null") +
             ", program=" + program +
-            ", deleted=" + deleted +
+            ", deleted=" + isDeleted() +
             ", storedBy='" + storedBy + '\'' +
             '}';
     }
