@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.events.event.persistence;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**

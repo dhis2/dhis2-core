@@ -40,11 +40,12 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.preprocess.update.PreUpdateProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.event.validation.update.UpdateValidationFactory;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -74,6 +75,8 @@ public abstract class AbstractEventService2
 
     protected ValidationFactory validationFactory;
 
+    protected WorkContextLoader workContextLoader;
+
     protected UpdateValidationFactory updateValidationFactory;
 
     protected PreProcessorFactory preProcessorFactory;
@@ -100,7 +103,7 @@ public abstract class AbstractEventService2
         List<Event> eventsWithUid = new UidGenerator().assignUidToEvents( events );
 
         long now = System.nanoTime();
-        WorkContext validationContext = validationFactory.getContext( importOptions, eventsWithUid );
+        WorkContext context = workContextLoader.load( importOptions, eventsWithUid );
         log.debug( "::: validation context load took : " + (System.nanoTime() - now) );
 
         List<List<Event>> partitions = Lists.partition( eventsWithUid, BATCH_SIZE );
@@ -108,10 +111,10 @@ public abstract class AbstractEventService2
         for ( List<Event> batch : partitions )
         {
             ImportStrategyAccumulator accumulator = new ImportStrategyAccumulator().partitionEvents( batch,
-                importOptions.getImportStrategy(), validationContext.getProgramStageInstanceMap() );
+                importOptions.getImportStrategy(), context.getProgramStageInstanceMap() );
 
             importSummaries
-                .addImportSummaries( addEvents( accumulator.getCreate(), importOptions, validationContext ) );
+                .addImportSummaries( addEvents( accumulator.getCreate(), importOptions, context ) );
             // -- old code -- : -- please refactor --
             // importSummaries.addImportSummaries( updateEvents( accumulator.getUpdate(),
             // importOptions, false, true ) );

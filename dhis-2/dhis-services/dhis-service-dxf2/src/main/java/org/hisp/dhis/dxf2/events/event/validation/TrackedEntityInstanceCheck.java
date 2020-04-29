@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
@@ -42,7 +43,7 @@ public class TrackedEntityInstanceCheck implements ValidationCheck
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = ctx.trackedEntityInstanceMap.get( event.getUid() );
+        TrackedEntityInstance tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
 
         if ( program.isRegistration() && tei == null )
         {

@@ -36,10 +36,10 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationContextLoader;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -51,15 +51,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UpdateValidationFactory
 {
-    private final ValidationContextLoader validationContextLoader;
+    private final WorkContextLoader workContextLoader;
 
     private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> eventUpdateValidatorMap;
 
-    public UpdateValidationFactory( final ValidationContextLoader validationContextLoader,
+    public UpdateValidationFactory( final WorkContextLoader workContextLoader,
                                     final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> eventUpdateValidatorMap )
     {
-        checkNotNull( validationContextLoader );
-        this.validationContextLoader = validationContextLoader;
+        checkNotNull( workContextLoader );
+        this.workContextLoader = workContextLoader;
         this.eventUpdateValidatorMap = eventUpdateValidatorMap;
     }
 
@@ -78,7 +78,7 @@ public class UpdateValidationFactory
 
     public WorkContext getContext( final ImportOptions importOptions, final List<Event> events )
     {
-        return this.validationContextLoader.load( importOptions, events );
+        return this.workContextLoader.load( importOptions, events );
     }
 
     static class ValidationRunner

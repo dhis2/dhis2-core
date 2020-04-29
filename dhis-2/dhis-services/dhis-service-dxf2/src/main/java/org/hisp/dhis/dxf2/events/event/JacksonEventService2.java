@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
 import org.hisp.dhis.dxf2.events.event.preprocess.update.PreUpdateProcessorFactory;
@@ -77,13 +78,15 @@ public class JacksonEventService2
 
     private final ObjectMapper xmlMapper;
 
-    public JacksonEventService2( Notifier notifier, ValidationFactory validationFactory,
-        UpdateValidationFactory updateValidationFactory, PreProcessorFactory preProcessorFactory,
-        PreUpdateProcessorFactory preUpdateProcessorFactory, EventPersistenceService eventPersistenceService,
-        ObjectMapper jsonMapper, @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+    public JacksonEventService2( Notifier notifier, WorkContextLoader workContextLoader,
+        ValidationFactory validationFactory, UpdateValidationFactory updateValidationFactory,
+        PreProcessorFactory preProcessorFactory, PreUpdateProcessorFactory preUpdateProcessorFactory,
+        EventPersistenceService eventPersistenceService, ObjectMapper jsonMapper,
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
 
         checkNotNull( notifier );
+        checkNotNull( workContextLoader );
         checkNotNull( validationFactory );
         checkNotNull( updateValidationFactory );
         checkNotNull( preProcessorFactory );
@@ -93,6 +96,7 @@ public class JacksonEventService2
         checkNotNull( xmlMapper );
 
         this.notifier = notifier;
+        this.workContextLoader = workContextLoader;
         this.validationFactory = validationFactory;
         this.updateValidationFactory = updateValidationFactory;
         this.preProcessorFactory = preProcessorFactory;

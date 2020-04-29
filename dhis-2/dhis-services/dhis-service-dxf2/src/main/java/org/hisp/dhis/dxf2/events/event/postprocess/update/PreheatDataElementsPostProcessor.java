@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.event.postprocess.update;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 
 public class PreheatDataElementsPostProcessor
     implements

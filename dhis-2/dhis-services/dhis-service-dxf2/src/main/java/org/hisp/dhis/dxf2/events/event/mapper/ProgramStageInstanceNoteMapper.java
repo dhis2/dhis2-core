@@ -34,7 +34,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import java.util.Date;
 
 import org.hisp.dhis.dxf2.events.event.Note;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
 /**

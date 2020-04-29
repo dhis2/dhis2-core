@@ -28,14 +28,12 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -51,19 +49,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ValidationFactory
 {
-    private final ValidationContextLoader validationContextLoader;
-
     private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap;
 
-    public ValidationFactory( ValidationContextLoader validationContextLoader,
+    public ValidationFactory(
         @Qualifier( "eventValidatorMap" ) Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap )
     {
-        checkNotNull( validationContextLoader );
-        this.validationContextLoader = validationContextLoader;
         this.validatorMap = validatorMap;
     }
 
-    public List<ImportSummary> validateEvents( WorkContext ctx, List<Event> events )
+    public List<ImportSummary> validateEvents(WorkContext ctx, List<Event> events )
     {
         List<ImportSummary> importSummaries = new ArrayList<>();
         ValidationRunner validationRunner = new ValidationRunner(
@@ -75,14 +69,9 @@ public class ValidationFactory
         return importSummaries;
     }
 
-    public WorkContext getContext( ImportOptions importOptions, List<Event> events )
-    {
-        return this.validationContextLoader.load( importOptions, events );
-    }
-
     /**
-     * Execute the Validation rules.
-     * This runner stops the validation chain as soon as an error is reported.
+     * Execute the Validation rules. This runner stops the validation chain as soon
+     * as an error is reported.
      */
     static class ValidationRunner
     {

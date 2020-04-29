@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.mapper;
+package org.hisp.dhis.dxf2.events.event.context;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,28 @@ package org.hisp.dhis.dxf2.events.event.mapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceDataValueMapper extends AbstractMapper<DataValue, EventDataValue>
+public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
 {
-    public ProgramStageInstanceDataValueMapper( WorkContext ctx )
+    protected final NamedParameterJdbcTemplate jdbcTemplate;
+
+    public AbstractSupplier( JdbcTemplate jdbcTemplate )
     {
-        super( ctx );
+        this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
     @Override
-    public EventDataValue map( DataValue dataValue )
+    public T get( ImportOptions importOptions, List<Event> events )
     {
-        EventDataValue eventDataValue = new EventDataValue();
-        eventDataValue.setDataElement( dataValue.getDataElement() );
-        eventDataValue.setValue( dataValue.getValue() );
-        eventDataValue.setStoredBy( eventDataValue.getStoredBy() );
-        eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-
-        return eventDataValue;
+        return get( events );
     }
 }

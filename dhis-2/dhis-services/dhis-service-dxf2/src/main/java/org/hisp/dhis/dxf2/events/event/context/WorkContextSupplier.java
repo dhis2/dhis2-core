@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.mapper;
+package org.hisp.dhis.dxf2.events.event.context;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,17 @@ package org.hisp.dhis.dxf2.events.event.mapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Event;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceDataValueMapper extends AbstractMapper<DataValue, EventDataValue>
+public interface WorkContextSupplier<T>
 {
-    public ProgramStageInstanceDataValueMapper( WorkContext ctx )
-    {
-        super( ctx );
-    }
+    T get( List<Event> events );
 
-    @Override
-    public EventDataValue map( DataValue dataValue )
-    {
-        EventDataValue eventDataValue = new EventDataValue();
-        eventDataValue.setDataElement( dataValue.getDataElement() );
-        eventDataValue.setValue( dataValue.getValue() );
-        eventDataValue.setStoredBy( eventDataValue.getStoredBy() );
-        eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-
-        return eventDataValue;
-    }
+    T get(ImportOptions importOptions, List<Event> events );
 }

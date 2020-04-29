@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.events.event.preprocess;
  */
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.validation.WorkContext;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 
 /**
  * @author Luciano Fiandesio

@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.validation;
+package org.hisp.dhis.dxf2.events.event.context;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -35,6 +35,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.event.validation.ServiceDelegator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -74,7 +75,7 @@ public class WorkContext
      *
      * Map key is Event uid, value is {@see TrackedEntityInstance}
      */
-    Map<String, TrackedEntityInstance> trackedEntityInstanceMap;
+    private final Map<String, TrackedEntityInstance> trackedEntityInstanceMap;
 
     /**
      * Map key is Event uid, value is {@see ProgramInstance}
