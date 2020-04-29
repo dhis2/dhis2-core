@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.event.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,13 +42,9 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 /**
  * @author Luciano Fiandesio
@@ -104,7 +102,7 @@ public class NoteSupplier extends AbstractSupplier<Map<String, Note>>
                 if ( isNotEmpty( eventNotes ) )
                 {
                     persistableNotes.putAll(
-                            eventNotes.stream().collect( Collectors.toMap( Note::getNote, Function.identity() ) ) );
+                        eventNotes.stream().collect( Collectors.toMap( Note::getNote, Function.identity() ) ) );
                 }
             }
         }

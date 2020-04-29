@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
@@ -44,7 +43,7 @@ public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
 
     public AbstractSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
-        this.jdbcTemplate = jdbcTemplate ;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override

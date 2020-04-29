@@ -38,8 +38,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -50,7 +48,7 @@ import org.springframework.stereotype.Component;
 @Component( "workContextProgramStageInstancesSupplier" )
 public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, ProgramStageInstance>>
 {
-    public ProgramStageInstanceSupplier(NamedParameterJdbcTemplate jdbcTemplate)
+    public ProgramStageInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }

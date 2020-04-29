@@ -38,8 +38,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -50,7 +48,7 @@ import org.springframework.stereotype.Component;
 @Component( "workContextAssignedUsersSupplier" )
 public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
 {
-    public AssignedUserSupplier(NamedParameterJdbcTemplate namedParameterJdbcTemplate)
+    public AssignedUserSupplier( NamedParameterJdbcTemplate namedParameterJdbcTemplate )
     {
         super( namedParameterJdbcTemplate );
     }

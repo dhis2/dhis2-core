@@ -38,8 +38,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -93,7 +91,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
                 ou.setId( rs.getLong( "organisationunitid" ) );
                 ou.setUid( rs.getString( "uid" ) );
                 ou.setCode( rs.getString( "code" ) );
-                String path = rs.getString( "path");
+                String path = rs.getString( "path" );
                 ou.setPath( path );
                 ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
                 ou.setParent( getParentHierarchy( ou, path ) );
