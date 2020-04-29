@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +56,11 @@ public class ValidationFactory
     public ValidationFactory(
         @Qualifier( "eventValidatorMap" ) Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap )
     {
+        checkNotNull( validatorMap );
         this.validatorMap = validatorMap;
     }
 
-    public List<ImportSummary> validateEvents(WorkContext ctx, List<Event> events )
+    public List<ImportSummary> validateEvents( WorkContext ctx, List<Event> events )
     {
         List<ImportSummary> importSummaries = new ArrayList<>();
         ValidationRunner validationRunner = new ValidationRunner(

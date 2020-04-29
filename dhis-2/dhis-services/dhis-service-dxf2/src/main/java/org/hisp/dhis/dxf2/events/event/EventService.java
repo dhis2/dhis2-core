@@ -37,10 +37,10 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
@@ -95,7 +95,7 @@ public interface EventService
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, WorkContext validationContext );
+    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, ValidationContext validationContext );
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 
@@ -120,9 +120,6 @@ public interface EventService
     ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
         boolean clearSession );
 
-    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
-        boolean clearSession, WorkContext ctx );
-
     void updateEventForNote( Event event );
 
     void updateEventForEventDate( Event event );
@@ -135,6 +132,8 @@ public interface EventService
      */
     void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );
 
+    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
+
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
@@ -144,8 +143,4 @@ public interface EventService
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
-
-    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
-
-    ImportSummaries processEventImportUpdate( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 }
