@@ -41,6 +41,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,9 +50,9 @@ import org.springframework.stereotype.Component;
 @Component( "workContextAssignedUsersSupplier" )
 public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
 {
-    public AssignedUserSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public AssignedUserSupplier(NamedParameterJdbcTemplate namedParameterJdbcTemplate)
     {
-        super( jdbcTemplate );
+        super( namedParameterJdbcTemplate );
     }
 
     @Override

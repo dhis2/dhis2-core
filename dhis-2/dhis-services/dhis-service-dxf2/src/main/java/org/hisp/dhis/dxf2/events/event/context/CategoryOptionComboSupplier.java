@@ -39,7 +39,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.AttributeOptionComboLoader;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,7 +52,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
 
     private final ProgramSupplier programSupplier;
 
-    public CategoryOptionComboSupplier( JdbcTemplate jdbcTemplate, ProgramSupplier programSupplier,
+    public CategoryOptionComboSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier,
         AttributeOptionComboLoader attributeOptionComboLoader )
     {
         super( jdbcTemplate );
@@ -67,7 +67,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
     }
 
     @Override
-    public Map<String, CategoryOptionCombo> get(ImportOptions importOptions, List<Event> events )
+    public Map<String, CategoryOptionCombo> get( ImportOptions importOptions, List<Event> events )
     {
         // TODO this should be optimized to execute less SQL queries
         IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();

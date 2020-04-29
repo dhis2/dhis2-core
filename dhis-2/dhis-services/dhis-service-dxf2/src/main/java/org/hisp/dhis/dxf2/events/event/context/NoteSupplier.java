@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.events.event.Note;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -53,7 +54,7 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 @Component( "workContextNotesSupplier" )
 public class NoteSupplier extends AbstractSupplier<Map<String, Note>>
 {
-    public NoteSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public NoteSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }

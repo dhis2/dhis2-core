@@ -41,6 +41,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Component( "workContextProgramStageInstancesSupplier" )
 public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, ProgramStageInstance>>
 {
-    public ProgramStageInstanceSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public ProgramStageInstanceSupplier(NamedParameterJdbcTemplate jdbcTemplate)
     {
         super( jdbcTemplate );
     }

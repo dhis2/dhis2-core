@@ -44,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +55,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 {
     private final ProgramSupplier programSupplier;
 
-    public ProgramInstanceSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+    public ProgramInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate,
         ProgramSupplier programSupplier )
     {
         super( jdbcTemplate );

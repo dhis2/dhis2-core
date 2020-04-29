@@ -42,9 +42,9 @@ public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
 {
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public AbstractSupplier( JdbcTemplate jdbcTemplate )
+    public AbstractSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
-        this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
+        this.jdbcTemplate = jdbcTemplate ;
     }
 
     @Override

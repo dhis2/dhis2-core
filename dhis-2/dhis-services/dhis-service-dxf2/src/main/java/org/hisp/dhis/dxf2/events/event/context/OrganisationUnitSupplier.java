@@ -28,7 +28,8 @@ package org.hisp.dhis.dxf2.events.event.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.HashMultimap;
@@ -51,7 +53,7 @@ import com.google.common.collect.Multimap;
 @Component( "workContextOrgUnitsSupplier" )
 public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, OrganisationUnit>>
 {
-    public OrganisationUnitSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public OrganisationUnitSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }
@@ -59,6 +61,10 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
     @Override
     public Map<String, OrganisationUnit> get( List<Event> events )
     {
+        if ( events == null )
+        {
+            return new HashMap<>();
+        }
         // @formatter:off
         // Collect all the org unit uids to pass as SQL query argument
         final Set<String> orgUnitUids = events.stream()
@@ -78,7 +84,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", orgUnitUids );
 
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+        return jdbcTemplate.query( sql, parameters, rs -> {
             Map<String, OrganisationUnit> results = new HashMap<>();
 
             while ( rs.next() )
@@ -87,8 +93,10 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
                 ou.setId( rs.getLong( "organisationunitid" ) );
                 ou.setUid( rs.getString( "uid" ) );
                 ou.setCode( rs.getString( "code" ) );
-                ou.setPath( rs.getString( "path" ) );
+                String path = rs.getString( "path");
+                ou.setPath( path );
                 ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
+                ou.setParent( getParentHierarchy( ou, path ) );
                 for ( String event : orgUnitToEvent.get( ou.getUid() ) )
                 {
                     results.put( event, ou );
@@ -97,5 +105,29 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
             }
             return results;
         } );
+    }
+
+    public OrganisationUnit getParentHierarchy( OrganisationUnit ou, String path )
+    {
+        if ( path.startsWith( "/" ) )
+        {
+            path = path.substring( 1 );
+        }
+        List<String> list = Arrays.asList( path.split( "/" ) );
+        Collections.reverse( list );
+
+        List<OrganisationUnit> ous = list.stream().filter( uid -> !uid.equals( ou.getUid() ) ).map( ouUid -> {
+            OrganisationUnit o = new OrganisationUnit();
+            o.setUid( ouUid );
+            return o;
+        } ).collect( Collectors.toList() );
+        OrganisationUnit parent = ous.get( 0 );
+        for ( OrganisationUnit organisationUnit : ous )
+        {
+            parent.setParent( organisationUnit );
+            parent = organisationUnit;
+        }
+
+        return ous.get( 0 );
     }
 }

@@ -42,6 +42,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.HashMultimap;
@@ -53,7 +54,7 @@ import com.google.common.collect.Multimap;
 @Component( "workContextTrackedEntityInstancesSupplier" )
 public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, TrackedEntityInstance>>
 {
-    public TrackedEntityInstanceSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public TrackedEntityInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }

@@ -49,8 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,7 +66,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         .build();
     // @formatter:on
 
-    public ProgramSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }
@@ -140,15 +139,15 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     private ProgramStage toProgramStage( ResultSet rs )
-            throws SQLException
+        throws SQLException
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setId( rs.getLong( "ps_id" ) );
         programStage.setUid( rs.getString( "ps_uid" ) );
         programStage.setSortOrder( rs.getInt( "sort_order" ) );
         programStage.setFeatureType(
-                rs.getString( "ps_feature_type" ) != null ? FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) )
-                        : FeatureType.NONE );
+            rs.getString( "ps_feature_type" ) != null ? FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) )
+                : FeatureType.NONE );
 
         return programStage;
     }

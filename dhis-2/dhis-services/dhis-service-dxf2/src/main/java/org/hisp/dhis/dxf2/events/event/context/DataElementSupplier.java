@@ -42,7 +42,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +54,7 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
 
     private final IdentifiableObjectManager manager;
 
-    public DataElementSupplier( JdbcTemplate jdbcTemplate, IdentifiableObjectManager manager )
+    public DataElementSupplier( NamedParameterJdbcTemplate jdbcTemplate, IdentifiableObjectManager manager )
     {
         super( jdbcTemplate );
         this.manager = manager;

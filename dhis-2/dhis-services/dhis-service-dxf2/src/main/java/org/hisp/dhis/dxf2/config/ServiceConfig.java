@@ -34,12 +34,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.dxf2.events.event.preprocess.*;
+import org.hisp.dhis.dxf2.events.event.preprocess.AssignUidPreProcessor;
+import org.hisp.dhis.dxf2.events.event.preprocess.EventStoredByPreProcessor;
+import org.hisp.dhis.dxf2.events.event.preprocess.ImportOptionsPreProcessor;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
+import org.hisp.dhis.dxf2.events.event.preprocess.ProgramInstancePreProcessor;
+import org.hisp.dhis.dxf2.events.event.preprocess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.update.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboCheck;
-import org.hisp.dhis.dxf2.events.event.validation.EventCreationAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventBaseCheck;
+import org.hisp.dhis.dxf2.events.event.validation.EventCreationAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventDateCheck;
 import org.hisp.dhis.dxf2.events.event.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.event.validation.OrgUnitCheck;
@@ -71,6 +76,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -93,6 +100,12 @@ public class ServiceConfig
     @Qualifier( "maxAttempts" )
     private ConfigurationPropertyFactoryBean maxAttempts;
 
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    {
+        return new NamedParameterJdbcTemplate( jdbcTemplate );
+    }
+    
     @Bean( "retryTemplate" )
     public RetryTemplate retryTemplate()
     {
