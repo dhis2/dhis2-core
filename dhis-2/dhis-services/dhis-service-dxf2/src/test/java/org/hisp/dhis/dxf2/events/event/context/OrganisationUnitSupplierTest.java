@@ -1,23 +1,5 @@
 package org.hisp.dhis.dxf2.events.event.context;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Map;
-
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -45,6 +27,24 @@ import org.mockito.Mockito;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Map;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Luciano Fiandesio
