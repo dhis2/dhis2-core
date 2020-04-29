@@ -34,12 +34,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -51,15 +50,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UpdateValidationFactory
 {
-    private final WorkContextLoader workContextLoader;
-
     private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> eventUpdateValidatorMap;
 
     public UpdateValidationFactory( final WorkContextLoader workContextLoader,
-                                    final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> eventUpdateValidatorMap )
+        final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> eventUpdateValidatorMap )
     {
-        checkNotNull( workContextLoader );
-        this.workContextLoader = workContextLoader;
+        checkNotNull( eventUpdateValidatorMap );
         this.eventUpdateValidatorMap = eventUpdateValidatorMap;
     }
 
@@ -67,7 +63,7 @@ public class UpdateValidationFactory
     {
         final List<ImportSummary> importSummaries = new ArrayList<>();
         final ValidationRunner validationRunner = new ValidationRunner(
-                eventUpdateValidatorMap.get( ctx.getImportOptions().getImportStrategy() ) );
+            eventUpdateValidatorMap.get( ctx.getImportOptions().getImportStrategy() ) );
 
         for ( final Event event : events )
         {
@@ -76,16 +72,11 @@ public class UpdateValidationFactory
         return importSummaries;
     }
 
-    public WorkContext getContext( final ImportOptions importOptions, final List<Event> events )
-    {
-        return this.workContextLoader.load( importOptions, events );
-    }
-
     static class ValidationRunner
     {
-        private List<Class<? extends ValidationCheck>> validators;
+        private final List<Class<? extends ValidationCheck>> validators;
 
-        public ValidationRunner( List<Class<? extends ValidationCheck>> validators )
+        public ValidationRunner( final List<Class<? extends ValidationCheck>> validators )
         {
             this.validators = validators;
         }

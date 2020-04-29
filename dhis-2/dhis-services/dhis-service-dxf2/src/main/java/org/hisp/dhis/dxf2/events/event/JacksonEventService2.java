@@ -29,29 +29,23 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.util.StreamUtils.copyToString;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
-import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
-import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessorFactory;
-import org.hisp.dhis.dxf2.events.event.preprocess.update.PreUpdateProcessorFactory;
-import org.hisp.dhis.dxf2.events.event.validation.ValidationFactory;
-import org.hisp.dhis.dxf2.events.event.validation.update.UpdateValidationFactory;
+import org.hisp.dhis.dxf2.events.event.importer.EventImporter;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationContext;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -74,34 +68,21 @@ public class JacksonEventService2
     // EventService Impl
     // -------------------------------------------------------------------------
 
+    private final EventImporter eventImporter;
+
     private final ObjectMapper jsonMapper;
 
     private final ObjectMapper xmlMapper;
 
-    public JacksonEventService2( Notifier notifier, WorkContextLoader workContextLoader,
-        ValidationFactory validationFactory, UpdateValidationFactory updateValidationFactory,
-        PreProcessorFactory preProcessorFactory, PreUpdateProcessorFactory preUpdateProcessorFactory,
-        EventPersistenceService eventPersistenceService, ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+    public JacksonEventService2( final EventImporter eventImporter, final ObjectMapper jsonMapper,
+        @Qualifier( "xmlMapper" )
+        final ObjectMapper xmlMapper )
     {
-
-        checkNotNull( notifier );
-        checkNotNull( workContextLoader );
-        checkNotNull( validationFactory );
-        checkNotNull( updateValidationFactory );
-        checkNotNull( preProcessorFactory );
-        checkNotNull( preUpdateProcessorFactory );
-        checkNotNull( eventPersistenceService );
+        checkNotNull( eventImporter );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
-        this.notifier = notifier;
-        this.workContextLoader = workContextLoader;
-        this.validationFactory = validationFactory;
-        this.updateValidationFactory = updateValidationFactory;
-        this.preProcessorFactory = preProcessorFactory;
-        this.preUpdateProcessorFactory = preUpdateProcessorFactory;
-        this.eventPersistenceService = eventPersistenceService;
+        this.eventImporter = eventImporter;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
     }
@@ -124,7 +105,7 @@ public class JacksonEventService2
     public List<Event> getEventsXml( InputStream inputStream )
         throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
+        String input = copyToString( inputStream, UTF_8 );
 
         return parseXmlEvents( input );
     }
@@ -133,9 +114,19 @@ public class JacksonEventService2
     public List<Event> getEventsJson( InputStream inputStream )
         throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
+        String input = copyToString( inputStream, UTF_8 );
 
         return parseJsonEvents( input );
+    }
+
+    @Override
+    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, ValidationContext validationContext) {
+        return null;
+    }
+
+    @Override
+    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, JobConfiguration jobId) {
+        return null;
     }
 
     @Override
@@ -149,10 +140,10 @@ public class JacksonEventService2
     public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
         throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
+        String input = copyToString( inputStream, UTF_8 );
         List<Event> events = parseXmlEvents( input );
 
-        return processEventImport( events, updateImportOptions( importOptions ), jobId );
+        return eventImporter.importAll( events, updateImportOptions( importOptions ), jobId );
     }
 
     @Override
@@ -166,28 +157,20 @@ public class JacksonEventService2
     public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
         throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
-        List<Event> events = parseJsonEvents( input );
+        final String input = copyToString( inputStream, UTF_8 );
+        final List<Event> events = parseJsonEvents( input );
 
-        if ( importOptions != null && importOptions.getImportStrategy() != null )
-        {
-            final ImportStrategy importStrategy = importOptions.getImportStrategy();
+        return eventImporter.importAll( events, updateImportOptions( importOptions ), jobId );
+    }
 
-            if ( importStrategy.isCreate() )
-            {
-                return processEventImport( events, updateImportOptions( importOptions ), jobId );
-            }
-            else if ( importStrategy.isUpdate() )
-            {
-                return processEventImportUpdate( events, updateImportOptions( importOptions ), jobId );
-            }
-            // TODO: Add specific import in case of:
-            // importStrategy.isCreateAndUpdate()
-            // importStrategy.isDelete()
-            // importStrategy.isSync()
-        }
-        // Default is import - create, if no import strategy is defined
-        return processEventImport( events, updateImportOptions( importOptions ), jobId );
+    @Override
+    public ImportSummaries updateEvents(List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession) {
+        return null;
+    }
+
+    @Override
+    public ImportSummaries processEventImport(List<Event> events, ImportOptions importOptions, JobConfiguration jobId) {
+        return null;
     }
 
     // -------------------------------------------------------------------------

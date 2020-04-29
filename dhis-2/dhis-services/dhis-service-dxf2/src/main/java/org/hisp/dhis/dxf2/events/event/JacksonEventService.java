@@ -41,10 +41,10 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationContext;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EventSyncService;
@@ -202,7 +202,7 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, WorkContext validationContext) {
+    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, ValidationContext validationContext) {
         return null;
     }
 
@@ -234,20 +234,6 @@ public class JacksonEventService extends AbstractEventService
         List<Event> events = parseJsonEvents( input );
 
         return processEventImport( events, updateImportOptions( importOptions ), jobId );
-    }
-
-    @Override
-    public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
-        boolean clearSession, WorkContext ctx )
-    {
-        return null;
-    }
-
-    @Override
-    public ImportSummaries processEventImportUpdate( List<Event> events, ImportOptions importOptions,
-        JobConfiguration jobId )
-    {
-        return null;
     }
 
     // -------------------------------------------------------------------------
