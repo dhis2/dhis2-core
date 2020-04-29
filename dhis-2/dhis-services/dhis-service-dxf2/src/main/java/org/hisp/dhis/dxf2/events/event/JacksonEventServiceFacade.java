@@ -40,29 +40,17 @@ import java.util.List;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.importer.EventImporter;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationContext;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Implementation of EventService that uses Jackson for serialization and
- * deserialization. This class has the prototype scope and can hence have class
- * scoped variables such as caches.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Service( "org.hisp.dhis.dxf2.events.event.EventService" )
-@Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
-public class JacksonEventService2
-    extends
-    AbstractEventService2
+@Service
+class JacksonEventServiceFacade
 {
     // -------------------------------------------------------------------------
     // EventService Impl
@@ -70,150 +58,117 @@ public class JacksonEventService2
 
     private final EventImporter eventImporter;
 
+    private final CurrentUserService currentUserService;
+
     private final ObjectMapper jsonMapper;
 
     private final ObjectMapper xmlMapper;
 
-    public JacksonEventService2( final EventImporter eventImporter, final ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" )
+    JacksonEventServiceFacade( final EventImporter eventImporter, final CurrentUserService currentUserService,
+        final ObjectMapper jsonMapper, @Qualifier( "xmlMapper" )
         final ObjectMapper xmlMapper )
     {
         checkNotNull( eventImporter );
+        checkNotNull( currentUserService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
         this.eventImporter = eventImporter;
+        this.currentUserService = currentUserService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
     }
 
-    @SuppressWarnings( "unchecked" )
-    private <T> T fromXml( String input, Class<?> clazz )
+    ImportSummaries addEventsXml( final InputStream inputStream, final JobConfiguration jobConfiguration,
+        final ImportOptions importOptions )
         throws IOException
     {
-        return (T) xmlMapper.readValue( input, clazz );
+        final String input = copyToString( inputStream, UTF_8 );
+        final List<Event> events = parseXmlEvents( input );
+
+        return eventImporter.importAll( events, updateImportOptions( importOptions ), jobConfiguration );
     }
 
-    @SuppressWarnings( "unchecked" )
-    private <T> T fromJson( String input, Class<?> clazz )
-        throws IOException
-    {
-        return (T) jsonMapper.readValue( input, clazz );
-    }
-
-    @Override
-    public List<Event> getEventsXml( InputStream inputStream )
-        throws IOException
-    {
-        String input = copyToString( inputStream, UTF_8 );
-
-        return parseXmlEvents( input );
-    }
-
-    @Override
-    public List<Event> getEventsJson( InputStream inputStream )
-        throws IOException
-    {
-        String input = copyToString( inputStream, UTF_8 );
-
-        return parseJsonEvents( input );
-    }
-
-    @Override
-    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, ValidationContext validationContext) {
-        return null;
-    }
-
-    @Override
-    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, JobConfiguration jobId) {
-        return null;
-    }
-
-    @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions )
-        throws IOException
-    {
-        return addEventsXml( inputStream, null, updateImportOptions( importOptions ) );
-    }
-
-    @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
-        throws IOException
-    {
-        String input = copyToString( inputStream, UTF_8 );
-        List<Event> events = parseXmlEvents( input );
-
-        return eventImporter.importAll( events, updateImportOptions( importOptions ), jobId );
-    }
-
-    @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions )
-        throws IOException
-    {
-        return addEventsJson( inputStream, null, updateImportOptions( importOptions ) );
-    }
-
-    @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
+    ImportSummaries addEventsJson( final InputStream inputStream, final JobConfiguration jobConfiguration,
+        final ImportOptions importOptions )
         throws IOException
     {
         final String input = copyToString( inputStream, UTF_8 );
         final List<Event> events = parseJsonEvents( input );
 
-        return eventImporter.importAll( events, updateImportOptions( importOptions ), jobId );
-    }
-
-    @Override
-    public ImportSummaries updateEvents(List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession) {
-        return null;
-    }
-
-    @Override
-    public ImportSummaries processEventImport(List<Event> events, ImportOptions importOptions, JobConfiguration jobId) {
-        return null;
+        return eventImporter.importAll( events, updateImportOptions( importOptions ), jobConfiguration );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private List<Event> parseXmlEvents( String input )
+    private ImportOptions updateImportOptions( ImportOptions importOptions )
+    {
+        if ( importOptions == null )
+        {
+            importOptions = new ImportOptions();
+        }
+
+        if ( importOptions.getUser() == null )
+        {
+            importOptions.setUser( currentUserService.getCurrentUser() );
+        }
+
+        return importOptions;
+    }
+
+    private List<Event> parseXmlEvents( final String input )
         throws IOException
     {
-        List<Event> events = new ArrayList<>();
+        final List<Event> events = new ArrayList<>( 0 );
 
         try
         {
-            Events multiple = fromXml( input, Events.class );
+            final Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
         catch ( JsonMappingException ex )
         {
-            Event single = fromXml( input, Event.class );
+            final Event single = fromXml( input, Event.class );
             events.add( single );
         }
 
         return events;
     }
 
-    private List<Event> parseJsonEvents( String input )
+    private List<Event> parseJsonEvents( final String input )
         throws IOException
     {
-        List<Event> events = new ArrayList<>();
+        final List<Event> events = new ArrayList<>( 0 );
 
-        JsonNode root = jsonMapper.readTree( input );
+        final JsonNode root = jsonMapper.readTree( input );
 
         if ( root.get( "events" ) != null )
         {
-            Events multiple = fromJson( input, Events.class );
+            final Events multiple = fromJson( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
         else
         {
-            Event single = fromJson( input, Event.class );
+            final Event single = fromJson( input, Event.class );
             events.add( single );
         }
 
         return events;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private <T> T fromXml( final String input, final Class<?> clazz )
+        throws IOException
+    {
+        return (T) xmlMapper.readValue( input, clazz );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private <T> T fromJson( final String input, final Class<?> clazz )
+        throws IOException
+    {
+        return (T) jsonMapper.readValue( input, clazz );
     }
 }

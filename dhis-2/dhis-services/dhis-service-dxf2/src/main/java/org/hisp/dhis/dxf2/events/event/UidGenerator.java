@@ -70,7 +70,7 @@ public class UidGenerator
 
     private void doAssignUid( Event event )
     {
-        if ( isNotEmpty( event.getEvent() ) && CodeGenerator.isValidUid( event.getEvent() ) )
+        if ( isNotEmpty( event.getEvent() ) && isValidUid( event.getEvent() ) )
         {
             event.setUid( event.getEvent() );
         }

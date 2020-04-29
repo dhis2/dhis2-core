@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Arrays.asList;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -50,7 +49,9 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -70,7 +71,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -81,22 +81,16 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
-import org.hisp.dhis.dxf2.events.event.importer.EventImporter;
-import org.hisp.dhis.dxf2.events.event.importer.EventManager;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -105,9 +99,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -126,6 +122,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
 import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
 import org.hisp.dhis.query.Query;
@@ -134,10 +131,11 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -151,6 +149,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -164,10 +163,10 @@ import lombok.extern.slf4j.Slf4j;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class AbstractEventService
+public abstract class AbstractEventService_Comments
     implements EventService
 {
-    public static final List<String> STATIC_EVENT_COLUMNS = asList( EVENT_ID, EVENT_ENROLLMENT_ID, EVENT_CREATED_ID,
+    public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID, EVENT_CREATED_ID,
         EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
         EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
         EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID,
@@ -176,12 +175,6 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    protected EventImporter eventImporter;
-
-    protected EventManager eventManager;
-
-    protected WorkContextLoader workContextLoader;
 
     protected ProgramService programService;
 
@@ -192,8 +185,6 @@ public abstract class AbstractEventService
     protected ProgramStageInstanceService programStageInstanceService;
 
     protected OrganisationUnitService organisationUnitService;
-
-    protected DataElementService dataElementService;
 
     protected CurrentUserService currentUserService;
 
@@ -224,8 +215,6 @@ public abstract class AbstractEventService
     protected TrackerAccessManager trackerAccessManager;
 
     protected TrackerOwnershipManager trackerOwnershipAccessManager;
-
-    protected AclService aclService;
 
     protected ApplicationEventPublisher eventPublisher;
 
@@ -293,10 +282,85 @@ public abstract class AbstractEventService
 
     @Transactional
     @Override
-    public ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions,
-        JobConfiguration jobConfiguration )
+    public ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
-        return eventImporter.importAll( events, importOptions, jobConfiguration );
+        ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
+
+        notifier.clear( jobId ).notify( jobId, "Importing events" );
+        Clock clock = new Clock( log ).startClock();
+
+        List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
+
+        for ( List<Event> _events : partitions )
+        {
+            reloadUser( importOptions );
+            prepareCaches( importOptions.getUser(), _events );
+
+            List<Event> create = new ArrayList<>();
+            List<Event> update = new ArrayList<>();
+            List<String> delete = new ArrayList<>();
+
+            if ( importOptions.getImportStrategy().isCreate() )
+            {
+                create.addAll( _events );
+            }
+            else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
+            {
+                for ( Event event : _events )
+                {
+                    sortCreatesAndUpdates( event, create, update );
+                }
+            }
+            else if ( importOptions.getImportStrategy().isUpdate() )
+            {
+                update.addAll( _events );
+            }
+            else if ( importOptions.getImportStrategy().isDelete() )
+            {
+                delete.addAll( _events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
+            }
+            else if ( importOptions.getImportStrategy().isSync() )
+            {
+                for ( Event event : _events )
+                {
+                    if ( event.isDeleted() )
+                    {
+                        delete.add( event.getEvent() );
+                    }
+                    else
+                    {
+                        sortCreatesAndUpdates( event, create, update );
+                    }
+                }
+            }
+
+            importSummaries.addImportSummaries( addEvents( create, importOptions, true ) );
+            importSummaries.addImportSummaries( updateEvents( update, importOptions, false, true ) );
+            importSummaries.addImportSummaries( deleteEvents( delete, true ) );
+
+            if ( events.size() >= FLUSH_FREQUENCY )
+            {
+                clearSession( importOptions.getUser() );
+            }
+        }
+
+        if ( jobId != null )
+        {
+            notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
+                addJobSummary( jobId, importSummaries, ImportSummaries.class );
+        }
+        else
+        {
+            clock.logTime( "Import done" );
+        }
+
+        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+        {
+            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+        }
+
+        return importSummaries;
     }
 
     @Transactional
@@ -304,6 +368,7 @@ public abstract class AbstractEventService
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        // TODO: luciano question -> can this be removed and replaced with assertions ?
         importOptions = updateImportOptions( importOptions );
 
         List<Event> validEvents = resolveImportableEvents( events, importSummaries );
@@ -312,8 +377,8 @@ public abstract class AbstractEventService
 
         for ( List<Event> _events : partitions )
         {
-            reloadUser( importOptions );
-            prepareCaches( importOptions.getUser(), _events );
+            reloadUser( importOptions ); // TODO luciano why this in a loop?
+            prepareCaches( importOptions.getUser(), _events );  // TODO luciano why this in a loop?
 
             for ( Event event : _events )
             {
@@ -350,6 +415,9 @@ public abstract class AbstractEventService
 
     private List<String> checkForExistingEventsIncludingDeleted( List<Event> events, ImportSummaries importSummaries )
     {
+
+        // TODO luciano replace with "select from programstageinstance where uid in (....)
+
         List<String> foundEvents = programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted(
             events.stream()
                 .map( Event::getEvent )
@@ -371,21 +439,18 @@ public abstract class AbstractEventService
 
     @Transactional
     @Override
-    public ImportSummaries addEvents( final List<Event> events, ImportOptions importOptions,
-        final JobConfiguration jobConfiguration )
+    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
-        notifier.clear( jobConfiguration ).notify( jobConfiguration, "Importing events" );
+        notifier.clear( jobId ).notify( jobId, "Importing events" );
         importOptions = updateImportOptions( importOptions );
 
         try
         {
-            final WorkContext workContext = workContextLoader.load( importOptions, events );
-            
-            final ImportSummaries importSummaries = eventManager.addEvents( events, workContext );
+            ImportSummaries importSummaries = addEvents( events, importOptions, true );
 
-            if ( jobConfiguration != null )
+            if ( jobId != null )
             {
-                notifier.notify( jobConfiguration, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobConfiguration, importSummaries, ImportSummaries.class );
+                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId, importSummaries, ImportSummaries.class );
             }
 
             return importSummaries;
@@ -393,7 +458,7 @@ public abstract class AbstractEventService
         catch ( RuntimeException ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-            notifier.notify( jobConfiguration, ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
             return new ImportSummaries().addImportSummary( new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() ) );
         }
     }
@@ -402,9 +467,222 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport )
     {
-        final WorkContext workContext = workContextLoader.load( importOptions, asList( event ) );
+        // TODO: luciano question -> isn't this un-necessary, since we did it earlier?
+        if ( !bulkImport && programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Event " + event.getEvent() + " already exists or was deleted earlier" )
+                .setReference( event.getEvent() )
+                .incrementIgnored();
+        }
+        // TODO: luciano question ->  isn't this also un-necessary at this point?
+        importOptions = updateImportOptions( importOptions );
 
-        return eventManager.addEvent( event, workContext );
+        // TODO: luciano question -> since this is an 'add' operation, isn't this always going to be null?
+        ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
+
+        // FIXME: luciano to-rule -> EventDateCheck
+//        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
+//        }
+
+        // TODO: luciano question ->  why do we check this stuff here? This should only be checked in an update operation -> discussed with Morten, can be removed
+//        if ( programStageInstance == null && !StringUtils.isEmpty( event.getEvent() ) && !CodeGenerator.isValidUid( event.getEvent() ) )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, "Event.event did not point to a valid event: " + event.getEvent() ).setReference( event.getEvent() ).incrementIgnored();
+//        }
+        // }
+
+
+        Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
+        ProgramStage programStage = getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() );
+        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
+        TrackedEntityInstance entityInstance = getTrackedEntityInstance( event.getTrackedEntityInstance() );
+        ProgramInstance programInstance = getProgramInstance( event.getEnrollment() );
+        User assignedUser = getUser( event.getAssignedUser() );
+
+//        FIXME: luciano to-rule ->  OrgUnitCheck
+//        if ( organisationUnit == null )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() )
+//                .setReference( event.getEvent() ).incrementIgnored();
+//        }
+
+//        FIXME: luciano to-rule ->  ProgramCheck
+//        if ( program == null )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, "Event.program does not point to a valid program: " + event.getProgram() )
+//                .setReference( event.getEvent() ).incrementIgnored();
+//        }
+
+//        FIXME: luciano to-rule ->  ProgramStageCheck
+//        programStage = programStage == null && program.isWithoutRegistration() ? program.getProgramStageByStage( 1 ) : programStage;
+//
+//        if ( programStage == null )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );
+//        }
+
+        if ( program.isRegistration() )
+        {
+
+//        FIXME: luciano to-rule ->  TrackedEntityInstanceCheck
+
+//            if ( entityInstance == null )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
+//                    + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
+//            }
+
+//        FIXME: luciano to-rule ->  ProgramInstanceCheck
+
+//            if ( programInstance == null )
+//            {
+//                List<ProgramInstance> programInstances = new ArrayList<>( programInstanceService.getProgramInstances( entityInstance, program, ProgramStatus.ACTIVE ) );
+//
+//                if ( programInstances.isEmpty() )
+//                {
+//                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid() + " is not enrolled in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
+//                }
+//                else if ( programInstances.size() > 1 )
+//                {
+//                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid() + " has multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
+//                }
+//
+            // TODO: luciano ->  handle this situation where we store the PI to use
+//                programInstance = programInstances.get( 0 );
+//            }
+
+            // TODO : luciano -> this validation can be done by moving it to the very end of the chain, when we are sure we got a valid programInstance
+            if ( !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, "Program stage is not repeatable and an event already exists" )
+                    .setReference( event.getEvent() ).incrementIgnored();
+            }
+        }
+        else
+        {
+//            // TODO: luciano -> this "side" effect should be handled elsewhere...
+//            String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
+//            List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
+//
+//            if ( programInstances.isEmpty() )
+//            {
+//                // Create PI if it doesn't exist (should only be one)
+//
+//                String storedBy = getValidUsername( event.getStoredBy(), null,
+//                    User.username( importOptions.getUser(), Constants.UNKNOWN ) );
+//
+//                ProgramInstance pi = new ProgramInstance();
+//                pi.setEnrollmentDate( new Date() );
+//                pi.setIncidentDate( new Date() );
+//                pi.setProgram( program );
+//                pi.setStatus( ProgramStatus.ACTIVE );
+//                pi.setStoredBy( storedBy );
+//
+//                programInstanceService.addProgramInstance( pi, importOptions.getUser() );
+//
+//                programInstances.add( pi );
+//            }
+            // FIXME: luciano rule -> ProgramInstanceCheck
+//            else if ( programInstances.size() > 1 )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, "Multiple active program instances exists for program: " + program.getUid() )
+//                    .setReference( event.getEvent() ).incrementIgnored();
+//            }
+//            // TODO: luciano ->  handle this situation where we store the PI to use
+//            programInstance = programInstances.get( 0 );
+        }
+
+        program = programInstance.getProgram();
+
+        if ( programStageInstance != null )
+        {
+            programStage = programStageInstance.getProgramStage();
+        }
+
+        final Program instanceProgram = programInstance.getProgram();
+        final String cacheKey = instanceProgram.getUid() + organisationUnit.getUid();
+
+//        FIXME: luciano to-rule ->  ProgramOrgUnitCheck
+//        boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( cacheKey,
+//            key -> instanceProgram.hasOrganisationUnit( organisationUnit ) ).get();
+//
+//        if ( !programHasOrgUnit )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, "Program is not assigned to this organisation unit: " + event.getOrgUnit() )
+//                .setReference( event.getEvent() ).incrementIgnored();
+//        }
+
+        // TODO: luciano question -> this is probably a mistake, because during add a  programStageInstance is always null?
+        validateExpiryDays( importOptions, event, program, programStageInstance );
+
+
+        if ( event.getGeometry() != null )
+        {
+//      FIXME: luciano to-rule ->  EventGeometryCheck
+//            if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR,
+//                    "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() )
+//                    .setReference( event.getEvent() ).incrementIgnored();
+//            }
+
+            // TODO: luciano -> this is a side effect and should take place after validation
+            event.getGeometry().setSRID( GeoUtils.SRID );
+        }
+
+        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+
+        {
+//            Coordinate coordinate = event.getCoordinate();
+//      FIXME: luciano to-rule ->  EventGeometryCheck
+//            try
+//            {
+//                // TODO: luciano -> this is a side effect and should take place after validation
+//                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+//            }
+//            catch ( IOException e )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." ).setReference( event.getEvent() ).incrementIgnored();
+//            }
+        }
+
+        // TODO: luciano -> start access control  block
+        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
+            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
+
+        if ( !errors.isEmpty() )
+
+            {
+//            Coordinate coordinate = event.getCoordinate();
+//      FIXME: luciano to-rule ->  EventGeometryCheck
+//            try
+//            {
+//                // TODO: luciano -> this is a side effect and should take place after validation
+//                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+//            }
+//            catch ( IOException e )
+//            {
+//                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." ).setReference( event.getEvent() ).incrementIgnored();
+//            }
+        }
+
+
+        // FIXME: luciano to-rule -> EventAclCheck
+//        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
+//            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
+//
+//        if ( !errors.isEmpty() )
+//        {
+//            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
+//            importSummary.incrementIgnored();
+//
+//            return importSummary;
+//        }
+
+        return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, assignedUser, importOptions, bulkImport );
     }
 
     // -------------------------------------------------------------------------
@@ -800,6 +1078,8 @@ public abstract class AbstractEventService
         importOptions = updateImportOptions( importOptions );
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
+        // TODO: Maikel: integrate with the pre and post processors as well the checks.
+
         for ( List<Event> _events : partitions )
         {
             reloadUser( importOptions );
@@ -825,9 +1105,297 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate )
     {
-        final WorkContext workContext = workContextLoader.load( importOptions, asList( event ) );
+        importOptions = updateImportOptions( importOptions );
 
-        return eventManager.updateEvent( event, workContext );
+        // FIXME: Respective checker is ==> update.EventBasicCheck
+        if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
+        }
+
+        ImportSummary importSummary = new ImportSummary( event.getEvent() );
+
+        // FIXME: Respective checker is ==> update.ProgramStageInstanceBasicCheck
+        ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
+
+        if ( programStageInstance == null )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
+            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID", event.getEvent() ) );
+
+            return importSummary.incrementIgnored();
+        }
+
+        if ( programStageInstance != null && (programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate()) )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
+                .setReference( event.getEvent() ).incrementIgnored();
+        }
+
+        // FIXME: Respective checker is ==> update.ProgramStageInstanceAclCheck
+        List<String> errors = new ArrayList<>();
+//        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
+//
+//        if ( !errors.isEmpty() )
+//        {
+//            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
+//        }
+
+        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
+
+        if ( organisationUnit == null )
+        {
+            organisationUnit = programStageInstance.getOrganisationUnit();
+        }
+
+        // FIXME: Respective checker is ==> update.ProgramCheck
+        // TODO: Check the error message with Luciano, maybe the root ProgramCheck can be reused.
+        Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
+
+        if ( program == null )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
+        }
+
+        //errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
+        // FIXME: Respective checker is ==> root.EventBaseCheck
+        if ( !errors.isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( event.getEventDate() != null )
+        {
+            Date executionDate = DateUtils.parseDate( event.getEventDate() );
+            programStageInstance.setExecutionDate( executionDate );
+        }
+
+        Date dueDate = new Date();
+
+        if ( event.getDueDate() != null )
+        {
+            dueDate = DateUtils.parseDate( event.getDueDate() );
+        }
+
+        String storedBy = getValidUsername( event.getStoredBy(), null, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
+        programStageInstance.setStoredBy( storedBy );
+
+        String completedBy = getValidUsername( event.getCompletedBy(), null, User.username( importOptions.getUser(), Constants.UNKNOWN ) );
+
+        // FIXME: Respective checker is ==> update.ProgramStageInstanceAuthCheck
+        // TODO this is a "special" ACL check ? perhaps should be moved to the acl service?
+        if ( event.getStatus() != programStageInstance.getStatus()
+            && programStageInstance.getStatus() == EventStatus.COMPLETED )
+        {
+            UserCredentials userCredentials = importOptions.getUser().getUserCredentials();
+
+            if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
+            {
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.setDescription( "User is not authorized to uncomplete events" );
+
+                return importSummary;
+            }
+        }
+
+        if ( event.getStatus() == EventStatus.ACTIVE )
+        {
+            programStageInstance.setStatus( EventStatus.ACTIVE );
+            programStageInstance.setCompletedBy( null );
+            programStageInstance.setCompletedDate( null );
+        }
+        else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == EventStatus.COMPLETED )
+        {
+            programStageInstance.setCompletedBy( completedBy );
+
+            Date completedDate = new Date();
+
+            if ( event.getCompletedDate() != null )
+            {
+                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
+            programStageInstance.setCompletedDate( completedDate );
+            programStageInstance.setStatus( EventStatus.COMPLETED );
+        }
+        else if ( event.getStatus() == EventStatus.SKIPPED )
+        {
+            programStageInstance.setStatus( EventStatus.SKIPPED );
+        }
+
+        else if ( event.getStatus() == EventStatus.SCHEDULE )
+        {
+            programStageInstance.setStatus( EventStatus.SCHEDULE );
+        }
+
+        programStageInstance.setDueDate( dueDate );
+        programStageInstance.setOrganisationUnit( organisationUnit );
+
+        // TODO: How to validate this piece?
+        validateExpiryDays( importOptions, event, program, programStageInstance );
+
+        CategoryOptionCombo aoc = programStageInstance.getAttributeOptionCombo();
+
+        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
+            || event.getAttributeOptionCombo() != null )
+        {
+            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
+
+            // TODO: Maikel: How to validate this piece? Is it being ignored in eventAdd? Should it become a Checker? At the moment it only throws Exception
+            try
+            {
+                aoc = getAttributeOptionCombo( program.getCategoryCombo(),
+                    event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
+            }
+            catch ( IllegalQueryException ex )
+            {
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
+                return importSummary.incrementIgnored();
+            }
+        }
+
+        // FIXME: Respective checker is ==> root.AttributeOptionComboCheck
+        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+            return importSummary.incrementIgnored();
+        }
+
+        if ( aoc != null )
+        {
+            programStageInstance.setAttributeOptionCombo( aoc );
+        }
+
+        Date eventDate = programStageInstance.getExecutionDate() != null ? programStageInstance.getExecutionDate() : programStageInstance.getDueDate();
+
+        // FIXME: Respective checker is ==> update.AttributeOptionComboDateCheck
+        validateAttributeOptionComboDate( aoc, eventDate );
+
+        if ( event.getGeometry() != null )
+        {
+            if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
+                !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR, String.format(
+                    "Geometry '%s' does not conform to the feature type '%s' specified for the program stage: '%s'",
+                    programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) )
+                    .setReference( event.getEvent() ).incrementIgnored();
+            }
+            // FIXME: Side effect extracted to ==> ProgramInstancePostProcessor
+            event.getGeometry().setSRID( GeoUtils.SRID );
+        }
+        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+        {
+            Coordinate coordinate = event.getCoordinate();
+
+            try
+            {
+                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+            }
+            catch ( IOException e )
+            {
+                return new ImportSummary( ImportStatus.ERROR,
+                    "Invalid longitude or latitude for property 'coordinates'." );
+            }
+        }
+
+        programStageInstance.setGeometry( event.getGeometry() );
+
+        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+        {
+            programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
+        }
+
+        // FIXME: Respective post processor ==> TrackerEntityCommentPostProcessor
+        saveTrackedEntityComment( programStageInstance, event, storedBy );
+
+        // TODO: Why to we need a preheat at this stage. Really needed?
+        // FIXME: Respective post processor ==> PreheatDataElementsPostProcessor
+        preheatDataElementsCache( event, importOptions );
+
+        // FIXME: Integrate it with Luciano's changes for processDataValues
+        //eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
+
+        // FIXME: Respective post processor ==> ProgramStageInstancePostProcessor
+        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+
+        // Trigger rule engine:
+        // 1. only once for whole event
+        // 2. only if data value is associated with any ProgramRuleVariable
+
+        // Logic extracted to ==> PublishEventPostProcessor
+        boolean isLinkedWithRuleVariable = false;
+
+        for ( DataValue dv : event.getDataValues() )
+        {
+            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
+
+            if ( dataElement != null )
+            {
+                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+
+                if ( isLinkedWithRuleVariable )
+                {
+                    break;
+                }
+            }
+        }
+
+        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
+        {
+            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
+        }
+
+        // TODO: Extracted to ==> ProgramNotificationPostProcessor
+        sendProgramNotification( programStageInstance, importOptions );
+
+        // TODO: Extracted to ==> TrackedEntityInstancePostProcessor
+        if ( !importOptions.isSkipLastUpdated() )
+        {
+            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+        }
+
+        if ( importSummary.getConflicts().isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.incrementUpdated();
+        }
+        else
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
+        }
+
+        return importSummary;
+    }
+
+    private void preheatDataElementsCache( Event event, ImportOptions importOptions )
+    {
+        IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
+
+        Set<String> dataElementIdentificators = event.getDataValues().stream()
+            .map( DataValue::getDataElement )
+            .collect( Collectors.toSet() );
+
+        //Should happen in the most of the cases
+        if ( dataElementIdScheme.isNull() || dataElementIdScheme.is( IdentifiableProperty.UID ) )
+        {
+            List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
+                dataElementIdentificators );
+
+            dataElements.forEach( de -> DATA_ELEM_CACHE.put( de.getUid(), de ) );
+        }
+        else
+        {
+            //Slower, but shouldn't happen so often
+            dataElementIdentificators.forEach( deId -> getDataElement( dataElementIdScheme, deId ) );
+        }
     }
 
     @Transactional
@@ -845,7 +1413,7 @@ public abstract class AbstractEventService
         User currentUser = currentUserService.getCurrentUser();
 
         saveTrackedEntityComment( programStageInstance, event,
-            getValidUsername( event.getStoredBy(), null, currentUser != null ? currentUser.getUsername() : "[Unknown]" ) );
+            getValidUsername( event.getStoredBy(), null, User.username( currentUser, Constants.UNKNOWN ) ) );
 
         updateTrackedEntityInstance( programStageInstance, currentUser, false );
     }
@@ -1072,6 +1640,165 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
+    private ImportSummary saveEvent( Program program, ProgramInstance programInstance, ProgramStage programStage,
+        ProgramStageInstance programStageInstance, OrganisationUnit organisationUnit, Event event, User assignedUser,
+        ImportOptions importOptions, boolean bulkSave )
+    {
+        Assert.notNull( program, "Program cannot be null" );
+        Assert.notNull( programInstance, "Program instance cannot be null" );
+        Assert.notNull( programStage, "Program stage cannot be null" );
+
+        ImportSummary importSummary = new ImportSummary( event.getEvent() );
+        importOptions = updateImportOptions( importOptions );
+
+        boolean dryRun = importOptions.isDryRun();
+
+//        FIXME: luciano to-rule -> EventBaseCheck
+        List<String> errors = new ArrayList<>();
+//        List<String> errors = validateEvent( event, programInstance, importOptions );
+
+//        if ( !errors.isEmpty() )
+//        {
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
+//            importSummary.incrementIgnored();
+//
+//            return importSummary;
+//        }
+
+        Date executionDate = null;
+
+        if ( event.getEventDate() != null )
+        {
+            executionDate = DateUtils.parseDate( event.getEventDate() );
+        }
+
+        Date dueDate = new Date();
+
+        if ( event.getDueDate() != null )
+        {
+            dueDate = DateUtils.parseDate( event.getDueDate() );
+        }
+
+        User user = importOptions.getUser();
+        // TODO: luciano ->  move at the beginning of the process - no need to repeat it for each event
+
+        String storedBy = getValidUsername( event.getStoredBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
+        String completedBy = getValidUsername( event.getCompletedBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
+
+        // FIXME: luciano -> this block has been moved to the context loading
+//        CategoryOptionCombo aoc;
+//
+//
+//        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
+//            || event.getAttributeOptionCombo() != null )
+//        {
+//            // TODO: luciano question -> do we still need to support this?
+//            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
+//
+//            try
+//            {
+//                // TODO: luciano -> AttributeOptionComboCheck
+//                aoc = getAttributeOptionCombo( program.getCategoryCombo(), event.getAttributeCategoryOptions(),
+//                    event.getAttributeOptionCombo(), idScheme );
+//            }
+//            catch ( IllegalQueryException ex )
+//            {
+//                importSummary.getConflicts().add( new ImportConflict( ex.getMessage(), event.getAttributeCategoryOptions() ) );
+//                importSummary.setStatus( ImportStatus.ERROR );
+//                return importSummary.incrementIgnored();
+//            }
+//        }
+//        else
+//        {
+//            aoc = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
+//        }
+//        FIXME: luciano to-rule -> AttributeOptionComboCheck
+//        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+//        {
+//            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            return importSummary.incrementIgnored();
+//        }
+
+        CategoryOptionCombo aoc = null; // TODO just here for compilation...
+
+        Date eventDate = executionDate != null ? executionDate : dueDate;
+
+        // TODO: luciano question -> here we throw an exception, rather than using ImportSummary, why?
+        // FIXME: luciano to-rule -> AttributeOptionComboDateCheck
+        //validateAttributeOptionComboDate( aoc, eventDate );
+
+        // FIXME: luciano to-rule -> AttributeOptionComboAclCheck
+        errors = trackerAccessManager.canWrite( user, aoc );
+        // TODO end access control block
+
+//        if ( !errors.isEmpty() )
+//        {
+//            importSummary.setStatus( ImportStatus.ERROR );
+//            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "CategoryOptionCombo", s ) ).collect( Collectors.toList() ) );
+//            importSummary.incrementIgnored();
+//
+//            return importSummary;
+//        }
+
+        if ( !dryRun )
+        {
+            // TODO why are we checking if PSI is null -> shouldn't be always NOT NULL at this point?
+            if ( programStageInstance == null )
+            {
+                programStageInstance = createProgramStageInstance( event, programStage, programInstance,
+                    organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
+                    completedBy, storedBy, event.getEvent(), aoc, assignedUser, importOptions, importSummary );
+
+                if ( program.isRegistration() )
+                {
+                    programInstance.getProgramStageInstances().add( programStageInstance );
+                }
+            }
+            else
+            {
+                updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
+                    executionDate, event.getStatus().getValue(), completedBy, storedBy,
+                    programStageInstance, aoc, assignedUser, importOptions, importSummary );
+            }
+
+            if ( !importOptions.isSkipLastUpdated() )
+            {
+                updateTrackedEntityInstance( programStageInstance, user, bulkSave );
+            }
+
+            importSummary.setReference( programStageInstance.getUid() );
+        }
+
+        if ( dryRun && programStageInstance == null )
+        {
+
+            log.error( "The request is a dry run and at the same time the programStageInstance is null. This will lead to NullPointerException. Stopping it now." );
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "The request is a dryRun. However, the provided event does not point to a valid event: " + event.getEvent() + ". Cannot continue." );
+
+            return importSummary.setReference( event.getEvent() ).incrementIgnored();
+        }
+
+        programInstanceCache.put( programInstance.getUid(), programInstance );
+
+        sendProgramNotification( programStageInstance, importOptions );
+
+        if ( importSummary.getConflicts().size() > 0 )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
+        }
+        else
+        {
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.incrementImported();
+        }
+
+        return importSummary;
+    }
+
     private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions )
     {
         if ( !importOptions.isSkipNotifications() )
@@ -1086,6 +1813,86 @@ public abstract class AbstractEventService
             {
                 eventPublisher.publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
             }
+        }
+    }
+
+    private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage,
+        ProgramInstance programInstance, OrganisationUnit organisationUnit, Date dueDate, Date executionDate,
+        int status, String completedBy, String storedBy, String programStageInstanceIdentifier,
+        CategoryOptionCombo aoc, User assignedUser, ImportOptions importOptions, ImportSummary importSummary )
+    {
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+
+        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) )
+        {
+            programStageInstance
+                .setUid( CodeGenerator.isValidUid( programStageInstanceIdentifier ) ? programStageInstanceIdentifier
+                    : CodeGenerator.generateUid() );
+        }
+        else if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.CODE ) )
+        {
+            programStageInstance.setUid( CodeGenerator.generateUid() );
+            programStageInstance.setCode( programStageInstanceIdentifier );
+        }
+
+        programStageInstance.setStoredBy( storedBy );
+
+        updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
+            status, completedBy, storedBy, programStageInstance, aoc, assignedUser, importOptions, importSummary );
+
+        return programStageInstance;
+    }
+
+    private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
+        OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
+        String completedBy, String storedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc, User assignedUser,
+        ImportOptions importOptions, ImportSummary importSummary )
+    {
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setProgramStage( programStage );
+        programStageInstance.setDueDate( dueDate );
+        programStageInstance.setExecutionDate( executionDate );
+        programStageInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance.setAttributeOptionCombo( aoc );
+        programStageInstance.setGeometry( event.getGeometry() );
+
+        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+        {
+            programStageInstance.setAssignedUser( assignedUser );
+        }
+
+        updateDateFields( event, programStageInstance );
+
+        programStageInstance.setStatus( EventStatus.fromInt( status ) );
+
+        // TODO: luciano handle saving notes
+        saveTrackedEntityComment( programStageInstance, event, storedBy );
+
+        if ( programStageInstance.isCompleted() )
+        {
+            Date completedDate = new Date();
+            if ( event.getCompletedDate() != null )
+            {
+                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
+            programStageInstance.setCompletedBy( completedBy );
+            programStageInstance.setCompletedDate( completedDate );
+        }
+
+        preheatDataElementsCache( event, importOptions );
+
+        if ( programStageInstance.getId() == 0 )
+        {
+            programStageInstance.setAutoFields();
+            programStageInstanceService.addProgramStageInstance( programStageInstance, importOptions.getUser() );
+
+            //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
+        }
+        else
+        {
+            //eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance, importOptions.getUser() );
         }
     }
 
@@ -1114,24 +1921,23 @@ public abstract class AbstractEventService
 
     public static String getValidUsername( String userName, ImportSummary importSummary, String fallbackUsername )
     {
-        String validUsername = userName;
-
-        if ( StringUtils.isEmpty( validUsername ) )
+        if ( StringUtils.isEmpty( userName ) )
         {
-            validUsername = User.getSafeUsername( fallbackUsername );
+            return fallbackUsername;
         }
-        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        else if ( userName.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
             if ( importSummary != null )
             {
+                // TODO: luciano this should be moved to the new logic
                 importSummary.getConflicts().add( new ImportConflict( "Username",
-                    validUsername + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
+                    userName + " is more than " + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
-            validUsername = User.getSafeUsername( fallbackUsername );
+            return fallbackUsername;
         }
 
-        return validUsername;
+        return userName;
     }
 
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
@@ -1405,7 +2211,7 @@ public abstract class AbstractEventService
                         DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
                     {
                         throw new IllegalQueryException(
-                            "The event's completness date has expired. Not possible to make changes to this event" );
+                            "The event's completeness date has expired. Not possible to make changes to this event" );
                     }
                 }
             }
@@ -1444,46 +2250,11 @@ public abstract class AbstractEventService
 
                     if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
                     {
-                        throw new IllegalQueryException( "The event's date belongs to an expired period. It is not possble to create such event" );
+                        throw new IllegalQueryException( "The event's date belongs to an expired period. It is not possible to create such event" );
                     }
                 }
             }
         }
-    }
-
-    private QueryItem getQueryItem( String item )
-    {
-        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
-
-        if ( split == null || split.length % 2 != 1 )
-        {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
-        }
-
-        QueryItem queryItem = getItem( split[0] );
-
-        if ( split.length > 1 )
-        {
-            for ( int i = 1; i < split.length; i += 2 )
-            {
-                QueryOperator operator = QueryOperator.fromString( split[i] );
-                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
-            }
-        }
-
-        return queryItem;
-    }
-
-    private QueryItem getItem( String item )
-    {
-        DataElement de = dataElementService.getDataElement( item );
-
-        if ( de == null )
-        {
-            throw new IllegalQueryException( "Dataelement does not exist: " + item );
-        }
-
-        return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
     }
 
     private void updateEntities( User user )

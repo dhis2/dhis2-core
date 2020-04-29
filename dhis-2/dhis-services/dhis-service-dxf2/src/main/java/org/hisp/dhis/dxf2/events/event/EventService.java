@@ -40,7 +40,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
@@ -95,8 +94,6 @@ public interface EventService
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, ValidationContext validationContext );
-
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
@@ -112,8 +109,6 @@ public interface EventService
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
-
-    ImportSummary updateEvent( Event event, boolean singleValue, boolean bulkUpdate );
 
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate );
 

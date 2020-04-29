@@ -174,26 +174,6 @@ public class NoRegistrationSingleEventServiceTest
 
     @Test
     @Ignore
-    public void testUpdateEvent()
-    {
-        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
-
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        assertEquals( "10", event.getDataValues().iterator().next().getValue() );
-
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-        event.getDataValues().iterator().next().setValue( "254" );
-        eventService.updateEvent( event, false, false );
-
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-        assertEquals( "254", event.getDataValues().iterator().next().getValue() );
-    }
-
-    @Test
-    @Ignore
     public void testDeleteEvent()
     {
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );

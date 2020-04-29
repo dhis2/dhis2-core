@@ -76,14 +76,14 @@ public class EventImporter
     }
 
     public ImportSummaries importAll( final List<Event> events, final ImportOptions importOptions,
-        final JobConfiguration jobId )
+        final JobConfiguration jobConfiguration )
     {
         assert importOptions != null;
         assert importOptions.getUser() != null;
 
         final ImportSummaries importSummaries = new ImportSummaries();
 
-        notifier.clear( jobId ).notify( jobId, "Importing events" );
+        notifier.clear( jobConfiguration ).notify( jobConfiguration, "Importing events" );
         final Clock clock = new Clock( log ).startClock();
 
         // TODO This should be probably moved to a PRE-PROCESSOR
@@ -103,18 +103,18 @@ public class EventImporter
                 importOptions.getImportStrategy(), context.getProgramStageInstanceMap() );
 
             importSummaries
-                .addImportSummaries( eventManager.addEvents( accumulator.getCreate(), importOptions, context ) );
+                .addImportSummaries( eventManager.addEvents( accumulator.getCreate(), context ) );
             importSummaries.addImportSummaries(
-                eventManager.updateEvents( accumulator.getUpdate(), importOptions, false, false, context ) );
+                eventManager.updateEvents( accumulator.getUpdate(), context ) );
             // FIXME: -- old code -- : -- please refactor --
             // importSummaries.addImportSummaries( deleteEvents( accumulator.getDelete(),
             // true ) );
         }
 
-        if ( jobId != null )
+        if ( jobConfiguration != null )
         {
-            notifier.notify( jobId, INFO, "Import done. Completed in " + clock.time() + ".", true )
-                .addJobSummary( jobId, importSummaries, ImportSummaries.class );
+            notifier.notify( jobConfiguration, INFO, "Import done. Completed in " + clock.time() + ".", true )
+                .addJobSummary( jobConfiguration, importSummaries, ImportSummaries.class );
         }
         else
         {
