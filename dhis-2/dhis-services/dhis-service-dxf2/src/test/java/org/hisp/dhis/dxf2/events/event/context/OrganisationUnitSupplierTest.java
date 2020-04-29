@@ -1,7 +1,10 @@
 package org.hisp.dhis.dxf2.events.event.context;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,16 +15,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.stubbing.Answer;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -54,15 +49,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitSupplierTest
+public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit>
 {
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Mock
-    private NamedParameterJdbcTemplate jdbcTemplate;
-
     private OrganisationUnitSupplier subject;
 
     @Before
@@ -78,40 +66,36 @@ public class OrganisationUnitSupplierTest
     }
 
     @Test
-    public void h1() throws SQLException {
-        ResultSet resultSetMock = Mockito.mock(ResultSet.class);
-        Mockito.when(resultSetMock.next()).thenReturn(true).thenReturn(false);
+    public void verifySupplier()
+        throws SQLException
+    {
+        // create mock result set
+        ResultSet resultSetMock = Mockito.mock( ResultSet.class );
+        // make sure the resultset has one row
+        when( resultSetMock.next() ).thenReturn( true ).thenReturn( false );
+        // mock resultset data
+        when( resultSetMock.getLong( "organisationunitid" ) ).thenReturn( 100L );
+        when( resultSetMock.getString( "uid" ) ).thenReturn( "abcded" );
+        when( resultSetMock.getString( "code" ) ).thenReturn( "ALFA" );
+        when( resultSetMock.getString( "path" ) ).thenReturn( "/aaaa/bbbb/cccc/abcded" );
+        when( resultSetMock.getInt( "hierarchylevel" ) ).thenReturn( 4 );
+
+        // create event to import
         Event event = new Event();
-        event.setUid(CodeGenerator.generateUid());
+        event.setUid( CodeGenerator.generateUid() );
         event.setOrgUnit( "abcded" );
 
-        when(jdbcTemplate.query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class)))
-                .thenAnswer((Answer<Map<String, OrganisationUnit>>) invocationOnMock -> {
-                // Fetch the method arguments
-                Object[] args = invocationOnMock.getArguments();
+        // mock resultset extraction
+        mockResultSetExtractor( resultSetMock );
 
-                // Fetch the row mapper instance from the arguments
-                ResultSetExtractor<Map<String, OrganisationUnit>> rm = (ResultSetExtractor<Map<String, OrganisationUnit>>) args[2];
+        Map<String, OrganisationUnit> map = subject.get( Collections.singletonList( event ) );
 
-                // Create a mock result set and setup an expectation on it
-                when( resultSetMock.getString( "uid" ) ).thenReturn( "abcded" );
-                when( resultSetMock.getString( "path" ) ).thenReturn( "/aaaa/bbbb/cccc/abcded" );
-
-                // Invoke the row mapper
-                Map<String, OrganisationUnit> actual = rm.extractData( resultSetMock );
-
-
-                // Assert the result of the row mapper execution
-                // assertEquals(expected, actual);
-
-                // Return your created list for the template#query call
-                return actual;
-                });
-
-
-        Map<String, OrganisationUnit> stringOrganisationUnitMap = subject.get(Collections.singletonList(event));
-
-        System.out.println(stringOrganisationUnitMap);
+        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        assertThat( organisationUnit, is( notNullValue() ) );
+        assertThat( organisationUnit.getId(), is( 100L ) );
+        assertThat( organisationUnit.getUid(), is( "abcded" ) );
+        assertThat( organisationUnit.getCode(), is( "ALFA" ) );
+        assertThat( organisationUnit.getPath(), is( "/aaaa/bbbb/cccc/abcded" ) );
+        assertThat( organisationUnit.getHierarchyLevel(), is( 4 ) );
     }
-
 }
