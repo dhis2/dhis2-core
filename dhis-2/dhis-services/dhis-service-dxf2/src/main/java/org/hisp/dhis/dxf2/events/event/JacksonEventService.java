@@ -41,7 +41,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.event.importer.EventImporter;
 import org.hisp.dhis.dxf2.events.event.importer.EventManager;
@@ -88,7 +87,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 public class JacksonEventService extends AbstractEventService
 {
-    private final JacksonEventServiceFacade jacksonEventServiceFacade;
+    private final EventServiceFacade jacksonEventServiceFacade;
 
     // -------------------------------------------------------------------------
     // EventService Impl
@@ -98,7 +97,7 @@ public class JacksonEventService extends AbstractEventService
         EventImporter eventImporter,
         EventManager eventManager,
         WorkContextLoader workContextLoader,
-        JacksonEventServiceFacade jacksonEventServiceFacade,
+        EventServiceFacade jacksonEventServiceFacade,
         ProgramService programService,
         ProgramStageService programStageService,
         ProgramInstanceService programInstanceService,

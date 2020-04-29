@@ -50,12 +50,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-class JacksonEventServiceFacade
+class EventServiceFacade
 {
-    // -------------------------------------------------------------------------
-    // EventService Impl
-    // -------------------------------------------------------------------------
-
     private final EventImporter eventImporter;
 
     private final CurrentUserService currentUserService;
@@ -64,8 +60,8 @@ class JacksonEventServiceFacade
 
     private final ObjectMapper xmlMapper;
 
-    JacksonEventServiceFacade( final EventImporter eventImporter, final CurrentUserService currentUserService,
-        final ObjectMapper jsonMapper, @Qualifier( "xmlMapper" )
+    EventServiceFacade(final EventImporter eventImporter, final CurrentUserService currentUserService,
+                       final ObjectMapper jsonMapper, @Qualifier( "xmlMapper" )
         final ObjectMapper xmlMapper )
     {
         checkNotNull( eventImporter );
@@ -98,10 +94,6 @@ class JacksonEventServiceFacade
 
         return eventImporter.importAll( events, updateImportOptions( importOptions ), jobConfiguration );
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
 
     private ImportOptions updateImportOptions( ImportOptions importOptions )
     {
