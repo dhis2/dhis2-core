@@ -99,7 +99,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            Attribute attribute =  bundle.getPreheat().get( bundle.getPreheatIdentifier(), Attribute.class, attributeValue.getAttribute() );
+            Attribute attribute =  bundle.getPreheat().get( bundle.getPreheatIdentifier(), Attribute.class, attributeValue.getAttribute().getUid() );
 
             if ( attribute == null )
             {
