@@ -69,6 +69,11 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
     @Override
     public Map<String, CategoryOptionCombo> get( ImportOptions importOptions, List<Event> events )
     {
+        if ( events == null )
+        {
+            return new HashMap<>();
+        }
+
         // TODO this should be optimized to execute less SQL queries
         IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
         Map<String, CategoryOptionCombo> eventToCocMap = new HashMap<>();

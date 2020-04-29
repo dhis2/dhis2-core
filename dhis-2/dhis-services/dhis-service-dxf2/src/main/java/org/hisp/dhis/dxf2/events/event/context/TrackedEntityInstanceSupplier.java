@@ -60,6 +60,10 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
     @Override
     public Map<String, TrackedEntityInstance> get( List<Event> events )
     {
+        if ( events == null )
+        {
+            return new HashMap<>();
+        }
         // @formatter:off
         // Collect all the org unit uids to pass as SQL query argument
         Set<String> teiUids = events.stream()

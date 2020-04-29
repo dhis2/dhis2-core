@@ -28,61 +28,64 @@ package org.hisp.dhis.dxf2.events.event.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Map;
 
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.stubbing.Answer;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractSupplierTest<T>
+public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<TrackedEntityInstance>
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
+    private TrackedEntityInstanceSupplier subject;
 
-    @Mock
-    protected NamedParameterJdbcTemplate jdbcTemplate;
-    
-    @Mock
-    protected ResultSet mockResultSet;
-    
-    public void mockResultSetExtractor( ResultSet resultSetMock )
+    @Before
+    public void setUp()
     {
-        when( jdbcTemplate.query( anyString(), any( MapSqlParameterSource.class ), any( ResultSetExtractor.class ) ) )
-            .thenAnswer( (Answer<Map<String, T>>) invocationOnMock -> {
-                // Fetch the method arguments
-                Object[] args = invocationOnMock.getArguments();
-
-                // Fetch the row mapper instance from the arguments
-                ResultSetExtractor<Map<String, T>> rm = (ResultSetExtractor<Map<String, T>>) args[2];
-
-                // Invoke the row mapper
-                return rm.extractData( resultSetMock );
-
-            } );
+        this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate );
     }
 
     @Test
-    public void doVerifySupplier() throws SQLException {
-
-        when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
-        verifySupplier();
+    public void handleNullEvents()
+    {
+        assertNotNull( subject.get( null ) );
     }
 
-    public abstract void verifySupplier() throws SQLException;
+    @Override
+    public void verifySupplier()
+        throws SQLException
+    {
+        // mock resultset data
+        when( mockResultSet.getLong( "trackedentityinstanceid" ) ).thenReturn( 100L );
+        when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
+        when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
+
+        // create event to import
+        Event event = new Event();
+        event.setUid( CodeGenerator.generateUid() );
+        event.setTrackedEntityInstance( "abcded" );
+
+        // mock resultset extraction
+        mockResultSetExtractor( mockResultSet );
+
+        Map<String, TrackedEntityInstance> map = subject.get( Collections.singletonList( event ) );
+
+        TrackedEntityInstance trackedEntityInstance = map.get( event.getUid() );
+        assertThat( trackedEntityInstance, is( notNullValue() ) );
+        assertThat( trackedEntityInstance.getId(), is( 100L ) );
+        assertThat( trackedEntityInstance.getUid(), is( "abcded" ) );
+        assertThat( trackedEntityInstance.getCode(), is( "ALFA" ) );
+    }
 }

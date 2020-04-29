@@ -62,6 +62,11 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     @Override
     public Map<String, ProgramInstance> get( List<Event> events )
     {
+        if ( events == null )
+        {
+            return new HashMap<>();
+        }
+        
         // @formatter:off
         // Collect all the program instance UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()

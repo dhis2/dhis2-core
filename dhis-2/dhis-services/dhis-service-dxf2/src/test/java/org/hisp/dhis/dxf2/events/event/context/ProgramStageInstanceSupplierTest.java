@@ -34,29 +34,35 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit>
+public class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<ProgramStageInstance>
 {
-    private OrganisationUnitSupplier subject;
+    private ProgramStageInstanceSupplier subject;
+
+    @Mock
+    private ProgramSupplier programSupplier;
 
     @Before
     public void setUp()
     {
-        this.subject = new OrganisationUnitSupplier( jdbcTemplate );
+        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate );
     }
 
     @Test
@@ -65,32 +71,31 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertNotNull( subject.get( null ) );
     }
 
+    @Override
     public void verifySupplier()
         throws SQLException
     {
         // mock resultset data
-        when( mockResultSet.getLong( "organisationunitid" ) ).thenReturn( 100L );
+        when( mockResultSet.getLong( "programstageinstanceid" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
-        when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
-        when( mockResultSet.getString( "path" ) ).thenReturn( "/aaaa/bbbb/cccc/abcded" );
-        when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 4 );
+        when( mockResultSet.getString( "status" ) ).thenReturn( "ACTIVE" );
+        when( mockResultSet.getBoolean( "deleted" ) ).thenReturn( false );
 
         // create event to import
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
-        event.setOrgUnit( "abcded" );
+        event.setEnrollment( "abcded" );
 
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, OrganisationUnit> map = subject.get( Collections.singletonList( event ) );
+        Map<String, ProgramStageInstance> map = subject.get( Collections.singletonList( event ) );
 
-        OrganisationUnit organisationUnit = map.get( event.getUid() );
-        assertThat( organisationUnit, is( notNullValue() ) );
-        assertThat( organisationUnit.getId(), is( 100L ) );
-        assertThat( organisationUnit.getUid(), is( "abcded" ) );
-        assertThat( organisationUnit.getCode(), is( "ALFA" ) );
-        assertThat( organisationUnit.getPath(), is( "/aaaa/bbbb/cccc/abcded" ) );
-        assertThat( organisationUnit.getHierarchyLevel(), is( 4 ) );
+        ProgramStageInstance programStageInstance = map.get( "abcded" );
+        assertThat( programStageInstance, is( notNullValue() ) );
+        assertThat( programStageInstance.getId(), is( 100L ) );
+        assertThat( programStageInstance.getUid(), is( "abcded" ) );
+        assertThat( programStageInstance.getStatus(), is( EventStatus.ACTIVE ) );
+        assertThat( programStageInstance.isDeleted(), is( false ) );
     }
 }

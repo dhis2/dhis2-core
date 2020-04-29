@@ -34,29 +34,33 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit>
+public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance>
 {
-    private OrganisationUnitSupplier subject;
+    private ProgramInstanceSupplier subject;
+
+    @Mock
+    private ProgramSupplier programSupplier;
 
     @Before
     public void setUp()
     {
-        this.subject = new OrganisationUnitSupplier( jdbcTemplate );
+        this.subject = new ProgramInstanceSupplier( jdbcTemplate, programSupplier );
     }
 
     @Test
@@ -65,32 +69,46 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertNotNull( subject.get( null ) );
     }
 
+    @Override
     public void verifySupplier()
         throws SQLException
     {
         // mock resultset data
-        when( mockResultSet.getLong( "organisationunitid" ) ).thenReturn( 100L );
+        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
-        when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
-        when( mockResultSet.getString( "path" ) ).thenReturn( "/aaaa/bbbb/cccc/abcded" );
-        when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 4 );
+        when( mockResultSet.getString( "tei_uid" ) ).thenReturn( "efghil" );
+        when( mockResultSet.getString( "tei_ou_uid" ) ).thenReturn( "ouabcde" );
+        when( mockResultSet.getLong( "programid" ) ).thenReturn( 999L );
 
         // create event to import
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
-        event.setOrgUnit( "abcded" );
+        event.setEnrollment( "abcded" );
 
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, OrganisationUnit> map = subject.get( Collections.singletonList( event ) );
+        // create a Program for the ProgramSupplier
+        Program program = new Program();
+        program.setId( 999L );
+        program.setUid( "prabcde" );
+        Map<String, Program> programMap = new HashMap<>();
+        programMap.put( "prabcde", program );
 
-        OrganisationUnit organisationUnit = map.get( event.getUid() );
-        assertThat( organisationUnit, is( notNullValue() ) );
-        assertThat( organisationUnit.getId(), is( 100L ) );
-        assertThat( organisationUnit.getUid(), is( "abcded" ) );
-        assertThat( organisationUnit.getCode(), is( "ALFA" ) );
-        assertThat( organisationUnit.getPath(), is( "/aaaa/bbbb/cccc/abcded" ) );
-        assertThat( organisationUnit.getHierarchyLevel(), is( 4 ) );
+        when( programSupplier.get( Collections.singletonList( event ) ) ).thenReturn( programMap );
+
+        Map<String, ProgramInstance> map = subject.get( Collections.singletonList( event ) );
+
+        ProgramInstance programInstance = map.get( event.getUid() );
+        assertThat( programInstance, is( notNullValue() ) );
+        assertThat( programInstance.getId(), is( 100L ) );
+        assertThat( programInstance.getUid(), is( "abcded" ) );
+        assertThat( programInstance.getEntityInstance(), is( notNullValue() ) );
+        assertThat( programInstance.getEntityInstance().getUid(), is( "efghil" ) );
+        assertThat( programInstance.getEntityInstance().getOrganisationUnit(), is( notNullValue() ) );
+        assertThat( programInstance.getEntityInstance().getOrganisationUnit().getUid(), is( "ouabcde" ) );
+        assertThat( programInstance.getProgram(), is( notNullValue() ) );
+        assertThat( programInstance.getProgram().getUid(), is( "prabcde" ) );
     }
+
 }

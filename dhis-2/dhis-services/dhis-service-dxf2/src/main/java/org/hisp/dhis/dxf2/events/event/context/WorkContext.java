@@ -48,6 +48,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
+ * This class acts as a cache for data required during the Event import process.
+ * 
  * @author Luciano Fiandesio
  */
 @Getter
@@ -57,51 +59,86 @@ public class WorkContext
     private final ImportOptions importOptions;
 
     /**
-     * Holds a list of all programs in the system
+     * Holds a Map of all Programs in the system. 
+     * Each Program in the Map also contains: 
+     * 
+     * - all connected Program Stages 
+     * - all connected Org Units 
+     * - the connected CategoryCombo
      *
-     * Map key is program uid
+     * Map:
+     *  key     -> Program UID
+     *  value   -> Program
      */
     private final Map<String, Program> programsMap;
 
     /**
-     * Holds a Map of OrganisationUnit associated to an Event
+     * Holds a Map of all {@see OrganisationUnit} associated to the Events to import.
+     * Each {@see OrganisationUnit} also contain the complete hierarchy ( via .getParent() )
      *
-     * Map key is Event uid, value is {@see OrganisationUnit}
+     * Map:
+     *  key     -> Event UID
+     *  value   -> OrganisationUnit
      */
     private final Map<String, OrganisationUnit> organisationUnitMap;
 
     /**
-     * Holds a Map of Tracked Entity Instances associated to an Event
-     *
-     * Map key is Event uid, value is {@see TrackedEntityInstance}
+     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to import.
+     * 
+     * Map:
+     *  key     -> Event UID
+     *  value   -> TrackedEntityInstance
      */
     private final Map<String, TrackedEntityInstance> trackedEntityInstanceMap;
 
     /**
-     * Map key is Event uid, value is {@see ProgramInstance}
+     * Holds a Map of all {@see ProgramInstance} associated to the Events to import.
+     *
+     * Map:
+     *  key     -> Event UID
+     *  value   -> ProgramInstance
      */
     private final Map<String, ProgramInstance> programInstanceMap;
 
+    /**
+     * Holds a Map of all {@see ProgramStageInstance} associated to the Events to import.
+     *
+     * Map:
+     *  key     -> ProgramStageInstance UID
+     *  value   -> ProgramStageInstance
+     */
     private final Map<String, ProgramStageInstance> programStageInstanceMap;
 
+    /**
+     * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to import.
+     *
+     * Map:
+     *  key     -> Event UID
+     *  value   -> CategoryOptionCombo
+     */
     private final Map<String, CategoryOptionCombo> categoryOptionComboMap;
 
     /**
-     * Map key is DataElement uid, value is {@see DataElement}
+     * Holds a Map of all {@see DataElement} associated to the Events to import.
+     *
+     * Map:
+     *  key     -> Event UID
+     *  value   -> DataElement
      */
     private final Map<String, DataElement> dataElementMap;
 
     private final Map<String, User> assignedUserMap;
 
     private final Map<String, Note> notesMap;
+
     /**
      * Services / components
      */
     private final ServiceDelegator serviceDelegator;
 
     /**
-     * Checks within all the cached program for a ProgramStage having the
-     * uid matching the specified uid.
+     * Checks within all the cached program for a ProgramStage having the uid
+     * matching the specified uid.
      *
      * @param uid the uid of a program stage
      * @return a ProgramStage object or null
