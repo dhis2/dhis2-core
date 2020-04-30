@@ -39,6 +39,8 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -87,7 +89,7 @@ public class ProgramInstanceCheck implements ValidationCheck
         }
         }
 
-        return new ImportSummary();
+        return success();
     }
 
     @Override

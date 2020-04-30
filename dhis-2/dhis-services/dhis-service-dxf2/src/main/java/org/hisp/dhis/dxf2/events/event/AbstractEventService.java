@@ -303,32 +303,9 @@ public abstract class AbstractEventService
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
-        ImportSummaries importSummaries = new ImportSummaries();
-        importOptions = updateImportOptions( importOptions );
-
-        List<Event> validEvents = resolveImportableEvents( events, importSummaries );
-
-        List<List<Event>> partitions = Lists.partition( validEvents, FLUSH_FREQUENCY );
-
-        for ( List<Event> _events : partitions )
-        {
-            reloadUser( importOptions );
-            prepareCaches( importOptions.getUser(), _events );
-
-            for ( Event event : _events )
-            {
-                importSummaries.addImportSummary( addEvent( event, importOptions, true ) );
-            }
-
-            if ( clearSession && events.size() >= FLUSH_FREQUENCY )
-            {
-                clearSession( importOptions.getUser() );
-            }
-        }
-
-        updateEntities( importOptions.getUser() );
-
-        return importSummaries;
+        final WorkContext workContext = workContextLoader.load( importOptions, events );
+        final ImportSummaries importSummaries = eventManager.addEvents( events, workContext );
+        return eventManager.addEvents( events, workContext );
     }
 
     /**

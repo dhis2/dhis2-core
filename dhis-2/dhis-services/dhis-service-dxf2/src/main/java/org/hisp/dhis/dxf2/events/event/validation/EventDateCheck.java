@@ -34,6 +34,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.util.DateUtils;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -61,7 +63,7 @@ public class EventDateCheck
                 .incrementIgnored();
         }
 
-        return new ImportSummary();
+        return success();
     }
 
     @Override

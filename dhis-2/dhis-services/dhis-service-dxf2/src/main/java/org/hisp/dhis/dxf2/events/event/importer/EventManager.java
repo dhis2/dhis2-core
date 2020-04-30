@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event.importer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
@@ -37,9 +38,11 @@ import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
@@ -237,18 +240,21 @@ public class EventManager
     private List<Event> resolveImportableEvents( final List<Event> events, final ImportSummaries importSummaries,
         final WorkContext workContext )
     {
-        final Map<String, ProgramStageInstance> programStageInstanceMap = workContext.getProgramStageInstanceMap();
+        if (CollectionUtils.isNotEmpty(events)) {
+            final Map<String, ProgramStageInstance> programStageInstanceMap = workContext.getProgramStageInstanceMap();
 
-        for ( final String foundEventUid : programStageInstanceMap.keySet() )
-        {
-            final ImportSummary is = new ImportSummary( ERROR,
-                "Event " + foundEventUid + " already exists or was deleted earlier" ).setReference( foundEventUid )
+            for (final String foundEventUid : programStageInstanceMap.keySet()) {
+                final ImportSummary is = new ImportSummary(ERROR,
+                    "Event " + foundEventUid + " already exists or was deleted earlier").setReference(foundEventUid)
                     .incrementIgnored();
 
-            importSummaries.addImportSummary( is );
+                importSummaries.addImportSummary(is);
+            }
+
+            return events.stream().filter(e -> !programStageInstanceMap.containsKey(e.getEvent())).collect(toList());
         }
 
-        return events.stream().filter( e -> !programStageInstanceMap.containsKey( e.getEvent() ) ).collect( toList() );
+        return emptyList();
     }
 
     private List<Event> retryEach( final WorkContext workContext, final List<Event> retryEvents )

@@ -34,6 +34,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -52,7 +54,7 @@ public class TrackedEntityInstanceCheck implements ValidationCheck
                     + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
         }
 
-        return new ImportSummary();
+        return success();
     }
 
     @Override
