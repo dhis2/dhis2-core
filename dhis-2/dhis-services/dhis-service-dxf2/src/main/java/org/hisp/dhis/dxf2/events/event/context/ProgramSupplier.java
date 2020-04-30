@@ -85,13 +85,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<String, Program> load()
     {
-        final String sql = "select p.programid, p.uid, p.name, p.type, c.uid as catcombo_uid, c.name as catcombo_name, "
+        final String sql = "select p.programid, p.uid, p.name, p.type, c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, "
             + "ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, string_agg(ou.uid, ', ') ous "
             + "from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
             + "        LEFT JOIN programstage ps on p.programid = ps.programid "
             + "        LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
             + "        LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
-            + "group by p.programid, p.uid, p.name, p.type, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
+            + "group by p.programid, p.uid, p.name, p.type, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
             + "order by p.programid, ps.sort_order";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
@@ -111,6 +111,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     programStages.add( toProgramStage( rs ) );
 
                     CategoryCombo categoryCombo = new CategoryCombo();
+                    categoryCombo.setId( rs.getLong( "catcombo_id" ) );
                     categoryCombo.setUid( rs.getString( "catcombo_uid" ) );
                     categoryCombo.setName( rs.getString( "catcombo_name" ) );
                     program.setCategoryCombo( categoryCombo );

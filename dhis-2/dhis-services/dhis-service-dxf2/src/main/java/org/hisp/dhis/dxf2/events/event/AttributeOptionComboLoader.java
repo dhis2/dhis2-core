@@ -30,24 +30,34 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Collections;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.logging.log4j.util.Strings;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -55,52 +65,114 @@ import com.google.common.collect.Lists;
 @Component
 public class AttributeOptionComboLoader
 {
-    private final IdentifiableObjectManager manager;
+    private final JdbcTemplate jdbcTemplate;
 
-    private final CategoryService categoryService;
+    private final static String KEY_SEPARATOR = "-";
 
-    private CachingMap<String, CategoryOption> categoryOptionCache = new CachingMap<>();
+    final static String SQL_GET_CATEGORYOPTIONCOMBO = "select coc.${key}, "
+            + "coc.uid, coc.code, coc.ignoreapproval, coc.name, c.uid as cc_uid, c.name as cc_name, "
+            + "string_agg(dec.categoryid::text, ',') as cat_ids from categoryoptioncombo coc "
+            + "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid "
+            + "join categorycombo c on co.categorycomboid = c.categorycomboid "
+            + "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid "
+            + "join dataelementcategory dec on cc.categoryid = dec.categoryid where coc."
+            + "${resolvedScheme} "
+            + "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name";
 
-    private CachingMap<String, CategoryOptionCombo> categoryOptionComboCache = new CachingMap<>();
+    // *** CACHE INITIALIZATION *** //
 
-    private CachingMap<String, CategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
+    // @formatter:off
+    private final Cache<String, CategoryOptionCombo> cocCache = new Cache2kBuilder<String, CategoryOptionCombo>() {}
+        .name( "categoryOptionComboEventImportCache" + RandomStringUtils.randomAlphabetic(5) )
+        .expireAfterWrite( 30, TimeUnit.MINUTES )
+        .permitNullValues( true )
+        .loader( new CacheLoader<String, CategoryOptionCombo>()
+        {
+            @Override
+            public CategoryOptionCombo load( String key )
+            {
+                return loadCategoryOptionCombo( IdScheme.from( key.split( KEY_SEPARATOR )[0] ), key.split( KEY_SEPARATOR )[1] );
+            }
+        } ).build() ;
 
-    private CategoryOptionCombo DEFAULT_COC = null;
+        private final Cache<String, CategoryOption> catOptCache = new Cache2kBuilder<String, CategoryOption>() {}
+            .name( "categoryOptionEventImportCache-" + RandomStringUtils.randomAlphabetic(5) )
+            .expireAfterWrite( 30, TimeUnit.MINUTES )
+            .permitNullValues( true )
+            .loader( new CacheLoader<String, CategoryOption>()
+            {
+                @Override
+                public CategoryOption load( String key )
+                {
+                    return loadCategoryOption( IdScheme.from( key.split( KEY_SEPARATOR )[0] ), key.split( KEY_SEPARATOR )[1] );
+                }
+            } ).build();
+    // @formatter:on
 
-    public AttributeOptionComboLoader( IdentifiableObjectManager manager, CategoryService categoryService )
+    public AttributeOptionComboLoader( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
-        checkNotNull( manager );
-        checkNotNull( categoryService );
+        checkNotNull( jdbcTemplate );
 
-        this.manager = manager;
-        this.categoryService = categoryService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String cp,
-        String attributeOptionCombo, IdScheme idScheme )
+    /**
+     * Fetches a {@see CategoryOptionCombo} by id, using the provided look-up
+     * Scheme
+     *
+     * @param idScheme an IdScheme
+     * @param id the actual id
+     * @return a CategoryOptionCombo or null
+     */
+    public CategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
     {
-        Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
+        return this.cocCache.get( idScheme.name() + KEY_SEPARATOR + id );
+    }
+
+    /**
+     * Fetches a {@see CategoryOptionCombo}
+     *
+     * @param categoryCombo a {@see CategoryCombo}
+     * @param categoryOptions a semicolon delimited list of Category Options uid
+     * @param attributeOptionCombo
+     * @param idScheme the {@see IdScheme} to use to fetch the entity
+     * @return a {@see CategoryOptionCombo}
+     */
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String categoryOptions,
+                                                        String attributeOptionCombo, IdScheme idScheme )
+    {
+        final Set<String> opts = TextUtils.splitToArray( categoryOptions, TextUtils.SEMICOLON );
 
         return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
     }
 
-    public CategoryOption getCategoryOption( IdScheme idScheme, String id )
+    /**
+     * Fetches the default {@see CategoryOptionCombo}
+     * @return a {@see CategoryOptionCombo} or null
+     */
+    public CategoryOptionCombo getDefault()
     {
-        return categoryOptionCache.get( id, () -> manager.getObject( CategoryOption.class, idScheme, id ) );
+        final String cacheKey = IdScheme.NAME.name() + KEY_SEPARATOR + "default";
+        CategoryOptionCombo defaultCoc = cocCache.get( cacheKey );
+
+        if ( defaultCoc == null )
+        {
+            defaultCoc = loadCategoryOptionCombo( IdScheme.NAME, "default" );
+            this.cocCache.put( cacheKey, defaultCoc );
+        }
+        return defaultCoc;
     }
 
-    public CategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
+    /**
+     * Fetches a {@see CategoryOption} by uid, using the provided look-up Scheme
+     *
+     * @param idScheme an IdScheme
+     * @param id the actual id
+     * @return a CategoryOption or null
+     */
+    private CategoryOption getCategoryOption( IdScheme idScheme, String id )
     {
-        CategoryOptionCombo categoryOptionCombo = categoryOptionComboCache.get( id );
-        if ( categoryOptionCombo == null )
-        {
-            categoryOptionCombo = manager.getObject( CategoryOptionCombo.class, idScheme, id );
-            if ( categoryOptionCombo != null )
-            {
-                categoryOptionComboCache.put( id, categoryOptionCombo );
-            }
-        }
-        return categoryOptionCombo;
+        return catOptCache.get( idScheme.name() + KEY_SEPARATOR + id );
     }
 
     private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
@@ -133,11 +205,9 @@ public class AttributeOptionComboLoader
                 categoryOptions.add( categoryOption );
             }
 
-            List<String> options = Lists.newArrayList( opts );
-            Collections.sort( options );
+            final String id = resolveCategoryComboId( categoryCombo, idScheme );
 
-            String cacheKey = categoryCombo.getUid() + "-" + Joiner.on( "-" ).join( options );
-            attrOptCombo = getAttributeOptionCombo( cacheKey, categoryCombo, categoryOptions );
+            attrOptCombo = getAttributeOptionCombo( idScheme, id, categoryOptions );
 
             if ( attrOptCombo == null )
             {
@@ -167,22 +237,177 @@ public class AttributeOptionComboLoader
         return attrOptCombo;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( String key, CategoryCombo categoryCombo,
-        Set<CategoryOption> categoryOptions )
+    private String resolveCategoryComboId( CategoryCombo categoryCombo, IdScheme idScheme )
     {
-        return attributeOptionComboCache.get( key,
-            () -> categoryService.getCategoryOptionCombo( categoryCombo, categoryOptions ) );
+        String id;
+        if ( idScheme.is( IdentifiableProperty.ID ) )
+        {
+            id = String.valueOf( categoryCombo.getId() );
+        }
+        else if ( idScheme.is( IdentifiableProperty.UID ) )
+        {
+            id = categoryCombo.getUid();
+        }
+        else if ( idScheme.is( IdentifiableProperty.CODE ) )
+        {
+            id = categoryCombo.getCode();
+        }
+        else if ( idScheme.is( IdentifiableProperty.ID ) )
+        {
+            id = categoryCombo.getName();
+        }
+        else
+        {
+            id = null;
+        }
+        return id;
     }
 
-    public CategoryOptionCombo getDefault()
-    {
-        if ( DEFAULT_COC == null )
+    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId, Set<CategoryOption> categoryOptions) {
+
+        final String key = "categorycomboid";
+        final String categoryComboKey = resolveId( idScheme, key, categoryComboId);
+
+        final String optionsId = categoryOptions.stream()
+            .map( co -> Long.toString( co.getId() ) )
+            .map(s -> "'" + s + "'")
+            .collect( Collectors.joining( "," ) );
+
+        final String sql = "select * from ( " +
+                "                  select coc.categoryoptioncomboid, " +
+                "                         coc.uid, " +
+                "                         coc.code, " +
+                "                         coc.ignoreapproval, " +
+                "                         coc.name, " +
+                "                         c.uid as cc_uid, " +
+                "                         c.name as cc_name," +
+                "                         string_agg( dec.categoryid::text, ',') as cat_ids " +
+                "                  from categoryoptioncombo coc " +
+                "                           join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
+                "                           join categorycombo c on co.categorycomboid = c.categorycomboid " +
+                "                           join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid " +
+                "                           join dataelementcategory dec on cc.categoryid = dec.categoryid " +
+                "                  where c." + categoryComboKey +
+                "                  group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name " +
+                ") as catoptcombo where " +
+                "                       array_length(regexp_split_to_array(cat_ids, ','),1) = array_length(ARRAY[" + optionsId + "],1) AND " +
+                "                       regexp_split_to_array(cat_ids, ',') @> ARRAY[" + optionsId + "]";
+
+        // TODO use cache
+        List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate.query( sql, ( rs, i ) -> bind( key, rs ) );
+
+        if ( categoryOptionCombos.size() == 1 )
         {
-            CategoryOptionCombo defaultCoc = manager.getByName( CategoryOptionCombo.class, "default" );
-            // Call is default to avoid Hibernate Session issues later
-            defaultCoc.isDefault();
-            this.DEFAULT_COC = defaultCoc;
+            return categoryOptionCombos.get( 0 );
         }
-        return DEFAULT_COC;
+        else
+        {
+            // TODO throw an error??
+            return null;
+        }
+    }
+
+    /**
+     * Fetches a {@see CategoryOptionCombo} by "id" (based on the provided IdScheme)
+     *
+     * The {@see CategoryOptionCombo} contains tha associated {@see CategoryCombo}
+     * and all the associated {@see CategoryOption}
+     *
+     * @param idScheme a {@see IdScheme}
+     * @param id the {@see CategoryOptionCombo} id to use
+     * @return a {@see CategoryOptionCombo} or null
+     */
+    private CategoryOptionCombo loadCategoryOptionCombo( IdScheme idScheme, String id )
+    {
+        String key = "categoryoptioncomboid";
+        // @formatter:off
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
+            .put( "key", key )
+            .put( "resolvedScheme", Objects.requireNonNull(resolveId(idScheme, key, id)))
+            .build() );
+        // @formatter:on
+        try
+        {
+            return jdbcTemplate.queryForObject( sub.replace(SQL_GET_CATEGORYOPTIONCOMBO), (rs, i ) -> bind( key, rs ) );
+        }
+        catch ( EmptyResultDataAccessException e )
+        {
+            return null;
+        }
+    }
+
+    private CategoryOptionCombo bind( String key, ResultSet rs )
+        throws SQLException
+    {
+        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+        categoryOptionCombo.setId( rs.getLong( key ) );
+        categoryOptionCombo.setUid( rs.getString( "uid" ) );
+        categoryOptionCombo.setCode( rs.getString( "code" ) );
+        categoryOptionCombo.setIgnoreApproval( rs.getBoolean( "ignoreapproval" ) );
+        categoryOptionCombo.setName( rs.getString( "name" ) );
+
+        String cat_ids = rs.getString( "cat_ids" );
+        if ( Strings.isNotEmpty( cat_ids ) )
+        {
+            categoryOptionCombo.setCategoryOptions( Arrays.stream( cat_ids.split( "," ) ).map( coid -> {
+                CategoryOption co = new CategoryOption();
+                co.setId( Long.parseLong( coid ) );
+                return co;
+            } ).collect( Collectors.toSet() )
+
+            );
+        }
+        CategoryCombo categoryCombo = new CategoryCombo();
+        categoryCombo.setUid( rs.getString( "cc_uid" ) );
+        categoryCombo.setName( rs.getString( "cc_name" ) );
+        categoryOptionCombo.setCategoryCombo( categoryCombo );
+        return categoryOptionCombo;
+
+    }
+
+    private CategoryOption loadCategoryOption( IdScheme idScheme, String id )
+    {
+        String key = "categoryoptionid";
+        final String sql = "select " + key + ", uid, code, name from dataelementcategoryoption "
+            + "where " + resolveId( idScheme, key, id );
+
+        try
+        {
+            return jdbcTemplate.queryForObject( sql, ( rs, i ) -> {
+                CategoryOption categoryOption = new CategoryOption();
+                categoryOption.setId( rs.getLong( key ) );
+                categoryOption.setUid( rs.getString( "uid" ) );
+                categoryOption.setCode( rs.getString( "code" ) );
+                categoryOption.setName( rs.getString( "name" ) );
+
+                return categoryOption;
+            } );
+        }
+        catch ( EmptyResultDataAccessException e )
+        {
+            return null;
+        }
+    }
+
+    private String resolveId( IdScheme scheme, String primaryKeyColumn, String id )
+    {
+        if ( scheme.is( IdentifiableProperty.ID ) )
+        {
+            return primaryKeyColumn + " = " + id;
+        }
+        else if ( scheme.is( IdentifiableProperty.UID ) )
+        {
+            return "uid = '" + id + "'";
+        }
+        else if ( scheme.is( IdentifiableProperty.CODE ) )
+        {
+            return "code = '" + id + "'";
+        }
+        else if ( scheme.is( IdentifiableProperty.NAME ) )
+        {
+            return "name = '" + id + "'";
+        }
+
+        return null;
     }
 }

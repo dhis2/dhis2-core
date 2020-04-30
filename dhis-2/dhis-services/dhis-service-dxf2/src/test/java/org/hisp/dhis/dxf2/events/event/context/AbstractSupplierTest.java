@@ -36,7 +36,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -57,10 +56,10 @@ public abstract class AbstractSupplierTest<T>
 
     @Mock
     protected NamedParameterJdbcTemplate jdbcTemplate;
-    
+
     @Mock
     protected ResultSet mockResultSet;
-    
+
     public void mockResultSetExtractor( ResultSet resultSetMock )
     {
         when( jdbcTemplate.query( anyString(), any( MapSqlParameterSource.class ), any( ResultSetExtractor.class ) ) )
@@ -78,11 +77,13 @@ public abstract class AbstractSupplierTest<T>
     }
 
     @Test
-    public void doVerifySupplier() throws SQLException {
-
+    public void doVerifySupplier()
+        throws SQLException
+    {
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
         verifySupplier();
     }
 
-    public abstract void verifySupplier() throws SQLException;
+    public abstract void verifySupplier()
+        throws SQLException;
 }

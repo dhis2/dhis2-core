@@ -28,11 +28,13 @@ package org.hisp.dhis.dxf2.events.event.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -63,6 +65,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
     @Override
     public Map<String, CategoryOptionCombo> get( List<Event> events )
     {
+        // This method is not meant to be used
         return null;
     }
 
@@ -77,31 +80,56 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         // TODO this should be optimized to execute less SQL queries
         IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
         Map<String, CategoryOptionCombo> eventToCocMap = new HashMap<>();
+        Map<String, Program> programMap = programSupplier.get( events );
+
         for ( Event event : events )
         {
-            Program program = programSupplier.get( events ).get( event.getProgram() );
+            Program program = programMap.get( event.getProgram() );
 
-            // if event has "attribute option combo" set only, fetch the aoc directly
-            if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
-                && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) )
+            // Can't proceed with null Program, this will fail during the validation stage
+            if ( program == null )
             {
-                eventToCocMap.put( event.getUid(),
-                    attributeOptionComboLoader.getCategoryOptionCombo( idScheme, event.getAttributeOptionCombo() ) );
+                return null;
             }
-            // if event has no "attribute option combo", fetch the default aoc
-            else if ( StringUtils.isEmpty( event.getAttributeOptionCombo() )
-                && StringUtils.isEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
-            {
-                eventToCocMap.put( event.getUid(), attributeOptionComboLoader.getDefault() );
-            }
-            else if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() )
-                && StringUtils.isNotEmpty( event.getAttributeCategoryOptions() ) && program.getCategoryCombo() != null )
-            {
-                CategoryOptionCombo coc = attributeOptionComboLoader.getAttributeOptionCombo(
-                    program.getCategoryCombo(), event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(),
-                    idScheme );
 
-                eventToCocMap.put( event.getUid(), coc );
+            final CategoryCombo programCatCombo = program.getCategoryCombo();
+            final String aoc = event.getAttributeOptionCombo();
+            final String attributeCatOptions = event.getAttributeCategoryOptions();
+
+            CategoryOptionCombo categoryOptionCombo;
+
+            if ( isNotEmpty( aoc ) )
+            {
+                categoryOptionCombo = attributeOptionComboLoader.getCategoryOptionCombo( idScheme, aoc );
+                if ( categoryOptionCombo == null )
+                {
+                    categoryOptionCombo = attributeOptionComboLoader.getDefault();
+                    if ( categoryOptionCombo == null )
+                    {
+                        // TODO FAIL --> use validation rule
+                    }
+                }
+            }
+            else if ( programCatCombo != null && isNotEmpty( attributeCatOptions ) )
+            {
+                if (programCatCombo == null) {
+
+                    // TODO FAIL --> use validation rule
+                }
+                categoryOptionCombo = attributeOptionComboLoader.getAttributeOptionCombo( programCatCombo,
+                    attributeCatOptions, aoc, idScheme );
+                if ( categoryOptionCombo == null )
+                {
+                    // TODO FAIL -> use validation rule
+                }
+            }
+            else
+            {
+                categoryOptionCombo = attributeOptionComboLoader.getDefault();
+            }
+            if ( categoryOptionCombo != null )
+            {
+                eventToCocMap.put( event.getUid(), categoryOptionCombo );
             }
         }
 
