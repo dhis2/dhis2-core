@@ -236,6 +236,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
+        
+        preProcessRequestParameters( metadata, options, filters, orders );
 
         List<T> entities = getEntityList( metadata, options, filters, orders );
 
@@ -1077,6 +1079,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected T deserializeXmlEntity( HttpServletRequest request ) throws IOException
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
+    }
+    
+    /**
+     * Override to pre-process and modify request parameters before querying
+     */
+    protected void preProcessRequestParameters( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    {
     }
 
     /**

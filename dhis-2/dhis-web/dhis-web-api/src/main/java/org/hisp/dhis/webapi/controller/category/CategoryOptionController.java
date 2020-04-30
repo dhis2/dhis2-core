@@ -1,5 +1,7 @@
 package org.hisp.dhis.webapi.controller.category;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -29,17 +31,64 @@ package org.hisp.dhis.webapi.controller.category;
  */
 
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.query.Order;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.webdomain.WebMetadata;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.jfree.util.Log;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @Controller
+@Slf4j
 @RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
 public class CategoryOptionController
     extends AbstractCrudController<CategoryOption>
 {
+    @Autowired
+    private CurrentUserService currentUserService;
+    
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+    
+    @Override
+    protected void preProcessRequestParameters( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    {
+        if ( "true".equalsIgnoreCase( options.get( "includeCaptureScopeOnly" ) ) )
+        {
+            if ( filters.isEmpty() )
+            {
+                User user = currentUserService.getCurrentUser();
+
+                if ( user != null )
+                {
+                    List<String> orgUnitUids = user.getOrganisationUnits().stream().map( orgUnit -> orgUnit.getUid() ).collect( Collectors.toList() );
+                    filters.add( "organisationUnits.id:in:[" + StringUtils.join( orgUnitUids, "," ) + "]" );
+                    filters.add( "organisationUnits:empty" );
+                    options.getOptions().put( WebOptions.ROOT_JUNCTION, "OR" );
+                }
+            }
+            else
+            {
+                Log.error( "Filters and includeCaptureScopeOnly cannot be specified at the same time" );
+                throw new IllegalArgumentException( "Filters and includeCaptureScopeOnly cannot be specified at the same time." );
+            }
+        }
+    }
+    
 }
