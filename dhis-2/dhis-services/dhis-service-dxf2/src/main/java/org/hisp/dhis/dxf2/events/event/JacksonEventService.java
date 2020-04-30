@@ -41,10 +41,12 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
+import org.hisp.dhis.dxf2.events.event.importer.EventImporter;
+import org.hisp.dhis.dxf2.events.event.importer.EventManager;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationContext;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EventSyncService;
@@ -67,6 +69,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -80,15 +83,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-//@Service( "org.hisp.dhis.dxf2.events.event.EventService" )
+@Service( "org.hisp.dhis.dxf2.events.event.EventService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 public class JacksonEventService extends AbstractEventService
 {
+    private final EventServiceFacade jacksonEventServiceFacade;
+
     // -------------------------------------------------------------------------
     // EventService Impl
     // -------------------------------------------------------------------------
 
     public JacksonEventService(
+        EventImporter eventImporter,
+        EventManager eventManager,
+        WorkContextLoader workContextLoader,
+        EventServiceFacade jacksonEventServiceFacade,
         ProgramService programService,
         ProgramStageService programStageService,
         ProgramInstanceService programInstanceService,
@@ -117,6 +126,10 @@ public class JacksonEventService extends AbstractEventService
         ObjectMapper jsonMapper,
         @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
+        checkNotNull( eventImporter );
+        checkNotNull( eventManager );
+        checkNotNull( workContextLoader );
+        checkNotNull( jacksonEventServiceFacade );
         checkNotNull( programService );
         checkNotNull( programStageService );
         checkNotNull( programInstanceService );
@@ -144,6 +157,10 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
+        this.eventImporter = eventImporter;
+        this.eventManager = eventManager;
+        this.workContextLoader = workContextLoader;
+        this.jacksonEventServiceFacade = jacksonEventServiceFacade;
         this.programService = programService;
         this.programStageService = programStageService;
         this.programInstanceService = programInstanceService;
@@ -202,38 +219,27 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEvents(List<Event> events, ImportOptions importOptions, ValidationContext validationContext) {
-        return null;
-    }
-
-    @Override
     public ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
-        return addEventsXml( inputStream, null, updateImportOptions( importOptions ) );
+        return jacksonEventServiceFacade.addEventsXml( inputStream, null, importOptions );
     }
 
     @Override
     public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
-        List<Event> events = parseXmlEvents( input );
-
-        return processEventImport( events, updateImportOptions( importOptions ), jobId );
+        return jacksonEventServiceFacade.addEventsXml( inputStream, jobId, importOptions );
     }
 
     @Override
     public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
-        return addEventsJson( inputStream, null, updateImportOptions( importOptions ) );
+        return jacksonEventServiceFacade.addEventsJson( inputStream, null, importOptions );
     }
 
     @Override
     public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
-        List<Event> events = parseJsonEvents( input );
-
-        return processEventImport( events, updateImportOptions( importOptions ), jobId );
+        return jacksonEventServiceFacade.addEventsJson( inputStream, jobId, importOptions );
     }
 
     // -------------------------------------------------------------------------

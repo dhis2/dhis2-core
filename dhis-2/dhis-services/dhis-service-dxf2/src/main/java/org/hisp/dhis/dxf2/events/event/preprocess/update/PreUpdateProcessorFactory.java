@@ -28,12 +28,14 @@ package org.hisp.dhis.dxf2.events.event.preprocess.update;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
+
 import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
@@ -53,12 +55,18 @@ public class PreUpdateProcessorFactory
 
     public void preProcessEvents( final WorkContext ctx, final List<Event> events )
     {
-        final PreProcessorRunner preProcessorRunner = new PreProcessorRunner(
-                eventUpdatePreProcessorMap.get( ctx.getImportOptions().getImportStrategy() ) );
+        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
 
-        for ( final Event event : events )
+        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
         {
-            preProcessorRunner.executePreProcessingChain( event, ctx );
+            final List<Class<? extends PreProcessor>> preProcessors = eventUpdatePreProcessorMap.get( UPDATE );
+
+            final PreProcessorRunner preProcessorRunner = new PreProcessorRunner( preProcessors );
+
+            for ( final Event event : events )
+            {
+                preProcessorRunner.executePreProcessingChain( event, ctx );
+            }
         }
     }
 

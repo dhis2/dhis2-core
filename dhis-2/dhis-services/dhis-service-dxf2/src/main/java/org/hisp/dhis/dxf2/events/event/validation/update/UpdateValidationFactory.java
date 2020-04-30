@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event.validation.update;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,6 @@ import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -52,7 +52,7 @@ public class UpdateValidationFactory
 {
     private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> eventUpdateValidatorMap;
 
-    public UpdateValidationFactory( final WorkContextLoader workContextLoader,
+    public UpdateValidationFactory(
         final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> eventUpdateValidatorMap )
     {
         checkNotNull( eventUpdateValidatorMap );
@@ -62,13 +62,19 @@ public class UpdateValidationFactory
     public List<ImportSummary> validateEvents( final WorkContext ctx, final List<Event> events )
     {
         final List<ImportSummary> importSummaries = new ArrayList<>();
-        final ValidationRunner validationRunner = new ValidationRunner(
-            eventUpdateValidatorMap.get( ctx.getImportOptions().getImportStrategy() ) );
 
-        for ( final Event event : events )
+        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
+
+        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
         {
-            importSummaries.add( validationRunner.executeValidationChain( event, ctx ) );
+            final ValidationRunner validationRunner = new ValidationRunner( eventUpdateValidatorMap.get( UPDATE ) );
+
+            for ( final Event event : events )
+            {
+                importSummaries.add( validationRunner.executeValidationChain( event, ctx ) );
+            }
         }
+
         return importSummaries;
     }
 

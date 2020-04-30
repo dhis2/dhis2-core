@@ -29,7 +29,9 @@
 package org.hisp.dhis.dxf2.events.event.importer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
@@ -38,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
@@ -52,7 +53,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.stereotype.Component;
 
 @Component
-class EventManager
+public class EventManager
 {
     private final ValidationFactory validationFactory;
 
@@ -64,8 +65,9 @@ class EventManager
 
     private final EventPersistenceService eventPersistenceService;
 
-    EventManager( final ValidationFactory validationFactory, final UpdateValidationFactory updateValidationFactory,
-        final PreProcessorFactory preProcessorFactory, final PreUpdateProcessorFactory preUpdateProcessorFactory,
+    public EventManager( final ValidationFactory validationFactory,
+        final UpdateValidationFactory updateValidationFactory, final PreProcessorFactory preProcessorFactory,
+        final PreUpdateProcessorFactory preUpdateProcessorFactory,
         final EventPersistenceService eventPersistenceService )
     {
         checkNotNull( validationFactory );
@@ -81,8 +83,23 @@ class EventManager
         this.eventPersistenceService = eventPersistenceService;
     }
 
-    ImportSummaries addEvents( final List<Event> events, final ImportOptions importOptions,
-        final WorkContext workContext )
+    public ImportSummary addEvent( final Event event, final WorkContext workContext )
+    {
+        final List<Event> singleEvent = asList( event );
+
+        final ImportSummaries importSummaries = addEvents( singleEvent, workContext );
+
+        if ( isNotEmpty( importSummaries.getImportSummaries() ) )
+        {
+            return importSummaries.getImportSummaries().get( 0 );
+        }
+        else
+        {
+            return error( "Not inserted", event.getEvent() );
+        }
+    }
+
+    public ImportSummaries addEvents( final List<Event> events, final WorkContext workContext )
     {
         final ImportSummaries importSummaries = new ImportSummaries();
 
@@ -135,8 +152,23 @@ class EventManager
         return importSummaries;
     }
 
-    ImportSummaries updateEvents( final List<Event> events, final ImportOptions importOptions,
-        final boolean singleValue, final boolean clearSession, final WorkContext workContext )
+    public ImportSummary updateEvent( final Event event, final WorkContext workContext )
+    {
+        final List<Event> singleEvent = asList( event );
+
+        final ImportSummaries importSummaries = updateEvents( singleEvent, workContext );
+
+        if ( isNotEmpty( importSummaries.getImportSummaries() ) )
+        {
+            return importSummaries.getImportSummaries().get( 0 );
+        }
+        else
+        {
+            return error( "Not updated", event.getEvent() );
+        }
+    }
+
+    public ImportSummaries updateEvents( final List<Event> events, final WorkContext workContext )
     {
         final ImportSummaries importSummaries = new ImportSummaries();
 
