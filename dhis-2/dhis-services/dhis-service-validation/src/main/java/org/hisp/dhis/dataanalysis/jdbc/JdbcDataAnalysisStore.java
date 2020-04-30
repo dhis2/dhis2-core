@@ -34,6 +34,8 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 import java.util.*;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -48,10 +50,9 @@ import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -59,8 +60,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Repository( "org.hisp.dhis.dataanalysis.DataAnalysisStore" )
-public class JdbcDataAnalysisStore
-    implements DataAnalysisStore
+public class JdbcDataAnalysisStore implements DataAnalysisStore
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -89,8 +89,7 @@ public class JdbcDataAnalysisStore
 
     @Override
     public List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
-        Collection<CategoryOptionCombo> categoryOptionCombos,
-        Collection<String> parentPaths, Date from )
+        Collection<CategoryOptionCombo> categoryOptionCombos, Collection<String> parentPaths, Date from )
     {
         List<DataAnalysisMeasures> measures = new ArrayList<>();
 
@@ -108,20 +107,14 @@ public class JdbcDataAnalysisStore
         }
         matchPaths = TextUtils.removeLastOr( matchPaths ) + ") ";
 
-        String sql =
-            "select dv.sourceid, dv.categoryoptioncomboid, " +
-                "avg( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as average, " +
-                "stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() +
-                " ) ) as standarddeviation " +
-                "from datavalue dv " +
-                "join organisationunit ou on ou.organisationunitid = dv.sourceid " +
-                "join period pe on dv.periodid = pe.periodid " +
-                "where dv.dataelementid = " + dataElement.getId() + " " +
-                "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") " +
-                "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
-                "and " + matchPaths +
-                "and dv.deleted is false " +
-                "group by dv.sourceid, dv.categoryoptioncomboid";
+        String sql = "select dv.sourceid, dv.categoryoptioncomboid, " + "avg( cast( dv.value as "
+            + statementBuilder.getDoubleColumnType() + " ) ) as average, " + "stddev_pop( cast( dv.value as "
+            + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation " + "from datavalue dv "
+            + "join organisationunit ou on ou.organisationunitid = dv.sourceid "
+            + "join period pe on dv.periodid = pe.periodid " + "where dv.dataelementid = " + dataElement.getId() + " "
+            + "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") " + "and pe.startdate >= '"
+            + DateUtils.getMediumDateString( from ) + "' " + "and " + matchPaths + "and dv.deleted is false "
+            + "group by dv.sourceid, dv.categoryoptioncomboid";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -144,8 +137,8 @@ public class JdbcDataAnalysisStore
 
     @Override
     public List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements,
-        Collection<CategoryOptionCombo> categoryOptionCombos,
-        Collection<Period> periods, Collection<OrganisationUnit> parents, int limit )
+        Collection<CategoryOptionCombo> categoryOptionCombos, Collection<Period> periods,
+        Collection<OrganisationUnit> parents, int limit )
     {
         if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
         {
@@ -156,24 +149,20 @@ public class JdbcDataAnalysisStore
         String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
-        String sql =
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
-                "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
-                "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
-                "from datavalue dv " +
-                "join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
-                "join dataelement de on dv.dataelementid = de.dataelementid " +
-                "join period pe on dv.periodid = pe.periodid " +
-                "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
-                "join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-                "where dv.dataelementid in (" + dataElementIds + ") " +
-                "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
-                "and dv.periodid in (" + periodIds + ") " +
-                "and ( " +
-                "cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < mm.minimumvalue " +
-                "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > mm.maximumvalue ) " +
-                "and (";
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
+            + "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, "
+            + "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
+            + "from datavalue dv "
+            + "join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) "
+            + "join dataelement de on dv.dataelementid = de.dataelementid "
+            + "join period pe on dv.periodid = pe.periodid "
+            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
+            + "join organisationunit ou on dv.sourceid = ou.organisationunitid "
+            + "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
+            + "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in ("
+            + categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and ( "
+            + "cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < mm.minimumvalue "
+            + "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > mm.maximumvalue ) " + "and (";
 
         for ( OrganisationUnit parent : parents )
         {
@@ -190,15 +179,15 @@ public class JdbcDataAnalysisStore
 
     @Override
     public List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement,
-        CategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Map<Long, Integer> lowerBoundMap, Map<Long, Integer> upperBoundMap )
+        CategoryOptionCombo categoryOptionCombo, Collection<Period> periods, Map<Long, Integer> lowerBoundMap,
+        Map<Long, Integer> upperBoundMap )
     {
         if ( lowerBoundMap == null || lowerBoundMap.isEmpty() || periods.isEmpty() )
         {
             return new ArrayList<>();
         }
 
-        //TODO parallel processes?
+        // TODO parallel processes?
 
         List<List<Long>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 1000 )
             .getPages();
@@ -209,54 +198,51 @@ public class JdbcDataAnalysisStore
 
         for ( List<Long> unitPage : organisationUnitPages )
         {
-            dataValues.addAll(
-                getDeflatedDataValues( dataElement, categoryOptionCombo, periods, unitPage, lowerBoundMap,
-                    upperBoundMap ) );
+            dataValues.addAll( getDeflatedDataValues( dataElement, categoryOptionCombo, periods, unitPage,
+                lowerBoundMap, upperBoundMap ) );
         }
 
         return dataValues;
     }
 
     private List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement,
-        CategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, List<Long> organisationUnits, Map<Long, Integer> lowerBoundMap,
-        Map<Long, Integer> upperBoundMap )
+        CategoryOptionCombo categoryOptionCombo, Collection<Period> periods, List<Long> organisationUnits,
+        Map<Long, Integer> lowerBoundMap, Map<Long, Integer> upperBoundMap )
     {
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
 
-        String sql =
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
-                "dv.created, dv.comment, dv.followup, ou.name as sourcename, " +
-                "'" + dataElement.getName() +
-                "' as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " +
-                "'" + categoryOptionCombo.getName() + "' as categoryoptioncomboname " +
-                "from datavalue dv " +
-                "join period pe on dv.periodid = pe.periodid " +
-                "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
-                "join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "where dv.dataelementid = " + dataElement.getId() + " " +
-                "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
-                "and dv.periodid in (" + periodIds + ") and ( ";
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
+            + "dv.created, dv.comment, dv.followup, ou.name as sourcename, "
+            + "? as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, "
+            + "? as categoryoptioncomboname " + "from datavalue dv " + "join period pe on dv.periodid = pe.periodid "
+            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
+            + "join organisationunit ou on dv.sourceid = ou.organisationunitid " + "where dv.dataelementid = "
+            + dataElement.getId() + " " + "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " "
+            + "and dv.periodid in (" + periodIds + ") and ( ";
 
         for ( Long orgUnitUid : organisationUnits )
         {
-            sql += "( dv.sourceid = " + orgUnitUid + " " +
-                "and ( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < " +
-                lowerBoundMap.get( orgUnitUid ) + " " +
-                "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > " +
-                upperBoundMap.get( orgUnitUid ) + " ) ) or ";
+            sql += "( dv.sourceid = " + orgUnitUid + " " + "and ( cast( dv.value as "
+                + statementBuilder.getDoubleColumnType() + " ) < " + lowerBoundMap.get( orgUnitUid ) + " "
+                + "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > "
+                + upperBoundMap.get( orgUnitUid ) + " ) ) or ";
         }
 
         sql = TextUtils.removeLastOr( sql ) + " ) ";
         sql += "and dv.deleted is false ";
 
-        return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper( lowerBoundMap, upperBoundMap ) );
+        PreparedStatementSetter pss = ( ps ) -> {
+            ps.setString( 1, dataElement.getName() );
+            ps.setString( 2, categoryOptionCombo.getName() );
+        };
+
+        return jdbcTemplate.query( sql, pss, new DeflatedDataValueNameMinMaxRowMapper( lowerBoundMap, upperBoundMap ) );
     }
 
     @Override
     public List<DeflatedDataValue> getFollowupDataValues( Collection<DataElement> dataElements,
-        Collection<CategoryOptionCombo> categoryOptionCombos,
-        Collection<Period> periods, Collection<OrganisationUnit> parents, int limit )
+        Collection<CategoryOptionCombo> categoryOptionCombos, Collection<Period> periods,
+        Collection<OrganisationUnit> parents, int limit )
     {
 
         if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
@@ -268,22 +254,18 @@ public class JdbcDataAnalysisStore
         String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
-        String sql =
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
-                "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
-                "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
-                "from datavalue dv " +
-                "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
-                "join dataelement de on dv.dataelementid = de.dataelementid " +
-                "join period pe on dv.periodid = pe.periodid " +
-                "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
-                "join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-                "where dv.dataelementid in (" + dataElementIds + ") " +
-                "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
-                "and dv.periodid in (" + periodIds + ") " +
-                "and (";
-
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
+            + "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, "
+            + "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
+            + "from datavalue dv "
+            + "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) "
+            + "join dataelement de on dv.dataelementid = de.dataelementid "
+            + "join period pe on dv.periodid = pe.periodid "
+            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
+            + "join organisationunit ou on dv.sourceid = ou.organisationunitid "
+            + "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
+            + "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in ("
+            + categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and (";
 
         for ( OrganisationUnit parent : parents )
         {
