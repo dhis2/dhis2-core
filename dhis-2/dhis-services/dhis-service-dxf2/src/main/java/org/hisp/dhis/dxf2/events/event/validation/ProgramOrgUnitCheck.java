@@ -36,6 +36,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -60,7 +62,7 @@ public class ProgramOrgUnitCheck
                         .setReference( event.getEvent() ).incrementIgnored();
             }
         }
-        return new ImportSummary();
+        return success();
 
     }
 

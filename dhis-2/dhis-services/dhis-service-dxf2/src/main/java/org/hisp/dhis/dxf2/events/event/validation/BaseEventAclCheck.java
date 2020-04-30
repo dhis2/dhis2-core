@@ -39,6 +39,8 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -68,7 +70,7 @@ public abstract class BaseEventAclCheck
 
             return importSummary;
         }
-        return new ImportSummary();
+        return success();
     }
 
     public abstract List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,

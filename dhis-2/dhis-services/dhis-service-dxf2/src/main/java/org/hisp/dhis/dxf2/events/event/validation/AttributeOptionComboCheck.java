@@ -35,6 +35,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -56,7 +58,7 @@ public class AttributeOptionComboCheck implements ValidationCheck
             return importSummary.incrementIgnored();
         }
 
-        return new ImportSummary();
+        return success();
     }
 
     @Override

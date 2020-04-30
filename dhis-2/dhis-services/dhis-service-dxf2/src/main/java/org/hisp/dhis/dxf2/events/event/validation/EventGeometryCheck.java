@@ -38,6 +38,8 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.GeoUtils;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -78,7 +80,7 @@ public class EventGeometryCheck
             }
         }
 
-        return new ImportSummary();
+        return success();
 
     }
 
