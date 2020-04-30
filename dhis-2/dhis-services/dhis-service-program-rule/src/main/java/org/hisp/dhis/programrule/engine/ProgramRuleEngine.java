@@ -38,12 +38,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
@@ -52,31 +53,25 @@ import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
 @Slf4j
 @Transactional( readOnly = true )
-@Component( "org.hisp.dhis.programrule.engine.ProgramRuleEngine" )
 public class ProgramRuleEngine
 {
     private static final String USER = "USER";
 
-    private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
-        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+    private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
+        + "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
     private final ProgramRuleExpressionEvaluator programRuleExpressionEvaluator;
-
-    private final ProgramRuleService programRuleService;
 
     private final ProgramRuleVariableService programRuleVariableService;
 
@@ -88,33 +83,36 @@ public class ProgramRuleEngine
 
     private final ConstantService constantService;
 
+    private final ImplementableRuleService implementableRuleService;
+
     public ProgramRuleEngine( ProgramRuleEntityMapperService programRuleEntityMapperService,
-        ProgramRuleExpressionEvaluator programRuleExpressionEvaluator, ProgramRuleService programRuleService,
+        ProgramRuleExpressionEvaluator programRuleExpressionEvaluator,
         ProgramRuleVariableService programRuleVariableService,
         OrganisationUnitGroupService organisationUnitGroupService, RuleVariableInMemoryMap inMemoryMap,
-        CurrentUserService currentUserService, ConstantService constantService )
+        CurrentUserService currentUserService, ConstantService constantService,
+        ImplementableRuleService implementableRuleService )
     {
 
         checkNotNull( programRuleEntityMapperService );
         checkNotNull( programRuleExpressionEvaluator );
-        checkNotNull( programRuleService );
         checkNotNull( programRuleVariableService );
         checkNotNull( organisationUnitGroupService );
         checkNotNull( currentUserService );
         checkNotNull( inMemoryMap );
         checkNotNull( constantService );
+        checkNotNull( implementableRuleService );
 
         this.programRuleEntityMapperService = programRuleEntityMapperService;
         this.programRuleExpressionEvaluator = programRuleExpressionEvaluator;
-        this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.inMemoryMap = inMemoryMap;
         this.currentUserService = currentUserService;
         this.constantService = constantService;
+        this.implementableRuleService = implementableRuleService;
     }
 
-    public List<RuleEffect> evaluateEnrollment(ProgramInstance enrollment )
+    public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
         {
@@ -123,29 +121,33 @@ public class ProgramRuleEngine
 
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
-        List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
+        List<ProgramRule> implementableProgramRules = implementableRuleService
+            .getImplementableRules( enrollment.getProgram() );
 
         if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
         {
             return ruleEffects;
         }
 
-        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
+            .getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
-        List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances() );
+        List<RuleEvent> ruleEvents = programRuleEntityMapperService
+            .toMappedRuleEvents( enrollment.getProgramStageInstances() );
 
         RuleEngine ruleEngine;
 
         try
         {
-            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents )
+                .build();
 
-            ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
+            ruleEffects = ruleEngine.evaluate( ruleEnrollment ).call();
 
-            ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+            ruleEffects.stream().map( RuleEffect::ruleAction ).forEach(
+                action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
@@ -166,30 +168,35 @@ public class ProgramRuleEngine
 
         ProgramInstance enrollment = programStageInstance.getProgramInstance();
 
-        List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
+        List<ProgramRule> implementableProgramRules = implementableRuleService
+            .getImplementableRules( enrollment.getProgram() );
 
         if ( implementableProgramRules.isEmpty() )
         {
             return ruleEffects;
         }
 
-        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
+            .getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
-        List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
+        List<RuleEvent> ruleEvents = programRuleEntityMapperService
+            .toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
 
         RuleEngine ruleEngine;
 
         try
         {
 
-            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables )
+                .enrollment( ruleEnrollment ).events( ruleEvents ).build();
 
-            ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
+            ruleEffects = ruleEngine
+                .evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance ) ).call();
 
-            ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+            ruleEffects.stream().map( RuleEffect::ruleAction ).forEach(
+                action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
@@ -199,7 +206,8 @@ public class ProgramRuleEngine
         return ruleEffects;
     }
 
-    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
+    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules,
+        List<ProgramRuleVariable> programRuleVariables )
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
 
@@ -229,36 +237,20 @@ public class ProgramRuleEngine
 
         if ( !orgUnitGroups.isEmpty() )
         {
-            supplementaryData = orgUnitGroups.stream().collect( Collectors.toMap( g -> g,  g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
-                .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+            supplementaryData = orgUnitGroups.stream()
+                .collect( Collectors.toMap( g -> g, g -> organisationUnitGroupService.getOrganisationUnitGroup( g )
+                    .getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
         }
 
         if ( currentUserService.getCurrentUser() != null )
         {
-            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials()
+                .getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
         }
 
-        return RuleEngineContext
-            .builder( programRuleExpressionEvaluator )
-            .supplementaryData( supplementaryData )
-            .calculatedValueMap( inMemoryMap.getVariablesMap() )
-            .rules( rules )
+        return RuleEngineContext.builder( programRuleExpressionEvaluator ).supplementaryData( supplementaryData )
+            .calculatedValueMap( inMemoryMap.getVariablesMap() ).rules( rules )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
-            .constantsValue( constantMap )
-            .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );
-    }
-
-    private List<ProgramRule> getImplementableRules( Program program )
-    {
-        List<ProgramRule> permittedRules;
-
-        permittedRules = programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNotificationLinkedTypes() );
-
-        if ( permittedRules.isEmpty() )
-        {
-            return permittedRules;
-        }
-
-        return programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getImplementedActions() );
+            .constantsValue( constantMap ).build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );
     }
 }
