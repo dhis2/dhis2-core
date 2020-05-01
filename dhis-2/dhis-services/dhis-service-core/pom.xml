@@ -121,10 +121,7 @@
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-ldap</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
@@ -196,6 +193,17 @@
     </dependency>
 
     <!-- Security -->
+
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-ldap</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-config</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.jboss.aerogear</groupId>
       <artifactId>aerogear-otp-java</artifactId>

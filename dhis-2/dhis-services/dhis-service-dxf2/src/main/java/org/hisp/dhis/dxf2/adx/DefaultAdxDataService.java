@@ -43,7 +43,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.xerces.util.XMLChar;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -515,7 +514,8 @@ public class DefaultAdxDataService
         {
             String categoryCode = category.getCode();
 
-            if ( categoryCode == null || !XMLChar.isValidName( categoryCode ) )
+            //TODO: || !XMLChar.isValidName( categoryCode )
+            if ( categoryCode == null  )
             {
                 throw new AdxException(
                     "Category code for " + category.getName() + " is missing or invalid: " + categoryCode );

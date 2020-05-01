@@ -39,21 +39,21 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = "/oauth" )
+//@Controller
+//@RequestMapping( value = "/oauth" )
 public class OAuth2Controller
 {
-    @GetMapping( "/confirm_access" )
-    public String confirmAccess( Model model, @RequestParam Map<String, String> rpParameters )
-    {
-        model.addAllAttributes( rpParameters );
-        return "confirm_access";
-    }
-
-    @GetMapping( "/error" )
-    public String error( Model model, @RequestParam Map<String, String> rpParameters )
-    {
-        model.addAllAttributes( rpParameters );
-        return "error";
-    }
+//    @GetMapping( "/confirm_access" )
+//    public String confirmAccess( Model model, @RequestParam Map<String, String> rpParameters )
+//    {
+//        model.addAllAttributes( rpParameters );
+//        return "confirm_access";
+//    }
+//
+//    @GetMapping( "/error" )
+//    public String error( Model model, @RequestParam Map<String, String> rpParameters )
+//    {
+//        model.addAllAttributes( rpParameters );
+//        return "error";
+//    }
 }

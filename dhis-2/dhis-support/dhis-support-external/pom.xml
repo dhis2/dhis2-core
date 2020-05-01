@@ -81,12 +81,29 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-openid</artifactId>
+      <artifactId>spring-security-oauth2-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.security.oauth</groupId>
-      <artifactId>spring-security-oauth2</artifactId>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-oauth2-jose</artifactId>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.security</groupId>-->
+<!--      <artifactId>spring-security-openid</artifactId>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.security.oauth</groupId>-->
+<!--      <artifactId>spring-security-oauth2</artifactId>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.security</groupId>-->
+<!--      <artifactId>spring-security-jwt</artifactId>-->
+<!--    </dependency>-->
+
+<!--    <dependency>-->
+<!--      <groupId>com.auth0</groupId>-->
+<!--      <artifactId>jwks-rsa</artifactId>-->
+<!--    </dependency>-->
 
     <!-- Jackson -->
 
@@ -101,10 +118,10 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.openid4java</groupId>
-      <artifactId>openid4java</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.openid4java</groupId>-->
+<!--      <artifactId>openid4java</artifactId>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>

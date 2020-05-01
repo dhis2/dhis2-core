@@ -1,45 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:sec="http://www.springframework.org/schema/security" xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
-    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-    http://www.springframework.org/schema/security/oauth2 https://www.springframework.org/schema/security/spring-security-oauth2.xsd">
+  xmlns:sec="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.3.xsd">
 
+<!--    http://www.springframework.org/schema/security/oauth2 https://www.springframework.org/schema/security/spring-security-oauth2.xsd">-->
   <!-- OAuth2 -->
+<!--       xmlns:oauth="http://www.springframework.org/schema/security/oauth2"-->
 
-  <bean id="oauthAuthenticationEntryPoint"
-    class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
-    <property name="realmName" value="dhis2/oauth2" />
-  </bean>
+<!--  <bean id="oauthAuthenticationEntryPoint"-->
+<!--    class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">-->
+<!--    <property name="realmName" value="dhis2/oauth2" />-->
+<!--  </bean>-->
 
-  <bean id="oauthAccessDeniedHandler" class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
+<!--  <bean id="oauthAccessDeniedHandler" class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />-->
 
-  <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint"
-    authentication-manager-ref="oAuth2AuthenticationManager" stateless="false" />
+<!--  <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint"-->
+<!--    authentication-manager-ref="oAuth2AuthenticationManager" stateless="false" />-->
 
-  <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager"
-    disable-url-rewriting="true"
-    use-expressions="false" access-decision-manager-ref="accessDecisionManager">
-    <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />
-    <sec:anonymous enabled="false" />
-    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />
-    <sec:access-denied-handler ref="oauthAccessDeniedHandler" />
-    <sec:csrf disabled="true" />
-  </sec:http>
+<!--  <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager"-->
+<!--    disable-url-rewriting="true"-->
+<!--    use-expressions="false" access-decision-manager-ref="accessDecisionManager">-->
+<!--    <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />-->
+<!--    <sec:anonymous enabled="false" />-->
+<!--    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />-->
+<!--    <sec:access-denied-handler ref="oauthAccessDeniedHandler" />-->
+<!--    <sec:csrf disabled="true" />-->
+<!--  </sec:http>-->
 
-  <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"
-    use-expressions="false"
-    create-session="ifRequired" access-decision-manager-ref="accessDecisionManager">
-    <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />
-    <sec:http-basic />
-    <sec:anonymous />
+<!--  <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"-->
+<!--    use-expressions="false"-->
+<!--    create-session="ifRequired" access-decision-manager-ref="accessDecisionManager">-->
+<!--    <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />-->
+<!--    <sec:http-basic />-->
+<!--    <sec:anonymous />-->
 
-    <sec:form-login authentication-failure-url="/dhis-web-commons/security/login.action?failed=true"
-      username-parameter="j_username" password-parameter="j_password"
-      login-page="/dhis-web-commons/security/login.action"
-      login-processing-url="/dhis-web-commons-security/login.action" />
-    <sec:csrf disabled="true" />
-  </sec:http>
+<!--    <sec:form-login authentication-failure-url="/dhis-web-commons/security/login.action?failed=true"-->
+<!--      username-parameter="j_username" password-parameter="j_password"-->
+<!--      login-page="/dhis-web-commons/security/login.action"-->
+<!--      login-processing-url="/dhis-web-commons-security/login.action" />-->
+<!--    <sec:csrf disabled="true" />-->
+<!--  </sec:http>-->
 
   <bean id="mappedRedirectStrategy" class="org.hisp.dhis.security.MappedRedirectStrategy">
     <property name="redirectMap">
@@ -97,6 +98,47 @@
   </sec:http>
   -->
 
+<!--  OAuth2 OIDC-->
+
+  <sec:client-registrations>
+
+    <sec:client-registration registration-id="google"
+                         client-id="1048735035171-0llu4vbga43qvhve4poh5chj5nqltqe5.apps.googleusercontent.com"
+                         client-secret="zxlkf3bg7aWXX_vphDJVdnLS"
+                         provider-id="google"/>
+
+
+    <sec:client-registration registration-id="idporten"
+                         client-id="d515e8a9-226e-4e31-a556-e65c013d44a2"
+                         client-secret="761f8cc1-7080-4064-9d62-ebf43f4e3ee2"
+                         client-authentication-method="basic"
+                         authorization-grant-type="authorization_code"
+                         redirect-uri="{baseUrl}/login/oauth2/code/{registrationId}"
+                         scope="openid,profile"
+                         client-name="idporten"
+                         provider-id="idporten"/>
+
+    <sec:provider provider-id="idporten"
+              authorization-uri="https://oidc-ver2.difi.no/idporten-oidc-provider/authorize"
+              token-uri="https://oidc-ver2.difi.no/idporten-oidc-provider/token"
+              user-info-uri="https://oidc-ver2.difi.no/idporten-oidc-provider/userinfo"
+              user-info-authentication-method="header"
+              user-info-user-name-attribute="sub"
+              jwk-set-uri="https://oidc-ver2.difi.no/idporten-oidc-provider/jwk"/>
+
+
+  </sec:client-registrations>
+
+  <bean id="authorizedClientService"
+          class="org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService"
+          autowire="constructor"/>
+
+  <bean id="authorizedClientRepository"
+          class="org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository">
+  <constructor-arg ref="authorizedClientService"/>
+  </bean>
+
+
   <bean id="http401LoginUrlAuthenticationEntryPoint" class="org.hisp.dhis.security.Http401LoginUrlAuthenticationEntryPoint">
     <constructor-arg name="loginFormUrl" value="/dhis-web-commons/security/login.action" />
   </bean>
@@ -105,10 +147,17 @@
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
     authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
-    <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
-      authentication-failure-handler-ref="securityExceptionTranslationHandler"
-      login-processing-url="/dhis-web-commons-security/openid.action"
-      authentication-success-handler-ref="defaultAuthenticationSuccessHandler" />
+
+
+    <!--    <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"-->
+    <!--      authentication-failure-handler-ref="securityExceptionTranslationHandler"-->
+    <!--      login-processing-url="/dhis-web-commons-security/openid.action"-->
+    <!--      authentication-success-handler-ref="defaultAuthenticationSuccessHandler" />-->
+
+<!--    login-page="/login"-->
+    <sec:oauth2-login  authorized-client-repository-ref="authorizedClientRepository"
+                      oidc-user-service-ref="dhisOidcUserService" />
+
 
     <sec:form-login default-target-url="/" always-use-default-target="false"
       username-parameter="j_username" password-parameter="j_password"
@@ -129,7 +178,9 @@
 
     <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint"
       authentication-details-source-ref="httpBasicWebAuthenticationDetailsSource"/>
+
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
+
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
 
@@ -177,7 +228,7 @@
     <sec:intercept-url pattern="/dhis-web-user/**" access="hasAnyRole('ALL,M_dhis-web-user')" />
 
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
-    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
+<!--    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />-->
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />

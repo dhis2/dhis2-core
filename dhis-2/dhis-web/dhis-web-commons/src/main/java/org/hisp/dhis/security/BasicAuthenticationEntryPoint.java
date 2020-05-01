@@ -51,13 +51,15 @@ public class BasicAuthenticationEntryPoint
     private RenderService renderService;
 
     @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException
+    public void commence( HttpServletRequest request, HttpServletResponse response,
+        AuthenticationException authException )
+        throws IOException
     {
         String message;
 
         if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
         {
-            message = "Account locked" ;
+            message = "Account locked";
         }
         else
         {

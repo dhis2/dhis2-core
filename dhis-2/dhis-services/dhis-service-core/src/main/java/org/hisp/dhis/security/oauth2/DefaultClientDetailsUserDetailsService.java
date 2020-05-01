@@ -30,32 +30,33 @@ package org.hisp.dhis.security.oauth2;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.oauth2.provider.ClientRegistrationException;
-import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
+//import org.springframework.security.oauth2.provider.ClientDetailsService;
+//import org.springframework.security.oauth2.provider.ClientRegistrationException;
+//import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "clientDetailsUserService" )
-public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
+public class DefaultClientDetailsUserDetailsService
 {
-    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
-    {
-        super( clientDetailsService );
-    }
-
-    @Override
-    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
-    {
-        try
-        {
-            return super.loadUserByUsername( username );
-        }
-        catch ( ClientRegistrationException ex )
-        {
-            throw new UsernameNotFoundException( ex.getMessage(), ex );
-        }
-    }
+//    extends ClientDetailsUserDetailsService
+//    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
+//    {
+//        super( clientDetailsService );
+//    }
+//
+//    @Override
+//    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+//    {
+//        try
+//        {
+//            return super.loadUserByUsername( username );
+//        }
+//        catch ( ClientRegistrationException ex )
+//        {
+//            throw new UsernameNotFoundException( ex.getMessage(), ex );
+//        }
+//    }
 }

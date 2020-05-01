@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.xerces.util.XMLChar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -82,8 +81,9 @@ public class AdxDataSetMetadata
             for ( Category category : coc.getCategoryCombo().getCategories() )
             {
                 String categoryCode = category.getCode();
-                
-                if ( categoryCode == null || !XMLChar.isValidName( categoryCode ) )
+
+                //TODO: || !XMLChar.isValidName( categoryCode )
+                if ( categoryCode == null)
                 {
                     throw new AdxException(
                         "Category code for " + category.getName() + " is missing or invalid: " + categoryCode );
