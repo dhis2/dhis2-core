@@ -88,6 +88,11 @@
       <version>${project.version}</version>
       <type>war</type>
     </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-epoll</artifactId>
+    </dependency>
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

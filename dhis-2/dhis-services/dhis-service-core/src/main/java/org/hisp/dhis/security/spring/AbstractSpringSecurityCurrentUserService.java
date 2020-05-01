@@ -1,5 +1,6 @@
 package org.hisp.dhis.security.spring;
 
+import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -68,9 +69,19 @@ public abstract class AbstractSpringSecurityCurrentUserService
             return principal;
         }
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if ( principal instanceof UserDetails )
+        {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return userDetails.getUsername();
+        }
+        if ( principal instanceof DhisOidcUser )
+        {
+            DhisOidcUser dhisOidcUser = (DhisOidcUser) authentication.getPrincipal();
+            return dhisOidcUser.getUserCredentials().getUsername();
+        }
 
-        return userDetails.getUsername();
+        throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
     }
 
     @Override
