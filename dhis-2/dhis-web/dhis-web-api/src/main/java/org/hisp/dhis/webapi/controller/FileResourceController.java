@@ -130,7 +130,7 @@ public class FileResourceController
         }
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setContentLengthLong( fileResourceService.getFileResourceContentLength( fileResource ) );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try

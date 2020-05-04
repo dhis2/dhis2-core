@@ -30,6 +30,7 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -215,6 +216,19 @@ public class JCloudsFileResourceContentStore
             return null;
         }
     }
+    
+    @Override
+    public long getFileResourceContentLength( String key )
+    {
+        final Blob blob = getBlob( key );
+
+        if ( blob == null )
+        {
+            return 0;
+        }
+
+        return blob.getMetadata().getContentMetadata().getContentLength();
+    }
 
     @Override
     public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
@@ -244,7 +258,7 @@ public class JCloudsFileResourceContentStore
     @Override
     public String saveFileResourceContent( FileResource fileResource, File file )
     {
-        Blob blob = createBlob( fileResource, StringUtils.EMPTY, file );
+        Blob blob = createBlob( fileResource, StringUtils.EMPTY, file, fileResource.getContentMd5() );
 
         if ( blob == null )
         {
@@ -280,9 +294,7 @@ public class JCloudsFileResourceContentStore
         for ( Map.Entry<ImageFileDimension, File> entry : imageFiles.entrySet() )
         {
             File file = entry.getValue();
-
-            fileResource.setContentLength( file.length() );
-
+            
             String contentMd5;
 
             try
@@ -296,8 +308,7 @@ public class JCloudsFileResourceContentStore
                 return null;
             }
 
-            fileResource.setContentMd5( contentMd5 );
-            blob = createBlob( fileResource, entry.getKey().getDimension(), file );
+            blob = createBlob( fileResource, entry.getKey().getDimension(), file, contentMd5 );
 
             if ( blob != null )
             {
@@ -363,7 +374,7 @@ public class JCloudsFileResourceContentStore
     }
 
     @Override
-    public long copyContent( String key, OutputStream output )
+    public void copyContent( String key, OutputStream output )
         throws IOException, NoSuchElementException
     {
         if ( !blobExists( key ) )
@@ -377,8 +388,6 @@ public class JCloudsFileResourceContentStore
         {
             IOUtils.copy( in, output );
         }
-
-        return blob.getMetadata().getContentMetadata().getContentLength();
     }
 
     // -------------------------------------------------------------------------
@@ -404,19 +413,19 @@ public class JCloudsFileResourceContentStore
     {
         return blobStore.blobBuilder( fileResource.getStorageKey() )
             .payload( bytes )
-            .contentLength( fileResource.getContentLength() )
+            .contentLength( bytes.length )
             .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )
             .contentType( fileResource.getContentType() )
             .contentDisposition( "filename=" + fileResource.getName() )
             .build();
-    }
+    } 
 
-    private Blob createBlob( FileResource fileResource, String fileDimension, File file )
+    private Blob createBlob( FileResource fileResource, String fileDimension, File file, String contentMd5 )
     {
         return blobStore.blobBuilder( StringUtils.join( fileResource.getStorageKey(), fileDimension ) )
             .payload( file )
-            .contentLength( fileResource.getContentLength() )
-            .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )
+            .contentLength( file.length() )
+            .contentMD5( HashCode.fromString( contentMd5 ) )
             .contentType( fileResource.getContentType() )
             .contentDisposition( "filename=" + fileResource.getName() + fileDimension )
             .build();
@@ -520,4 +529,5 @@ public class JCloudsFileResourceContentStore
             }
         }
     }
+    
 }
