@@ -63,7 +63,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     // @formatter:off
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
-        .expireAfterWrite( 30, TimeUnit.MILLISECONDS ) // expire/refresh after 30 minutes
+        .expireAfterWrite( 30, TimeUnit.MINUTES ) // expire/refresh after 30 minutes
         .build();
     // @formatter:on
 
@@ -81,17 +81,23 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             programMap = loadPrograms();
 
             Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
-            Map<Long, Set<UserAccess>> userAccessMap = loadUserAccesses();
+            Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
+            Map<Long, Set<UserAccess>> programStageUserAccessMap = loadUserAccessesForProgramStages();
             // FIXME: this will not work in the ACL layer, because it expects all user in
             // the group
-            Map<Long, Set<UserGroupAccess>> userGroupAccessMap = loadGroupUserAccesses();
+            Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap = loadGroupUserAccessesForPrograms();
+            Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
 
             for ( Program program : programMap.values() )
             {
                 program.setOrganisationUnits( ouMap.get( program.getId() ) );
-                program.setUserAccesses( userAccessMap.get( program.getId() ) );
-                program.setUserGroupAccesses( userGroupAccessMap.get( program.getId() ) );
-
+                program.setUserAccesses( programUserAccessMap.get( program.getId() ) );
+                program.setUserGroupAccesses( programUserGroupAccessMap.get( program.getId() ) );
+                for ( ProgramStage programStage : program.getProgramStages() )
+                {
+                    programStage.setUserAccesses( programStageUserAccessMap.get( programStage.getId() ) );
+                    programStage.setUserGroupAccesses( programStageUserGroupAccessMap.get( programStage.getId() ) );
+                }
             }
 
             programsCache.put( PROGRAM_CACHE_KEY, programMap );
@@ -123,57 +129,87 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         } );
     }
 
-    private Map<Long, Set<UserAccess>> loadUserAccesses()
+    private Map<Long, Set<UserAccess>> loadUserAccessesForPrograms()
     {
         final String sql = "select pua.programid, pua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid "
             + "from programuseraccesses pua join useraccess ua on pua.useraccessid = ua.useraccessid "
-            + "join users u on ua.userid = ua.userid " + "order by programid";
+            + "join users u on ua.userid = ua.userid order by programid";
 
+        return fetchUserAccesses( sql, "programid");
+    }
+
+    private Map<Long, Set<UserAccess>> loadUserAccessesForProgramStages()
+    {
+        final String sql = "select psua.programstageid, psua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid "
+            + "from programstageuseraccesses psua join useraccess ua on psua.useraccessid = ua.useraccessid "
+            + "join users u on ua.userid = ua.userid order by programstageid";
+
+        return fetchUserAccesses( sql, "programstageid");
+    }
+
+    private Map<Long, Set<UserAccess>> fetchUserAccesses( String sql, String column )
+    {
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<Long, Set<UserAccess>> results = new HashMap<>();
-            long programId = 0;
+            long programStageId = 0;
             while ( rs.next() )
             {
-                if ( programId != rs.getLong( "programid" ) )
+                if ( programStageId != rs.getLong( column ) )
                 {
                     Set<UserAccess> aclSet = new HashSet<>();
                     aclSet.add( toUserAccess( rs ) );
-                    results.put( rs.getLong( "programid" ), aclSet );
+                    results.put( rs.getLong( column ), aclSet );
 
-                    programId = rs.getLong( "programid" );
+                    programStageId = rs.getLong( column );
                 }
                 else
                 {
-                    results.get( rs.getLong( "programid" ) ).add( toUserAccess( rs ) );
+                    results.get( rs.getLong( column ) ).add( toUserAccess( rs ) );
                 }
             }
             return results;
         } );
     }
-
-    private Map<Long, Set<UserGroupAccess>> loadGroupUserAccesses()
+    
+    private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForPrograms()
     {
         final String sql = "select puga.programid, puga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
             + "from programusergroupaccesses puga "
             + "join usergroupaccess u on puga.usergroupaccessid = u.usergroupaccessid "
-            + "join usergroup ug on u.usergroupid = ug.usergroupid " + "order by programid;";
+            + "join usergroup ug on u.usergroupid = ug.usergroupid order by programid";
 
+        return fetchUserGroupAccess( sql, "programid" );
+    }
+
+    private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForProgramStages()
+    {
+        final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
+                "from programstageusergroupaccesses psuga " +
+                "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid " +
+                "join usergroup ug on u.usergroupid = ug.usergroupid " +
+                "order by programstageid";
+
+        return fetchUserGroupAccess(sql, "programstageid");
+    }
+    
+    private Map<Long, Set<UserGroupAccess>> fetchUserGroupAccess( String sql, String column )
+    {
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<Long, Set<UserGroupAccess>> results = new HashMap<>();
             long programId = 0;
             while ( rs.next() )
             {
-                if ( programId != rs.getLong( "programid" ) )
+                if ( programId != rs.getLong( column ) )
                 {
                     Set<UserGroupAccess> aclSet = new HashSet<>();
                     aclSet.add( toUserGroupAccess( rs ) );
-                    results.put( rs.getLong( "programid" ), aclSet );
+                    results.put( rs.getLong( column ), aclSet );
 
-                    programId = rs.getLong( "programid" );
+                    programId = rs.getLong( column );
                 }
                 else
                 {
-                    results.get( rs.getLong( "programid" ) ).add( toUserGroupAccess( rs ) );
+                    results.get( rs.getLong( column ) ).add( toUserGroupAccess( rs ) );
                 }
             }
             return results;
