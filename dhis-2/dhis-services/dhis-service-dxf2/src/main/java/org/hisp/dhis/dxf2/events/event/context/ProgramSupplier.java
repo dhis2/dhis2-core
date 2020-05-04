@@ -37,8 +37,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
+import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -63,9 +65,25 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String PROGRAM_CACHE_KEY = "000P";
 
     // @formatter:off
+    // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
+        .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic(5) )
         .expireAfterWrite( 30, TimeUnit.MINUTES ) // expire/refresh after 30 minutes
         .build();
+
+    // Caches the User Groups and the Users belonging to each group
+    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
+        .name( "eventImportUserGroupCache" + RandomStringUtils.randomAlphabetic(5) )
+        .expireAfterWrite( 60, TimeUnit.MINUTES )
+        .permitNullValues( true )
+        .loader( new CacheLoader<Long, Set<User>>()
+        {
+            @Override
+            public Set<User> load(Long userGroupId) {
+                return loadUserGroups( userGroupId );
+            }
+        } ).build() ;
+    
     // @formatter:on
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate )
@@ -85,29 +103,27 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
             Map<Long, Set<UserAccess>> programStageUserAccessMap = loadUserAccessesForProgramStages();
             Map<Long, Set<UserAccess>> tetUserAccessMap = loadUserAccessesForTrackedEntityTypes();
-            // FIXME: this will not work in the ACL layer, because it expects all user in
-            // the group
+
             Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap = loadGroupUserAccessesForPrograms();
             Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
             Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap = loadGroupUserAccessesForTrackedEntityTypes();
 
             for ( Program program : programMap.values() )
             {
-                program.setOrganisationUnits( ouMap.get( program.getId() ) );
-                program.setUserAccesses( programUserAccessMap.get( program.getId() ) );
-                program.setUserGroupAccesses( programUserGroupAccessMap.get( program.getId() ) );
+                program.setOrganisationUnits( ouMap.getOrDefault( program.getId() , new HashSet<>() ));
+                program.setUserAccesses( programUserAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
+                program.setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
                 TrackedEntityType trackedEntityType = program.getTrackedEntityType();
                 if ( trackedEntityType != null )
                 {
-
-                    trackedEntityType.setUserAccesses( tetUserAccessMap.get( trackedEntityType.getId() ) );
-                    trackedEntityType.setUserGroupAccesses( tetUserGroupAccessMap.get( trackedEntityType.getId() ) );
+                    trackedEntityType.setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
+                    trackedEntityType.setUserGroupAccesses( tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
                 }
                 
                 for ( ProgramStage programStage : program.getProgramStages() )
                 {
-                    programStage.setUserAccesses( programStageUserAccessMap.get( programStage.getId() ) );
-                    programStage.setUserGroupAccesses( programStageUserGroupAccessMap.get( programStage.getId() ) );
+                    programStage.setUserAccesses( programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+                    programStage.setUserGroupAccesses( programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
                 }
             }
 
@@ -353,6 +369,33 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         userGroup.setId( rs.getLong( "usergroupid" ) );
         userGroupAccess.setUserGroup( userGroup );
         userGroup.setUid( rs.getString( "uid" ) );
+        // TODO This is not very efficient for large DHIS2 installations:
+        //  it would be better to run a direct query in the Access Layer
+        // to determine if the user belongs to the group
+        userGroup.setMembers( userGroupCache.get( userGroup.getId() ) );
         return userGroupAccess;
+    }
+
+    private Set<User> loadUserGroups( Long userGroupId)
+    {
+        final String sql = "select ug.uid, ug.usergroupid, u.uid user_uid, u.userid user_id from usergroupmembers ugm "
+            + "join usergroup ug on ugm.usergroupid = ug.usergroupid join users u on ugm.userid = u.userid where ug.usergroupid = "
+            + userGroupId;
+
+        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
+
+            Set<User> users = new HashSet<>();
+            while ( rs.next() )
+            {
+
+                User user = new User();
+                user.setUid( rs.getString( "user_uid" ) );
+                user.setId( rs.getLong( "user_id" ) );
+
+                users.add( user );
+            }
+
+            return users;
+        } );
     }
 }
