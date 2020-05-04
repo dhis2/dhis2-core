@@ -131,6 +131,7 @@ public class AttributeOptionComboLoaderTest
     @Test
     public void verifyGetAttributeOptionCombo()
     {
+        // prepare data
         CategoryCombo cc = createCategoryCombo( 'B' );
         CategoryOption categoryOption = createCategoryOption( 'A' );
         categoryOption.setId( 100L );
@@ -142,7 +143,10 @@ public class AttributeOptionComboLoaderTest
         when( jdbcTemplate.query( anyString(), any( RowMapper.class ) ) )
             .thenReturn( singletonList( createCategoryOptionCombo( cc, categoryOption ) ) );
 
+        // method under test
         CategoryOptionCombo categoryOptionCombo = subject.getAttributeOptionCombo( cc, "abcdef", "", IdScheme.UID );
+
+        // assertions
         assertThat( categoryOptionCombo, is( notNullValue() ) );
         verify( jdbcTemplate ).query( sqlCaptor.capture(), any( RowMapper.class ) );
 
