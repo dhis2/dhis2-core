@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
@@ -56,6 +57,8 @@ import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -65,6 +68,18 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String PROGRAM_CACHE_KEY = "000P";
 
     // @formatter:off
+    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid " +
+        "from ${table_name} eua " +
+        "join useraccess ua on eua.useraccessid = ua.useraccessid " +
+        "join users u on ua.userid = ua.userid " +
+        "order by eua.${column_name}";
+
+    private final static String USER_GROUP_ACCESS_SQL = "select ega.${column_name}, ega.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
+        "from ${table_name} ega " +
+        "join usergroupaccess u on ega.usergroupaccessid = u.usergroupaccessid " +
+        "join usergroup ug on u.usergroupid = ug.usergroupid " +
+        "order by ega.${column_name}";
+
     // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
         .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic(5) )
@@ -158,30 +173,20 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<UserAccess>> loadUserAccessesForPrograms()
     {
-        final String sql = "select pua.programid, pua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid "
-            + "from programuseraccesses pua join useraccess ua on pua.useraccessid = ua.useraccessid "
-            + "join users u on ua.userid = ua.userid order by programid";
-
-        return fetchUserAccesses( sql, "programid");
+        return fetchUserAccesses( replaceAclQuery( USER_ACCESS_SQL, "programuseraccesses", "programid" ), "programid" );
     }
 
     private Map<Long, Set<UserAccess>> loadUserAccessesForProgramStages()
     {
-        final String sql = "select psua.programstageid, psua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid "
-            + "from programstageuseraccesses psua join useraccess ua on psua.useraccessid = ua.useraccessid "
-            + "join users u on ua.userid = ua.userid order by programstageid";
-
-        return fetchUserAccesses( sql, "programstageid");
+        return fetchUserAccesses( replaceAclQuery( USER_ACCESS_SQL, "programstageuseraccesses", "programstageid" ),
+            "programstageid" );
     }
 
     private Map<Long, Set<UserAccess>> loadUserAccessesForTrackedEntityTypes()
     {
-        final String sql = "select tetua.trackedentitytypeid, tetua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid "
-            + "from trackedentitytypeuseraccesses tetua "
-            + "join useraccess ua on tetua.useraccessid = ua.useraccessid join users u on ua.userid = u.userid "
-            + "order by tetua.trackedentitytypeid";
-
-        return fetchUserAccesses( sql, "trackedentitytypeid");
+        return fetchUserAccesses(
+            replaceAclQuery( USER_ACCESS_SQL, "trackedentitytypeuseraccesses", "trackedentitytypeid" ),
+            "trackedentitytypeid" );
     }
 
     private Map<Long, Set<UserAccess>> fetchUserAccesses( String sql, String column )
@@ -210,50 +215,42 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForPrograms()
     {
-        final String sql = "select puga.programid, puga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
-            + "from programusergroupaccesses puga "
-            + "join usergroupaccess u on puga.usergroupaccessid = u.usergroupaccessid "
-            + "join usergroup ug on u.usergroupid = ug.usergroupid order by programid";
-
-        return fetchUserGroupAccess( sql, "programid" );
+        return fetchUserGroupAccess( replaceAclQuery( USER_GROUP_ACCESS_SQL, "programusergroupaccesses", "programid" ),
+            "programid" );
     }
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForProgramStages()
     {
-        final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
-                "from programstageusergroupaccesses psuga " +
-                "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid " +
-                "join usergroup ug on u.usergroupid = ug.usergroupid " +
-                "order by programstageid";
+        // TODO: can't use replace because the table programstageusergroupaccesses should use 'programstageid' as column name
+        final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
+            + "from programstageusergroupaccesses psuga "
+            + "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid "
+            + "join usergroup ug on u.usergroupid = ug.usergroupid " + "order by programstageid";
 
-        return fetchUserGroupAccess(sql, "programstageid");
+        return fetchUserGroupAccess( sql, "programstageid" );
     }
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForTrackedEntityTypes()
     {
-        final String sql = "select uga.trackedentitytypeid as programstageid, uga.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
-                "from trackedentitytypeusergroupaccesses uga " +
-                "join usergroupaccess u on uga.usergroupaccessid = u.usergroupaccessid " +
-                "join usergroup ug on u.usergroupid = ug.usergroupid " +
-                "order by uga.trackedentitytypeid;";
-
-        return fetchUserGroupAccess(sql, "trackedentitytypeid");
+        return fetchUserGroupAccess(
+            replaceAclQuery( USER_GROUP_ACCESS_SQL, "trackedentitytypeusergroupaccesses", "trackedentitytypeid" ),
+            "trackedentitytypeid" );
     }
     
     private Map<Long, Set<UserGroupAccess>> fetchUserGroupAccess( String sql, String column )
     {
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<Long, Set<UserGroupAccess>> results = new HashMap<>();
-            long programId = 0;
+            long entityId = 0;
             while ( rs.next() )
             {
-                if ( programId != rs.getLong( column ) )
+                if ( entityId != rs.getLong( column ) )
                 {
                     Set<UserGroupAccess> aclSet = new HashSet<>();
                     aclSet.add( toUserGroupAccess( rs ) );
                     results.put( rs.getLong( column ), aclSet );
 
-                    programId = rs.getLong( column );
+                    entityId = rs.getLong( column );
                 }
                 else
                 {
@@ -397,5 +394,15 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
             return users;
         } );
+    }
+
+    private String replaceAclQuery(String sql, String tableName, String column) {
+        // @formatter:off
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
+                .put( "table_name", tableName)
+                .put( "column_name", column )
+                .build() );
+        // @formatter:on
+        return sub.replace( sql );
     }
 }
