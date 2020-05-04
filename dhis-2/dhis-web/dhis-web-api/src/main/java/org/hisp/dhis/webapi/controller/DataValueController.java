@@ -567,12 +567,10 @@ public class DataValueController
 
         response.setContentType( fileResource.getContentType() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
-        response.setContentLengthLong( fileResource.getContentLength() );
-        
         setNoStore( response );
         try
         {
-            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
+            response.setContentLengthLong( fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() ) );
         }
         catch ( IOException e )
         {
