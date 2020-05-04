@@ -46,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
@@ -83,16 +84,26 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
             Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
             Map<Long, Set<UserAccess>> programStageUserAccessMap = loadUserAccessesForProgramStages();
+            Map<Long, Set<UserAccess>> tetUserAccessMap = loadUserAccessesForTrackedEntityTypes();
             // FIXME: this will not work in the ACL layer, because it expects all user in
             // the group
             Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap = loadGroupUserAccessesForPrograms();
             Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
+            Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap = loadGroupUserAccessesForTrackedEntityTypes();
 
             for ( Program program : programMap.values() )
             {
                 program.setOrganisationUnits( ouMap.get( program.getId() ) );
                 program.setUserAccesses( programUserAccessMap.get( program.getId() ) );
                 program.setUserGroupAccesses( programUserGroupAccessMap.get( program.getId() ) );
+                TrackedEntityType trackedEntityType = program.getTrackedEntityType();
+                if ( trackedEntityType != null )
+                {
+
+                    trackedEntityType.setUserAccesses( tetUserAccessMap.get( trackedEntityType.getId() ) );
+                    trackedEntityType.setUserGroupAccesses( tetUserGroupAccessMap.get( trackedEntityType.getId() ) );
+                }
+                
                 for ( ProgramStage programStage : program.getProgramStages() )
                 {
                     programStage.setUserAccesses( programStageUserAccessMap.get( programStage.getId() ) );
@@ -147,6 +158,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         return fetchUserAccesses( sql, "programstageid");
     }
 
+    private Map<Long, Set<UserAccess>> loadUserAccessesForTrackedEntityTypes()
+    {
+        final String sql = "select tetua.trackedentitytypeid, tetua.useraccessid, ua.useraccessid, ua.access, ua.userid, u.uid "
+            + "from trackedentitytypeuseraccesses tetua "
+            + "join useraccess ua on tetua.useraccessid = ua.useraccessid join users u on ua.userid = u.userid "
+            + "order by tetua.trackedentitytypeid";
+
+        return fetchUserAccesses( sql, "trackedentitytypeid");
+    }
+
     private Map<Long, Set<UserAccess>> fetchUserAccesses( String sql, String column )
     {
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
@@ -191,6 +212,17 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         return fetchUserGroupAccess(sql, "programstageid");
     }
+
+    private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForTrackedEntityTypes()
+    {
+        final String sql = "select uga.trackedentitytypeid as programstageid, uga.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
+                "from trackedentitytypeusergroupaccesses uga " +
+                "join usergroupaccess u on uga.usergroupaccessid = u.usergroupaccessid " +
+                "join usergroup ug on u.usergroupid = ug.usergroupid " +
+                "order by uga.trackedentitytypeid;";
+
+        return fetchUserGroupAccess(sql, "trackedentitytypeid");
+    }
     
     private Map<Long, Set<UserGroupAccess>> fetchUserGroupAccess( String sql, String column )
     {
@@ -218,14 +250,15 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<String, Program> loadPrograms()
     {
-        final String sql = "select p.programid, p.uid, p.name, p.type, p.publicaccess, c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, "
-            + "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access"
-            + "            from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
-            + "                    LEFT JOIN programstage ps on p.programid = ps.programid "
-            + "                    LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
-            + "                    LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
-            + "            group by p.programid, p.uid, p.name, p.type, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
-            + "            order by p.programid, ps.sort_order";
+        final String sql = "select p.programid, p.publicaccess, p.uid, p.name, p.type, tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, " +
+                "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access " +
+                "            from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid " +
+                "                    LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid " +
+                "                    LEFT JOIN programstage ps on p.programid = ps.programid " +
+                "                    LEFT JOIN program_organisationunits pou on p.programid = pou.programid " +
+                "                    LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid " +
+                "            group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order " +
+                "            order by p.programid, ps.sort_order";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();
@@ -250,6 +283,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     categoryCombo.setName( rs.getString( "catcombo_name" ) );
                     program.setCategoryCombo( categoryCombo );
 
+                    long tetId = rs.getLong( "trackedentitytypeid" );
+                    if ( tetId != 0)
+                    {
+                        TrackedEntityType trackedEntityType = new TrackedEntityType();
+                        trackedEntityType.setId( tetId );
+                        trackedEntityType.setUid( rs.getString( "tet_uid" ) );
+                        trackedEntityType.setPublicAccess( rs.getString( "tet_public_access" ) );
+                        program.setTrackedEntityType( trackedEntityType );
+                    }
+                    
                     program.setProgramStages( programStages );
                     results.put( rs.getString( "uid" ), program );
 
