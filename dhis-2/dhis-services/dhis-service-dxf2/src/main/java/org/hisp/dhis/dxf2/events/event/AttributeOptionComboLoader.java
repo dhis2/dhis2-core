@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.util.Strings;
@@ -59,6 +58,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -69,7 +70,7 @@ public class AttributeOptionComboLoader
 
     private final static String KEY_SEPARATOR = "-";
 
-    final static String SQL_GET_CATEGORYOPTIONCOMBO = "select coc.${key}, "
+    final static String SQL_GET_CATEGORYOPTIONCOMBO = "select coc.categoryoptioncomboid, "
             + "coc.uid, coc.code, coc.ignoreapproval, coc.name, c.uid as cc_uid, c.name as cc_name, "
             + "string_agg(dec.categoryid::text, ',') as cat_ids from categoryoptioncombo coc "
             + "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid "
@@ -78,6 +79,27 @@ public class AttributeOptionComboLoader
             + "join dataelementcategory dec on cc.categoryid = dec.categoryid where coc."
             + "${resolvedScheme} "
             + "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name";
+
+    final static String SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS = "select * from ( " +
+            "select coc.categoryoptioncomboid, " +
+            "coc.uid, " +
+            "coc.code, " +
+            "coc.ignoreapproval, " +
+            "coc.name, " +
+            "c.uid as cc_uid, " +
+            "c.name as cc_name," +
+            "string_agg( dec.categoryid::text, ',') as cat_ids " +
+            "from categoryoptioncombo coc " +
+            "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
+            "join categorycombo c on co.categorycomboid = c.categorycomboid " +
+            "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid " +
+            "join dataelementcategory dec on cc.categoryid = dec.categoryid " +
+            "where c.${resolvedScheme} " +
+            "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name " +
+            ") as catoptcombo where " +
+            "array_length(regexp_split_to_array(cat_ids, ','),1) = array_length(ARRAY[${option_ids}],1) AND " +
+            "regexp_split_to_array(cat_ids, ',') @> ARRAY[${option_ids}]";
+
 
     // *** CACHE INITIALIZATION *** //
 
@@ -273,28 +295,16 @@ public class AttributeOptionComboLoader
             .map(s -> "'" + s + "'")
             .collect( Collectors.joining( "," ) );
 
-        final String sql = "select * from ( " +
-                "                  select coc.categoryoptioncomboid, " +
-                "                         coc.uid, " +
-                "                         coc.code, " +
-                "                         coc.ignoreapproval, " +
-                "                         coc.name, " +
-                "                         c.uid as cc_uid, " +
-                "                         c.name as cc_name," +
-                "                         string_agg( dec.categoryid::text, ',') as cat_ids " +
-                "                  from categoryoptioncombo coc " +
-                "                           join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
-                "                           join categorycombo c on co.categorycomboid = c.categorycomboid " +
-                "                           join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid " +
-                "                           join dataelementcategory dec on cc.categoryid = dec.categoryid " +
-                "                  where c." + categoryComboKey +
-                "                  group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name " +
-                ") as catoptcombo where " +
-                "                       array_length(regexp_split_to_array(cat_ids, ','),1) = array_length(ARRAY[" + optionsId + "],1) AND " +
-                "                       regexp_split_to_array(cat_ids, ',') @> ARRAY[" + optionsId + "]";
-
+        // @formatter:off
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
+                .put( "resolvedScheme", Objects.requireNonNull( categoryComboKey ) )
+                .put( "option_ids", optionsId )
+                .build() );
+        // @formatter:on
+        
         // TODO use cache
-        List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate.query( sql, ( rs, i ) -> bind( key, rs ) );
+        List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate
+            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( key, rs ) );
 
         if ( categoryOptionCombos.size() == 1 )
         {
@@ -328,7 +338,8 @@ public class AttributeOptionComboLoader
         // @formatter:on
         try
         {
-            return jdbcTemplate.queryForObject( sub.replace(SQL_GET_CATEGORYOPTIONCOMBO), (rs, i ) -> bind( key, rs ) );
+            return jdbcTemplate.queryForObject( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO ),
+                ( rs, i ) -> bind( key, rs ) );
         }
         catch ( EmptyResultDataAccessException e )
         {

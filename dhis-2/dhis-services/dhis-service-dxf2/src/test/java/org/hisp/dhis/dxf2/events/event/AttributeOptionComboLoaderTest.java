@@ -28,10 +28,13 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.dxf2.events.event.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO;
+import static org.hisp.dhis.dxf2.events.event.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -40,11 +43,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.text.StrSubstitutor;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -65,7 +72,10 @@ public class AttributeOptionComboLoaderTest
     protected JdbcTemplate jdbcTemplate;
 
     @Captor
-    ArgumentCaptor<String> sqlCaptor;
+    private ArgumentCaptor<String> sqlCaptor;
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private AttributeOptionComboLoader subject;
 
@@ -88,7 +98,8 @@ public class AttributeOptionComboLoaderTest
 
         final String sql = sqlCaptor.getValue();
 
-        assertThat( sql, is( replace(SQL_GET_CATEGORYOPTIONCOMBO, "key", "categoryoptioncomboid", "resolvedScheme", "name = 'default'" ) ) );
+        assertThat( sql, is( replace( SQL_GET_CATEGORYOPTIONCOMBO, "key", "categoryoptioncomboid", "resolvedScheme",
+            "name = 'default'" ) ) );
     }
 
     @Test
@@ -96,23 +107,64 @@ public class AttributeOptionComboLoaderTest
     {
         get( IdScheme.ID, "12345", "categoryoptioncomboid = 12345" );
         get( IdScheme.UID, "abcdef", "uid = 'abcdef'" );
-        get( IdScheme.NAME, "alfa", "name = 'alfa'");
+        get( IdScheme.NAME, "alfa", "name = 'alfa'" );
 
     }
 
-    private void get(IdScheme idScheme, String key, String resolvedId) {
+    @Test
+    public void verifyGetAttributeOptionComboWithNullCategoryCombo()
+    {
+        thrown.expect( IllegalQueryException.class );
+        thrown.expectMessage( "Illegal category combo" );
+        subject.getAttributeOptionCombo( null, "", "", IdScheme.UID );
+    }
 
+    @Test
+    public void verifyGetAttributeOptionComboWithNonExistingCategoryOption()
+    {
+        thrown.expect( IllegalQueryException.class );
+        thrown.expectMessage( "Illegal category option identifier: abcdef" );
+        CategoryCombo cc = new CategoryCombo();
+        subject.getAttributeOptionCombo( cc, "abcdef", "", IdScheme.UID );
+    }
+
+    @Test
+    public void verifyGetAttributeOptionCombo()
+    {
+        CategoryCombo cc = createCategoryCombo( 'B' );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.setId( 100L );
+
+        when( jdbcTemplate.queryForObject(
+            eq( "select categoryoptionid, uid, code, name from dataelementcategoryoption where uid = 'abcdef'" ),
+            any( RowMapper.class ) ) ).thenReturn( categoryOption );
+
+        when( jdbcTemplate.query( anyString(), any( RowMapper.class ) ) )
+            .thenReturn( singletonList( createCategoryOptionCombo( cc, categoryOption ) ) );
+
+        CategoryOptionCombo categoryOptionCombo = subject.getAttributeOptionCombo( cc, "abcdef", "", IdScheme.UID );
+        assertThat( categoryOptionCombo, is( notNullValue() ) );
+        verify( jdbcTemplate ).query( sqlCaptor.capture(), any( RowMapper.class ) );
+
+        final String sql = sqlCaptor.getValue();
+        assertThat( sql, is( replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS, "resolvedScheme",
+            "uid = '" + cc.getUid() + "'", "option_ids", "'100'" ) ) );
+    }
+
+    private void get( IdScheme idScheme, String key, String resolvedId )
+    {
         when( jdbcTemplate.queryForObject( anyString(), any( RowMapper.class ) ) )
-                .thenReturn( new CategoryOptionCombo() );
+            .thenReturn( new CategoryOptionCombo() );
 
-        CategoryOptionCombo categoryOptionCombo = subject.getCategoryOptionCombo(idScheme, key);
+        CategoryOptionCombo categoryOptionCombo = subject.getCategoryOptionCombo( idScheme, key );
 
         assertThat( categoryOptionCombo, is( notNullValue() ) );
         verify( jdbcTemplate ).queryForObject( sqlCaptor.capture(), any( RowMapper.class ) );
 
         final String sql = sqlCaptor.getValue();
 
-        assertThat( sql, is( replace(SQL_GET_CATEGORYOPTIONCOMBO, "key", "categoryoptioncomboid", "resolvedScheme", resolvedId ) ) );
+        assertThat( sql, is(
+            replace( SQL_GET_CATEGORYOPTIONCOMBO, "key", "categoryoptioncomboid", "resolvedScheme", resolvedId ) ) );
         reset( jdbcTemplate );
     }
 
