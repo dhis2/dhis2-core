@@ -363,7 +363,7 @@ public class JCloudsFileResourceContentStore
     }
 
     @Override
-    public void copyContent( String key, OutputStream output )
+    public long copyContent( String key, OutputStream output )
         throws IOException, NoSuchElementException
     {
         if ( !blobExists( key ) )
@@ -378,6 +378,7 @@ public class JCloudsFileResourceContentStore
             IOUtils.copy( in, output );
         }
 
+        return blob.getMetadata().getContentMetadata().getContentLength();
     }
 
     // -------------------------------------------------------------------------

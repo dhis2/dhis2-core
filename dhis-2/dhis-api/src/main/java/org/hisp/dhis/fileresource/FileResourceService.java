@@ -65,7 +65,7 @@ public interface FileResourceService
      * @throws IOException
      * @throws NoSuchElementException
      */
-    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+    long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException;
 
     boolean fileResourceExists( String uid );
