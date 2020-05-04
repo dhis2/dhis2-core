@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event.validation.update;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.events.event.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.event.validation.ValidationCheck;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
@@ -96,13 +96,14 @@ public class UpdateValidationFactory
                     final ValidationCheck validationCheck = validator.newInstance();
                     final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ), ctx );
 
-                    if ( importSummary.isStatus( ImportStatus.ERROR ) )
+                    if ( importSummary.isStatus( ERROR ) )
                     {
                         return importSummary;
                     }
                 }
                 catch ( InstantiationException | IllegalAccessException e )
                 {
+                    // TODO: Maikel: Ask Luciano is we should return and Import.ERROR at this point, as returning TRUE might be wrong.
                     log.error( "An error occurred during Event import validation", e );
                 }
             }

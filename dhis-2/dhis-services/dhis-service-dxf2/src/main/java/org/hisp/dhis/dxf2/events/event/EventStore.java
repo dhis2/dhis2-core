@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -87,7 +88,6 @@ public interface EventStore
             "organisationunitid = ?, " +        // 5
             "status = ?, " +                    // 6
             "completeddate = ?, " +             // 7
-            //"uid = ?, " +
             "lastupdated = ?, " +               // 8
             "attributeoptioncomboid = ?, " +    // 9
             "storedby = ?, " +                  // 10
@@ -97,13 +97,14 @@ public interface EventStore
             "createdatclient = ?, " +           // 14
             "lastupdatedatclient = ?, " +       // 15
             //"geometry = ?, " +                //
-            "assigneduserid = ? " +             // 16
-            "where uid = ?;";                   // 17
+            "assigneduserid = ?, " +            // 16
+            "eventdatavalues = ?::json " +      // 17
+            "where uid = ?;";                   // 18
         // @formatter:on
 
     List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
 
-    void updateEvent( ProgramStageInstance programStageInstance );
+    void updateEvent( ProgramStageInstance programStageInstance ) throws JsonProcessingException;
 
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
         Map<String, Set<String>> psdesWithSkipSyncTrue );

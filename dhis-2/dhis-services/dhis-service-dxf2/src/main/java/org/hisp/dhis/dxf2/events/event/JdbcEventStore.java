@@ -29,20 +29,42 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.util.DateUtils.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -405,7 +427,7 @@ public class JdbcEventStore
 
         try (Connection connection = dataSource.getConnection();
             PreparedStatement insertEventPS = connection.prepareStatement( INSERT_EVENT_SQL,
-                Statement.RETURN_GENERATED_KEYS ))
+                RETURN_GENERATED_KEYS ))
         {
             for ( ProgramStageInstance psi : batch )
             {
@@ -470,7 +492,7 @@ public class JdbcEventStore
 
         try (Connection connection = dataSource.getConnection();
             PreparedStatement insertEventNotePS = connection.prepareStatement( INSERT_EVENT_NOTE_SQL,
-                Statement.RETURN_GENERATED_KEYS );
+                RETURN_GENERATED_KEYS );
             PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
         {
 
@@ -570,13 +592,14 @@ public class JdbcEventStore
             ps.setObject( 18, null );
         }
 
-        ps.setString( 19, EventUtils.eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
+        ps.setString( 19, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
     }
 
-    public void updateEvent( final ProgramStageInstance programStageInstance )
-    {
+    public void updateEvent( final ProgramStageInstance programStageInstance ) throws JsonProcessingException {
         if ( programStageInstance != null )
         {
+            final String dataValues = eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper );
+
             jdbcTemplate.execute( SQL_UPDATE, (PreparedStatementCallback<Boolean>) pStmt -> {
                 pStmt.setLong( 1, programStageInstance.getProgramInstance().getId() );
                 pStmt.setLong( 2, programStageInstance.getProgramStage().getId() );
@@ -605,7 +628,9 @@ public class JdbcEventStore
                 {
                     pStmt.setObject( 16, null );
                 }
-                pStmt.setString( 17, programStageInstance.getUid() );
+
+                pStmt.setString( 17, dataValues );
+                pStmt.setString( 18, programStageInstance.getUid() );
 
                 return pStmt.execute();
             } );

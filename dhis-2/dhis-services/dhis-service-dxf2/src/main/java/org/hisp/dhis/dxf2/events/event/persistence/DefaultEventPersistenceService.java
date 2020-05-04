@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.event.persistence;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.System.nanoTime;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
@@ -44,11 +45,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventStore;
@@ -97,7 +98,7 @@ public class DefaultEventPersistenceService
     public List<ProgramStageInstance> save( WorkContext context, List<Event> events )
     {
         /*
-         * save Events, Notes and Data Values
+         * Save Events, Notes and Data Values
          */
         ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
         return isNotEmpty( events )
@@ -121,8 +122,8 @@ public class DefaultEventPersistenceService
      */
     @Override
     @Transactional
-    public void update( final WorkContext context, final List<Event> events )
-    {
+    public void update( final WorkContext context, final List<Event> events ) throws JsonProcessingException {
+
         if ( isNotEmpty( events ) )
         {
             // FIXME: Implement and add the correct mapper.
@@ -150,7 +151,7 @@ public class DefaultEventPersistenceService
             }
 
             System.out.println( "UPDATE: Processing Data Value for " + eventProgramStageInstanceMap.size()
-                + " PSI took : " + TimeUnit.SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
+                + " PSI took : " + SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
         }
     }
 
@@ -163,8 +164,8 @@ public class DefaultEventPersistenceService
      */
     @Override
     @Transactional
-    public void update( final WorkContext context, final Event event )
-    {
+    public void update( final WorkContext context, final Event event ) throws JsonProcessingException {
+
         if ( event != null )
         {
             final ProgramStageInstance programStageInstance = new ProgramStageInstanceMapper( context ).map( event );
@@ -181,23 +182,14 @@ public class DefaultEventPersistenceService
             // importOptions.getUser() ) );
 
             System.out.println( "UPDATE: Processing Data Value for " + programStageInstance + " PSI took : "
-                + TimeUnit.SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
+                + SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
         }
     }
 
-    private void persistUpdateData(final ProgramStageInstance programStageInstance, final List<Note> notes,
-                                   final ImportOptions importOptions )
-    {
+    private void persistUpdateData( final ProgramStageInstance programStageInstance, final List<Note> notes,
+                                   final ImportOptions importOptions ) throws JsonProcessingException {
         // TODO: Implement the jdbcEventStore.updateEvents method
         jdbcEventStore.updateEvent( programStageInstance );
-
-        // ...
-        // FIXME: Uncomment after Luciano's solution
-        // process data values
-        // ...
-        // eventDataValueService.processDataValues( eventProgramStageInstanceMap, false,
-        // context.getImportOptions(),
-        // context.getDataElementMap() );
 
         // final ImportSummary importSummary1 = new ImportSummary(
         // programStageInstance.getUid() );

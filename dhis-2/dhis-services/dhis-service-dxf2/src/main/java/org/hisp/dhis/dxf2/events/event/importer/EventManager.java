@@ -38,7 +38,6 @@ import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -199,6 +198,7 @@ public class EventManager
         // Currently it returns success.
         if ( failedUids.size() == validEvents.size() )
         {
+            // TODO: Ask Luciano if we could change this logic. It can cause issues of having success and error summary to the same event.
             return importSummaries;
         }
 
@@ -210,23 +210,33 @@ public class EventManager
             }
             catch ( Exception e )
             {
-                final List<Event> failedEvents = retryEach( workContext, validEvents );
-
-                failedEvents.forEach( failedEvent -> importSummaries.getImportSummaries()
-                    .add( error( "Invalid or conflicting data", failedEvent.getEvent() ) ) );
+                handleFailedUpdate( workContext, importSummaries, validEvents );
             }
         }
         else
         {
-            // collect the events that passed validation and can be persisted
-            // @formatter:off
-            eventPersistenceService.update( workContext, validEvents.stream()
-                .filter( e -> !failedUids.contains( e.getEvent() ) )
-                .collect( toList() ) );
-            // @formatter:on
+            try
+            {
+                // collect the events that passed validation and can be persisted
+                eventPersistenceService.update( workContext,
+                    validEvents.stream().filter( e -> !failedUids.contains( e.getEvent() ) ).collect( toList() ) );
+            }
+            catch ( Exception e )
+            {
+                handleFailedUpdate( workContext, importSummaries, validEvents );
+            }
         }
 
         return importSummaries;
+    }
+
+    private void handleFailedUpdate( final WorkContext workContext, final ImportSummaries importSummaries,
+        final List<Event> validEvents )
+    {
+        final List<Event> failedEvents = retryEach( workContext, validEvents );
+
+        failedEvents.forEach( failedEvent -> importSummaries.getImportSummaries()
+            .add( error( "Invalid or conflicting data", failedEvent.getEvent() ) ) );
     }
 
     /**
