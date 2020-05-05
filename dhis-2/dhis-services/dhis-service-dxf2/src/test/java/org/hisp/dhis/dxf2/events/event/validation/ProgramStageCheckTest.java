@@ -108,13 +108,4 @@ public class ProgramStageCheckTest extends BaseValidationTest
                 "Program stage is not repeatable and an event already exists" );
     }
 
-    private void assertHasError( ImportSummary summary, Event event, String description )
-    {
-        assertThat( summary, is( notNullValue() ) );
-        assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
-        assertThat( summary.getReference(), is( event.getUid() ) );
-        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
-        assertThat( summary.getDescription(), is( description ) );
-    }
-
 }

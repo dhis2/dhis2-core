@@ -28,8 +28,11 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 import java.io.IOException;
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -38,14 +41,12 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.GeoUtils;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventGeometryCheck
-    implements
-    ValidationCheck
+public class EventGeometryCheck implements ValidationCheck
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
@@ -54,7 +55,6 @@ public class EventGeometryCheck
 
         if ( event.getGeometry() != null )
         {
-
             if ( programStage.getFeatureType().equals( FeatureType.NONE )
                 || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
             {
@@ -79,9 +79,7 @@ public class EventGeometryCheck
                         .incrementIgnored();
             }
         }
-
         return success();
-
     }
 
     @Override

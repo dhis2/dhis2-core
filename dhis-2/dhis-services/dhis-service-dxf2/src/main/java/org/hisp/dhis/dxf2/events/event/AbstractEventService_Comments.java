@@ -629,7 +629,7 @@ public abstract class AbstractEventService_Comments
 //                    .setReference( event.getEvent() ).incrementIgnored();
 //            }
 
-            // TODO: luciano -> this is a side effect and should take place after validation
+            // TODO: luciano -> this is a side effect and should take place after validation (OK - moved to pre-processor)
             event.getGeometry().setSRID( GeoUtils.SRID );
         }
 
@@ -640,7 +640,7 @@ public abstract class AbstractEventService_Comments
 //      FIXME: luciano to-rule ->  EventGeometryCheck
 //            try
 //            {
-//                // TODO: luciano -> this is a side effect and should take place after validation
+//                // TODO: luciano -> this is a side effect and should take place after validation (OK - moved to pre-processor)
 //                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
 //            }
 //            catch ( IOException e )
