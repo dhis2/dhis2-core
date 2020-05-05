@@ -29,62 +29,71 @@ package org.hisp.dhis.dxf2.events.event.validation;
  */
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.io.IOException;
+import java.util.Date;
 
-import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.dxf2.events.event.Coordinate;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.util.GeoUtils;
-
-import com.vividsolutions.jts.geom.Point;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventGeometryCheck implements ValidationCheck
+public class AttributeOptionComboDateCheck implements ValidationCheck
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        ProgramStage programStage = ctx.getProgramStage( event.getEnrollment() );
+        CategoryOptionCombo attributeOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
 
-        if ( event.getGeometry() != null )
+        Date executionDate = null;
+
+        if ( event.getEventDate() != null )
         {
-            if ( programStage.getFeatureType().equals( FeatureType.NONE )
-                || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
+            executionDate = DateUtils.parseDate( event.getEventDate() );
+        }
+
+        Date dueDate = new Date();
+
+        if ( event.getDueDate() != null )
+        {
+            dueDate = DateUtils.parseDate( event.getDueDate() );
+        }
+
+        Date eventDate = executionDate != null ? executionDate : dueDate;
+
+        if ( eventDate == null )
+        {
+            throw new IllegalQueryException( "Event date can not be empty" );
+        }
+
+        for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
+        {
+            if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type ("
-                        + programStage.getFeatureType().value() + ") specified for the program stage: "
-                        + programStage.getUid() ).setReference( event.getEvent() ).incrementIgnored();
+                throw new IllegalQueryException( "Event date " + getMediumDateString( eventDate )
+                    + " is before start date " + getMediumDateString( option.getStartDate() ) + " for attributeOption '"
+                    + option.getName() + "'" );
+            }
+
+            if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
+            {
+                throw new IllegalQueryException( "Event date " + getMediumDateString( eventDate )
+                    + " is after end date " + getMediumDateString( option.getEndDate() ) + " for attributeOption '"
+                    + option.getName() + "'" );
             }
         }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            Coordinate coordinate = event.getCoordinate();
 
-            try
-            {
-                GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() );
-            }
-            catch ( IOException e )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Invalid longitude or latitude for property 'coordinates'." ).setReference( event.getEvent() )
-                        .incrementIgnored();
-            }
-        }
         return success();
     }
 
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 }

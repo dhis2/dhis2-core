@@ -264,7 +264,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private Map<String, Program> loadPrograms()
     {
         final String sql = "select p.programid, p.publicaccess, p.uid, p.name, p.type, tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, " +
-                "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access " +
+                "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable " +
                 "            from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid " +
                 "                    LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid " +
                 "                    LEFT JOIN programstage ps on p.programid = ps.programid " +
@@ -331,7 +331,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         programStage.setFeatureType(
             rs.getString( "ps_feature_type" ) != null ? FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) )
                 : FeatureType.NONE );
-
+        programStage.setRepeatable( rs.getBoolean( "ps_repeatable" ) );
         return programStage;
     }
 

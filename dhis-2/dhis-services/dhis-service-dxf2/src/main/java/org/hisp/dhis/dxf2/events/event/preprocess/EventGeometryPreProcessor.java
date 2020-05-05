@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.event.preprocess;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,31 +28,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.event.validation;
+import java.io.IOException;
 
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
+import org.hisp.dhis.dxf2.events.event.Coordinate;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
+import org.hisp.dhis.system.util.GeoUtils;
 
-import lombok.Builder;
-import lombok.Getter;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-@Getter
-@Builder
-public class ServiceDelegator
+/**
+ * This PreProcessor tries to assign a Geometry to the event
+ *
+ * @author Luciano Fiandesio
+ */
+public class EventGeometryPreProcessor implements PreProcessor
 {
-    private final ProgramInstanceStore programInstanceStore;
+    @Override
+    public void process( Event event, WorkContext ctx )
+    {
+        if ( event.getGeometry() != null )
+        {
+            event.getGeometry().setSRID( GeoUtils.SRID );
+        }
 
-    private final TrackerAccessManager trackerAccessManager;
-
-    private final ProgramRuleVariableService programRuleVariableService;
-
-    private final ApplicationEventPublisher applicationEventPublisher;
-
-    private final CurrentUserService currentUserService;
-
-    private final JdbcTemplate jdbcTemplate;
+        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
+        {
+            Coordinate coordinate = event.getCoordinate();
+            try
+            {
+                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+            }
+            catch ( IOException e )
+            {
+                // do nothing..it will be caught later during validation
+            }
+        }
+    }
 }

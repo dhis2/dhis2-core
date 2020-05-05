@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events.event.preprocess;
+package org.hisp.dhis.dxf2.events.event.validation;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,35 +28,66 @@ package org.hisp.dhis.dxf2.events.event.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.junit.Before;
+import org.junit.Rule;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
- * This PreProcessor tries to assign a ProgramStage to an event
- *
  * @author Luciano Fiandesio
  */
-public class ProgramStagePreProcessor
-    implements
-    PreProcessor
+public class BaseValidationTest
 {
-    @Override
-    public void process( Event event, WorkContext ctx )
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    protected WorkContext workContext;
+
+    @Mock
+    protected ServiceDelegator serviceDelegator;
+
+    protected Event event;
+
+    @Before
+    public void superSetUp()
     {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
+        event = createBaseEvent();
+    }
 
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+    private Event createBaseEvent()
+    {
+        Event event = new Event();
+        String uid = CodeGenerator.generateUid();
+        event.setUid( uid );
+        event.setEvent( uid );
+        return event;
+    }
 
-        if ( programStage == null && program.isWithoutRegistration() )
-        {
-            programStage = program.getProgramStageByStage( 1 );
+    protected void assertNoError( ImportSummary summary )
+    {
+        assertThat( summary, is( notNullValue() ) );
+        assertThat( summary.getImportCount().getIgnored(), is( 0 ) );
+        assertThat( summary.getStatus(), is( ImportStatus.SUCCESS ) );
+    }
 
-        }
-        if ( programStage != null )
-        {
-            event.setProgramStage( programStage.getUid() );
-        }
+    protected void assertHasError( ImportSummary summary, Event event, String description )
+    {
+        assertThat( summary, is( notNullValue() ) );
+        assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
+        assertThat( summary.getReference(), is( event.getUid() ) );
+        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
+        assertThat( summary.getDescription(), is( description ) );
     }
 }

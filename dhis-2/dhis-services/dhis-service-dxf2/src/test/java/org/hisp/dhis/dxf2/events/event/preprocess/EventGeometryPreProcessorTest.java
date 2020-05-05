@@ -1,3 +1,17 @@
+package org.hisp.dhis.dxf2.events.event.preprocess;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
+
+import org.hisp.dhis.dxf2.events.event.Coordinate;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.context.WorkContext;
+import org.hisp.dhis.system.util.GeoUtils;
+import org.junit.Before;
+import org.junit.Test;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,31 +40,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.event.validation;
-
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-
-import lombok.Builder;
-import lombok.Getter;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-@Getter
-@Builder
-public class ServiceDelegator
+/**
+ * @author Luciano Fiandesio
+ */
+public class EventGeometryPreProcessorTest
 {
-    private final ProgramInstanceStore programInstanceStore;
+    private EventGeometryPreProcessor subject;
 
-    private final TrackerAccessManager trackerAccessManager;
+    @Before
+    public void setUp()
+    {
 
-    private final ProgramRuleVariableService programRuleVariableService;
+        this.subject = new EventGeometryPreProcessor();
+    }
 
-    private final ApplicationEventPublisher applicationEventPublisher;
+    @Test
+    public void verifyEventGeometryGetCorrectSRID()
+        throws IOException
+    {
+        Event event = new Event();
+        event.setGeometry( GeoUtils.getGeoJsonPoint( 20.0, 30.0 ) );
+        event.getGeometry().setSRID( 0 );
+        subject.process( event, WorkContext.builder().build() );
 
-    private final CurrentUserService currentUserService;
+        assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
+    }
 
-    private final JdbcTemplate jdbcTemplate;
+    @Test
+    public void verifyEventWithCoordinateHasGeometrySet()
+        throws IOException
+    {
+        Event event = new Event();
+        event.setCoordinate( new Coordinate( 20.0, 22.0 ) );
+        subject.process( event, WorkContext.builder().build() );
+
+        assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
+        assertThat( event.getGeometry().getCoordinate().x, is( 20.0 ) );
+        assertThat( event.getGeometry().getCoordinate().y, is( 22.0 ) );
+    }
+
 }
