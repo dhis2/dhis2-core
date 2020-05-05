@@ -35,7 +35,9 @@ import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,15 +56,19 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
 
     private final CurrentUserService currentUserService;
 
+    private final JdbcTemplate jdbcTemplate;
+
     public ServiceDelegatorSupplier( ProgramInstanceStore programInstanceStore,
         TrackerAccessManager trackerAccessManager, ApplicationEventPublisher applicationEventPublisher,
-        ProgramRuleVariableService programRuleVariableService, CurrentUserService currentUserService )
+        ProgramRuleVariableService programRuleVariableService, CurrentUserService currentUserService,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate)
     {
         this.programInstanceStore = programInstanceStore;
         this.trackerAccessManager = trackerAccessManager;
         this.applicationEventPublisher = applicationEventPublisher;
         this.programRuleVariableService = programRuleVariableService;
         this.currentUserService = currentUserService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -75,6 +81,7 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
                 .applicationEventPublisher( this.applicationEventPublisher )
                 .programRuleVariableService( this.programRuleVariableService )
                 .currentUserService( this.currentUserService )
+                .jdbcTemplate( this.jdbcTemplate )
                 .build();
         // @formatter:on
     }

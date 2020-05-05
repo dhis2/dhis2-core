@@ -36,6 +36,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @Getter
 @Builder
@@ -50,4 +51,6 @@ public class ServiceDelegator
     private final ApplicationEventPublisher applicationEventPublisher;
 
     private final CurrentUserService currentUserService;
+
+    private final JdbcTemplate jdbcTemplate;
 }

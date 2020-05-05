@@ -34,6 +34,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
+ * This PreProcessor tries to assign a ProgramStage to an event
+ *
  * @author Luciano Fiandesio
  */
 public class ProgramStagePreProcessor
@@ -50,6 +52,7 @@ public class ProgramStagePreProcessor
         if ( programStage == null && program.isWithoutRegistration() )
         {
             programStage = program.getProgramStageByStage( 1 );
+
         }
         if ( programStage != null )
         {
