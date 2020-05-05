@@ -63,6 +63,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -188,9 +189,31 @@ public class DefaultEventPersistenceService
 
         // TODO: Find how to bring this into the update transaction.
         // TODO: Maikel, what exactly needs to be updated here? Commented out for now
-        trackedEntityInstances.forEach( tei -> manager.update( tei, importOptions.getUser() ) );
+        for ( final TrackedEntityInstance tei : trackedEntityInstances )
+        {
+            updateTrackedEntityInstance( tei, importOptions.getUser() );
+        }
 
         saveTrackedEntityComment( programStageInstance, notes, importOptions );
+    }
+
+    private void updateTrackedEntityInstance( final TrackedEntityInstance tei, final User user )
+    {
+        final TrackedEntityInstance loadedTei = manager.get( TrackedEntityInstance.class, tei.getUid() );
+
+        // TODO: Discuss with Luciano: Should we add an ACL checking for
+        // TrackedEntityInstance as part of validation? and do a strait JDBC update
+        // here?
+        loadedTei.setCreatedAtClient( tei.getCreatedAtClient() );
+        loadedTei.setLastUpdatedAtClient( tei.getLastUpdatedAtClient() );
+        loadedTei.setInactive( tei.isInactive() );
+        loadedTei.setLastSynchronized( tei.getLastSynchronized() );
+        loadedTei.setCreated( tei.getCreated() );
+        loadedTei.setLastUpdated( tei.getLastUpdated() );
+        loadedTei.setUser( tei.getUser() );
+        loadedTei.setLastUpdatedBy( tei.getLastUpdatedBy() );
+
+        manager.update( loadedTei, user );
     }
 
     private Event getEvent( String uid, List<Event> events )
