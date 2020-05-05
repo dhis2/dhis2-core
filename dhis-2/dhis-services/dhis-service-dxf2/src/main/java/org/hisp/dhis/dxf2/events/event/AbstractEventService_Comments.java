@@ -478,7 +478,7 @@ public abstract class AbstractEventService_Comments
         // TODO: luciano question ->  isn't this also un-necessary at this point? (OK)
         importOptions = updateImportOptions( importOptions );
 
-        // TODO: luciano question -> since this is an 'add' operation, isn't this always going to be null? (OK)
+        // TODO: luciano question -> since this is an 'add' operation, isn't this always going to be null? (OK - moved to Q/A doc)
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
         // FIXME: luciano to-rule -> EventDateCheck (OK)
@@ -615,7 +615,7 @@ public abstract class AbstractEventService_Comments
 //                .setReference( event.getEvent() ).incrementIgnored();
 //        }
 
-        // TODO: luciano question -> this is probably a mistake, because during add a  programStageInstance is always null?
+        // TODO: luciano question -> this is probably a mistake, because during add a  programStageInstance is always null? (OK - moved to Q/A doc)
         validateExpiryDays( importOptions, event, program, programStageInstance );
 
 
@@ -1705,7 +1705,7 @@ public abstract class AbstractEventService_Comments
         Date eventDate = executionDate != null ? executionDate : dueDate;
 
         // TODO: luciano question -> here we throw an exception, rather than using ImportSummary, why?
-        // FIXME: luciano to-rule -> AttributeOptionComboDateCheck
+        // FIXME: luciano to-rule -> AttributeOptionComboDateCheck (OK)
         //validateAttributeOptionComboDate( aoc, eventDate );
 
         // FIXME: luciano to-rule -> AttributeOptionComboAclCheck (OK)

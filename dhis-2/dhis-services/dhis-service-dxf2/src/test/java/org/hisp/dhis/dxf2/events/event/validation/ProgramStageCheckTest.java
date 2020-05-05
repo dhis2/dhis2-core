@@ -59,20 +59,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageCheckTest
+public class ProgramStageCheckTest extends BaseValidationTest
 {
     private ProgramStageCheck rule;
-
-    private Event event;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
-    private WorkContext workContext;
-
-    @Mock
-    private ServiceDelegator serviceDelegator;
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -81,7 +70,6 @@ public class ProgramStageCheckTest
     public void setUp()
     {
         rule = new ProgramStageCheck();
-        event = createBaseEvent();
     }
 
     @Test
@@ -127,15 +115,6 @@ public class ProgramStageCheckTest
         assertThat( summary.getReference(), is( event.getUid() ) );
         assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( summary.getDescription(), is( description ) );
-    }
-
-    private Event createBaseEvent()
-    {
-        Event event = new Event();
-        String uid = CodeGenerator.generateUid();
-        event.setUid( uid );
-        event.setEvent( uid );
-        return event;
     }
 
 }
