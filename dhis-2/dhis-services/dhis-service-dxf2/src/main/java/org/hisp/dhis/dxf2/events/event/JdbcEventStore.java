@@ -608,7 +608,6 @@ public class JdbcEventStore
                 pStmt.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
                 pStmt.setString( 6, programStageInstance.getStatus().toString() );
                 pStmt.setTimestamp( 7, toTimestamp( programStageInstance.getCompletedDate() ) );
-                // pStmt.setString( 8, event.getUid() );
                 pStmt.setTimestamp( 8, toTimestamp( new Date() ) );
                 pStmt.setLong( 9, programStageInstance.getAttributeOptionCombo().getId() );
                 pStmt.setString( 10, programStageInstance.getStoredBy() );

@@ -41,6 +41,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.springframework.util.StringUtils.isEmpty;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -49,20 +50,22 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.event.Note;
-import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
+import org.hisp.dhis.dxf2.events.event.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,19 +80,19 @@ public class DefaultEventPersistenceService
 {
     private final EventStore jdbcEventStore;
 
-    private final EventDataValueService eventDataValueService;
+    private IdentifiableObjectManager manager;
 
     private final TrackedEntityCommentService trackedEntityCommentService;
 
-    public DefaultEventPersistenceService( EventStore jdbcEventStore, EventDataValueService eventDataValueService,
-                                           TrackedEntityCommentService trackedEntityCommentService )
+    public DefaultEventPersistenceService( EventStore jdbcEventStore, IdentifiableObjectManager manager,
+        TrackedEntityCommentService trackedEntityCommentService )
     {
         checkNotNull( jdbcEventStore );
-        checkNotNull( eventDataValueService );
+        checkNotNull( manager );
         checkNotNull( trackedEntityCommentService );
 
         this.jdbcEventStore = jdbcEventStore;
-        this.eventDataValueService = eventDataValueService;
+        this.manager = manager;
         this.trackedEntityCommentService = trackedEntityCommentService;
     }
 
@@ -126,28 +129,23 @@ public class DefaultEventPersistenceService
 
         if ( isNotEmpty( events ) )
         {
-            // FIXME: Implement and add the correct mapper.
+            // TODO: Check if this mapper really suits the Update flow as well
             final Map<Event, ProgramStageInstance> eventProgramStageInstanceMap = convertToProgramStageInstances(
                 new ProgramStageInstanceMapper( context ), events );
 
             long now = nanoTime();
 
-
-            // TODO this for loop slows down the process...
             for ( final ProgramStageInstance programStageInstance : eventProgramStageInstanceMap.values() )
             {
                 final Event event = getEvent( programStageInstance.getUid(), events );
                 final ImportOptions importOptions = context.getImportOptions();
+                final Collection<TrackedEntityInstance> trackedEntityInstances = context.getTrackedEntityInstanceMap()
+                    .values();
 
                 if ( event != null )
                 {
-                    persistUpdateData( programStageInstance, event.getNotes(), importOptions );
+                    persistUpdateData( programStageInstance, event.getNotes(), trackedEntityInstances, importOptions );
                 }
-
-                // TODO: Find how to bring this into the update transaction.
-                // TODO: Maikel, what exactly needs to be updated here? Commented out for now
-//                context.getTrackedEntityInstanceMap().values()
-//                    .forEach( tei -> identifiableObjectManager.update( tei, importOptions.getUser() ) );
             }
 
             System.out.println( "UPDATE: Processing Data Value for " + eventProgramStageInstanceMap.size()
@@ -166,20 +164,16 @@ public class DefaultEventPersistenceService
     @Transactional
     public void update( final WorkContext context, final Event event ) throws JsonProcessingException {
 
-        if ( event != null )
+        if ( context != null && event != null )
         {
             final ProgramStageInstance programStageInstance = new ProgramStageInstanceMapper( context ).map( event );
             final ImportOptions importOptions = context.getImportOptions();
+            final Collection<TrackedEntityInstance> trackedEntityInstances = context.getTrackedEntityInstanceMap()
+                .values();
 
-            long now = nanoTime();
+            final long now = nanoTime();
 
-            persistUpdateData( programStageInstance, event.getNotes(), importOptions );
-
-            // TODO: Find how to bring this into the update transaction.
-            // TODO: Maikel, what exactly needs to be updated here? Commented out for now
-            // context.getTrackedEntityInstanceMap().values()
-            // .forEach( tei -> identifiableObjectManager.update( tei,
-            // importOptions.getUser() ) );
+            persistUpdateData( programStageInstance, event.getNotes(), trackedEntityInstances, importOptions );
 
             System.out.println( "UPDATE: Processing Data Value for " + programStageInstance + " PSI took : "
                 + SECONDS.convert( nanoTime() - now, NANOSECONDS ) );
@@ -187,12 +181,14 @@ public class DefaultEventPersistenceService
     }
 
     private void persistUpdateData( final ProgramStageInstance programStageInstance, final List<Note> notes,
-                                   final ImportOptions importOptions ) throws JsonProcessingException {
-        // TODO: Implement the jdbcEventStore.updateEvents method
+        final Collection<TrackedEntityInstance> trackedEntityInstances, final ImportOptions importOptions )
+        throws JsonProcessingException
+    {
         jdbcEventStore.updateEvent( programStageInstance );
 
-        // final ImportSummary importSummary1 = new ImportSummary(
-        // programStageInstance.getUid() );
+        // TODO: Find how to bring this into the update transaction.
+        // TODO: Maikel, what exactly needs to be updated here? Commented out for now
+        trackedEntityInstances.forEach( tei -> manager.update( tei, importOptions.getUser() ) );
 
         saveTrackedEntityComment( programStageInstance, notes, importOptions );
     }
