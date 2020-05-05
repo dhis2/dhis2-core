@@ -49,7 +49,7 @@ public class ProgramOrgUnitCheck
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        if ( programInstance != null ) // TODO shall we handle this case: this should really never happen..
+        if ( programInstance != null ) // TODO shall we handle this case: this should really never happen at this point
         {
             Optional<OrganisationUnit> orgUnit = programInstance.getProgram().getOrganisationUnits().stream()
                 .filter( ou -> ou.getUid().equals( event.getOrgUnit() ) )

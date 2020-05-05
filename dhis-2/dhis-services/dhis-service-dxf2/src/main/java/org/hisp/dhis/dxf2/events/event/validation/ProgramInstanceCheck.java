@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +40,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 /**
  * @author Luciano Fiandesio
@@ -54,8 +54,8 @@ public class ProgramInstanceCheck implements ValidationCheck
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
 
         List<ProgramInstance> programInstances;
-            if ( programInstance == null ) // Program Instance should be NOT null, after the pre-processing stage
-            {
+        if ( programInstance == null ) // Program Instance should be NOT null, after the pre-processing stage
+        {
             if ( program.isRegistration() )
             {
                 programInstances = new ArrayList<>( ctx.getServiceDelegator().getProgramInstanceStore()
@@ -75,18 +75,18 @@ public class ProgramInstanceCheck implements ValidationCheck
                                 .setReference( event.getEvent() ).incrementIgnored();
                 }
 
-        }
-        else
-        {
+            }
+            else
+            {
                 programInstances = ctx.getServiceDelegator().getProgramInstanceStore().get( program,
                     ProgramStatus.ACTIVE );
-            if ( programInstances.size() > 1 )
-            {
-                return new ImportSummary( ImportStatus.ERROR,
-                    "Multiple active program instances exists for program: " + program.getUid() )
-                        .setReference( event.getEvent() ).incrementIgnored();
+                if ( programInstances.size() > 1 )
+                {
+                    return new ImportSummary( ImportStatus.ERROR,
+                        "Multiple active program instances exists for program: " + program.getUid() )
+                            .setReference( event.getEvent() ).incrementIgnored();
+                }
             }
-        }
         }
 
         return success();

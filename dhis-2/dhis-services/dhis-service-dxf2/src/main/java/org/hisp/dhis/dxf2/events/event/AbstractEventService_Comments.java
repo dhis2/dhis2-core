@@ -368,7 +368,7 @@ public abstract class AbstractEventService_Comments
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-        // TODO: luciano question -> can this be removed and replaced with assertions ?
+        // TODO: luciano question -> can this be removed and replaced with assertions ? (OK)
         importOptions = updateImportOptions( importOptions );
 
         List<Event> validEvents = resolveImportableEvents( events, importSummaries );
@@ -377,8 +377,8 @@ public abstract class AbstractEventService_Comments
 
         for ( List<Event> _events : partitions )
         {
-            reloadUser( importOptions ); // TODO luciano why this in a loop?
-            prepareCaches( importOptions.getUser(), _events );  // TODO luciano why this in a loop?
+            reloadUser( importOptions ); // TODO luciano why this in a loop? (OK)
+            prepareCaches( importOptions.getUser(), _events );  // TODO luciano why this in a loop? (OK)
 
             for ( Event event : _events )
             {
@@ -416,7 +416,7 @@ public abstract class AbstractEventService_Comments
     private List<String> checkForExistingEventsIncludingDeleted( List<Event> events, ImportSummaries importSummaries )
     {
 
-        // TODO luciano replace with "select from programstageinstance where uid in (....)
+        // TODO luciano replace with "select from programstageinstance where uid in (....) (OK)
 
         List<String> foundEvents = programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted(
             events.stream()
@@ -467,7 +467,7 @@ public abstract class AbstractEventService_Comments
     @Override
     public ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport )
     {
-        // TODO: luciano question -> isn't this un-necessary, since we did it earlier?
+        // TODO: luciano question -> isn't this un-necessary, since we did it earlier? (OK)
         if ( !bulkImport && programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
@@ -475,19 +475,19 @@ public abstract class AbstractEventService_Comments
                 .setReference( event.getEvent() )
                 .incrementIgnored();
         }
-        // TODO: luciano question ->  isn't this also un-necessary at this point?
+        // TODO: luciano question ->  isn't this also un-necessary at this point? (OK)
         importOptions = updateImportOptions( importOptions );
 
-        // TODO: luciano question -> since this is an 'add' operation, isn't this always going to be null?
+        // TODO: luciano question -> since this is an 'add' operation, isn't this always going to be null? (OK)
         ProgramStageInstance programStageInstance = getProgramStageInstance( event.getEvent() );
 
-        // FIXME: luciano to-rule -> EventDateCheck
+        // FIXME: luciano to-rule -> EventDateCheck (OK)
 //        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
 //        {
 //            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
 //        }
 
-        // TODO: luciano question ->  why do we check this stuff here? This should only be checked in an update operation -> discussed with Morten, can be removed
+        // TODO: luciano question ->  why do we check this stuff here? This should only be checked in an update operation -> discussed with Morten, can be removed (OK)
 //        if ( programStageInstance == null && !StringUtils.isEmpty( event.getEvent() ) && !CodeGenerator.isValidUid( event.getEvent() ) )
 //        {
 //            return new ImportSummary( ImportStatus.ERROR, "Event.event did not point to a valid event: " + event.getEvent() ).setReference( event.getEvent() ).incrementIgnored();
@@ -502,21 +502,21 @@ public abstract class AbstractEventService_Comments
         ProgramInstance programInstance = getProgramInstance( event.getEnrollment() );
         User assignedUser = getUser( event.getAssignedUser() );
 
-//        FIXME: luciano to-rule ->  OrgUnitCheck
+//        FIXME: luciano to-rule ->  OrgUnitCheck (OK)
 //        if ( organisationUnit == null )
 //        {
 //            return new ImportSummary( ImportStatus.ERROR, "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() )
 //                .setReference( event.getEvent() ).incrementIgnored();
 //        }
 
-//        FIXME: luciano to-rule ->  ProgramCheck
+//        FIXME: luciano to-rule ->  ProgramCheck (OK)
 //        if ( program == null )
 //        {
 //            return new ImportSummary( ImportStatus.ERROR, "Event.program does not point to a valid program: " + event.getProgram() )
 //                .setReference( event.getEvent() ).incrementIgnored();
 //        }
 
-//        FIXME: luciano to-rule ->  ProgramStageCheck
+//        FIXME: luciano to-rule ->  ProgramStageCheck (OK)
 //        programStage = programStage == null && program.isWithoutRegistration() ? program.getProgramStageByStage( 1 ) : programStage;
 //
 //        if ( programStage == null )
@@ -527,7 +527,7 @@ public abstract class AbstractEventService_Comments
         if ( program.isRegistration() )
         {
 
-//        FIXME: luciano to-rule ->  TrackedEntityInstanceCheck
+//        FIXME: luciano to-rule ->  TrackedEntityInstanceCheck (OK)
 
 //            if ( entityInstance == null )
 //            {
@@ -550,7 +550,7 @@ public abstract class AbstractEventService_Comments
 //                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid() + " has multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
 //                }
 //
-            // TODO: luciano ->  handle this situation where we store the PI to use
+            // TODO: luciano ->  handle this situation where we store the PI to use (OK)
 //                programInstance = programInstances.get( 0 );
 //            }
 
@@ -563,7 +563,7 @@ public abstract class AbstractEventService_Comments
         }
         else
         {
-//            // TODO: luciano -> this "side" effect should be handled elsewhere...
+//            // TODO: luciano -> this "side" effect should be handled elsewhere... (OK)
 //            String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
 //            List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
 //
@@ -591,7 +591,7 @@ public abstract class AbstractEventService_Comments
 //                return new ImportSummary( ImportStatus.ERROR, "Multiple active program instances exists for program: " + program.getUid() )
 //                    .setReference( event.getEvent() ).incrementIgnored();
 //            }
-//            // TODO: luciano ->  handle this situation where we store the PI to use
+//            // TODO: luciano ->  handle this situation where we store the PI to use (OK)
 //            programInstance = programInstances.get( 0 );
         }
 
@@ -605,7 +605,7 @@ public abstract class AbstractEventService_Comments
         final Program instanceProgram = programInstance.getProgram();
         final String cacheKey = instanceProgram.getUid() + organisationUnit.getUid();
 
-//        FIXME: luciano to-rule ->  ProgramOrgUnitCheck
+//        FIXME: luciano to-rule ->  ProgramOrgUnitCheck (OK)
 //        boolean programHasOrgUnit = PROGRAM_HAS_ORG_UNIT_CACHE.get( cacheKey,
 //            key -> instanceProgram.hasOrganisationUnit( organisationUnit ) ).get();
 //
@@ -621,7 +621,7 @@ public abstract class AbstractEventService_Comments
 
         if ( event.getGeometry() != null )
         {
-//      FIXME: luciano to-rule ->  EventGeometryCheck
+//      FIXME: luciano to-rule ->  EventGeometryCheck (OK)
 //            if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
 //            {
 //                return new ImportSummary( ImportStatus.ERROR,
@@ -649,31 +649,10 @@ public abstract class AbstractEventService_Comments
 //            }
         }
 
-        // TODO: luciano -> start access control  block
+        // TODO: luciano -> start access control  block (OK)
         List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
 
-        if ( !errors.isEmpty() )
-
-            {
-//            Coordinate coordinate = event.getCoordinate();
-//      FIXME: luciano to-rule ->  EventGeometryCheck
-//            try
-//            {
-//                // TODO: luciano -> this is a side effect and should take place after validation
-//                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-//            }
-//            catch ( IOException e )
-//            {
-//                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." ).setReference( event.getEvent() ).incrementIgnored();
-//            }
-        }
-
-
-        // FIXME: luciano to-rule -> EventAclCheck
-//        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
-//            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
-//
 //        if ( !errors.isEmpty() )
 //        {
 //            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
@@ -1653,7 +1632,7 @@ public abstract class AbstractEventService_Comments
 
         boolean dryRun = importOptions.isDryRun();
 
-//        FIXME: luciano to-rule -> EventBaseCheck
+//        FIXME: luciano to-rule -> EventBaseCheck (OK)
         List<String> errors = new ArrayList<>();
 //        List<String> errors = validateEvent( event, programInstance, importOptions );
 
@@ -1686,19 +1665,19 @@ public abstract class AbstractEventService_Comments
         String storedBy = getValidUsername( event.getStoredBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
         String completedBy = getValidUsername( event.getCompletedBy(), importSummary, User.username( user, Constants.UNKNOWN ) );
 
-        // FIXME: luciano -> this block has been moved to the context loading
+        // FIXME: luciano -> this block has been moved to the context loading (OK)
 //        CategoryOptionCombo aoc;
 //
 //
 //        if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
 //            || event.getAttributeOptionCombo() != null )
 //        {
-//            // TODO: luciano question -> do we still need to support this?
+//            // TODO: luciano question -> do we still need to support this? (YES - OK)
 //            IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 //
 //            try
 //            {
-//                // TODO: luciano -> AttributeOptionComboCheck
+//                // TODO: luciano -> AttributeOptionComboCheck (OK)
 //                aoc = getAttributeOptionCombo( program.getCategoryCombo(), event.getAttributeCategoryOptions(),
 //                    event.getAttributeOptionCombo(), idScheme );
 //            }
@@ -1713,7 +1692,7 @@ public abstract class AbstractEventService_Comments
 //        {
 //            aoc = (CategoryOptionCombo) getDefaultObject( CategoryOptionCombo.class );
 //        }
-//        FIXME: luciano to-rule -> AttributeOptionComboCheck
+//        FIXME: luciano to-rule -> AttributeOptionComboCheck (OK)
 //        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
 //        {
 //            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has non-default category combo" ) );
@@ -1721,7 +1700,7 @@ public abstract class AbstractEventService_Comments
 //            return importSummary.incrementIgnored();
 //        }
 
-        CategoryOptionCombo aoc = null; // TODO just here for compilation...
+        CategoryOptionCombo aoc = null;
 
         Date eventDate = executionDate != null ? executionDate : dueDate;
 
@@ -1729,7 +1708,7 @@ public abstract class AbstractEventService_Comments
         // FIXME: luciano to-rule -> AttributeOptionComboDateCheck
         //validateAttributeOptionComboDate( aoc, eventDate );
 
-        // FIXME: luciano to-rule -> AttributeOptionComboAclCheck
+        // FIXME: luciano to-rule -> AttributeOptionComboAclCheck (OK)
         errors = trackerAccessManager.canWrite( user, aoc );
         // TODO end access control block
 
@@ -1744,7 +1723,7 @@ public abstract class AbstractEventService_Comments
 
         if ( !dryRun )
         {
-            // TODO why are we checking if PSI is null -> shouldn't be always NOT NULL at this point?
+            // TODO why are we checking if PSI is null -> shouldn't be always NOT NULL at this point? (OK)
             if ( programStageInstance == null )
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
