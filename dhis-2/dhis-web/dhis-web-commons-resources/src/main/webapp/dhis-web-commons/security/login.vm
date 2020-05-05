@@ -50,7 +50,7 @@
             <div id="bannerArea">
             <a href="http://www.dhis2.org"><img src="../../api/staticContent/logo_front" style="border:none"></a>
             </div>
-            
+
             <form id="loginForm" action="../../dhis-web-commons-security/login.action" method="post">
                 <div>
                 	<div id="signInLabel">Sign in</div>
@@ -70,23 +70,19 @@
                 </div>
                 #end
                 #if( $keyConfig.selfRegistrationAllowed() )
-                <div style="padding-bottom: 10px">                	
+                <div style="padding-bottom: 10px">
                 	<a id="createAccountLink" href="account.action">Create an account</a>
                 </div>
                 #end
             </form>
-            #if( $keyOpenIdProvider )
-              <form id="openIdLoginForm" action="../../dhis-web-commons-security/openid.action" method="post">
-                  <input name="openid_identifier" type="hidden" value="$keyOpenIdProvider"/>
+##            #if( $keyOpenIdProvider )
+              <form id="openIdLoginForm" action="../../oauth2/authorization/idporten" method="get">
+##                  <input name="openid_identifier" type="hidden" value="$keyOpenIdProvider"/>
                   <div id="submitDiv">
-                    #if( $keyOpenIdProviderLabel )
-                  	<input style="width: 269px;" id="submit" class="button" type="submit" value="$keyOpenIdProviderLabel">
-                    #else
-                    <input style="width: 269px;" id="submit" class="button" type="submit" value="Sign in with OpenID">
-                    #end
+                    <input style="width: 269px;" id="submit" class="button" type="submit" value="Logg inn med ID-porten">
                   </div>
               </form>
-            #end
+##            #end
             #if( $failed == true )
             <div id="loginMessage">
                 $!{request.getSession().getAttribute("LOGIN_FAILED_MESSAGE")}

@@ -43,8 +43,7 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Http401LoginUrlAuthenticationEntryPoint
-    extends LoginUrlAuthenticationEntryPoint
+public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint
 {
     @Autowired
     private RenderService renderService;
@@ -55,9 +54,7 @@ public class Http401LoginUrlAuthenticationEntryPoint
     }
 
     @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response,
-        AuthenticationException authException )
-        throws IOException, ServletException
+    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException, ServletException
     {
         if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) )
         {

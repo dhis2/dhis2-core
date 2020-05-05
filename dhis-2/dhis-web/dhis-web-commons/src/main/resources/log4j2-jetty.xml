@@ -3,29 +3,19 @@
     <Appenders>
 
         <Console name="console" target="SYSTEM_OUT">
-<!--            <PatternLayout   pattern="[%-5level] %m (%F [%t])%n" disableAnsi="false" />-->
-            <PatternLayout   pattern="[%-5level] %m (%style{%-40.40C{1.}}{cyan} [%t])%n" disableAnsi="false" />
+            <PatternLayout  pattern="* %-5p %d{ISO8601} %m (%F [%t])%n" />
         </Console>
-
-<!--        <Console name="console" target="SYSTEM_OUT" follow="true">-->
-<!--            <PatternLayout pattern="%d{HH:mm:ss.SSS} %highlight{${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=green bold, TRACE=blue} [%15.15t] %style{%-40.40C{1.}}{cyan} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>-->
-<!--        </Console>-->
-
     </Appenders>
     <Loggers>
-<!--        <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>-->
-<!--        <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="true"/>-->
-<!--        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="true"/>-->
-<!--        <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="true"/>-->
-<!--        <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="true"/>-->
-<!--        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="true"/>-->
-<!--        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>-->
+        <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
+        <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="true"/>
+        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="true"/>
+        <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="true"/>
+        <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="true"/>
+        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="true"/>
+        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
 
-        <Logger name="org.apache.qpid" level="ERROR" additivity="true"/>
-        <Logger name="org.apache.activemq" level="ERROR" additivity="true"/>
-        <Logger name="org.hibernate" level="ERROR" additivity="true"/>
-
-        <Root level="DEBUG">
+        <Root level="WARN">
             <AppenderRef ref="console"/>
         </Root>
     </Loggers>

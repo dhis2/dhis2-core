@@ -28,6 +28,7 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -44,6 +45,7 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public class CustomExceptionMappingAuthenticationFailureHandler
     extends ExceptionMappingAuthenticationFailureHandler
 {
@@ -53,6 +55,8 @@ public class CustomExceptionMappingAuthenticationFailureHandler
     @Override
     public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
     {
+        log.warn( "onAuthenticationFailure message:" + exception.getMessage() );
+
         final String username = request.getParameter( "j_username" );
 
         request.getSession().setAttribute( "username", username );

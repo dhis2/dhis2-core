@@ -12,6 +12,10 @@
     <param name="encryptor">aes128StringEncryptor</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType" name="Aes128EncryptedStringFixedSalt">
+    <param name="encryptor">aes128StringEncryptorFixedSalt</param>
+  </typedef>
+
   <!-- Jsonb type -->
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObject">

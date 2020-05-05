@@ -107,7 +107,10 @@ public enum ConfigurationKey
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "off" ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
-    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
+    OIDC_PROVIDER_CLIENT_ID( "oidc.provider.client.id", "", true ),
+    OIDC_PROVIDER_CLIENT_SECRET( "oidc.provider.client.secret", "", true ),
+    OIDC_PROVIDER_REDIR_BASE_URL( "oidc.provider.redir.baseurl", "", true );
 
     private final String key;
 

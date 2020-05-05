@@ -544,6 +544,19 @@ public class UserCredentials
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0)
+    @Property( access = Access.WRITE_ONLY )
+    public String getOpenId()
+    {
+        return openId;
+    }
+
+    public void setOpenId( String openId )
+    {
+        this.openId = openId;
+    }
+
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isTwoFA()
     {
@@ -677,17 +690,6 @@ public class UserCredentials
         this.username = username;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOpenId()
-    {
-        return openId;
-    }
-
-    public void setOpenId( String openId )
-    {
-        this.openId = openId;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

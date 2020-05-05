@@ -36,11 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
@@ -55,7 +53,6 @@ import java.util.Map;
 public class DhisOidcUserService
     extends OidcUserService
 {
-
     @Autowired
     public UserService userService;
 
@@ -64,46 +61,25 @@ public class DhisOidcUserService
         throws OAuth2AuthenticationException
     {
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
-        ClientRegistration.ProviderDetails providerDetails = clientRegistration.getProviderDetails();
-        Map<String, Object> configurationMetadata = providerDetails.getConfigurationMetadata();
 
         OidcUser oidcUser = super.loadUser( userRequest );
-
-        log.warn( "Got OidcUser:" + oidcUser.toString() );
-
-        OAuth2AccessToken accessToken = userRequest.getAccessToken();
-        log.warn( "Got accessToken:" + accessToken );
-
         OidcUserInfo userInfo = oidcUser.getUserInfo();
-        log.warn( "Got userInfo:" + userInfo );
-
-        OidcIdToken idToken = oidcUser.getIdToken();
-        log.warn( "Got idToken:" + userInfo );
 
         Map<String, Object> attributes = oidcUser.getAttributes();
-
-        log.warn( "oidcUser.getAttributes(): {}", attributes );
 
         attributes.forEach( ( key, value )
             -> log.warn( String.format( "oidcUser.getAttributes() Key: %s Value: %s", key, value ) )
         );
 
-        log.warn( "clientRegistration.getRegistrationId():" + clientRegistration.getRegistrationId() );
-
-        String oidcMappingId = null;
-        if ( clientRegistration.getRegistrationId().equals( "google" ) )
-        {
-            oidcMappingId = (String) attributes.get( "email" );
-        }
-
+        String oidcLink = null;
         if ( clientRegistration.getRegistrationId().equals( "idporten" ) )
         {
-            oidcMappingId = (String) attributes.get( "pid" );
+            oidcLink = userInfo.getClaim( "pid" );
         }
 
-        log.warn( "Trying to look up DHIS2 user with mapping id, oidcMappingId:" + oidcMappingId );
+        log.warn( "Trying to look up DHIS2 user with mapping id, oidcLink:" + oidcLink );
 
-        UserCredentials userCredentials = userService.getUserCredentialsByOpenId( oidcMappingId );
+        UserCredentials userCredentials = userService.getUserCredentialsByOpenId( oidcLink );
         if ( userCredentials != null )
         {
             return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );

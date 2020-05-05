@@ -34,6 +34,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.jasypt.iv.StringFixedIvGenerator;
 import org.jasypt.salt.RandomSaltGenerator;
 import org.jasypt.salt.StringFixedSaltGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,11 +88,27 @@ public class EncryptionConfig
         return encryptor;
     }
 
+    @Bean( "aes128StringEncryptorFixedSalt" )
+    public PooledPBEStringEncryptor aes128StringEncryptorFixedSalt()
+    {
+        String fixedSalt = (String) getConnectionProperty( "encryption.pepper", "H7g0oLkEw3wf52fs52g3hbGH7g0oLkEw3wf52fs52g3hbG" );
+
+        PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+        encryptor.setAlgorithm( "PBEWITHSHA256AND128BITAES-CBC-BC" );
+        encryptor.setPassword( password );
+        encryptor.setPoolSize( 4 );
+        encryptor.setSaltGenerator( new StringFixedSaltGenerator(fixedSalt) );
+
+        return encryptor;
+    }
+
     @Bean( "hibernateEncryptors" )
     public HibernateEncryptorRegistry hibernateEncryptors()
     {
         HibernateEncryptorRegistry registry = HibernateEncryptorRegistry.getInstance();
-        registry.setEncryptors( ImmutableMap.of( "aes128StringEncryptor", aes128StringEncryptor() ) );
+        registry.setEncryptors( ImmutableMap.of(
+            "aes128StringEncryptor", aes128StringEncryptor(),
+            "aes128StringEncryptorFixedSalt", aes128StringEncryptorFixedSalt() ) );
         return registry;
     }
 

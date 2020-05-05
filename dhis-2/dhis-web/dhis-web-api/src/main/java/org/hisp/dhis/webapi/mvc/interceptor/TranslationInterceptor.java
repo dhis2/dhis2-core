@@ -59,7 +59,6 @@ public class TranslationInterceptor extends HandlerInterceptorAdapter
     @Override
     public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler ) throws Exception
     {
-        //TODO: Di this need to be checked on API resources?
         boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
         String locale = request.getParameter( PARAM_LOCALE );
 

@@ -64,6 +64,7 @@
         <enabled>false</enabled>
       </releases>
       <snapshots>
+        <updatePolicy>always</updatePolicy>
         <enabled>true</enabled>
       </snapshots>
     </repository>
@@ -712,7 +713,6 @@
         <artifactId>spring-webmvc-velocity</artifactId>
         <version>${spring-webmvc-velocity.version}</version>
       </dependency>
-
       <!--Spring Security -->
       <dependency>
         <groupId>org.springframework.security</groupId>
@@ -737,8 +737,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-
-
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-web</artifactId>
@@ -754,55 +752,21 @@
         <artifactId>spring-security-config</artifactId>
         <version>${spring-security.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-client</artifactId>
         <version>${spring-security.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-jose</artifactId>
         <version>${spring-security.version}</version>
       </dependency>
-
-      <!--      <dependency>-->
-<!--        <groupId>org.springframework.security</groupId>-->
-<!--        <artifactId>spring-security-openid</artifactId>-->
-<!--        <version>${spring-security.version}</version>-->
-<!--        <exclusions>-->
-<!--          <exclusion>-->
-<!--            <groupId>com.google.inject</groupId>-->
-<!--            <artifactId>guice</artifactId>-->
-<!--          </exclusion>-->
-<!--        </exclusions>-->
-<!--      </dependency>-->
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-ldap</artifactId>
         <version>${spring-security.version}</version>
       </dependency>
-
-      <!-- OIDC -->
-<!--      <dependency>-->
-<!--        <groupId>org.springframework.security</groupId>-->
-<!--        <artifactId>spring-security-jwt</artifactId>-->
-<!--        <version>${spring-security-jwt.version}</version>-->
-<!--      </dependency>-->
-<!--      <dependency>-->
-<!--        <groupId>com.auth0</groupId>-->
-<!--        <artifactId>jwks-rsa</artifactId>-->
-<!--        <version>${jwks-rsa.version}</version>-->
-<!--      </dependency>-->
-
-      <!-- OAuth 2.0 -->
-<!--      <dependency>-->
-<!--        <groupId>org.springframework.security.oauth</groupId>-->
-<!--        <artifactId>spring-security-oauth2</artifactId>-->
-<!--        <version>${spring-security-oauth2.version}</version>-->
-<!--      </dependency>-->
-
       <dependency>
         <groupId>com.google.api-client</groupId>
         <artifactId>google-api-client</artifactId>
@@ -1449,14 +1413,6 @@
         <artifactId>netty-all</artifactId>
         <version>${netty-all.version}</version>
       </dependency>
-      <!-- https://mvnrepository.com/artifact/io.netty/netty-transport-native-epoll -->
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-transport-native-epoll</artifactId>
-        <version>${netty-all.version}</version>
-      </dependency>
-
-
       <dependency>
         <groupId>org.apache.qpid</groupId>
         <artifactId>qpid-jms-client</artifactId>
@@ -1536,18 +1492,6 @@
         <artifactId>jsmpp</artifactId>
         <version>${jsmpp.version}</version>
       </dependency>
-
-<!--      <dependency>-->
-<!--        <groupId>org.openid4java</groupId>-->
-<!--        <artifactId>openid4java</artifactId>-->
-<!--        <version>1.0.0</version>-->
-<!--        <exclusions>-->
-<!--          <exclusion>-->
-<!--            <groupId>com.google.inject</groupId>-->
-<!--            <artifactId>guice</artifactId>-->
-<!--          </exclusion>-->
-<!--        </exclusions>-->
-<!--      </dependency>-->
       <dependency>
         <groupId>org.jboss.logging</groupId>
         <artifactId>jboss-logging</artifactId>
@@ -1661,7 +1605,6 @@
 
     <spring.version>5.2.5.RELEASE</spring.version>
     <spring-security.version>5.3.1.RELEASE</spring-security.version>
-    <!--    <spring-security-oauth2.version>2.4.1.RELEASE</spring-security-oauth2.version>-->
     <jwks-rsa.version>0.3.0</jwks-rsa.version>
     <spring-security-jwt.version>1.1.0.RELEASE</spring-security-jwt.version>
     <spring-session-data-redis.version>2.2.0.RELEASE</spring-session-data-redis.version>
