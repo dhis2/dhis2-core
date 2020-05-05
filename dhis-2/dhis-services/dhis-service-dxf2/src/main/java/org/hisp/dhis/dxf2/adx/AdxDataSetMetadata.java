@@ -33,6 +33,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.dxf2.common.XMLChar;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,8 +83,7 @@ public class AdxDataSetMetadata
             {
                 String categoryCode = category.getCode();
 
-                //TODO: || !XMLChar.isValidName( categoryCode )
-                if ( categoryCode == null)
+                if ( categoryCode == null || !XMLChar.isValidName( categoryCode ))
                 {
                     throw new AdxException(
                         "Category code for " + category.getName() + " is missing or invalid: " + categoryCode );

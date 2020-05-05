@@ -28,20 +28,7 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedOutputStream;
-import java.util.*;
-import java.util.concurrent.*;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
@@ -62,6 +49,7 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.common.XMLChar;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -83,7 +71,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedOutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 /**
  * @author bobj
@@ -514,8 +524,7 @@ public class DefaultAdxDataService
         {
             String categoryCode = category.getCode();
 
-            //TODO: || !XMLChar.isValidName( categoryCode )
-            if ( categoryCode == null  )
+            if ( categoryCode == null || !XMLChar.isValidName( categoryCode ) )
             {
                 throw new AdxException(
                     "Category code for " + category.getName() + " is missing or invalid: " + categoryCode );
