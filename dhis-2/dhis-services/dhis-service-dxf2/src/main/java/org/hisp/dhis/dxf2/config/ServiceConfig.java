@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.preprocess.AssignUidPreProcessor;
+import org.hisp.dhis.dxf2.events.event.preprocess.EventGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.ImportOptionsPreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
@@ -226,14 +227,16 @@ public class ServiceConfig
             ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
     }
 
-    private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists
-        .newArrayList(
+    private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists.newArrayList(
+    // @formatter:off        
             AssignUidPreProcessor.class,
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
             ProgramInstancePreProcessor.class,
-            ProgramStagePreProcessor.class
+            ProgramStagePreProcessor.class,
+            EventGeometryPreProcessor.class     
         );
+        // @formatter:on
 
     @Bean( "eventPreProcessorsMap" )
     public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()
