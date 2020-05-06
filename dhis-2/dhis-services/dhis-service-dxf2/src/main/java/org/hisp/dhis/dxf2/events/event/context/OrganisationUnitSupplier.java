@@ -77,7 +77,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         }
         // @formatter:on
 
-        final String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.path, ou.hierarchylevel from organisationunit ou where ou.uid in (:ids)";
+        final String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel from organisationunit ou where ou.uid in (:ids)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", orgUnitUids );
@@ -91,6 +91,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
                 ou.setId( rs.getLong( "organisationunitid" ) );
                 ou.setUid( rs.getString( "uid" ) );
                 ou.setCode( rs.getString( "code" ) );
+                ou.setName( rs.getString( "name" ) );
                 String path = rs.getString( "path" );
                 ou.setPath( path );
                 ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );

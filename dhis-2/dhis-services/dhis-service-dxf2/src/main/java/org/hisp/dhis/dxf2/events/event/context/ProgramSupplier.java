@@ -98,7 +98,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 return loadUserGroups( userGroupId );
             }
         } ).build() ;
-    
+
     // @formatter:on
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate )
@@ -125,20 +125,25 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
             for ( Program program : programMap.values() )
             {
-                program.setOrganisationUnits( ouMap.getOrDefault( program.getId() , new HashSet<>() ));
+                program.setOrganisationUnits( ouMap.getOrDefault( program.getId(), new HashSet<>() ) );
                 program.setUserAccesses( programUserAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-                program.setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
+                program
+                    .setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
                 TrackedEntityType trackedEntityType = program.getTrackedEntityType();
                 if ( trackedEntityType != null )
                 {
-                    trackedEntityType.setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-                    trackedEntityType.setUserGroupAccesses( tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
+                    trackedEntityType
+                        .setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
+                    trackedEntityType.setUserGroupAccesses(
+                        tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
                 }
-                
+
                 for ( ProgramStage programStage : program.getProgramStages() )
                 {
-                    programStage.setUserAccesses( programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-                    programStage.setUserGroupAccesses( programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+                    programStage.setUserAccesses(
+                        programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+                    programStage.setUserGroupAccesses(
+                        programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
                 }
             }
 
@@ -149,7 +154,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<OrganisationUnit>> loadOrgUnits()
     {
-        final String sql = "select p.programid, o.uid, o.organisationunitid from program_organisationunits p join organisationunit o on p.organisationunitid = o.organisationunitid order by programid";
+        final String sql = "select p.programid, ou.organisationunitid, ou.uid, ou.code, ou.name "
+            + "from program_organisationunits p "
+            + "join organisationunit ou on p.organisationunitid = ou.organisationunitid " + "order by programid";
+
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<Long, Set<OrganisationUnit>> results = new HashMap<>();
             long programId = 0;
@@ -212,7 +220,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             return results;
         } );
     }
-    
+
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForPrograms()
     {
         return fetchUserGroupAccess( replaceAclQuery( USER_GROUP_ACCESS_SQL, "programusergroupaccesses", "programid" ),
@@ -221,7 +229,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForProgramStages()
     {
-        // TODO: can't use replace because the table programstageusergroupaccesses should use 'programstageid' as column name
+        // TODO: can't use replace because the table programstageusergroupaccesses
+        // should use 'programstageid' as column name
         final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
             + "from programstageusergroupaccesses psuga "
             + "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid "
@@ -236,7 +245,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             replaceAclQuery( USER_GROUP_ACCESS_SQL, "trackedentitytypeusergroupaccesses", "trackedentitytypeid" ),
             "trackedentitytypeid" );
     }
-    
+
     private Map<Long, Set<UserGroupAccess>> fetchUserGroupAccess( String sql, String column )
     {
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
@@ -263,15 +272,15 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<String, Program> loadPrograms()
     {
-        final String sql = "select p.programid, p.publicaccess, p.uid, p.name, p.type, tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, " +
-                "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable " +
-                "            from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid " +
-                "                    LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid " +
-                "                    LEFT JOIN programstage ps on p.programid = ps.programid " +
-                "                    LEFT JOIN program_organisationunits pou on p.programid = pou.programid " +
-                "                    LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid " +
-                "            group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order " +
-                "            order by p.programid, ps.sort_order";
+        final String sql = "select p.programid, p.uid, p.code, p.name, p.publicaccess, p.type, tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, "
+            + "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable "
+            + "            from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
+            + "                    LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
+            + "                    LEFT JOIN programstage ps on p.programid = ps.programid "
+            + "                    LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
+            + "                    LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
+            + "            group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
+            + "            order by p.programid, ps.sort_order";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();
@@ -282,9 +291,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 {
                     Set<ProgramStage> programStages = new HashSet<>();
                     Program program = new Program();
+                    // identifiers
                     program.setId( rs.getLong( "programid" ) );
                     program.setUid( rs.getString( "uid" ) );
                     program.setName( rs.getString( "name" ) );
+                    program.setCode( rs.getString( "code" ) );
+
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
                     program.setPublicAccess( rs.getString( "publicaccess" ) );
 
@@ -297,7 +309,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     program.setCategoryCombo( categoryCombo );
 
                     long tetId = rs.getLong( "trackedentitytypeid" );
-                    if ( tetId != 0)
+                    if ( tetId != 0 )
                     {
                         TrackedEntityType trackedEntityType = new TrackedEntityType();
                         trackedEntityType.setId( tetId );
@@ -305,7 +317,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                         trackedEntityType.setPublicAccess( rs.getString( "tet_public_access" ) );
                         program.setTrackedEntityType( trackedEntityType );
                     }
-                    
+
                     program.setProgramStages( programStages );
                     results.put( rs.getString( "uid" ), program );
 
@@ -326,6 +338,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         ProgramStage programStage = new ProgramStage();
         programStage.setId( rs.getLong( "ps_id" ) );
         programStage.setUid( rs.getString( "ps_uid" ) );
+        programStage.setCode( rs.getString( "ps_code" ) );
+        programStage.setName( rs.getString( "ps_name" ) );
         programStage.setSortOrder( rs.getInt( "sort_order" ) );
         programStage.setPublicAccess( rs.getString( "ps_public_access" ) );
         programStage.setFeatureType(
@@ -340,6 +354,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     {
         OrganisationUnit ou = new OrganisationUnit();
         ou.setUid( rs.getString( "uid" ) );
+        ou.setId( rs.getLong( "organisationunitid" ) );
+        ou.setName( rs.getString( "name" ) );
+        ou.setCode( rs.getString( "code" ) );
         return ou;
     }
 
@@ -367,13 +384,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         userGroupAccess.setUserGroup( userGroup );
         userGroup.setUid( rs.getString( "uid" ) );
         // TODO This is not very efficient for large DHIS2 installations:
-        //  it would be better to run a direct query in the Access Layer
+        // it would be better to run a direct query in the Access Layer
         // to determine if the user belongs to the group
         userGroup.setMembers( userGroupCache.get( userGroup.getId() ) );
         return userGroupAccess;
     }
 
-    private Set<User> loadUserGroups( Long userGroupId)
+    private Set<User> loadUserGroups( Long userGroupId )
     {
         final String sql = "select ug.uid, ug.usergroupid, u.uid user_uid, u.userid user_id from usergroupmembers ugm "
             + "join usergroup ug on ugm.usergroupid = ug.usergroupid join users u on ugm.userid = u.userid where ug.usergroupid = "
@@ -396,7 +413,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         } );
     }
 
-    private String replaceAclQuery(String sql, String tableName, String column) {
+    private String replaceAclQuery( String sql, String tableName, String column )
+    {
         // @formatter:off
         StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
                 .put( "table_name", tableName)
