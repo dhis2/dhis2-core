@@ -287,12 +287,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             long programId = 0;
             while ( rs.next() )
             {
-                if ( programId != rs.getLong( "programid" ) )
+                if ( programId != rs.getLong( "id" ) )
                 {
                     Set<ProgramStage> programStages = new HashSet<>();
                     Program program = new Program();
                     // identifiers
-                    program.setId( rs.getLong( "programid" ) );
+                    program.setId( rs.getLong( "id" ) );
                     program.setUid( rs.getString( "uid" ) );
                     program.setName( rs.getString( "name" ) );
                     program.setCode( rs.getString( "code" ) );
