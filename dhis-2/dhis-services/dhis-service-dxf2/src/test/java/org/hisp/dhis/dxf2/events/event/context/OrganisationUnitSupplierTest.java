@@ -34,17 +34,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * @author Luciano Fiandesio
@@ -62,7 +61,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     @Test
     public void handleNullEvents()
     {
-        assertNotNull( subject.get( null ) );
+        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
     }
 
     public void verifySupplier()
@@ -83,7 +82,8 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, OrganisationUnit> map = subject.get( Collections.singletonList( event ) );
+        Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            Collections.singletonList( event ) );
 
         OrganisationUnit organisationUnit = map.get( event.getUid() );
         assertThat( organisationUnit, is( notNullValue() ) );

@@ -84,16 +84,16 @@ public class WorkContextLoader
         return WorkContext.builder()
         // @formatter:off
             .importOptions( importOptions )
-            .programsMap( programSupplier.get( events ) )
-            .organisationUnitMap( organisationUnitSupplier.get( events ) )
-            .trackedEntityInstanceMap( trackedEntityInstanceSupplier.get( events ) )
-            .programInstanceMap( programInstanceSupplier.get( events ) )
-            .programStageInstanceMap( programStageInstanceSupplier.get( events ) )
+            .programsMap( programSupplier.get( importOptions, events ) )
+            .organisationUnitMap( organisationUnitSupplier.get( importOptions, events ) )
+            .trackedEntityInstanceMap( trackedEntityInstanceSupplier.get( importOptions, events ) )
+            .programInstanceMap( programInstanceSupplier.get( importOptions, events ) )
+            .programStageInstanceMap( programStageInstanceSupplier.get( importOptions, events ) )
             .categoryOptionComboMap( categoryOptionComboSupplier.get( importOptions, events ) )
             .dataElementMap( dataElementSupplier.get( importOptions, events ) )
-            .notesMap( noteSupplier.get( events ) )
-            .assignedUserMap( assignedUserSupplier.get( events ) )
-            .serviceDelegator( serviceDelegatorSupplier.get() )    
+            .notesMap( noteSupplier.get( importOptions, events ) )
+            .assignedUserMap( assignedUserSupplier.get( importOptions, events ) )
+            .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
         // @formatter:on
     }

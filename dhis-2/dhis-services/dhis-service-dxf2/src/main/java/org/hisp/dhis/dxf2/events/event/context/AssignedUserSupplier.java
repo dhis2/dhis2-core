@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -54,7 +55,7 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
     }
 
     @Override
-    public Map<String, User> get( List<Event> events )
+    public Map<String, User> get( ImportOptions importOptions, List<Event> events )
     {
         // @formatter:off
         // Collect all the org unit uids to pass as SQL query argument
@@ -71,7 +72,7 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
 
         if ( !userUids.isEmpty() )
         {
-            final String sql = "select u.userid, u.uid, u.disabled from users u where u.uid in (:ids);";
+            final String sql = "select u.userid, u.uid, u.code from users u where u.uid in (:ids)";
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
             parameters.addValue( "ids", userUids );
@@ -84,6 +85,7 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
                     User user = new User();
                     user.setId( rs.getLong( "organisationunitid" ) );
                     user.setUid( rs.getString( "uid" ) );
+                    user.setCode( rs.getString( "code" ) );
 
                     results.put( userToEvent.get( user.getUid() ), user );
                 }

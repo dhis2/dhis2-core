@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -66,7 +67,7 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
     @Test
     public void handleNullEvents()
     {
-        assertNotNull( subject.get( null ) );
+        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
     }
 
     @Override
@@ -95,9 +96,12 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( "prabcde", program );
 
-        when( programSupplier.get( Collections.singletonList( event ) ) ).thenReturn( programMap );
+        final ImportOptions defaultImportOptions = ImportOptions.getDefaultImportOptions();
 
-        Map<String, ProgramInstance> map = subject.get( Collections.singletonList( event ) );
+        when( programSupplier.get( defaultImportOptions, Collections.singletonList( event ) ) )
+            .thenReturn( programMap );
+
+        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, Collections.singletonList( event ) );
 
         ProgramInstance programInstance = map.get( event.getUid() );
         assertThat( programInstance, is( notNullValue() ) );

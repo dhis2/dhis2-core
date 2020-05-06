@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -45,7 +46,8 @@ public class ProgramInstanceRepeatableStageCheck implements ValidationCheck
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+        IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+        ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
 
         /*

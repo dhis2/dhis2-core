@@ -30,11 +30,7 @@ package org.hisp.dhis.dxf2.events.event.context;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -43,6 +39,8 @@ import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -107,12 +105,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     @Override
-    public Map<String, Program> get( List<Event> eventList )
+    public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
         if ( programMap == null )
         {
-            programMap = loadPrograms();
+            programMap = loadPrograms( importOptions.getIdSchemes() );
 
             Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
             Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
@@ -270,17 +268,19 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         } );
     }
 
-    private Map<String, Program> loadPrograms()
+    private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
-        final String sql = "select p.programid, p.uid, p.code, p.name, p.publicaccess, p.type, tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, "
-            + "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable "
-            + "            from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
-            + "                    LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
-            + "                    LEFT JOIN programstage ps on p.programid = ps.programid "
-            + "                    LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
-            + "                    LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
-            + "            group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
-            + "            order by p.programid, ps.sort_order";
+        final String sql = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, p.type, "
+            + "tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  "
+            + "c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, c.code as catcombo_code, "
+            + "ps.programstageid as ps_id, ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable "
+            + "from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
+            + "     LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
+            + "     LEFT JOIN programstage ps on p.programid = ps.programid "
+            + "     LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
+            + "     LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
+            + "group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
+            + "order by p.programid, ps.sort_order";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();
@@ -306,6 +306,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     categoryCombo.setId( rs.getLong( "catcombo_id" ) );
                     categoryCombo.setUid( rs.getString( "catcombo_uid" ) );
                     categoryCombo.setName( rs.getString( "catcombo_name" ) );
+                    categoryCombo.setCode( rs.getString( "catcombo_code" ) );
                     program.setCategoryCombo( categoryCombo );
 
                     long tetId = rs.getLong( "trackedentitytypeid" );
@@ -319,13 +320,14 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     }
 
                     program.setProgramStages( programStages );
-                    results.put( rs.getString( "uid" ), program );
+                    results.put( IdSchemeUtils.getKey( idSchemes.getProgramIdScheme(), rs ), program );
 
                     programId = program.getId();
                 }
                 else
                 {
-                    results.get( rs.getString( "uid" ) ).getProgramStages().add( toProgramStage( rs ) );
+                    results.get( IdSchemeUtils.getKey( idSchemes.getProgramIdScheme(), rs ) ).getProgramStages()
+                        .add( toProgramStage( rs ) );
                 }
             }
             return results;

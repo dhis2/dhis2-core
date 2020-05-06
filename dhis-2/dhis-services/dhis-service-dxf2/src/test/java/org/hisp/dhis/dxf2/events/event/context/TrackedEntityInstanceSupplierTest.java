@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
@@ -60,7 +61,7 @@ public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<Trac
     @Test
     public void handleNullEvents()
     {
-        assertNotNull( subject.get( null ) );
+        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
     }
 
     @Override
@@ -80,7 +81,8 @@ public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<Trac
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, TrackedEntityInstance> map = subject.get( Collections.singletonList( event ) );
+        Map<String, TrackedEntityInstance> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            Collections.singletonList( event ) );
 
         TrackedEntityInstance trackedEntityInstance = map.get( event.getUid() );
         assertThat( trackedEntityInstance, is( notNullValue() ) );

@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -60,13 +61,13 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     }
 
     @Override
-    public Map<String, ProgramInstance> get( List<Event> events )
+    public Map<String, ProgramInstance> get( ImportOptions importOptions, List<Event> events )
     {
         if ( events == null )
         {
             return new HashMap<>();
         }
-        
+
         // @formatter:off
         // Collect all the program instance UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()
@@ -96,8 +97,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                     ProgramInstance pi = new ProgramInstance();
                     pi.setId( rs.getLong( "programinstanceid" ) );
                     pi.setUid( rs.getString( "uid" ) );
-                    pi.setProgram(
-                        getProgramById( rs.getLong( "programid" ), programSupplier.get( events ).values() ) );
+                    pi.setProgram( getProgramById( rs.getLong( "programid" ),
+                        programSupplier.get( importOptions, events ).values() ) );
                     TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
                     trackedEntityInstance.setUid( rs.getString( "tei_uid" ) );
                     OrganisationUnit organisationUnit = new OrganisationUnit();

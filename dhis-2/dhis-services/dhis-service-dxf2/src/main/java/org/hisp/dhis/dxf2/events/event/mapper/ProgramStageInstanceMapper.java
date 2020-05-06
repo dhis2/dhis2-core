@@ -44,11 +44,10 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceMapper
-    extends
-    AbstractMapper<Event, ProgramStageInstance>
+public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramStageInstance>
 {
     private final ProgramStageInstanceNoteMapper noteMapper;
+
     private final ProgramStageInstanceDataValueMapper dataValueMapper;
 
     public ProgramStageInstanceMapper( WorkContext ctx )
@@ -75,7 +74,8 @@ public class ProgramStageInstanceMapper
 
         // FKs
         psi.setProgramInstance( this.workContext.getProgramInstanceMap().get( event.getUid() ) );
-        psi.setProgramStage( this.workContext.getProgramStage( event.getProgramStage() ) );
+        psi.setProgramStage( this.workContext.getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(),
+            event.getProgramStage() ) );
         psi.setOrganisationUnit( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
 
         // EXECUTION + DUE DATE
@@ -138,7 +138,7 @@ public class ProgramStageInstanceMapper
 
         psi.setEventDataValues(
             event.getDataValues().stream().map( dataValueMapper::map ).collect( Collectors.toSet() ) );
-        
+
         return psi;
 
     }

@@ -28,8 +28,11 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 import java.util.List;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -39,22 +42,19 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
-
 /**
  * @author Luciano Fiandesio
  */
-public abstract class BaseEventAclCheck
-    implements
-    ValidationCheck
+public abstract class BaseEventAclCheck implements ValidationCheck
 {
 
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ImportOptions importOptions = ctx.getImportOptions();
+        IdScheme scheme = importOptions.getIdSchemes().getProgramStageIdScheme();
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( ctx.getProgramStage( event.getProgramStage() ));
+        programStageInstance.setProgramStage( ctx.getProgramStage( scheme, event.getProgramStage() ) );
         programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
         programStageInstance.setStatus( event.getStatus() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );

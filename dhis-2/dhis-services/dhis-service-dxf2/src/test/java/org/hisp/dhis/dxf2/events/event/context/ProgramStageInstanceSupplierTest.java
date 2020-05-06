@@ -36,14 +36,12 @@ import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +66,7 @@ public class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<Progr
     @Test
     public void handleNullEvents()
     {
-        assertNotNull( subject.get( null ) );
+        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
     }
 
     @Override
@@ -89,7 +87,8 @@ public class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<Progr
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, ProgramStageInstance> map = subject.get( Collections.singletonList( event ) );
+        Map<String, ProgramStageInstance> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            Collections.singletonList( event ) );
 
         ProgramStageInstance programStageInstance = map.get( "abcded" );
         assertThat( programStageInstance, is( notNullValue() ) );

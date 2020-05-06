@@ -38,16 +38,15 @@ import org.hisp.dhis.program.ProgramStage;
  *
  * @author Luciano Fiandesio
  */
-public class ProgramStagePreProcessor
-    implements
-    PreProcessor
+public class ProgramStagePreProcessor implements PreProcessor
 {
     @Override
     public void process( Event event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
 
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = ctx.getProgramStage(
+            ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() );
 
         if ( programStage == null && program.isWithoutRegistration() )
         {

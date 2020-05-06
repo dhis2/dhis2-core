@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
@@ -45,12 +46,15 @@ public class ProgramStageCheck implements ValidationCheck
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        // TODO luciano shouldn't we also check if program stage belongs to program? ->
-        // asked Morten, said probably yes!
+        IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+        // Get the program stage id from the event.
+        // If the event has no program stage set, use a dummy value which will not
+        // return any Program Stage
+        // from the WorkContext
         final String programStageId = StringUtils.isEmpty( event.getProgramStage() ) ? "-" : event.getProgramStage();
 
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        ProgramStage programStage = ctx.getProgramStage( programStageId );
+        ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, programStageId );
 
         if ( program.isRegistration() && programStage == null )
         {

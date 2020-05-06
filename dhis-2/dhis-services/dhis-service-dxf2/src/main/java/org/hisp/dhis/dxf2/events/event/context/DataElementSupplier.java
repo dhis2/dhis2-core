@@ -61,12 +61,6 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
     }
 
     @Override
-    public Map<String, DataElement> get( List<Event> events )
-    {
-        return null;
-    }
-
-    @Override
     public Map<String, DataElement> get( ImportOptions importOptions, List<Event> events )
     {
         Map<String, DataElement> dataElementsMap;

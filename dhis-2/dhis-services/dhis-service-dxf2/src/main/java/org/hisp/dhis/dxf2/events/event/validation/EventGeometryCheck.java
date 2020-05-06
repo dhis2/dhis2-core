@@ -32,7 +32,7 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import java.io.IOException;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -41,7 +41,6 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.GeoUtils;
 
-import com.vividsolutions.jts.geom.Point;
 
 /**
  * @author Luciano Fiandesio
@@ -51,7 +50,8 @@ public class EventGeometryCheck implements ValidationCheck
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        ProgramStage programStage = ctx.getProgramStage( event.getEnrollment() );
+        IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+        ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
 
         if ( event.getGeometry() != null )
         {
