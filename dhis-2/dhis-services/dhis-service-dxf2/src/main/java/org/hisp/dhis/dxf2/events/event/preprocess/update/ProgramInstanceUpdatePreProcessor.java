@@ -42,17 +42,15 @@ import java.util.Date;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
+import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.util.DateUtils;
 
-public class ProgramInstanceUpdatePreProcessor
-        implements
-        PreProcessor
+public class ProgramInstanceUpdatePreProcessor implements PreProcessor
 {
     @Override
     public void process( final Event event, final WorkContext ctx )
@@ -62,71 +60,75 @@ public class ProgramInstanceUpdatePreProcessor
         final OrganisationUnit organisationUnit = ctx.getOrganisationUnitMap().get( event.getUid() );
         final CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
 
-        Date dueDate = new Date();
-        if ( event.getDueDate() != null )
+        if ( programStageInstance != null )
         {
-            dueDate = parseDate( event.getDueDate() );
-        }
+            Date dueDate = new Date();
 
-        if ( event.getEventDate() != null )
-        {
-            programStageInstance.setExecutionDate( parseDate( event.getEventDate() ) );
-        }
-
-        if ( categoryOptionCombo != null )
-        {
-            programStageInstance.setAttributeOptionCombo( categoryOptionCombo );
-        }
-
-        final String storedBy = getValidUsername( event.getStoredBy(), null,
-                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
-
-        if ( event.getStatus() == ACTIVE )
-        {
-            programStageInstance.setStatus( ACTIVE );
-            programStageInstance.setCompletedBy( null );
-            programStageInstance.setCompletedDate( null );
-        }
-        else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == COMPLETED )
-        {
-            final String completedBy = getValidUsername( event.getCompletedBy(), null,
-                    importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
-
-            programStageInstance.setCompletedBy( completedBy );
-
-            Date completedDate = new Date();
-
-            if ( event.getCompletedDate() != null )
+            if ( event.getDueDate() != null )
             {
-                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+                dueDate = parseDate( event.getDueDate() );
             }
 
-            programStageInstance.setCompletedDate( completedDate );
-            programStageInstance.setStatus( COMPLETED );
-        }
-        else if ( event.getStatus() == SKIPPED )
-        {
-            programStageInstance.setStatus( SKIPPED );
-        }
-        else if ( event.getStatus() == SCHEDULE )
-        {
-            programStageInstance.setStatus( SCHEDULE );
-        }
+            if ( event.getEventDate() != null )
+            {
+                programStageInstance.setExecutionDate( parseDate( event.getEventDate() ) );
+            }
 
-        programStageInstance.setStoredBy( storedBy );
-        programStageInstance.setDueDate( dueDate );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setGeometry( event.getGeometry() );
+            if ( categoryOptionCombo != null )
+            {
+                programStageInstance.setAttributeOptionCombo( categoryOptionCombo );
+            }
 
-        if ( programStageInstance.getProgramStage() != null
+            final String storedBy = getValidUsername( event.getStoredBy(), null,
+                importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+
+            if ( event.getStatus() == ACTIVE )
+            {
+                programStageInstance.setStatus( ACTIVE );
+                programStageInstance.setCompletedBy( null );
+                programStageInstance.setCompletedDate( null );
+            }
+            else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == COMPLETED )
+            {
+                final String completedBy = getValidUsername( event.getCompletedBy(), null,
+                    importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
+
+                programStageInstance.setCompletedBy( completedBy );
+
+                Date completedDate = new Date();
+
+                if ( event.getCompletedDate() != null )
+                {
+                    completedDate = DateUtils.parseDate( event.getCompletedDate() );
+                }
+
+                programStageInstance.setCompletedDate( completedDate );
+                programStageInstance.setStatus( COMPLETED );
+            }
+            else if ( event.getStatus() == SKIPPED )
+            {
+                programStageInstance.setStatus( SKIPPED );
+            }
+            else if ( event.getStatus() == SCHEDULE )
+            {
+                programStageInstance.setStatus( SCHEDULE );
+            }
+
+            programStageInstance.setStoredBy( storedBy );
+            programStageInstance.setDueDate( dueDate );
+            programStageInstance.setOrganisationUnit( organisationUnit );
+            programStageInstance.setGeometry( event.getGeometry() );
+
+            if ( programStageInstance.getProgramStage() != null
                 && programStageInstance.getProgramStage().isEnableUserAssignment() )
-        {
-            programStageInstance.setAssignedUser( ctx.getAssignedUserMap().get( event.getUid() ) );
+            {
+                programStageInstance.setAssignedUser( ctx.getAssignedUserMap().get( event.getUid() ) );
+            }
         }
     }
 
     private String getValidUsername( final String userName, final ImportSummary importSummary,
-                                     final String fallbackUsername )
+        final String fallbackUsername )
     {
         String validUsername = userName;
 
@@ -140,7 +142,7 @@ public class ProgramInstanceUpdatePreProcessor
             {
                 // TODO: luciano this should be moved to the new logic
                 importSummary.getConflicts().add( new ImportConflict( "Username", validUsername + " is more than "
-                        + USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
+                    + USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
             }
 
             validUsername = getSafeUsername( fallbackUsername );
