@@ -193,12 +193,9 @@ public class EventManager
         final List<String> failedUids = importSummaries.getImportSummaries().stream().filter( i -> i.isStatus( ERROR ) )
             .map( ImportSummary::getReference ).collect( toList() );
 
-        // TODO: What if size is ZERO? Should we return error as well as nothing was
-        // actually imported?
-        // Currently it returns success.
+
         if ( failedUids.size() == validEvents.size() )
         {
-            // TODO: Ask Luciano if we could change this logic. It can cause issues of having success and error summary to the same event.
             return importSummaries;
         }
 
