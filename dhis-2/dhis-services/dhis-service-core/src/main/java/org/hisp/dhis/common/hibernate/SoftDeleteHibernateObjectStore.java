@@ -28,7 +28,6 @@
 
 package org.hisp.dhis.common.hibernate;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.SoftDeletableObject;
@@ -41,7 +40,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Enrico Colasante
  */
-@Slf4j
 public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
     extends HibernateIdentifiableObjectStore<T>
 {

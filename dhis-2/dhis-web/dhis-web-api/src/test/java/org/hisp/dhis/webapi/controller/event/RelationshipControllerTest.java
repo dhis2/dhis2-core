@@ -33,37 +33,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dashboard.DashboardItemType;
-import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.dxf2.metadata.MetadataImportService;
-import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -78,7 +55,6 @@ import org.springframework.web.util.NestedServletException;
  */
 public class RelationshipControllerTest
 {
-
     private MockMvc mockMvc;
 
     private static final String TEI_ID = "TEI_ID";
@@ -105,8 +81,6 @@ public class RelationshipControllerTest
 
     @Mock
     private ProgramStageInstanceService programStageInstanceService;
-
-    private WebMessageService webMessageService = new WebMessageService();
 
     @InjectMocks
     private RelationshipController relationshipController;
