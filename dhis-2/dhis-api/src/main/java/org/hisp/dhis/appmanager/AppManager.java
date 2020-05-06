@@ -28,8 +28,6 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-
 import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
 
