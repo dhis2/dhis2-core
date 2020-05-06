@@ -64,6 +64,7 @@
 
     <sec:oauth2-login authentication-failure-handler-ref="securityExceptionTranslationHandler"
                       authorized-client-repository-ref="authorizedClientRepository"
+                      authorization-request-resolver-ref="dhisOAuth2AuthorizationRequestResolver"
                       oidc-user-service-ref="dhisOidcUserService" />
 
     <sec:form-login default-target-url="/" always-use-default-target="false"
@@ -86,7 +87,7 @@
     <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint"
       authentication-details-source-ref="httpBasicWebAuthenticationDetailsSource"/>
 
-    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
+    <sec:logout logout-url="/dhis-web-commons-security/logout.action"  delete-cookies="JSESSIONID" success-handler-ref="oidcSLOLogoutSuccessHandler"/>
 
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />

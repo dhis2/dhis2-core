@@ -41,6 +41,7 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.HashMap;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_ID;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_SECRET;
@@ -65,7 +66,9 @@ public class DhisClientRegistrationRepository
         String secret = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_CLIENT_SECRET );
         String redirBaseUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_REDIR_BASE_URL );
 
-        //.redirectUriTemplate( "{baseUrl}/login/oauth2/code/{registrationId}" )
+        HashMap<String, Object> metaDataMap = new HashMap<>();
+        metaDataMap.put( "end_session_endpoint", "https://oidc-ver2.difi.no/idporten-oidc-provider/endsession" );
+
         ClientRegistration idporten = ClientRegistration.withRegistrationId( "idporten" )
             .clientId( id )
             .clientSecret( secret )
@@ -79,7 +82,8 @@ public class DhisClientRegistrationRepository
             .userNameAttributeName( IdTokenClaimNames.SUB )
             .userInfoAuthenticationMethod( AuthenticationMethod.HEADER )
             .jwkSetUri( "https://oidc-ver2.difi.no/idporten-oidc-provider/jwk" )
-            .clientName( "Google" )
+            .providerConfigurationMetadata( metaDataMap )
+            .clientName( "idporten" )
             .build();
 
         repository = new InMemoryClientRegistrationRepository( idporten );

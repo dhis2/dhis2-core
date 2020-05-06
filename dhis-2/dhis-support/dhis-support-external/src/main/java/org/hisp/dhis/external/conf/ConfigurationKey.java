@@ -110,7 +110,9 @@ public enum ConfigurationKey
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
     OIDC_PROVIDER_CLIENT_ID( "oidc.provider.client.id", "", true ),
     OIDC_PROVIDER_CLIENT_SECRET( "oidc.provider.client.secret", "", true ),
-    OIDC_PROVIDER_REDIR_BASE_URL( "oidc.provider.redir.baseurl", "", true );
+    OIDC_PROVIDER_REDIR_BASE_URL( "oidc.provider.redir.baseurl", "", true ),
+    OIDC_PROVIDER_LOGOUT_URI( "oidc.provider.logout.uri", "", true ),
+    OIDC_IDPORTEN_ACRVALUES( "oidc.idporten.acrvalues", "Level4", true );
 
     private final String key;
 
