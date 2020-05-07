@@ -279,18 +279,20 @@ public class DefaultPredictionService
             expressionService.getExpressionDimensionalItemObjects( skipTest.getExpression(), PREDICTOR_SKIP_TEST, sampleItems, new HashSet<>() );
         }
         Map<String, Constant> constantMap = constantService.getConstantMap();
-        Set<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
+        List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
-        Set<Period> existingSamplePeriods = getExistingPeriods( allSamplePeriods );
-        outputPeriods = new HashSet<>( periodService.reloadPeriods( new ArrayList<>( outputPeriods ) ) );
+        Set<Period> existingSamplePeriods = getExistingPeriods( new ArrayList<>( allSamplePeriods ) );
+        outputPeriods = periodService.reloadPeriods( outputPeriods );
+        Set<Period> outputPeriodSet = new HashSet<>( outputPeriods );
         CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         Set<String> defaultOptionComboAsSet = Sets.newHashSet( defaultCategoryOptionCombo.getUid() );
         CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ? defaultCategoryOptionCombo : predictor.getOutputCombo();
         CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
         Date now = new Date();
         boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP && ( !items.isEmpty() || !sampleItems.isEmpty() );
+        DimensionalItemObject predictionReference = getPredictionReference( outputDataElement, outputOptionCombo, sampleItems );
 
         Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
         String storedBy = "system-process";
@@ -329,7 +331,7 @@ public class DefaultPredictionService
                     new Map4<>() : getDataValues( sampleItems, allSamplePeriods, existingSamplePeriods, orgUnits );
 
                 Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> valueMap4 = items.isEmpty() ?
-                        new Map4<>() : getDataValues( items, outputPeriods, existingOutputPeriods, orgUnits );
+                        new Map4<>() : getDataValues( items, outputPeriodSet, existingOutputPeriods, orgUnits );
 
                 List<DataValue> predictions = new ArrayList<>();
 
@@ -379,6 +381,8 @@ public class DefaultPredictionService
                                     outputPeriod.getDaysInPeriod(), generator.getMissingValueStrategy(),
                                     samplePeriodsMap.get( outputPeriod ), periodValueMap ) );
 
+                            carryPredictionForward( value, outputPeriod, predictionReference, periodValueMap );
+
                             if ( value != null && !value.isNaN() && !value.isInfinite() &&
                                 !dataValueIsZeroAndInsignificant( Double.toString( value ), outputDataElement ) )
                             {
@@ -396,7 +400,7 @@ public class DefaultPredictionService
                 }
 
                 writePredictions( predictions, outputDataElement, outputOptionCombo,
-                    outputPeriods, existingOutputPeriods, orgUnits, storedBy, predictionSummary );
+                    outputPeriodSet, existingOutputPeriods, orgUnits, storedBy, predictionSummary );
             }
         }
     }
@@ -485,7 +489,7 @@ public class DefaultPredictionService
     /**
      * Returns all Periods of the specified PeriodType with start date after or
      * equal the specified start date and end date before or equal the specified
-     * end date.
+     * end date. Periods are returned in ascending date order.
      *
      * The periods returned do not need to be in the database.
      *
@@ -496,9 +500,9 @@ public class DefaultPredictionService
      *         specified start date and end date before or equal the specified
      *         end date, or an empty list if no Periods match.
      */
-    private Set<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
+    private List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
-        Set<Period> periods = new HashSet<>();
+        List<Period> periods = new ArrayList<>();
 
         Period period = periodType.createPeriod( startDate );
 
@@ -526,7 +530,7 @@ public class DefaultPredictionService
      * @param predictor the predictor
      * @return map from output periods to sample periods
      */
-    private ListMap<Period, Period> getSamplePeriodsMap( Set<Period> outputPeriods, Predictor predictor)
+    private ListMap<Period, Period> getSamplePeriodsMap( List<Period> outputPeriods, Predictor predictor)
     {
         int sequentialCount = predictor.getSequentialSampleCount();
         int annualCount = predictor.getAnnualSampleCount();
@@ -579,7 +583,7 @@ public class DefaultPredictionService
      * @param periods the periods to look for
      * @return the set of periods that exist, with ids.
      */
-    private Set<Period> getExistingPeriods( Set<Period> periods )
+    private Set<Period> getExistingPeriods( List<Period> periods )
     {
         Set<Period> existingPeriods = new HashSet<>();
 
@@ -594,6 +598,62 @@ public class DefaultPredictionService
             }
         }
         return existingPeriods;
+    }
+
+    /**
+     * Checks to see if the output predicted value should be used as input
+     * to subsequent (later period) predictions. If so, returns the
+     * DimensionalItemObject that should be updated with the predicted value.
+     *
+     * Note that we make the simplifying assumption that if the output data
+     * element is sampled in an expression without a catOptionCombo, the
+     * predicted data value will be used. This is usually what the user
+     * wants, but would break if the expression assumes a sum of
+     * catOptionCombos including the predicted value and other catOptionCombos.
+     *
+     * @param outputDataElement the data element to output predicted value to.
+     * @param outputOptionCombo the option combo to output predicted value to.
+     * @param sampleItems the sample items used in future predictions.
+     * @return the DimensionalItemObject, if any, for the predicted value.
+     */
+    private DimensionalItemObject getPredictionReference( DataElement outputDataElement,
+        CategoryOptionCombo outputOptionCombo, Set<DimensionalItemObject> sampleItems )
+    {
+        for ( DimensionalItemObject item : sampleItems )
+        {
+            if ( item == outputDataElement )
+            {
+                return item;
+            }
+
+            if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND
+                && ( (DataElementOperand) item ).getDataElement() == outputDataElement
+                && ( (DataElementOperand) item ).getCategoryOptionCombo() == outputOptionCombo )
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * If the predicted value might be used in a future period prediction,
+     * insert it into the period value map.
+     *
+     * @param value the predicted value.
+     * @param outputPeriod the period the value is predicted for.
+     * @param predictionReference the item for the prediction, if any.
+     * @param periodValueMap the period value map.
+     */
+    private void carryPredictionForward( Double value, Period outputPeriod,
+        DimensionalItemObject predictionReference,
+        MapMap<Period, DimensionalItemObject, Double> periodValueMap )
+    {
+        if ( value != null && predictionReference != null )
+        {
+            periodValueMap.putEntry( outputPeriod, predictionReference, value );
+        }
     }
 
     /**

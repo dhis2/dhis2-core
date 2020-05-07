@@ -1351,6 +1351,12 @@
         <groupId>com.sun.xml.ws</groupId>
         <artifactId>jaxws-ri</artifactId>
         <version>2.3.2</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
+          </exclusion>
+        </exclusions>
         <type>pom</type>
       </dependency>
 

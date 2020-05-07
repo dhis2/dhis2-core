@@ -240,7 +240,7 @@ public class DefaultDataQueryService
         return list;
     }
 
-    // TODO optimize so that org unit levels + boundary are used in query instead of fetching all org units one by one
+    // TODO Optimize so that org unit levels + boundary are used in query instead of fetching all org units one by one
 
     @Override
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,

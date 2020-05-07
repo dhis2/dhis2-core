@@ -32,15 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
