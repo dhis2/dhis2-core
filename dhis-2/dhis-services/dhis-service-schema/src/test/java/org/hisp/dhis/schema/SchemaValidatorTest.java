@@ -88,7 +88,7 @@ public class SchemaValidatorTest
         assertTrue( errorReports.isEmpty() );
     }
 
-    public class TestCollectionSize
+    public static class TestCollectionSize
     {
         private List<String> items = new ArrayList<>();
 
