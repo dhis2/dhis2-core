@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.AssignUidPreProcessor;
 import org.junit.Test;
 
 /**

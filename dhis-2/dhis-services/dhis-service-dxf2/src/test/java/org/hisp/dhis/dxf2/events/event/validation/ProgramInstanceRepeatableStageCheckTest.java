@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepeatableStageCheck;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;

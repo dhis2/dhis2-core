@@ -93,10 +93,10 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.dxf2.events.event.context.WorkContextLoader;
-import org.hisp.dhis.dxf2.events.event.importer.EventImporter;
-import org.hisp.dhis.dxf2.events.event.importer.EventManager;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
+import org.hisp.dhis.dxf2.events.importer.EventImporter;
+import org.hisp.dhis.dxf2.events.importer.EventManager;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -304,7 +304,6 @@ public abstract class AbstractEventService
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         final WorkContext workContext = workContextLoader.load( importOptions, events );
-        final ImportSummaries importSummaries = eventManager.addEvents( events, workContext );
         return eventManager.addEvents( events, workContext );
     }
 

@@ -7,7 +7,8 @@ import java.io.IOException;
 
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.junit.Before;
 import org.junit.Test;

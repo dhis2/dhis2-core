@@ -32,7 +32,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**

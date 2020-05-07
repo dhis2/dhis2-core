@@ -34,19 +34,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.dxf2.events.event.preprocess.AssignUidPreProcessor;
-import org.hisp.dhis.dxf2.events.event.preprocess.EventGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.event.preprocess.EventStoredByPreProcessor;
-import org.hisp.dhis.dxf2.events.event.preprocess.ImportOptionsPreProcessor;
-import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
-import org.hisp.dhis.dxf2.events.event.preprocess.ProgramInstancePreProcessor;
-import org.hisp.dhis.dxf2.events.event.preprocess.ProgramStagePreProcessor;
-import org.hisp.dhis.dxf2.events.event.preprocess.update.ProgramInstanceUpdatePreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.*;
-import org.hisp.dhis.dxf2.events.event.validation.update.EventBasicCheck;
-import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAclCheck;
-import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAuthCheck;
-import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceBasicCheck;
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.AssignUidPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventStoredByPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ImportOptionsPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboDateCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.EventBaseCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.EventCreationAclCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.EventDateCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.EventGeometryCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.OrgUnitCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepeatableStageCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceUpdatePreProcessor;
+import org.hisp.dhis.dxf2.events.importer.update.validation.EventBasicCheck;
+import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
+import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
+import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
@@ -188,7 +202,7 @@ public class ServiceConfig
      *
      */
 
-    private final static List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>> CREATE_EVENTS_CHECKS = Lists
+    private final static List<Class<? extends Checker>> CREATE_EVENTS_CHECKS = Lists
         .newArrayList(
         // @formatter:off
             EventDateCheck.class,
@@ -209,13 +223,13 @@ public class ServiceConfig
         // @formatter:on
 
     @Bean( "eventValidatorMap" )
-    public Map<ImportStrategy, List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>>> eventValidatorMap()
+    public Map<ImportStrategy, List<Class<? extends Checker>>> eventValidatorMap()
     {
         return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_CHECKS, ImportStrategy.CREATE_AND_UPDATE,
             CREATE_EVENTS_CHECKS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
     }
 
-    private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists.newArrayList(
+    private final static List<Class<? extends Processor>> CREATE_EVENTS_PREPROCESS = Lists.newArrayList(
     // @formatter:off
             AssignUidPreProcessor.class,
             ImportOptionsPreProcessor.class,
@@ -227,7 +241,7 @@ public class ServiceConfig
         // @formatter:on
 
     @Bean( "eventPreProcessorsMap" )
-    public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap()
     {
         return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS, ImportStrategy.CREATE_AND_UPDATE,
             CREATE_EVENTS_PREPROCESS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
@@ -236,7 +250,7 @@ public class ServiceConfig
     /**
      * Default validation chains for Tracker Import (update) events process.
      */
-    private final static List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>> UPDATE_EVENTS_CHECKS = Lists
+    private final static List<Class<? extends Checker>> UPDATE_EVENTS_CHECKS = Lists
         .newArrayList(
         // @formatter:off
             EventBasicCheck.class,
@@ -253,16 +267,16 @@ public class ServiceConfig
     // TODO: Ask what's the difference between the values in the Enum
     // ImportStrategy?
     @Bean
-    public Map<ImportStrategy, List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>>> eventUpdateValidatorMap()
+    public Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap()
     {
         return ImmutableMap.of( UPDATE, UPDATE_EVENTS_CHECKS );
     }
 
-    private final static List<Class<? extends PreProcessor>> UPDATE_EVENTS_PREPROCESSORS = Lists
+    private final static List<Class<? extends Processor>> UPDATE_EVENTS_PREPROCESSORS = Lists
         .newArrayList( ProgramInstanceUpdatePreProcessor.class );
 
     @Bean
-    public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventUpdatePreProcessorMap()
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()
     {
         return ImmutableMap.of( UPDATE, UPDATE_EVENTS_PREPROCESSORS );
     }
