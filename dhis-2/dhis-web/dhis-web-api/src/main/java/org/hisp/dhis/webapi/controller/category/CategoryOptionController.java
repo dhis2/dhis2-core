@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
@@ -43,6 +44,8 @@ import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.common.collect.Sets;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,7 +80,16 @@ public class CategoryOptionController
 
                 if ( user != null )
                 {
-                    List<String> orgUnitUids = user.getOrganisationUnits().stream().map( orgUnit -> orgUnit.getUid() ).collect( Collectors.toList() );
+                    OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+                    params.setParents( user.getOrganisationUnits());
+                    params.setFetchChildren( true );
+
+                    List<String> altOrgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect( Collectors.toList() );
+                    System.out.println("AltOrgUnits=" + altOrgUnits.toString());
+                    List<String> uids = user.getOrganisationUnits().stream().map( orgUnit -> orgUnit.getUid() ).collect( Collectors.toList() );
+                    List<String> orgUnitUids = organisationUnitService.getOrganisationUnitsWithChildren( uids ).stream().map( orgUnit -> orgUnit.getUid() ).collect( Collectors.toList() );
+                    System.out.println("OrgUnits=" + orgUnitUids.toString());
+                    System.out.println("CaptureOrgUnits=" + uids.toString());
                     filters.add( "organisationUnits.id:in:[" + StringUtils.join( orgUnitUids, "," ) + "]" );
                     filters.add( "organisationUnits:empty" );
                     options.getOptions().put( WebOptions.ROOT_JUNCTION, "OR" );
