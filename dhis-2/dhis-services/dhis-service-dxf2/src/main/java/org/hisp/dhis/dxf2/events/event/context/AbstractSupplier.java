@@ -28,10 +28,7 @@ package org.hisp.dhis.dxf2.events.event.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
@@ -46,9 +43,4 @@ public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Override
-    public T get( ImportOptions importOptions, List<Event> events )
-    {
-        return get( events );
-    }
 }

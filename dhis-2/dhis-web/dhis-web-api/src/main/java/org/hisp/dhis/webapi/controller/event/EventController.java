@@ -958,7 +958,7 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = eventService.addEventsJson(inputStream, importOptions);
+            ImportSummaries importSummaries = eventService.addEventsJson( inputStream, importOptions );
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()

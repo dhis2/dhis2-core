@@ -61,12 +61,6 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
     }
 
     @Override
-    public Map<String, DataElement> get( List<Event> events )
-    {
-        return null;
-    }
-
-    @Override
     public Map<String, DataElement> get( ImportOptions importOptions, List<Event> events )
     {
         Map<String, DataElement> dataElementsMap;
@@ -78,7 +72,6 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
 
         if ( dataElementIdScheme.isNull() || dataElementIdScheme.is( IdentifiableProperty.UID ) )
         {
-
             dataElementsMap = manager.getObjects( DataElement.class, IdentifiableProperty.UID, allDataElements )
                 .stream().collect( Collectors.toMap( DataElement::getUid, d -> d ) );
         }

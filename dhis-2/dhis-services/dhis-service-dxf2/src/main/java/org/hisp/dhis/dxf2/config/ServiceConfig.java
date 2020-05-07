@@ -42,19 +42,7 @@ import org.hisp.dhis.dxf2.events.event.preprocess.PreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.event.preprocess.update.ProgramInstanceUpdatePreProcessor;
-import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboAclCheck;
-import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboCheck;
-import org.hisp.dhis.dxf2.events.event.validation.AttributeOptionComboDateCheck;
-import org.hisp.dhis.dxf2.events.event.validation.EventBaseCheck;
-import org.hisp.dhis.dxf2.events.event.validation.EventCreationAclCheck;
-import org.hisp.dhis.dxf2.events.event.validation.EventDateCheck;
-import org.hisp.dhis.dxf2.events.event.validation.EventGeometryCheck;
-import org.hisp.dhis.dxf2.events.event.validation.OrgUnitCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ProgramCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ProgramInstanceCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ProgramOrgUnitCheck;
-import org.hisp.dhis.dxf2.events.event.validation.ProgramStageCheck;
-import org.hisp.dhis.dxf2.events.event.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.events.event.validation.*;
 import org.hisp.dhis.dxf2.events.event.validation.update.EventBasicCheck;
 import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.event.validation.update.ProgramStageInstanceAuthCheck;
@@ -103,11 +91,12 @@ public class ServiceConfig
     private ConfigurationPropertyFactoryBean maxAttempts;
 
     @Bean
-    public NamedParameterJdbcTemplate namedParameterJdbcTemplate( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         return new NamedParameterJdbcTemplate( jdbcTemplate );
     }
-    
+
     @Bean( "retryTemplate" )
     public RetryTemplate retryTemplate()
     {
@@ -208,6 +197,7 @@ public class ServiceConfig
             TrackedEntityInstanceCheck.class,
             ProgramInstanceCheck.class,
             ProgramStageCheck.class,
+            ProgramInstanceRepeatableStageCheck.class,
             ProgramOrgUnitCheck.class,
             EventGeometryCheck.class,
             EventCreationAclCheck.class,
@@ -221,30 +211,26 @@ public class ServiceConfig
     @Bean( "eventValidatorMap" )
     public Map<ImportStrategy, List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>>> eventValidatorMap()
     {
-        return ImmutableMap.of(
-            ImportStrategy.CREATE, CREATE_EVENTS_CHECKS,
-            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_CHECKS,
-            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
+        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_CHECKS, ImportStrategy.CREATE_AND_UPDATE,
+            CREATE_EVENTS_CHECKS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
     }
 
     private final static List<Class<? extends PreProcessor>> CREATE_EVENTS_PREPROCESS = Lists.newArrayList(
-    // @formatter:off        
+    // @formatter:off
             AssignUidPreProcessor.class,
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class,
-            EventGeometryPreProcessor.class     
+            EventGeometryPreProcessor.class
         );
         // @formatter:on
 
     @Bean( "eventPreProcessorsMap" )
     public Map<ImportStrategy, List<Class<? extends PreProcessor>>> eventPreProcessorsMap()
     {
-        return ImmutableMap.of(
-            ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS,
-            ImportStrategy.CREATE_AND_UPDATE, CREATE_EVENTS_PREPROCESS,
-            ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
+        return ImmutableMap.of( ImportStrategy.CREATE, CREATE_EVENTS_PREPROCESS, ImportStrategy.CREATE_AND_UPDATE,
+            CREATE_EVENTS_PREPROCESS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
     }
 
     /**
@@ -264,7 +250,8 @@ public class ServiceConfig
         );
         // @formatter:on
 
-    // TODO: Ask what's the difference between the values in the Enum ImportStrategy?
+    // TODO: Ask what's the difference between the values in the Enum
+    // ImportStrategy?
     @Bean
     public Map<ImportStrategy, List<Class<? extends org.hisp.dhis.dxf2.events.event.validation.ValidationCheck>>> eventUpdateValidatorMap()
     {

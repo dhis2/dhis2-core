@@ -30,56 +30,64 @@ package org.hisp.dhis.dxf2.events.event.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.program.ProgramStage;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
  */
-public abstract class BaseEventAclCheck implements ValidationCheck
+public class ProgramInstanceRepeatableStageCheck implements ValidationCheck
 {
-
+    @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        ImportOptions importOptions = ctx.getImportOptions();
-        IdScheme scheme = importOptions.getIdSchemes().getProgramStageIdScheme();
-
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( ctx.getProgramStage( scheme, event.getProgramStage() ) );
-        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
-        programStageInstance.setStatus( event.getStatus() );
+        IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+        ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        programStageInstance.setProgramInstance( programInstance );
 
-        List<String> errors = checkAcl( ctx.getServiceDelegator().getTrackerAccessManager(), importOptions.getUser(),
-            programStageInstance );
-
-        if ( !errors.isEmpty() )
+        /*
+         * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck
+         * should report this anomaly.
+         */
+        if ( programInstance != null )
         {
-            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, errors.toString() );
-            importSummary.incrementIgnored();
-
-            return importSummary;
+            if ( !programStage.getRepeatable()
+                && hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getUid() ) )
+            {
+                return new ImportSummary( ImportStatus.ERROR,
+                    "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
+                        .incrementIgnored();
+            }
         }
+
         return success();
     }
 
-    public abstract List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-        ProgramStageInstance programStageInstance );
+    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, String programStageUid )
+    {
+        // @formatter:off
+        final String sql = "select exists( " +
+                "select * " +
+                "from programstageinstance psi " +
+                "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
+                "  join programstage ps on psi.programstageid = ps.programstageid " +
+                "where ps.uid = ? " +
+                "  and psi.deleted = false " +
+                "  and psi.status != 'SKIPPED'" +
+                ")";
+        // @formatter:on
+
+        return jdbcTemplate.queryForObject( sql, Boolean.class, programStageUid );
+    }
 
     @Override
     public boolean isFinal()
     {
-        return true;
+        return false;
     }
-
 }

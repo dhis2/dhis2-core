@@ -31,14 +31,12 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.common.base.Strings;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -48,52 +46,23 @@ public class ProgramStageCheck implements ValidationCheck
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        // TODO luciano shouldn't we also check if program stage belongs to program? ->
-        // asked Morten, said probably yes!
+        IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+        // Get the program stage id from the event.
+        // If the event has no program stage set, use a dummy value which will not
+        // return any Program Stage
+        // from the WorkContext
+        final String programStageId = StringUtils.isEmpty( event.getProgramStage() ) ? "-" : event.getProgramStage();
 
-        if ( Strings.isNullOrEmpty( event.getProgramStage() ) )
+        Program program = ctx.getProgramsMap().get( event.getProgram() );
+        ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, programStageId );
+
+        if ( program.isRegistration() && programStage == null )
         {
             return error( "Event.programStage does not point to a valid programStage: " + event.getProgramStage(),
                 event.getEvent() ).incrementIgnored();
         }
-        else
-        {
-            ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
-            ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
 
-            /*
-             * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck
-             * should report this anomaly.
-             */
-            if ( programInstance != null )
-            {
-                if ( !programStage.getRepeatable()
-                    && hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getUid() ) )
-                {
-                    return new ImportSummary( ImportStatus.ERROR,
-                        "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
-                            .incrementIgnored();
-                }
-            }
-        }
         return success();
-    }
-
-    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, String programStageUid )
-    {
-        // @formatter:off
-        final String sql = "select exists( " +
-            "select * " +
-            "from programstageinstance psi " +
-            "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-            "  join programstage ps on psi.programstageid = ps.programstageid " +
-            "where ps.uid = ? " +
-            "  and psi.deleted = false " +
-            "  and psi.status != 'SKIPPED'" +
-            ")";
-        // @formatter:on
-
-        return jdbcTemplate.queryForObject( sql, Boolean.class, programStageUid );
     }
 
     @Override

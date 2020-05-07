@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -58,7 +59,7 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
     }
 
     @Override
-    public Map<String, TrackedEntityInstance> get( List<Event> events )
+    public Map<String, TrackedEntityInstance> get( ImportOptions importOptions, List<Event> events )
     {
         if ( events == null )
         {

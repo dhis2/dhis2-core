@@ -9,7 +9,6 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -62,7 +61,7 @@ public class EventGeometryCheckTest extends BaseValidationTest
     {
         ProgramStage programStage = createProgramStage();
 
-        when( workContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
         assertNoError( importSummary );
     }
@@ -73,7 +72,7 @@ public class EventGeometryCheckTest extends BaseValidationTest
         event.setGeometry( createRandomPoint() );
         ProgramStage programStage = createProgramStage();
         programStage.setFeatureType( FeatureType.NONE );
-        when( workContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
 
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
 
@@ -96,7 +95,7 @@ public class EventGeometryCheckTest extends BaseValidationTest
         event.setCoordinate( coordinate );
         ProgramStage programStage = createProgramStage();
         programStage.setFeatureType( FeatureType.NONE );
-        when( workContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
 
         rule.check( new ImmutableEvent( event ), workContext );
 
@@ -115,9 +114,7 @@ public class EventGeometryCheckTest extends BaseValidationTest
         double longitude = (Math.random() * 360.0) - 180.0;
         GeometryFactory geometryFactory = new GeometryFactory();
         /* Longitude (= x coord) first ! */
-        com.vividsolutions.jts.geom.Point point = geometryFactory.createPoint( new Coordinate( longitude, latitude ) );
-
-        return point;
+        return geometryFactory.createPoint( new Coordinate( longitude, latitude ) );
     }
 
 }

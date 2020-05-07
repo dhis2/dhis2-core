@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.event.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+
 import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
@@ -36,23 +38,20 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
-
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramOrgUnitCheck
-    implements
-    ValidationCheck
+public class ProgramOrgUnitCheck implements ValidationCheck
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        if ( programInstance != null ) // TODO shall we handle this case: this should really never happen at this point
+        if ( programInstance != null )
         {
             Optional<OrganisationUnit> orgUnit = programInstance.getProgram().getOrganisationUnits().stream()
-                .filter( ou -> ou.getUid().equals( event.getOrgUnit() ) )
+                .filter( ou -> ou.getUid().equals( event.getOrgUnit() ) ) // FIXME: this will not work with an IdScheme
+                                                                          // different from uid
                 .findFirst();
 
             if ( !orgUnit.isPresent() )

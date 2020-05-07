@@ -31,8 +31,11 @@ package org.hisp.dhis.dxf2.events.event.validation;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -48,6 +51,8 @@ import org.mockito.junit.MockitoRule;
  */
 public class BaseValidationTest
 {
+    protected final IdScheme programStageIdScheme = ImportOptions.getDefaultImportOptions().getIdSchemes()
+        .getProgramStageIdScheme();
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -64,6 +69,7 @@ public class BaseValidationTest
     public void superSetUp()
     {
         event = createBaseEvent();
+        when( workContext.getImportOptions() ).thenReturn( ImportOptions.getDefaultImportOptions() );
     }
 
     private Event createBaseEvent()

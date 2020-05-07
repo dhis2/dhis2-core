@@ -30,11 +30,7 @@ package org.hisp.dhis.dxf2.events.event.context;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -43,6 +39,8 @@ import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -98,7 +96,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 return loadUserGroups( userGroupId );
             }
         } ).build() ;
-    
+
     // @formatter:on
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate )
@@ -107,12 +105,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     @Override
-    public Map<String, Program> get( List<Event> eventList )
+    public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
         Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
         if ( programMap == null )
         {
-            programMap = loadPrograms();
+            programMap = loadPrograms( importOptions.getIdSchemes() );
 
             Map<Long, Set<OrganisationUnit>> ouMap = loadOrgUnits();
             Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
@@ -125,20 +123,25 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
             for ( Program program : programMap.values() )
             {
-                program.setOrganisationUnits( ouMap.getOrDefault( program.getId() , new HashSet<>() ));
+                program.setOrganisationUnits( ouMap.getOrDefault( program.getId(), new HashSet<>() ) );
                 program.setUserAccesses( programUserAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-                program.setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
+                program
+                    .setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
                 TrackedEntityType trackedEntityType = program.getTrackedEntityType();
                 if ( trackedEntityType != null )
                 {
-                    trackedEntityType.setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-                    trackedEntityType.setUserGroupAccesses( tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
+                    trackedEntityType
+                        .setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
+                    trackedEntityType.setUserGroupAccesses(
+                        tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
                 }
-                
+
                 for ( ProgramStage programStage : program.getProgramStages() )
                 {
-                    programStage.setUserAccesses( programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-                    programStage.setUserGroupAccesses( programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+                    programStage.setUserAccesses(
+                        programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
+                    programStage.setUserGroupAccesses(
+                        programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
                 }
             }
 
@@ -149,7 +152,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<OrganisationUnit>> loadOrgUnits()
     {
-        final String sql = "select p.programid, o.uid, o.organisationunitid from program_organisationunits p join organisationunit o on p.organisationunitid = o.organisationunitid order by programid";
+        final String sql = "select p.programid, ou.organisationunitid, ou.uid, ou.code, ou.name "
+            + "from program_organisationunits p "
+            + "join organisationunit ou on p.organisationunitid = ou.organisationunitid " + "order by programid";
+
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<Long, Set<OrganisationUnit>> results = new HashMap<>();
             long programId = 0;
@@ -212,7 +218,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             return results;
         } );
     }
-    
+
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForPrograms()
     {
         return fetchUserGroupAccess( replaceAclQuery( USER_GROUP_ACCESS_SQL, "programusergroupaccesses", "programid" ),
@@ -221,7 +227,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForProgramStages()
     {
-        // TODO: can't use replace because the table programstageusergroupaccesses should use 'programstageid' as column name
+        // TODO: can't use replace because the table programstageusergroupaccesses
+        // should use 'programstageid' as column name
         final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
             + "from programstageusergroupaccesses psuga "
             + "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid "
@@ -236,7 +243,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             replaceAclQuery( USER_GROUP_ACCESS_SQL, "trackedentitytypeusergroupaccesses", "trackedentitytypeid" ),
             "trackedentitytypeid" );
     }
-    
+
     private Map<Long, Set<UserGroupAccess>> fetchUserGroupAccess( String sql, String column )
     {
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
@@ -261,30 +268,35 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         } );
     }
 
-    private Map<String, Program> loadPrograms()
+    private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
-        final String sql = "select p.programid, p.publicaccess, p.uid, p.name, p.type, tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, " +
-                "            ps.programstageid as ps_id, ps.uid as ps_uid, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable " +
-                "            from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid " +
-                "                    LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid " +
-                "                    LEFT JOIN programstage ps on p.programid = ps.programid " +
-                "                    LEFT JOIN program_organisationunits pou on p.programid = pou.programid " +
-                "                    LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid " +
-                "            group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order " +
-                "            order by p.programid, ps.sort_order";
+        final String sql = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, p.type, "
+            + "tet.trackedentitytypeid, tet.publicaccess as tet_public_access, tet.uid as tet_uid,  "
+            + "c.categorycomboid as catcombo_id, c.uid as catcombo_uid, c.name as catcombo_name, c.code as catcombo_code, "
+            + "ps.programstageid as ps_id, ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name, ps.featuretype as ps_feature_type, ps.sort_order, ps.publicaccess as ps_public_access, ps.repeatable as ps_repeatable "
+            + "from program p LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
+            + "     LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
+            + "     LEFT JOIN programstage ps on p.programid = ps.programid "
+            + "     LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
+            + "     LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
+            + "group by p.programid, p.uid, p.name, p.type, tet.trackedentitytypeid, c.categorycomboid, c.uid, c.name, ps.programstageid, ps.uid , ps.featuretype, ps.sort_order "
+            + "order by p.programid, ps.sort_order";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();
             long programId = 0;
             while ( rs.next() )
             {
-                if ( programId != rs.getLong( "programid" ) )
+                if ( programId != rs.getLong( "id" ) )
                 {
                     Set<ProgramStage> programStages = new HashSet<>();
                     Program program = new Program();
-                    program.setId( rs.getLong( "programid" ) );
+                    // identifiers
+                    program.setId( rs.getLong( "id" ) );
                     program.setUid( rs.getString( "uid" ) );
                     program.setName( rs.getString( "name" ) );
+                    program.setCode( rs.getString( "code" ) );
+
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
                     program.setPublicAccess( rs.getString( "publicaccess" ) );
 
@@ -294,10 +306,11 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     categoryCombo.setId( rs.getLong( "catcombo_id" ) );
                     categoryCombo.setUid( rs.getString( "catcombo_uid" ) );
                     categoryCombo.setName( rs.getString( "catcombo_name" ) );
+                    categoryCombo.setCode( rs.getString( "catcombo_code" ) );
                     program.setCategoryCombo( categoryCombo );
 
                     long tetId = rs.getLong( "trackedentitytypeid" );
-                    if ( tetId != 0)
+                    if ( tetId != 0 )
                     {
                         TrackedEntityType trackedEntityType = new TrackedEntityType();
                         trackedEntityType.setId( tetId );
@@ -305,15 +318,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                         trackedEntityType.setPublicAccess( rs.getString( "tet_public_access" ) );
                         program.setTrackedEntityType( trackedEntityType );
                     }
-                    
+
                     program.setProgramStages( programStages );
-                    results.put( rs.getString( "uid" ), program );
+                    results.put( IdSchemeUtils.getKey( idSchemes.getProgramIdScheme(), rs ), program );
 
                     programId = program.getId();
                 }
                 else
                 {
-                    results.get( rs.getString( "uid" ) ).getProgramStages().add( toProgramStage( rs ) );
+                    results.get( IdSchemeUtils.getKey( idSchemes.getProgramIdScheme(), rs ) ).getProgramStages()
+                        .add( toProgramStage( rs ) );
                 }
             }
             return results;
@@ -326,6 +340,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         ProgramStage programStage = new ProgramStage();
         programStage.setId( rs.getLong( "ps_id" ) );
         programStage.setUid( rs.getString( "ps_uid" ) );
+        programStage.setCode( rs.getString( "ps_code" ) );
+        programStage.setName( rs.getString( "ps_name" ) );
         programStage.setSortOrder( rs.getInt( "sort_order" ) );
         programStage.setPublicAccess( rs.getString( "ps_public_access" ) );
         programStage.setFeatureType(
@@ -340,6 +356,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     {
         OrganisationUnit ou = new OrganisationUnit();
         ou.setUid( rs.getString( "uid" ) );
+        ou.setId( rs.getLong( "organisationunitid" ) );
+        ou.setName( rs.getString( "name" ) );
+        ou.setCode( rs.getString( "code" ) );
         return ou;
     }
 
@@ -367,13 +386,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         userGroupAccess.setUserGroup( userGroup );
         userGroup.setUid( rs.getString( "uid" ) );
         // TODO This is not very efficient for large DHIS2 installations:
-        //  it would be better to run a direct query in the Access Layer
+        // it would be better to run a direct query in the Access Layer
         // to determine if the user belongs to the group
         userGroup.setMembers( userGroupCache.get( userGroup.getId() ) );
         return userGroupAccess;
     }
 
-    private Set<User> loadUserGroups( Long userGroupId)
+    private Set<User> loadUserGroups( Long userGroupId )
     {
         final String sql = "select ug.uid, ug.usergroupid, u.uid user_uid, u.userid user_id from usergroupmembers ugm "
             + "join usergroup ug on ugm.usergroupid = ug.usergroupid join users u on ugm.userid = u.userid where ug.usergroupid = "
@@ -396,7 +415,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         } );
     }
 
-    private String replaceAclQuery(String sql, String tableName, String column) {
+    private String replaceAclQuery( String sql, String tableName, String column )
+    {
         // @formatter:off
         StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
                 .put( "table_name", tableName)

@@ -28,15 +28,13 @@ package org.hisp.dhis.dxf2.events.event.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.UnrecoverableImportException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -57,8 +55,9 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
     }
 
     @Override
-    public Map<String, OrganisationUnit> get( List<Event> events )
+    public Map<String, OrganisationUnit> get( ImportOptions importOptions, List<Event> events )
     {
+        IdScheme idScheme = importOptions.getIdSchemes().getOrgUnitIdScheme();
         if ( events == null )
         {
             return new HashMap<>();
@@ -77,7 +76,9 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         }
         // @formatter:on
 
-        final String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.path, ou.hierarchylevel from organisationunit ou where ou.uid in (:ids)";
+        final String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel "
+            + "from organisationunit ou where ou."
+            + IdSchemeUtils.getColumnNameByScheme( idScheme, "organisationunitid" ) + " in (:ids)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", orgUnitUids );
@@ -91,21 +92,28 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
                 ou.setId( rs.getLong( "organisationunitid" ) );
                 ou.setUid( rs.getString( "uid" ) );
                 ou.setCode( rs.getString( "code" ) );
+                ou.setName( rs.getString( "name" ) );
                 String path = rs.getString( "path" );
                 ou.setPath( path );
                 ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
                 ou.setParent( getParentHierarchy( ou, path ) );
-                for ( String event : orgUnitToEvent.get( ou.getUid() ) )
+                try
                 {
-                    results.put( event, ou );
+                    for ( String event : orgUnitToEvent.get( IdSchemeUtils.dynamicSchemeProperty( idScheme, ou ) ) )
+                    {
+                        results.put( event, ou );
+                    }
                 }
-
+                catch ( Exception e )
+                {
+                    throw new UnrecoverableImportException( e );
+                }
             }
             return results;
         } );
     }
 
-    public OrganisationUnit getParentHierarchy( OrganisationUnit ou, String path )
+    private OrganisationUnit getParentHierarchy( OrganisationUnit ou, String path )
     {
         if ( path.startsWith( "/" ) )
         {

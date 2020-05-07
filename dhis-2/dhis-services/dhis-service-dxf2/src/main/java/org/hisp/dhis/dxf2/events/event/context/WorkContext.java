@@ -31,7 +31,11 @@ package org.hisp.dhis.dxf2.events.event.context;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -44,12 +48,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
-import lombok.Builder;
-import lombok.Getter;
-
 /**
  * This class acts as a cache for data required during the Event import process.
- * 
+ *
  * @author Luciano Fiandesio
  */
 @Getter
@@ -59,71 +60,60 @@ public class WorkContext
     private final ImportOptions importOptions;
 
     /**
-     * Holds a Map of all Programs in the system. 
-     * Each Program in the Map also contains: 
-     * 
-     * - all connected Program Stages 
-     * - all connected Org Units 
-     * - the connected CategoryCombo
+     * Holds a Map of all Programs in the system. Each Program in the Map also
+     * contains:
      *
-     * Map:
-     *  key     -> Program UID
-     *  value   -> Program
+     * - all connected Program Stages - all connected Org Units - the connected
+     * CategoryCombo
+     *
+     * Map: key -> Program UID value -> Program
      */
     private final Map<String, Program> programsMap;
 
     /**
-     * Holds a Map of all {@see OrganisationUnit} associated to the Events to import.
-     * Each {@see OrganisationUnit} also contain the complete hierarchy ( via .getParent() )
+     * Holds a Map of all {@see OrganisationUnit} associated to the Events to
+     * import. Each {@see OrganisationUnit} also contain the complete hierarchy (
+     * via .getParent() )
      *
-     * Map:
-     *  key     -> Event UID
-     *  value   -> OrganisationUnit
+     * Map: key -> Event UID value -> OrganisationUnit
      */
     private final Map<String, OrganisationUnit> organisationUnitMap;
 
     /**
-     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to import.
-     * 
-     * Map:
-     *  key     -> Event UID
-     *  value   -> TrackedEntityInstance
+     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to
+     * import.
+     *
+     * Map: key -> Event UID value -> TrackedEntityInstance
      */
     private final Map<String, TrackedEntityInstance> trackedEntityInstanceMap;
 
     /**
      * Holds a Map of all {@see ProgramInstance} associated to the Events to import.
      *
-     * Map:
-     *  key     -> Event UID
-     *  value   -> ProgramInstance
+     * Map: key -> Event UID value -> ProgramInstance
      */
     private final Map<String, ProgramInstance> programInstanceMap;
 
     /**
-     * Holds a Map of all {@see ProgramStageInstance} associated to the Events to import.
+     * Holds a Map of all {@see ProgramStageInstance} associated to the Events to
+     * import.
      *
-     * Map:
-     *  key     -> ProgramStageInstance UID
-     *  value   -> ProgramStageInstance
+     * Map: key -> ProgramStageInstance UID value -> ProgramStageInstance
      */
     private final Map<String, ProgramStageInstance> programStageInstanceMap;
 
     /**
-     * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to import.
+     * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to
+     * import.
      *
-     * Map:
-     *  key     -> Event UID
-     *  value   -> CategoryOptionCombo
+     * Map: key -> Event UID value -> CategoryOptionCombo
      */
     private final Map<String, CategoryOptionCombo> categoryOptionComboMap;
 
     /**
      * Holds a Map of all {@see DataElement} associated to the Events to import.
      *
-     * Map:
-     *  key     -> Event UID
-     *  value   -> DataElement
+     * Map: key -> Event UID value -> DataElement
      */
     private final Map<String, DataElement> dataElementMap;
 
@@ -140,17 +130,19 @@ public class WorkContext
      * Checks within all the cached program for a ProgramStage having the uid
      * matching the specified uid.
      *
-     * @param uid the uid of a program stage
+     * @param programStageId the id according to the IdScheme of a program stage
      * @return a ProgramStage object or null
      */
-    public ProgramStage getProgramStage( String uid )
+    public ProgramStage getProgramStage( IdScheme idScheme, String programStageId )
     {
         for ( Program program : programsMap.values() )
         {
             Set<ProgramStage> programStages = program.getProgramStages();
             for ( ProgramStage programStage : programStages )
             {
-                if ( programStage.getUid().equals( uid ) )
+                final String id = IdSchemeUtils.dynamicSchemeProperty( idScheme, programStage );
+
+                if ( id.equals( programStageId ) )
                 {
                     programStage.setProgram( program );
                     return programStage;

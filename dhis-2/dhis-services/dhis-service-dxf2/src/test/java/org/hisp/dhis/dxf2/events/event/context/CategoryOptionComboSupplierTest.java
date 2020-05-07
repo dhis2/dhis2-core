@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -90,7 +91,6 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
     @Test
     public void handleNullEvents()
     {
-        assertNull( subject.get( null ) );
         assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
     }
 
@@ -102,7 +102,8 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case1( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 2: Event has 'attributeOptionCombo' value set, but it's not found -> fetch default coc
+         * Case 2: Event has 'attributeOptionCombo' value set, but it's not found ->
+         * fetch default coc
          */
         case2( ImportOptions.getDefaultImportOptions() );
 
@@ -112,20 +113,21 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case3( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 4: Event has no 'attributeCategoryOptions' or 'attributeOptionCombo' values set -> fetch default coc
+         * Case 4: Event has no 'attributeCategoryOptions' or 'attributeOptionCombo'
+         * values set -> fetch default coc
          */
         case4( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 5: Event has both 'attributeCategoryOptions' and 'attributeOptionCombo' values set
-         *         attributeOptionCombo is used to fetch the coc
+         * Case 5: Event has both 'attributeCategoryOptions' and 'attributeOptionCombo'
+         * values set attributeOptionCombo is used to fetch the coc
          */
         case5( ImportOptions.getDefaultImportOptions() );
     }
 
     private void case1( ImportOptions importOptions )
     {
-        when( programSupplier.get( anyList() ) ).thenReturn( programMap );
+        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
 
         CategoryOptionCombo coc = new CategoryOptionCombo();
         coc.setUid( event.getAttributeOptionCombo() );
@@ -141,7 +143,7 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
 
     private void case2( ImportOptions importOptions )
     {
-        when( programSupplier.get( anyList() ) ).thenReturn( programMap );
+        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
 
         CategoryOptionCombo coc = new CategoryOptionCombo();
         coc.setUid( "def123" );
@@ -163,7 +165,7 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
 
     private void case3( ImportOptions importOptions )
     {
-        when( programSupplier.get( anyList() ) ).thenReturn( programMap );
+        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
 
         CategoryCombo catCombo = new CategoryCombo();
         catCombo.setUid( CodeGenerator.generateUid() );
@@ -177,12 +179,9 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
 
         CategoryOptionCombo coc = new CategoryOptionCombo();
         coc.setUid( CodeGenerator.generateUid() );
-        when( attributeOptionComboLoader.getAttributeOptionCombo(
-            catCombo,
-            event.getAttributeCategoryOptions(),
-            event.getAttributeOptionCombo(),
-            importOptions.getIdSchemes().getCategoryOptionComboIdScheme() ) )
-        .thenReturn( coc );
+        when( attributeOptionComboLoader.getAttributeOptionCombo( catCombo, event.getAttributeCategoryOptions(),
+            event.getAttributeOptionCombo(), importOptions.getIdSchemes().getCategoryOptionComboIdScheme() ) )
+                .thenReturn( coc );
 
         Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );
         CategoryOptionCombo categoryOptionCombo = map.get( event.getUid() );
@@ -192,7 +191,7 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
 
     private void case4( ImportOptions importOptions )
     {
-        when( programSupplier.get( anyList() ) ).thenReturn( programMap );
+        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
 
         // create event to import
         Event event = new Event();
@@ -213,7 +212,7 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
 
     private void case5( ImportOptions importOptions )
     {
-        when( programSupplier.get( anyList() ) ).thenReturn( programMap );
+        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
 
         event.setAttributeCategoryOptions( "abcde;fghilm" );
 
@@ -221,7 +220,7 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         coc.setUid( CodeGenerator.generateUid() );
 
         when( attributeOptionComboLoader.getCategoryOptionCombo(
-                importOptions.getIdSchemes().getCategoryOptionComboIdScheme(), event.getAttributeOptionCombo() ) )
+            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(), event.getAttributeOptionCombo() ) )
                 .thenReturn( coc );
 
         Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );

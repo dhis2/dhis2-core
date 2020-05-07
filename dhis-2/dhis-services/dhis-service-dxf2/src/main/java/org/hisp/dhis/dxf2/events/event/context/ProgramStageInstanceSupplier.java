@@ -28,13 +28,13 @@ package org.hisp.dhis.dxf2.events.event.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -54,7 +54,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
     }
 
     @Override
-    public Map<String, ProgramStageInstance> get( List<Event> events )
+    public Map<String, ProgramStageInstance> get( ImportOptions importOptions, List<Event> events )
     {
         if ( events == null )
         {

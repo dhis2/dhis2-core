@@ -63,13 +63,6 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
     }
 
     @Override
-    public Map<String, CategoryOptionCombo> get( List<Event> events )
-    {
-        // This method is not meant to be used
-        return null;
-    }
-
-    @Override
     public Map<String, CategoryOptionCombo> get( ImportOptions importOptions, List<Event> events )
     {
         if ( events == null )
@@ -80,7 +73,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         // TODO this should be optimized to execute less SQL queries
         IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
         Map<String, CategoryOptionCombo> eventToCocMap = new HashMap<>();
-        Map<String, Program> programMap = programSupplier.get( events );
+        Map<String, Program> programMap = programSupplier.get( importOptions, events );
 
         for ( Event event : events )
         {
@@ -112,7 +105,8 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
             }
             else if ( programCatCombo != null && isNotEmpty( attributeCatOptions ) )
             {
-                if (programCatCombo == null) {
+                if ( programCatCombo == null )
+                {
 
                     // TODO FAIL --> use validation rule
                 }

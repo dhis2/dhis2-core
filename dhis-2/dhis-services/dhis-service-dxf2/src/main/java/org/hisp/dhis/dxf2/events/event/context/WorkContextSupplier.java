@@ -38,7 +38,5 @@ import org.hisp.dhis.dxf2.events.event.Event;
  */
 public interface WorkContextSupplier<T>
 {
-    T get( List<Event> events );
-
-    T get(ImportOptions importOptions, List<Event> events );
+    T get( ImportOptions importOptions, List<Event> events );
 }

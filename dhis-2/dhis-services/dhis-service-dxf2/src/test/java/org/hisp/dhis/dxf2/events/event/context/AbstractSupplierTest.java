@@ -76,6 +76,22 @@ public abstract class AbstractSupplierTest<T>
             } );
     }
 
+    public void mockResultSetExtractorWithoutParameters( ResultSet resultSetMock )
+    {
+        when( jdbcTemplate.query( anyString(), any( ResultSetExtractor.class ) ) )
+            .thenAnswer( (Answer<Map<String, T>>) invocationOnMock -> {
+                // Fetch the method arguments
+                Object[] args = invocationOnMock.getArguments();
+
+                // Fetch the row mapper instance from the arguments
+                ResultSetExtractor<Map<String, T>> rm = (ResultSetExtractor<Map<String, T>>) args[1];
+
+                // Invoke the row mapper
+                return rm.extractData( resultSetMock );
+
+            } );
+    }
+
     @Test
     public void doVerifySupplier()
         throws SQLException

@@ -1,31 +1,17 @@
 package org.hisp.dhis.dxf2.events.event.validation;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
-import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /*
@@ -75,37 +61,17 @@ public class ProgramStageCheckTest extends BaseValidationTest
     @Test
     public void failOnNullProgramStage()
     {
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), null );
+        Program program = new Program();
+        program.setUid( CodeGenerator.generateUid() );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
+        Map<String, Program> programMap = new HashMap<>();
+        programMap.put( program.getUid(), program );
+
+        event.setProgram( program.getUid() );
+        when( workContext.getProgramsMap() ).thenReturn( programMap );
+
+        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
             "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );
     }
-
-    @Test
-    public void failOnNonRepeatableStageAndExistingEvents()
-    {
-        // Data preparation
-        event.setProgramStage( CodeGenerator.generateUid() );
-
-        Program program = createProgram( 'P' );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStage.setRepeatable( false );
-
-        when( workContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstanceMap.put( event.getUid(), programInstance );
-
-        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-        when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
-        when( serviceDelegator.getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( programStage.getUid() ) ) )
-            .thenReturn( true );
-
-        // Method under test
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event,
-                "Program stage is not repeatable and an event already exists" );
-    }
-
 }
