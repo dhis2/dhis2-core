@@ -117,7 +117,7 @@ public class DefaultFileResourceService
     {
         return checkStorageStatus( fileResourceStore.getByUid( uid ) );
     }
-
+    
     @Override
     @Transactional( readOnly = true )
     public List<FileResource> getFileResources( List<String> uids )
@@ -210,13 +210,20 @@ public class DefaultFileResourceService
     {
         return fileResourceContentStore.getFileResourceContent( fileResource.getStorageKey() );
     }
+    
+    @Override
+    @Transactional( readOnly = true )
+    public long getFileResourceContentLength( FileResource fileResource )
+    {
+        return fileResourceContentStore.getFileResourceContentLength( fileResource.getStorageKey() );
+    }
 
     @Override
     @Transactional( readOnly = true )
-    public long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+    public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException
     {
-        return fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
+        fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }
 
     @Override
