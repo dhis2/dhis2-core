@@ -77,6 +77,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -140,6 +141,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -2193,7 +2195,25 @@ public abstract class AbstractEventService
 
     private DataElement getDataElement( IdScheme idScheme, String id )
     {
-        return DATA_ELEM_CACHE.get( id, s -> manager.getObject( DataElement.class, idScheme, id ) ).orElse( null );
+        DataElement result = null;
+        final Optional<DataElement> dataElement = DATA_ELEM_CACHE.get( id );
+        if ( !dataElement.isPresent() )
+        {
+            DataElement dm = manager.getObject( DataElement.class, idScheme, id );
+            if ( dm != null )
+            {
+                // Init the DataElement Hibernate proxy, before stuffing it in cache
+                // so that the security-related collection are initialized
+                HibernateUtils.initializeProxy( dm );
+                DATA_ELEM_CACHE.put( id, dm );
+                result = dm;
+            }
+        }
+        else
+        {
+            result = dataElement.get();
+        }
+        return result;
     }
 
     private CategoryOption getCategoryOption( IdScheme idScheme, String id )
