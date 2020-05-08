@@ -63,10 +63,13 @@ public class WorkContext
      * Holds a Map of all Programs in the system. Each Program in the Map also
      * contains:
      *
-     * - all connected Program Stages - all connected Org Units - the connected
-     * CategoryCombo
+     * - all connected Program Stages
      *
-     * Map: key -> Program UID value -> Program
+     * - all connected Org Units
+     *
+     * - the connected CategoryCombo
+     *
+     * Map: key -> Program ID (based on IdScheme) value -> Program
      */
     private final Map<String, Program> programsMap;
 
@@ -113,7 +116,7 @@ public class WorkContext
     /**
      * Holds a Map of all {@see DataElement} associated to the Events to import.
      *
-     * Map: key -> Event UID value -> DataElement
+     * Map: key -> DataElement ID (based on IdScheme) value -> DataElement
      */
     private final Map<String, DataElement> dataElementMap;
 

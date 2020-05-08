@@ -60,6 +60,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanc
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.*;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventBasicCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
@@ -210,9 +211,9 @@ public class ServiceConfig
             EventDateCheck.class,
             OrgUnitCheck.class,
             ProgramCheck.class,
+            ProgramStageCheck.class,
             TrackedEntityInstanceCheck.class,
             ProgramInstanceCheck.class,
-            ProgramStageCheck.class,
             ProgramInstanceRepeatableStageCheck.class,
             ProgramOrgUnitCheck.class,
             EventGeometryCheck.class,
@@ -220,7 +221,9 @@ public class ServiceConfig
             EventBaseCheck.class,
             AttributeOptionComboCheck.class,
             AttributeOptionComboDateCheck.class,
-            AttributeOptionComboAclCheck.class
+            AttributeOptionComboAclCheck.class,
+            DataValueCheck.class,
+            DataValueAclCheck.class
         );
         // @formatter:on
 
@@ -249,7 +252,7 @@ public class ServiceConfig
             CREATE_EVENTS_PREPROCESS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_PREPROCESS );
     }
 
-    /**
+    /*
      * Default validation chains for Tracker Import (update) events process.
      */
     private final static List<Class<? extends Checker>> UPDATE_EVENTS_CHECKS = newArrayList(

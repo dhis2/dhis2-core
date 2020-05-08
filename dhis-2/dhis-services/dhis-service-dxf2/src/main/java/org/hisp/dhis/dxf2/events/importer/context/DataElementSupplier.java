@@ -46,6 +46,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
+ * TODO: this supplier uses Hibernate
+ *
  * @author Luciano Fiandesio
  */
 @Component( "workContextDataElementsSupplier" )
@@ -67,6 +69,7 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
 
         IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
 
+        // Collects all Data Elements IDs
         Set<String> allDataElements = events.stream().map( Event::getDataValues ).flatMap( Collection::stream )
             .map( DataValue::getDataElement ).collect( Collectors.toSet() );
 

@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,69 +28,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
 import java.util.List;
+import java.util.Set;
 
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
-/**
- * @author Luciano Fiandesio
- */
-public abstract class BaseEventAclCheck implements Checker
+public class DataValueAclCheck implements Checker
 {
-
+    @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        ImportOptions importOptions = ctx.getImportOptions();
+        final TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
+        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
 
-        ProgramStageInstance programStageInstance = prepareForAclValidation( ctx, event );
-
-        List<String> errors = checkAcl( ctx.getServiceDelegator().getTrackerAccessManager(), importOptions.getUser(),
-            programStageInstance );
-
+        final User user = ctx.getImportOptions().getUser();
         final ImportSummary importSummary = new ImportSummary();
 
-        if ( !errors.isEmpty() )
+        // Note that here we are passing a ProgramStageInstance, which during a INSERT
+        // operation
+        // is going to be null, so the ACL method will not be able to check that
+        final Set<DataValue> dataValues = event.getDataValues();
+
+        for ( DataValue dataValue : dataValues )
         {
-            errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( event.getUid(), error ) ) );
+            DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
+            List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );
 
-            importSummary.incrementIgnored();
-
+            if ( !errors.isEmpty() )
+            {
+                errors.forEach(
+                    error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
+            }
         }
+
         return importSummary;
     }
-
-    private ProgramStageInstance prepareForAclValidation( WorkContext ctx, ImmutableEvent event )
-    {
-        final IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
-
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( ctx.getProgramStage( programStageIdScheme, event.getProgramStage() ) );
-        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
-        programStageInstance.setStatus( event.getStatus() );
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        programStageInstance.setProgramInstance( programInstance );
-
-        return programStageInstance;
-    }
-
-    public abstract List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-        ProgramStageInstance programStageInstance );
 
     @Override
     public boolean isFinal()
     {
         return true;
     }
-
 }
