@@ -54,7 +54,6 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -1215,8 +1214,6 @@ public abstract class AbstractEnrollmentService
             validateAttributeType( attribute, importOptions, importConflicts );
         }
 
-        TrackedEntityInstance instance = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance, TrackedEntityInstanceParams.TRUE, importOptions.getUser() );
-
         for ( TrackedEntityAttribute trackedEntityAttribute : mandatoryMap.keySet() )
         {
             Boolean mandatory = mandatoryMap.get( trackedEntityAttribute );
@@ -1230,7 +1227,7 @@ public abstract class AbstractEnrollmentService
 
             if ( trackedEntityAttribute.isUnique() )
             {
-                OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, instance.getOrgUnit() );
+                OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, trackedEntityInstance.getOrganisationUnit().getUid() );
 
                 checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
                     attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, importConflicts );
