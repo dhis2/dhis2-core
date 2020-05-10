@@ -1227,10 +1227,8 @@ public abstract class AbstractEnrollmentService
 
             if ( trackedEntityAttribute.isUnique() )
             {
-                OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, trackedEntityInstance.getOrganisationUnit().getUid() );
-
                 checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
-                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, importConflicts );
+                    attributeValueMap.get( trackedEntityAttribute.getUid() ), trackedEntityInstance.getOrganisationUnit(), importConflicts );
             }
 
             attributeValueMap.remove( trackedEntityAttribute.getUid() );
