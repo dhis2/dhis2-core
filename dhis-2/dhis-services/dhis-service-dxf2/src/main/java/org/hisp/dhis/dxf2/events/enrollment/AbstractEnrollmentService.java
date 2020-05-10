@@ -1209,6 +1209,13 @@ public abstract class AbstractEnrollmentService
             validateAttributeType( attribute, importOptions, importConflicts );
         }
 
+        List<String> errors = trackerAccessManager.canRead( importOptions.getUser(), trackedEntityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
+
         for ( TrackedEntityAttribute trackedEntityAttribute : mandatoryMap.keySet() )
         {
             Boolean mandatory = mandatoryMap.get( trackedEntityAttribute );
