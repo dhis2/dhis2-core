@@ -58,6 +58,14 @@ public interface EventChecking
             this.events = events;
         }
 
+        /**
+         * Validates the events using the supplied list of validators.
+         * 
+         * Only returns the ImportSummary for Events that *did* not pass validation
+         * 
+         * @param validators List of classes implementing the {@see Checker} interface
+         * @return returns the ImportSummary for Eventss that did not pass validation
+         */
         public List<ImportSummary> run( final List<Class<? extends Checker>> validators )
         {
             final List<ImportSummary> importSummaries = new ArrayList<>( 0 );
@@ -75,6 +83,10 @@ public interface EventChecking
                         if ( importSummary.isStatus( ERROR ) )
                         {
                             importSummaries.add( importSummary );
+                        }
+                        if ( validationCheck.isFinal() && importSummary.isStatus( ERROR ) )
+                        {
+                            return importSummaries;
                         }
                     }
                     catch ( InstantiationException | IllegalAccessException e )
