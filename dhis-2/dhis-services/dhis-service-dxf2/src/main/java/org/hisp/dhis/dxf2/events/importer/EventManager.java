@@ -43,15 +43,14 @@ import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.PreProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.PreUpdateProcessorFactory;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ValidationFactory;
 import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateValidationFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -61,16 +60,16 @@ public class EventManager
 
     private final UpdateValidationFactory updateValidationFactory;
 
-    private final PreProcessorFactory preProcessorFactory;
+    private final EventProcessing preProcessorFactory;
 
-    private final PreUpdateProcessorFactory preUpdateProcessorFactory;
+    private final EventProcessing preUpdateProcessorFactory;
 
     private final EventPersistenceService eventPersistenceService;
 
     public EventManager( final ValidationFactory validationFactory,
-        final UpdateValidationFactory updateValidationFactory, final PreProcessorFactory preProcessorFactory,
-        final PreUpdateProcessorFactory preUpdateProcessorFactory,
-        final EventPersistenceService eventPersistenceService )
+        final UpdateValidationFactory updateValidationFactory, @Qualifier( "eventsPreProcessorFactory" )
+        final EventProcessing preProcessorFactory, @Qualifier( "eventsPreUpdateProcessorFactory" )
+        final EventProcessing preUpdateProcessorFactory, final EventPersistenceService eventPersistenceService )
     {
         checkNotNull( validationFactory );
         checkNotNull( updateValidationFactory );
@@ -109,7 +108,7 @@ public class EventManager
         final List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
 
         // pre-process events
-        preProcessorFactory.preProcessEvents( workContext, events );
+        preProcessorFactory.process( workContext, events );
 
         // @formatter:off
         importSummaries.addImportSummaries(
@@ -180,7 +179,7 @@ public class EventManager
         final List<Event> validEvents = events;
 
         // pre-process events
-        preUpdateProcessorFactory.preProcessEvents( workContext, events );
+        preUpdateProcessorFactory.process( workContext, events );
 
         // @formatter:off
         importSummaries.addImportSummaries(

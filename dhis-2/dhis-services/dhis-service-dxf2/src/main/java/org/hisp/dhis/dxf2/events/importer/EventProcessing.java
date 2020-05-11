@@ -26,49 +26,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
-
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
+package org.hisp.dhis.dxf2.events.importer;
 
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.EventProcessing;
-import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Component( "eventsPreUpdateProcessorFactory" )
-@Slf4j
-public class PreUpdateProcessorFactory implements EventProcessing
+public interface EventProcessing
 {
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap;
+    void process( final WorkContext workContext, final List<Event> events );
 
-    public PreUpdateProcessorFactory(
-        final Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap )
+    class ProcessorRunner
     {
-        this.eventUpdatePreProcessorMap = eventUpdatePreProcessorMap;
-    }
+        private final WorkContext workContext;
 
-    @Override
-    public void process( final WorkContext workContext, final List<Event> events )
-    {
-        final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
+        private final List<Event> events;
 
-        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
+        public ProcessorRunner( final WorkContext workContext, final List<Event> events )
         {
-            try
+            this.workContext = workContext;
+            this.events = events;
+        }
+
+        public void run( final List<Class<? extends Processor>> processors )
+            throws IllegalAccessException,
+            InstantiationException
+        {
+            for ( final Event event : events )
             {
-                new ProcessorRunner( workContext, events ).run( eventUpdatePreProcessorMap.get( UPDATE ) );
-            }
-            catch ( InstantiationException | IllegalAccessException e )
-            {
-                // TODO: Check with Luciano: Should we handle it better somehow?
-                log.error( "An error occurred during Event import validation", e );
+                for ( Class<? extends Processor> processor : processors )
+                {
+                    final Processor pre = processor.newInstance();
+                    pre.process( event, workContext );
+                }
             }
         }
     }

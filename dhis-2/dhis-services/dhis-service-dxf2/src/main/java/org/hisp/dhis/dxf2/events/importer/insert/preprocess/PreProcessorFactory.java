@@ -32,8 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.EventProcessing;
 import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
@@ -42,50 +43,29 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author Luciano Fiandesio
  */
-@Component( "trackerEventsPreProcessorFactory" )
+@Component( "eventsPreProcessorFactory" )
 @Slf4j
-public class PreProcessorFactory
+public class PreProcessorFactory implements EventProcessing
 {
     private final Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap;
 
-    public PreProcessorFactory( Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap )
+    public PreProcessorFactory( final Map<ImportStrategy, List<Class<? extends Processor>>> eventPreProcessorsMap )
     {
         this.eventPreProcessorsMap = eventPreProcessorsMap;
     }
 
-    public void preProcessEvents( WorkContext ctx, List<Event> events )
+    @Override
+    public void process( final WorkContext ctx, final List<Event> events )
     {
-        PreProcessorRunner preProcessorRunner = new PreProcessorRunner(
-                eventPreProcessorsMap.get( ctx.getImportOptions().getImportStrategy() ) );
-        for ( Event event : events )
+        try
         {
-            preProcessorRunner.executePreProcessingChain( event, ctx );
+            new ProcessorRunner( ctx, events )
+                .run( eventPreProcessorsMap.get( ctx.getImportOptions().getImportStrategy() ) );
         }
-    }
-
-    static class PreProcessorRunner
-    {
-        private final List<Class<? extends Processor>> preprocessors;
-
-        public PreProcessorRunner( List<Class<? extends Processor>> preprocessors )
+        catch ( InstantiationException | IllegalAccessException e )
         {
-            this.preprocessors = preprocessors;
-        }
-
-        public void executePreProcessingChain( Event event, WorkContext ctx )
-        {
-            for ( Class<? extends Processor> preprocessor : preprocessors )
-            {
-                try
-                {
-                    Processor pre = preprocessor.newInstance();
-                    pre.process( event, ctx );
-                }
-                catch ( InstantiationException | IllegalAccessException e )
-                {
-                    log.error( "An error occurred during Event import validation", e );
-                }
-            }
+            // TODO: Check with Luciano: Should we handle it better somehow?
+            log.error( "An error occurred during Event import validation", e );
         }
     }
 }
