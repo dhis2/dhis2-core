@@ -127,6 +127,8 @@ public class NoRegistrationSingleEventServiceTest
         identifiableObjectManager.update( programA );
 
         createUserAndInjectSecurityContext( true );
+
+        identifiableObjectManager.flush();
     }
 
     @Test

@@ -120,6 +120,10 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
             path = path.substring( 1 );
         }
         List<String> list = Arrays.asList( path.split( "/" ) );
+        if ( list.size() == 1 && list.get( 0 ).equals( ou.getUid() ) )
+        {
+            return null;
+        }
         Collections.reverse( list );
 
         List<OrganisationUnit> ous = list.stream().filter( uid -> !uid.equals( ou.getUid() ) ).map( ouUid -> {

@@ -79,7 +79,8 @@ public class EventImporter
         final JobConfiguration jobConfiguration )
     {
         assert importOptions != null;
-        assert importOptions.getUser() != null;
+        // a User can be null, during import operation
+        //assert importOptions.getUser() != null;
 
         final ImportSummaries importSummaries = new ImportSummaries();
 

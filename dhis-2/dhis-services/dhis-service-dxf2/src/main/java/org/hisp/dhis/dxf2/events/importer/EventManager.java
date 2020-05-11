@@ -40,8 +40,10 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -112,7 +114,7 @@ public class EventManager
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // filter out events which are already in the database
-        final List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
+        List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
 
         // pre-process events
         preInsertProcessorFactory.process( workContext, events );
@@ -149,14 +151,25 @@ public class EventManager
                 .collect( toList() ) );
             // @formatter:on
         }
-
-        for ( final ProgramStageInstance programStageInstance : persisted )
+        List<String> persistedUid = persisted.stream().map( BaseIdentifiableObject::getUid ).collect( toList() );
+        
+        for ( ImportSummary importSummary : importSummaries.getImportSummaries() )
         {
-            importSummaries.getByReference( programStageInstance.getUid() ).ifPresent( is -> {
-                is.setStatus( SUCCESS );
-                is.incrementImported();
-            } );
+            if ( !importSummary.isStatus( ERROR ) && !persistedUid.contains( importSummary.getReference() ) )
+            {
+                if ( !persistedUid.contains( importSummary.getReference() ) )
+                {
+                    importSummary.setStatus( ERROR );
+                    importSummary.incrementIgnored();
+                }
+                else
+                {
+                    importSummary.setStatus( SUCCESS );
+                    importSummary.incrementImported();
+                }
+            }
         }
+        
         return importSummaries;
     }
 

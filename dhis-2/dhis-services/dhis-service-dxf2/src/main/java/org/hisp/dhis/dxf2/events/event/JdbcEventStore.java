@@ -110,7 +110,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -127,6 +129,7 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -167,10 +170,8 @@ public class JdbcEventStore
 
     private final ObjectMapper jsonMapper;
 
-    private final int BATCH_SIZE = 100;
-
     public JdbcEventStore( StatementBuilder statementBuilder,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, CurrentUserService currentUserService,
         IdentifiableObjectManager identifiableObjectManager )
     {
@@ -592,47 +593,52 @@ public class JdbcEventStore
             ps.setObject( 18, null );
         }
 
-        ps.setString( 19, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
+        ps.setObject( 19, eventDataValuesToJson( event.getEventDataValues(), this.jsonMapper ) );
     }
 
     public void updateEvent( final ProgramStageInstance programStageInstance ) throws JsonProcessingException {
+        
         if ( programStageInstance != null )
         {
-            final String dataValues = eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper );
+            try {
+                final PGobject dataValues =  eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper );
+                jdbcTemplate.execute( SQL_UPDATE, (PreparedStatementCallback<Boolean>) pStmt -> {
+                    pStmt.setLong( 1, programStageInstance.getProgramInstance().getId() );
+                    pStmt.setLong( 2, programStageInstance.getProgramStage().getId() );
+                    pStmt.setTimestamp( 3, new Timestamp( programStageInstance.getDueDate().getTime() ) );
+                    pStmt.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
+                    pStmt.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
+                    pStmt.setString( 6, programStageInstance.getStatus().toString() );
+                    pStmt.setTimestamp( 7, toTimestamp( programStageInstance.getCompletedDate() ) );
+                    pStmt.setTimestamp( 8, toTimestamp( new Date() ) );
+                    pStmt.setLong( 9, programStageInstance.getAttributeOptionCombo().getId() );
+                    pStmt.setString( 10, programStageInstance.getStoredBy() );
+                    pStmt.setString( 11, programStageInstance.getCompletedBy() );
+                    pStmt.setBoolean( 12, programStageInstance.isDeleted() );
+                    pStmt.setString( 13, programStageInstance.getCode() );
+                    pStmt.setTimestamp( 14, toTimestamp( programStageInstance.getCreatedAtClient() ) );
+                    pStmt.setTimestamp( 15, toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
+                    // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work,
+                    // figure out how to handle that
 
-            jdbcTemplate.execute( SQL_UPDATE, (PreparedStatementCallback<Boolean>) pStmt -> {
-                pStmt.setLong( 1, programStageInstance.getProgramInstance().getId() );
-                pStmt.setLong( 2, programStageInstance.getProgramStage().getId() );
-                pStmt.setTimestamp( 3, new Timestamp( programStageInstance.getDueDate().getTime() ) );
-                pStmt.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
-                pStmt.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
-                pStmt.setString( 6, programStageInstance.getStatus().toString() );
-                pStmt.setTimestamp( 7, toTimestamp( programStageInstance.getCompletedDate() ) );
-                pStmt.setTimestamp( 8, toTimestamp( new Date() ) );
-                pStmt.setLong( 9, programStageInstance.getAttributeOptionCombo().getId() );
-                pStmt.setString( 10, programStageInstance.getStoredBy() );
-                pStmt.setString( 11, programStageInstance.getCompletedBy() );
-                pStmt.setBoolean( 12, programStageInstance.isDeleted() );
-                pStmt.setString( 13, programStageInstance.getCode() );
-                pStmt.setTimestamp( 14, toTimestamp( programStageInstance.getCreatedAtClient() ) );
-                pStmt.setTimestamp( 15, toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
-                // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work,
-                // figure out how to handle that
+                    if ( programStageInstance.getAssignedUser() != null )
+                    {
+                        pStmt.setLong( 16, programStageInstance.getAssignedUser().getId() );
+                    }
+                    else
+                    {
+                        pStmt.setObject( 16, null );
+                    }
 
-                if ( programStageInstance.getAssignedUser() != null )
-                {
-                    pStmt.setLong( 16, programStageInstance.getAssignedUser().getId() );
-                }
-                else
-                {
-                    pStmt.setObject( 16, null );
-                }
+                    pStmt.setObject( 17, dataValues );
+                    pStmt.setString( 18, programStageInstance.getUid() );
 
-                pStmt.setString( 17, dataValues );
-                pStmt.setString( 18, programStageInstance.getUid() );
-
-                return pStmt.execute();
-            } );
+                    return pStmt.execute();
+                } );
+            } catch (DataAccessException | JsonProcessingException | SQLException e)  {
+                // FIXME: Maikel
+                //throw e;
+            }
         }
     }
 

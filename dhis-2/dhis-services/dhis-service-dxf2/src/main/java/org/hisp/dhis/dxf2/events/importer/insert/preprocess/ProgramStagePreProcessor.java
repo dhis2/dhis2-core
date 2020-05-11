@@ -45,7 +45,10 @@ public class ProgramStagePreProcessor implements Processor
     public void process( Event event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-
+        if ( program == null )
+        {
+            return; // Program is a mandatory value, it will be caught by the validation
+        }
         ProgramStage programStage = ctx.getProgramStage(
             ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() );
 

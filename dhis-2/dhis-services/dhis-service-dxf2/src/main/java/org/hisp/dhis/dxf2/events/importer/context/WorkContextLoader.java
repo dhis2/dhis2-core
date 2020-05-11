@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.UidGenerator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,6 +61,8 @@ public class WorkContextLoader
 
     private final ServiceDelegatorSupplier serviceDelegatorSupplier;
 
+    private final static UidGenerator uidGen = new UidGenerator();
+
     public WorkContextLoader( ProgramSupplier programSupplier, OrganisationUnitSupplier organisationUnitSupplier,
         TrackedEntityInstanceSupplier trackedEntityInstanceSupplier, ProgramInstanceSupplier programInstanceSupplier,
         ProgramStageInstanceSupplier programStageInstanceSupplier,
@@ -81,18 +84,28 @@ public class WorkContextLoader
 
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
+        ImportOptions localImportOptions = importOptions;
+        // API allows a null Import Options
+        if ( localImportOptions == null )
+        {
+            localImportOptions = ImportOptions.getDefaultImportOptions();
+        }
+
+        // Make sure all events have the 'uid' field populated
+        events = uidGen.assignUidToEvents( events );
+
         return WorkContext.builder()
         // @formatter:off
-            .importOptions( importOptions )
-            .programsMap( programSupplier.get( importOptions, events ) )
-            .organisationUnitMap( organisationUnitSupplier.get( importOptions, events ) )
-            .trackedEntityInstanceMap( trackedEntityInstanceSupplier.get( importOptions, events ) )
-            .programInstanceMap( programInstanceSupplier.get( importOptions, events ) )
-            .programStageInstanceMap( programStageInstanceSupplier.get( importOptions, events ) )
-            .categoryOptionComboMap( categoryOptionComboSupplier.get( importOptions, events ) )
-            .dataElementMap( dataElementSupplier.get( importOptions, events ) )
-            .notesMap( noteSupplier.get( importOptions, events ) )
-            .assignedUserMap( assignedUserSupplier.get( importOptions, events ) )
+            .importOptions( localImportOptions )
+            .programsMap( programSupplier.get( localImportOptions, events ) )
+            .organisationUnitMap( organisationUnitSupplier.get( localImportOptions, events ) )
+            .trackedEntityInstanceMap( trackedEntityInstanceSupplier.get( localImportOptions, events ) )
+            .programInstanceMap( programInstanceSupplier.get( localImportOptions, events ) )
+            .programStageInstanceMap( programStageInstanceSupplier.get( localImportOptions, events ) )
+            .categoryOptionComboMap( categoryOptionComboSupplier.get( localImportOptions, events ) )
+            .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
+            .notesMap( noteSupplier.get( localImportOptions, events ) )
+            .assignedUserMap( assignedUserSupplier.get( localImportOptions, events ) )
             .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
         // @formatter:on

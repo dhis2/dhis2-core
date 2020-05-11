@@ -103,7 +103,7 @@ public class EventBaseCheck
             errors.add( "Invalid event last updated at client date: " + event.getLastUpdatedAtClient() );
         }
 
-        if ( programInstance.getStatus().equals( ProgramStatus.COMPLETED ) )
+        if ( ProgramStatus.COMPLETED.equals( programInstance.getStatus() ) )
         {
             if ( importOptions == null || importOptions.getUser() == null
                 || importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )

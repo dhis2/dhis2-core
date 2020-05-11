@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.sql.SQLException;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.postgresql.util.PGobject;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -76,10 +78,13 @@ public class EventUtils
      * @return a String containing the serialized Set
      * @throws JsonProcessingException if the JSON serialization fails
      */
-    public static String eventDataValuesToJson( Set<EventDataValue> dataValues, ObjectMapper mapper )
-        throws JsonProcessingException
+    public static PGobject eventDataValuesToJson( Set<EventDataValue> dataValues, ObjectMapper mapper )
+        throws JsonProcessingException, SQLException
     {
-        return mapper.writeValueAsString(
-            dataValues.stream().collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) );
+        PGobject jsonbObj = new PGobject();
+        jsonbObj.setType( "json" );
+        jsonbObj.setValue( mapper.writeValueAsString(
+            dataValues.stream().collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) ) );
+        return jsonbObj;
     }
 }

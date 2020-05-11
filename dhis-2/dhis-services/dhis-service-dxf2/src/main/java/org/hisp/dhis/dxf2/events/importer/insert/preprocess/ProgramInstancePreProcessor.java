@@ -58,9 +58,13 @@ public class ProgramInstancePreProcessor
         ProgramInstanceStore programInstanceStore = ctx.getServiceDelegator().getProgramInstanceStore();
 
         Program program = ctx.getProgramsMap().get( event.getProgram() );
+        if ( program == null )
+        {
+            return; // Program is a mandatory value, it will be caught by the validation
+        }
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
-
+        
         if ( program.isRegistration() && programInstance == null )
         {
             List<ProgramInstance> programInstances = new ArrayList<>(
@@ -95,6 +99,11 @@ public class ProgramInstancePreProcessor
                 // Add PI to caches //
                 event.setEnrollment( pi.getUid() );
                 ctx.getProgramInstanceMap().put( event.getUid(), pi );
+            }
+            else
+            {
+                event.setEnrollment( programInstances.get( 0 ).getUid() );
+                ctx.getProgramInstanceMap().put( event.getUid(), programInstances.get( 0 ) );
             }
         }
     }

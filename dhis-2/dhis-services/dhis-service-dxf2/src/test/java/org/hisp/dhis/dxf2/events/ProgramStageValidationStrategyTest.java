@@ -31,12 +31,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -150,6 +152,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         manager.save( dataElementC, false );
 
         programStageA = createProgramStage( 'A', 0 );
+        programStageA.setUid( CodeGenerator.generateUid() );
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         programStageA.getUserAccesses().add( userAccess1 );
         manager.save( programStageA, false );
@@ -209,7 +212,9 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         manager.save( periodA, false );
 
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );
+        categoryComboA.setUid( CodeGenerator.generateUid() );
         CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo( 'A' );
+        categoryOptionComboA.setUid( CodeGenerator.generateUid() );
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryComboA.getUserAccesses().add( userAccess1 );
         categoryOptionComboA.getUserAccesses().add( userAccess1 );
@@ -223,6 +228,8 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         dataValueA = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementA.getUid(), "42");
         dataValueB = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementB.getUid(), "Ford Prefect");
         dataValueC = new org.hisp.dhis.dxf2.events.event.DataValue(dataElementC.getUid(), "84");
+        // Flush all changes to disk
+        manager.flush();
     }
 
     /*

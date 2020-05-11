@@ -28,8 +28,11 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -54,11 +57,20 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
@@ -221,10 +233,13 @@ public class EventImportTest
         pi.setProgram( programB );
         pi.setStatus( ProgramStatus.ACTIVE );
         pi.setStoredBy( "test" );
-
+        pi.setName("EventImportTestPI");
         event = createEvent( "eventUid001" );
 
         createUserAndInjectSecurityContext( true );
+
+        // Flush all data to disk
+        manager.flush();
     }
 
     @Test
@@ -321,7 +336,6 @@ public class EventImportTest
         assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(),
             CoreMatchers.containsString(
                 "Event.trackedEntityInstance does not point to a valid tracked entity instance: null" ) );
-
     }
 
     @Test
@@ -354,7 +368,6 @@ public class EventImportTest
 
     @Test
     public void testEventDeletion()
-        throws IOException
     {
         programInstanceService.addProgramInstance( pi );
 
@@ -379,7 +392,6 @@ public class EventImportTest
 
     @Test
     public void testAddAlreadyDeletedEvent()
-        throws IOException
     {
         programInstanceService.addProgramInstance( pi );
 
@@ -401,7 +413,6 @@ public class EventImportTest
 
     @Test
     public void testAddAlreadyDeletedEventInBulk()
-        throws IOException
     {
         programInstanceService.addProgramInstance( pi );
 
@@ -480,9 +491,7 @@ public class EventImportTest
         dataValues.add( dataValue );
         eventJsonPayload.put( "dataValues", dataValues );
 
-        InputStream is = new ByteArrayInputStream( eventJsonPayload.toString().getBytes() );
-
-        return is;
+        return new ByteArrayInputStream( eventJsonPayload.toString().getBytes() );
     }
 
     private Enrollment createEnrollment( String program, String person )

@@ -345,7 +345,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         programStage.setSortOrder( rs.getInt( "sort_order" ) );
         programStage.setPublicAccess( rs.getString( "ps_public_access" ) );
         programStage.setFeatureType(
-            rs.getString( "ps_feature_type" ) != null ? FeatureType.getTypeFromName( rs.getString( "ps_feature_type" ) )
+            rs.getString( "ps_feature_type" ) != null ? FeatureType.valueOf( rs.getString( "ps_feature_type" ) )
                 : FeatureType.NONE );
         programStage.setRepeatable( rs.getBoolean( "ps_repeatable" ) );
         return programStage;

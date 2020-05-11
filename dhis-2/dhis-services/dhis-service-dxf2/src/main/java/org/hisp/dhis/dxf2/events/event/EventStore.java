@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +67,7 @@ public interface EventStore
         "assigneduserid, " +            // 18
         "eventdatavalues) " +           // 19
         // @formatter:on
-        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::json )";
+        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
     String INSERT_EVENT_NOTE_SQL = "INSERT INTO TRACKEDENTITYCOMMENT (" + "trackedentitycommentid, " + // 0
         "uid, " + // 1
@@ -98,7 +99,7 @@ public interface EventStore
             "lastupdatedatclient = ?, " +       // 15
             //"geometry = ?, " +                //
             "assigneduserid = ?, " +            // 16
-            "eventdatavalues = ?::json " +      // 17
+            "eventdatavalues = ? " +            // 17
             "where uid = ?;";                   // 18
         // @formatter:on
 

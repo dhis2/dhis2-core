@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -54,8 +55,12 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
     @Before
     public void setUp()
+        throws SQLException
     {
         this.subject = new OrganisationUnitSupplier( jdbcTemplate );
+        reset( mockResultSet );
+        when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
+
     }
 
     @Test
@@ -65,6 +70,12 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     }
 
     public void verifySupplier()
+        throws SQLException
+    {
+    }
+
+    @Test
+    public void verifyOuWith4LevelHierarchyIsHandledCorrectly()
         throws SQLException
     {
         // mock resultset data
@@ -92,5 +103,37 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertThat( organisationUnit.getCode(), is( "ALFA" ) );
         assertThat( organisationUnit.getPath(), is( "/aaaa/bbbb/cccc/abcded" ) );
         assertThat( organisationUnit.getHierarchyLevel(), is( 4 ) );
+    }
+
+    @Test
+    public void verifyOuWith1LevelHierarchyIsHandledCorrectly()
+        throws SQLException
+    {
+        // mock resultset data
+        when( mockResultSet.getLong( "organisationunitid" ) ).thenReturn( 100L );
+        when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
+        when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
+        when( mockResultSet.getString( "path" ) ).thenReturn( "/abcded" );
+        when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 1 );
+
+        // create event to import
+        Event event = new Event();
+        event.setUid( CodeGenerator.generateUid() );
+        event.setOrgUnit( "abcded" );
+
+        // mock resultset extraction
+        mockResultSetExtractor( mockResultSet );
+
+        Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            Collections.singletonList( event ) );
+
+        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        assertThat( organisationUnit, is( notNullValue() ) );
+        assertThat( organisationUnit.getId(), is( 100L ) );
+        assertThat( organisationUnit.getUid(), is( "abcded" ) );
+        assertThat( organisationUnit.getCode(), is( "ALFA" ) );
+        assertThat( organisationUnit.getPath(), is( "/abcded" ) );
+        assertThat( organisationUnit.getHierarchyLevel(), is( 1 ) );
+
     }
 }
