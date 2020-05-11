@@ -43,7 +43,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -60,7 +61,15 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
@@ -811,7 +820,7 @@ public abstract class BaseAnalyticalObject
     }
 
     @JsonProperty( value = "relativePeriods" )
-    @JacksonXmlProperty( localName="relativePeriods", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "relativePeriods", namespace = DxfNamespaces.DXF_2_0 )
     public RelativePeriods getRelatives()
     {
         return relatives;
@@ -1201,7 +1210,8 @@ public abstract class BaseAnalyticalObject
     }
 
     @Override
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, String> getParentGraphMap()
     {
         return parentGraphMap;
