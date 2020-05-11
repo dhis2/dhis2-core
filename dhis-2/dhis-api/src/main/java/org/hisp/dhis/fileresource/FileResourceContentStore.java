@@ -46,6 +46,13 @@ public interface FileResourceContentStore
      * @return a ByteSource which provides a stream to the content or null if the content cannot be found or read.
      */
     InputStream getFileResourceContent( String key );
+    
+    /**
+     * Get the content length of a FileResource from the file store.
+     * @param key the key.
+     * @return the content length
+     */
+    long getFileResourceContentLength( String key );
 
     /**
      * Save the contents of the byte array to the file store.
@@ -90,7 +97,6 @@ public interface FileResourceContentStore
      * Copies the content of a stream to the resource stored under key to the output stream.
      * @param key the key used to store a resource
      * @param output the output stream to copy the stream into
-     * @return the file content length
      */
-    long copyContent( String key, OutputStream output ) throws IOException, NoSuchElementException;
+    void copyContent( String key, OutputStream output ) throws IOException, NoSuchElementException;
 }

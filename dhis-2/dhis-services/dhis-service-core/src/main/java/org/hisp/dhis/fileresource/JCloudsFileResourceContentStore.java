@@ -207,6 +207,19 @@ public class JCloudsFileResourceContentStore
             return null;
         }
     }
+    
+    @Override
+    public long getFileResourceContentLength( String key )
+    {
+        final Blob blob = getBlob( key );
+
+        if ( blob == null )
+        {
+            return 0;
+        }
+
+        return blob.getMetadata().getContentMetadata().getContentLength();
+    }
 
     @Override
     public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
@@ -288,7 +301,7 @@ public class JCloudsFileResourceContentStore
     }
 
     @Override
-    public long copyContent( String key, OutputStream output )
+    public void copyContent( String key, OutputStream output )
         throws IOException, NoSuchElementException
     {
         if ( !blobExists( key ) )
@@ -302,8 +315,6 @@ public class JCloudsFileResourceContentStore
         {
             IOUtils.copy( in, output );
         }
-
-        return blob.getMetadata().getContentMetadata().getContentLength();
     }
 
     // -------------------------------------------------------------------------
