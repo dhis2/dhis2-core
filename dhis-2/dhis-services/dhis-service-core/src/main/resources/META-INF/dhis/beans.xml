@@ -706,9 +706,10 @@
     class="org.hisp.dhis.program.DefaultProgramOwnershipHistoryService" />
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
-    class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
+        class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramStageDataElement" />
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate"/>
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
