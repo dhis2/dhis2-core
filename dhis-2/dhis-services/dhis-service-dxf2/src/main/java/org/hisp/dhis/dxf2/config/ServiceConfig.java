@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
@@ -275,7 +274,7 @@ public class ServiceConfig
         return ImmutableMap.of( UPDATE, UPDATE_EVENTS_CHECKS );
     }
 
-    
+
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()
     {
