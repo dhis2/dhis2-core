@@ -129,7 +129,6 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -442,7 +441,14 @@ public class JdbcEventStore
                 }
                 insertEventPS.addBatch();
             }
-            insertEventPS.executeBatch();
+            try
+            {
+                insertEventPS.executeBatch();
+            }
+            catch ( Exception e )
+            {
+                log.error("An error occurred inserting one or more program stage instances during import", e);
+            }
 
             /*
              * Extract the primary keys from the created objects
@@ -494,7 +500,7 @@ public class JdbcEventStore
         try (Connection connection = dataSource.getConnection();
             PreparedStatement insertEventNotePS = connection.prepareStatement( INSERT_EVENT_NOTE_SQL,
                 RETURN_GENERATED_KEYS );
-            PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
+             PreparedStatement insertEventNoteLinkPS = connection.prepareStatement( INSERT_EVENT_COMMENT_LINK ))
         {
 
             for ( ProgramStageInstance psi : batch )
@@ -565,7 +571,9 @@ public class JdbcEventStore
     }
 
     private void bindEventParams( PreparedStatement ps, ProgramStageInstance event )
-            throws SQLException, JsonProcessingException {
+        throws SQLException,
+        JsonProcessingException
+    {
         ps.setLong( 1, event.getProgramInstance().getId() );
         ps.setLong( 2, event.getProgramStage().getId() );
         ps.setTimestamp( 3, new Timestamp( event.getDueDate().getTime() ) );
@@ -583,7 +591,8 @@ public class JdbcEventStore
         ps.setString( 15, event.getCode() );
         ps.setTimestamp( 16, toTimestamp( event.getCreatedAtClient() ) );
         ps.setTimestamp( 17, toTimestamp( event.getLastUpdatedAtClient() ) );
-        // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work, figure out how to handle that
+        // pStmt.setObject( 19, event.getGeometry() ); // TODO this will not work,
+        // figure out how to handle that
         if ( event.getAssignedUser() != null )
         {
             ps.setLong( 18, event.getAssignedUser().getId() );

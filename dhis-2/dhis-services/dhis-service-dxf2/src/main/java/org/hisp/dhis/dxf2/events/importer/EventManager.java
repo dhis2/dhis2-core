@@ -152,21 +152,24 @@ public class EventManager
             // @formatter:on
         }
         List<String> persistedUid = persisted.stream().map( BaseIdentifiableObject::getUid ).collect( toList() );
-        
-        for ( ImportSummary importSummary : importSummaries.getImportSummaries() )
+
+        for ( Event event : events )
         {
-            if ( !importSummary.isStatus( ERROR ) && !persistedUid.contains( importSummary.getReference() ) )
+            if ( !importSummaries.getByReference( event.getUid() ).isPresent() )
             {
-                if ( !persistedUid.contains( importSummary.getReference() ) )
+                ImportSummary is = new ImportSummary();
+                is.setReference( event.getUid() );
+                if ( persistedUid.contains( event.getUid() ) )
                 {
-                    importSummary.setStatus( ERROR );
-                    importSummary.incrementIgnored();
+                    is.setStatus( SUCCESS );
+                    is.incrementImported();
                 }
                 else
                 {
-                    importSummary.setStatus( SUCCESS );
-                    importSummary.incrementImported();
+                    is.setStatus( ERROR );
+                    is.incrementIgnored();
                 }
+                importSummaries.addImportSummary( is );
             }
         }
         

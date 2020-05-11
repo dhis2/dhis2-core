@@ -42,8 +42,15 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -80,6 +87,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
+import org.springframework.test.context.transaction.TestTransaction;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -144,6 +152,8 @@ public class EventImportTest
     protected void setUpTest()
         throws Exception
     {
+        TestTransaction.end();
+        TestTransaction.start();
         userService = _userService;
 
         organisationUnitA = createOrganisationUnit( 'A' );
@@ -162,16 +172,41 @@ public class EventImportTest
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
+        CategoryOption categoryOption1 = new CategoryOption("male");
+        categoryOption1.setAutoFields();
+        CategoryOption categoryOption2 = new CategoryOption("female");
+        categoryOption2.setAutoFields();
+        manager.save( Lists.newArrayList( categoryOption1, categoryOption2 ) );
+
+
+        Category cat1 = new Category( "cat1", DataDimensionType.DISAGGREGATION );
+        cat1.setCategoryOptions( Lists.newArrayList(categoryOption1, categoryOption2));
+        manager.save( Lists.newArrayList( cat1  ) );
+
+        CategoryCombo categoryCombo = new CategoryCombo( "catCombo1", DataDimensionType.DISAGGREGATION );
+        categoryCombo.setCategories( Lists.newArrayList( cat1 ) );
+        manager.save( categoryCombo );
+
+        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+        categoryOptionCombo.setName( "default" );
+        categoryOptionCombo.setCategoryCombo( categoryCombo );
+        categoryOptionCombo.setCategoryOptions( Sets.newHashSet(categoryOption1, categoryOption2 ));
+        categoryOptionCombo.setUid( CodeGenerator.generateUid() );
+        manager.save( categoryOptionCombo );
+
         dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
+        dataElementA.setCategoryCombo( categoryCombo );
         manager.save( dataElementA );
 
         dataElementA2 = createDataElement( 'a' );
         dataElementA2.setValueType( ValueType.INTEGER );
+        dataElementA2.setCategoryCombo( categoryCombo );
         manager.save( dataElementA2 );
 
         dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.INTEGER );
+        dataElementB.setCategoryCombo( categoryCombo );
         manager.save( dataElementB );
 
         programStageA = createProgramStage( 'A', 0 );
@@ -189,10 +224,12 @@ public class EventImportTest
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
+        programA.setCategoryCombo( categoryCombo );
         manager.save( programA );
 
         programB = createProgram( 'B', new HashSet<>(), organisationUnitB );
         programB.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        programB.setCategoryCombo( categoryCombo );
         manager.save( programB );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
@@ -234,12 +271,17 @@ public class EventImportTest
         pi.setStatus( ProgramStatus.ACTIVE );
         pi.setStoredBy( "test" );
         pi.setName("EventImportTestPI");
+        pi.setUid( CodeGenerator.generateUid() );
+        manager.save( pi );
+
         event = createEvent( "eventUid001" );
 
         createUserAndInjectSecurityContext( true );
 
         // Flush all data to disk
         manager.flush();
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
     }
 
     @Test

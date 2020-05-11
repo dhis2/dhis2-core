@@ -89,6 +89,6 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 }

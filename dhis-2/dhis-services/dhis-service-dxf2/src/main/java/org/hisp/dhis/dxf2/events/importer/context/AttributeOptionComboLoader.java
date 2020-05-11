@@ -175,14 +175,7 @@ public class AttributeOptionComboLoader
     public CategoryOptionCombo getDefault()
     {
         final String cacheKey = IdScheme.NAME.name() + KEY_SEPARATOR + "default";
-        CategoryOptionCombo defaultCoc = cocCache.get( cacheKey );
-
-        if ( defaultCoc == null )
-        {
-            defaultCoc = loadCategoryOptionCombo( IdScheme.NAME, "default" );
-            this.cocCache.put( cacheKey, defaultCoc );
-        }
-        return defaultCoc;
+        return  cocCache.get( cacheKey );
     }
 
     /**

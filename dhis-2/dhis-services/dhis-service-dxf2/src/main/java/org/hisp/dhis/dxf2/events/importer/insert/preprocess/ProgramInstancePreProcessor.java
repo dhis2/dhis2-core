@@ -28,29 +28,30 @@
 
 package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * The goal of this Pre-processor is to assign a Program Instance (Enrollment) to the Event getting processed.
- * If the Program Instance can not be assigned, the Event will not pass validation.
+ * The goal of this Pre-processor is to assign a Program Instance (Enrollment)
+ * to the Event getting processed. If the Program Instance can not be assigned,
+ * the Event will not pass validation.
  *
  * @author Luciano Fiandesio
  */
-public class ProgramInstancePreProcessor
-        implements
-    Processor
+public class ProgramInstancePreProcessor implements Processor
 {
     @Override
     public void process( Event event, WorkContext ctx )
@@ -64,11 +65,11 @@ public class ProgramInstancePreProcessor
         }
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         TrackedEntityInstance trackedEntityInstance = ctx.getTrackedEntityInstanceMap().get( event.getUid() );
-        
+
         if ( program.isRegistration() && programInstance == null )
         {
             List<ProgramInstance> programInstances = new ArrayList<>(
-                    programInstanceStore.get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
+                programInstanceStore.get( trackedEntityInstance, program, ProgramStatus.ACTIVE ) );
 
             if ( programInstances.size() == 1 )
             {
@@ -78,7 +79,8 @@ public class ProgramInstancePreProcessor
         }
         else if ( program.isWithoutRegistration() && programInstance == null )
         {
-            List<ProgramInstance> programInstances = programInstanceStore.get( program, ProgramStatus.ACTIVE );
+            List<ProgramInstance> programInstances = getProgramInstances( ctx.getServiceDelegator().getJdbcTemplate(),
+                program, ProgramStatus.ACTIVE );
 
             if ( programInstances.isEmpty() )
             {
@@ -106,5 +108,29 @@ public class ProgramInstancePreProcessor
                 ctx.getProgramInstanceMap().put( event.getUid(), programInstances.get( 0 ) );
             }
         }
+    }
+
+    private List<ProgramInstance> getProgramInstances( JdbcTemplate jdbcTemplate, Program program,
+        ProgramStatus status )
+    {
+        final String sql = "select pi.programinstanceid, pi.programid, pi.uid "
+                + "from programinstance pi "
+                + "where pi.programid = ? and pi.status = ?";
+
+
+        return jdbcTemplate.query( sql, new Object[] { program.getId(), status.name() }, ( ResultSet rs ) -> {
+            List<ProgramInstance> results = new ArrayList<>();
+
+            while ( rs.next() )
+            {
+                ProgramInstance pi = new ProgramInstance();
+                pi.setId( rs.getLong( "programinstanceid" ) );
+                pi.setUid( rs.getString( "uid" ) );
+                pi.setProgram( program );
+                results.add( pi );
+
+            }
+            return results;
+        } );
     }
 }

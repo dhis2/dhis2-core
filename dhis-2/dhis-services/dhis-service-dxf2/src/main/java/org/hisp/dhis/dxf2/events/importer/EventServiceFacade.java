@@ -40,7 +40,6 @@ import java.util.List;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.importer.EventImporter;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
@@ -50,6 +49,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EventServiceFacade
@@ -77,6 +77,7 @@ public class EventServiceFacade
         this.xmlMapper = xmlMapper;
     }
 
+    @Transactional
     public ImportSummaries addEventsXml( final InputStream inputStream, final JobConfiguration jobConfiguration,
         final ImportOptions importOptions )
         throws IOException
@@ -87,6 +88,7 @@ public class EventServiceFacade
         return eventImporter.importAll( events, updateImportOptions( importOptions ), jobConfiguration );
     }
 
+    @Transactional
     public ImportSummaries addEventsJson( final InputStream inputStream, final JobConfiguration jobConfiguration,
         final ImportOptions importOptions )
         throws IOException
