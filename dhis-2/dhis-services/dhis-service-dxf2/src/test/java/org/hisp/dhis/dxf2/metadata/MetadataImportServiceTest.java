@@ -28,10 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,6 +36,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.xpath.XPathExpressionException;
 
@@ -79,8 +77,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MetadataImportServiceTest
-    extends DhisSpringTest
+public class MetadataImportServiceTest extends DhisSpringTest
 {
     @Autowired
     private MetadataImportService importService;
@@ -107,14 +104,16 @@ public class MetadataImportServiceTest
     private NodeService nodeService;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
     }
 
     @Test
-    public void testCorrectStatusOnImportNoErrors() throws IOException
+    public void testCorrectStatusOnImportNoErrors()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
@@ -129,7 +128,8 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testCorrectStatusOnImportErrors() throws IOException
+    public void testCorrectStatusOnImportErrors()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -147,7 +147,8 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testCorrectStatusOnImportErrorsATOMIC() throws IOException
+    public void testCorrectStatusOnImportErrorsATOMIC()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -164,7 +165,8 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testImportWithAccessObjects() throws IOException
+    public void testImportWithAccessObjects()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
@@ -190,13 +192,15 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testImportWithSkipSharingIsTrue() throws IOException
+    public void testImportWithSkipSharingIsTrue()
+        throws IOException
     {
         User user = createUser( "A", "ALL" );
         manager.save( user );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -209,7 +213,8 @@ public class MetadataImportServiceTest
         assertEquals( Status.OK, report.getStatus() );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -223,7 +228,8 @@ public class MetadataImportServiceTest
     }
 
     @Test( expected = MappingException.class )
-    public void testImportNonExistingEntityObject() throws IOException
+    public void testImportNonExistingEntityObject()
+        throws IOException
     {
         User user = createUser( 'A' );
         manager.save( user );
@@ -235,7 +241,8 @@ public class MetadataImportServiceTest
         assertNotNull( userGroup );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -245,11 +252,12 @@ public class MetadataImportServiceTest
         importService.importMetadata( params );
 
         // Should not get to this point.
-        fail("The exception org.hibernate.MappingException was expected.");
+        fail( "The exception org.hibernate.MappingException was expected." );
     }
 
     @Test
-    public void testImportEmbeddedObjectWithSkipSharingIsTrue() throws IOException
+    public void testImportEmbeddedObjectWithSkipSharingIsTrue()
+        throws IOException
     {
         User user = createUser( 'A' );
         manager.save( user );
@@ -261,7 +269,8 @@ public class MetadataImportServiceTest
         assertNotNull( userGroup );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -279,7 +288,8 @@ public class MetadataImportServiceTest
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -299,7 +309,8 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testImportEmbeddedObjectWithSkipSharingIsFalse() throws IOException
+    public void testImportEmbeddedObjectWithSkipSharingIsFalse()
+        throws IOException
     {
 
         User user = createUser( 'A' );
@@ -312,7 +323,8 @@ public class MetadataImportServiceTest
         assertNotNull( userGroup );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -330,7 +342,8 @@ public class MetadataImportServiceTest
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -348,10 +361,11 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testImportProgramWithProgramStageSections() throws IOException
+    public void testImportProgramWithProgramStageSections()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-                new ClassPathResource( "dxf2/program_noreg_sections.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/program_noreg_sections.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -361,7 +375,7 @@ public class MetadataImportServiceTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        Program program = manager.get( Program.class,  "s5uvS0Q7jnX");
+        Program program = manager.get( Program.class, "s5uvS0Q7jnX" );
 
         assertNotNull( program );
         assertEquals( 1, program.getProgramStages().size() );
@@ -378,10 +392,11 @@ public class MetadataImportServiceTest
     }
 
     @Test
-    public void testMetadataSyncWithDeletedDataSetSection() throws IOException
+    public void testMetadataSyncWithDeletedDataSetSection()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-                new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -398,7 +413,7 @@ public class MetadataImportServiceTest
         assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
 
         metadata = renderService.fromMetadata(
-                new ClassPathResource( "dxf2/dataset_with_removed_section.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/dataset_with_removed_section.json" ).getInputStream(), RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
@@ -409,12 +424,12 @@ public class MetadataImportServiceTest
 
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
 
-        assertEquals(1, dataset.getSections().size() );
+        assertEquals( 1, dataset.getSections().size() );
 
         assertNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
 
         metadata = renderService.fromMetadata(
-                new ClassPathResource( "dxf2/dataset_with_all_section_removed.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/dataset_with_all_section_removed.json" ).getInputStream(), RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
@@ -425,18 +440,71 @@ public class MetadataImportServiceTest
 
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
 
-        assertEquals(true, dataset.getSections().isEmpty() );
+        assertEquals( true, dataset.getSections().isEmpty() );
 
     }
 
     @Test
-    public void testUpdateUserGroupWithoutCreatedUserProperty() throws IOException
+    public void testMetadataImportWithDeletedDataElements()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_sections_and_data_elements.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
+
+        assertNotNull( dataset.getSections() );
+        assertNotNull( dataset.getDataElements() );
+        assertTrue( dataset.getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+
+        assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
+
+        assertTrue( dataset.getSections().stream().filter( s -> s.getUid().equals( "JwcV2ZifEQf" ) ).findFirst().get()
+            .getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_data_element_removed.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+        params.setMetadataSyncImport( false );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
+
+        assertFalse( dataset.getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+
+        assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
+
+        assertFalse( dataset.getSections().stream().filter( s -> s.getUid().equals( "JwcV2ZifEQf" ) ).findFirst().get()
+            .getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
+            .contains( "R45hiT7RLui" ) );
+    }
+
+    @Test
+    public void testUpdateUserGroupWithoutCreatedUserProperty()
+        throws IOException
     {
         User userA = createUser( "A", "ALL" );
         userService.addUser( userA );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/usergroups.json" ).getInputStream(), RenderFormat.JSON );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata( new ClassPathResource( "dxf2/usergroups.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -453,8 +521,8 @@ public class MetadataImportServiceTest
         User userB = createUser( "B", "ALL" );
         userService.addUser( userB );
 
-        metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/usergroups_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/usergroups_update.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -472,7 +540,8 @@ public class MetadataImportServiceTest
 
     @Test
     public void testSerializeDeviceRenderTypeMap()
-        throws IOException, XPathExpressionException
+        throws IOException,
+        XPathExpressionException
     {
         Metadata metadata = renderService.fromXml(
             new ClassPathResource( "dxf2/programstagesection_with_deps.xml" ).getInputStream(), Metadata.class );
@@ -493,8 +562,8 @@ public class MetadataImportServiceTest
         SectionRenderingObject renderDevice1 = renderingType.get( RenderDevice.MOBILE );
         SectionRenderingObject renderDevice2 = renderingType.get( RenderDevice.DESKTOP );
 
-        assertEquals( SectionRenderingType.SEQUENTIAL , renderDevice1.getType() );
-        assertEquals( SectionRenderingType.LISTING  , renderDevice2.getType() );
+        assertEquals( SectionRenderingType.SEQUENTIAL, renderDevice1.getType() );
+        assertEquals( SectionRenderingType.LISTING, renderDevice2.getType() );
 
         MetadataExportParams exportParams = new MetadataExportParams();
         exportParams.addQuery( Query.from( schemaService.getSchema( ProgramStageSection.class ) ) );
