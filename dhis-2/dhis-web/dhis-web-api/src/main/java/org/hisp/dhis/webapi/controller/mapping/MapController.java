@@ -246,6 +246,8 @@ public class MapController
 
     private void mergeMapView( MapView view )
     {
+        view.setAutoFields();
+
         dimensionService.mergeAnalyticalObject( view );
         dimensionService.mergeEventAnalyticalObject( view );
 
