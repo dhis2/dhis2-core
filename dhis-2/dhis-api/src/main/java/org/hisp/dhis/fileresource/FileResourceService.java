@@ -28,8 +28,6 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +65,7 @@ public interface FileResourceService
      * @throws IOException
      * @throws NoSuchElementException
      */
-    long copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException;
     
     boolean fileResourceExists( String uid );
@@ -75,4 +73,6 @@ public interface FileResourceService
     void updateFileResource( FileResource fileResource );
 
     URI getSignedGetFileResourceContentUri( String uid );
+    
+    long getFileResourceContentLength( FileResource fileResource );
 }
