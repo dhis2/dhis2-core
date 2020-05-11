@@ -70,6 +70,6 @@ public class EventDateCheck
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 }

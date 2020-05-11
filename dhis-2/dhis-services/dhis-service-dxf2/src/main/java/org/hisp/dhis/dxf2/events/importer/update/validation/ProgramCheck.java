@@ -50,6 +50,6 @@ public class ProgramCheck
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 }

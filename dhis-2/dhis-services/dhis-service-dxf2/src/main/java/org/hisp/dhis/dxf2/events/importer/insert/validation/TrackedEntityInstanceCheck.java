@@ -61,6 +61,6 @@ public class TrackedEntityInstanceCheck implements Checker
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 }

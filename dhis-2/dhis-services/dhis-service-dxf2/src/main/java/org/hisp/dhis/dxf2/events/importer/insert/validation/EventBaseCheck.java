@@ -73,7 +73,7 @@ public class EventBaseCheck
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 
     private List<String> validate( ImmutableEvent event, WorkContext ctx )

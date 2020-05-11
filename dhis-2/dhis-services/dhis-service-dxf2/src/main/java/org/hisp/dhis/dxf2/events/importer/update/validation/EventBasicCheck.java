@@ -55,6 +55,6 @@ public class EventBasicCheck
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 }

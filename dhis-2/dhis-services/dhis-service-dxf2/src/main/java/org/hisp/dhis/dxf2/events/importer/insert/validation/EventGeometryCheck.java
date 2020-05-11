@@ -86,6 +86,6 @@ public class EventGeometryCheck implements Checker
     @Override
     public boolean isFinal()
     {
-        return false;
+        return true;
     }
 }
