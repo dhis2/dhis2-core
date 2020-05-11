@@ -45,7 +45,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ValidationFactory;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.InsertValidationFactory;
 import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateValidationFactory;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -56,30 +56,32 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventManager
 {
-    private final ValidationFactory validationFactory;
+    private final EventChecking insertValidationFactory;
 
-    private final UpdateValidationFactory updateValidationFactory;
+    private final EventChecking updateValidationFactory;
 
-    private final EventProcessing preProcessorFactory;
+    private final EventProcessing preInsertProcessorFactory;
 
     private final EventProcessing preUpdateProcessorFactory;
 
     private final EventPersistenceService eventPersistenceService;
 
-    public EventManager( final ValidationFactory validationFactory,
-        final UpdateValidationFactory updateValidationFactory, @Qualifier( "eventsPreProcessorFactory" )
-        final EventProcessing preProcessorFactory, @Qualifier( "eventsPreUpdateProcessorFactory" )
-        final EventProcessing preUpdateProcessorFactory, final EventPersistenceService eventPersistenceService )
+    public EventManager(
+        @Qualifier("eventsInsertValidationFactory") final InsertValidationFactory insertValidationFactory,
+        @Qualifier("eventsUpdateValidationFactory") final UpdateValidationFactory updateValidationFactory,
+        @Qualifier( "eventsPreInsertProcessorFactory" ) final EventProcessing preInsertProcessorFactory,
+        @Qualifier( "eventsPreUpdateProcessorFactory" ) final EventProcessing preUpdateProcessorFactory,
+        final EventPersistenceService eventPersistenceService )
     {
-        checkNotNull( validationFactory );
+        checkNotNull( insertValidationFactory );
         checkNotNull( updateValidationFactory );
-        checkNotNull( preProcessorFactory );
+        checkNotNull( preInsertProcessorFactory );
         checkNotNull( preUpdateProcessorFactory );
         checkNotNull( eventPersistenceService );
 
-        this.validationFactory = validationFactory;
+        this.insertValidationFactory = insertValidationFactory;
         this.updateValidationFactory = updateValidationFactory;
-        this.preProcessorFactory = preProcessorFactory;
+        this.preInsertProcessorFactory = preInsertProcessorFactory;
         this.preUpdateProcessorFactory = preUpdateProcessorFactory;
         this.eventPersistenceService = eventPersistenceService;
     }
@@ -108,12 +110,12 @@ public class EventManager
         final List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
 
         // pre-process events
-        preProcessorFactory.process( workContext, events );
+        preInsertProcessorFactory.process( workContext, events );
 
         // @formatter:off
         importSummaries.addImportSummaries(
             // Run validation against the remaining "insertable" events //
-            validationFactory.validateEvents( workContext, validEvents )
+            insertValidationFactory.check( workContext, validEvents )
         );
         // @formatter:on
 
@@ -184,7 +186,7 @@ public class EventManager
         // @formatter:off
         importSummaries.addImportSummaries(
             // Run validation against the remaining "insertable" events //
-            updateValidationFactory.validateEvents( workContext, validEvents )
+            updateValidationFactory.check( workContext, validEvents )
         );
         // @formatter:on
 

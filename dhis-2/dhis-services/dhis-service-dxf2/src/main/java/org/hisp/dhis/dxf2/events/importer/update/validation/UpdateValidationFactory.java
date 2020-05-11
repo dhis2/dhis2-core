@@ -29,85 +29,42 @@
 package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventChecking;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Component( "trackerEventsUpdateValidationFactory" )
-@Slf4j
-public class UpdateValidationFactory
+@Component( "eventsUpdateValidationFactory" )
+public class UpdateValidationFactory implements EventChecking
 {
     private final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap;
 
-    public UpdateValidationFactory(
-        final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap )
+    public UpdateValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap )
     {
         checkNotNull( eventUpdateValidatorMap );
         this.eventUpdateValidatorMap = eventUpdateValidatorMap;
     }
 
-    public List<ImportSummary> validateEvents( final WorkContext ctx, final List<Event> events )
+    @Override
+    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
     {
-        final List<ImportSummary> importSummaries = new ArrayList<>();
-
         final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
 
         if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
         {
-            final ValidationRunner validationRunner = new ValidationRunner( eventUpdateValidatorMap.get( UPDATE ) );
 
-            for ( final Event event : events )
-            {
-                importSummaries.add( validationRunner.executeValidationChain( event, ctx ) );
-            }
+            return new ValidationRunner( ctx, events ).run( eventUpdateValidatorMap.get( UPDATE ) );
         }
 
-        return importSummaries;
-    }
-
-    static class ValidationRunner
-    {
-        private final List<Class<? extends Checker>> validators;
-
-        public ValidationRunner( final List<Class<? extends Checker>> validators )
-        {
-            this.validators = validators;
-        }
-
-        public ImportSummary executeValidationChain( final Event event, final WorkContext ctx )
-        {
-            for ( final Class<? extends Checker> validator : validators )
-            {
-                try
-                {
-                    final Checker validationCheck = validator.newInstance();
-                    final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ), ctx );
-
-                    if ( importSummary.isStatus( ERROR ) )
-                    {
-                        return importSummary;
-                    }
-                }
-                catch ( InstantiationException | IllegalAccessException e )
-                {
-                    // TODO: Maikel: Ask Luciano is we should return and Import.ERROR at this point, as returning TRUE might be wrong.
-                    log.error( "An error occurred during Event import validation", e );
-                }
-            }
-            return new ImportSummary();
-        }
+        return emptyList();
     }
 }

@@ -28,29 +28,63 @@
 
 package org.hisp.dhis.dxf2.events.importer;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import static org.apache.commons.logging.LogFactory.getLog;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
-/**
- * @author Luciano Fiandesio
- */
-public interface Checker
+public interface EventChecking
 {
-    ImportSummary check( ImmutableEvent event, WorkContext workContext );
+    Log log = getLog( EventChecking.class );
 
-    boolean isFinal();
+    List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
 
-    default ImportSummary checkNull( Object object, String description, ImmutableEvent event )
+    class ValidationRunner
     {
-        if ( object == null )
+        private final WorkContext workContext;
+
+        private final List<Event> events;
+
+        public ValidationRunner( final WorkContext workContext, final List<Event> events )
         {
-            return error( description, event.getEvent() ).incrementIgnored();
+            this.workContext = workContext;
+            this.events = events;
         }
 
-        return success();
+        public List<ImportSummary> run( final List<Class<? extends Checker>> validators )
+        {
+            final List<ImportSummary> importSummaries = new ArrayList<>( 0 );
+
+            for ( final Event event : events )
+            {
+                for ( final Class<? extends Checker> validator : validators )
+                {
+                    try
+                    {
+                        final Checker validationCheck = validator.newInstance();
+                        final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ),
+                            workContext );
+
+                        if ( importSummary.isStatus( ERROR ) )
+                        {
+                            importSummaries.add( importSummary );
+                        }
+                    }
+                    catch ( InstantiationException | IllegalAccessException e )
+                    {
+                        log.error( "An error occurred during Event import validation", e );
+                    }
+                }
+            }
+
+            return importSummaries;
+        }
     }
 }

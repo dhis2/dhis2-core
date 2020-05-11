@@ -30,11 +30,16 @@ package org.hisp.dhis.dxf2.events.importer;
 
 import java.util.List;
 
+import org.apache.commons.logging.Log;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 
+import static org.apache.commons.logging.LogFactory.getLog;
+
 public interface EventProcessing
 {
+    Log log = getLog( EventProcessing.class );
+
     void process( final WorkContext workContext, final List<Event> events );
 
     class ProcessorRunner
@@ -50,15 +55,20 @@ public interface EventProcessing
         }
 
         public void run( final List<Class<? extends Processor>> processors )
-            throws IllegalAccessException,
-            InstantiationException
         {
             for ( final Event event : events )
             {
                 for ( Class<? extends Processor> processor : processors )
                 {
-                    final Processor pre = processor.newInstance();
-                    pre.process( event, workContext );
+                    try
+                    {
+                        final Processor pre = processor.newInstance();
+                        pre.process( event, workContext );
+                    }
+                    catch ( InstantiationException | IllegalAccessException e )
+                    {
+                        log.error( "An error occurred during Event import processing", e );
+                    }
                 }
             }
         }

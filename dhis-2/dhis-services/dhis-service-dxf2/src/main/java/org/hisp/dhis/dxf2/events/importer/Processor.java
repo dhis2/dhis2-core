@@ -34,8 +34,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 /**
  * @author Luciano Fiandesio
  */
-// TODO: Maybe rename it to simply Processor? It could be used by pre and post processors.
 public interface Processor
 {
-    void process( Event event, WorkContext ctx );
+    void process( Event event, WorkContext workContext );
 }

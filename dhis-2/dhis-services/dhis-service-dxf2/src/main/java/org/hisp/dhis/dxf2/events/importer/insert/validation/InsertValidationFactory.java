@@ -30,83 +30,37 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.events.importer.EventChecking;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Luciano Fiandesio
  */
-@Component( "trackerEventsValidationFactory" )
-@Slf4j
-public class ValidationFactory
+@Component( "eventsInsertValidationFactory" )
+public class InsertValidationFactory implements EventChecking
 {
     private final Map<ImportStrategy, List<Class<? extends Checker>>> validatorMap;
 
-    public ValidationFactory(
+    public InsertValidationFactory(
         @Qualifier( "eventValidatorMap" ) Map<ImportStrategy, List<Class<? extends Checker>>> validatorMap )
     {
         checkNotNull( validatorMap );
         this.validatorMap = validatorMap;
     }
 
-    public List<ImportSummary> validateEvents( WorkContext ctx, List<Event> events )
+    @Override
+    public List<ImportSummary> check( WorkContext ctx, List<Event> events )
     {
-        List<ImportSummary> importSummaries = new ArrayList<>();
-        ValidationRunner validationRunner = new ValidationRunner(
-            validatorMap.get( ctx.getImportOptions().getImportStrategy() ) );
-        for ( Event event : events )
-        {
-            importSummaries.add( validationRunner.executeValidationChain( event, ctx ) );
-        }
-        return importSummaries;
-    }
-
-    /**
-     * Execute the Validation rules. This runner stops the validation chain as soon
-     * as an error is reported.
-     */
-    static class ValidationRunner
-    {
-        private final List<Class<? extends Checker>> validators;
-
-        public ValidationRunner( List<Class<? extends Checker>> validators )
-        {
-            this.validators = validators;
-        }
-
-        public ImportSummary executeValidationChain( Event event, WorkContext ctx )
-        {
-            for ( Class<? extends Checker> validator : validators )
-            {
-                try
-                {
-                    Checker validationCheck = validator.newInstance();
-                    ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ), ctx );
-
-                    if ( importSummary.isStatus( ImportStatus.ERROR ) )
-                    {
-                        importSummary.incrementIgnored();
-                        return importSummary;
-                    }
-                }
-                catch ( InstantiationException | IllegalAccessException e )
-                {
-                    log.error( "An error occurred during Event import validation", e );
-                }
-            }
-            return new ImportSummary( event.getUid() );
-        }
+        return new ValidationRunner( ctx, events )
+            .run( validatorMap.get( ctx.getImportOptions().getImportStrategy() ) );
     }
 }

@@ -40,10 +40,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Component( "eventsPreUpdateProcessorFactory" )
-@Slf4j
 public class PreUpdateProcessorFactory implements EventProcessing
 {
     private final Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap;
@@ -61,15 +58,7 @@ public class PreUpdateProcessorFactory implements EventProcessing
 
         if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
         {
-            try
-            {
-                new ProcessorRunner( workContext, events ).run( eventUpdatePreProcessorMap.get( UPDATE ) );
-            }
-            catch ( InstantiationException | IllegalAccessException e )
-            {
-                // TODO: Check with Luciano: Should we handle it better somehow?
-                log.error( "An error occurred during Event import validation", e );
-            }
+            new ProcessorRunner( workContext, events ).run( eventUpdatePreProcessorMap.get( UPDATE ) );
         }
     }
 }
