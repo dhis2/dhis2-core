@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.HashMap;
@@ -35,11 +36,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.AssignUidPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ImportOptionsPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
@@ -56,6 +57,9 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepea
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.update.postprocess.ProgramNotificationPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventBasicCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
@@ -87,7 +91,6 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -136,7 +139,7 @@ public class ServiceConfig
      *
      */
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
+    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = newArrayList(
     // @formatter:off
         DuplicateIdsCheck.class,
         ValidationHooksCheck.class,
@@ -149,7 +152,7 @@ public class ServiceConfig
     // @formatter:on
     );
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
+    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
     // @formatter:off
         DuplicateIdsCheck.class,
         ValidationHooksCheck.class,
@@ -163,7 +166,7 @@ public class ServiceConfig
     // @formatter:on
     );
 
-    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
+    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
     // @formatter:off
         DuplicateIdsCheck.class,
         ValidationHooksCheck.class,
@@ -177,7 +180,7 @@ public class ServiceConfig
     // @formatter:on
     );
 
-    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = Lists.newArrayList(
+    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
     // @formatter:off
         SecurityCheck.class,
         DeletionCheck.class
@@ -202,8 +205,7 @@ public class ServiceConfig
      *
      */
 
-    private final static List<Class<? extends Checker>> CREATE_EVENTS_CHECKS = Lists
-        .newArrayList(
+    private final static List<Class<? extends Checker>> CREATE_EVENTS_CHECKS = newArrayList(
         // @formatter:off
             EventDateCheck.class,
             OrgUnitCheck.class,
@@ -229,7 +231,7 @@ public class ServiceConfig
             CREATE_EVENTS_CHECKS, ImportStrategy.NEW_AND_UPDATES, CREATE_EVENTS_CHECKS );
     }
 
-    private final static List<Class<? extends Processor>> CREATE_EVENTS_PREPROCESS = Lists.newArrayList(
+    private final static List<Class<? extends Processor>> CREATE_EVENTS_PREPROCESS = newArrayList(
     // @formatter:off
             AssignUidPreProcessor.class,
             ImportOptionsPreProcessor.class,
@@ -250,8 +252,7 @@ public class ServiceConfig
     /**
      * Default validation chains for Tracker Import (update) events process.
      */
-    private final static List<Class<? extends Checker>> UPDATE_EVENTS_CHECKS = Lists
-        .newArrayList(
+    private final static List<Class<? extends Checker>> UPDATE_EVENTS_CHECKS = newArrayList(
         // @formatter:off
             EventBasicCheck.class,
             ProgramStageInstanceBasicCheck.class,
@@ -272,12 +273,17 @@ public class ServiceConfig
         return ImmutableMap.of( UPDATE, UPDATE_EVENTS_CHECKS );
     }
 
-    private final static List<Class<? extends Processor>> UPDATE_EVENTS_PREPROCESSORS = Lists
-        .newArrayList( ProgramInstanceUpdatePreProcessor.class );
-
     @Bean
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()
     {
-        return ImmutableMap.of( UPDATE, UPDATE_EVENTS_PREPROCESSORS );
+        return ImmutableMap.of( UPDATE,
+            newArrayList( ProgramInstanceUpdatePreProcessor.class, ProgramInstanceGeometryPreProcessor.class ) );
+    }
+
+    @Bean
+    public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap()
+    {
+        return ImmutableMap.of( UPDATE,
+            newArrayList( PublishEventPostProcessor.class, ProgramNotificationPostProcessor.class ) );
     }
 }

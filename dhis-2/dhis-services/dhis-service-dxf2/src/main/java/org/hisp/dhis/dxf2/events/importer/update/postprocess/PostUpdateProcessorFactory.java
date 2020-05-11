@@ -28,49 +28,37 @@
 
 package org.hisp.dhis.dxf2.events.importer.update.postprocess;
 
-import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.system.util.GeoUtils.SRID;
-import static org.hisp.dhis.system.util.GeoUtils.getGeoJsonPoint;
+import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
-import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.EventProcessing;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.stereotype.Component;
 
-public class ProgramInstanceGeometryPostProcessor
-    implements
-    Processor
+@Component( "eventsPostUpdateProcessorFactory" )
+public class PostUpdateProcessorFactory implements EventProcessing
 {
+    private final Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap;
+
+    public PostUpdateProcessorFactory(
+        final Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap )
+    {
+        this.eventUpdatePostProcessorMap = eventUpdatePostProcessorMap;
+    }
 
     @Override
-    public void process( final Event event, final WorkContext ctx )
+    public void process( final WorkContext workContext, final List<Event> events )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
 
-        if ( event.getGeometry() != null )
+        if ( importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() )
         {
-            if ( !programStageInstance.getProgramStage().getFeatureType().equals( NONE ) || programStageInstance
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
-            {
-                event.getGeometry().setSRID( SRID );
-            }
-        }
-        else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
-        {
-            final Coordinate coordinate = event.getCoordinate();
-
-            try
-            {
-                event.setGeometry( getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
-            }
-            catch ( IOException e )
-            {
-                // Do nothing. The validation phase, before the post process phase, will catch
-                // it in advance. It should never happen at this stage.
-            }
+            new ProcessorRunner( workContext, events ).run( eventUpdatePostProcessorMap.get( UPDATE ) );
         }
     }
 }

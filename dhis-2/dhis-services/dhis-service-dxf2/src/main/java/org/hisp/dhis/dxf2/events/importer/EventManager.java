@@ -64,6 +64,8 @@ public class EventManager
 
     private final EventProcessing preUpdateProcessorFactory;
 
+    private final EventProcessing postUpdateProcessorFactory;
+
     private final EventPersistenceService eventPersistenceService;
 
     public EventManager(
@@ -71,18 +73,21 @@ public class EventManager
         @Qualifier("eventsUpdateValidationFactory") final UpdateValidationFactory updateValidationFactory,
         @Qualifier( "eventsPreInsertProcessorFactory" ) final EventProcessing preInsertProcessorFactory,
         @Qualifier( "eventsPreUpdateProcessorFactory" ) final EventProcessing preUpdateProcessorFactory,
+        @Qualifier("eventsPostUpdateProcessorFactory") final EventProcessing postUpdateProcessorFactory,
         final EventPersistenceService eventPersistenceService )
     {
         checkNotNull( insertValidationFactory );
         checkNotNull( updateValidationFactory );
         checkNotNull( preInsertProcessorFactory );
         checkNotNull( preUpdateProcessorFactory );
+        checkNotNull( postUpdateProcessorFactory );
         checkNotNull( eventPersistenceService );
 
         this.insertValidationFactory = insertValidationFactory;
         this.updateValidationFactory = updateValidationFactory;
         this.preInsertProcessorFactory = preInsertProcessorFactory;
         this.preUpdateProcessorFactory = preUpdateProcessorFactory;
+        this.postUpdateProcessorFactory = postUpdateProcessorFactory;
         this.eventPersistenceService = eventPersistenceService;
     }
 
@@ -191,16 +196,16 @@ public class EventManager
         // @formatter:on
 
         // collect the UIDs of events that did not pass validation
-        final List<String> failedUids = importSummaries.getImportSummaries().stream().filter( i -> i.isStatus( ERROR ) )
+        final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream().filter( i -> i.isStatus( ERROR ) )
             .map( ImportSummary::getReference ).collect( toList() );
 
 
-        if ( failedUids.size() == validEvents.size() )
+        if ( eventValidationFailedUids.size() == validEvents.size() )
         {
             return importSummaries;
         }
 
-        if ( failedUids.isEmpty() )
+        if ( eventValidationFailedUids.isEmpty() )
         {
             try
             {
@@ -217,13 +222,20 @@ public class EventManager
             {
                 // collect the events that passed validation and can be persisted
                 eventPersistenceService.update( workContext,
-                    validEvents.stream().filter( e -> !failedUids.contains( e.getEvent() ) ).collect( toList() ) );
+                    validEvents.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
             }
             catch ( Exception e )
             {
                 handleFailedUpdate( workContext, importSummaries, validEvents );
             }
         }
+
+        final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
+            .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
+
+        // Post processing only the events that passed validation and ware persisted correctly.
+        postUpdateProcessorFactory.process( workContext, validEvents.stream()
+            .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
 
         return importSummaries;
     }
