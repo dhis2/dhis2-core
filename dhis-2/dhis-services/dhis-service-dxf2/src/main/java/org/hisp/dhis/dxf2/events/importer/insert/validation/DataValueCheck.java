@@ -36,6 +36,7 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -70,8 +71,13 @@ public class DataValueCheck implements Checker
             }
             if ( doValidationOfMandatoryAttributes( user ) )
             {
-                ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
+                final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
 
+                if ( validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
+                        || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED) )
+                {
+
+                }
             }
 
         }
