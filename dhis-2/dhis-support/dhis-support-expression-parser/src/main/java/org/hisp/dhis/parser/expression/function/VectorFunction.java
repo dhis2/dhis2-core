@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -161,19 +163,10 @@ public abstract class VectorFunction
 
             Double value = castDouble( visitor.visit( ctx ) );
 
-            switch ( visitor.getMissingValueStrategy() )
+            if ( ( visitor.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING && visitor.getItemValuesFound() < visitor.getItemsFound() )
+                || ( visitor.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && visitor.getItemsFound() != 0 && visitor.getItemValuesFound() == 0 ) )
             {
-                case SKIP_IF_ANY_VALUE_MISSING:
-                    if ( visitor.getItemValuesFound() < visitor.getItemsFound() )
-                    {
-                        value = null;
-                    }
-
-                case SKIP_IF_ALL_VALUES_MISSING:
-                    if ( visitor.getItemsFound() != 0 && visitor.getItemValuesFound() == 0 )
-                    {
-                        value = null;
-                    }
+                value = null;
             }
 
             if ( value != null )
