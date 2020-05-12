@@ -374,7 +374,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_DESCRIPTIONS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap() );
+            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, false );
 
@@ -483,7 +483,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_GET_ORG_UNIT_GROUPS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap() );
+            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, true );
 
@@ -526,7 +526,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_EVALUATE,
-            samplePeriods, constantMap );
+            samplePeriods, constantMap, missingValueStrategy );
 
         Map<String, Double> itemValueMap = valueMap.entrySet().stream().collect(
             Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) );
@@ -596,7 +596,7 @@ public class DefaultExpressionService
      */
     private CommonExpressionVisitor newVisitor( ParseType parseType,
         ExpressionItemMethod itemMethod, List<Period> samplePeriods,
-        Map<String, Constant> constantMap )
+        Map<String, Constant> constantMap, MissingValueStrategy missingValueStrategy )
     {
         return CommonExpressionVisitor.newBuilder()
             .withItemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( parseType ) )
@@ -605,6 +605,7 @@ public class DefaultExpressionService
             .withDimensionService( dimensionService )
             .withOrganisationUnitGroupService( organisationUnitGroupService )
             .withSamplePeriods( samplePeriods )
+            .withMissingValueStrategy( missingValueStrategy )
             .buildForExpressions();
     }
 
@@ -627,7 +628,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_IDS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap() );
+            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
 
         visitor.setItemIds( itemIds );
         visitor.setSampleItemIds( sampleItemIds );
@@ -692,7 +693,7 @@ public class DefaultExpressionService
         Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap )
     {
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_REGENERATE,
-            DEFAULT_SAMPLE_PERIODS, constantMap );
+            DEFAULT_SAMPLE_PERIODS, constantMap, NEVER_SKIP );
 
         visitor.setOrgUnitCountMap( orgUnitCountMap );
         visitor.setExpressionLiteral( new RegenerateLiteral() );
