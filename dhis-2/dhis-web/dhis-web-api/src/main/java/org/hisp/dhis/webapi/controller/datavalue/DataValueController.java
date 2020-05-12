@@ -524,10 +524,11 @@ public class DataValueController
 
         response.setContentType( fileResource.getContentType() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        response.setHeader( HttpHeaders.CONTENT_LENGTH, String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
         setNoStore( response );
         try
         {
-            response.setContentLengthLong( fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() ) );
+            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
         }
         catch ( IOException e )
         {
