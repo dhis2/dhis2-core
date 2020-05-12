@@ -53,6 +53,8 @@ public class Constants
 
     public static final String ATTRIBUTE_CANT_BE_NULL = "Attribute can't be null";
 
+    public   static final String ATTRIBUTE_VALUE_TYPE_CANT_BE_NULL = "Attribute value type can't be null";
+
     public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";
 
     public static final String PROGRAM_INSTANCE_CANT_BE_NULL = "ProgramInstance can't be null";

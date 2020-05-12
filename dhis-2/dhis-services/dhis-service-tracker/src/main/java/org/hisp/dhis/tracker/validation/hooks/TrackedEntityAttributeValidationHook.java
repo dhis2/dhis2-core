@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.Constants.ATTRIBUTE_VALUE_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.Constants.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
@@ -119,10 +120,10 @@ public class TrackedEntityAttributeValidationHook
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            TrackedEntityAttribute trackedEntityAttribute = reporter.getValidationContext()
+            TrackedEntityAttribute tea = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            if ( trackedEntityAttribute == null )
+            if ( tea == null )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1006 )
                     .addArg( attribute.getAttribute() ) );
@@ -134,137 +135,142 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
-            // TODO: look up in the preheater?
-            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( trackedEntityAttribute.getUid() );
-
-            if ( trackedEntityAttributeValue == null )
-            {
-                trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+            // TODO: Should we really validate existing data? this sounds like a mix of con
+//            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( tea.getUid() );
+//            if ( trackedEntityAttributeValue == null )
+//            {
+                TrackedEntityAttributeValue  trackedEntityAttributeValue = new TrackedEntityAttributeValue();
                 trackedEntityAttributeValue.setEntityInstance( tei );
                 trackedEntityAttributeValue.setValue( attribute.getValue() );
-                trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-            }
+                trackedEntityAttributeValue.setAttribute( tea );
+//            }
+
+
             validateAttributeValue( reporter, trackedEntityAttributeValue );
-
-            validateTextPattern( reporter, attribute, trackedEntityAttribute,
-                trackedEntityAttributeValue );
-
-            validateAttrValueType( reporter, attribute, trackedEntityAttribute );
+            validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
+            validateAttrValueType( reporter, attribute, tea );
 
             // TODO: This is one "THE" potential performance killer...
             validateAttributeUniqueness( reporter,
                 attribute.getValue(),
-                trackedEntityAttribute,
+                tea,
                 tei,
                 orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, attribute, tei, valueMap );
+            validateFileNotAlreadyAssigned( reporter, attribute, valueMap );
         }
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
-        Attribute attr, TrackedEntityInstance tei, Map<String, TrackedEntityAttributeValue> valueMap )
+    public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntityAttributeValue teav )
     {
-        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
+        Objects.requireNonNull( teav, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
-        boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
+        // TODO: Should this be tested here, cant provoke? Is this not validation in metadata? Probably not according to Stian.
+//        if ( teav.getAttribute().getValueType() == null )
+//        {
+//            reporter.addError( newReport( TrackerErrorCode.E1078 )
+//                .addArg( teav.getAttribute().getValueType() ) );
+//        }
 
-        if ( tei != null && attrIsFile )
+        if ( teav.getValue().length() > MAX_ATTR_VALUE_LENGTH )
         {
-            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( attr.getAttribute() );
-
-            if ( !trackedEntityAttributeValue.getAttribute().getValueType().isFile() )
-            {
-                return;
-            }
-
-            FileResource fileResource = reporter.getValidationContext().getBundle().getPreheat()
-                .get( TrackerIdScheme.UID, FileResource.class, attr.getValue() );
-
-            if ( fileResource == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1084 )
-                    .addArg( attr.getValue() ) );
-            }
-
-            if ( fileResource != null && fileResource.isAssigned() )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1009 )
-                    .addArg( attr.getValue() ) );
-            }
+            reporter.addError( newReport( TrackerErrorCode.E1077 )
+                .addArg( teav )
+                .addArg( MAX_ATTR_VALUE_LENGTH ) );
         }
-    }
 
-    protected boolean validateReservedValues( TrackedEntityAttribute attribute, String value, String oldValue )
-    {
-        Objects.requireNonNull( attribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
+        if ( teav.getAttribute().isConfidentialBool() &&
+            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1112 )
+                .addArg( teav ) );
+        }
 
-        // So that we don't block existing reserved values (on UPDATE) with an incompatible pattern,
-        // we have this check Objects.equals( value, oldValue )
-        return Objects.equals( value, oldValue ) ||
-            TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) ||
-            reservedValueService.isReserved( attribute.getTextPattern(), value );
+        String result = dataValueIsValid( teav.getValue(), teav.getAttribute().getValueType() );
+        if ( result != null )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1085 )
+                .addArg( teav.getAttribute() )
+                .addArg( result ) );
+        }
     }
 
     protected void validateTextPattern( ValidationErrorReporter reporter,
-        Attribute attr, TrackedEntityAttribute teAttr, TrackedEntityAttributeValue teiAttributeValue )
+        Attribute attribute, TrackedEntityAttribute tea, TrackedEntityAttributeValue existingValue )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
-        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
-        Objects.requireNonNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
+        Objects.requireNonNull( attribute, ATTRIBUTE_CANT_BE_NULL );
+        Objects.requireNonNull( tea, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
+
+        if ( !tea.isGenerated() )
+        {
+            return;
+        }
 
         // TODO: Should we check the text pattern even if its not generated?
         // TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
 
-        if ( teAttr.getTextPattern() == null && teAttr.isGenerated() && !bundle.isSkipTextPatternValidation() )
+        //TODO: Can't provoke this error since metadata importer won't allow null, empty or invalid patterns.
+        if ( tea.getTextPattern() == null && !bundle.isSkipTextPatternValidation() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1111 )
-                .addArg( attr ) );
+                .addArg( attribute ) );
         }
 
-        if ( teAttr.getTextPattern() != null && teAttr.isGenerated() && !bundle.isSkipTextPatternValidation() )
+        if ( tea.getTextPattern() != null && !bundle.isSkipTextPatternValidation() )
         {
-            String oldValue = teiAttributeValue != null ? teiAttributeValue.getValue() : null;
+            String oldValue = existingValue != null ? existingValue.getValue() : null;
 
-            if ( !validateReservedValues( teAttr, attr.getValue(), oldValue ) )
+            // We basically ignore the pattern validation if the value is reserved or already
+            // assigned i.e. input eq. already persisted value.
+            boolean isReservedOrAlreadyAssigned = Objects.equals( attribute.getValue(), oldValue ) ||
+                reservedValueService.isReserved( tea.getTextPattern(), attribute.getValue() );
+
+            boolean isValidPattern = TextPatternValidationUtils
+                .validateTextPatternValue( tea.getTextPattern(), attribute.getValue() );
+
+            if ( !isReservedOrAlreadyAssigned && !isValidPattern )
             {
                 reporter.addError( newReport( TrackerErrorCode.E1008 )
-                    .addArg( attr.getValue() ) );
+                    .addArg( attribute.getValue() )
+                    .addArg( tea.getTextPattern() ) );
             }
         }
     }
 
-    public void validateAttributeValue( ValidationErrorReporter errorReporter,
-        TrackedEntityAttributeValue attributeValue )
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
+        Attribute attr, Map<String, TrackedEntityAttributeValue> valueMap )
     {
-        Objects.requireNonNull( attributeValue, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+        Objects.requireNonNull( attr, ATTRIBUTE_CANT_BE_NULL );
 
-        if ( attributeValue.getAttribute().getValueType() == null )
+        boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
+        if ( !attrIsFile )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1078 )
-                .addArg( attributeValue.getAttribute().getValueType() ) );
+            return;
         }
 
-        if ( attributeValue.getValue().length() > MAX_ATTR_VALUE_LENGTH )
+        TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( attr.getAttribute() );
+
+        // Todo: how can this be possible? is this acceptable?
+        if ( trackedEntityAttributeValue != null &&
+            !trackedEntityAttributeValue.getAttribute().getValueType().isFile() )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1078 )
-                .addArg( attributeValue )
-                .addArg( attributeValue.getValue().length() ) );
+            return;
         }
 
-        if ( attributeValue.getAttribute().isConfidentialBool() &&
-            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+        FileResource fileResource = reporter.getValidationContext().getBundle().getPreheat()
+            .get( TrackerIdScheme.UID, FileResource.class, attr.getValue() );
+
+        if ( fileResource == null )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1112 )
-                .addArg( attributeValue ) );
+            reporter.addError( newReport( TrackerErrorCode.E1084 )
+                .addArg( attr.getValue() ) );
         }
 
-        String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
-        if ( result != null )
+        if ( fileResource != null && fileResource.isAssigned() )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1085 )
-                .addArg( attributeValue.getAttribute() )
-                .addArg( result ) );
+            reporter.addError( newReport( TrackerErrorCode.E1009 )
+                .addArg( attr.getValue() ) );
         }
     }
 }
